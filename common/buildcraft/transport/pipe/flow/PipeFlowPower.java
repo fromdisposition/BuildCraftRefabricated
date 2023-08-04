@@ -409,7 +409,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
         } else {
             s.nextPowerQuery += amount;
         }
-        // s.nextPowerQuery = Math.min(s.nextPowerQuery, maxPower);
+        s.nextPowerQuery = Math.min(s.nextPowerQuery, maxPower);
     }
 
     public long getPowerRequested(@Nullable EnumFacing side) {

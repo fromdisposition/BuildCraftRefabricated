@@ -49,11 +49,11 @@ public class BCTransportItems {
 
     public static ItemPipeHolder pipeItemIron;
     public static ItemPipeHolder pipeFluidIron;
-    // public static ItemPipeHolder pipePowerIron;
+    public static ItemPipeHolder pipePowerIron;
 
     public static ItemPipeHolder pipeItemDiamond;
     public static ItemPipeHolder pipeFluidDiamond;
-    // public static ItemPipeHolder pipePowerDiamond;
+    public static ItemPipeHolder pipePowerDiamond;
 
     public static ItemPipeHolder pipeItemDiaWood;
     public static ItemPipeHolder pipeFluidDiaWood;
@@ -117,9 +117,10 @@ public class BCTransportItems {
         pipePowerCobble = makePipeItem(BCTransportPipes.cobblePower);
         pipePowerStone = makePipeItem(BCTransportPipes.stonePower);
         pipePowerQuartz = makePipeItem(BCTransportPipes.quartzPower);
+        pipePowerIron = makePipeItem(BCTransportPipes.ironPower);
         pipePowerGold = makePipeItem(BCTransportPipes.goldPower);
-        // pipePowerIron = makePipeItem(BCTransportPipes.ironPower);
         pipePowerSandstone = makePipeItem(BCTransportPipes.sandstonePower);
+        pipePowerDiamond = makePipeItem(BCTransportPipes.diamondPower);
 
         plugBlocker = HELPER.addItem(new ItemPluggableSimple("item.plug.blocker", BCTransportPlugs.blocker));
         plugPowerAdaptor = HELPER.addItem(new ItemPluggableSimple("item.plug.power_adaptor",

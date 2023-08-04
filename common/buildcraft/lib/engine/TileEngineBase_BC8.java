@@ -30,6 +30,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjReceiver;
+import buildcraft.api.mj.IMjRedstoneReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjCapabilityHelper;
 import buildcraft.api.tiles.IDebuggable;
@@ -311,12 +312,17 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
         getPowerStage();
         engineUpdate();
 
+        IMjReceiver receiver = getReceiverToPower(currentDirection);
+        boolean pulsedPower = receiver instanceof IMjRedstoneReceiver;
+
         if (progressPart != 0) {
             progress += getPistonSpeed();
 
             if (progress > 0.5 && progressPart == 1) {
                 progressPart = 2;
-                sendPower(); // Comment out for constant power
+                if (pulsedPower) {
+                    sendPower(receiver);
+                }
             } else if (progress >= 1) {
                 progress = 0;
                 progressPart = 0;
@@ -332,10 +338,14 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
             setPumping(false);
         }
 
-        // Uncomment for constant power
-        // if (isRedstonePowered && isActive()) {
-        // sendPower();
-        // } else currentOutput = 0;
+        // Comment for constant power
+        if (!pulsedPower) {
+            if (isRedstonePowered && isActive()) {
+                sendPower(receiver);
+            } else {
+                currentOutput = 0;
+            }
+        }
 
         if (!overheat) {
             burn();
@@ -359,8 +369,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
         // return extractEnergy(0, getActualOutput(), false); // Uncomment for constant power
     }
 
-    private void sendPower() {
-        IMjReceiver receiver = getReceiverToPower(currentDirection);
+    private void sendPower(IMjReceiver receiver) {
         if (receiver != null) {
             long extracted = getPowerToExtract(true);
             if (extracted > 0) {
