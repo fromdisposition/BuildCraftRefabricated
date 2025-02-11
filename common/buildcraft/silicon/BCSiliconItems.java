@@ -28,6 +28,7 @@ public class BCSiliconItems {
     public static ItemPluggableLens plugLens;
     public static ItemPluggableSimple plugPulsar;
     public static ItemPluggableSimple plugLightSensor;
+    public static ItemPluggableSimple plugTimer;
     public static ItemPluggableFacade plugFacade;
 
     public static void preInit() {
@@ -39,6 +40,7 @@ public class BCSiliconItems {
         plugPulsar = HELPER.addItem(new ItemPluggableSimple("item.plug.pulsar", BCSiliconPlugs.pulsar,
             PluggablePulsar::new, ItemPluggableSimple.PIPE_BEHAVIOUR_ACCEPTS_RS_POWER));
         plugLightSensor = HELPER.addItem(new ItemPluggableSimple("item.plug.light_sensor", BCSiliconPlugs.lightSensor));
+        plugTimer = HELPER.addItem(new ItemPluggableSimple("item.plug.timer", BCSiliconPlugs.timer));
         plugFacade = HELPER.addItem(new ItemPluggableFacade("item.plug.facade"));
         FacadeAPI.facadeItem = plugFacade;
     }

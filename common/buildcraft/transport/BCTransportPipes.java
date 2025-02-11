@@ -152,8 +152,8 @@ public class BCTransportPipes {
         builder.builder.itemTex(0);
 
         builder.logic(PipeBehaviourLimiter::new, PipeBehaviourLimiter::new).flowPower();
-        builder.texSuffixes("_m2", "_m4", "_m8", "_m16", "_m32", "_m64");
-        builder.builder.itemTex(5);
+        builder.texSuffixes("_m0", "_m4", "_m8", "_m16", "_m32", "_m64", "_m128");
+        builder.builder.itemTex(6);
         ironPower = builder.idTexPrefix("iron_power").define();
         diamondPower = builder.idTexPrefix("diamond_power").define();
         builder.builder.itemTex(0);

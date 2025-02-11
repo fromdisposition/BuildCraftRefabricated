@@ -371,7 +371,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
 
     private void sendPower(IMjReceiver receiver) {
         if (receiver != null) {
-            long extracted = getPowerToExtract(true);
+            long extracted = getPowerToExtract(false);
             if (extracted > 0) {
                 long excess = receiver.receivePower(extracted, false);
                 extractPower(extracted - excess, extracted - excess, true); // Comment out for constant power

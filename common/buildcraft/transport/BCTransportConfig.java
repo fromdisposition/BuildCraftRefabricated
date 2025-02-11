@@ -117,8 +117,8 @@ public class BCTransportConfig {
             powerTransfer(BCTransportPipes.sandstonePower, basePowerRate * 4, 32, false);
             powerTransfer(BCTransportPipes.quartzPower, basePowerRate * 8, 32, false);
             powerTransfer(BCTransportPipes.ironPower, basePowerRate * 8, 32, false);
-            powerTransfer(BCTransportPipes.goldPower, basePowerRate * 16, 32, false);
-            powerTransfer(BCTransportPipes.diamondPower, basePowerRate * 32, 32, false);
+            powerTransfer(BCTransportPipes.goldPower, basePowerRate * 32, 32, false);
+            powerTransfer(BCTransportPipes.diamondPower, basePowerRate * 64, 32, false);
         }
     }
 

@@ -180,6 +180,12 @@ public class BCSiliconRecipes {
                 new ItemStack(BCSiliconItems.plugLightSensor)));
         }
 
+        if (BCSiliconItems.plugTimer != null) {
+            AssemblyRecipeRegistry.register(new AssemblyRecipeBasic("timer", 500 * MjAPI.MJ,
+                ImmutableSet.of(IngredientStack.of(Items.CLOCK)),
+                new ItemStack(BCSiliconItems.plugTimer)));
+        }
+
         if (BCSiliconItems.plugFacade != null) {
             AssemblyRecipeRegistry.register(FacadeAssemblyRecipes.INSTANCE);
             ForgeRegistries.RECIPES.register(FacadeSwapRecipe.INSTANCE);

@@ -254,6 +254,10 @@ public final class Pipe implements IPipe, IDebuggable {
         }
     }
 
+    public void postPluggableTick() {
+        flow.postPluggableTick();
+    }
+
     private void updateConnections() {
         if (holder.getPipeWorld().isRemote) {
             return;

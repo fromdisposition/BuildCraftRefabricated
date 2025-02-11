@@ -14,6 +14,7 @@ import buildcraft.silicon.plug.PluggableGate;
 import buildcraft.silicon.plug.PluggableLens;
 import buildcraft.silicon.plug.PluggableLightSensor;
 import buildcraft.silicon.plug.PluggablePulsar;
+import buildcraft.silicon.plug.PluggableTimer;
 
 public class BCSiliconPlugs {
 
@@ -21,6 +22,7 @@ public class BCSiliconPlugs {
     public static PluggableDefinition lens;
     public static PluggableDefinition pulsar;
     public static PluggableDefinition lightSensor;
+    public static PluggableDefinition timer;
     public static PluggableDefinition facade;
 
     public static void preInit() {
@@ -28,6 +30,7 @@ public class BCSiliconPlugs {
         lens = register("lens", PluggableLens::new, PluggableLens::new);
         pulsar = register("pulsar", PluggablePulsar::new, PluggablePulsar::new);
         lightSensor = register("daylight_sensor", PluggableLightSensor::new);
+        timer = register("timer", PluggableTimer::new);
         facade = register("facade", PluggableFacade::new, PluggableFacade::new);
     }
 

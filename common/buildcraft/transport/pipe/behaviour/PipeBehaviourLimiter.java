@@ -7,15 +7,20 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentTranslation;
 
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 
 import buildcraft.api.core.EnumPipePart;
-import buildcraft.api.transport.pipe.IFlowPower;
+import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.PipeApi;
+import buildcraft.api.transport.pipe.PipeApi.PowerTransferInfo;
 import buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver;
 import buildcraft.api.transport.pipe.PipeBehaviour;
+import buildcraft.api.transport.pipe.PipeEventActionActivate;
 import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventPower;
 
@@ -23,10 +28,11 @@ import buildcraft.lib.misc.EntityUtil;
 import buildcraft.lib.misc.MathUtil;
 
 import buildcraft.transport.pipe.flow.PipeFlowPower;
+import buildcraft.transport.statements.ActionPowerLimit;
 
 public class PipeBehaviourLimiter extends PipeBehaviour {
 
-    private static final int MAX_SHIFT = 5;
+    public static final int MAX_SHIFT = 6;
 
     private int limitShift = 0;
 
@@ -60,7 +66,20 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
 
     @PipeEventHandler
     public void configurePower(PipeEventPower.Configure event) {
-        event.setMaxPower(event.getMaxPower() >> limitShift);
+        if (limitShift == MAX_SHIFT) {
+            event.disableTransfer();
+        } else {
+            event.setMaxPower(event.getMaxPower() >> limitShift);
+        }
+    }
+
+    @PipeEventHandler
+    public void onActionActivate(PipeEventActionActivate event) {
+        if (event.action instanceof ActionPowerLimit) {
+            limitShift = ((ActionPowerLimit) event.action).limitShift;
+
+            requestReconfigure();
+        }
     }
 
     @Override
@@ -78,17 +97,31 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
                 limitShift = 0;
             }
 
-            if (pipe.getFlow() instanceof PipeFlowPower) {
-                PipeFlowPower flow = (PipeFlowPower) pipe.getFlow();
-                flow.reconfigure();
-                pipe.getHolder().scheduleNetworkUpdate(PipeMessageReceiver.BEHAVIOUR);
+            final int limit;
+            if (limitShift == MAX_SHIFT) {
+                limit = 0;
+            } else {
+                PowerTransferInfo transferInfo = PipeApi.getPowerTransferInfo(pipe.getDefinition());
+                limit = (int) ((transferInfo.transferPerTick >> limitShift) / MjAPI.MJ);
             }
+            TextComponentTranslation chat = new TextComponentTranslation("chat.pipe.power.iron.mode", limit);
+            player.sendStatusMessage(chat, true);
+
+            requestReconfigure();
         }
         return true;
     }
 
+    private void requestReconfigure() {
+        if (pipe.getFlow() instanceof PipeFlowPower) {
+            PipeFlowPower flow = (PipeFlowPower) pipe.getFlow();
+            flow.reconfigure();
+            pipe.getHolder().scheduleNetworkUpdate(PipeMessageReceiver.BEHAVIOUR);
+        }
+    }
+
     @Override
     public int getTextureIndex(EnumFacing face) {
-        return limitShift;
+        return MAX_SHIFT - limitShift;
     }
 }

@@ -46,7 +46,7 @@ import buildcraft.lib.script.ReloadableRegistryManager;
     version = BCLib.VERSION,
     updateJSON = "https://mod-buildcraft.com/version/versions.json",
     acceptedMinecraftVersions = "(gradle_replace_mcversion,)",
-    dependencies = "required-after:forge@(gradle_replace_forgeversion,)"
+    dependencies = "required-after:forge@(gradle_replace_forgeversion,);before:poweradapters@(1.0.10,)"
 )
 //@formatter:on
 public class BCLib {

@@ -14,11 +14,14 @@ import buildcraft.api.statements.StatementManager;
 import buildcraft.lib.misc.ColourUtil;
 
 import buildcraft.transport.pipe.behaviour.PipeBehaviourEmzuli.SlotIndex;
+import buildcraft.transport.pipe.behaviour.PipeBehaviourLimiter;
 import buildcraft.transport.statements.ActionExtractionPreset;
 import buildcraft.transport.statements.ActionParameterSignal;
 import buildcraft.transport.statements.ActionPipeColor;
 import buildcraft.transport.statements.ActionPipeDirection;
 import buildcraft.transport.statements.ActionPipeSignal;
+import buildcraft.transport.statements.ActionPowerLimit.ActionDiamondPowerLimit;
+import buildcraft.transport.statements.ActionPowerLimit.ActionIronPowerLimit;
 import buildcraft.transport.statements.ActionProviderPipes;
 import buildcraft.transport.statements.TriggerFluidsTraversing;
 import buildcraft.transport.statements.TriggerItemsTraversing;
@@ -37,6 +40,8 @@ public class BCTransportStatements {
     public static final ActionPipeColor[] ACTION_PIPE_COLOUR;
     public static final ActionExtractionPreset[] ACTION_EXTRACTION_PRESET;
     public static final ActionPipeDirection[] ACTION_PIPE_DIRECTION;
+    public static final ActionIronPowerLimit[] ACTION_IRON_POWER_LIMIT;
+    public static final ActionDiamondPowerLimit[] ACTION_DIAMOND_POWER_LIMIT;
 
     static {
         TRIGGER_PIPE_SIGNAL = new TriggerPipeSignal[2 * ColourUtil.COLOURS.length];
@@ -68,6 +73,15 @@ public class BCTransportStatements {
         TRIGGER_POWER_REQUESTED = new TriggerPowerRequested();
         TRIGGER_ITEMS_TRAVERSING = new TriggerItemsTraversing();
         TRIGGER_FLUIDS_TRAVERSING = new TriggerFluidsTraversing();
+
+        ACTION_IRON_POWER_LIMIT = new ActionIronPowerLimit[PipeBehaviourLimiter.MAX_SHIFT + 1];
+        ACTION_DIAMOND_POWER_LIMIT = new ActionDiamondPowerLimit[PipeBehaviourLimiter.MAX_SHIFT + 1];
+        int index = 0;
+        for (int shift = PipeBehaviourLimiter.MAX_SHIFT; shift >= 0; shift--) {
+            ACTION_IRON_POWER_LIMIT[index] = new ActionIronPowerLimit(shift);
+            ACTION_DIAMOND_POWER_LIMIT[index] = new ActionDiamondPowerLimit(shift);
+            index++;
+        }
 
         StatementManager.registerParameter(TriggerParameterSignal::readFromNbt, TriggerParameterSignal::readFromBuf);
         StatementManager.registerParameter(ActionParameterSignal::readFromNbt);

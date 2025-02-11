@@ -60,6 +60,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
     private long maxPower = -1;
     private long powerLoss = -1;
     private long powerResistance = -1;
+    private boolean disabled = false;
 
     private long currentWorldTime;
 
@@ -149,6 +150,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
         pipe.getHolder().fireEvent(configure);
         isReceiver = configure.isReceiver();
         maxPower = configure.getMaxPower();
+        disabled = configure.isTransferDisabled();
         if (maxPower <= 0) {
             maxPower = DEFAULT_MAX_POWER;
         }
@@ -168,7 +170,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
 
     @Override
     public long tryExtractPower(long maxExtracted, EnumFacing from) {
-        if (!isReceiver) {
+        if (!isReceiver || disabled) {
             return 0;
         }
         TileEntity tile = pipe.getConnectedTile(from);
@@ -275,10 +277,16 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
                     }
                 }
 
+                boolean returnPower = false;
+                if (totalPowerQuery <= 0 && s.powerQuery > 0) {
+                    totalPowerQuery = s.powerQuery;
+                    returnPower = true;
+                }
+
                 if (totalPowerQuery > 0) {
                     long unusedPowerQuery = totalPowerQuery;
                     for (EnumFacing face2 : EnumFacing.VALUES) {
-                        if (face == face2) {
+                        if (face == face2 && !returnPower) {
                             continue;
                         }
                         Section s2 = sections.get(face2);
@@ -358,6 +366,9 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
 
         // Transfer requested power to neighbouring pipes
         for (EnumFacing face : EnumFacing.VALUES) {
+            if (disabled) {
+                continue;
+            }
             if (transferQueryTemp[face.ordinal()] <= 0 || !pipe.isConnected(face)) {
                 continue;
             }
@@ -444,7 +455,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
         public EnumFlow displayFlow = EnumFlow.STATIONARY;
         public long nextPowerQuery;
         public long internalNextPower;
-        public final AverageInt powerAverage = new AverageInt(10);
+        public final AverageInt powerAverage = new AverageInt(1);
 
         long powerQuery;
         long internalPower;
@@ -460,9 +471,8 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
             powerQuery = nextPowerQuery;
             nextPowerQuery = 0;
 
-            long next = internalPower;
-            internalPower = internalNextPower;
-            internalNextPower = next;
+            internalPower += internalNextPower;
+            internalNextPower = 0;
         }
 
         @Override
@@ -477,6 +487,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
 
         long receivePowerInternal(long sent) {
             if (sent > 0) {
+                PipeFlowPower.this.step();
                 debugPowerOffered += sent;
                 internalNextPower += sent;
                 return 0;
@@ -487,7 +498,6 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
         @Override
         public long receivePower(long microJoules, boolean simulate) {
             if (isReceiver) {
-                PipeFlowPower.this.step();
                 if (!simulate) {
                     return this.receivePowerInternal(microJoules);
                 }

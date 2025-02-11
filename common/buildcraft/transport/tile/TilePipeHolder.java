@@ -255,6 +255,9 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, ITick
         for (EnumFacing face : EnumFacing.VALUES) {
             pluggables.get(face).onTick();
         }
+        if (pipe != null) {
+            pipe.postPluggableTick();
+        }
 
         // Send network updates
         if (networkUpdates.size() > 0) {
