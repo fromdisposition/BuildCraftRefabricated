@@ -21,6 +21,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumFacing.AxisDirection;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 
@@ -53,8 +54,8 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
     private static final long DEFAULT_MAX_POWER = MjAPI.MJ * 10;
     public static final int NET_POWER_AMOUNTS = 2;
 
-    public Vec3d clientDisplayFlowCentre = Vec3d.ZERO;
-    public Vec3d clientDisplayFlowCentreLast = Vec3d.ZERO;
+    public Vec3d clientDisplayFlowCentre = VecUtil.VEC_HALF;
+    public Vec3d clientDisplayFlowCentreLast = VecUtil.VEC_HALF;
     public long clientLastDisplayTime = 0;
 
     private long maxPower = -1;
@@ -465,6 +466,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
 
         public Section(EnumFacing side) {
             this.side = side;
+            clientDisplayFlow = (side.getAxisDirection() == AxisDirection.POSITIVE ? 7 : 1) / 8.0;
         }
 
         void step() {

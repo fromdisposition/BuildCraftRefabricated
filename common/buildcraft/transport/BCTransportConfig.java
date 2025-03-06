@@ -43,12 +43,14 @@ public class BCTransportConfig {
     public static long mjPerMillibucket = 1_000;
     public static long mjPerItem = MjAPI.MJ;
     public static int baseFlowRate = 10;
+    public static int basePowerRate = 4;
     public static boolean fluidPipeColourBorder;
     public static PowerLossMode lossMode = PowerLossMode.DEFAULT;
 
     private static Property propMjPerMillibucket;
     private static Property propMjPerItem;
     private static Property propBaseFlowRate;
+    private static Property propBasePowerRate;
     private static Property propFluidPipeColourBorder;
     private static Property propLossMode;
 
@@ -63,6 +65,9 @@ public class BCTransportConfig {
 
         propBaseFlowRate = config.get("general", "pipes.baseFluidRate", baseFlowRate).setMinValue(1).setMaxValue(40);
         EnumRestartRequirement.WORLD.setTo(propBaseFlowRate);
+
+        propBasePowerRate = config.get("general", "pipes.basePowerRate", basePowerRate).setMinValue(1).setMaxValue(40);
+        EnumRestartRequirement.WORLD.setTo(propBasePowerRate);
 
         propFluidPipeColourBorder = config.get("display", "pipes.fluidColourIsBorder", true);
         EnumRestartRequirement.WORLD.setTo(propFluidPipeColourBorder);
@@ -88,7 +93,7 @@ public class BCTransportConfig {
             }
 
             baseFlowRate = MathUtil.clamp(propBaseFlowRate.getInt(), 1, 40);
-            int basePowerRate = 4;
+            basePowerRate = MathUtil.clamp(propBasePowerRate.getInt(), 1, 40);
 
             fluidPipeColourBorder = propFluidPipeColourBorder.getBoolean();
             PipeApi.flowFluids.fallbackColourType =
@@ -119,6 +124,7 @@ public class BCTransportConfig {
             powerTransfer(BCTransportPipes.ironPower, basePowerRate * 8, 32, false);
             powerTransfer(BCTransportPipes.goldPower, basePowerRate * 32, 32, false);
             powerTransfer(BCTransportPipes.diamondPower, basePowerRate * 64, 32, false);
+            powerTransfer(BCTransportPipes.diaWoodPower, basePowerRate * 64, 32, true);
         }
     }
 

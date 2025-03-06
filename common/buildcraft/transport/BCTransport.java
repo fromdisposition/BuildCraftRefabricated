@@ -185,7 +185,7 @@ public class BCTransport {
         registerTag("item.pipe.buildcrafttransport.diamond_wood_fluid").reg("pipe_diamond_wood_fluid")
             .locale("PipeFluidsWoodenDiamond");
         registerTag("item.pipe.buildcrafttransport.diamond_wood_power").reg("pipe_diamond_wood_power")
-            .locale("PipePowerEmerald");
+            .locale("PipePowerWoodenDiamond");
         registerTag("item.pipe.buildcrafttransport.clay_item").reg("pipe_clay_item").locale("PipeItemsClay");
         registerTag("item.pipe.buildcrafttransport.clay_fluid").reg("pipe_clay_fluid").locale("PipeFluidsClay");
         registerTag("item.pipe.buildcrafttransport.void_item").reg("pipe_void_item").locale("PipeItemsVoid");

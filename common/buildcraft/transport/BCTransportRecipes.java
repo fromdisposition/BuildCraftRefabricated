@@ -91,6 +91,7 @@ public class BCTransportRecipes {
         addPipeUpgradeRecipe(BCTransportItems.pipeItemGold, BCTransportItems.pipePowerGold, upgrade);
         addPipeUpgradeRecipe(BCTransportItems.pipeItemSandstone, BCTransportItems.pipePowerSandstone, upgrade);
         addPipeUpgradeRecipe(BCTransportItems.pipeItemDiamond, BCTransportItems.pipePowerDiamond, upgrade);
+        addPipeUpgradeRecipe(BCTransportItems.pipeItemDiaWood, BCTransportItems.pipePowerDiaWood, upgrade);
 
         if (BCTransportItems.wire != null) {
             for (EnumDyeColor color : ColourUtil.COLOURS) {
