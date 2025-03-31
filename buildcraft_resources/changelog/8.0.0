@@ -18,6 +18,7 @@ Major Changes:
 * Added a new Timer pluggable
     * This provides triggers for gates: 5 seconds, 10 seconds, and 15 seconds. (These are identical to their 1.7.10 counterparts)
     * This is made in an assembly table from a Clock
+* Added a GUI to the tank.
 
 Changes:
 
@@ -32,7 +33,6 @@ Changes:
         int heatTo
     * Heat values should be between -10 and +20 (BuildCraft uses 0 ~ 3)
     * Fluid amounts are ignored (1 millibucket of input always produces 1 millibucket of output)
-
 
 Bug Fixes:
 

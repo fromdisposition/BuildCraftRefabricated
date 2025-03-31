@@ -93,6 +93,12 @@ public class BCTransportRecipes {
         addPipeUpgradeRecipe(BCTransportItems.pipeItemDiamond, BCTransportItems.pipePowerDiamond, upgrade);
         addPipeUpgradeRecipe(BCTransportItems.pipeItemDiaWood, BCTransportItems.pipePowerDiaWood, upgrade);
 
+        if (!BCTransportConfig.disableRfPipe) {
+            addPipeUpgradeRecipe(BCTransportItems.pipePowerWood, BCTransportItems.pipeRfWood, upgrade);
+            addPipeUpgradeRecipe(BCTransportItems.pipePowerCobble, BCTransportItems.pipeRfCobble, upgrade);
+            addPipeUpgradeRecipe(BCTransportItems.pipePowerStone, BCTransportItems.pipeRfStone, upgrade);
+        }
+
         if (BCTransportItems.wire != null) {
             for (EnumDyeColor color : ColourUtil.COLOURS) {
                 String name = String.format("wire-%s", color.getUnlocalizedName());

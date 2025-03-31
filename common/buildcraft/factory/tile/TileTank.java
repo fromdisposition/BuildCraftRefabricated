@@ -47,6 +47,8 @@ import buildcraft.lib.misc.data.IdAllocator;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.tile.TileBC_Neptune;
 
+import buildcraft.factory.BCFactoryGuis;
+
 public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, IFluidHandlerAdv {
     public static final IdAllocator IDS = TileBC_Neptune.IDS.makeChild("tank");
     public static final int NET_FLUID_DELTA = IDS.allocId("FLUID_DELTA");
@@ -157,7 +159,12 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
         if (didChange && !player.world.isRemote && amountBefore < tank.getFluidAmount()) {
             AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_STORE_FLUIDS);
         }
-        return didChange;
+        if (!didChange) {
+            if (!world.isRemote) {
+                BCFactoryGuis.TANK.openGUI(player, pos);
+            }
+        }
+        return true;
     }
 
     // Networking
@@ -170,6 +177,8 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
                 writePayload(NET_FLUID_DELTA, buffer, side);
             } else if (id == NET_FLUID_DELTA) {
                 smoothedTank.writeInit(buffer);
+            } else if (id == NET_GUI_DATA || id == NET_GUI_TICK) {
+                tankManager.writeData(buffer);
             }
         }
     }
@@ -183,6 +192,8 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
                 smoothedTank.resetSmoothing(getWorld());
             } else if (id == NET_FLUID_DELTA) {
                 smoothedTank.handleMessage(getWorld(), buffer);
+            } else if (id == NET_GUI_DATA || id == NET_GUI_TICK) {
+                tankManager.readData(buffer);
             }
         }
     }

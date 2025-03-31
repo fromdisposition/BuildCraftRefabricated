@@ -44,9 +44,9 @@ public class RenderMiningWell extends FastTESR<TileMiningWell> {
 
     static {
         for (int i = 0; i < COLOUR_POWER.length; i++) {
-            int c = (i * 0x40) / COLOUR_POWER.length;
-            int r = (i * 0xE0) / COLOUR_POWER.length + 0x1F;
-            int colour = (0xFF << 24) + (c << 16) + (c << 8) + r;
+            int c = ((i * 0x40) / COLOUR_POWER.length) & 0xFF;
+            int r = (((i * 0xB0) / COLOUR_POWER.length) & 0xFF) + 0x4F;
+            int colour = (0xFF << 24) | (c << 16) | (c << 8) | r;
             COLOUR_POWER[i] = colour;
         }
         LED_POWER = new RenderPartCube();
@@ -105,18 +105,22 @@ public class RenderMiningWell extends FastTESR<TileMiningWell> {
             }
         }
 
+        int combinedLight = tile.getWorld().getCombinedLight(tile.getPos().offset(facing), 0);
+        LED_POWER.center.lighti(combinedLight);
+        LED_STATUS.center.lighti(combinedLight);
+
         LED_POWER.center.positiond(ledX + dX * POWER, Y, ledZ + dZ * POWER);
         float percentFilled = tile.getPercentFilledForRender();
         int colourIndex = (int) (percentFilled * (COLOUR_POWER.length - 1));
         LED_POWER.center.colouri(COLOUR_POWER[colourIndex]);
-        LED_POWER.center.lightf(percentFilled > 0.01 ? 1 : 0, 0);
+        LED_POWER.center.maxLighti(percentFilled > 0.01 ? BLOCK_LIGHT_STATUS_ON: BLOCK_LIGHT_STATUS_OFF, 0);
 
         LED_POWER.render(buffer);
 
         LED_STATUS.center.positiond(ledX + dX * STATUS, Y, ledZ + dZ * STATUS);
         boolean complete = tile.isComplete();
         LED_STATUS.center.colouri(complete ? COLOUR_STATUS_OFF : COLOUR_STATUS_ON);
-        LED_STATUS.center.lighti(complete ? BLOCK_LIGHT_STATUS_OFF : BLOCK_LIGHT_STATUS_ON, 0);
+        LED_STATUS.center.maxLighti(complete ? BLOCK_LIGHT_STATUS_OFF : BLOCK_LIGHT_STATUS_ON, 0);
 
         LED_STATUS.render(buffer);
 

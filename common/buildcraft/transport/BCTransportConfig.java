@@ -19,6 +19,7 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.EnumPipeColourType;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeApi.PowerTransferInfo;
+import buildcraft.api.transport.pipe.PipeApi.RedstoneFluxTransferInfo;
 import buildcraft.api.transport.pipe.PipeDefinition;
 
 import buildcraft.lib.config.EnumRestartRequirement;
@@ -44,14 +45,20 @@ public class BCTransportConfig {
     public static long mjPerItem = MjAPI.MJ;
     public static int baseFlowRate = 10;
     public static int basePowerRate = 4;
+    public static int baseRfRate = 40;
     public static boolean fluidPipeColourBorder;
+    public static boolean disableRfPipe;
+    public static boolean powerPipeUseOldMjTexture;
     public static PowerLossMode lossMode = PowerLossMode.DEFAULT;
 
     private static Property propMjPerMillibucket;
     private static Property propMjPerItem;
     private static Property propBaseFlowRate;
     private static Property propBasePowerRate;
+    private static Property propBaseRfRate;
     private static Property propFluidPipeColourBorder;
+    private static Property propPowerPipeUseOldMjTexture;
+    private static Property propDisableRfPipe;
     private static Property propLossMode;
 
     public static void preInit() {
@@ -69,8 +76,19 @@ public class BCTransportConfig {
         propBasePowerRate = config.get("general", "pipes.basePowerRate", basePowerRate).setMinValue(1).setMaxValue(40);
         EnumRestartRequirement.WORLD.setTo(propBasePowerRate);
 
+        propBaseRfRate = config.get("general", "pipes.baseRfRate", baseRfRate).setMinValue(10).setMaxValue(4000);
+        EnumRestartRequirement.WORLD.setTo(propBaseRfRate);
+
         propFluidPipeColourBorder = config.get("display", "pipes.fluidColourIsBorder", true);
         EnumRestartRequirement.WORLD.setTo(propFluidPipeColourBorder);
+
+        propDisableRfPipe = config.get("general", "pipes.disable_rf_pipe", false);
+        EnumRestartRequirement.GAME.setTo(propDisableRfPipe);
+        disableRfPipe = propDisableRfPipe.getBoolean(false);
+
+        propPowerPipeUseOldMjTexture = config.get("display", "pipes.powerUseOldMjTexture", false);
+        EnumRestartRequirement.GAME.setTo(propPowerPipeUseOldMjTexture);
+        powerPipeUseOldMjTexture = disableRfPipe && propPowerPipeUseOldMjTexture.getBoolean(false);
 
         propLossMode = config.get("experimental", "kinesisLossMode", "lossless");
         ConfigUtil.setEnumProperty(propLossMode, PowerLossMode.VALUES);
@@ -94,6 +112,7 @@ public class BCTransportConfig {
 
             baseFlowRate = MathUtil.clamp(propBaseFlowRate.getInt(), 1, 40);
             basePowerRate = MathUtil.clamp(propBasePowerRate.getInt(), 1, 40);
+            baseRfRate = MathUtil.clamp(propBaseRfRate.getInt(), 1, 4000);
 
             fluidPipeColourBorder = propFluidPipeColourBorder.getBoolean();
             PipeApi.flowFluids.fallbackColourType =
@@ -125,6 +144,18 @@ public class BCTransportConfig {
             powerTransfer(BCTransportPipes.goldPower, basePowerRate * 32, 32, false);
             powerTransfer(BCTransportPipes.diamondPower, basePowerRate * 64, 32, false);
             powerTransfer(BCTransportPipes.diaWoodPower, basePowerRate * 64, 32, true);
+
+            if (!disableRfPipe) {
+                rfTransfer(BCTransportPipes.cobbleRf, baseRfRate, false);
+                rfTransfer(BCTransportPipes.stoneRf, baseRfRate * 2, false);
+                rfTransfer(BCTransportPipes.woodRf, baseRfRate * 4, true);
+                rfTransfer(BCTransportPipes.sandstoneRf, baseRfRate * 4, false);
+                rfTransfer(BCTransportPipes.quartzRf, baseRfRate * 8, false);
+                rfTransfer(BCTransportPipes.ironRf, baseRfRate * 8, false);
+                rfTransfer(BCTransportPipes.goldRf, baseRfRate * 32, false);
+                rfTransfer(BCTransportPipes.diamondRf, baseRfRate * 64, false);
+                rfTransfer(BCTransportPipes.diaWoodRf, baseRfRate * 64, true);
+            }
         }
     }
 
@@ -136,6 +167,10 @@ public class BCTransportConfig {
         long transfer = MjAPI.MJ * transferMultiplier;
         long resistance = MjAPI.MJ / resistanceDivisor;
         PipeApi.powerTransferData.put(def, PowerTransferInfo.createFromResistance(transfer, resistance, recv));
+    }
+
+    private static void rfTransfer(PipeDefinition def, int maxTransfer, boolean recv) {
+        PipeApi.rfTransferData.put(def, new RedstoneFluxTransferInfo(maxTransfer, recv));
     }
 
     @SubscribeEvent

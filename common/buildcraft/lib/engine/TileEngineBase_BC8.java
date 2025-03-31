@@ -43,7 +43,7 @@ import buildcraft.lib.misc.data.ModelVariableData;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.tile.TileBC_Neptune;
 
-public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITickable, IDebuggable {
+public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITickable, IDebuggable, IEngineLikeForLedger {
 
     /** Heat per {@link MjAPI#MJ}. */
     public static final double HEAT_PER_MJ = 0.0023;
@@ -222,6 +222,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
         else return EnumPowerStage.OVERHEAT;
     }
 
+    @Override
     public final EnumPowerStage getPowerStage() {
         if (!world.isRemote) {
             EnumPowerStage newStage = computePowerStage();
@@ -247,6 +248,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
         return heat / IDEAL_HEAT;
     }
 
+    @Override
     public double getHeat() {
         return heat;
     }
@@ -592,8 +594,21 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
 
     public abstract long getCurrentOutput();
 
+    @Override
     public boolean isEngineOn() {
         return isPumping;
+    }
+
+    // IEngineLikeForLedger
+
+    @Override
+    public final long getCurrentMjOutput() {
+        return getCurrentOutput();
+    }
+
+    @Override
+    public final long getMjStored() {
+        return getEnergyStored();
     }
 
     @SideOnly(Side.CLIENT)

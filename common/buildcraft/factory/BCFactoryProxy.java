@@ -18,10 +18,13 @@ import buildcraft.factory.client.render.RenderMiningWell;
 import buildcraft.factory.client.render.RenderPump;
 import buildcraft.factory.container.ContainerAutoCraftItems;
 import buildcraft.factory.container.ContainerChute;
+import buildcraft.factory.container.ContainerTank;
 import buildcraft.factory.gui.GuiAutoCraftItems;
 import buildcraft.factory.gui.GuiChute;
+import buildcraft.factory.gui.GuiTank;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.factory.tile.TileChute;
+import buildcraft.factory.tile.TileTank;
 
 public abstract class BCFactoryProxy implements IGuiHandler {
     @SidedProxy(modId = BCFactory.MODID)
@@ -44,6 +47,11 @@ public abstract class BCFactoryProxy implements IGuiHandler {
             if (tile instanceof TileChute) {
                 TileChute chute = (TileChute) tile;
                 return new ContainerChute(player, chute);
+            }
+        }
+        if (ID == BCFactoryGuis.TANK.ordinal()) {
+            if (tile instanceof TileTank) {
+                return new ContainerTank(player, (TileTank) tile);
             }
         }
         return null;
@@ -84,6 +92,11 @@ public abstract class BCFactoryProxy implements IGuiHandler {
                 if (tile instanceof TileChute) {
                     TileChute chute = (TileChute) tile;
                     return new GuiChute(new ContainerChute(player, chute));
+                }
+            }
+            if (ID == BCFactoryGuis.TANK.ordinal()) {
+                if (tile instanceof TileTank) {
+                    return new GuiTank(new ContainerTank(player, (TileTank) tile));
                 }
             }
             return null;

@@ -7,7 +7,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextComponentTranslation;
 
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -15,19 +14,22 @@ import net.minecraftforge.fml.relauncher.Side;
 
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.mj.MjAPI;
+import buildcraft.api.transport.pipe.IFlowPowerLike;
 import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeApi.PowerTransferInfo;
-import buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver;
+import buildcraft.api.transport.pipe.PipeApi.RedstoneFluxTransferInfo;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
 import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventPower;
+import buildcraft.api.transport.pipe.PipeEventRedstoneFlux;
 
 import buildcraft.lib.misc.EntityUtil;
 import buildcraft.lib.misc.MathUtil;
 
-import buildcraft.transport.pipe.flow.PipeFlowPower;
+import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 import buildcraft.transport.statements.ActionPowerLimit;
 
 public class PipeBehaviourLimiter extends PipeBehaviour {
@@ -74,6 +76,15 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
     }
 
     @PipeEventHandler
+    public void configurePower(PipeEventRedstoneFlux.Configure event) {
+        if (limitShift == MAX_SHIFT) {
+            event.disableTransfer();
+        } else {
+            event.setMaxPower(event.getMaxPower() >> limitShift);
+        }
+    }
+
+    @PipeEventHandler
     public void onActionActivate(PipeEventActionActivate event) {
         if (event.action instanceof ActionPowerLimit) {
             limitShift = ((ActionPowerLimit) event.action).limitShift;
@@ -97,14 +108,19 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
                 limitShift = 0;
             }
 
+            boolean isRf = pipe.getFlow() instanceof PipeFlowRedstoneFlux;
             final int limit;
             if (limitShift == MAX_SHIFT) {
                 limit = 0;
+            } else if (isRf) {
+                RedstoneFluxTransferInfo transferInfo = PipeApi.getRfTransferInfo(pipe.getDefinition());
+                limit = transferInfo.transferPerTick >> limitShift;
             } else {
                 PowerTransferInfo transferInfo = PipeApi.getPowerTransferInfo(pipe.getDefinition());
                 limit = (int) ((transferInfo.transferPerTick >> limitShift) / MjAPI.MJ);
             }
-            TextComponentTranslation chat = new TextComponentTranslation("chat.pipe.power.iron.mode", limit);
+            String key = "chat.pipe." + (isRf ? "rf" : "power") + ".iron.mode";
+            TextComponentTranslation chat = new TextComponentTranslation(key, limit);
             player.sendStatusMessage(chat, true);
 
             requestReconfigure();
@@ -113,9 +129,8 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
     }
 
     private void requestReconfigure() {
-        if (pipe.getFlow() instanceof PipeFlowPower) {
-            PipeFlowPower flow = (PipeFlowPower) pipe.getFlow();
-            flow.reconfigure();
+        if (pipe.getFlow() instanceof IFlowPowerLike) {
+            ((IFlowPowerLike) pipe.getFlow()).reconfigure();
             pipe.getHolder().scheduleNetworkUpdate(PipeMessageReceiver.BEHAVIOUR);
         }
     }

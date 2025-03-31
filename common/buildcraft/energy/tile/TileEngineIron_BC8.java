@@ -99,6 +99,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
         super.writeToNBT(nbt);
         nbt.setInteger("penaltyCooling", penaltyCooling);
         nbt.setDouble("burnTime", burnTime);
+        nbt.setDouble("residueAmount", residueAmount);
         return nbt;
     }
 
@@ -107,6 +108,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
         super.readFromNBT(nbt);
         penaltyCooling = nbt.getInteger("penaltyCooling");
         burnTime = nbt.getDouble("burnTime");
+        residueAmount = Math.max(0, nbt.getDouble("residueAmount"));
     }
 
     @Override

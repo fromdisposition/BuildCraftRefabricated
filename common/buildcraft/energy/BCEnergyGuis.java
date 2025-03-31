@@ -11,7 +11,9 @@ import net.minecraft.util.math.BlockPos;
 
 public enum BCEnergyGuis {
     ENGINE_STONE,
-    ENGINE_IRON;
+    ENGINE_IRON,
+    ENGINE_RF,
+    DYNAMO_MJ;
 
     public static final BCEnergyGuis[] VALUES = values();
 

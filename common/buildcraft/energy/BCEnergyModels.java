@@ -38,7 +38,9 @@ import buildcraft.lib.fluid.BCFluid;
 import buildcraft.lib.misc.ExpressionCompat;
 import buildcraft.lib.misc.data.ModelVariableData;
 
+import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
+import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.energy.tile.TileEngineStone_BC8;
 
 public class BCEnergyModels {
@@ -48,6 +50,8 @@ public class BCEnergyModels {
 
     private static final ModelHolderVariable ENGINE_STONE;
     private static final ModelHolderVariable ENGINE_IRON;
+    private static final ModelHolderVariable ENGINE_RF;
+    private static final ModelHolderVariable MJ_DYNAMO;
 
     static {
         FunctionContext fnCtx = new FunctionContext(ExpressionCompat.ENUM_POWER_STAGE, DefaultContexts.createWithAll());
@@ -61,6 +65,14 @@ public class BCEnergyModels {
         );
         ENGINE_IRON = new ModelHolderVariable(
             "buildcraftenergy:models/block/engine_iron.json",
+            fnCtx
+        );
+        ENGINE_RF = new ModelHolderVariable(
+            "buildcraftenergy:models/block/engine_rf.json",
+            fnCtx
+        );
+        MJ_DYNAMO = new ModelHolderVariable(
+            "buildcraftenergy:models/block/mj_dynamo.json",
             fnCtx
         );
     }
@@ -109,6 +121,32 @@ public class BCEnergyModels {
                 true
             )
         );
+        varData.setNodes(ENGINE_RF.createTickableNodes());
+        varData.tick();
+        varData.refresh();
+        event.getModelRegistry().putObject(
+            new ModelResourceLocation(EnumEngineType.RF.getItemModelLocation(), "inventory"),
+            new ModelItemSimple(
+                Arrays.stream(ENGINE_RF.getCutoutQuads())
+                    .map(MutableQuad::toBakedItem)
+                    .collect(Collectors.toList()),
+                ModelItemSimple.TRANSFORM_BLOCK,
+                true
+            )
+        );
+        varData.setNodes(MJ_DYNAMO.createTickableNodes());
+        varData.tick();
+        varData.refresh();
+        event.getModelRegistry().putObject(
+            new ModelResourceLocation("buildcraftenergy:mj_dynamo", "inventory"),
+            new ModelItemSimple(
+                Arrays.stream(MJ_DYNAMO.getCutoutQuads())
+                    .map(MutableQuad::toBakedItem)
+                    .collect(Collectors.toList()),
+                ModelItemSimple.TRANSFORM_BLOCK,
+                true
+            )
+        );
         for (BCFluid fluid : BCEnergyFluids.allFluids) {
             ModelFluid modelFluid = new ModelFluid(fluid);
             event.getModelRegistry().putObject(
@@ -141,5 +179,20 @@ public class BCEnergyModels {
 
     public static MutableQuad[] getIronEngineQuads(TileEngineIron_BC8 tile, float partialTicks) {
         return getEngineQuads(ENGINE_IRON, tile, partialTicks);
+    }
+
+    public static MutableQuad[] getRfEngineQuads(TileEngineRF tile, float partialTicks) {
+        return getEngineQuads(ENGINE_RF, tile, partialTicks);
+    }
+
+    public static MutableQuad[] getMjDynamoQuads(TileDynamoMJ tile, float partialTicks) {
+        ENGINE_PROGRESS.value = tile.getProgressClient(partialTicks);
+        ENGINE_STAGE.value = tile.getPowerStage();
+        ENGINE_FACING.value = tile.getCurrentDirection();
+        if (tile.clientModelData.hasNoNodes()) {
+            tile.clientModelData.setNodes(MJ_DYNAMO.createTickableNodes());
+        }
+        tile.clientModelData.refresh();
+        return MJ_DYNAMO.getCutoutQuads();
     }
 }

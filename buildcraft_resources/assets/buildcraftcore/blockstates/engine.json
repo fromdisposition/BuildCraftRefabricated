@@ -13,6 +13,9 @@
             },
             "creative": {
                 "model": "buildcraftcore:engine/creative"
+            },
+            "rf": {
+                "model": "buildcraftcore:engine/rf"
             }
         }
     }

@@ -21,7 +21,9 @@ import buildcraft.transport.statements.ActionPipeColor;
 import buildcraft.transport.statements.ActionPipeDirection;
 import buildcraft.transport.statements.ActionPipeSignal;
 import buildcraft.transport.statements.ActionPowerLimit.ActionDiamondPowerLimit;
+import buildcraft.transport.statements.ActionPowerLimit.ActionDiamondRfLimit;
 import buildcraft.transport.statements.ActionPowerLimit.ActionIronPowerLimit;
+import buildcraft.transport.statements.ActionPowerLimit.ActionIronRfLimit;
 import buildcraft.transport.statements.ActionProviderPipes;
 import buildcraft.transport.statements.TriggerFluidsTraversing;
 import buildcraft.transport.statements.TriggerItemsTraversing;
@@ -42,6 +44,8 @@ public class BCTransportStatements {
     public static final ActionPipeDirection[] ACTION_PIPE_DIRECTION;
     public static final ActionIronPowerLimit[] ACTION_IRON_POWER_LIMIT;
     public static final ActionDiamondPowerLimit[] ACTION_DIAMOND_POWER_LIMIT;
+    public static final ActionIronRfLimit[] ACTION_IRON_RF_LIMIT;
+    public static final ActionDiamondRfLimit[] ACTION_DIAMOND_RF_LIMIT;
 
     static {
         TRIGGER_PIPE_SIGNAL = new TriggerPipeSignal[2 * ColourUtil.COLOURS.length];
@@ -76,10 +80,16 @@ public class BCTransportStatements {
 
         ACTION_IRON_POWER_LIMIT = new ActionIronPowerLimit[PipeBehaviourLimiter.MAX_SHIFT + 1];
         ACTION_DIAMOND_POWER_LIMIT = new ActionDiamondPowerLimit[PipeBehaviourLimiter.MAX_SHIFT + 1];
+        ACTION_IRON_RF_LIMIT = new ActionIronRfLimit[PipeBehaviourLimiter.MAX_SHIFT + 1];
+        ACTION_DIAMOND_RF_LIMIT = new ActionDiamondRfLimit[PipeBehaviourLimiter.MAX_SHIFT + 1];
         int index = 0;
         for (int shift = PipeBehaviourLimiter.MAX_SHIFT; shift >= 0; shift--) {
             ACTION_IRON_POWER_LIMIT[index] = new ActionIronPowerLimit(shift);
             ACTION_DIAMOND_POWER_LIMIT[index] = new ActionDiamondPowerLimit(shift);
+            if (!BCTransportConfig.disableRfPipe) {
+                ACTION_IRON_RF_LIMIT[index] = new ActionIronRfLimit(shift);
+                ACTION_DIAMOND_RF_LIMIT[index] = new ActionDiamondRfLimit(shift);
+            }
             index++;
         }
 

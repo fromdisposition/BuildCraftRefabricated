@@ -27,6 +27,7 @@ import buildcraft.lib.misc.ColourUtil;
 
 import buildcraft.transport.BCTransportStatements;
 import buildcraft.transport.pipe.flow.PipeFlowPower;
+import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 
 public enum TriggerProviderPipes implements ITriggerProvider {
     INSTANCE;
@@ -46,6 +47,10 @@ public enum TriggerProviderPipes implements ITriggerProvider {
             }
 
             if (holder.getPipe().getFlow() instanceof PipeFlowPower) {
+                triggers.add(BCTransportStatements.TRIGGER_POWER_REQUESTED);
+            }
+
+            if (holder.getPipe().getFlow() instanceof PipeFlowRedstoneFlux) {
                 triggers.add(BCTransportStatements.TRIGGER_POWER_REQUESTED);
             }
         }

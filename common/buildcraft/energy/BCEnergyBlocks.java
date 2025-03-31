@@ -6,13 +6,21 @@
 
 package buildcraft.energy;
 
+import net.minecraft.block.material.Material;
+
 import buildcraft.api.enums.EnumEngineType;
 import buildcraft.api.enums.EnumSpring;
 
+import buildcraft.lib.BCLibConfig;
+import buildcraft.lib.BCLibConfig.PowerMode;
+import buildcraft.lib.item.ItemBlockBC_Neptune;
 import buildcraft.lib.registry.RegistrationHelper;
 
 import buildcraft.core.BCCoreBlocks;
+import buildcraft.energy.blocks.BlockDynamoMJ;
+import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
+import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.energy.tile.TileEngineStone_BC8;
 import buildcraft.energy.tile.TileSpringOil;
 
@@ -20,11 +28,22 @@ public class BCEnergyBlocks {
 
     private static final RegistrationHelper HELPER = new RegistrationHelper();
 
+    public static BlockDynamoMJ mjDynamo;
+
     public static void preInit() {
 
         if (BCCoreBlocks.engine != null) {
             BCCoreBlocks.engine.registerEngine(EnumEngineType.STONE, TileEngineStone_BC8::new);
             BCCoreBlocks.engine.registerEngine(EnumEngineType.IRON, TileEngineIron_BC8::new);
+            if (BCLibConfig.powerMode == PowerMode.MJ_ONLY && BCEnergyConfig.enableRfEngine) {
+                BCCoreBlocks.engine.registerEngine(EnumEngineType.RF, TileEngineRF::new);
+            }
+        }
+
+        if (BCLibConfig.powerMode == PowerMode.MJ_ONLY && BCEnergyConfig.enableMjDynamo) {
+            mjDynamo = HELPER.addForcedBlock(new BlockDynamoMJ(Material.IRON, "block.mj_dynamo"));
+            HELPER.addForcedItem(new ItemBlockBC_Neptune(mjDynamo));
+            HELPER.registerTile(TileDynamoMJ.class, "tile.mj_dynamo");
         }
 
         EnumSpring.OIL.liquidBlock = BCEnergyFluids.crudeOil[0].getBlock().getDefaultState();
@@ -33,5 +52,6 @@ public class BCEnergyBlocks {
         HELPER.registerTile(TileSpringOil.class, "tile.spring.oil");
         HELPER.registerTile(TileEngineStone_BC8.class, "tile.engine.stone");
         HELPER.registerTile(TileEngineIron_BC8.class, "tile.engine.iron");
+        HELPER.registerTile(TileEngineRF.class, "tile.engine.rf");
     }
 }

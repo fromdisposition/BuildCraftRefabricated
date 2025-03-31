@@ -112,6 +112,7 @@ public class LedgerHelp extends Ledger_Neptune {
                 boolean isSelected = selected == element;
                 SpriteNineSliced split = SPRITE_HELP_SPLIT[isHovered ? 1 : 0][isSelected ? 1 : 0];
                 RenderUtil.setGLColorFromInt(info.info.colour);
+                GlStateManager.enableBlend();
                 split.draw(rect);
             }
             elements.clear();

@@ -11,11 +11,14 @@ import buildcraft.api.statements.IStatementContainer;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeApi.PowerTransferInfo;
+import buildcraft.api.transport.pipe.PipeApi.RedstoneFluxTransferInfo;
 import buildcraft.api.transport.pipe.PipeDefinition;
 
+import buildcraft.lib.client.sprite.SpriteHolderRegistry.SpriteHolder;
 import buildcraft.lib.misc.LocaleUtil;
 
 import buildcraft.core.statements.BCStatement;
+import buildcraft.transport.BCTransportConfig;
 import buildcraft.transport.BCTransportPipes;
 import buildcraft.transport.BCTransportSprites;
 import buildcraft.transport.BCTransportStatements;
@@ -38,8 +41,24 @@ public abstract class ActionPowerLimit extends BCStatement implements IActionInt
         this(pipe, limitShift, "buildcraft:pipe.power_limit." + suffix + "_s" + limitShift);
     }
 
+    protected boolean isRf() {
+        return false;
+    }
+
     @Override
     public String getDescription() {
+        if (isRf()) {
+            RedstoneFluxTransferInfo pipeInfo = PipeApi.rfTransferData.get(pipe);
+            final Object max;
+            if (limitShift == PipeBehaviourLimiter.MAX_SHIFT) {
+                max = 0;
+            } else if (pipeInfo == null) {
+                max = "??[INVALID_PIPE]??";
+            } else {
+                max = pipeInfo.transferPerTick >> limitShift;
+            }
+            return LocaleUtil.localize("gate.action.pipe.rf_limit", max);
+        }
         PowerTransferInfo pipeInfo = PipeApi.powerTransferData.get(pipe);
         final Object max;
         if (limitShift == PipeBehaviourLimiter.MAX_SHIFT) {
@@ -55,7 +74,13 @@ public abstract class ActionPowerLimit extends BCStatement implements IActionInt
     @Override
     @SideOnly(Side.CLIENT)
     public ISprite getSprite() {
-        return BCTransportSprites.POWER_LIMIT[limitShift];
+        SpriteHolder[] sprites;
+        if (BCTransportConfig.powerPipeUseOldMjTexture || !isRf()) {
+            sprites = BCTransportSprites.POWER_LIMIT;
+        } else {
+            sprites = BCTransportSprites.POWER_LIMIT_RF;
+        }
+        return sprites[limitShift];
     }
 
     @Override
@@ -87,6 +112,40 @@ public abstract class ActionPowerLimit extends BCStatement implements IActionInt
         @Override
         public IStatement[] getPossible() {
             return BCTransportStatements.ACTION_DIAMOND_POWER_LIMIT;
+        }
+    }
+
+    public static class ActionIronRfLimit extends ActionPowerLimit {
+
+        public ActionIronRfLimit(int limitShift) {
+            super("iron_rf", BCTransportPipes.ironRf, limitShift);
+        }
+
+        @Override
+        public IStatement[] getPossible() {
+            return BCTransportStatements.ACTION_IRON_RF_LIMIT;
+        }
+
+        @Override
+        protected boolean isRf() {
+            return true;
+        }
+    }
+
+    public static class ActionDiamondRfLimit extends ActionPowerLimit {
+
+        public ActionDiamondRfLimit(int limitShift) {
+            super("diamond_rf", BCTransportPipes.diamondRf, limitShift);
+        }
+
+        @Override
+        public IStatement[] getPossible() {
+            return BCTransportStatements.ACTION_DIAMOND_RF_LIMIT;
+        }
+
+        @Override
+        protected boolean isRf() {
+            return true;
         }
     }
 }

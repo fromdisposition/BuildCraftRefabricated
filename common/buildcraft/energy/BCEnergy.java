@@ -81,13 +81,17 @@ public class BCEnergy {
         registerTag("item.glob.oil").reg("glob_of_oil").oldReg("glob_oil").locale("globOil").model("glob_oil");
 
         // Item Blocks
+        registerTag("item.block.mj_dynamo").reg("mj_dynamo").locale("mjDynamo").model("mj_dynamo");
 
         // Blocks
+        registerTag("block.mj_dynamo").reg("mj_dynamo").locale("mjDynamo").model("mj_dynamo");
 
         // Tiles
         registerTag("tile.engine.stone").reg("engine.stone");
         registerTag("tile.engine.iron").reg("engine.iron");
+        registerTag("tile.engine.rf").reg("engine.rf");
         registerTag("tile.spring.oil").reg("spring.oil");
+        registerTag("tile.mj_dynamo").reg("mj_dynamo");
 
         endBatch(TagManager.prependTags("buildcraftenergy:", EnumTagType.REGISTRY_NAME, EnumTagType.MODEL_LOCATION)
             .andThen(TagManager.setTab("buildcraft.main")));

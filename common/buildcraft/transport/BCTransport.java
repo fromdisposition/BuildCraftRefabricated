@@ -152,40 +152,52 @@ public class BCTransport {
         registerTag("item.pipe.buildcrafttransport.wood_item").reg("pipe_wood_item").locale("PipeItemsWood");
         registerTag("item.pipe.buildcrafttransport.wood_fluid").reg("pipe_wood_fluid").locale("PipeFluidsWood");
         registerTag("item.pipe.buildcrafttransport.wood_power").reg("pipe_wood_power").locale("PipePowerWood");
+        registerTag("item.pipe.buildcrafttransport.wood_rf").reg("pipe_wood_rf").locale("PipeRedstoneFluxWood");
         registerTag("item.pipe.buildcrafttransport.stone_item").reg("pipe_stone_item").locale("PipeItemsStone");
         registerTag("item.pipe.buildcrafttransport.stone_fluid").reg("pipe_stone_fluid").locale("PipeFluidsStone");
         registerTag("item.pipe.buildcrafttransport.stone_power").reg("pipe_stone_power").locale("PipePowerStone");
+        registerTag("item.pipe.buildcrafttransport.stone_rf").reg("pipe_stone_rf").locale("PipeRedstoneFluxStone");
         registerTag("item.pipe.buildcrafttransport.cobblestone_item").reg("pipe_cobble_item")
             .locale("PipeItemsCobblestone");
         registerTag("item.pipe.buildcrafttransport.cobblestone_fluid").reg("pipe_cobble_fluid")
             .locale("PipeFluidsCobblestone");
         registerTag("item.pipe.buildcrafttransport.cobblestone_power").reg("pipe_cobble_power")
-            .locale("PipePowerCobblestone");
+        .locale("PipePowerCobblestone");
+        registerTag("item.pipe.buildcrafttransport.cobblestone_rf").reg("pipe_cobble_rf")
+        .locale("PipeRedstoneFluxCobblestone");
         registerTag("item.pipe.buildcrafttransport.quartz_item").reg("pipe_quartz_item").locale("PipeItemsQuartz");
         registerTag("item.pipe.buildcrafttransport.quartz_fluid").reg("pipe_quartz_fluid").locale("PipeFluidsQuartz");
         registerTag("item.pipe.buildcrafttransport.quartz_power").reg("pipe_quartz_power").locale("PipePowerQuartz");
+        registerTag("item.pipe.buildcrafttransport.quartz_rf").reg("pipe_quartz_rf").locale("PipeRedstoneFluxQuartz");
         registerTag("item.pipe.buildcrafttransport.gold_item").reg("pipe_gold_item").locale("PipeItemsGold");
         registerTag("item.pipe.buildcrafttransport.gold_fluid").reg("pipe_gold_fluid").locale("PipeFluidsGold");
         registerTag("item.pipe.buildcrafttransport.gold_power").reg("pipe_gold_power").locale("PipePowerGold");
+        registerTag("item.pipe.buildcrafttransport.gold_rf").reg("pipe_gold_rf").locale("PipeRedstoneFluxGold");
         registerTag("item.pipe.buildcrafttransport.sandstone_item").reg("pipe_sandstone_item")
             .locale("PipeItemsSandstone");
         registerTag("item.pipe.buildcrafttransport.sandstone_fluid").reg("pipe_sandstone_fluid")
             .locale("PipeFluidsSandstone");
         registerTag("item.pipe.buildcrafttransport.sandstone_power").reg("pipe_sandstone_power")
-            .locale("PipePowerSandstone");
+        .locale("PipePowerSandstone");
+        registerTag("item.pipe.buildcrafttransport.sandstone_rf").reg("pipe_sandstone_rf")
+        .locale("PipeRedstoneFluxSandstone");
         registerTag("item.pipe.buildcrafttransport.iron_item").reg("pipe_iron_item").locale("PipeItemsIron");
         registerTag("item.pipe.buildcrafttransport.iron_fluid").reg("pipe_iron_fluid").locale("PipeFluidsIron");
         registerTag("item.pipe.buildcrafttransport.iron_power").reg("pipe_iron_power").locale("PipePowerIron");
+        registerTag("item.pipe.buildcrafttransport.iron_rf").reg("pipe_iron_rf").locale("PipeRedstoneFluxIron");
         registerTag("item.pipe.buildcrafttransport.diamond_item").reg("pipe_diamond_item").locale("PipeItemsDiamond");
         registerTag("item.pipe.buildcrafttransport.diamond_fluid").reg("pipe_diamond_fluid")
             .locale("PipeFluidsDiamond");
         registerTag("item.pipe.buildcrafttransport.diamond_power").reg("pipe_diamond_power").locale("PipePowerDiamond");
+        registerTag("item.pipe.buildcrafttransport.diamond_rf").reg("pipe_diamond_rf").locale("PipeRedstoneFluxDiamond");
         registerTag("item.pipe.buildcrafttransport.diamond_wood_item").reg("pipe_diamond_wood_item")
             .locale("PipeItemsWoodenDiamond");
         registerTag("item.pipe.buildcrafttransport.diamond_wood_fluid").reg("pipe_diamond_wood_fluid")
             .locale("PipeFluidsWoodenDiamond");
         registerTag("item.pipe.buildcrafttransport.diamond_wood_power").reg("pipe_diamond_wood_power")
-            .locale("PipePowerWoodenDiamond");
+        .locale("PipePowerWoodenDiamond");
+        registerTag("item.pipe.buildcrafttransport.diamond_wood_rf").reg("pipe_diamond_wood_rf")
+        .locale("PipeRedstoneFluxWoodenDiamond");
         registerTag("item.pipe.buildcrafttransport.clay_item").reg("pipe_clay_item").locale("PipeItemsClay");
         registerTag("item.pipe.buildcrafttransport.clay_fluid").reg("pipe_clay_fluid").locale("PipeFluidsClay");
         registerTag("item.pipe.buildcrafttransport.void_item").reg("pipe_void_item").locale("PipeItemsVoid");

@@ -160,6 +160,9 @@ public class ItemPipeHolder extends ItemBlock implements IItemBuildCraft, IItemP
         } else if (definition.flowType == PipeApi.flowPower) {
             PipeApi.PowerTransferInfo pti = PipeApi.getPowerTransferInfo(definition);
             tooltip.add(LocaleUtil.localizeMjFlow(pti.transferPerTick));
+        } else if (definition.flowType == PipeApi.flowRf && PipeApi.flowRf != null) {
+            PipeApi.RedstoneFluxTransferInfo pti = PipeApi.getRfTransferInfo(definition);
+            tooltip.add(pti.transferPerTick + " RF/t");//TODO: Locale!
         }
     }
 }

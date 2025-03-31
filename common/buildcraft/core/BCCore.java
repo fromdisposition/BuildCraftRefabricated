@@ -135,6 +135,7 @@ public class BCCore {
         registerTag("block.engine.bc.stone").locale("engineStone");
         registerTag("block.engine.bc.iron").locale("engineIron");
         registerTag("block.engine.bc.creative").locale("engineCreative");
+        registerTag("block.engine.bc.rf").locale("engineRf");
         registerTag("block.marker.volume").reg("marker_volume").locale("markerBlock").oldReg("markerBlock").model("marker_volume");
         registerTag("block.marker.path").reg("marker_path").locale("pathMarkerBlock").oldReg("pathMarkerBlock").model("marker_path");
         registerTag("block.power_tester").reg("power_tester").locale("power_tester").oldReg("power_tester").model("power_tester");

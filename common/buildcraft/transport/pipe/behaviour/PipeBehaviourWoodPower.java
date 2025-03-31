@@ -10,10 +10,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 
+import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.energy.IEnergyStorage;
+
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.PipeBehaviour;
+
+import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 
 public class PipeBehaviourWoodPower extends PipeBehaviour {
 
@@ -42,7 +47,12 @@ public class PipeBehaviourWoodPower extends PipeBehaviour {
         if (tile == null) {
             return 0;
         }
-        IMjReceiver recv = tile.getCapability(MjAPI.CAP_RECEIVER, face.getOpposite());
-        return recv == null ? 1 : recv.canReceive() ? 0 : 1;
+        if (pipe.getFlow() instanceof PipeFlowRedstoneFlux) {
+            IEnergyStorage recv = tile.getCapability(CapabilityEnergy.ENERGY, face.getOpposite());
+            return recv == null ? 1 : recv.canReceive() ? 0 : 1;
+        } else {
+            IMjReceiver recv = tile.getCapability(MjAPI.CAP_RECEIVER, face.getOpposite());
+            return recv == null ? 1 : recv.canReceive() ? 0 : 1;
+        }
     }
 }

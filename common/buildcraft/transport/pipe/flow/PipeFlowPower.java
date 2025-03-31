@@ -68,9 +68,6 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
     private boolean isReceiver = false;
     private final EnumMap<EnumFacing, Section> sections;
 
-    private final SafeTimeTracker tracker = new SafeTimeTracker(BCCoreConfig.networkUpdateRate);
-    private long[] transferQuery;
-
     public PipeFlowPower(IPipe pipe) {
         super(pipe);
         sections = new EnumMap<>(EnumFacing.class);
@@ -351,7 +348,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
         }
 
         // Sum the amount of power requested on each side
-        long[] transferQueryTemp = new long[6];
+        long[] transferQuery = new long[6];
         for (EnumFacing face : EnumFacing.VALUES) {
             if (!pipe.isConnected(face)) {
                 continue;
@@ -362,7 +359,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
                     query += sections.get(face2).powerQuery;
                 }
             }
-            transferQueryTemp[face.ordinal()] = query;
+            transferQuery[face.ordinal()] = query;
         }
 
         // Transfer requested power to neighbouring pipes
@@ -370,7 +367,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
             if (disabled) {
                 continue;
             }
-            if (transferQueryTemp[face.ordinal()] <= 0 || !pipe.isConnected(face)) {
+            if (transferQuery[face.ordinal()] <= 0 || !pipe.isConnected(face)) {
                 continue;
             }
             IPipe oPipe = pipe.getHolder().getNeighbourPipe(face);
@@ -378,7 +375,7 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
                 continue;
             }
             PipeFlowPower oFlow = (PipeFlowPower) oPipe.getFlow();
-            oFlow.requestPower(face.getOpposite(), transferQueryTemp[face.ordinal()]);
+            oFlow.requestPower(face.getOpposite(), transferQuery[face.ordinal()]);
         }
         // Networking
         boolean didChange = false;
@@ -396,8 +393,6 @@ public class PipeFlowPower extends PipeFlow implements IFlowPower, IDebuggable {
             sendPayload(NET_POWER_AMOUNTS);
         }
 
-        transferQuery = transferQueryTemp;
-        // }
     }
 
     private void step() {

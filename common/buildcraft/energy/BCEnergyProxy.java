@@ -17,14 +17,22 @@ import net.minecraftforge.fml.common.network.IGuiHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import buildcraft.energy.client.gui.GuiDynamoMJ;
 import buildcraft.energy.client.gui.GuiEngineIron_BC8;
+import buildcraft.energy.client.gui.GuiEngineRF;
 import buildcraft.energy.client.gui.GuiEngineStone_BC8;
+import buildcraft.energy.client.render.RenderDynamoMJ;
 import buildcraft.energy.client.render.RenderEngineIron;
+import buildcraft.energy.client.render.RenderEngineRF;
 import buildcraft.energy.client.render.RenderEngineStone;
+import buildcraft.energy.container.ContainerDynamoMJ;
 import buildcraft.energy.container.ContainerEngineIron_BC8;
+import buildcraft.energy.container.ContainerEngineRF;
 import buildcraft.energy.container.ContainerEngineStone_BC8;
 import buildcraft.energy.event.ChristmasHandler;
+import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
+import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.energy.tile.TileEngineStone_BC8;
 
 public abstract class BCEnergyProxy implements IGuiHandler {
@@ -64,6 +72,18 @@ public abstract class BCEnergyProxy implements IGuiHandler {
                 }
 
                 return null;
+            case ENGINE_RF:
+                if (tile instanceof TileEngineRF) {
+                    return new ContainerEngineRF(player, (TileEngineRF) tile);
+                }
+
+                return null;
+            case DYNAMO_MJ:
+                if (tile instanceof TileDynamoMJ) {
+                    return new ContainerDynamoMJ(player, (TileDynamoMJ) tile);
+                }
+
+                return null;
             default:
                 return null;
         }
@@ -93,6 +113,8 @@ public abstract class BCEnergyProxy implements IGuiHandler {
             super.fmlInit();
             ClientRegistry.bindTileEntitySpecialRenderer(TileEngineStone_BC8.class, RenderEngineStone.INSTANCE);
             ClientRegistry.bindTileEntitySpecialRenderer(TileEngineIron_BC8.class, RenderEngineIron.INSTANCE);
+            ClientRegistry.bindTileEntitySpecialRenderer(TileEngineRF.class, RenderEngineRF.INSTANCE);
+            ClientRegistry.bindTileEntitySpecialRenderer(TileDynamoMJ.class, RenderDynamoMJ.INSTANCE);
         }
 
         @Override
@@ -110,6 +132,16 @@ public abstract class BCEnergyProxy implements IGuiHandler {
                 case ENGINE_IRON:
                     if (tile instanceof TileEngineIron_BC8) {
                         return new GuiEngineIron_BC8(new ContainerEngineIron_BC8(player, (TileEngineIron_BC8) tile));
+                    }
+                    return null;
+                case ENGINE_RF:
+                    if (tile instanceof TileEngineRF) {
+                        return new GuiEngineRF(new ContainerEngineRF(player, (TileEngineRF) tile));
+                    }
+                    return null;
+                case DYNAMO_MJ:
+                    if (tile instanceof TileDynamoMJ) {
+                        return new GuiDynamoMJ(new ContainerDynamoMJ(player, (TileDynamoMJ) tile));
                     }
                     return null;
                 default:
