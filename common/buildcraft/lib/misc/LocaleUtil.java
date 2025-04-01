@@ -25,6 +25,7 @@ import buildcraft.api.core.BCLog;
 import buildcraft.api.mj.MjAPI;
 
 import buildcraft.lib.BCLibConfig;
+import buildcraft.lib.BCLibConfig.PowerMode;
 import buildcraft.lib.BCLibConfig.TimeGap;
 
 /** The central class for localizing objects. */
@@ -169,10 +170,16 @@ public class LocaleUtil {
     }
 
     public static String localizeMj(long mj) {
+        if (BCLibConfig.powerMode == PowerMode.DISPLAY_RF) {
+            return localizeRf((int) (mj / MjAPI.getRfConversion().mjPerRf));
+        }
         return localize(localeKeyMjStatic, MjAPI.formatMj(mj));
     }
 
     public static String localizeMjFlow(long mj) {
+        if (BCLibConfig.powerMode == PowerMode.DISPLAY_RF) {
+            return localizeRfFlow((int) (mj / MjAPI.getRfConversion().mjPerRf));
+        }
         mj = BCLibConfig.displayTimeGap.convertTicksToGap(mj);
         return localize(localeKeyMjFlow, MjAPI.formatMj(mj));
     }
