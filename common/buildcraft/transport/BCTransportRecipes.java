@@ -35,6 +35,7 @@ import buildcraft.api.recipes.AssemblyRecipeBasic;
 import buildcraft.api.recipes.IngredientStack;
 
 import buildcraft.lib.misc.ColourUtil;
+import buildcraft.lib.misc.StringUtilBC;
 import buildcraft.lib.recipe.AssemblyRecipeRegistry;
 
 import buildcraft.transport.item.ItemPipeHolder;
@@ -101,7 +102,7 @@ public class BCTransportRecipes {
 
         if (BCTransportItems.wire != null) {
             for (EnumDyeColor color : ColourUtil.COLOURS) {
-                String name = String.format("wire-%s", color.getUnlocalizedName());
+                String name = StringUtilBC.formatDirect("wire-%s", color.getUnlocalizedName());
                 ImmutableSet<IngredientStack> input = ImmutableSet.of(IngredientStack.of("dustRedstone"),
                     IngredientStack.of(ColourUtil.getDyeName(color)));
                 AssemblyRecipeRegistry.register(new AssemblyRecipeBasic(name, 10_000 * MjAPI.MJ, input,

@@ -12,6 +12,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 
 import buildcraft.lib.misc.LocaleUtil;
+import buildcraft.lib.misc.StringUtilBC;
 
 public class GateVariant {
     public final EnumGateLogic logic;
@@ -80,7 +81,7 @@ public class GateVariant {
             String gateName = LocaleUtil.localize("gate.name");
             String materialName = LocaleUtil.localize("gate.material." + material.tag);
             Object logicName = LocaleUtil.localize("gate.logic." + logic.tag);
-            return String.format(gateName, materialName, logicName);
+            return StringUtilBC.formatSafe(gateName, materialName, logicName);
         }
     }
 

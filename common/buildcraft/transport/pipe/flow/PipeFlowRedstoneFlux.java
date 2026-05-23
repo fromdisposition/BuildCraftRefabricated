@@ -476,7 +476,7 @@ public class PipeFlowRedstoneFlux extends PipeFlow implements IFlowRedstoneFlux,
         int receivePowerInternal(int sent) {
             if (sent > 0) {
                 PipeFlowRedstoneFlux.this.step();
-                int max = maxPower - internalNextPower;
+                int max = maxPower - internalNextPower - internalPower;
                 if (max < 0) {
                     return sent;
                 }

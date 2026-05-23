@@ -169,6 +169,55 @@ public class GuiIcon implements ISimpleDrawable {
         tess.draw();
     }
 
+    public void drawCustomScaledAt(IGuiArea area, double texU0, double texV0, double texU1, double texV1) {
+        double xMin = area.getX();
+        double yMin = area.getY();
+        double xMax = xMin + area.getWidth();
+        double yMax = yMin + area.getHeight();
+        drawCustomScaledAt(xMin, yMin, xMax, yMax, texU0, texV0, texU1, texV1);
+    }
+
+    /** @param xMin Absolute horizontal position to start rendering at
+     * @param yMin Absolute vertical position to start rendering at
+     * @param xMax Absolute horizontal width to end rendering at
+     * @param yMax Absolute vertical width to end rendering at
+     * @param texU0 Minimum texture U co-ordinate, always between 0 and 1.
+     * @param texV0 Minimum texture V co-ordinate, always between 0 and 1.
+     * @param texU1 Maximum texture U co-ordinate, always between 0 and 1.
+     * @param texV1 Maximum texture V co-ordinate, always between 0 and 1. */
+    public void drawCustomScaledAt(double xMin, double yMin, double xMax, double yMax, double texU0, double texV0, double texU1, double texV1) {
+        drawCustomScaledAt(sprite, xMin, yMin, xMax, yMax, texU0, texV0, texU1, texV1);
+    }
+
+    /** @param xMin Absolute horizontal position to start rendering at
+     * @param yMin Absolute vertical position to start rendering at
+     * @param xMax Absolute horizontal width to end rendering at
+     * @param yMax Absolute vertical width to end rendering at
+     * @param texU0 Minimum texture U co-ordinate, always between 0 and 1.
+     * @param texV0 Minimum texture V co-ordinate, always between 0 and 1.
+     * @param texU1 Maximum texture U co-ordinate, always between 0 and 1.
+     * @param texV1 Maximum texture V co-ordinate, always between 0 and 1. */
+    public static void drawCustomScaledAt(ISprite sprite, double xMin, double yMin, double xMax, double yMax, double texU0, double texV0, double texU1, double texV1) {
+        sprite.bindTexture();
+
+        double uMin = sprite.getInterpU(texU0);
+        double vMin = sprite.getInterpV(texV0);
+
+        double uMax = sprite.getInterpU(texU1);
+        double vMax = sprite.getInterpV(texV1);
+
+        Tessellator tess = Tessellator.getInstance();
+        BufferBuilder vb = tess.getBuffer();
+        vb.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+
+        vertex(vb, xMin, yMax, uMin, vMax);
+        vertex(vb, xMax, yMax, uMax, vMax);
+        vertex(vb, xMax, yMin, uMax, vMin);
+        vertex(vb, xMin, yMin, uMin, vMin);
+
+        tess.draw();
+    }
+
     public static void drawAt(ISprite sprite, double x, double y, double size) {
         drawAt(sprite, x, y, size, size);
     }

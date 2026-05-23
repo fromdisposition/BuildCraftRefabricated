@@ -41,6 +41,7 @@ import buildcraft.api.tiles.IDebuggable;
 import buildcraft.lib.block.VanillaRotationHandlers;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.NBTUtilBC;
+import buildcraft.lib.misc.StringUtilBC;
 import buildcraft.lib.misc.collect.OrderedEnumMap;
 import buildcraft.lib.misc.data.ModelVariableData;
 import buildcraft.lib.net.PacketBufferBC;
@@ -526,12 +527,18 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
         IMjReceiver rec = tile.getCapability(MjAPI.CAP_RECEIVER, side.getOpposite());
         if (rec != null && rec.canConnect(mjConnector) && mjConnector.canConnect(rec)) {
             return rec;
-        } else if (MjAPI.isRfAutoConversionEnabled()) {
+        } else if (couldPowerRf()) {
             IEnergyStorage rf = tile.getCapability(CapabilityEnergy.ENERGY, side.getOpposite());
             return MjToRfAutoConvertor.createReceiver(rf);
         } else {
             return null;
         }
+    }
+
+    /** @return True if this engine is allowed to autoconvert output MJ to RF. By default this checks
+     *         {@link MjAPI#isRfAutoConversionEnabled()} */
+    protected boolean couldPowerRf() {
+        return MjAPI.isRfAutoConversionEnabled();
     }
 
     public IMjReceiver getReceiverToPower(EnumFacing side) {
@@ -631,7 +638,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
     @Override
     public void getDebugInfo(List<String> left, List<String> right, EnumFacing side) {
         left.add("facing = " + currentDirection);
-        left.add("heat = " + LocaleUtil.localizeHeat(heat) + " -- " + String.format("%.2f %%", getHeatLevel()));
+        left.add("heat = " + LocaleUtil.localizeHeat(heat) + " -- " + StringUtilBC.formatSafe("%.2f %%", getHeatLevel()));
         left.add("power = " + LocaleUtil.localizeMj(power));
         left.add("stage = " + powerStage);
         left.add("progress = " + progress);

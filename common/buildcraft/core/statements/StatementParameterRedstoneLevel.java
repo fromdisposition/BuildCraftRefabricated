@@ -24,6 +24,7 @@ import buildcraft.api.statements.StatementMouseClick;
 
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.StackUtil;
+import buildcraft.lib.misc.StringUtilBC;
 
 import buildcraft.core.BCCoreSprites;
 
@@ -103,7 +104,7 @@ public class StatementParameterRedstoneLevel implements IStatementParameter {
 
     @Override
     public String getDescription() {
-        return String.format(LocaleUtil.localize("gate.trigger.redstone.input.level"), level);
+        return StringUtilBC.formatSafe(LocaleUtil.localize("gate.trigger.redstone.input.level"), level);
     }
 
     @Override

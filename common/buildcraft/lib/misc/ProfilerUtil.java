@@ -106,7 +106,7 @@ public class ProfilerUtil {
             for (int i = 1; i < list.size(); ++i) {
                 Profiler.Result result = list.get(i);
                 StringBuilder builder = new StringBuilder();
-                builder.append(String.format("[%02d] ", indent));
+                builder.append(StringUtilBC.formatDirect("[%02d] ", indent));
 
                 for (int j = 0; j < indent; ++j) {
                     builder.append("|   ");
@@ -114,9 +114,9 @@ public class ProfilerUtil {
 
                 builder.append(result.profilerName);
                 builder.append(" - ");
-                builder.append(String.format("%.2f", result.usePercentage));
+                builder.append(StringUtilBC.formatDirect("%.2f", result.usePercentage));
                 builder.append("%/");
-                builder.append(String.format("%.2f", result.totalUsePercentage));
+                builder.append(StringUtilBC.formatDirect("%.2f", result.totalUsePercentage));
                 if (totalNanoseconds > 0) {
                     builder.append(" (");
                     long nano = (long) (result.totalUsePercentage * totalNanoseconds / 100);

@@ -43,6 +43,7 @@ import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.SoundUtil;
 import buildcraft.lib.misc.StackUtil;
+import buildcraft.lib.misc.StringUtilBC;
 
 import buildcraft.silicon.BCSiliconPlugs;
 import buildcraft.silicon.plug.FacadeBlockStateInfo;
@@ -164,12 +165,10 @@ public class ItemPluggableFacade extends ItemBC_Neptune implements IItemPluggabl
                     defaultState = state;
                     continue;
                 }
-                tooltip.add(String.format(stateString, LocaleUtil.localizeColour(state.activeColour),
-                    getFacadeStateDisplayName(state)));
+                tooltip.add(StringUtilBC.formatSafe(stateString, LocaleUtil.localizeColour(state.activeColour), getFacadeStateDisplayName(state)));
             }
             if (defaultState != null) {
-                tooltip.add(1, String.format(LocaleUtil.localize("item.FacadePhased.state_default"),
-                    getFacadeStateDisplayName(defaultState)));
+                tooltip.add(1, StringUtilBC.formatSafe(LocaleUtil.localize("item.FacadePhased.state_default"), getFacadeStateDisplayName(defaultState)));
             }
         } else {
             if (flag.isAdvanced()) {

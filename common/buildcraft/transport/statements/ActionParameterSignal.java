@@ -31,6 +31,7 @@ import buildcraft.api.statements.StatementMouseClick;
 import buildcraft.lib.misc.ColourUtil;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.StackUtil;
+import buildcraft.lib.misc.StringUtilBC;
 
 import buildcraft.transport.BCTransportSprites;
 
@@ -117,7 +118,7 @@ public class ActionParameterSignal implements IStatementParameter {
         }
         String format = LocaleUtil.localize("gate.action.pipe.wire");
         Object[] args = { ColourUtil.getTextFullTooltip(c) };
-        return String.format(format, args);
+        return StringUtilBC.formatSafe(format, args);
     }
 
     @Override

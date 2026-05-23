@@ -54,6 +54,7 @@ import buildcraft.api.recipes.AssemblyRecipeBasic;
 import buildcraft.api.recipes.IngredientStack;
 
 import buildcraft.lib.misc.ColourUtil;
+import buildcraft.lib.misc.StringUtilBC;
 import buildcraft.lib.recipe.AssemblyRecipeRegistry;
 import buildcraft.lib.recipe.IngredientNBTBC;
 import buildcraft.lib.recipe.RecipeBuilderShaped;
@@ -193,13 +194,13 @@ public class BCSiliconRecipes {
 
         if (BCSiliconItems.plugLens != null) {
             for (EnumDyeColor colour : ColourUtil.COLOURS) {
-                String name = String.format("lens-regular-%s", colour.getUnlocalizedName());
+                String name = StringUtilBC.formatDirect("lens-regular-%s", colour.getUnlocalizedName());
                 IngredientStack stainedGlass = IngredientStack.of("blockGlass" + ColourUtil.getName(colour));
                 ImmutableSet<IngredientStack> input = ImmutableSet.of(stainedGlass);
                 ItemStack output = BCSiliconItems.plugLens.getStack(colour, false);
                 AssemblyRecipeRegistry.register(new AssemblyRecipeBasic(name, 500 * MjAPI.MJ, input, output));
 
-                name = String.format("lens-filter-%s", colour.getUnlocalizedName());
+                name = StringUtilBC.formatDirect("lens-filter-%s", colour.getUnlocalizedName());
                 output = BCSiliconItems.plugLens.getStack(colour, true);
                 input = ImmutableSet.of(stainedGlass, IngredientStack.of(new ItemStack(Blocks.IRON_BARS)));
                 AssemblyRecipeRegistry.register(new AssemblyRecipeBasic(name, 500 * MjAPI.MJ, input, output));
@@ -269,7 +270,7 @@ public class BCSiliconRecipes {
     private static void makeGateModifierAssembly(int multiplier, EnumGateMaterial material, EnumGateModifier modifier,
         IngredientStack... mods) {
         for (EnumGateLogic logic : EnumGateLogic.VALUES) {
-            String name = String.format("gate-modifier-%s-%s-%s", logic, material, modifier);
+            String name = StringUtilBC.formatDirect("gate-modifier-%s-%s-%s", logic, material, modifier);
             GateVariant variantFrom = new GateVariant(logic, material, EnumGateModifier.NO_MODIFIER);
             ItemStack toUpgrade = BCSiliconItems.plugGate.getStack(variantFrom);
             ItemStack output = BCSiliconItems.plugGate.getStack(new GateVariant(logic, material, modifier));
@@ -288,11 +289,11 @@ public class BCSiliconRecipes {
         temp.add(additional);
         ImmutableSet<IngredientStack> input = temp.build();
 
-        String name = String.format("gate-and-%s-%s", material, modifier);
+        String name = StringUtilBC.formatDirect("gate-and-%s-%s", material, modifier);
         ItemStack output = BCSiliconItems.plugGate.getStack(new GateVariant(EnumGateLogic.AND, material, modifier));
         AssemblyRecipeRegistry.register((new AssemblyRecipeBasic(name, MjAPI.MJ * multiplier, input, output)));
 
-        name = String.format("gate-or-%s-%s", material, modifier);
+        name = StringUtilBC.formatDirect("gate-or-%s-%s", material, modifier);
         output = BCSiliconItems.plugGate.getStack(new GateVariant(EnumGateLogic.OR, material, modifier));
         AssemblyRecipeRegistry.register((new AssemblyRecipeBasic(name, MjAPI.MJ * multiplier, input, output)));
     }

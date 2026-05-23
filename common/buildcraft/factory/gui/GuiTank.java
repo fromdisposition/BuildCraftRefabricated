@@ -25,11 +25,6 @@ public class GuiTank extends GuiBC8<ContainerTank> {
         super(container);
         xSize = SIZE_X;
         ySize = SIZE_Y;
-    }
-
-    @Override
-    public void initGui() {
-        super.initGui();
 
         mainGui.shownElements.add(container.widgetTank.createGuiElement(mainGui, new GuiRectangle(80, 18, 16, 64).offset(mainGui.rootElement), ICON_TANK_OVERLAY));
     }

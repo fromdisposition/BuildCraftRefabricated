@@ -46,6 +46,7 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeDefinition;
 import buildcraft.api.transport.pipe.PipeEvent;
+import buildcraft.api.transport.pipe.PipeEventPlaced;
 import buildcraft.api.transport.pipe.PipeEventTileState;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.api.transport.pluggable.PipePluggable;
@@ -198,6 +199,7 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, ITick
             if (meta > 0 && meta <= 16) {
                 pipe.setColour(EnumDyeColor.byMetadata(meta - 1));
             }
+            eventBus.fireEvent(new PipeEventPlaced(this, placer, stack));
         }
         scheduleRenderUpdate();
 

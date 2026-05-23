@@ -317,11 +317,11 @@ public class Tank extends FluidTank implements IFluidHandlerAdv {
         // Now try to drain the fluid into the item
         IFluidHandlerItem fluidHandler = FluidUtil.getFluidHandler(copy);
         if (fluidHandler == null) return stack;
-        FluidStack drained = drain(capacity, false);
+        FluidStack drained = drainInternal(capacity, false);
         if (drained == null || drained.amount <= 0) return stack;
         int filled = fluidHandler.fill(drained, true);
         if (filled > 0) {
-            FluidStack reallyDrained = drain(filled, true);
+            FluidStack reallyDrained = drainInternal(filled, true);
             if ((reallyDrained == null || reallyDrained.amount != filled)) {
                 throw new IllegalStateException("Somehow drained differently than expected! ( drained = "//
                     + drained + ", filled = " + filled + ", reallyDrained = " + reallyDrained + " )");

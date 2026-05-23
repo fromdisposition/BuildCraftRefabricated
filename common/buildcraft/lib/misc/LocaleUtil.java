@@ -95,7 +95,7 @@ public class LocaleUtil {
             return key + " " + Arrays.toString(args);
         }
         try {
-            return String.format(localized, args);
+            return StringUtilBC.formatSafe(localized, args);
         } catch (IllegalFormatException ife) {
             return "Bad Format: " + ife.getMessage();
         }
@@ -201,7 +201,7 @@ public class LocaleUtil {
         // if (BCLibConfig.useLongLocalizedName) {
         // return localize("buildcraft.heat.long", heat);
         // } else {
-        return String.format("%.2f \u00B0C", heat);
+        return StringUtilBC.formatSafe("%.2f \u00B0C", heat);
         // }
     }
 }

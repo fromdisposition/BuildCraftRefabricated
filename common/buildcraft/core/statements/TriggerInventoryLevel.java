@@ -29,6 +29,7 @@ import buildcraft.lib.misc.CapUtil;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.ObjectUtilBC;
 import buildcraft.lib.misc.StackUtil;
+import buildcraft.lib.misc.StringUtilBC;
 
 import buildcraft.core.BCCoreSprites;
 import buildcraft.core.BCCoreStatements;
@@ -56,7 +57,7 @@ public class TriggerInventoryLevel extends BCStatement implements ITriggerExtern
 
     @Override
     public String getDescription() {
-        return String.format(LocaleUtil.localize("gate.trigger.inventorylevel.below"), (int) (type.level * 100));
+        return StringUtilBC.formatSafe(LocaleUtil.localize("gate.trigger.inventorylevel.below"), (int) (type.level * 100));
     }
 
     @Override

@@ -48,10 +48,12 @@ import buildcraft.lib.misc.VecUtil;
 @SideOnly(Side.CLIENT)
 public class FluidRenderer {
 
-    private static final EnumMap<FluidSpriteType, Map<String, TextureAtlasSprite>> fluidSprites =
-        new EnumMap<>(FluidSpriteType.class);
+    private static final EnumMap<FluidSpriteType, Map<String, TextureAtlasSprite>> fluidSprites
+        = new EnumMap<>(FluidSpriteType.class);
     public static final MutableVertex vertex = new MutableVertex();
     private static final boolean[] DEFAULT_FACES = { true, true, true, true, true, true };
+
+    private static final Map<String, Integer> fluidAvgColours = new HashMap<>();
 
     // Cached fields that prevent lots of arguments on most methods
     private static BufferBuilder bb;
@@ -77,8 +79,10 @@ public class FluidRenderer {
             ResourceLocation still = fluid.getStill();
             ResourceLocation flowing = fluid.getFlowing();
             if (still == null || flowing == null) {
-                throw new IllegalStateException("Encountered a fluid with a null still sprite! (" + fluid.getName()
-                    + " - " + FluidRegistry.getDefaultFluidName(fluid) + ")");
+                throw new IllegalStateException(
+                    "Encountered a fluid with a null still sprite! (" + fluid.getName() + " - "
+                        + FluidRegistry.getDefaultFluidName(fluid) + ")"
+                );
             }
             if (spritesStitched.containsKey(still)) {
                 fluidSprites.get(FluidSpriteType.FROZEN).put(fluid.getName(), spritesStitched.get(still));
@@ -96,6 +100,60 @@ public class FluidRenderer {
         }
     }
 
+    public static void onTextureStitchPost(TextureMap map) {
+        for (Fluid fluid : FluidRegistry.getRegisteredFluids().values()) {
+            ResourceLocation still = fluid.getStill();
+            if (still == null) {
+                throw new IllegalStateException(
+                    "Encountered a fluid with a null still sprite! (" + fluid.getName() + " - "
+                        + FluidRegistry.getDefaultFluidName(fluid) + ")"
+                );
+            }
+
+            TextureAtlasSprite sprite = map.getAtlasSprite(still.toString());
+            if (sprite == null || sprite == map.getMissingSprite()) {
+                continue;
+            }
+
+            double r = 0;
+            double g = 0;
+            double b = 0;
+            int count = 0;
+
+            for (int frame = 0; frame < sprite.getFrameCount(); frame++) {
+                int[] buffer = sprite.getFrameTextureData(frame)[0];
+                for (int pixel : buffer) {
+                    r += (pixel >> 16) & 0xFF;
+                    g += (pixel >> 8) & 0xFF;
+                    b += (pixel >> 0) & 0xFF;
+                }
+                count += buffer.length;
+            }
+
+            if (count > 0) {
+                r /= count;
+                g /= count;
+                b /= count;
+            }
+
+            int colour = fluid.getColor();
+
+            r *= ((colour >> 16) & 0xFF) / 255.0;
+            g *= ((colour >> 8) & 0xFF) / 255.0;
+            b *= ((colour >> 0) & 0xFF) / 255.0;
+
+            int avgR = MathUtil.clamp(r, 0, 0xFF);
+            int avgG = MathUtil.clamp(g, 0, 0xFF);
+            int avgB = MathUtil.clamp(b, 0, 0xFF);
+            int avg = 0xFF_00_00_00//
+                | (avgR << 16) //
+                | (avgG << 8) //
+                | avgB;
+
+            fluidAvgColours.put(fluid.getName(), avg);
+        }
+    }
+
     /** Renders a fluid cuboid to the given vertex buffer. The cube shouldn't cross over any {@literal 0->1} boundary
      * (so the cube must be contained within a block).
      * 
@@ -107,8 +165,9 @@ public class FluidRenderer {
      * @param sideRender A size 6 boolean array that determines if the face will be rendered. If it is null then all
      *            faces will be rendered. The indexes are determined by what {@link EnumFacing#ordinal()} returns.
      * @see #renderFluid(FluidSpriteType, FluidStack, double, double, Vec3d, Vec3d, BufferBuilder, boolean[]) */
-    public static void renderFluid(FluidSpriteType type, IFluidTank tank, Vec3d min, Vec3d max, BufferBuilder bbIn,
-        boolean[] sideRender) {
+    public static void renderFluid(
+        FluidSpriteType type, IFluidTank tank, Vec3d min, Vec3d max, BufferBuilder bbIn, boolean[] sideRender
+    ) {
         renderFluid(type, tank.getFluid(), tank.getCapacity(), min, max, bbIn, sideRender);
     }
 
@@ -123,8 +182,9 @@ public class FluidRenderer {
      * @param bbIn The {@link BufferBuilder} that the fluid will be rendered into.
      * @param sideRender A size 6 boolean array that determines if the face will be rendered. If it is null then all
      *            faces will be rendered. The indexes are determined by what {@link EnumFacing#ordinal()} returns. */
-    public static void renderFluid(FluidSpriteType type, FluidStack fluid, int cap, Vec3d min, Vec3d max,
-        BufferBuilder bbIn, boolean[] sideRender) {
+    public static void renderFluid(
+        FluidSpriteType type, FluidStack fluid, int cap, Vec3d min, Vec3d max, BufferBuilder bbIn, boolean[] sideRender
+    ) {
         renderFluid(type, fluid, fluid == null ? 0 : fluid.amount, cap, min, max, bbIn, sideRender);
     }
 
@@ -141,8 +201,10 @@ public class FluidRenderer {
      * @param bbIn The {@link BufferBuilder} that the fluid will be rendered into.
      * @param sideRender A size 6 boolean array that determines if the face will be rendered. If it is null then all
      *            faces will be rendered. The indexes are determined by what {@link EnumFacing#ordinal()} returns. */
-    public static void renderFluid(FluidSpriteType type, FluidStack fluid, double amount, double cap, Vec3d min,
-        Vec3d max, BufferBuilder bbIn, boolean[] sideRender) {
+    public static void renderFluid(
+        FluidSpriteType type, FluidStack fluid, double amount, double cap, Vec3d min, Vec3d max, BufferBuilder bbIn,
+        boolean[] sideRender
+    ) {
         if (fluid == null || fluid.getFluid() == null || amount <= 0) {
             return;
         }
@@ -273,6 +335,10 @@ public class FluidRenderer {
         return s != null ? s : SpriteUtil.missingSprite();
     }
 
+    public static int getAverageFluidColour(Fluid fluid) {
+        return fluidAvgColours.getOrDefault(fluid.getName(), -1);
+    }
+
     /** Helper function to add a vertex. */
     private static void vertex(double x, double y, double z) {
         vertex.positiond(x, y, z);
@@ -324,7 +390,7 @@ public class FluidRenderer {
             x = endX - additionalWidth;
             double xTex = Math.abs(additionalWidth);
             double y = startY;
-            for (int yc = 0; yc < loopCountY; y++) {
+            for (int yc = 0; yc < loopCountY; yc++) {
                 guiVertex(x, y, 0, 0);
                 guiVertex(endX, y, xTex, 0);
                 guiVertex(endX, y + stepY, xTex, 16);
@@ -439,7 +505,8 @@ public class FluidRenderer {
         }
 
         private static Vec3d rotateY(Vec3d vec) {
-            return new Vec3d(//
+            return new Vec3d(
+                //
                 1 - vec.z, //
                 vec.y, //
                 vec.x//

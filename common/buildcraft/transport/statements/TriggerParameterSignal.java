@@ -34,6 +34,7 @@ import buildcraft.lib.misc.ColourUtil;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.StackUtil;
+import buildcraft.lib.misc.StringUtilBC;
 import buildcraft.lib.net.PacketBufferBC;
 
 import buildcraft.transport.BCTransportSprites;
@@ -132,8 +133,7 @@ public class TriggerParameterSignal implements IStatementParameter {
         if (colour == null) {
             return null;
         }
-        return String.format(LocaleUtil.localize("gate.trigger.pipe.wire." + (active ? "active" : "inactive")),
-            ColourUtil.getTextFullTooltip(colour));
+        return StringUtilBC.formatSafe(LocaleUtil.localize("gate.trigger.pipe.wire." + (active ? "active" : "inactive")), ColourUtil.getTextFullTooltip(colour));
     }
 
     @Override

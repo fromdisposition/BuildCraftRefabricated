@@ -7,7 +7,9 @@
 package buildcraft.lib.misc;
 
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.function.Function;
 
@@ -113,6 +115,29 @@ public final class StringUtilBC {
             return "null";
         }
         return vec.getX() + ", " + vec.getY() + ", " + vec.getZ();
+    }
+
+    /** A direct replacement for {@link String#format(String, Object...)} which returns a descriptive string if the
+     * given format is invalid. */
+    public static String formatSafe(String format, Object... args) {
+        if (true || Boolean.getBoolean("buildcraft.lib.misc.StringUtilBC.debugFormatSafe")) {
+            return formatDirect(format, args);
+        }
+        try {
+            return String.format(format, args);
+        } catch (IllegalFormatException error) {
+            return "![" + error.getMessage() + "]! for '" + format + "' " + Arrays.toString(args);
+        }
+    }
+
+    /** A direct replacement for {@link String#format(String, Object...)} which includes the full format argument if
+     * {@link String#format(String, Object...)} throws an {@link IllegalFormatException} */
+    public static String formatDirect(String format, Object... args) {
+        try {
+            return String.format(format, args);
+        } catch (IllegalFormatException error) {
+            throw new IllegalArgumentException("Invalid format: '" + format + "'", error);
+        }
     }
 
     /** @param keyExtractor An extractor that will map an object to a string.
