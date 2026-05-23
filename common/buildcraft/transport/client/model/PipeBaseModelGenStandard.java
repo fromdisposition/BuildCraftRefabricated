@@ -166,6 +166,111 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
         }
     }
 
+    private static MutableQuad[] setupSideQuads(
+        EnumFacing side, float size, boolean isColour
+    ) {
+        boolean extended = size > 0.25;
+
+        MutableQuad[] quads = new MutableQuad[(extended ? 16 : 8)];
+
+        Tuple3f center = new Point3f(
+            0.5f + side.getFrontOffsetX() * 0.375f, //
+            0.5f + side.getFrontOffsetY() * 0.375f, //
+            0.5f + side.getFrontOffsetZ() * 0.375f //
+        );
+        Tuple3f radius = new Vector3f(
+            side.getAxis() == Axis.X ? 0.125f : 0.25f, //
+            side.getAxis() == Axis.Y ? 0.125f : 0.25f, //
+            side.getAxis() == Axis.Z ? 0.125f : 0.25f //
+        );
+        UvFaceData uvs = new UvFaceData();
+        uvs.minU = uvs.minV = 4 / 16f;
+        uvs.maxU = uvs.maxV = 12 / 16f;
+
+        UvFaceData[] types = { //
+            UvFaceData.from16(4, 0, 12, 4), //
+            UvFaceData.from16(4, 12, 12, 16), //
+            UvFaceData.from16(0, 4, 4, 12), //
+            UvFaceData.from16(12, 4, 16, 12) //
+        };
+        UvFaceData centerUv = UvFaceData.from16(4, 4, 12, 12);
+
+        int[][] uvTypeIndices = { //
+            // D, U, N, S, W, E
+            { 0, 0, 1, 0, 2, 3 }, // D
+            { 0, 0, 0, 1, 2, 3 }, // U
+            { 1, 0, 0, 0, 3, 2 }, // N
+            { 1, 0, 0, 0, 2, 3 }, // S
+            { 1, 0, 2, 3, 0, 0 }, // W
+            { 1, 0, 3, 2, 0, 0 }, // E
+        };
+
+        int quadIndex = 0;
+        for (EnumFacing face : EnumFacing.values()) {
+            if (face.getAxis() == side.getAxis()) {
+                continue;
+            }
+            uvs = types[uvTypeIndices[face.ordinal()][side.ordinal()]];
+            MutableQuad quad = ModelUtil.createFace(face, center, radius, uvs);
+            quad.setDiffuse(quad.normalvf());
+            if (isColour) {
+                quad.translated(
+                    0.01 * -face.getFrontOffsetX(), //
+                    0.01 * -face.getFrontOffsetY(), //
+                    0.01 * -face.getFrontOffsetZ()//
+                );
+            }
+
+            quads[quadIndex++] = quad;
+        }
+
+        if (extended) {
+            float extensionLength = size - 0.25f;
+            radius = new Vector3f(
+                side.getAxis() == Axis.X ? extensionLength / 2 : radius.getX(),//
+                side.getAxis() == Axis.Y ? extensionLength / 2 : radius.getY(),//
+                side.getAxis() == Axis.Z ? extensionLength / 2 : radius.getZ()//
+            );
+            center = new Point3f(
+                0.5f + side.getFrontOffsetX() * (0.5f + extensionLength / 2), //
+                0.5f + side.getFrontOffsetY() * (0.5f + extensionLength / 2), //
+                0.5f + side.getFrontOffsetZ() * (0.5f + extensionLength / 2)
+            );
+            types = new UvFaceData[] { //
+                new UvFaceData(0.25, 1 - extensionLength, 0.75, 1), //
+                new UvFaceData(0.25, 0, 0.75, extensionLength), //
+                new UvFaceData(1 - extensionLength, 0.25, 1, 0.75), //
+                new UvFaceData(0, 0.25, extensionLength, 0.75) //
+            };
+
+            for (EnumFacing face : EnumFacing.values()) {
+                if (face.getAxis() == side.getAxis()) {
+                    continue;
+                }
+                uvs = types[uvTypeIndices[face.ordinal()][side.ordinal()]];
+                MutableQuad quad = ModelUtil.createFace(face, center, radius, uvs);
+                quad.setDiffuse(quad.normalvf());
+                if (isColour) {
+                    quad.translated(
+                        0.01 * -face.getFrontOffsetX(), //
+                        0.01 * -face.getFrontOffsetY(), //
+                        0.01 * -face.getFrontOffsetZ()//
+                    );
+                }
+
+                quads[quadIndex++] = quad;
+            }
+        }
+
+        if (isColour) {
+            dupInverted(quads);
+        } else {
+            dupDarker(quads);
+        }
+
+        return quads;
+    }
+
     private static void dupDarker(MutableQuad[] quads) {
         int halfLength = quads.length / 2;
         float mult = OPTION_INSIDE_COLOUR_MULT.getAsFloat();
@@ -206,9 +311,13 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
         int border_b = (colour >> 16) & 0xFF;
         for (EnumFacing face : EnumFacing.VALUES) {
             float size = key.connections[face.ordinal()];
-            PipeFaceTex tex = size > 0 ? key.sideSprites[face.ordinal()] : key.centerSprite;
-            int quadsIndex = size > 0 ? 1 : 0;
-            MutableQuad[] quadArray = QUADS[quadsIndex][face.ordinal()];
+            PipeFaceTex tex = size > 0 || key.centerSprite == null ? key.sideSprites[face.ordinal()] : key.centerSprite;
+            MutableQuad[] quadArray;
+            if (size == 0) {
+                quadArray = QUADS[0][face.ordinal()];
+            } else {
+                quadArray = setupSideQuads(face, size, false);
+            }
 
             int startIndex = quads.size();
 
@@ -278,7 +387,7 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
         for (EnumFacing face : EnumFacing.VALUES) {
             float size = key.connections[face.ordinal()];
             if (size > 0) {
-                addQuads(QUADS_COLOURED[1][face.ordinal()], quads, sprite);
+                addQuads(setupSideQuads(face, size, true), quads, sprite);
             } else {
                 addQuads(QUADS_COLOURED[0][face.ordinal()], quads, sprite);
             }
