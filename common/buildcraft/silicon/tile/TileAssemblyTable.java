@@ -65,7 +65,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
 
     private void updateRecipes() {
         //TODO: rework this to not iterate over every recipe every tick
-        int count = recipesStates.size();
+        boolean changed = false;
         for (AssemblyRecipe recipe: AssemblyRecipeRegistry.REGISTRY.values()) {
             Set<ItemStack> outputs = recipe.getOutputs(inv.stacks);
             for (ItemStack out: outputs) {
@@ -79,6 +79,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
                 AssemblyInstruction instruction = new AssemblyInstruction(recipe, out);
                 if (!found && !recipesStates.containsKey(instruction)) {
                     recipesStates.put(instruction, EnumAssemblyRecipeState.POSSIBLE);
+                    changed = true;
                 }
             }
         }
@@ -92,15 +93,18 @@ public class TileAssemblyTable extends TileLaserTableBase {
             if (state == EnumAssemblyRecipeState.POSSIBLE) {
                 if (!enough) {
                     iterator.remove();
+                    changed = true;
                 }
             } else {
                 if (enough) {
                     if (state == EnumAssemblyRecipeState.SAVED) {
                         state = EnumAssemblyRecipeState.SAVED_ENOUGH;
+                        changed = true;
                     }
                 } else {
                     if (state != EnumAssemblyRecipeState.SAVED) {
                         state = EnumAssemblyRecipeState.SAVED;
+                        changed = true;
                     }
                 }
             }
@@ -115,11 +119,12 @@ public class TileAssemblyTable extends TileLaserTableBase {
                 if (state == EnumAssemblyRecipeState.SAVED_ENOUGH) {
                     state = EnumAssemblyRecipeState.SAVED_ENOUGH_ACTIVE;
                     entry.setValue(state);
+                    changed = true;
                     break;
                 }
             }
         }
-        if (count != recipesStates.size()) {
+        if (changed) {
             sendNetworkGuiUpdate(NET_GUI_DATA);
         }
     }
@@ -258,6 +263,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
             EnumAssemblyRecipeState state = EnumAssemblyRecipeState.values()[buffer.readInt()];
             if (recipesStates.containsKey(recipe)) {
                 recipesStates.put(recipe, state);
+                sendNetworkUpdate(NET_GUI_DATA);
             }
         }
     }
