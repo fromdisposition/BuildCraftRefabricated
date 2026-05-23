@@ -9,8 +9,10 @@ import java.io.IOException;
 import java.util.List;
 
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.ITickable;
 
 import net.minecraftforge.fluids.Fluid;
@@ -39,7 +41,10 @@ import buildcraft.lib.expression.node.value.NodeVariableObject;
 import buildcraft.lib.fluid.FluidSmoother;
 import buildcraft.lib.fluid.FluidSmoother.IFluidDataSender;
 import buildcraft.lib.fluid.Tank;
+import buildcraft.lib.gui.help.ElementHelpInfo;
+import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.CapUtil;
+import buildcraft.lib.misc.FluidUtilBC;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.data.AverageLong;
 import buildcraft.lib.misc.data.IdAllocator;
@@ -50,6 +55,7 @@ import buildcraft.lib.tile.TileBC_Neptune;
 
 import buildcraft.core.BCCoreConfig;
 import buildcraft.factory.BCFactoryBlocks;
+import buildcraft.factory.BCFactoryGuis;
 
 public class TileDistiller_BC8 extends TileBC_Neptune implements ITickable, IDebuggable {
     public static final FunctionContext MODEL_FUNC_CTX;
@@ -73,9 +79,9 @@ public class TileDistiller_BC8 extends TileBC_Neptune implements ITickable, IDeb
 
     public static final long MAX_MJ_PER_TICK = 6 * MjAPI.MJ;
 
-    private final Tank tankIn = new Tank("in", 4 * Fluid.BUCKET_VOLUME, this, this::isDistillableFluid);
-    private final Tank tankGasOut = new Tank("gasOut", 4 * Fluid.BUCKET_VOLUME, this);
-    private final Tank tankLiquidOut = new Tank("liquidOut", 4 * Fluid.BUCKET_VOLUME, this);
+    public final Tank tankIn = new Tank("in", 4 * Fluid.BUCKET_VOLUME, this, this::isDistillableFluid);
+    public final Tank tankGasOut = new Tank("gasOut", 4 * Fluid.BUCKET_VOLUME, this);
+    public final Tank tankLiquidOut = new Tank("liquidOut", 4 * Fluid.BUCKET_VOLUME, this);
 
     private final MjBattery mjBattery = new MjBattery(1024 * MjAPI.MJ);
 
@@ -99,6 +105,19 @@ public class TileDistiller_BC8 extends TileBC_Neptune implements ITickable, IDeb
         tankIn.setCanDrain(false);
         tankGasOut.setCanFill(false);
         tankLiquidOut.setCanFill(false);
+
+        tankIn.helpInfo = new ElementHelpInfo(
+            "buildcraft.help.distiller.tank_in.title", 0xFF_e2_63_63, Tank.DEFAULT_HELP_KEY,
+            "buildcraft.help.distiller.tank_in.desc"
+        );
+        tankGasOut.helpInfo = new ElementHelpInfo(
+            "buildcraft.help.distiller.tank_gas_out.title", 0xFF_e4_e4_00, Tank.DEFAULT_HELP_KEY,
+            "buildcraft.help.distiller.tank_gas_out.desc"
+        );
+        tankLiquidOut.helpInfo = new ElementHelpInfo(
+            "buildcraft.help.distiller.tank_liquid_out.title", 0xFF_b5_00_ff, Tank.DEFAULT_HELP_KEY,
+            "buildcraft.help.distiller.tank_liquid_out.desc"
+        );
 
         tankManager.add(tankIn);
         tankManager.add(tankGasOut);
@@ -175,6 +194,8 @@ public class TileDistiller_BC8 extends TileBC_Neptune implements ITickable, IDeb
                 smoothedTankGasOut.writeInit(buffer);
             } else if (id == NET_TANK_LIQUID_OUT) {
                 smoothedTankLiquidOut.writeInit(buffer);
+            } else if (id == NET_GUI_DATA || id == NET_GUI_TICK) {
+                tankManager.writeData(buffer);
             }
         }
     }
@@ -200,6 +221,8 @@ public class TileDistiller_BC8 extends TileBC_Neptune implements ITickable, IDeb
                 smoothedTankGasOut.handleMessage(getWorld(), buffer);
             } else if (id == NET_TANK_LIQUID_OUT) {
                 smoothedTankLiquidOut.handleMessage(getWorld(), buffer);
+            } else if (id == NET_GUI_DATA || id == NET_GUI_TICK) {
+                tankManager.readData(buffer);
             }
         }
     }
@@ -224,6 +247,25 @@ public class TileDistiller_BC8 extends TileBC_Neptune implements ITickable, IDeb
         if (state.getBlock() == BCFactoryBlocks.distiller) {
             MODEL_FACING.value = state.getValue(BlockBCBase_Neptune.PROP_FACING);
         }
+    }
+
+    @Override
+    public boolean onActivated(EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY,
+        float hitZ) {
+
+        if (super.onActivated(player, hand, facing, hitX, hitY, hitZ)) {
+            return true;
+        }
+
+        if (!world.isRemote) {
+            BCFactoryGuis.DISTILLER.openGUI(player, pos);
+        }
+
+        return true;
+    }
+
+    public boolean isActive() {
+        return isActive;
     }
 
     @Override

@@ -803,6 +803,13 @@ buildcraft.help.tank.fuel=This tank can accept any kind of fuel.
 buildcraft.help.tank.coolant=This tank can accept any kind of fluid\ncoolant, or ice blocks.
 buildcraft.help.tank.residue=This tank will output residue if the\nfuel hasn't been processed\n(for example oil).
 
+buildcraft.help.distiller.tank_in.title=Input Tank
+buildcraft.help.distiller.tank_in.desc=Pipes can insert this from\nany side of the distiller.
+buildcraft.help.distiller.tank_gas_out.title=Gas Output Tank
+buildcraft.help.distiller.tank_gas_out.desc=Pipes can extract this from\nthe top of the distiller.
+buildcraft.help.distiller.tank_liquid_out.title=Liquid Output Tank
+buildcraft.help.distiller.tank_liquid_out.desc=Pipes can extract this from\nthe bottom of the distiller.
+
 buildcraft.help.stone_engine.flame.title=Fuel left
 buildcraft.help.stone_engine.fuel.title=Fuel input
 buildcraft.help.stone_engine.flame=THIS BURNS AND THIS HELP ISN'T DONE YET.

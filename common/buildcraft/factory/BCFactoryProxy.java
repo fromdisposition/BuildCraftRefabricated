@@ -18,12 +18,15 @@ import buildcraft.factory.client.render.RenderMiningWell;
 import buildcraft.factory.client.render.RenderPump;
 import buildcraft.factory.container.ContainerAutoCraftItems;
 import buildcraft.factory.container.ContainerChute;
+import buildcraft.factory.container.ContainerDistiller;
 import buildcraft.factory.container.ContainerTank;
 import buildcraft.factory.gui.GuiAutoCraftItems;
 import buildcraft.factory.gui.GuiChute;
+import buildcraft.factory.gui.GuiDistiller;
 import buildcraft.factory.gui.GuiTank;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.factory.tile.TileChute;
+import buildcraft.factory.tile.TileDistiller_BC8;
 import buildcraft.factory.tile.TileTank;
 
 public abstract class BCFactoryProxy implements IGuiHandler {
@@ -52,6 +55,11 @@ public abstract class BCFactoryProxy implements IGuiHandler {
         if (ID == BCFactoryGuis.TANK.ordinal()) {
             if (tile instanceof TileTank) {
                 return new ContainerTank(player, (TileTank) tile);
+            }
+        }
+        if (ID == BCFactoryGuis.DISTILLER.ordinal()) {
+            if (tile instanceof TileDistiller_BC8) {
+                return new ContainerDistiller(player, (TileDistiller_BC8) tile);
             }
         }
         return null;
@@ -97,6 +105,11 @@ public abstract class BCFactoryProxy implements IGuiHandler {
             if (ID == BCFactoryGuis.TANK.ordinal()) {
                 if (tile instanceof TileTank) {
                     return new GuiTank(new ContainerTank(player, (TileTank) tile));
+                }
+            }
+            if (ID == BCFactoryGuis.DISTILLER.ordinal()) {
+                if (tile instanceof TileDistiller_BC8) {
+                    return new GuiDistiller(new ContainerDistiller(player, (TileDistiller_BC8) tile));
                 }
             }
             return null;
