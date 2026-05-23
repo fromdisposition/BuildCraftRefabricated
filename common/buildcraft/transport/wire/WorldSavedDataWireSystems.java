@@ -162,7 +162,7 @@ public class WorldSavedDataWireSystems extends WorldSavedData {
         world.getPlayers(EntityPlayerMP.class, Predicates.alwaysTrue()).forEach(player -> {
             Map<Integer, WireSystem> changedWires = this.wireSystems.keySet().stream()
                     .filter(wireSystem -> wireSystem.isPlayerWatching(player) && (structureChanged || changedPlayers.contains(player)))
-                    .collect(Collectors.toMap(WireSystem::getWiresHashCode, Function.identity()));
+                    .collect(Collectors.toMap(ws -> ws.networkId, Function.identity()));
             if(!changedWires.isEmpty()) {
                 MessageManager.sendTo(new MessageWireSystems(changedWires), player);
             }
@@ -171,7 +171,7 @@ public class WorldSavedDataWireSystems extends WorldSavedData {
                             systemPower.getKey().isPlayerWatching(player) &&
                                     (structureChanged || changedSystems.contains(systemPower.getKey()) || changedPlayers.contains(player))
                     )
-                    .map(systemPowered -> Pair.of(systemPowered.getKey().getWiresHashCode(), systemPowered.getValue()))
+                    .map(systemPowered -> Pair.of(systemPowered.getKey().networkId, systemPowered.getValue()))
                     .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
             if(!hashesPowered.isEmpty()) {
                 MessageManager.sendTo(new MessageWireSystemsPowered(hashesPowered), player);

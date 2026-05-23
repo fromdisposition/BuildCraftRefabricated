@@ -17,7 +17,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -50,8 +52,15 @@ import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 
 public final class WireSystem {
+
+    private static final AtomicInteger NETWORK_IDS = new AtomicInteger();
+    private static int nextServerNetworkId() {
+        return NETWORK_IDS.incrementAndGet();
+    }
+
     public final ImmutableList<WireElement> elements;
     public final EnumDyeColor color;
+    public final int networkId;
 
     private transient final int cachedHashCode;
     private transient final int cachedWiresHashCode;
@@ -112,6 +121,11 @@ public final class WireSystem {
     }
 
     public WireSystem(ImmutableList<WireElement> elements, EnumDyeColor color) {
+        this(nextServerNetworkId(), elements, color);
+    }
+
+    public WireSystem(int netId, ImmutableList<WireElement> elements, EnumDyeColor color) {
+        this.networkId = netId;
         this.elements = Objects.requireNonNull(elements, "elements");
         this.color = color;
 
@@ -120,6 +134,7 @@ public final class WireSystem {
     }
 
     public WireSystem(WorldSavedDataWireSystems wireSystems, WireElement startElement) {
+        this.networkId = nextServerNetworkId();
         long time = System.currentTimeMillis();
         Map<BlockPos, IPipeHolder> holdersCache = new HashMap<>();
         Set<WireElement> walked = new HashSet<>();
@@ -221,6 +236,7 @@ public final class WireSystem {
     }
 
     public WireSystem(NBTTagCompound nbt) {
+        networkId = nextServerNetworkId();
         NBTTagList elementsList = nbt.getTagList("elements", Constants.NBT.TAG_COMPOUND);
         //noinspection UnstableApiUsage
         elements = IntStream.range(0, elementsList.tagCount()).mapToObj(elementsList::getCompoundTagAt).map(WireElement::new).collect(ImmutableList.toImmutableList());

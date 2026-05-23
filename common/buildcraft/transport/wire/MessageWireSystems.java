@@ -57,7 +57,7 @@ public class MessageWireSystems implements IMessage {
             for (int j = 0; j < localCount; j++) {
                 elements.add(new WireSystem.WireElement(pb));
             }
-            WireSystem wireSystem = new WireSystem(elements.build(), null);
+            WireSystem wireSystem = new WireSystem(wiresHashCode, elements.build(), null);
 
             wireSystems.put(wiresHashCode, wireSystem);
         }
