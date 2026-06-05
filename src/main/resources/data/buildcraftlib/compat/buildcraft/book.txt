@@ -1,0 +1,5 @@
+~{buildcraft/json/insn}
+add "config" `{
+    "title": "buildcraft.guide.book.buildcraftlib_config",
+    "all_entries": false
+}`

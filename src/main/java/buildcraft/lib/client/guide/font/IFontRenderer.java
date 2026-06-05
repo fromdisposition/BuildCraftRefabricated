@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.lib.client.guide.font;
+
+import net.minecraft.resources.Identifier;
+
+import java.util.List;
+
+public interface IFontRenderer {
+    int getStringWidth(String text);
+
+    int getFontHeight(String text);
+
+    int getMaxFontHeight();
+
+    default int drawString(String text, int x, int y, int colour) {
+        return drawString(text, x, y, colour, false, false, 1);
+    }
+
+    default int drawString(String text, int x, int y, int colour, boolean shadow, boolean centered) {
+        return drawString(text, x, y, colour, shadow, centered, 1);
+    }
+
+    int drawString(String text, int x, int y, int colour, boolean shadow, boolean centered, float scale);
+
+    List<String> wrapString(String text, int maxWidth, boolean shadow, float scale);
+}

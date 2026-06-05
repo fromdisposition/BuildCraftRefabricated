@@ -1,0 +1,28 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftbuilders:architect",
+      "buildcraftbuilders:builder",
+      "buildcraftbuilders:quarry",
+      "buildcraftfactory:distiller"
+    ]
+  },
+  "criteria": {
+    "has_gear_diamond": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftcore:gear_diamond"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_gear_diamond"
+    ]
+  ]
+}

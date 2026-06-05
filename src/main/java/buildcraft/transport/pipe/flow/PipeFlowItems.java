@@ -1,0 +1,671 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.transport.pipe.flow;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import com.google.common.collect.ImmutableList;
+
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+
+import buildcraft.lib.attachments.Attachments;
+import buildcraft.lib.transfer.ResourceHandler;
+import buildcraft.lib.transfer.item.ItemResource;
+import buildcraft.lib.transfer.transaction.Transaction;
+
+import buildcraft.api.core.IStackFilter;
+import buildcraft.api.transport.IInjectable;
+import buildcraft.api.transport.pipe.IFlowItems;
+import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipe.ConnectedType;
+import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.api.transport.pipe.PipeEventItem;
+import buildcraft.api.transport.pipe.PipeApi;
+import buildcraft.api.transport.pipe.PipeFlow;
+
+import buildcraft.lib.misc.StackUtil;
+import buildcraft.lib.misc.CapUtil;
+import buildcraft.lib.misc.data.DelayedList;
+
+import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.PipeEventStatement;
+
+import buildcraft.transport.BCTransportStatements;
+import buildcraft.transport.net.PipeItemMessageQueue;
+import buildcraft.transport.net.MessageMultiPipeItem.TravellingItemData;
+import buildcraft.transport.pipe.behaviour.PipeBehaviourStone;
+
+public final class PipeFlowItems extends PipeFlow implements IFlowItems {
+    private static final double EXTRACT_SPEED = 0.08;
+    public static final int NET_CREATE_ITEM = 2;
+
+    private final DelayedList<TravellingItem> items = new DelayedList<>();
+    private final List<ItemStack> postDropCache = new ArrayList<>();
+
+    public PipeFlowItems(IPipe pipe) {
+        super(pipe);
+    }
+
+    public PipeFlowItems(IPipe pipe, CompoundTag nbt) {
+        super(pipe, nbt);
+        ListTag list = nbt.getListOrEmpty("items");
+        Level world = pipe.getHolder().getPipeWorld();
+        long tickNow = world != null ? world.getGameTime() : 0;
+        for (int i = 0; i < list.size(); i++) {
+            Tag element = list.get(i);
+            if (element instanceof CompoundTag compound) {
+                TravellingItem item = new TravellingItem(compound, tickNow);
+                if (!item.stack.isEmpty()) {
+                    items.add(item.getCurrentDelay(tickNow), item);
+                }
+            }
+        }
+    }
+
+    @Override
+    public CompoundTag writeToNbt() {
+        CompoundTag nbt = super.writeToNbt();
+        List<List<TravellingItem>> allItems = items.getAllElements();
+        ListTag list = new ListTag();
+
+        long tickNow = pipe.getHolder().getPipeWorld().getGameTime();
+        for (List<TravellingItem> l : allItems) {
+            for (TravellingItem item : l) {
+                list.add(item.writeToNbt(tickNow));
+            }
+        }
+        nbt.put("items", list);
+        return nbt;
+    }
+
+    void sendItemDataToClient(TravellingItem item) {
+        Level world = pipe.getHolder().getPipeWorld();
+        if (world.isClientSide()) return;
+        int ttd = item.timeToDest > Short.MAX_VALUE ? Short.MAX_VALUE : item.timeToDest;
+        PipeItemMessageQueue.appendTravellingItem(
+            world, pipe.getHolder().getPipePos(),
+            item.stack, item.stack.getCount(),
+            item.toCenter, item.side, item.colour, ttd
+        );
+    }
+
+    public void handleClientReceivedItems(List<TravellingItemData> list) {
+        for (TravellingItemData data : list) {
+            handleClientReceivedItem(data);
+        }
+    }
+
+    private void handleClientReceivedItem(TravellingItemData data) {
+        TravellingItem item = new TravellingItem(data.stack);
+        item.stackSize = data.stackCount;
+        item.toCenter = data.toCenter;
+        item.side = data.side;
+        item.colour = data.colour;
+        item.timeToDest = data.timeToDest;
+        item.tickStarted = pipe.getHolder().getPipeWorld().getGameTime() + 1;
+        item.tickFinished = item.tickStarted + item.timeToDest;
+        items.add(item.timeToDest + 1, item);
+    }
+
+    @Override
+    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
+        super.addDrops(toDrop, fortune);
+        for (List<TravellingItem> list : items.getAllElements()) {
+            for (TravellingItem item : list) {
+                if (!item.isPhantom) {
+                    toDrop.add(item.stack);
+                }
+            }
+        }
+    }
+
+    @Override
+    public int tryExtractItems(int count, Direction from, @Nullable DyeColor colour, IStackFilter filter, boolean simulate) {
+        if (pipe.getHolder().getPipeWorld().isClientSide()) {
+            throw new IllegalStateException("Cannot extract items on the client side!");
+        }
+        if (from == null) {
+            return 0;
+        }
+
+        IPipeHolder holder = pipe.getHolder();
+        Level level = holder.getPipeWorld();
+        BlockPos neighborPos = holder.getPipePos().relative(from);
+        ResourceHandler<ItemResource> handler = buildcraft.lib.fabric.AttachmentLevelAccess.of(level)
+                .getCapability(Attachments.Item.BLOCK, neighborPos, from.getOpposite());
+        if (handler == null) {
+            return 0;
+        }
+
+        ItemStack possible = ItemStack.EMPTY;
+        int sourceSlot = -1;
+        for (int i = 0; i < handler.size(); i++) {
+            ItemResource res = handler.getResource(i);
+            if (res.isEmpty()) continue;
+            int available = handler.getAmountAsInt(i);
+            if (available <= 0) continue;
+            ItemStack slotStack = res.toStack(Math.min(available, count));
+            if (filter.matches(slotStack)) {
+
+                try (Transaction tx = Transaction.openRoot()) {
+                    int extracted = handler.extract(i, res, Math.min(available, count), tx);
+                    if (extracted > 0) {
+                        possible = res.toStack(extracted);
+                        sourceSlot = i;
+
+                    }
+                }
+                if (sourceSlot >= 0) {
+                    break;
+                }
+            }
+        }
+
+        if (possible.isEmpty() || sourceSlot < 0) {
+            return 0;
+        }
+        if (possible.getCount() > possible.getMaxStackSize()) {
+            possible.setCount(possible.getMaxStackSize());
+            count = possible.getMaxStackSize();
+        }
+
+        PipeEventItem.TryInsert tryInsert = new PipeEventItem.TryInsert(holder, this, colour, from, possible);
+        holder.fireEvent(tryInsert);
+        if (tryInsert.isCanceled() || tryInsert.accepted <= 0) {
+            return 0;
+        }
+
+        count = Math.min(count, tryInsert.accepted);
+
+        ItemResource resource = ItemResource.of(possible);
+        int actuallyExtracted;
+        if (simulate) {
+            try (Transaction tx = Transaction.openRoot()) {
+                actuallyExtracted = handler.extract(sourceSlot, resource, count, tx);
+
+            }
+        } else {
+            try (Transaction tx = Transaction.openRoot()) {
+                actuallyExtracted = handler.extract(sourceSlot, resource, count, tx);
+                if (actuallyExtracted > 0) {
+                    tx.commit();
+                }
+            }
+        }
+
+        if (actuallyExtracted <= 0) {
+            return 0;
+        }
+
+        ItemStack stack = resource.toStack(actuallyExtracted);
+
+        if (!simulate) {
+            insertItemEvents(stack, colour, EXTRACT_SPEED, from);
+        }
+
+        return actuallyExtracted;
+    }
+
+    @Override
+    public void sendPhantomItem(@Nonnull ItemStack stack, @Nullable Direction from, @Nullable Direction to, @Nullable DyeColor colour) {
+        if (from == null && to == null) {
+            return;
+        }
+        Direction face0 = from;
+        Direction face1 = from == null ? to : null;
+        Direction face2 = to;
+
+        long now = pipe.getHolder().getPipeWorld().getGameTime();
+
+        TravellingItem firstItem = new TravellingItem(stack);
+        firstItem.isPhantom = true;
+        firstItem.toCenter = face1 == null;
+        firstItem.colour = colour;
+        firstItem.side = face0 == null ? face1 : face0;
+        firstItem.speed = EXTRACT_SPEED;
+        firstItem.genTimings(now, getPipeLength(firstItem.side));
+        items.add(firstItem.timeToDest, firstItem);
+        sendItemDataToClient(firstItem);
+
+        boolean twoItems = from != null && to != null;
+        if (twoItems) {
+            TravellingItem secondItem = new TravellingItem(stack);
+            secondItem.isPhantom = true;
+            secondItem.toCenter = false;
+            secondItem.colour = colour;
+            secondItem.side = face2;
+            secondItem.speed = EXTRACT_SPEED;
+            secondItem.genTimings(firstItem.tickFinished, getPipeLength(secondItem.side));
+            items.add(secondItem.timeToDest, secondItem);
+            sendItemDataToClient(secondItem);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T getCapability(@Nonnull Object capability, Direction facing) {
+        if (capability == PipeApi.CAP_INJECTABLE) {
+            return (T) this;
+        }
+        return super.getCapability(capability, facing);
+    }
+
+    @Override
+    public boolean canConnect(Direction face, PipeFlow other) {
+        return other instanceof IFlowItems;
+    }
+
+    @Override
+    public boolean canConnect(Direction face, BlockEntity oTile) {
+
+        return pipe.getHolder().getCapabilityFromPipe(face, CapUtil.CAP_ITEMS) != null;
+    }
+
+    @Override
+    public void onTick() {
+        Level world = pipe.getHolder().getPipeWorld();
+
+        List<TravellingItem> toTick = items.advance();
+        long currentTime = world.getGameTime();
+
+        for (TravellingItem item : toTick) {
+            if (item.tickFinished > currentTime) {
+                items.add((int) (item.tickFinished - currentTime), item);
+                continue;
+            }
+            if (item.isPhantom) {
+                postDropCache.add(item.stack);
+                continue;
+            }
+            if (world.isClientSide()) {
+                continue;
+            }
+            if (item.toCenter) {
+                onItemReachCenter(item);
+            } else {
+                onItemReachEnd(item);
+            }
+        }
+    }
+
+    @Override
+    public void postPluggableTick() {
+        postDropCache.clear();
+    }
+
+    private void onItemReachCenter(TravellingItem item) {
+        IPipeHolder holder = pipe.getHolder();
+        PipeEventItem.ReachCenter reachCenter = new PipeEventItem.ReachCenter(
+            holder, this, item.colour, item.stack, item.side
+        );
+        holder.fireEvent(reachCenter);
+        if (reachCenter.getStack().isEmpty()) {
+            return;
+        }
+
+        PipeEventItem.SideCheck sideCheck = new PipeEventItem.SideCheck(
+            holder, this, reachCenter.colour, reachCenter.from, reachCenter.getStack()
+        );
+        sideCheck.disallow(reachCenter.from);
+        for (Direction face : Direction.values()) {
+            if (item.tried.contains(face) || !pipe.isConnected(face)) {
+                sideCheck.disallow(face);
+            }
+        }
+        holder.fireEvent(sideCheck);
+
+        List<EnumSet<Direction>> order = sideCheck.getOrder();
+        if (order.isEmpty()) {
+            PipeEventItem.TryBounce tryBounce = new PipeEventItem.TryBounce(
+                holder, this, reachCenter.colour, reachCenter.from, reachCenter.getStack()
+            );
+            holder.fireEvent(tryBounce);
+            if (tryBounce.canBounce) {
+                order = ImmutableList.of(EnumSet.of(reachCenter.from));
+            } else {
+                dropItem(item.stack, null, item.side.getOpposite(), item.speed);
+                return;
+            }
+        }
+
+        PipeEventItem.ItemEntry entry = new PipeEventItem.ItemEntry(
+            reachCenter.colour, reachCenter.getStack(), reachCenter.from
+        );
+        PipeEventItem.Split split = new PipeEventItem.Split(holder, this, order, entry);
+        holder.fireEvent(split);
+        ImmutableList<PipeEventItem.ItemEntry> entries = ImmutableList.copyOf(split.items);
+
+        PipeEventItem.FindDest findDest = new PipeEventItem.FindDest(holder, this, order, entries);
+        holder.fireEvent(findDest);
+
+        Level world = holder.getPipeWorld();
+        long now = world.getGameTime();
+        for (PipeEventItem.ItemEntry itemEntry : findDest.items) {
+            if (itemEntry.stack.isEmpty()) {
+                continue;
+            }
+            PipeEventItem.ModifySpeed modifySpeed = new PipeEventItem.ModifySpeed(holder, this, itemEntry, item.speed);
+
+            final double newSpeed;
+
+            if (holder.fireEvent(modifySpeed)) {
+                double target = modifySpeed.targetSpeed;
+                double maxDelta = modifySpeed.maxSpeedChange;
+                if (item.speed < target) {
+                    newSpeed = Math.min(target, item.speed + maxDelta);
+                } else if (item.speed > target) {
+                    newSpeed = Math.max(target, item.speed - maxDelta);
+                } else {
+                    newSpeed = item.speed;
+                }
+            } else {
+                if (item.speed > 0.03) {
+                    newSpeed = Math.max(0.03, item.speed - PipeBehaviourStone.SPEED_DELTA);
+                } else {
+                    newSpeed = item.speed;
+                }
+            }
+
+            List<Direction> destinations = itemEntry.to;
+            if (destinations == null || destinations.size() == 0) {
+                destinations = findDest.generateRandomOrder();
+            }
+            if (destinations.size() == 0) {
+                dropItem(itemEntry.stack, null, item.side.getOpposite(), newSpeed);
+            } else {
+                TravellingItem newItem = new TravellingItem(itemEntry.stack);
+                newItem.tried.addAll(item.tried);
+                newItem.toCenter = false;
+                newItem.colour = itemEntry.colour;
+                newItem.side = destinations.get(0);
+                newItem.speed = newSpeed;
+                newItem.genTimings(now, getPipeLength(newItem.side));
+                items.add(newItem.timeToDest, newItem);
+                sendItemDataToClient(newItem);
+            }
+        }
+    }
+
+    private void onItemReachEnd(TravellingItem item) {
+        IPipeHolder holder = pipe.getHolder();
+        PipeEventItem.ReachEnd reachEnd = new PipeEventItem.ReachEnd(holder, this, item.colour, item.stack, item.side);
+        holder.fireEvent(reachEnd);
+        item.colour = reachEnd.colour;
+        item.stack = reachEnd.getStack();
+        ItemStack excess = item.stack;
+        if (excess.isEmpty()) {
+            return;
+        }
+        if (pipe.isConnected(item.side)) {
+            ConnectedType type = pipe.getConnectedType(item.side);
+            Direction oppositeSide = item.side.getOpposite();
+            switch (type) {
+                case PIPE: {
+                    IPipe oPipe = pipe.getConnectedPipe(item.side);
+                    if (oPipe == null) {
+                        break;
+                    }
+                    PipeFlow flow = oPipe.getFlow();
+                    if (flow instanceof IFlowItems) {
+                        IFlowItems oFlow = (IFlowItems) flow;
+                        ItemStack before = excess;
+                        excess = oFlow.injectItem(excess.copy(), true, oppositeSide, item.colour, item.speed);
+
+                        if (!excess.isEmpty()) {
+                            before.shrink(excess.getCount());
+                        }
+                    }
+                    break;
+                }
+                case TILE: {
+
+                    BlockEntity tile = pipe.getConnectedTile(item.side);
+                    if (tile != null) {
+                        Level level = holder.getPipeWorld();
+                        BlockPos neighborPos = holder.getPipePos().relative(item.side);
+                        ResourceHandler<ItemResource> tileHandler = buildcraft.lib.fabric.AttachmentLevelAccess.of(level)
+                                .getCapability(
+                            Attachments.Item.BLOCK, neighborPos, oppositeSide);
+                        if (tileHandler != null) {
+                            ItemResource resource = ItemResource.of(excess);
+                            try (Transaction tx = Transaction.openRoot()) {
+                                int inserted = tileHandler.insert(resource, excess.getCount(), tx);
+                                if (inserted > 0) {
+                                    tx.commit();
+                                    excess.shrink(inserted);
+                                    if (excess.isEmpty()) {
+                                        excess = ItemStack.EMPTY;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        if (excess.isEmpty()) {
+            postDropCache.add(item.stack);
+            return;
+        }
+        item.tried.add(item.side);
+        item.toCenter = true;
+        item.stack = excess;
+        item.genTimings(holder.getPipeWorld().getGameTime(), getPipeLength(item.side));
+        items.add(item.timeToDest, item);
+        sendItemDataToClient(item);
+    }
+
+    private void dropItem(ItemStack stack, @Nullable Direction side, Direction motion, double speed) {
+        if (stack == null || stack.isEmpty()) {
+            return;
+        }
+
+        IPipeHolder holder = pipe.getHolder();
+        Level world = holder.getPipeWorld();
+        BlockPos pos = holder.getPipePos();
+
+        double x = pos.getX() + 0.5 + motion.getStepX() * 0.5;
+        double y = pos.getY() + 0.5 + motion.getStepY() * 0.5;
+        double z = pos.getZ() + 0.5 + motion.getStepZ() * 0.5;
+        speed += 0.01;
+        speed *= 2;
+        ItemEntity ent = new ItemEntity(world, x, y, z, stack);
+        ent.setDeltaMovement(
+            motion.getStepX() * speed,
+            motion.getStepY() * speed,
+            motion.getStepZ() * speed
+        );
+
+        PipeEventItem.Drop drop = new PipeEventItem.Drop(holder, this, ent);
+        holder.fireEvent(drop);
+        if (ent.getItem().isEmpty() || !ent.isAlive()) {
+            return;
+        }
+
+        world.addFreshEntity(ent);
+    }
+
+    @Override
+    public boolean canInjectItems(Direction from) {
+        return pipe.isConnected(from);
+    }
+
+    @Nonnull
+    @Override
+    public ItemStack injectItem(@Nonnull ItemStack stack, boolean doAdd, Direction from, DyeColor colour,
+        double speed) {
+        if (pipe.getHolder().getPipeWorld().isClientSide()) {
+            throw new IllegalStateException("Cannot inject items on the client side!");
+        }
+        if (!canInjectItems(from)) {
+            return stack;
+        }
+
+        if (speed < 0.01) {
+            speed = 0.01;
+        }
+
+        PipeEventItem.TryInsert tryInsert = new PipeEventItem.TryInsert(pipe.getHolder(), this, colour, from, stack);
+        pipe.getHolder().fireEvent(tryInsert);
+        if (tryInsert.isCanceled() || tryInsert.accepted <= 0) {
+            return stack;
+        }
+        ItemStack toSplit = stack.copy();
+        ItemStack toInsert = toSplit.split(tryInsert.accepted);
+
+        if (doAdd) {
+            insertItemEvents(toInsert, colour, speed, from);
+        }
+
+        if (toSplit.isEmpty()) {
+            toSplit = StackUtil.EMPTY;
+        }
+
+        return toSplit;
+    }
+
+    @Override
+    public void insertItemsForce(@Nonnull ItemStack stack, Direction from, @Nullable DyeColor colour, double speed) {
+        Level world = pipe.getHolder().getPipeWorld();
+        if (world.isClientSide()) {
+            throw new IllegalStateException("Cannot inject items on the client side!");
+        }
+        if (stack.isEmpty()) {
+            return;
+        }
+        if (speed < 0.01) {
+            speed = 0.01;
+        }
+        long now = world.getGameTime();
+        TravellingItem item = new TravellingItem(stack);
+        if (from == null) {
+            for (Direction f : Direction.values()) {
+                if (!pipe.isConnected(f)) {
+                    item.side = f;
+                    break;
+                }
+            }
+            if (item.side == null) {
+                item.side = Direction.UP;
+            }
+        } else {
+            item.side = from;
+        }
+        item.toCenter = true;
+        item.speed = speed;
+        item.colour = colour;
+        item.genTimings(now, 0);
+        if (from != null) {
+            item.tried.add(from);
+        }
+        addItemTryMerge(item);
+    }
+
+    private void insertItemEvents(@Nonnull ItemStack toInsert, DyeColor colour, double speed, Direction from) {
+        IPipeHolder holder = pipe.getHolder();
+
+        PipeEventItem.OnInsert onInsert = new PipeEventItem.OnInsert(holder, this, colour, toInsert, from);
+        holder.fireEvent(onInsert);
+
+        if (onInsert.getStack().isEmpty()) {
+            return;
+        }
+
+        Level world = pipe.getHolder().getPipeWorld();
+        long now = world.getGameTime();
+
+        TravellingItem item = new TravellingItem(toInsert);
+        item.side = from;
+        item.toCenter = true;
+        item.speed = speed;
+        item.colour = onInsert.colour;
+        item.stack = onInsert.getStack();
+        item.genTimings(now, getPipeLength(from));
+        item.tried.add(from);
+        addItemTryMerge(item);
+    }
+
+    private void addItemTryMerge(TravellingItem item) {
+        for (List<TravellingItem> list : items.getAllElements()) {
+            for (TravellingItem item2 : list) {
+                if (item2.mergeWith(item)) {
+                    return;
+                }
+            }
+        }
+        items.add(item.timeToDest, item);
+        sendItemDataToClient(item);
+    }
+
+    @PipeEventHandler
+    public static void addTriggers(PipeEventStatement.AddTriggerInternal event) {
+        event.triggers.add(BCTransportStatements.TRIGGER_ITEMS_TRAVERSING);
+    }
+
+    public boolean doesContainItems() {
+        return items.getMaxDelay() > 0 || !postDropCache.isEmpty();
+    }
+
+    public boolean containsItemMatching(ItemStack filter) {
+        if (filter.isEmpty()) {
+            return doesContainItems();
+        }
+        for (List<TravellingItem> list : items.getAllElements()) {
+            for (TravellingItem item : list) {
+                if (StackUtil.matchesStackOrList(filter, item.stack)) {
+                    return true;
+                }
+            }
+        }
+        for (ItemStack stack : postDropCache) {
+            if (StackUtil.matchesStackOrList(filter, stack)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    double getPipeLength(Direction side) {
+        if (side == null) {
+            return 0;
+        }
+        if (pipe.isConnected(side)) {
+            if (pipe.getConnectedType(side) == ConnectedType.TILE) {
+                return 0.5 + 0.25;
+            }
+            return 0.5;
+        } else {
+            return 0.25;
+        }
+    }
+
+    public List<TravellingItem> getAllItemsForRender() {
+        List<TravellingItem> all = new ArrayList<>();
+        for (List<TravellingItem> innerList : items.getAllElements()) {
+            all.addAll(innerList);
+        }
+        return all;
+    }
+}

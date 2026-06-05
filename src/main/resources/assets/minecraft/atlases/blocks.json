@@ -1,0 +1,210 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:directory",
+      "source": "lasers",
+      "prefix": "lasers/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "pipes",
+      "prefix": "pipes/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "wires",
+      "prefix": "wires/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "icons",
+      "prefix": "icons/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "filler",
+      "prefix": "filler/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "addons",
+      "prefix": "addons/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "triggers",
+      "prefix": "triggers/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "block/engine",
+      "prefix": "block/engine/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "block/pump",
+      "prefix": "block/pump/"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftenergy:block/fluids/heat_0_still"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftenergy:block/fluids/heat_0_flow"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftenergy:block/fluids/heat_1_still"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftenergy:block/fluids/heat_1_flow"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftenergy:block/fluids/heat_2_still"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftenergy:block/fluids/heat_2_flow"
+    },
+    {
+      "type": "buildcraftenergy:heat_white",
+      "source": "buildcraftenergy:block/fluids/heat_0_still"
+    },
+    {
+      "type": "buildcraftenergy:heat_white",
+      "source": "buildcraftenergy:block/fluids/heat_0_flow"
+    },
+    {
+      "type": "buildcraftenergy:heat_white",
+      "source": "buildcraftenergy:block/fluids/heat_1_still"
+    },
+    {
+      "type": "buildcraftenergy:heat_white",
+      "source": "buildcraftenergy:block/fluids/heat_1_flow"
+    },
+    {
+      "type": "buildcraftenergy:heat_white",
+      "source": "buildcraftenergy:block/fluids/heat_2_still"
+    },
+    {
+      "type": "buildcraftenergy:heat_white",
+      "source": "buildcraftenergy:block/fluids/heat_2_flow"
+    },
+    {
+      "type": "buildcraftenergy:fluid_bake"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/clay_fluid",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/cobblestone_fluid",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_fluid",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_fluid_down",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_fluid_east",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_fluid_itemstack",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_fluid_north",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_fluid_south",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_fluid_up",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_fluid_west",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_fluid_west_cb",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_wood_fluid_clear",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/diamond_wood_fluid_filled",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/gold_fluid",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/iron_fluid_clear",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/iron_fluid_filled",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/quartz_fluid",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/sandstone_fluid",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/stone_fluid",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/void_fluid",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/wood_fluid_clear",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    },
+    {
+      "type": "buildcraftlib:dye_replace",
+      "source": "buildcrafttransport:pipes/wood_fluid_filled",
+      "mask": "buildcrafttransport:pipes/mask_shared_fluid"
+    }
+  ]
+}

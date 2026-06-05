@@ -1,0 +1,26 @@
+{
+  "textures": {
+    "particle": "buildcraftfactory:block/flood_gate/open",
+    "face": "buildcraftfactory:block/flood_gate/open"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "south": {
+          "texture": "#face",
+          "cullface": "south"
+        }
+      }
+    }
+  ]
+}

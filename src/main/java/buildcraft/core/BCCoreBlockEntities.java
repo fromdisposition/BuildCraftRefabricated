@@ -1,0 +1,42 @@
+package buildcraft.core;
+
+import net.minecraft.world.level.block.entity.BlockEntityType;
+
+import buildcraft.core.tile.TileEngineCreative;
+import buildcraft.core.tile.TileEngineRedstone_BC8;
+import buildcraft.core.tile.TileMarkerPath;
+import buildcraft.core.tile.TileMarkerVolume;
+import buildcraft.core.tile.TilePowerConsumerTester;
+import buildcraft.fabric.BCRegistries;
+
+public final class BCCoreBlockEntities {
+    public static BlockEntityType<TileMarkerVolume> MARKER_VOLUME;
+    public static BlockEntityType<TileMarkerPath> MARKER_PATH;
+    public static BlockEntityType<TileEngineRedstone_BC8> ENGINE_REDSTONE;
+    public static BlockEntityType<TileEngineCreative> ENGINE_CREATIVE;
+    public static BlockEntityType<TilePowerConsumerTester> POWER_TESTER;
+    private BCCoreBlockEntities() {}
+
+    public static void register() {
+        if (BCCoreBlocks.MARKER_VOLUME != null) {
+            MARKER_VOLUME = BCRegistries.registerBlockEntity(BCCore.MODID, 
+                    "marker_volume", TileMarkerVolume::new, BCCoreBlocks.MARKER_VOLUME);
+        }
+        if (BCCoreBlocks.MARKER_PATH != null) {
+            MARKER_PATH = BCRegistries.registerBlockEntity(BCCore.MODID, 
+                    "marker_path", TileMarkerPath::new, BCCoreBlocks.MARKER_PATH);
+        }
+        if (BCCoreBlocks.ENGINE_REDSTONE != null) {
+            ENGINE_REDSTONE = BCRegistries.registerBlockEntity(BCCore.MODID, 
+                    "engine_redstone", TileEngineRedstone_BC8::new, BCCoreBlocks.ENGINE_REDSTONE);
+        }
+        if (BCCoreBlocks.ENGINE_CREATIVE != null) {
+            ENGINE_CREATIVE = BCRegistries.registerBlockEntity(BCCore.MODID, 
+                    "engine_creative", TileEngineCreative::new, BCCoreBlocks.ENGINE_CREATIVE);
+        }
+        if (BCCore.DEV && BCCoreBlocks.POWER_TESTER != null) {
+            POWER_TESTER = BCRegistries.registerBlockEntity(BCCore.MODID, 
+                    "power_tester", TilePowerConsumerTester::new, BCCoreBlocks.POWER_TESTER);
+        }
+    }
+}

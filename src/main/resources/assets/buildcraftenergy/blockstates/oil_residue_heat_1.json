@@ -1,0 +1,11 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "builtin/generated",
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

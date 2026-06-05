@@ -1,0 +1,7 @@
+{
+  "textures": {
+    "#back": "buildcraftcore:block/engine/wood_back",
+    "#side": "buildcraftcore:block/engine/wood_side"
+  },
+  "parent": "buildcraftlib:models/compat/engine_base"
+}

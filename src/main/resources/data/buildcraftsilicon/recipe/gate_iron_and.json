@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " m ",
+    "mrm",
+    " b "
+  ],
+  "key": {
+    "m": "#c:ingots/iron",
+    "r": "minecraft:redstone",
+    "b": "minecraft:cobblestone"
+  },
+  "result": {
+    "id": "buildcraftsilicon:plug_gate",
+    "count": 1,
+    "components": {
+      "minecraft:custom_data": "{gate:{logic:0b,material:1b,modifier:0b}}",
+      "minecraft:custom_model_data": {
+        "strings": [
+          "iron_and_no_modifier"
+        ]
+      }
+    }
+  }
+}

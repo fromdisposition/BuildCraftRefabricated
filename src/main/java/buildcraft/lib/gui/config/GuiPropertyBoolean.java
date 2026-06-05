@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+package buildcraft.lib.gui.config;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+
+import buildcraft.api.core.BCLog;
+
+public class GuiPropertyBoolean {
+    public final String name;
+    private boolean value;
+
+    public GuiPropertyBoolean(String name, boolean defaultValue) {
+        this.name = name;
+        this.value = defaultValue;
+    }
+
+    public boolean get() {
+        return value;
+    }
+
+    public void set(boolean value) {
+        if (this.value == value) return;
+        this.value = value;
+        GuiConfigManager.markDirty();
+    }
+
+    JsonElement writeToJson() {
+        return new JsonPrimitive(value);
+    }
+
+    void readFromJson(JsonElement json) {
+        if (!json.isJsonPrimitive() || !json.getAsJsonPrimitive().isBoolean()) {
+            BCLog.logger.warn("[lib.gui.config] Tried to read " + json + " as boolean, but it wasn't!");
+            return;
+        }
+        value = json.getAsBoolean();
+    }
+}

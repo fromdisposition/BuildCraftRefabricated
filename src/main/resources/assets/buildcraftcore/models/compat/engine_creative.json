@@ -1,0 +1,7 @@
+{
+  "textures": {
+    "#back": "buildcraftcore:block/engine/creative_back",
+    "#side": "buildcraftcore:block/engine/creative_side"
+  },
+  "parent": "buildcraftlib:models/compat/engine_base"
+}

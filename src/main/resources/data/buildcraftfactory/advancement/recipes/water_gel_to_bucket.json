@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftfactory:water_gel_to_bucket"
+    ]
+  },
+  "criteria": {
+    "has_gelled_water": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftfactory:gelled_water"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_gelled_water"
+    ]
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "buildcrafttransport:item/pipe_item",
+  "textures": {
+    "top": "buildcrafttransport:pipes/stone_fluid",
+    "center": "buildcrafttransport:pipes/stone_fluid",
+    "bottom": "buildcrafttransport:pipes/stone_fluid"
+  }
+}

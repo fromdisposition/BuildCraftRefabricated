@@ -1,0 +1,20 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftbuilders:quarry"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.destroying_the_world.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.destroying_the_world.description"
+    },
+    "frame": "challenge"
+  },
+  "parent": "buildcraftbuilders:diggy_diggy_hole",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

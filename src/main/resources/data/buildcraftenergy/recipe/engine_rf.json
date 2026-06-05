@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "www",
+    " g ",
+    "GpG"
+  ],
+  "key": {
+    "w": "minecraft:redstone",
+    "g": "#c:glass_blocks/colorless",
+    "G": "buildcraftcore:gear_iron",
+    "p": "minecraft:piston"
+  },
+  "result": {
+    "id": "buildcraftenergy:engine_rf"
+  }
+}

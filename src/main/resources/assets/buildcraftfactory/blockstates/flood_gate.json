@@ -1,0 +1,89 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/frame"
+      }
+    },
+    {
+      "when": {
+        "connected_down": "true"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_down_open"
+      }
+    },
+    {
+      "when": {
+        "connected_down": "false"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_down_closed"
+      }
+    },
+    {
+      "when": {
+        "connected_north": "true"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_north_open"
+      }
+    },
+    {
+      "when": {
+        "connected_north": "false"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_north_closed"
+      }
+    },
+    {
+      "when": {
+        "connected_south": "true"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_south_open"
+      }
+    },
+    {
+      "when": {
+        "connected_south": "false"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_south_closed"
+      }
+    },
+    {
+      "when": {
+        "connected_east": "true"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_east_open"
+      }
+    },
+    {
+      "when": {
+        "connected_east": "false"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_east_closed"
+      }
+    },
+    {
+      "when": {
+        "connected_west": "true"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_west_open"
+      }
+    },
+    {
+      "when": {
+        "connected_west": "false"
+      },
+      "apply": {
+        "model": "buildcraftfactory:block/flood_gate/face_west_closed"
+      }
+    }
+  ]
+}

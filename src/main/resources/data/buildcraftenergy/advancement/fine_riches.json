@@ -1,0 +1,20 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftenergy:glob_of_oil"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.fine_riches.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.fine_riches.description"
+    },
+    "frame": "goal"
+  },
+  "parent": "buildcraftcore:root",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

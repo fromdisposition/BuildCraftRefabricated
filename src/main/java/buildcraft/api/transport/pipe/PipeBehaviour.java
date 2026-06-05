@@ -1,0 +1,82 @@
+/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
+ *
+ * The BuildCraft API is distributed under the terms of the MIT License. */
+package buildcraft.api.transport.pipe;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.HitResult;
+
+import buildcraft.api.core.EnumPipePart;
+
+public abstract class PipeBehaviour {
+    public final IPipe pipe;
+
+    public PipeBehaviour(IPipe pipe) {
+        this.pipe = pipe;
+    }
+
+    public PipeBehaviour(IPipe pipe, CompoundTag nbt) {
+        this.pipe = pipe;
+    }
+
+    public CompoundTag writeToNbt() {
+        return new CompoundTag();
+    }
+
+    public void readFromNbt(CompoundTag nbt) {
+    }
+
+    public void onTick() {
+    }
+
+    public boolean canConnect(Direction face, PipeBehaviour other) {
+        return true;
+    }
+
+    public boolean canConnect(Direction face, BlockEntity oTile) {
+        return true;
+    }
+
+    public boolean shouldForceConnection(Direction face, BlockEntity oTile) {
+        return false;
+    }
+
+    public int getTextureIndex(@Nullable Direction face) {
+        return 0;
+    }
+
+    public PipeFaceTex getTextureData(@Nullable Direction face) {
+        return PipeFaceTex.get(getTextureIndex(face));
+    }
+
+    public boolean onPipeActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ,
+        EnumPipePart part) {
+        return false;
+    }
+
+    public void onEntityCollide(Entity entity) {
+    }
+
+    public void writePayload(FriendlyByteBuf buffer) {
+    }
+
+    public void readPayload(FriendlyByteBuf buffer, Object ctx) throws java.io.IOException {
+    }
+
+    public <T> T getCapability(@Nonnull Object capability, Direction facing) {
+        return null;
+    }
+
+    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
+    }
+}

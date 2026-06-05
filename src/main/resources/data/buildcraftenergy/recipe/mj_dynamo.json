@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "wgw",
+    " p ",
+    "GwG"
+  ],
+  "key": {
+    "w": "minecraft:redstone",
+    "g": "#c:glass_blocks/colorless",
+    "p": "minecraft:piston",
+    "G": "buildcraftcore:gear_iron"
+  },
+  "result": {
+    "id": "buildcraftenergy:mj_dynamo"
+  }
+}
