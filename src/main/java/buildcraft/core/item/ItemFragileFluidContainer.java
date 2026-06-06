@@ -4,7 +4,7 @@ import buildcraft.api.items.IItemFluidShard;
 import buildcraft.core.BCCore;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.fluids.SimpleFluidContent;
-import java.util.function.Consumer;
+import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -12,9 +12,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
-import net.minecraft.world.item.Item.TooltipContext;
-import net.minecraft.world.item.component.TooltipDisplay;
-
 public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
    public static final int MAX_FLUID_HELD = 500;
 
@@ -29,13 +26,10 @@ public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
          : Component.translatable(this.getDescriptionId() + ".name", new Object[]{fluid.getHoverName().getString()});
    }
 
-   @Override
-   @SuppressWarnings("deprecation")
-   public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flagIn) {
-      super.appendHoverText(stack, context, display, tooltip, flagIn);
+   public static void appendTooltipLines(ItemFragileFluidContainer item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       FluidStack fluid = getFluid(stack);
       if (!fluid.isEmpty() && fluid.getAmount() > 0) {
-         tooltip.accept(Component.literal(fluid.getAmount() + " mB / 500 mB"));
+         tooltip.add(Component.literal(fluid.getAmount() + " mB / 500 mB"));
       }
    }
 

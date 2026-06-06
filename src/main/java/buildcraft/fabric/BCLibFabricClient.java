@@ -7,14 +7,14 @@ import buildcraft.lib.debug.AdvDebugRenderer;
 import buildcraft.lib.gui.config.GuiConfigManager;
 import buildcraft.lib.misc.data.ModelVariableData;
 import java.util.HashSet;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.fabricmc.fabric.api.resource.v1.reloader.SimpleReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 
-@SuppressWarnings("deprecation")
 public final class BCLibFabricClient {
    private BCLibFabricClient() {
    }
@@ -23,35 +23,51 @@ public final class BCLibFabricClient {
       BCReloadFabric.initClient();
       AdvDebugRenderer.register();
       GuiConfigManager.init(FabricLoader.getInstance().getConfigDir().resolve("buildcraft").resolve("gui_state.json"));
-      ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-         public Identifier getFabricId() {
-            return Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_heat_templates");
-         }
+      ResourceLoader clientResources = ResourceLoader.get(PackType.CLIENT_RESOURCES);
+      clientResources.registerReloadListener(
+         Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_heat_templates"),
+         new SimpleReloadListener<Void>() {
+            @Override
+            protected Void prepare(PreparableReloadListener.SharedState state) {
+               return null;
+            }
 
-         public void onResourceManagerReload(ResourceManager manager) {
-            BcFluidTintUtil.reloadTemplates(manager);
+            @Override
+            protected void apply(Void prepared, PreparableReloadListener.SharedState state) {
+               BcFluidTintUtil.reloadTemplates(state.resourceManager());
+            }
          }
-      });
-      ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-         public Identifier getFabricId() {
-            return Identifier.fromNamespaceAndPath("buildcraftlib", "models");
-         }
+      );
+      clientResources.registerReloadListener(
+         Identifier.fromNamespaceAndPath("buildcraftlib", "models"),
+         new SimpleReloadListener<Void>() {
+            @Override
+            protected Void prepare(PreparableReloadListener.SharedState state) {
+               return null;
+            }
 
-         public void onResourceManagerReload(ResourceManager manager) {
-            HashSet<Identifier> sprites = new HashSet<>();
-            ModelHolderRegistry.onTextureStitchPre(sprites);
-            ModelHolderRegistry.onModelBake();
-            ModelVariableData.onModelBake();
+            @Override
+            protected void apply(Void prepared, PreparableReloadListener.SharedState state) {
+               HashSet<Identifier> sprites = new HashSet<>();
+               ModelHolderRegistry.onTextureStitchPre(sprites);
+               ModelHolderRegistry.onModelBake();
+               ModelVariableData.onModelBake();
+            }
          }
-      });
-      ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-         public Identifier getFabricId() {
-            return Identifier.fromNamespaceAndPath("buildcraftlib", "guide");
-         }
+      );
+      clientResources.registerReloadListener(
+         Identifier.fromNamespaceAndPath("buildcraftlib", "guide"),
+         new SimpleReloadListener<ResourceManager>() {
+            @Override
+            protected ResourceManager prepare(PreparableReloadListener.SharedState state) {
+               return state.resourceManager();
+            }
 
-         public void onResourceManagerReload(ResourceManager manager) {
-            GuideManager.INSTANCE.onResourceManagerReload(manager);
+            @Override
+            protected void apply(ResourceManager manager, PreparableReloadListener.SharedState state) {
+               GuideManager.INSTANCE.onResourceManagerReload(manager);
+            }
          }
-      });
+      );
    }
 }

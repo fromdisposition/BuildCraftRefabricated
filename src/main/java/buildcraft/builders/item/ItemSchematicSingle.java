@@ -177,19 +177,16 @@ public class ItemSchematicSingle extends Item {
       }
    }
 
-   @Override
-   @SuppressWarnings("deprecation")
-   public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-      super.appendHoverText(stack, context, display, tooltip, flag);
-      if (!this.used) {
-         tooltip.accept(Component.translatable("item.blueprint.blank").withStyle(ChatFormatting.GRAY));
-         tooltip.accept(Component.translatable("item.schematic_single.use_hint", new Object[]{Component.keybind("key.use")}).withStyle(ChatFormatting.GRAY));
+   public static void appendTooltipLines(ItemSchematicSingle item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
+      if (!item.used) {
+         tooltip.add(Component.translatable("item.blueprint.blank").withStyle(ChatFormatting.GRAY));
+         tooltip.add(Component.translatable("item.schematic_single.use_hint", new Object[]{Component.keybind("key.use")}).withStyle(ChatFormatting.GRAY));
       } else {
          ISchematicBlock schematic = getSchematicSafe(stack);
          if (schematic != null) {
             BlockState state = schematic.getBlockStateForRender();
             if (state != null) {
-               tooltip.accept(state.getBlock().getName().copy().withStyle(ChatFormatting.GRAY));
+               tooltip.add(state.getBlock().getName().copy().withStyle(ChatFormatting.GRAY));
             }
          }
       }

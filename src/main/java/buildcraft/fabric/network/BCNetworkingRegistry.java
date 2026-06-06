@@ -80,31 +80,47 @@ public final class BCNetworkingRegistry {
       PayloadTypeRegistry.serverboundPlay().register(type, codec);
    }
 
+   private static <T extends CustomPacketPayload> void dispatch(T payload, BCPayloadContext ctx, BiConsumer<T, BCPayloadContext> handler) {
+      ctx.enqueueWork(() -> handler.accept(payload, ctx));
+   }
+
    private static <T extends CustomPacketPayload> void registerClientbound(
       Type<T> type, StreamCodec<? super RegistryFriendlyByteBuf, T> codec, BiConsumer<T, BCPayloadContext> handler
    ) {
       if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-         ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> handler.accept((T)payload, FabricPayloadContexts.of(context.player())));
+         ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
+            BCPayloadContext ctx = FabricPayloadContexts.of(context.player());
+            dispatch((T)payload, ctx, handler);
+         });
       }
    }
 
    private static <T extends CustomPacketPayload> void registerServerbound(
       Type<T> type, StreamCodec<? super RegistryFriendlyByteBuf, T> codec, BiConsumer<T, BCPayloadContext> handler
    ) {
-      ServerPlayNetworking.registerGlobalReceiver(type, (payload, context) -> handler.accept((T)payload, FabricPayloadContexts.of(context.player())));
+      ServerPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
+         BCPayloadContext ctx = FabricPayloadContexts.of(context.player());
+         dispatch((T)payload, ctx, handler);
+      });
    }
 
    private static <T extends CustomPacketPayload> void registerServerboundFriendly(
       Type<T> type, StreamCodec<? super FriendlyByteBuf, T> codec, BiConsumer<T, BCPayloadContext> handler
    ) {
-      ServerPlayNetworking.registerGlobalReceiver(type, (payload, context) -> handler.accept((T)payload, FabricPayloadContexts.of(context.player())));
+      ServerPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
+         BCPayloadContext ctx = FabricPayloadContexts.of(context.player());
+         dispatch((T)payload, ctx, handler);
+      });
    }
 
    private static <T extends CustomPacketPayload> void registerClientboundFriendly(
       Type<T> type, StreamCodec<? super FriendlyByteBuf, T> codec, BiConsumer<T, BCPayloadContext> handler
    ) {
       if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-         ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> handler.accept((T)payload, FabricPayloadContexts.of(context.player())));
+         ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
+            BCPayloadContext ctx = FabricPayloadContexts.of(context.player());
+            dispatch((T)payload, ctx, handler);
+         });
       }
    }
 }

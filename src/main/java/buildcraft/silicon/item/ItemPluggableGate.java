@@ -57,23 +57,20 @@ public class ItemPluggableGate extends Item implements IItemPluggable {
       return getVariant(stack).getLocalizedName();
    }
 
-   @Override
-   @SuppressWarnings("deprecation")
-   public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-      super.appendHoverText(stack, context, display, tooltip, flag);
+   public static void appendTooltipLines(ItemPluggableGate item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       GateVariant variant = getVariant(stack);
-      tooltip.accept(Component.translatable("gate.slots", new Object[]{variant.numSlots}));
+      tooltip.add(Component.translatable("gate.slots", new Object[]{variant.numSlots}));
       if (variant.numTriggerArgs == variant.numActionArgs) {
          if (variant.numTriggerArgs > 0) {
-            tooltip.accept(Component.translatable("gate.params", new Object[]{variant.numTriggerArgs}));
+            tooltip.add(Component.translatable("gate.params", new Object[]{variant.numTriggerArgs}));
          }
       } else {
          if (variant.numTriggerArgs > 0) {
-            tooltip.accept(Component.translatable("gate.params.trigger", new Object[]{variant.numTriggerArgs}));
+            tooltip.add(Component.translatable("gate.params.trigger", new Object[]{variant.numTriggerArgs}));
          }
 
          if (variant.numActionArgs > 0) {
-            tooltip.accept(Component.translatable("gate.params.action", new Object[]{variant.numActionArgs}));
+            tooltip.add(Component.translatable("gate.params.action", new Object[]{variant.numActionArgs}));
          }
       }
    }

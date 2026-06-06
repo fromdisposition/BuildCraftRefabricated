@@ -87,15 +87,14 @@ public class ModelHolderVariable extends ModelHolder {
       }
 
       lookup = texture.location;
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
       TextureAtlasSprite sprite;
       if (lookup.startsWith("~")) {
          sprite = this.customSprites.get(lookup.substring(1));
          if (sprite == null) {
-            sprite = atlas.getSprite(MissingTextureAtlasSprite.getLocation());
+            sprite = BcTextureAtlases.getBlockSprite(MissingTextureAtlasSprite.getLocation());
          }
       } else {
-         sprite = atlas.getSprite(Identifier.parse(lookup));
+         sprite = BcTextureAtlases.getBlockSprite(Identifier.parse(lookup));
       }
 
       ModelUtil.TexturedFace face = new ModelUtil.TexturedFace();

@@ -197,3 +197,56 @@ tasks.named<JavaCompile>("compileTestJava") {
 tasks.named<Test>("test") {
     enabled = false
 }
+
+/** Unpack Mojang / Fabric API / Loom artifacts into .gradle/api-explore for local API browsing. */
+tasks.register("unpackApiExplore") {
+    group = "buildcraft"
+    description = "Unpack Minecraft sources, Fabric API, and Fabric Loom into .gradle/api-explore/"
+    dependsOn("compileJava")
+    doLast {
+        val explore = layout.projectDirectory.dir(".gradle/api-explore")
+        val minecraftDir = explore.dir("minecraft")
+        val fabricApiDir = explore.dir("fabric-api")
+        val fabricModulesDir = explore.dir("fabric-api-modules")
+        val loomDir = explore.dir("fabric-loom")
+
+        val mcSources = fileTree(layout.projectDirectory.dir(".gradle/loom-cache/minecraftMaven")).matching {
+            include("**/*-sources.jar")
+        }.files.maxByOrNull { it.lastModified() }
+            ?: error("Minecraft sources JAR not found. Run compileJava or genSources first.")
+
+        val fapiVersion = providers.gradleProperty("fabric_api_version").get()
+        val fapiJar = fileTree(gradle.gradleUserHomeDir.resolve("caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api")).matching {
+            include("**/$fapiVersion/**/*.jar")
+            exclude("**/*-sources.jar")
+        }.singleFile
+
+        val loomJar = fileTree(gradle.gradleUserHomeDir.resolve("caches/modules-2/files-2.1/net.fabricmc/fabric-loom")).matching {
+            include("**/fabric-loom-*.jar")
+            exclude("**/*-sources.jar")
+        }.files.maxByOrNull { it.lastModified() }
+            ?: error("fabric-loom JAR not found in Gradle cache — run any Gradle task first.")
+
+        listOf(minecraftDir, fabricApiDir, fabricModulesDir, loomDir).forEach { it.asFile.mkdirs() }
+
+        copy { from(zipTree(mcSources)); into(minecraftDir) }
+        copy { from(zipTree(fapiJar)); into(fabricApiDir) }
+        copy { from(zipTree(loomJar)); into(loomDir) }
+
+        val modulesRoot = gradle.gradleUserHomeDir.resolve("caches/modules-2/files-2.1/net.fabricmc.fabric-api")
+        if (modulesRoot.isDirectory) {
+            modulesRoot.walkTopDown().maxDepth(4).filter { it.isFile && it.name.endsWith("4c.jar") }.forEach { jar ->
+                val moduleDir = fabricModulesDir.dir(jar.nameWithoutExtension)
+                copy { from(zipTree(jar)); into(moduleDir) }
+            }
+        }
+
+        logger.lifecycle(
+            "API explore unpacked to {} (minecraft={}, fabric-api={}, loom={})",
+            explore.asFile.absolutePath,
+            mcSources.name,
+            fapiJar.name,
+            loomJar.name,
+        )
+    }
+}

@@ -15,6 +15,7 @@ import buildcraft.silicon.plug.FacadePhasedState;
 import buildcraft.silicon.plug.FacadeStateManager;
 import buildcraft.silicon.plug.PluggableFacade;
 import com.google.common.collect.UnmodifiableIterator;
+import java.util.List;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import net.minecraft.ChatFormatting;
@@ -109,9 +110,7 @@ public class ItemPluggableFacade extends Item implements IItemPluggable, IFacade
       }
    }
 
-   @Override
-   @SuppressWarnings("deprecation")
-   public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+   public static void appendTooltipLines(ItemPluggableFacade item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       FacadeInstance states = getStates(stack);
       if (states.type == FacadeType.Phased) {
          FacadePhasedState defaultState = null;
@@ -120,7 +119,7 @@ public class ItemPluggableFacade extends Item implements IItemPluggable, IFacade
             if (state.activeColour == null) {
                defaultState = state;
             } else {
-               tooltip.accept(
+               tooltip.add(
                   Component.translatable(
                      "item.buildcraftsilicon.plug_facade_phased.state",
                      new Object[]{Component.translatable("color.minecraft." + state.activeColour.getName()), getFacadeStateDisplayName(state)}
@@ -130,13 +129,13 @@ public class ItemPluggableFacade extends Item implements IItemPluggable, IFacade
          }
 
          if (defaultState != null) {
-            tooltip.accept(
+            tooltip.add(
                Component.translatable("item.buildcraftsilicon.plug_facade_phased.state_default", new Object[]{getFacadeStateDisplayName(defaultState)})
             );
          }
       } else {
          if (flag.isAdvanced()) {
-            tooltip.accept(Component.literal(BuiltInRegistries.BLOCK.getKey(states.phasedStates[0].stateInfo.state.getBlock()).toString()));
+            tooltip.add(Component.literal(BuiltInRegistries.BLOCK.getKey(states.phasedStates[0].stateInfo.state.getBlock()).toString()));
          }
 
          FacadeBlockStateInfo info = states.phasedStates[0].stateInfo;
@@ -147,7 +146,7 @@ public class ItemPluggableFacade extends Item implements IItemPluggable, IFacade
             Property<?> prop = (Property<?>)var15.next();
             String name = prop.getName();
             String value = getPropertyValueName(state, prop);
-            tooltip.accept(Component.literal(name + " = " + value).withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}));
+            tooltip.add(Component.literal(name + " = " + value).withStyle(new ChatFormatting[]{ChatFormatting.GRAY, ChatFormatting.ITALIC}));
          }
       }
    }

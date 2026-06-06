@@ -96,14 +96,12 @@ public class ItemMapLocation extends Item implements IMapLocation {
       return new BlockPos(tag.getInt("X").orElse(0), tag.getInt("Y").orElse(0), tag.getInt("Z").orElse(0));
    }
 
-   @Override
-   @SuppressWarnings("deprecation")
-   public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+   public static void appendTooltipLines(ItemMapLocation item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       CompoundTag cpt = getCustomTag(stack);
       if (cpt.contains("name")) {
          String name = cpt.getString("name").orElse("");
          if (!name.isEmpty()) {
-            tooltip.accept(Component.literal(name));
+            tooltip.add(Component.literal(name));
          }
       }
 
@@ -115,7 +113,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
                int y = cpt.getInt("y").orElse(0);
                int z = cpt.getInt("z").orElse(0);
                Direction side = Direction.values()[cpt.getByte("side").orElse((byte)0)];
-               tooltip.accept(Component.literal("{" + x + ", " + y + ", " + z + ", " + side + "}"));
+               tooltip.add(Component.literal("{" + x + ", " + y + ", " + z + ", " + side + "}"));
             }
             break;
          case AREA:
@@ -126,7 +124,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
                int xLength = cpt.getInt("xMax").orElse(0) - x + 1;
                int yLength = cpt.getInt("yMax").orElse(0) - y + 1;
                int zLength = cpt.getInt("zMax").orElse(0) - z + 1;
-               tooltip.accept(Component.literal("{" + x + ", " + y + ", " + z + "} + {" + xLength + " x " + yLength + " x " + zLength + "}"));
+               tooltip.add(Component.literal("{" + x + ", " + y + ", " + z + "} + {" + xLength + " x " + yLength + " x " + zLength + "}"));
             }
             break;
          case PATH:
@@ -136,7 +134,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
                CompoundTag firstTag = (CompoundTag)pathNBT.getCompound(0).orElse(null);
                if (firstTag != null) {
                   BlockPos first = readBlockPosNbt(firstTag);
-                  tooltip.accept(
+                  tooltip.add(
                      Component.literal("{" + first.getX() + ", " + first.getY() + ", " + first.getZ() + "}, (+" + (pathNBT.size() - 1) + " elements)")
                   );
                }
@@ -144,7 +142,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
       }
 
       if (type != IMapLocation.MapLocationType.CLEAN) {
-         tooltip.accept(Component.translatable("buildcraft.item.nonclean.usage", new Object[]{Component.keybind("key.sneak"), Component.keybind("key.use")}));
+         tooltip.add(Component.translatable("buildcraft.item.nonclean.usage", new Object[]{Component.keybind("key.sneak"), Component.keybind("key.use")}));
       }
    }
 

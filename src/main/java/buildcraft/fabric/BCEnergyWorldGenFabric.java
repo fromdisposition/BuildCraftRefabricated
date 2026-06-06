@@ -117,7 +117,7 @@ public final class BCEnergyWorldGenFabric {
             .apply(instance, BCEnergyWorldGenFabric.OilGenSavedData::new)
       );
       public static final SavedDataType<BCEnergyWorldGenFabric.OilGenSavedData> TYPE = new SavedDataType<>(
-         Identifier.withDefaultNamespace("buildcraft_oil_gen"), BCEnergyWorldGenFabric.OilGenSavedData::new, CODEC, DataFixTypes.LEVEL
+         Identifier.fromNamespaceAndPath("buildcraftenergy", "oil_gen"), BCEnergyWorldGenFabric.OilGenSavedData::new, CODEC, DataFixTypes.LEVEL
       );
 
       public OilGenSavedData() {

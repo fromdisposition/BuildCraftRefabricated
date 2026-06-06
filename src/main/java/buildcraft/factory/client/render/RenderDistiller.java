@@ -87,8 +87,7 @@ public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller_BC8, Di
          texIndex = Math.max(1, Math.min(texIndex, 6));
       }
 
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
-      TextureAtlasSprite sprite = atlas.getSprite(POWER_TEXTURES[texIndex]);
+      TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(POWER_TEXTURES[texIndex]);
       boolean topHalf = POWER_TOP_HALF[texIndex];
       float r = 1.0F;
       float g = 1.0F;

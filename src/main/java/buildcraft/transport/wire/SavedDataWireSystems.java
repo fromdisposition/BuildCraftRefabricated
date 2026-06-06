@@ -32,7 +32,7 @@ import org.jspecify.annotations.Nullable;
 
 public class SavedDataWireSystems extends SavedData {
    public static final SavedDataType<SavedDataWireSystems> TYPE = new SavedDataType<>(
-      Identifier.withDefaultNamespace("buildcraft_wire_systems"), () -> new SavedDataWireSystems(null), makeCodec(null), DataFixTypes.SAVED_DATA_MAP_DATA
+      Identifier.fromNamespaceAndPath("buildcrafttransport", "wire_systems"), () -> new SavedDataWireSystems(null), makeCodec(null), DataFixTypes.SAVED_DATA_MAP_DATA
    );
    public Level world;
    public final Map<WireSystem, Boolean> wireSystems = new HashMap<>();

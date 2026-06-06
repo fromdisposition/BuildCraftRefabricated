@@ -3,7 +3,7 @@ package buildcraft.builders.item;
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.lib.misc.HashUtil;
-import java.util.function.Consumer;
+import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -12,9 +12,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
-import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.TooltipDisplay;
 
 public class ItemSnapshot extends Item {
    private final EnumSnapshotType snapshotType;
@@ -56,18 +54,16 @@ public class ItemSnapshot extends Item {
       return null;
    }
 
-   @Override
-   @SuppressWarnings("deprecation")
-   public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+   public static void appendTooltipLines(ItemSnapshot item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       Snapshot.Header header = getHeader(stack);
       if (header == null) {
-         tooltip.accept(Component.translatable("item.blueprint.blank").withStyle(ChatFormatting.GRAY));
+         tooltip.add(Component.translatable("item.blueprint.blank").withStyle(ChatFormatting.GRAY));
       } else {
-         tooltip.accept(Component.literal(header.name).withStyle(ChatFormatting.GRAY));
+         tooltip.add(Component.literal(header.name).withStyle(ChatFormatting.GRAY));
          if (flag.isAdvanced()) {
-            tooltip.accept(Component.literal("Hash: " + HashUtil.convertHashToString(header.key.hash)).withStyle(ChatFormatting.GRAY));
-            tooltip.accept(Component.literal("Date: " + header.created).withStyle(ChatFormatting.GRAY));
-            tooltip.accept(Component.literal("Owner UUID: " + header.owner).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("Hash: " + HashUtil.convertHashToString(header.key.hash)).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("Date: " + header.created).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("Owner UUID: " + header.owner).withStyle(ChatFormatting.GRAY));
          }
       }
    }

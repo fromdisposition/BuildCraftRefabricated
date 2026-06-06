@@ -219,8 +219,7 @@ public class JsonVariableModel extends JsonVariableObject {
       }
 
       lookup = texture.location;
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
-      TextureAtlasSprite sprite = atlas.getSprite(Identifier.parse(lookup));
+      TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(Identifier.parse(lookup));
       ModelUtil.TexturedFace face = new ModelUtil.TexturedFace();
       face.sprite = sprite;
       face.faceData = texture.faceData;

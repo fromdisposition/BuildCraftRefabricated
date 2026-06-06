@@ -11,8 +11,6 @@ import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.flow.PipeFlowFluids;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -30,8 +28,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
          ensureRenderCache(flow, forRender);
          Identifier flowTexture = flow.renderCacheSpriteId;
          if (flowTexture != null) {
-            TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
-            TextureAtlasSprite sprite = atlas.getSprite(flowTexture);
+            TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(flowTexture);
             float r = flow.renderCacheTintR / 255.0F;
             float g = flow.renderCacheTintG / 255.0F;
             float b = flow.renderCacheTintB / 255.0F;

@@ -295,7 +295,7 @@ public class TilePump extends TileMiner implements IDebuggable {
       if (level != null && pos != null) {
          BlockState below = level.getBlockState(pos.below());
          Fluid fluidBelow = BlockUtil.getFluidWithFlowing(level, pos.below());
-         if (!FluidUtilBC.areFluidsEqual(fluidBelow, Fluids.WATER) && !BlockUtil.isSolid(below)) {
+         if (!FluidUtilBC.areFluidsEqual(fluidBelow, Fluids.WATER) && !BlockUtil.isSolid(level, pos.below(), below)) {
             return false;
          }
 

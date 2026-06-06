@@ -2,7 +2,7 @@ package buildcraft.lib.item;
 
 import buildcraft.lib.BCLibItems;
 import buildcraft.lib.fabric.BCLibClientBridge;
-import java.util.function.Consumer;
+import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -15,9 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
-import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
 public class ItemGuideNote extends Item {
@@ -61,13 +59,10 @@ public class ItemGuideNote extends Item {
       return InteractionResult.SUCCESS;
    }
 
-   @Override
-   @SuppressWarnings("deprecation")
-   public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-      super.appendHoverText(stack, context, display, tooltip, flag);
+   public static void appendTooltipLines(ItemGuideNote item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       Identifier page = getLinkedPage(stack);
       if (page != null) {
-         tooltip.accept(Component.translatable("buildcraft.guide.note.linked", new Object[]{page.toString()}));
+         tooltip.add(Component.translatable("buildcraft.guide.note.linked", new Object[]{page.toString()}));
       }
    }
 }

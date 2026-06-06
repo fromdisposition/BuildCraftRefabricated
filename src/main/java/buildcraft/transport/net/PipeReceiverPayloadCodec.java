@@ -11,13 +11,13 @@ import java.io.IOException;
 import java.util.Set;
 import net.minecraft.network.FriendlyByteBuf;
 
-@SuppressWarnings("deprecation")
 public final class PipeReceiverPayloadCodec {
+   private static final int WIRES_RECEIVER_ORDINAL = IPipeHolder.PipeMessageReceiver.VALUES.length - 1;
    private PipeReceiverPayloadCodec() {
    }
 
    public static boolean isActiveReceiver(IPipeHolder.PipeMessageReceiver receiver) {
-      return receiver != IPipeHolder.PipeMessageReceiver.WIRES;
+      return receiver.ordinal() != WIRES_RECEIVER_ORDINAL;
    }
 
    public static void write(IPipeHolder.PipeMessageReceiver receiver, TilePipeHolder holder, FriendlyByteBuf buffer) {
@@ -70,7 +70,7 @@ public final class PipeReceiverPayloadCodec {
             }
             break;
          default:
-            if (receiver == IPipeHolder.PipeMessageReceiver.WIRES) {
+            if (receiver.ordinal() == WIRES_RECEIVER_ORDINAL) {
                BCLog.logger.warn("[transport.net] Ignoring deprecated WIRES pipe payload at {}", holder.getPipePos());
                return;
             }

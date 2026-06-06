@@ -94,8 +94,7 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
    }
 
    private static TextureAtlasSprite getMcSprite(String path) {
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
-      TextureAtlasSprite sprite = atlas.getSprite(Identifier.parse(path));
+      TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(Identifier.parse(path));
       return sprite != null ? sprite : SpriteUtil.missingSprite();
    }
 

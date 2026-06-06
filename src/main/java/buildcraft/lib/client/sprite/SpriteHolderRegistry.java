@@ -5,9 +5,9 @@ import buildcraft.api.core.render.ISprite;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.model.sprite.SpriteGetter;
+import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.resources.Identifier;
 
 public class SpriteHolderRegistry {
@@ -19,7 +19,11 @@ public class SpriteHolderRegistry {
    }
 
    private static final class AtlasLookup {
-      static final Identifier[] ORDER = new Identifier[]{BcTextureAtlases.BLOCKS_TEXTURE, BcTextureAtlases.ITEMS_TEXTURE, Sheets.GUI_SHEET};
+      static SpriteId[] candidates(Identifier texture) {
+         return new SpriteId[]{
+            Sheets.BLOCKS_MAPPER.apply(texture), Sheets.ITEMS_MAPPER.apply(texture), new SpriteId(Sheets.GUI_SHEET, texture)
+         };
+      }
    }
 
    public static class SpriteHolder implements ISprite {
@@ -58,20 +62,18 @@ public class SpriteHolderRegistry {
       }
 
       private TextureAtlasSprite resolveSprite() {
-         TextureManager tm = Minecraft.getInstance().getTextureManager();
+         SpriteGetter sprites = BcTextureAtlases.blocksSpriteGetter(Minecraft.getInstance());
          Identifier missingId = MissingTextureAtlasSprite.getLocation();
          TextureAtlasSprite firstMissing = null;
 
-         for (Identifier atlasId : SpriteHolderRegistry.AtlasLookup.ORDER) {
-            if (tm.getTexture(atlasId) instanceof TextureAtlas atlas) {
-               TextureAtlasSprite sprite = atlas.getSprite(this.resourceLocation);
-               if (!sprite.contents().name().equals(missingId)) {
-                  return sprite;
-               }
+         for (SpriteId spriteId : SpriteHolderRegistry.AtlasLookup.candidates(this.resourceLocation)) {
+            TextureAtlasSprite sprite = sprites.get(spriteId);
+            if (!sprite.contents().name().equals(missingId)) {
+               return sprite;
+            }
 
-               if (firstMissing == null) {
-                  firstMissing = sprite;
-               }
+            if (firstMissing == null) {
+               firstMissing = sprite;
             }
          }
 

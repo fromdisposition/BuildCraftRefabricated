@@ -5,7 +5,6 @@ import buildcraft.core.BCCore;
 import buildcraft.lib.misc.ColourUtil;
 import buildcraft.lib.misc.SoundUtil;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -19,9 +18,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
-import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.CustomModelData;
-import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -75,12 +72,9 @@ public class ItemPaintbrush_BC8 extends Item {
       }
    }
 
-   @Override
-   @SuppressWarnings("deprecation")
-   public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-      super.appendHoverText(stack, context, display, tooltip, flag);
+   public static void appendTooltipLines(ItemPaintbrush_BC8 item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       if (getColour(stack) == null) {
-         tooltip.accept(Component.translatable("tip.item.paintbrush.clean").withStyle(ChatFormatting.GRAY));
+         tooltip.add(Component.translatable("tip.item.paintbrush.clean").withStyle(ChatFormatting.GRAY));
       }
    }
 

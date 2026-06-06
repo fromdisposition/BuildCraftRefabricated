@@ -31,8 +31,7 @@ public class PlugGateBaker implements IPluggableStaticBaker<KeyPlugGate> {
    }
 
    private TextureAtlasSprite getSprite(String path) {
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
-      return atlas.getSprite(Identifier.parse(path));
+      return BcTextureAtlases.getBlockSprite(Identifier.parse(path));
    }
 
    private String getMaterialSpritePath(EnumGateMaterial material) {

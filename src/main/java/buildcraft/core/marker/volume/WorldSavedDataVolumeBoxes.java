@@ -30,7 +30,7 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
 
    public static SavedDataType<WorldSavedDataVolumeBoxes> createType(Level world) {
       return new SavedDataType<>(
-         Identifier.withDefaultNamespace("buildcraft_volume_boxes"), () -> new WorldSavedDataVolumeBoxes(world), buildCodec(world), DataFixTypes.LEVEL
+         Identifier.fromNamespaceAndPath("buildcraftcore", "volume_boxes"), () -> new WorldSavedDataVolumeBoxes(world), buildCodec(world), DataFixTypes.LEVEL
       );
    }
 

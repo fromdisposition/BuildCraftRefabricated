@@ -12,7 +12,10 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -29,19 +32,21 @@ import net.minecraft.world.level.material.Fluids;
 public class BlockUtil {
    public static double miningMultiplier = 1.0;
 
-   @SuppressWarnings("deprecation")
    public static boolean blocksMotion(BlockState state) {
-      return state.blocksMotion();
+      Block block = state.getBlock();
+      return block != Blocks.COBWEB && block != Blocks.BAMBOO_SAPLING && isSolid(state);
    }
 
-   @SuppressWarnings("deprecation")
    public static boolean isSolid(BlockState state) {
-      return state.isSolid();
+      return state.isFaceSturdy(EmptyBlockGetter.INSTANCE, BlockPos.ZERO, Direction.UP);
    }
 
-   @SuppressWarnings("deprecation")
+   public static boolean isSolid(BlockGetter level, BlockPos pos, BlockState state) {
+      return state.isFaceSturdy(level, pos, Direction.UP);
+   }
+
    public static boolean isLiquid(BlockState state) {
-      return state.liquid();
+      return !state.getFluidState().isEmpty();
    }
 
    public static boolean canMachineBreak(ServerLevel level, BlockPos pos, GameProfile owner) {

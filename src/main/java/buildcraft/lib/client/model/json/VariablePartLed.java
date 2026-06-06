@@ -3,9 +3,8 @@ package buildcraft.lib.client.model.json;
 import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.expression.FunctionContext;
 import com.google.gson.JsonObject;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 
 public class VariablePartLed extends VariablePartCuboidBase {
@@ -18,8 +17,7 @@ public class VariablePartLed extends VariablePartCuboidBase {
    @Override
    protected VariablePartCuboidBase.VariableFaceData getFaceData(Direction side, JsonVariableModel.ITextureGetter spriteLookup) {
       if (FACE_DATA.sprite == null) {
-         TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
-         FACE_DATA.sprite = atlas.getSprite(MissingTextureAtlasSprite.getLocation());
+         FACE_DATA.sprite = BcTextureAtlases.getBlockSprite(MissingTextureAtlasSprite.getLocation());
       }
 
       FACE_DATA.uvs.minU = 0.0625F;

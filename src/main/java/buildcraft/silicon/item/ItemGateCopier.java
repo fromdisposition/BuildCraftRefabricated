@@ -26,12 +26,9 @@ public class ItemGateCopier extends Item {
       super(properties.stacksTo(1));
    }
 
-   @Override
-   @SuppressWarnings("deprecation")
-   public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-      super.appendHoverText(stack, context, display, tooltip, flag);
+   public static void appendTooltipLines(ItemGateCopier item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       if (getCopiedGateData(stack) != null) {
-         tooltip.accept(Component.translatable("buildcraft.item.nonclean.usage", new Object[]{Component.keybind("key.sneak"), Component.keybind("key.use")}));
+         tooltip.add(Component.translatable("buildcraft.item.nonclean.usage", new Object[]{Component.keybind("key.sneak"), Component.keybind("key.use")}));
       }
    }
 

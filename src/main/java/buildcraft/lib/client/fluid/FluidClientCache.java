@@ -5,10 +5,8 @@ import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
@@ -28,8 +26,7 @@ public final class FluidClientCache {
 
    private static FluidClientCache.Appearance build(FluidStack stack) {
       Identifier id = FluidUtilBC.getFluidTexture(stack);
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
-      TextureAtlasSprite sprite = atlas.getSprite(id);
+      TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(id);
       return new FluidClientCache.Appearance(sprite, FluidUtilBC.getFluidColor(stack), FluidUtilBC.shouldRenderTranslucent(stack));
    }
 

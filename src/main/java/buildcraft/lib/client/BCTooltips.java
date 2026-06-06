@@ -19,6 +19,7 @@ public class BCTooltips {
    }
 
    public static void init() {
+      BcItemTooltipCallback.register();
       ItemTooltipCallback.EVENT.register((ItemTooltipCallback)(stack, ctx, type, lines) -> {
          String key = TOOLTIPS.get(stack.getItem());
          if (key != null) {

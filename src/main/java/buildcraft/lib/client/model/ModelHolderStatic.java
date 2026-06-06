@@ -127,8 +127,7 @@ public class ModelHolderStatic extends ModelHolder {
    }
 
    private MutableQuad[] bakePart(JsonModelPart[] a) {
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
-      TextureAtlasSprite missingSprite = atlas.getSprite(MissingTextureAtlasSprite.getLocation());
+      TextureAtlasSprite missingSprite = BcTextureAtlases.getBlockSprite(MissingTextureAtlasSprite.getLocation());
       List<MutableQuad> list = new ArrayList<>();
 
       for (JsonModelPart part : a) {
@@ -145,7 +144,7 @@ public class ModelHolderStatic extends ModelHolder {
 
             TextureAtlasSprite sprite;
             if (!lookup.startsWith("#") && !lookup.startsWith("~")) {
-               sprite = atlas.getSprite(Identifier.parse(lookup));
+               sprite = BcTextureAtlases.getBlockSprite(Identifier.parse(lookup));
             } else if (this.allowTextureFallthrough) {
                sprite = null;
             } else {
