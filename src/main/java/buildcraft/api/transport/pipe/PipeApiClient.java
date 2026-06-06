@@ -6,20 +6,17 @@ import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableModelKey;
 
 public enum PipeApiClient {
-    INSTANCE;
+   INSTANCE;
 
-    public static IClientRegistry registry;
+   public static PipeApiClient.IClientRegistry registry;
 
-    public interface IClientRegistry {
+   public interface IClientRegistry {
+      <F extends PipeFlow> void registerRenderer(Class<? extends F> var1, IPipeFlowRenderer<F> var2);
 
-        <F extends PipeFlow> void registerRenderer(Class<? extends F> flowClass, IPipeFlowRenderer<F> renderer);
+      <B extends PipeBehaviour> void registerRenderer(Class<? extends B> var1, IPipeBehaviourRenderer<B> var2);
 
-        <B extends PipeBehaviour> void registerRenderer(Class<? extends B> behaviourClass,
-            IPipeBehaviourRenderer<B> renderer);
+      <P extends PipePluggable> void registerRenderer(Class<? extends P> var1, IPlugDynamicRenderer<P> var2);
 
-        <P extends PipePluggable> void registerRenderer(Class<? extends P> plugClass, IPlugDynamicRenderer<P> renderer);
-
-        <P extends PluggableModelKey> void registerBaker(Class<? extends P> keyClass,
-            IPluggableStaticBaker<P> renderer);
-    }
+      <P extends PluggableModelKey> void registerBaker(Class<? extends P> var1, IPluggableStaticBaker<P> var2);
+   }
 }

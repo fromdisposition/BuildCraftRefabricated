@@ -4,9 +4,10 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.player.Player;
 
 public interface BCPayloadContext {
-    Player player();
+   Player player();
 
-    void enqueueWork(Runnable task);
+   void enqueueWork(Runnable var1);
 
-    default void reply(CustomPacketPayload payload) {}
+   default void reply(CustomPacketPayload payload) {
+   }
 }

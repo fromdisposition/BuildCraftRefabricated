@@ -1,6 +1,7 @@
 package buildcraft.factory.client.render;
 
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import buildcraft.factory.tile.TilePump;
+import buildcraft.lib.client.render.tile.BcBerState;
 
-public class PumpRenderState extends BlockEntityRenderState {
+public class PumpRenderState extends BcBerState<TilePump> {
 }

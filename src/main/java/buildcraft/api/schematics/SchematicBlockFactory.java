@@ -2,36 +2,28 @@ package buildcraft.api.schematics;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-
 import javax.annotation.Nonnull;
 
 public class SchematicBlockFactory<S extends ISchematicBlock> implements Comparable<SchematicBlockFactory<?>> {
-    @Nonnull
-    public final Object name;
-    public final int priority;
-    @Nonnull
-    public final Predicate<SchematicBlockContext> predicate;
-    @Nonnull
-    public final Supplier<S> supplier;
-    @Nonnull
-    public final Class<S> clazz;
+   @Nonnull
+   public final Object name;
+   public final int priority;
+   @Nonnull
+   public final Predicate<SchematicBlockContext> predicate;
+   @Nonnull
+   public final Supplier<S> supplier;
+   @Nonnull
+   public final Class<S> clazz;
 
-    @SuppressWarnings("unchecked")
-    public SchematicBlockFactory(@Nonnull Object name,
-                                 int priority,
-                                 @Nonnull Predicate<SchematicBlockContext> predicate,
-                                 @Nonnull Supplier<S> supplier) {
-        this.name = name;
-        this.priority = priority;
-        this.predicate = predicate;
-        this.supplier = supplier;
-        clazz = (Class<S>) supplier.get().getClass();
-    }
+   public SchematicBlockFactory(@Nonnull Object name, int priority, @Nonnull Predicate<SchematicBlockContext> predicate, @Nonnull Supplier<S> supplier) {
+      this.name = name;
+      this.priority = priority;
+      this.predicate = predicate;
+      this.supplier = supplier;
+      this.clazz = (Class<S>)supplier.get().getClass();
+   }
 
-    @Override
-    public int compareTo(@Nonnull SchematicBlockFactory<?> o) {
-        return priority != o.priority
-                ? Integer.compare(priority, o.priority)
-                : name.toString().compareTo(o.name.toString());
-    }
+   public int compareTo(@Nonnull SchematicBlockFactory<?> o) {
+      return this.priority != o.priority ? Integer.compare(this.priority, o.priority) : this.name.toString().compareTo(o.name.toString());
+   }
 }

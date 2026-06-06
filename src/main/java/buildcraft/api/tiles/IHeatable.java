@@ -1,18 +1,13 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * The BuildCraft API is distributed under the terms of the MIT License. Please check the contents of the license, which
- * should be located as "LICENSE.API" in the BuildCraft source code distribution. */
 package buildcraft.api.tiles;
 
 public interface IHeatable {
+   double getMinHeatValue();
 
-    double getMinHeatValue();
+   double getIdealHeatValue();
 
-    double getIdealHeatValue();
+   double getMaxHeatValue();
 
-    double getMaxHeatValue();
+   double getCurrentHeatValue();
 
-    double getCurrentHeatValue();
-
-    double setHeatValue(double value);
+   double setHeatValue(double var1);
 }

@@ -1,375 +1,417 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.misc;
 
+import buildcraft.fabric.BCEnergyFluidsFabric;
+import buildcraft.lib.client.fluid.BcFluidTintUtil;
+import buildcraft.lib.fabric.transfer.FluidStorageOps;
+import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluids.FluidTypes;
+import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.transfer.fluid.FluidUtil;
+import buildcraft.lib.transfer.neighbor.NeighborTransfers;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
-
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
-
-import buildcraft.lib.client.fluid.BcFluidTintUtil;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.attachments.Attachments;
-import buildcraft.lib.attachments.AttachmentQueries;
-import buildcraft.lib.transfer.ResourceHandler;
-import buildcraft.lib.transfer.fluid.FluidResource;
-import buildcraft.lib.transfer.fluid.FluidStacksResourceHandler;
-import buildcraft.lib.transfer.transaction.Transaction;
-
 import net.minecraft.world.level.material.Fluids;
 
-import buildcraft.api.core.IFluidFilter;
-
 public class FluidUtilBC {
+   private static final Map<Fluid, Integer> FABRIC_FLUID_TINTS = new ConcurrentHashMap<>();
 
-    /** How a fluid is drawn: baked atlas (world/BER/GUI) vs runtime white+template (pipes). */
-    public enum FluidRenderContext {
-        WORLD, PIPE, BAKED_MESH, GUI
-    }
+   public static void registerFluidTint(Fluid fluid, int argb) {
+      if (fluid != null) {
+         FABRIC_FLUID_TINTS.put(fluid, argb);
+      }
+   }
 
-    public record FluidAppearance(Identifier texture, int tintArgb, boolean vertexRecolor) {}
+   public static boolean shouldRenderTranslucent(Fluid fluid) {
+      if (fluid != Fluids.WATER && fluid != Fluids.FLOWING_WATER) {
+         Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+         return fluidId != null && "buildcraftenergy".equals(fluidId.getNamespace());
+      } else {
+         return true;
+      }
+   }
 
-    private static final java.util.Map<Fluid, Integer> FABRIC_FLUID_TINTS = new java.util.concurrent.ConcurrentHashMap<>();
+   public static boolean shouldRenderTranslucent(FluidStack stack) {
+      return !stack.isEmpty() && shouldRenderTranslucent(stack.getFluid());
+   }
 
-    public static void registerFluidTint(Fluid fluid, int argb) {
-        if (fluid != null) {
-            FABRIC_FLUID_TINTS.put(fluid, argb);
-        }
-    }
+   public static FluidUtilBC.FluidAppearance appearance(FluidStack stack, FluidUtilBC.FluidRenderContext context) {
+      if (!stack.isEmpty() && stack.getFluid() != null) {
+         BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(canonicalFluid(stack.getFluid()));
+         if (context == FluidUtilBC.FluidRenderContext.PIPE) {
+            return entry != null
+               ? new FluidUtilBC.FluidAppearance(BcFluidTintUtil.bakedFlowSpriteId(entry.name()), -1, false)
+               : new FluidUtilBC.FluidAppearance(getFluidFlowingTexture(stack), getFluidColor(stack), false);
+         } else {
+            return entry != null ? appearanceForBaked(entry) : new FluidUtilBC.FluidAppearance(getFluidTexture(stack), getFluidColor(stack), false);
+         }
+      } else {
+         Identifier fallback = context == FluidUtilBC.FluidRenderContext.PIPE
+            ? Identifier.withDefaultNamespace("block/water_flow")
+            : Identifier.withDefaultNamespace("block/water_still");
+         return new FluidUtilBC.FluidAppearance(fallback, -12618012, false);
+      }
+   }
 
-    public static boolean shouldRenderTranslucent(Fluid fluid) {
-        if (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER) {
-            return true;
-        }
-        Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
-        return fluidId != null && "buildcraftenergy".equals(fluidId.getNamespace());
-    }
+   public static FluidUtilBC.FluidAppearance appearanceForBaked(BCEnergyFluidsFabric.FluidEntry entry) {
+      return new FluidUtilBC.FluidAppearance(BcFluidTintUtil.bakedStillSpriteId(entry.name()), -1, false);
+   }
 
-    public static boolean shouldRenderTranslucent(FluidStack stack) {
-        return !stack.isEmpty() && shouldRenderTranslucent(stack.getFluid());
-    }
+   public static float[] vertexRgba(FluidStack stack) {
+      int color = getFluidColor(stack);
+      float a = (color >> 24 & 0xFF) / 255.0F;
+      float r = (color >> 16 & 0xFF) / 255.0F;
+      float g = (color >> 8 & 0xFF) / 255.0F;
+      float b = (color & 0xFF) / 255.0F;
+      if (a <= 0.0F) {
+         a = 1.0F;
+      }
 
-    public static FluidAppearance appearance(FluidStack stack, FluidRenderContext context) {
-        if (stack.isEmpty() || stack.getFluid() == null) {
-            return new FluidAppearance(
-                    Identifier.withDefaultNamespace("block/water_still"),
-                    0xFF3F76E4,
-                    false);
-        }
-        buildcraft.fabric.BCEnergyFluidsFabric.FluidEntry entry =
-                buildcraft.fabric.BCEnergyFluidsFabric.findEntry(canonicalFluid(stack.getFluid()));
-        if (entry != null) {
-            if (context == FluidRenderContext.PIPE) {
-                return appearanceForPipe(entry);
+      return new float[]{r, g, b, a};
+   }
+
+   public static Identifier getFluidTexture(FluidStack stack) {
+      if (!stack.isEmpty() && stack.getFluid() != null) {
+         Fluid fluid = canonicalFluid(stack.getFluid());
+         if (fluid != Fluids.LAVA && fluid != Fluids.FLOWING_LAVA) {
+            Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+            if (fluidId != null && fluidId.getNamespace().equals("buildcraftenergy")) {
+               BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
+               if (entry != null) {
+                  return BcFluidTintUtil.bakedStillSpriteId(entry.name());
+               }
+
+               int heat = BCEnergyFluidsFabric.getHeat(fluid);
+               if (heat < 0) {
+                  heat = 0;
+               }
+
+               return BcFluidTintUtil.heatStillWhiteSpriteId(heat);
+            } else {
+               return fluidId != null
+                  ? Identifier.parse(fluidId.getNamespace() + ":block/" + fluidId.getPath() + "_still")
+                  : Identifier.withDefaultNamespace("block/water_still");
             }
-            return appearanceForBaked(entry);
-        }
-        return new FluidAppearance(getFluidTexture(stack), getFluidColor(stack), false);
-    }
+         } else {
+            return Identifier.withDefaultNamespace("block/lava_still");
+         }
+      } else {
+         return Identifier.withDefaultNamespace("block/water_still");
+      }
+   }
 
-    public static FluidAppearance appearanceForPipe(buildcraft.fabric.BCEnergyFluidsFabric.FluidEntry entry) {
-        return new FluidAppearance(
-                BcFluidTintUtil.heatStillWhiteSpriteId(entry.heat()),
-                BcFluidTintUtil.RENDER_TINT_WHITE,
-                true);
-    }
+   public static Identifier getFluidFlowingTexture(FluidStack stack) {
+      if (!stack.isEmpty() && stack.getFluid() != null) {
+         Fluid fluid = canonicalFluid(stack.getFluid());
+         if (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER) {
+            return Identifier.withDefaultNamespace("block/water_flow");
+         }
 
-    public static FluidAppearance appearanceForBaked(buildcraft.fabric.BCEnergyFluidsFabric.FluidEntry entry) {
-        return new FluidAppearance(
-                BcFluidTintUtil.bakedStillSpriteId(entry.name()),
-                BcFluidTintUtil.RENDER_TINT_WHITE,
-                false);
-    }
+         if (fluid != Fluids.LAVA && fluid != Fluids.FLOWING_LAVA) {
+            Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+            if (fluidId != null && fluidId.getNamespace().equals("buildcraftenergy")) {
+               BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
+               if (entry != null) {
+                  return BcFluidTintUtil.bakedFlowSpriteId(entry.name());
+               }
 
-    /** RGBA vertex multipliers for baked-sprite mesh/GUI (white = use texture color as-is). */
-    public static float[] vertexRgba(FluidStack stack) {
-        int color = getFluidColor(stack);
-        float a = ((color >> 24) & 0xFF) / 255.0f;
-        float r = ((color >> 16) & 0xFF) / 255.0f;
-        float g = ((color >> 8) & 0xFF) / 255.0f;
-        float b = (color & 0xFF) / 255.0f;
-        if (a <= 0f) {
-            a = 1.0f;
-        }
-        return new float[] { r, g, b, a };
-    }
+               int heat = BCEnergyFluidsFabric.getHeat(fluid);
+               if (heat < 0) {
+                  heat = 0;
+               }
 
-    public static net.minecraft.resources.Identifier getFluidTexture(FluidStack stack) {
-        if (stack.isEmpty() || stack.getFluid() == null) return net.minecraft.resources.Identifier.withDefaultNamespace("block/water_still");
-        Fluid fluid = canonicalFluid(stack.getFluid());
-        if (fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA) {
-            return net.minecraft.resources.Identifier.withDefaultNamespace("block/lava_still");
-        }
-
-        net.minecraft.resources.Identifier fluidId = net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(fluid);
-        if (fluidId != null && fluidId.getNamespace().equals("buildcraftenergy")) {
-            buildcraft.fabric.BCEnergyFluidsFabric.FluidEntry entry =
-                    buildcraft.fabric.BCEnergyFluidsFabric.findEntry(fluid);
-            if (entry != null) {
-                return buildcraft.lib.client.fluid.BcFluidTintUtil.bakedStillSpriteId(entry.name());
+               return BcFluidTintUtil.heatFlowSpriteId(heat);
+            } else if (fluidId != null) {
+               String path = fluidId.getPath();
+               return path.endsWith("_flowing")
+                  ? Identifier.fromNamespaceAndPath(fluidId.getNamespace(), "block/" + path)
+                  : Identifier.parse(fluidId.getNamespace() + ":block/" + path + "_flowing");
+            } else {
+               return Identifier.withDefaultNamespace("block/water_flow");
             }
-            int heat = buildcraft.fabric.BCEnergyFluidsFabric.getHeat(fluid);
-            if (heat < 0) {
-                heat = 0;
+         } else {
+            return Identifier.withDefaultNamespace("block/lava_flow");
+         }
+      } else {
+         return Identifier.withDefaultNamespace("block/water_flow");
+      }
+   }
+
+   public static int getFluidColor(FluidStack stack) {
+      if (!stack.isEmpty() && stack.getFluid() != null) {
+         Fluid fluid = canonicalFluid(stack.getFluid());
+         if (fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA) {
+            return -1;
+         }
+
+         if (fluid != Fluids.WATER && fluid != Fluids.FLOWING_WATER) {
+            BCEnergyFluidsFabric.FluidEntry bcEntry = BCEnergyFluidsFabric.findEntry(fluid);
+            if (bcEntry != null) {
+               return -1;
             }
-            return buildcraft.lib.client.fluid.BcFluidTintUtil.heatStillWhiteSpriteId(heat);
-        }
-        if (fluidId != null) {
-            return net.minecraft.resources.Identifier.parse(fluidId.getNamespace() + ":block/" + fluidId.getPath() + "_still");
-        }
 
-        return net.minecraft.resources.Identifier.withDefaultNamespace("block/water_still");
-    }
-
-    public static int getFluidColor(FluidStack stack) {
-        if (stack.isEmpty() || stack.getFluid() == null) return 0xFFFFFFFF;
-        Fluid fluid = canonicalFluid(stack.getFluid());
-
-        if (fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA) {
-            return 0xFFFFFFFF;
-        }
-        if (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER) {
-            return 0xFF3F76E4;
-        }
-
-        buildcraft.fabric.BCEnergyFluidsFabric.FluidEntry bcEntry =
-                buildcraft.fabric.BCEnergyFluidsFabric.findEntry(fluid);
-        if (bcEntry != null) {
-            return BcFluidTintUtil.RENDER_TINT_WHITE;
-        }
-
-        Integer tint = FABRIC_FLUID_TINTS.get(fluid);
-        if (tint != null) {
-            return tint;
-        }
-
-        net.minecraft.resources.Identifier fluidId = net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(fluid);
-        if (fluidId != null && fluidId.getNamespace().equals("buildcraftenergy")) {
-            return 0xFF505050;
-        }
-
-        return 0xFFFFFFFF;
-    }
-
-    public static void pushFluidToNeighbors(Level level, BlockPos pos, FluidStacksResourceHandler tank) {
-        if (tank.getAmountAsLong(0) <= 0) return;
-        for (Direction dir : Direction.values()) {
-            if (tank.getAmountAsLong(0) <= 0) break;
-            BlockPos neighborPos = pos.relative(dir);
-            ResourceHandler<FluidResource> neighbor = AttachmentQueries.getBlock(
-                    level, Attachments.Fluid.BLOCK, neighborPos, dir.getOpposite());
-            if (neighbor == null) continue;
-
-            FluidResource resource = tank.getResource(0);
-            if (resource.isEmpty()) break;
-
-            int amountToTry = (int) Math.min(tank.getAmountAsLong(0), 1000);
-
-            try (Transaction tx = Transaction.openRoot()) {
-                int accepted = buildcraft.lib.transfer.ResourceHandlerUtil.move(
-                        tank, neighbor, r -> true, amountToTry, tx);
-                if (accepted > 0) {
-                    tx.commit();
-                }
+            Integer tint = FABRIC_FLUID_TINTS.get(fluid);
+            if (tint != null) {
+               return tint;
             }
-        }
-    }
 
-    public static List<FluidStack> mergeSameFluids(List<FluidStack> fluids) {
-        List<FluidStack> stacks = new ArrayList<>();
-        fluids.forEach(toAdd -> {
-            boolean found = false;
-            for (FluidStack stack : stacks) {
-                if (FluidStack.isSameFluidSameComponents(stack, toAdd)) {
-                    stack.grow(toAdd.getAmount());
-                    found = true;
-                }
+            Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+            return fluidId != null && fluidId.getNamespace().equals("buildcraftenergy") ? -11513776 : -1;
+         } else {
+            return -12618012;
+         }
+      } else {
+         return -1;
+      }
+   }
+
+   public static void pushFluidToNeighbors(Level level, BlockPos pos, Storage<FluidVariant> tank) {
+      NeighborTransfers.pushFluidToNeighbors(level, pos, tank);
+   }
+
+   public static List<FluidStack> mergeSameFluids(List<FluidStack> fluids) {
+      List<FluidStack> stacks = new ArrayList<>();
+      fluids.forEach(toAdd -> {
+         boolean found = false;
+
+         for (FluidStack stack : stacks) {
+            if (FluidStack.isSameFluidSameComponents(stack, toAdd)) {
+               stack.grow(toAdd.getAmount());
+               found = true;
             }
-            if (!found) {
-                stacks.add(toAdd.copy());
-            }
-        });
-        return stacks;
-    }
+         }
 
-    public static boolean areFluidStackEqual(FluidStack a, FluidStack b) {
-        if (a.isEmpty() && b.isEmpty()) return true;
-        if (a.isEmpty() || b.isEmpty()) return false;
-        return FluidStack.isSameFluidSameComponents(a, b) && a.getAmount() == b.getAmount();
-    }
+         if (!found) {
+            stacks.add(toAdd.copy());
+         }
+      });
+      return stacks;
+   }
 
-    public static boolean areFluidsEqual(Fluid a, Fluid b) {
-        if (a == null || b == null) {
-            return a == b;
-        }
+   public static boolean areFluidStackEqual(FluidStack a, FluidStack b) {
+      if (a.isEmpty() && b.isEmpty()) {
+         return true;
+      } else {
+         return !a.isEmpty() && !b.isEmpty() ? FluidStack.isSameFluidSameComponents(a, b) && a.getAmount() == b.getAmount() : false;
+      }
+   }
 
-        if (a == b) return true;
-        net.minecraft.resources.Identifier idA = net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(a);
-        net.minecraft.resources.Identifier idB = net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(b);
-        return idA.getNamespace().equals(idB.getNamespace())
-                && normalizeFluidPath(idA.getPath()).equals(normalizeFluidPath(idB.getPath()));
-    }
+   public static boolean areFluidsEqual(Fluid a, Fluid b) {
+      if (a == null || b == null) {
+         return a == b;
+      }
 
-    public static Fluid canonicalFluid(Fluid fluid) {
-        if (fluid == null || fluid.isSame(Fluids.EMPTY)) {
-            return Fluids.EMPTY;
-        }
-        Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
-        if (fluidId == null) {
+      if (a == b) {
+         return true;
+      }
+
+      Identifier idA = BuiltInRegistries.FLUID.getKey(a);
+      Identifier idB = BuiltInRegistries.FLUID.getKey(b);
+      return idA.getNamespace().equals(idB.getNamespace()) && normalizeFluidPath(idA.getPath()).equals(normalizeFluidPath(idB.getPath()));
+   }
+
+   public static Fluid canonicalFluid(Fluid fluid) {
+      if (fluid != null && !fluid.isSame(Fluids.EMPTY)) {
+         Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+         if (fluidId == null) {
             return fluid;
-        }
-        String path = fluidId.getPath();
-        if (path.startsWith("flowing_")) {
-            Identifier stillId = Identifier.fromNamespaceAndPath(fluidId.getNamespace(), path.substring("flowing_".length()));
-            Fluid still = BuiltInRegistries.FLUID.get(stillId).map(ref -> ref.value()).orElse(Fluids.EMPTY);
-            return still.isSame(Fluids.EMPTY) ? fluid : still;
-        }
-        if (path.endsWith("_flowing")) {
-            Identifier stillId = Identifier.fromNamespaceAndPath(
-                    fluidId.getNamespace(), path.substring(0, path.length() - "_flowing".length()));
-            Fluid still = BuiltInRegistries.FLUID.get(stillId).map(ref -> ref.value()).orElse(Fluids.EMPTY);
-            return still.isSame(Fluids.EMPTY) ? fluid : still;
-        }
-        return fluid;
-    }
+         } else {
+            String path = fluidId.getPath();
+            if (path.startsWith("flowing_")) {
+               Identifier stillId = Identifier.fromNamespaceAndPath(fluidId.getNamespace(), path.substring("flowing_".length()));
+               Fluid still = BuiltInRegistries.FLUID.get(stillId).map(ref -> (Fluid)ref.value()).orElse(Fluids.EMPTY);
+               return still.isSame(Fluids.EMPTY) ? fluid : still;
+            } else if (path.endsWith("_flowing")) {
+               Identifier stillId = Identifier.fromNamespaceAndPath(fluidId.getNamespace(), path.substring(0, path.length() - "_flowing".length()));
+               Fluid still = BuiltInRegistries.FLUID.get(stillId).map(ref -> (Fluid)ref.value()).orElse(Fluids.EMPTY);
+               return still.isSame(Fluids.EMPTY) ? fluid : still;
+            } else {
+               return fluid;
+            }
+         }
+      } else {
+         return Fluids.EMPTY;
+      }
+   }
 
-    public static boolean areEquivalentFluidResources(FluidResource a, FluidResource b) {
-        if (a.isEmpty() || b.isEmpty()) {
-            return a.isEmpty() && b.isEmpty();
-        }
-        return areFluidsEqual(a.getFluid(), b.getFluid()) && a.getComponentsPatch().equals(b.getComponentsPatch());
-    }
+   public static boolean areEquivalentFluidStacks(FluidStack a, FluidStack b) {
+      if (!a.isEmpty() && !b.isEmpty()) {
+         FluidStack ca = canonicalFluidStack(a);
+         FluidStack cb = canonicalFluidStack(b);
+         return FluidStack.isSameFluidSameComponents(ca, cb);
+      } else {
+         return a.isEmpty() && b.isEmpty();
+      }
+   }
 
-    public static FluidResource canonicalFluidResource(FluidResource resource) {
-        if (resource.isEmpty()) {
-            return resource;
-        }
-        Fluid canonical = canonicalFluid(resource.getFluid());
-        if (canonical.isSame(resource.getFluid())) {
-            return resource;
-        }
-        return FluidResource.of(canonical, resource.getComponentsPatch());
-    }
+   public static FluidStack canonicalFluidStack(FluidStack stack) {
+      if (stack.isEmpty()) {
+         return stack;
+      }
 
-    @Nullable
-    public static FluidStack move(ResourceHandler<FluidResource> from, ResourceHandler<FluidResource> to) {
-        return move(from, to, Integer.MAX_VALUE);
-    }
+      Fluid canonical = canonicalFluid(stack.getFluid());
+      return canonical.isSame(stack.getFluid()) ? stack : new FluidStack(canonical, stack.getAmount(), stack.getComponentsPatch());
+   }
 
-    @Nullable
-    public static FluidStack move(ResourceHandler<FluidResource> from, ResourceHandler<FluidResource> to, int max) {
-        if (from == null || to == null) {
+   @Nullable
+   public static FluidStack move(Storage<FluidVariant> from, Storage<FluidVariant> to) {
+      return move(from, to, Integer.MAX_VALUE);
+   }
+
+   @Nullable
+   public static FluidStack move(Storage<FluidVariant> from, Storage<FluidVariant> to, int maxMb) {
+      if (from != null && to != null) {
+         FluidVariant firstVariant = FluidVariant.blank();
+
+         for (StorageView<FluidVariant> view : from) {
+            if (!view.isResourceBlank() && view.getAmount() > 0L) {
+               firstVariant = (FluidVariant)view.getResource();
+               break;
+            }
+         }
+
+         if (firstVariant.isBlank()) {
             return null;
-        }
+         }
 
-        try (Transaction tx = Transaction.openRoot()) {
+         long maxDroplets = TransferConvert.mbToDroplets(maxMb);
+         Transaction tx = Transaction.openOuter();
 
-            FluidResource firstAvailable = FluidResource.EMPTY;
-            for (int i = 0; i < from.size(); i++) {
-                if (!from.getResource(i).isEmpty()) {
-                    firstAvailable = from.getResource(i);
-                    break;
-                }
+         FluidStack var12;
+         label72: {
+            try {
+               long moved = FluidStorageOps.move(from, to, maxDroplets, tx);
+               if (moved > 0L) {
+                  tx.commit();
+                  long movedMb = TransferConvert.dropletsToMb(moved);
+                  if (movedMb > 2147483647L) {
+                     int amountMb = Integer.MAX_VALUE;
+                  } else {
+                     int amountMb = (int)movedMb;
+                  }
+
+                  var12 = TransferConvert.toFluidStack(firstVariant, moved);
+                  break label72;
+               }
+            } catch (Throwable var14) {
+               if (tx != null) {
+                  try {
+                     tx.close();
+                  } catch (Throwable var13) {
+                     var14.addSuppressed(var13);
+                  }
+               }
+
+               throw var14;
             }
 
-            if (firstAvailable.isEmpty()) return null;
-
-            int moved = buildcraft.lib.transfer.ResourceHandlerUtil.move(from, to, r -> true, max, tx);
-            if (moved > 0) {
-                tx.commit();
-                return firstAvailable.toStack(moved);
+            if (tx != null) {
+               tx.close();
             }
-        }
-        return null;
-    }
 
-    public static String getDebugString(FluidStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return "empty";
-        }
-        return stack.getAmount() + " mB " + net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(stack.getFluid());
-    }
+            return null;
+         }
 
-    public static String getDebugString(FluidStacksResourceHandler tank) {
-        FluidResource f = tank.getResource(0);
-        String name = f.isEmpty() ? "n/a" : net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(f.getFluid()).toString();
-        return (f.isEmpty() ? 0 : tank.getAmountAsLong(0)) + " / " + tank.getCapacityAsLong(0, FluidResource.EMPTY) + " mB of " + name;
-    }
+         if (tx != null) {
+            tx.close();
+         }
 
-    public static boolean isGaseous(FluidStack fluid) {
-        return !fluid.isEmpty() && fluid.getFluidType().isLighterThanAir();
-    }
+         return var12;
+      } else {
+         return null;
+      }
+   }
 
-    public static boolean isGaseous(Fluid fluid) {
-        return fluid != null && !fluid.isSame(net.minecraft.world.level.material.Fluids.EMPTY)
-                && buildcraft.lib.fluids.FluidTypes.of(fluid).isLighterThanAir();
-    }
+   public static String getDebugString(FluidStack stack) {
+      return stack != null && !stack.isEmpty() ? stack.getAmount() + " mB " + BuiltInRegistries.FLUID.getKey(stack.getFluid()) : "empty";
+   }
 
-    private static String normalizeFluidPath(String path) {
-        if (path.startsWith("flowing_")) {
-            return path.substring("flowing_".length());
-        }
-        if (path.endsWith("_flowing")) {
-            return path.substring(0, path.length() - "_flowing".length());
-        }
-        return path;
-    }
+   public static boolean isGaseous(FluidStack fluid) {
+      return !fluid.isEmpty() && fluid.getFluidType().isLighterThanAir();
+   }
 
-    public static boolean isFluidContainerItem(ItemStack stack) {
-        if (stack.isEmpty()) {
-            return false;
-        }
-        return AttachmentQueries.getItem(
-                stack, Attachments.Fluid.ITEM, buildcraft.lib.transfer.access.ItemAccess.forStack(stack)) != null;
-    }
+   public static boolean isGaseous(Fluid fluid) {
+      return fluid != null && !fluid.isSame(Fluids.EMPTY) && FluidTypes.of(fluid).isLighterThanAir();
+   }
 
-    public static boolean isFluidContainerInHand(Player player, InteractionHand hand) {
-        ItemStack held = player.getItemInHand(hand);
-        if (held.isEmpty()) {
-            return false;
-        }
-        buildcraft.lib.transfer.access.ItemAccess access =
-                buildcraft.lib.transfer.access.ItemAccess.forPlayerInteraction(player, hand).oneByOne();
-        return access.getCapability(Attachments.Fluid.ITEM) != null;
-    }
+   private static String normalizeFluidPath(String path) {
+      if (path.startsWith("flowing_")) {
+         return path.substring("flowing_".length());
+      } else {
+         return path.endsWith("_flowing") ? path.substring(0, path.length() - "_flowing".length()) : path;
+      }
+   }
 
-    public static boolean onTankActivated(Player player, BlockPos pos, InteractionHand hand,
-        ResourceHandler<FluidResource> fluidHandler) {
-        ItemStack held = player.getItemInHand(hand);
-        if (held.isEmpty()) return false;
-        if (!isFluidContainerInHand(player, hand)) return false;
-        Level world = player.level();
-        if (world.isClientSide()) return true;
-        return buildcraft.lib.transfer.fluid.FluidUtil.interactWithFluidHandler(player, hand, pos, fluidHandler);
-    }
+   public static boolean isFluidContainerItem(ItemStack stack) {
+      return stack.isEmpty() ? false : TriggerTransferAccess.itemFluidStorage(stack) != null;
+   }
 
-    public static ItemStack getFilledBucket(FluidStack fluidStack) {
-        if (fluidStack == null || fluidStack.isEmpty()) {
-            return ItemStack.EMPTY;
-        }
-        if (fluidStack.getComponents().isEmpty()) {
+   public static boolean isFluidContainerInHand(Player player, InteractionHand hand) {
+      ContainerItemContext context = ContainerItemContext.forPlayerInteraction(player, hand);
+      if (context.getItemVariant().isBlank()) {
+         return false;
+      }
+
+      ItemStack held = context.getItemVariant().toStack((int)Math.min(context.getAmount(), 2147483647L));
+      return held.isEmpty() ? false : TriggerTransferAccess.itemFluidStorage(held, context) != null;
+   }
+
+   public static boolean onTankActivated(Player player, BlockPos pos, InteractionHand hand, Storage<FluidVariant> storage) {
+      ItemStack held = player.getItemInHand(hand);
+      if (held.isEmpty()) {
+         return false;
+      }
+
+      if (!isFluidContainerInHand(player, hand)) {
+         return false;
+      }
+
+      Level world = player.level();
+      return world.isClientSide() ? true : FluidUtil.interactWithFluidStorage(player, hand, pos, storage);
+   }
+
+   public static ItemStack getFilledBucket(FluidStack fluidStack) {
+      if (fluidStack != null && !fluidStack.isEmpty()) {
+         if (fluidStack.getComponents().isEmpty()) {
             if (fluidStack.is(Fluids.WATER)) {
-                return new ItemStack(net.minecraft.world.item.Items.WATER_BUCKET);
-            } else if (fluidStack.is(Fluids.LAVA)) {
-                return new ItemStack(net.minecraft.world.item.Items.LAVA_BUCKET);
+               return new ItemStack(Items.WATER_BUCKET);
             }
-        }
-        return ItemStack.EMPTY;
-    }
+
+            if (fluidStack.is(Fluids.LAVA)) {
+               return new ItemStack(Items.LAVA_BUCKET);
+            }
+         }
+
+         return ItemStack.EMPTY;
+      } else {
+         return ItemStack.EMPTY;
+      }
+   }
+
+   public record FluidAppearance(Identifier texture, int tintArgb, boolean vertexRecolor) {
+   }
+
+   public enum FluidRenderContext {
+      WORLD,
+      PIPE,
+      BAKED_MESH,
+      GUI;
+   }
 }

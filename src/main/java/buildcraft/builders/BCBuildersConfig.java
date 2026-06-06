@@ -1,62 +1,86 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
 package buildcraft.builders;
 
-import buildcraft.lib.config.ConfigSpec;
+import com.google.gson.JsonObject;
 
-public class BCBuildersConfig {
+public final class BCBuildersConfig {
+   public static final BCBuildersConfig.IntValue quarryFrameMinHeight = new BCBuildersConfig.IntValue(4);
+   public static final BCBuildersConfig.IntValue quarryMaxTasksPerTick = new BCBuildersConfig.IntValue(4);
+   public static final BCBuildersConfig.IntValue quarryTaskPowerDivisor = new BCBuildersConfig.IntValue(2);
+   public static final BCBuildersConfig.DoubleValue quarryMaxFrameMoveSpeed = new BCBuildersConfig.DoubleValue(0.0);
+   public static final BCBuildersConfig.DoubleValue quarryMaxBlockMineRate = new BCBuildersConfig.DoubleValue(0.0);
 
-    public static ConfigSpec.IntValue quarryFrameMinHeight;
+   private BCBuildersConfig() {
+   }
 
-    public static ConfigSpec.IntValue quarryMaxTasksPerTick;
+   @Deprecated
+   public static void ensureLoaded() {
+   }
 
-    public static ConfigSpec.IntValue quarryTaskPowerDivisor;
+   @Deprecated
+   public static void buildGeneral(Object builder) {
+   }
 
-    public static ConfigSpec.DoubleValue quarryMaxFrameMoveSpeed;
+   public static void applyQuarry(JsonObject quarry) {
+      if (quarry != null) {
+         if (quarry.has("quarryFrameMinHeight")) {
+            quarryFrameMinHeight.set(clampInt(quarry.get("quarryFrameMinHeight").getAsInt(), 1, 256));
+         }
 
-    public static ConfigSpec.DoubleValue quarryMaxBlockMineRate;
+         if (quarry.has("quarryMaxTasksPerTick")) {
+            quarryMaxTasksPerTick.set(clampInt(quarry.get("quarryMaxTasksPerTick").getAsInt(), 1, 20));
+         }
 
-    public static void ensureLoaded() {
-        if (quarryFrameMinHeight != null) {
-            return;
-        }
-        buildGeneral(new ConfigSpec.Builder());
-    }
+         if (quarry.has("quarryTaskPowerDivisor")) {
+            quarryTaskPowerDivisor.set(clampInt(quarry.get("quarryTaskPowerDivisor").getAsInt(), 0, 100));
+         }
 
-    public static void buildGeneral(ConfigSpec.Builder builder) {
-        builder.push("builders");
+         if (quarry.has("quarryMaxFrameMoveSpeed")) {
+            quarryMaxFrameMoveSpeed.set(clampDouble(quarry.get("quarryMaxFrameMoveSpeed").getAsDouble(), 0.0, 5120.0));
+         }
 
-        builder.push("quarry");
+         if (quarry.has("quarryMaxBlockMineRate")) {
+            quarryMaxBlockMineRate.set(clampDouble(quarry.get("quarryMaxBlockMineRate").getAsDouble(), 0.0, 1000.0));
+         }
+      }
+   }
 
-        quarryFrameMinHeight = builder
-                .comment("The minimum height that all quarry frames must be.",
-                         "A value of 1 will look strange when it drills the uppermost layer.")
-                .defineInRange("quarryFrameMinHeight", 4, 1, 256);
+   private static int clampInt(int value, int min, int max) {
+      return Math.max(min, Math.min(max, value));
+   }
 
-        quarryMaxTasksPerTick = builder
-                .comment("The maximum number of tasks that the quarry will do per tick.",
-                         "(Where a task is either breaking a block, or moving the frame)")
-                .defineInRange("quarryMaxTasksPerTick", 4, 1, 20);
+   private static double clampDouble(double value, double min, double max) {
+      return Math.max(min, Math.min(max, value));
+   }
 
-        quarryTaskPowerDivisor = builder
-                .comment("1 divided by this value is added to the power cost for each additional task done per tick.",
-                         "A value of 0 disables this behaviour.")
-                .defineInRange("quarryTaskPowerDivisor", 2, 0, 100);
+   public static final class DoubleValue {
+      private double value;
 
-        quarryMaxFrameMoveSpeed = builder
-                .comment("The maximum number of blocks that a quarry is allowed to move, per second.",
-                         "A value of 0 means no limit.")
-                .defineInRange("quarryMaxFrameMoveSpeed", 0.0, 0.0, 5120.0);
+      public DoubleValue(double value) {
+         this.value = value;
+      }
 
-        quarryMaxBlockMineRate = builder
-                .comment("The maximum number of blocks that the quarry is allowed to mine each second.",
-                         "A value of 0 means no limit, and a value of 0.5 will mine up to half a block per second.")
-                .defineInRange("quarryMaxBlockMineRate", 0.0, 0.0, 1000.0);
+      public double get() {
+         return this.value;
+      }
 
-        builder.pop();
-        builder.pop();
-    }
+      public void set(double value) {
+         this.value = value;
+      }
+   }
+
+   public static final class IntValue {
+      private int value;
+
+      public IntValue(int value) {
+         this.value = value;
+      }
+
+      public int get() {
+         return this.value;
+      }
+
+      public void set(int value) {
+         this.value = value;
+      }
+   }
 }

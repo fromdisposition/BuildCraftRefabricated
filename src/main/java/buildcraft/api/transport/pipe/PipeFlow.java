@@ -1,92 +1,90 @@
 package buildcraft.api.transport.pipe;
 
+import buildcraft.api.core.EnumPipePart;
 import java.io.IOException;
-
 import javax.annotation.Nonnull;
-
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.HitResult;
 
-import buildcraft.api.core.EnumPipePart;
-import buildcraft.api.transport.pipe.IPipeHolder.IWriter;
-import buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver;
-
 public abstract class PipeFlow {
+   public static final int NET_ID_FULL_STATE = 0;
+   public static final int NET_ID_UPDATE = 1;
+   public final IPipe pipe;
 
-    public static final int NET_ID_FULL_STATE = 0;
+   public PipeFlow(IPipe pipe) {
+      this.pipe = pipe;
+   }
 
-    public static final int NET_ID_UPDATE = 1;
+   public PipeFlow(IPipe pipe, CompoundTag nbt) {
+      this.pipe = pipe;
+   }
 
-    public final IPipe pipe;
+   public CompoundTag writeToNbt() {
+      return new CompoundTag();
+   }
 
-    public PipeFlow(IPipe pipe) {
-        this.pipe = pipe;
-    }
+   public void readFromNbt(CompoundTag nbt) {
+   }
 
-    public PipeFlow(IPipe pipe, CompoundTag nbt) {
-        this.pipe = pipe;
-    }
+   public void writePayload(int id, FriendlyByteBuf buffer, Object side) {
+   }
 
-    public CompoundTag writeToNbt() {
-        return new CompoundTag();
-    }
+   public void readPayload(int id, FriendlyByteBuf buffer, Object side) throws IOException {
+   }
 
-    public void readFromNbt(CompoundTag nbt) {
+   public void sendPayload(int id) {
+      Object side = this.pipe.getHolder().getPipeWorld().isClientSide() ? null : null;
+      this.sendCustomPayload(id, buf -> this.writePayload(id, buf, side));
+   }
 
-    }
+   public final void sendCustomPayload(int id, IPipeHolder.IWriter writer) {
+      this.pipe.getHolder().sendMessage(IPipeHolder.PipeMessageReceiver.FLOW, buffer -> {
+         buffer.writeBoolean(true);
+         buffer.writeShort(id);
+         writer.write(buffer);
+      });
+   }
 
-    public void writePayload(int id, FriendlyByteBuf buffer, Object side) {
-    }
+   public abstract boolean canConnect(Direction var1, PipeFlow var2);
 
-    public void readPayload(int id, FriendlyByteBuf buffer, Object side) throws IOException {
-    }
+   public abstract boolean canConnect(Direction var1, BlockEntity var2);
 
-    public void sendPayload(int id) {
-        final Object side = pipe.getHolder().getPipeWorld().isClientSide() ? null : null;
-        sendCustomPayload(id, (buf) -> writePayload(id, buf, side));
-    }
+   public boolean shouldForceConnection(Direction face, BlockEntity oTile) {
+      return false;
+   }
 
-    public final void sendCustomPayload(int id, IWriter writer) {
-        pipe.getHolder().sendMessage(PipeMessageReceiver.FLOW, buffer -> {
-            buffer.writeBoolean(true);
-            buffer.writeShort(id);
-            writer.write(buffer);
-        });
-    }
+   public void onTick() {
+   }
 
-    public abstract boolean canConnect(Direction face, PipeFlow other);
+   public boolean hasSimulationWork() {
+      return false;
+   }
 
-    public abstract boolean canConnect(Direction face, BlockEntity oTile);
+   public boolean hasClientSimulationWork() {
+      return this.hasSimulationWork();
+   }
 
-    public boolean shouldForceConnection(Direction face, BlockEntity oTile) {
-        return false;
-    }
+   public void postPluggableTick() {
+   }
 
-    public void onTick() {
-    }
+   public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
+   }
 
-    public void postPluggableTick() {
-    }
+   public boolean onFlowActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ, EnumPipePart part) {
+      return false;
+   }
 
-    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
-    }
+   public final boolean hasCapability(@Nonnull Object capability, Direction facing) {
+      return this.getCapability(capability, facing) != null;
+   }
 
-    public boolean onFlowActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ,
-            EnumPipePart part) {
-        return false;
-    }
-
-    public final boolean hasCapability(@Nonnull Object capability, Direction facing) {
-        return getCapability(capability, facing) != null;
-    }
-
-    public <T> T getCapability(@Nonnull Object capability, Direction facing) {
-        return null;
-    }
+   public <T> T getCapability(@Nonnull Object capability, Direction facing) {
+      return null;
+   }
 }

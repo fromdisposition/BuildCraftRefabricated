@@ -1,11 +1,12 @@
 package buildcraft.fabric;
 
 public final class BCClientRegistriesFabric {
-    private BCClientRegistriesFabric() {}
+   private BCClientRegistriesFabric() {
+   }
 
-    public static void register() {
-        BCRenderPipelinesFabric.register();
-        BCSpriteSourcesFabric.register();
-        BCItemTintSourcesFabric.register();
-    }
+   public static void register() {
+      BCRenderPipelinesFabric.register();
+      BCSpriteSourcesFabric.register();
+      BCItemTintSourcesFabric.register();
+   }
 }

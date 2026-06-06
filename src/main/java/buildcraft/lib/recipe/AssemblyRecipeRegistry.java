@@ -1,39 +1,31 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.recipe;
 
+import buildcraft.api.recipes.AssemblyRecipe;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.annotation.Nonnull;
-
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.ItemStack;
 
-import buildcraft.api.recipes.AssemblyRecipe;
-
-@SuppressWarnings("deprecation")
 public class AssemblyRecipeRegistry {
-    public static final Map<String, AssemblyRecipe> REGISTRY = new HashMap<>();
+   public static final Map<String, AssemblyRecipe> REGISTRY = new HashMap<>();
 
-    public static void register(AssemblyRecipe recipe) {
-        REGISTRY.put(recipe.getRegistryName(), recipe);
-    }
+   public static void register(AssemblyRecipe recipe) {
+      REGISTRY.put(recipe.getRegistryName(), recipe);
+   }
 
-    @Nonnull
-    public static List<AssemblyRecipe> getRecipesFor(@Nonnull NonNullList<ItemStack> possibleIn) {
-        List<AssemblyRecipe> all = new ArrayList<>();
-        for (AssemblyRecipe ar : REGISTRY.values()) {
-            if (!ar.getOutputs(possibleIn).isEmpty()) {
-                all.add(ar);
-            }
-        }
-        return all;
-    }
+   @Nonnull
+   public static List<AssemblyRecipe> getRecipesFor(@Nonnull NonNullList<ItemStack> possibleIn) {
+      List<AssemblyRecipe> all = new ArrayList<>();
+
+      for (AssemblyRecipe ar : REGISTRY.values()) {
+         if (!ar.getOutputs(possibleIn).isEmpty()) {
+            all.add(ar);
+         }
+      }
+
+      return all;
+   }
 }

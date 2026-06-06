@@ -1,22 +1,8 @@
 package buildcraft.lib.expression.api;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-
 import buildcraft.lib.expression.FunctionContext;
 import buildcraft.lib.expression.VecDouble;
 import buildcraft.lib.expression.VecLong;
-import buildcraft.lib.expression.api.IExpressionNode.INodeBoolean;
-import buildcraft.lib.expression.api.IExpressionNode.INodeDouble;
-import buildcraft.lib.expression.api.IExpressionNode.INodeLong;
-import buildcraft.lib.expression.api.IExpressionNode.INodeObject;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncBoolean;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncDouble;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncLong;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncObject;
 import buildcraft.lib.expression.node.cast.NodeCasting;
 import buildcraft.lib.expression.node.func.NodeFuncDoubleDoubleToBoolean;
 import buildcraft.lib.expression.node.func.NodeFuncDoubleDoubleToDouble;
@@ -36,306 +22,288 @@ import buildcraft.lib.expression.node.value.NodeVariableBoolean;
 import buildcraft.lib.expression.node.value.NodeVariableDouble;
 import buildcraft.lib.expression.node.value.NodeVariableLong;
 import buildcraft.lib.expression.node.value.NodeVariableObject;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
-@SuppressWarnings("unchecked")
 public class NodeTypes {
+   public static final FunctionContext LONG = NodeTypes.LongFunctions.LONG;
+   public static final FunctionContext DOUBLE = NodeTypes.DoubleFunctions.DOUBLE;
+   public static final FunctionContext BOOLEAN = new FunctionContext("Type: Boolean");
+   public static final NodeType<String> STRING = new NodeType<>("String", "");
+   public static final NodeType<VecLong> VEC_LONG = new NodeType<>("Long Vector", VecLong.ZERO);
+   public static final NodeType<VecDouble> VEC_DOUBLE = new NodeType<>("Double Vector", VecDouble.ZERO);
+   public static final NodeType<IExpressionNode.INodeLong> NODE_LONG = new NodeType<>("Long Node", IExpressionNode.INodeLong.class, NodeConstantLong.ZERO);
+   public static final NodeType<IExpressionNode.INodeDouble> NODE_DOUBLE = new NodeType<>(
+      "Double Node", IExpressionNode.INodeDouble.class, NodeConstantDouble.ZERO
+   );
+   public static final NodeType<IExpressionNode.INodeBoolean> NODE_BOOLEAN = new NodeType<>(
+      "Boolean Node", IExpressionNode.INodeBoolean.class, NodeConstantBoolean.FALSE
+   );
+   private static final Map<String, Class<?>> typesByName = new HashMap<>();
+   private static final Map<Class<?>, String> namesByType = new HashMap<>();
+   public static final Map<Class<?>, NodeType<?>> typesByClass = new HashMap<>();
 
-    public static final FunctionContext LONG = LongFunctions.LONG;
-    public static final FunctionContext DOUBLE = DoubleFunctions.DOUBLE;
-    public static final FunctionContext BOOLEAN;
-    public static final NodeType<String> STRING;
-    public static final NodeType<VecLong> VEC_LONG;
-    public static final NodeType<VecDouble> VEC_DOUBLE;
-    public static final NodeType<INodeLong> NODE_LONG;
-    public static final NodeType<INodeDouble> NODE_DOUBLE;
-    public static final NodeType<INodeBoolean> NODE_BOOLEAN;
+   private static String functionCharAt(String str, long index) {
+      return functionSubstringRelative(str, index, 1L);
+   }
 
-    private static final Map<String, Class<?>> typesByName = new HashMap<>();
-    private static final Map<Class<?>, String> namesByType = new HashMap<>();
+   private static String functionSubstring(String str, long indexStart, long indexEnd) {
+      if (indexStart >= indexEnd) {
+         return "";
+      } else if (indexStart < 0L) {
+         return "";
+      } else {
+         return indexEnd >= str.length() ? "" : str.substring((int)indexStart, (int)indexEnd);
+      }
+   }
 
-    public static final Map<Class<?>, NodeType<?>> typesByClass = new HashMap<>();
+   private static String functionSubstringRelative(String str, long indexStart, long length) {
+      return functionSubstring(str, indexStart, indexStart + length);
+   }
 
-    static {
-        BOOLEAN = new FunctionContext("Type: Boolean");
-        STRING = new NodeType<>("String", "");
-        VEC_LONG = new NodeType<>("Long Vector", VecLong.ZERO);
-        VEC_DOUBLE = new NodeType<>("Double Vector", VecDouble.ZERO);
-        NODE_LONG = new NodeType<>("Long Node", INodeLong.class, NodeConstantLong.ZERO);
-        NODE_DOUBLE = new NodeType<>("Double Node", INodeDouble.class, NodeConstantDouble.ZERO);
-        NODE_BOOLEAN = new NodeType<>("Boolean Node", INodeBoolean.class, NodeConstantBoolean.FALSE);
+   public static Class<?> getType(String name) {
+      return typesByName.get(name.toLowerCase(Locale.ROOT));
+   }
 
-        typesByName.put("long", long.class);
-        typesByName.put("int", long.class);
-        typesByName.put("double", double.class);
-        typesByName.put("float", double.class);
-        typesByName.put("boolean", boolean.class);
-        typesByName.put("bool", boolean.class);
-        namesByType.put(long.class, "long");
-        namesByType.put(double.class, "double");
-        namesByType.put(boolean.class, "boolean");
-        addType("String", STRING);
-        addType("VecLong", VEC_LONG);
-        addType("VecDouble", VEC_DOUBLE);
-        addType("NodeLong", NODE_LONG);
-        addType("NodeDouble", NODE_DOUBLE);
-        addType("NodeBoolean", NODE_BOOLEAN);
+   public static Class<?> parseType(String type) throws InvalidExpressionException {
+      Class<?> clazz = getType(type);
+      if (clazz != null) {
+         return clazz;
+      } else {
+         throw new InvalidExpressionException("Unknown type " + type + ", must be one of " + typesByName.keySet());
+      }
+   }
 
-        BOOLEAN.put_b_b("!", (a) -> !a, a -> "!" + a);
-        BOOLEAN.put_bb_b("^", (a, b) -> a ^ b, (a, b) -> "(" + a + "^" + b + ")");
-        BOOLEAN.put_bb_b("&", (a, b) -> a & b, (a, b) -> "(" + a + "&" + b + ")");
-        BOOLEAN.put_bb_b("|", (a, b) -> a | b, (a, b) -> "(" + a + "|" + b + ")");
-        BOOLEAN.put_bb_b("&&", (a, b) -> a && b, (a, b) -> "(" + a + "&&" + b + ")");
-        BOOLEAN.put_bb_b("||", (a, b) -> a || b, (a, b) -> "(" + a + "||" + b + ")");
-        BOOLEAN.put_bb_b("==", (a, b) -> a == b, (a, b) -> "(" + a + "==" + b + ")");
-        BOOLEAN.put_bb_b("!=", (a, b) -> a != b, (a, b) -> "(" + a + "!=" + b + ")");
-        BOOLEAN.put_b_o("(string)", String.class, a -> "" + a, (a) -> "((string) " + a + ")");
+   public static <T> NodeType<T> getType(Class<T> clazz) {
+      return (NodeType<T>)typesByClass.get(clazz);
+   }
 
-        STRING.put_tt_t("+", (a, b) -> a + b, (a, b) -> "(" + a + " + " + b + ")");
-        STRING.put_tt_t("&", (a, b) -> a + b, (a, b) -> "(" + a + " + " + b + ")");
-        STRING.put_tt_b("<", (a, b) -> a.compareTo(b) < 0, (a, b) -> "(" + a + " < " + b + ")");
-        STRING.put_tt_b(">", (a, b) -> a.compareTo(b) > 0, (a, b) -> "(" + a + " > " + b + ")");
-        STRING.put_tt_b("==", (a, b) -> Objects.equals(a, b), (a, b) -> "(" + a + " == " + b + ")");
-        STRING.put_tt_b("!=", (a, b) -> !Objects.equals(a, b), (a, b) -> "(" + a + " != " + b + ")");
-        STRING.put_tt_b("<=", (a, b) -> a.compareTo(b) <= 0, (a, b) -> "(" + a + " <= " + b + ")");
-        STRING.put_tt_b(">=", (a, b) -> a.compareTo(b) >= 0, (a, b) -> "(" + a + " >= " + b + ")");
+   public static String getName(Class<?> clazz) {
+      return namesByType.get(clazz);
+   }
 
-        STRING.put_t_l("length", String::length, a -> a + ".length()");
-        STRING.put_t_t("toLowerCase", a -> a.toLowerCase(Locale.ROOT), a -> a + ".toLowerCase()");
-        STRING.put_t_t("toUpperCase", a -> a.toUpperCase(Locale.ROOT), a -> a + ".toUpperCase()");
-        STRING.put_tl_t("char_at", NodeTypes::functionCharAt);
-        STRING.put_tll_t("substring", NodeTypes::functionSubstring);
-        STRING.put_tll_t("substring_rel", NodeTypes::functionSubstringRelative);
+   public static Collection<String> getValidTypeNames() {
+      return typesByName.keySet();
+   }
 
-        VEC_LONG.putConstant("ZERO", VecLong.ZERO);
-        VEC_LONG.put_l_t("vec", VecLong::new);
-        VEC_LONG.put_ll_t("vec", VecLong::new);
-        VEC_LONG.put_lll_t("vec", VecLong::new);
-        VEC_LONG.put_llll_t("vec", VecLong::new);
-        VEC_LONG.put_t_o("(VecDouble)", VecDouble.class, VecLong::castToDouble);
+   public static FunctionContext getContext(Class<?> clazz) {
+      if (clazz == long.class) {
+         return LONG;
+      } else if (clazz == double.class) {
+         return DOUBLE;
+      } else {
+         return clazz == boolean.class ? BOOLEAN : typesByClass.get(clazz);
+      }
+   }
 
-        VEC_LONG.put_tt_t("+", VecLong::add);
-        VEC_LONG.put_tt_t("-", VecLong::sub);
-        VEC_LONG.put_tt_t("*", VecLong::scale);
-        VEC_LONG.put_tt_t("/", VecLong::div);
-        VEC_LONG.put_tt_t("cross", VecLong::crossProduct);
-        VEC_LONG.put_tt_d("distanceTo", VecLong::distance);
-        VEC_LONG.put_tt_l("dot2", VecLong::dotProduct2);
-        VEC_LONG.put_tt_l("dot3", VecLong::dotProduct3);
-        VEC_LONG.put_tt_l("dot4", VecLong::dotProduct4);
-        VEC_LONG.put_t_d("length", VecLong::length);
-        VEC_LONG.put_t_o("(string)", String.class, VecLong::toString);
+   public static <T> void addType(NodeType<T> type) {
+      addType(type.name, type);
+   }
 
-        VEC_DOUBLE.put_d_t("vec", VecDouble::new);
-        VEC_DOUBLE.put_dd_t("vec", VecDouble::new);
-        VEC_DOUBLE.put_ddd_t("vec", VecDouble::new);
-        VEC_DOUBLE.put_dddd_t("vec", VecDouble::new);
+   public static <T> void addType(String key, NodeType<T> type) {
+      key = key.toLowerCase(Locale.ROOT);
+      namesByType.put(type.type, key);
+      typesByName.put(key, type.type);
+      typesByClass.put(type.type, type);
+   }
 
-        VEC_DOUBLE.put_tt_t("+", VecDouble::add);
-        VEC_DOUBLE.put_tt_t("-", VecDouble::sub);
-        VEC_DOUBLE.put_tt_t("*", VecDouble::scale);
-        VEC_DOUBLE.put_tt_t("/", VecDouble::div);
-        VEC_DOUBLE.put_tt_t("cross", VecDouble::crossProduct);
-        VEC_DOUBLE.put_tt_d("distanceTo", VecDouble::distance);
-        VEC_DOUBLE.put_tt_d("dot2", VecDouble::dotProduct2);
-        VEC_DOUBLE.put_tt_d("dot3", VecDouble::dotProduct3);
-        VEC_DOUBLE.put_tt_d("dot4", VecDouble::dotProduct4);
-        VEC_DOUBLE.put_t_d("length", VecDouble::length);
-        VEC_DOUBLE.put_t_o("(string)", String.class, VecDouble::toString);
-    }
+   public static Class<?> getType(IExpressionNode node) {
+      if (node instanceof IExpressionNode.INodeObject) {
+         return ((IExpressionNode.INodeObject)node).getType();
+      } else if (node instanceof IExpressionNode.INodeLong) {
+         return long.class;
+      } else if (node instanceof IExpressionNode.INodeDouble) {
+         return double.class;
+      } else if (node instanceof IExpressionNode.INodeBoolean) {
+         return boolean.class;
+      } else {
+         throw new IllegalArgumentException("Illegal node " + node.getClass());
+      }
+   }
 
-    private static String functionCharAt(String str, long index) {
-        return functionSubstringRelative(str, index, 1);
-    }
+   public static Class<?> getType(INodeFunc node) {
+      if (node instanceof INodeFunc.INodeFuncObject) {
+         return ((INodeFunc.INodeFuncObject)node).getType();
+      } else if (node instanceof INodeFunc.INodeFuncLong) {
+         return long.class;
+      } else if (node instanceof INodeFunc.INodeFuncDouble) {
+         return double.class;
+      } else if (node instanceof INodeFunc.INodeFuncBoolean) {
+         return boolean.class;
+      } else {
+         throw new IllegalArgumentException("Illegal node " + node.getClass());
+      }
+   }
 
-    private static String functionSubstring(String str, long indexStart, long indexEnd) {
-        if (indexStart >= indexEnd) {
-            return "";
-        }
-        if (indexStart < 0) {
-            return "";
-        }
-        if (indexEnd >= str.length()) {
-            return "";
-        }
-        return str.substring((int) indexStart, (int) indexEnd);
-    }
+   public static NodeVariable makeVariableNode(Class<?> type, String name) {
+      if (type == long.class) {
+         return new NodeVariableLong(name);
+      } else if (type == double.class) {
+         return new NodeVariableDouble(name);
+      } else {
+         return type == boolean.class ? new NodeVariableBoolean(name) : new NodeVariableObject<>(name, type);
+      }
+   }
 
-    private static String functionSubstringRelative(String str, long indexStart, long length) {
-        return functionSubstring(str, indexStart, indexStart + length);
-    }
+   public static IConstantNode createConstantNode(IExpressionNode node) {
+      if (node instanceof IExpressionNode.INodeLong) {
+         return new NodeConstantLong(((IExpressionNode.INodeLong)node).evaluate());
+      } else if (node instanceof IExpressionNode.INodeDouble) {
+         return new NodeConstantDouble(((IExpressionNode.INodeDouble)node).evaluate());
+      } else if (node instanceof IExpressionNode.INodeBoolean) {
+         return NodeConstantBoolean.of(((IExpressionNode.INodeBoolean)node).evaluate());
+      } else if (node instanceof IExpressionNode.INodeObject<?> nodeObj) {
+         return createConstantObject(nodeObj);
+      } else {
+         throw new IllegalArgumentException("Illegal node " + node.getClass());
+      }
+   }
 
-    public static Class<?> getType(String name) {
-        return typesByName.get(name.toLowerCase(Locale.ROOT));
-    }
+   private static <T> IConstantNode createConstantObject(IExpressionNode.INodeObject<T> nodeObj) {
+      return new NodeConstantObject<>(nodeObj.getType(), nodeObj.evaluate());
+   }
 
-    public static Class<?> parseType(String type) throws InvalidExpressionException {
-        Class<?> clazz = getType(type);
-        if (clazz != null) {
-            return clazz;
-        }
-        throw new InvalidExpressionException("Unknown type " + type + ", must be one of " + typesByName.keySet());
-    }
+   public static IExpressionNode cast(IExpressionNode node, Class<?> to) throws InvalidExpressionException {
+      if (to == double.class) {
+         return NodeCasting.castToDouble(node);
+      }
 
-    public static <T> NodeType<T> getType(Class<T> clazz) {
-        return (NodeType<T>) typesByClass.get(clazz);
-    }
+      if (to == String.class) {
+         return NodeCasting.castToString(node);
+      }
 
-    public static String getName(Class<?> clazz) {
-        return namesByType.get(clazz);
-    }
+      if (to == long.class) {
+         if (node instanceof IExpressionNode.INodeLong) {
+            return node;
+         } else {
+            throw new InvalidExpressionException("Cannot cast " + getType(node) + " to a long");
+         }
+      } else if (to == boolean.class) {
+         if (node instanceof IExpressionNode.INodeBoolean) {
+            return node;
+         } else {
+            throw new InvalidExpressionException("Cannot cast " + getType(node) + " to a boolean");
+         }
+      } else {
+         throw new IllegalStateException("Unknown node type '" + to + "'");
+      }
+   }
 
-    public static Collection<String> getValidTypeNames() {
-        return typesByName.keySet();
-    }
+   static {
+      typesByName.put("long", long.class);
+      typesByName.put("int", long.class);
+      typesByName.put("double", double.class);
+      typesByName.put("float", double.class);
+      typesByName.put("boolean", boolean.class);
+      typesByName.put("bool", boolean.class);
+      namesByType.put(long.class, "long");
+      namesByType.put(double.class, "double");
+      namesByType.put(boolean.class, "boolean");
+      addType("String", STRING);
+      addType("VecLong", VEC_LONG);
+      addType("VecDouble", VEC_DOUBLE);
+      addType("NodeLong", NODE_LONG);
+      addType("NodeDouble", NODE_DOUBLE);
+      addType("NodeBoolean", NODE_BOOLEAN);
+      BOOLEAN.put_b_b("!", a -> !a, a -> "!" + a);
+      BOOLEAN.put_bb_b("^", (a, b) -> a ^ b, (a, b) -> "(" + a + "^" + b + ")");
+      BOOLEAN.put_bb_b("&", (a, b) -> a & b, (a, b) -> "(" + a + "&" + b + ")");
+      BOOLEAN.put_bb_b("|", (a, b) -> a | b, (a, b) -> "(" + a + "|" + b + ")");
+      BOOLEAN.put_bb_b("&&", (a, b) -> a && b, (a, b) -> "(" + a + "&&" + b + ")");
+      BOOLEAN.put_bb_b("||", (a, b) -> a || b, (a, b) -> "(" + a + "||" + b + ")");
+      BOOLEAN.put_bb_b("==", (a, b) -> a == b, (a, b) -> "(" + a + "==" + b + ")");
+      BOOLEAN.put_bb_b("!=", (a, b) -> a != b, (a, b) -> "(" + a + "!=" + b + ")");
+      BOOLEAN.put_b_o("(string)", String.class, a -> a + "", a -> "((string) " + a + ")");
+      STRING.put_tt_t("+", (a, b) -> a + b, (a, b) -> "(" + a + " + " + b + ")");
+      STRING.put_tt_t("&", (a, b) -> a + b, (a, b) -> "(" + a + " + " + b + ")");
+      STRING.put_tt_b("<", (a, b) -> a.compareTo(b) < 0, (a, b) -> "(" + a + " < " + b + ")");
+      STRING.put_tt_b(">", (a, b) -> a.compareTo(b) > 0, (a, b) -> "(" + a + " > " + b + ")");
+      STRING.put_tt_b("==", (a, b) -> Objects.equals(a, b), (a, b) -> "(" + a + " == " + b + ")");
+      STRING.put_tt_b("!=", (a, b) -> !Objects.equals(a, b), (a, b) -> "(" + a + " != " + b + ")");
+      STRING.put_tt_b("<=", (a, b) -> a.compareTo(b) <= 0, (a, b) -> "(" + a + " <= " + b + ")");
+      STRING.put_tt_b(">=", (a, b) -> a.compareTo(b) >= 0, (a, b) -> "(" + a + " >= " + b + ")");
+      STRING.put_t_l("length", String::length, a -> a + ".length()");
+      STRING.put_t_t("toLowerCase", a -> a.toLowerCase(Locale.ROOT), a -> a + ".toLowerCase()");
+      STRING.put_t_t("toUpperCase", a -> a.toUpperCase(Locale.ROOT), a -> a + ".toUpperCase()");
+      STRING.put_tl_t("char_at", NodeTypes::functionCharAt);
+      STRING.put_tll_t("substring", NodeTypes::functionSubstring);
+      STRING.put_tll_t("substring_rel", NodeTypes::functionSubstringRelative);
+      VEC_LONG.putConstant("ZERO", VecLong.ZERO);
+      VEC_LONG.put_l_t("vec", VecLong::new);
+      VEC_LONG.put_ll_t("vec", VecLong::new);
+      VEC_LONG.put_lll_t("vec", VecLong::new);
+      VEC_LONG.put_llll_t("vec", VecLong::new);
+      VEC_LONG.put_t_o("(VecDouble)", VecDouble.class, VecLong::castToDouble);
+      VEC_LONG.put_tt_t("+", VecLong::add);
+      VEC_LONG.put_tt_t("-", VecLong::sub);
+      VEC_LONG.put_tt_t("*", VecLong::scale);
+      VEC_LONG.put_tt_t("/", VecLong::div);
+      VEC_LONG.put_tt_t("cross", VecLong::crossProduct);
+      VEC_LONG.put_tt_d("distanceTo", VecLong::distance);
+      VEC_LONG.put_tt_l("dot2", VecLong::dotProduct2);
+      VEC_LONG.put_tt_l("dot3", VecLong::dotProduct3);
+      VEC_LONG.put_tt_l("dot4", VecLong::dotProduct4);
+      VEC_LONG.put_t_d("length", VecLong::length);
+      VEC_LONG.put_t_o("(string)", String.class, VecLong::toString);
+      VEC_DOUBLE.put_d_t("vec", VecDouble::new);
+      VEC_DOUBLE.put_dd_t("vec", VecDouble::new);
+      VEC_DOUBLE.put_ddd_t("vec", VecDouble::new);
+      VEC_DOUBLE.put_dddd_t("vec", VecDouble::new);
+      VEC_DOUBLE.put_tt_t("+", VecDouble::add);
+      VEC_DOUBLE.put_tt_t("-", VecDouble::sub);
+      VEC_DOUBLE.put_tt_t("*", VecDouble::scale);
+      VEC_DOUBLE.put_tt_t("/", VecDouble::div);
+      VEC_DOUBLE.put_tt_t("cross", VecDouble::crossProduct);
+      VEC_DOUBLE.put_tt_d("distanceTo", VecDouble::distance);
+      VEC_DOUBLE.put_tt_d("dot2", VecDouble::dotProduct2);
+      VEC_DOUBLE.put_tt_d("dot3", VecDouble::dotProduct3);
+      VEC_DOUBLE.put_tt_d("dot4", VecDouble::dotProduct4);
+      VEC_DOUBLE.put_t_d("length", VecDouble::length);
+      VEC_DOUBLE.put_t_o("(string)", String.class, Object::toString);
+   }
 
-    public static FunctionContext getContext(Class<?> clazz) {
-        if (clazz == long.class) return LONG;
-        if (clazz == double.class) return DOUBLE;
-        if (clazz == boolean.class) return BOOLEAN;
-        return typesByClass.get(clazz);
-    }
+   public static class DoubleFunctions {
+      public static final FunctionContext DOUBLE = new FunctionContext("Type: Double");
+      public static final NodeFuncDoubleToDouble NEGATE = DOUBLE.put_d_d("-", a -> -a, a -> "-(" + a + ")");
+      public static final NodeFuncDoubleDoubleToDouble ADD = DOUBLE.put_dd_d("+", (a, b) -> a + b, (a, b) -> "(" + a + " + " + b + ")");
+      public static final NodeFuncDoubleDoubleToDouble SUB = DOUBLE.put_dd_d("-", (a, b) -> a - b, (a, b) -> "(" + a + " - " + b + ")");
+      public static final NodeFuncDoubleDoubleToDouble MUL = DOUBLE.put_dd_d("*", (a, b) -> a * b, (a, b) -> "(" + a + " * " + b + ")");
+      public static final NodeFuncDoubleDoubleToDouble DIV = DOUBLE.put_dd_d("/", (a, b) -> a / b, (a, b) -> "(" + a + " / " + b + ")");
+      public static final NodeFuncDoubleDoubleToDouble MOD = DOUBLE.put_dd_d("%", (a, b) -> a % b, (a, b) -> "(" + a + " % " + b + ")");
+      public static NodeFuncDoubleDoubleToBoolean LT = DOUBLE.put_dd_b("<", (a, b) -> a < b, (a, b) -> "(" + a + " < " + b + ")");
+      public static NodeFuncDoubleDoubleToBoolean GT = DOUBLE.put_dd_b(">", (a, b) -> a > b, (a, b) -> "(" + a + " > " + b + ")");
+      public static NodeFuncDoubleDoubleToBoolean LE = DOUBLE.put_dd_b("<=", (a, b) -> a <= b, (a, b) -> "(" + a + " <= " + b + ")");
+      public static NodeFuncDoubleDoubleToBoolean GE = DOUBLE.put_dd_b(">=", (a, b) -> a >= b, (a, b) -> "(" + a + " >= " + b + ")");
+      public static NodeFuncDoubleDoubleToBoolean EQ = DOUBLE.put_dd_b("==", (a, b) -> a == b, (a, b) -> "(" + a + " == " + b + ")");
+      public static NodeFuncDoubleDoubleToBoolean NE = DOUBLE.put_dd_b("!=", (a, b) -> a != b, (a, b) -> "(" + a + " != " + b + ")");
+      public static NodeFuncDoubleToObject<String> CVT_STRING = DOUBLE.put_d_o("(string)", String.class, a -> a + "", a -> "((string) " + a + ")");
+   }
 
-    public static <T> void addType(NodeType<T> type) {
-        addType(type.name, type);
-    }
-
-    public static <T> void addType(String key, NodeType<T> type) {
-        key = key.toLowerCase(Locale.ROOT);
-        namesByType.put(type.type, key);
-        typesByName.put(key, type.type);
-        typesByClass.put(type.type, type);
-    }
-
-    public static Class<?> getType(IExpressionNode node) {
-        if (node instanceof INodeObject<?>) {
-            return ((INodeObject<?>) node).getType();
-        } else if (node instanceof INodeLong) return long.class;
-        else if (node instanceof INodeDouble) return double.class;
-        else if (node instanceof INodeBoolean) return boolean.class;
-        else throw new IllegalArgumentException("Illegal node " + node.getClass());
-    }
-
-    public static Class<?> getType(INodeFunc node) {
-        if (node instanceof INodeFuncObject<?>) {
-            return ((INodeFuncObject<?>) node).getType();
-        } else if (node instanceof INodeFuncLong) return long.class;
-        else if (node instanceof INodeFuncDouble) return double.class;
-        else if (node instanceof INodeFuncBoolean) return boolean.class;
-        else throw new IllegalArgumentException("Illegal node " + node.getClass());
-    }
-
-    public static NodeVariable makeVariableNode(Class<?> type, String name) {
-        if (type == long.class) return new NodeVariableLong(name);
-        if (type == double.class) return new NodeVariableDouble(name);
-        if (type == boolean.class) return new NodeVariableBoolean(name);
-        return new NodeVariableObject<>(name, type);
-    }
-
-    public static IConstantNode createConstantNode(IExpressionNode node) {
-        if (node instanceof INodeLong) return new NodeConstantLong(((INodeLong) node).evaluate());
-        else if (node instanceof INodeDouble) return new NodeConstantDouble(((INodeDouble) node).evaluate());
-        else if (node instanceof INodeBoolean) return NodeConstantBoolean.of(((INodeBoolean) node).evaluate());
-        else if (node instanceof INodeObject) {
-            INodeObject<?> nodeObj = (INodeObject<?>) node;
-            return createConstantObject(nodeObj);
-        } else throw new IllegalArgumentException("Illegal node " + node.getClass());
-    }
-
-    private static <T> IConstantNode createConstantObject(INodeObject<T> nodeObj) {
-        return new NodeConstantObject<>(nodeObj.getType(), nodeObj.evaluate());
-    }
-
-    public static IExpressionNode cast(IExpressionNode node, Class<?> to) throws InvalidExpressionException {
-        if (to == double.class) return NodeCasting.castToDouble(node);
-        if (to == String.class) return NodeCasting.castToString(node);
-        if (to == long.class) {
-            if (node instanceof INodeLong) {
-                return node;
-            } else {
-                throw new InvalidExpressionException("Cannot cast " + getType(node) + " to a long");
-            }
-        }
-        if (to == boolean.class) {
-            if (node instanceof INodeBoolean) {
-                return node;
-            } else {
-                throw new InvalidExpressionException("Cannot cast " + getType(node) + " to a boolean");
-            }
-        }
-        throw new IllegalStateException("Unknown node type '" + to + "'");
-    }
-
-    public static class LongFunctions {
-
-        public static final FunctionContext LONG;
-
-        public static final NodeFuncLongToLong NEGATE;
-        public static final NodeFuncLongToLong BITWISE_INVERT;
-        public static final NodeFuncLongLongToLong ADD, SUB, MUL, DIV, MOD;
-        public static final NodeFuncLongLongToLong BITWISE_XOR, BITWISE_AND, BITWISE_OR;
-
-        public static NodeFuncLongLongToBoolean LT, GT, LE, GE, EQ, NE;
-        public static NodeFuncLongLongToLong BITSHIFT_UP;
-        public static NodeFuncLongLongToLong BITSHIFT_DOWN;
-        public static NodeFuncLongLongToLong BITSHIFT_DOWN_HARD;
-
-        public static NodeFuncLongToDouble CVT_DOUBLE;
-        public static NodeFuncLongToObject<String> CVT_STRING;
-
-        static {
-            LONG = new FunctionContext("Type: Long");
-
-            NEGATE = LONG.put_l_l("-", (a) -> -a, a -> "-(" + a + ")");
-            BITWISE_INVERT = LONG.put_l_l("~", (a) -> ~a, a -> "~(" + a + ")");
-            ADD = LONG.put_ll_l("+", (a, b) -> a + b, (a, b) -> "(" + a + " + " + b + ")");
-            SUB = LONG.put_ll_l("-", (a, b) -> a - b, (a, b) -> "(" + a + " - " + b + ")");
-            MUL = LONG.put_ll_l("*", (a, b) -> a * b, (a, b) -> "(" + a + " * " + b + ")");
-            DIV = LONG.put_ll_l("/", (a, b) -> a / b, (a, b) -> "(" + a + " / " + b + ")");
-            MOD = LONG.put_ll_l("%", (a, b) -> a % b, (a, b) -> "(" + a + " % " + b + ")");
-            BITWISE_XOR = LONG.put_ll_l("^", (a, b) -> a ^ b, (a, b) -> "(" + a + " ^ " + b + ")");
-            BITWISE_AND = LONG.put_ll_l("&", (a, b) -> a & b, (a, b) -> "(" + a + " & " + b + ")");
-            BITWISE_OR = LONG.put_ll_l("|", (a, b) -> a | b, (a, b) -> "(" + a + " | " + b + ")");
-            LT = LONG.put_ll_b("<", (a, b) -> a < b, (a, b) -> "(" + a + " < " + b + ")");
-            GT = LONG.put_ll_b(">", (a, b) -> a > b, (a, b) -> "(" + a + " > " + b + ")");
-            LE = LONG.put_ll_b("<=", (a, b) -> a <= b, (a, b) -> "(" + a + " <= " + b + ")");
-            GE = LONG.put_ll_b(">=", (a, b) -> a >= b, (a, b) -> "(" + a + " >= " + b + ")");
-            EQ = LONG.put_ll_b("==", (a, b) -> a == b, (a, b) -> "(" + a + " == " + b + ")");
-            NE = LONG.put_ll_b("!=", (a, b) -> a != b, (a, b) -> "(" + a + " != " + b + ")");
-            BITSHIFT_UP = LONG.put_ll_l("<<", (a, b) -> a << b, (a, b) -> "(" + a + " << " + b + ")");
-            BITSHIFT_DOWN = LONG.put_ll_l(">>", (a, b) -> a >> b, (a, b) -> "(" + a + " >> " + b + ")");
-            BITSHIFT_DOWN_HARD = LONG.put_ll_l(">>>", (a, b) -> a >>> b, (a, b) -> a + " >>> " + b);
-            CVT_DOUBLE = LONG.put_l_d("(double)", a -> a, (a) -> "((double) " + a + ")");
-            CVT_STRING = LONG.put_l_o("(string)", String.class, a -> "" + a, (a) -> "((string) " + a + ")");
-        }
-    }
-
-    public static class DoubleFunctions {
-
-        public static final FunctionContext DOUBLE;
-
-        public static final NodeFuncDoubleToDouble NEGATE;
-        public static final NodeFuncDoubleDoubleToDouble ADD, SUB, MUL, DIV, MOD;
-
-        public static NodeFuncDoubleDoubleToBoolean LT, GT, LE, GE, EQ, NE;
-
-        public static NodeFuncDoubleToObject<String> CVT_STRING;
-
-        static {
-            DOUBLE = new FunctionContext("Type: Double");
-
-            NEGATE = DOUBLE.put_d_d("-", (a) -> -a, a -> "-(" + a + ")");
-            ADD = DOUBLE.put_dd_d("+", (a, b) -> a + b, (a, b) -> "(" + a + " + " + b + ")");
-            SUB = DOUBLE.put_dd_d("-", (a, b) -> a - b, (a, b) -> "(" + a + " - " + b + ")");
-            MUL = DOUBLE.put_dd_d("*", (a, b) -> a * b, (a, b) -> "(" + a + " * " + b + ")");
-            DIV = DOUBLE.put_dd_d("/", (a, b) -> a / b, (a, b) -> "(" + a + " / " + b + ")");
-            MOD = DOUBLE.put_dd_d("%", (a, b) -> a % b, (a, b) -> "(" + a + " % " + b + ")");
-            LT = DOUBLE.put_dd_b("<", (a, b) -> a < b, (a, b) -> "(" + a + " < " + b + ")");
-            GT = DOUBLE.put_dd_b(">", (a, b) -> a > b, (a, b) -> "(" + a + " > " + b + ")");
-            LE = DOUBLE.put_dd_b("<=", (a, b) -> a <= b, (a, b) -> "(" + a + " <= " + b + ")");
-            GE = DOUBLE.put_dd_b(">=", (a, b) -> a >= b, (a, b) -> "(" + a + " >= " + b + ")");
-            EQ = DOUBLE.put_dd_b("==", (a, b) -> a == b, (a, b) -> "(" + a + " == " + b + ")");
-            NE = DOUBLE.put_dd_b("!=", (a, b) -> a != b, (a, b) -> "(" + a + " != " + b + ")");
-            CVT_STRING = DOUBLE.put_d_o("(string)", String.class, a -> "" + a, (a) -> "((string) " + a + ")");
-        }
-    }
+   public static class LongFunctions {
+      public static final FunctionContext LONG = new FunctionContext("Type: Long");
+      public static final NodeFuncLongToLong NEGATE = LONG.put_l_l("-", a -> -a, a -> "-(" + a + ")");
+      public static final NodeFuncLongToLong BITWISE_INVERT = LONG.put_l_l("~", a -> ~a, a -> "~(" + a + ")");
+      public static final NodeFuncLongLongToLong ADD = LONG.put_ll_l("+", (a, b) -> a + b, (a, b) -> "(" + a + " + " + b + ")");
+      public static final NodeFuncLongLongToLong SUB = LONG.put_ll_l("-", (a, b) -> a - b, (a, b) -> "(" + a + " - " + b + ")");
+      public static final NodeFuncLongLongToLong MUL = LONG.put_ll_l("*", (a, b) -> a * b, (a, b) -> "(" + a + " * " + b + ")");
+      public static final NodeFuncLongLongToLong DIV = LONG.put_ll_l("/", (a, b) -> a / b, (a, b) -> "(" + a + " / " + b + ")");
+      public static final NodeFuncLongLongToLong MOD = LONG.put_ll_l("%", (a, b) -> a % b, (a, b) -> "(" + a + " % " + b + ")");
+      public static final NodeFuncLongLongToLong BITWISE_XOR = LONG.put_ll_l("^", (a, b) -> a ^ b, (a, b) -> "(" + a + " ^ " + b + ")");
+      public static final NodeFuncLongLongToLong BITWISE_AND = LONG.put_ll_l("&", (a, b) -> a & b, (a, b) -> "(" + a + " & " + b + ")");
+      public static final NodeFuncLongLongToLong BITWISE_OR = LONG.put_ll_l("|", (a, b) -> a | b, (a, b) -> "(" + a + " | " + b + ")");
+      public static NodeFuncLongLongToBoolean LT = LONG.put_ll_b("<", (a, b) -> a < b, (a, b) -> "(" + a + " < " + b + ")");
+      public static NodeFuncLongLongToBoolean GT = LONG.put_ll_b(">", (a, b) -> a > b, (a, b) -> "(" + a + " > " + b + ")");
+      public static NodeFuncLongLongToBoolean LE = LONG.put_ll_b("<=", (a, b) -> a <= b, (a, b) -> "(" + a + " <= " + b + ")");
+      public static NodeFuncLongLongToBoolean GE = LONG.put_ll_b(">=", (a, b) -> a >= b, (a, b) -> "(" + a + " >= " + b + ")");
+      public static NodeFuncLongLongToBoolean EQ = LONG.put_ll_b("==", (a, b) -> a == b, (a, b) -> "(" + a + " == " + b + ")");
+      public static NodeFuncLongLongToBoolean NE = LONG.put_ll_b("!=", (a, b) -> a != b, (a, b) -> "(" + a + " != " + b + ")");
+      public static NodeFuncLongLongToLong BITSHIFT_UP = LONG.put_ll_l("<<", (a, b) -> a << (int)b, (a, b) -> "(" + a + " << " + b + ")");
+      public static NodeFuncLongLongToLong BITSHIFT_DOWN = LONG.put_ll_l(">>", (a, b) -> a >> (int)b, (a, b) -> "(" + a + " >> " + b + ")");
+      public static NodeFuncLongLongToLong BITSHIFT_DOWN_HARD = LONG.put_ll_l(">>>", (a, b) -> a >>> (int)b, (a, b) -> a + " >>> " + b);
+      public static NodeFuncLongToDouble CVT_DOUBLE = LONG.put_l_d("(double)", a -> a, a -> "((double) " + a + ")");
+      public static NodeFuncLongToObject<String> CVT_STRING = LONG.put_l_o("(string)", String.class, a -> a + "", a -> "((string) " + a + ")");
+   }
 }

@@ -1,76 +1,68 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.client.model;
 
-import net.minecraft.resources.Identifier;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.UnmodifiableIterator;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.google.common.collect.ImmutableList;
-
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 
-import buildcraft.lib.client.model.ModelCache.IModelGenerator;
-
 public class ModelCacheJoiner<K> implements IModelCache<K> {
-    private final IModelCache<K> mainCache;
-    private final ImmutableList<ModelKeyWrapper<K, ?>> modelKeyWrappers;
+   private final IModelCache<K> mainCache;
+   private final ImmutableList<ModelCacheJoiner.ModelKeyWrapper<K, ?>> modelKeyWrappers;
 
-    public ModelCacheJoiner(List<ModelKeyWrapper<K, ?>> wrappers) {
-        this.modelKeyWrappers = ImmutableList.copyOf(wrappers);
-        this.mainCache = new ModelCache<>(this::load);
-    }
+   public ModelCacheJoiner(List<ModelCacheJoiner.ModelKeyWrapper<K, ?>> wrappers) {
+      this.modelKeyWrappers = ImmutableList.copyOf(wrappers);
+      this.mainCache = new ModelCache<>(this::load);
+   }
 
-    private List<BakedQuad> load(K key) {
-        List<BakedQuad> quads = new ArrayList<>();
-        for (ModelKeyWrapper<K, ?> wrapper : modelKeyWrappers) {
-            quads.addAll(wrapper.getQuads(key));
-        }
-        return quads;
-    }
+   private List<BakedQuad> load(K key) {
+      List<BakedQuad> quads = new ArrayList<>();
+      UnmodifiableIterator var3 = this.modelKeyWrappers.iterator();
 
-    @Override
-    public List<BakedQuad> bake(K key) {
-        if (ModelCache.cacheJoined) {
-            return mainCache.bake(key);
-        } else {
-            return load(key);
-        }
-    }
+      while (var3.hasNext()) {
+         ModelCacheJoiner.ModelKeyWrapper<K, ?> wrapper = (ModelCacheJoiner.ModelKeyWrapper<K, ?>)var3.next();
+         quads.addAll(wrapper.getQuads(key));
+      }
 
-    @Override
-    public void clear() {
-        mainCache.clear();
-        for (ModelKeyWrapper<K, ?> wrapper : modelKeyWrappers) {
-            wrapper.cache.clear();
-        }
-    }
+      return quads;
+   }
 
-    public static class ModelKeyWrapper<K, T> {
-        private final IModelKeyMapper<K, T> mapper;
-        private final IModelCache<T> cache;
+   @Override
+   public List<BakedQuad> bake(K key) {
+      return ModelCache.cacheJoined ? this.mainCache.bake(key) : this.load(key);
+   }
 
-        public ModelKeyWrapper(IModelKeyMapper<K, T> mapper, IModelGenerator<T> generator) {
-            this.mapper = mapper;
-            this.cache = new ModelCache<>(generator);
-        }
+   @Override
+   public void clear() {
+      this.mainCache.clear();
+      UnmodifiableIterator var1 = this.modelKeyWrappers.iterator();
 
-        public ModelKeyWrapper(IModelKeyMapper<K, T> mapper, IModelCache<T> cache) {
-            this.mapper = mapper;
-            this.cache = cache;
-        }
+      while (var1.hasNext()) {
+         ModelCacheJoiner.ModelKeyWrapper<K, ?> wrapper = (ModelCacheJoiner.ModelKeyWrapper<K, ?>)var1.next();
+         wrapper.cache.clear();
+      }
+   }
 
-        public List<BakedQuad> getQuads(K key) {
-            return cache.bake(mapper.getInternKey(key));
-        }
-    }
+   public interface IModelKeyMapper<F, T> {
+      T getInternKey(F var1);
+   }
 
-    public interface IModelKeyMapper<F, T> {
-        T getInternKey(F key);
-    }
+   public static class ModelKeyWrapper<K, T> {
+      private final ModelCacheJoiner.IModelKeyMapper<K, T> mapper;
+      private final IModelCache<T> cache;
+
+      public ModelKeyWrapper(ModelCacheJoiner.IModelKeyMapper<K, T> mapper, ModelCache.IModelGenerator<T> generator) {
+         this.mapper = mapper;
+         this.cache = new ModelCache<>(generator);
+      }
+
+      public ModelKeyWrapper(ModelCacheJoiner.IModelKeyMapper<K, T> mapper, IModelCache<T> cache) {
+         this.mapper = mapper;
+         this.cache = cache;
+      }
+
+      public List<BakedQuad> getQuads(K key) {
+         return this.cache.bake(this.mapper.getInternKey(key));
+      }
+   }
 }

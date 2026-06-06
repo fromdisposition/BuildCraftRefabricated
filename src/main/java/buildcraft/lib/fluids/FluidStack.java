@@ -1,10 +1,8 @@
-/*
- * Copyright (c) NeoForged and contributors
- * SPDX-License-Identifier: LGPL-2.1-only
- */
-
 package buildcraft.lib.fluids;
 
+import buildcraft.lib.common.EventHooks;
+import buildcraft.lib.common.MutableDataComponentHolder;
+import buildcraft.lib.fabric.Mc26Compat;
 import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -14,7 +12,6 @@ import io.netty.handler.codec.EncoderException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
@@ -29,343 +26,318 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import buildcraft.lib.common.EventHooks;
-import buildcraft.lib.common.MutableDataComponentHolder;
 import org.jspecify.annotations.Nullable;
 
 public final class FluidStack implements MutableDataComponentHolder, FluidInstance {
+   public static final MapCodec<FluidStack> MAP_CODEC = MapCodec.recursive(
+      "FluidStack",
+      c -> RecordCodecBuilder.mapCodec(
+         instance -> instance.group(
+               FLUID_HOLDER_CODEC_WITH_BOUND_COMPONENTS.fieldOf("id").forGetter(FluidStack::typeHolder),
+               ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(FluidStack::getAmount),
+               DataComponentPatch.CODEC.optionalFieldOf("components", DataComponentPatch.EMPTY).forGetter(stack -> stack.components.asPatch())
+            )
+            .apply(instance, FluidStack::new)
+      )
+   );
+   public static final Codec<FluidStack> CODEC = Codec.lazyInitialized(MAP_CODEC::codec);
+   public static final Codec<FluidStack> OPTIONAL_CODEC = ExtraCodecs.optionalEmptyMap(CODEC)
+      .xmap(optional -> optional.orElse(FluidStack.EMPTY), stack -> stack.isEmpty() ? Optional.empty() : Optional.of(stack));
+   public static final StreamCodec<RegistryFriendlyByteBuf, FluidStack> OPTIONAL_STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, FluidStack>() {
+      public FluidStack decode(RegistryFriendlyByteBuf buf) {
+         int amount = buf.readVarInt();
+         if (amount <= 0) {
+            return FluidStack.EMPTY;
+         }
 
-    public static final MapCodec<FluidStack> MAP_CODEC = MapCodec.recursive(
-            "FluidStack",
-            c -> RecordCodecBuilder.mapCodec(
-                    instance -> instance.group(
-                            FLUID_HOLDER_CODEC_WITH_BOUND_COMPONENTS.fieldOf(FIELD_ID).forGetter(FluidStack::typeHolder),
-                            ExtraCodecs.POSITIVE_INT.fieldOf(FIELD_AMOUNT).forGetter(FluidStack::getAmount),
-                            DataComponentPatch.CODEC.optionalFieldOf(FIELD_COMPONENTS, DataComponentPatch.EMPTY)
-                                    .forGetter(stack -> stack.components.asPatch()))
-                            .apply(instance, FluidStack::new)));
+         Holder<Fluid> holder = (Holder<Fluid>)FluidInstance.FLUID_HOLDER_STREAM_CODEC.decode(buf);
+         DataComponentPatch patch = (DataComponentPatch)DataComponentPatch.STREAM_CODEC.decode(buf);
+         return new FluidStack(holder, amount, patch);
+      }
 
-    public static final Codec<FluidStack> CODEC = Codec.lazyInitialized(MAP_CODEC::codec);
+      public void encode(RegistryFriendlyByteBuf buf, FluidStack stack) {
+         if (stack.isEmpty()) {
+            buf.writeVarInt(0);
+         } else {
+            buf.writeVarInt(stack.getAmount());
+            FluidInstance.FLUID_HOLDER_STREAM_CODEC.encode(buf, stack.typeHolder());
+            DataComponentPatch.STREAM_CODEC.encode(buf, stack.components.asPatch());
+         }
+      }
+   };
+   public static final StreamCodec<RegistryFriendlyByteBuf, FluidStack> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, FluidStack>() {
+      public FluidStack decode(RegistryFriendlyByteBuf buf) {
+         FluidStack stack = (FluidStack)FluidStack.OPTIONAL_STREAM_CODEC.decode(buf);
+         if (stack.isEmpty()) {
+            throw new DecoderException("Empty FluidStack not allowed");
+         } else {
+            return stack;
+         }
+      }
 
-    public static Codec<FluidStack> fixedAmountCodec(int amount) {
-        return Codec.lazyInitialized(
-                () -> RecordCodecBuilder.create(
-                        instance -> instance.group(
-                                FLUID_HOLDER_CODEC.fieldOf(FIELD_ID).forGetter(FluidStack::typeHolder),
-                                DataComponentPatch.CODEC.optionalFieldOf(FIELD_COMPONENTS, DataComponentPatch.EMPTY)
-                                        .forGetter(stack -> stack.components.asPatch()))
-                                .apply(instance, (holder, patch) -> new FluidStack(holder, amount, patch))));
-    }
+      public void encode(RegistryFriendlyByteBuf buf, FluidStack stack) {
+         if (stack.isEmpty()) {
+            throw new EncoderException("Empty FluidStack not allowed");
+         }
 
-    public static final Codec<FluidStack> OPTIONAL_CODEC = ExtraCodecs.optionalEmptyMap(CODEC)
-            .xmap(optional -> optional.orElse(FluidStack.EMPTY), stack -> stack.isEmpty() ? Optional.empty() : Optional.of(stack));
+         FluidStack.OPTIONAL_STREAM_CODEC.encode(buf, stack);
+      }
+   };
+   public static final FluidStack EMPTY = new FluidStack(null);
+   private int amount;
+   private final @Nullable Holder<Fluid> fluid;
+   private final PatchedDataComponentMap components;
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, FluidStack> OPTIONAL_STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public FluidStack decode(RegistryFriendlyByteBuf buf) {
-            int amount = buf.readVarInt();
-            if (amount <= 0) {
-                return FluidStack.EMPTY;
-            } else {
-                Holder<Fluid> holder = FLUID_HOLDER_STREAM_CODEC.decode(buf);
-                DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
-                return new FluidStack(holder, amount, patch);
-            }
-        }
+   public static Codec<FluidStack> fixedAmountCodec(int amount) {
+      return Codec.lazyInitialized(
+         () -> RecordCodecBuilder.create(
+            instance -> instance.group(
+                  FLUID_HOLDER_CODEC.fieldOf("id").forGetter(FluidStack::typeHolder),
+                  DataComponentPatch.CODEC.optionalFieldOf("components", DataComponentPatch.EMPTY).forGetter(stack -> stack.components.asPatch())
+               )
+               .apply(instance, (holder, patch) -> new FluidStack(holder, amount, patch))
+         )
+      );
+   }
 
-        @Override
-        public void encode(RegistryFriendlyByteBuf buf, FluidStack stack) {
-            if (stack.isEmpty()) {
-                buf.writeVarInt(0);
-            } else {
-                buf.writeVarInt(stack.getAmount());
-                FLUID_HOLDER_STREAM_CODEC.encode(buf, stack.typeHolder());
-                DataComponentPatch.STREAM_CODEC.encode(buf, stack.components.asPatch());
-            }
-        }
-    };
+   public DataComponentMap getComponents() {
+      return (DataComponentMap)(this.isEmpty() ? DataComponentMap.EMPTY : this.components);
+   }
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, FluidStack> STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public FluidStack decode(RegistryFriendlyByteBuf buf) {
-            FluidStack stack = FluidStack.OPTIONAL_STREAM_CODEC.decode(buf);
-            if (stack.isEmpty()) {
-                throw new DecoderException("Empty FluidStack not allowed");
-            } else {
-                return stack;
-            }
-        }
+   public DataComponentMap getPrototype() {
+      return this.isEmpty() ? DataComponentMap.EMPTY : this.typeHolder().components();
+   }
 
-        @Override
-        public void encode(RegistryFriendlyByteBuf buf, FluidStack stack) {
-            if (stack.isEmpty()) {
-                throw new EncoderException("Empty FluidStack not allowed");
-            } else {
-                FluidStack.OPTIONAL_STREAM_CODEC.encode(buf, stack);
-            }
-        }
-    };
-    public static final FluidStack EMPTY = new FluidStack(null);
-    private int amount;
-    private final @Nullable Holder<Fluid> fluid;
-    private final PatchedDataComponentMap components;
+   public DataComponentPatch getComponentsPatch() {
+      return !this.isEmpty() ? this.components.asPatch() : DataComponentPatch.EMPTY;
+   }
 
-    @Override
-    public DataComponentMap getComponents() {
-        return isEmpty() ? DataComponentMap.EMPTY : components;
-    }
+   public DataComponentMap immutableComponents() {
+      return !this.isEmpty() ? this.components.toImmutableMap() : DataComponentMap.EMPTY;
+   }
 
-    public DataComponentMap getPrototype() {
-        return isEmpty() ? DataComponentMap.EMPTY : typeHolder().components();
-    }
+   public boolean hasNonDefault(DataComponentType<?> type) {
+      return !this.isEmpty() && this.components.hasNonDefault(type);
+   }
 
-    public DataComponentPatch getComponentsPatch() {
-        return !this.isEmpty() ? this.components.asPatch() : DataComponentPatch.EMPTY;
-    }
+   public boolean isComponentsPatchEmpty() {
+      return this.isEmpty() || this.getComponentsPatch().isEmpty();
+   }
 
-    public DataComponentMap immutableComponents() {
-        return !this.isEmpty() ? this.components.toImmutableMap() : DataComponentMap.EMPTY;
-    }
+   public FluidStack(Fluid fluid, int amount, DataComponentPatch patch) {
+      this(Mc26Compat.fluidHolder(fluid), amount, patch);
+   }
 
-    public boolean hasNonDefault(DataComponentType<?> type) {
-        return !isEmpty() && components.hasNonDefault(type);
-    }
+   public FluidStack(Fluid fluid, int amount) {
+      this(fluid, amount, DataComponentPatch.EMPTY);
+   }
 
-    public boolean isComponentsPatchEmpty() {
-        return isEmpty() || getComponentsPatch().isEmpty();
-    }
+   public FluidStack(Holder<Fluid> fluid, int amount) {
+      this(fluid, amount, DataComponentPatch.EMPTY);
+   }
 
-    public FluidStack(Fluid fluid, int amount, DataComponentPatch patch) {
-        this(fluid.builtInRegistryHolder(), amount, patch);
-    }
+   public FluidStack(Holder<Fluid> fluid, int amount, DataComponentPatch patch) {
+      this(fluid, amount, PatchedDataComponentMap.fromPatch(fluid.components(), patch));
+   }
 
-    public FluidStack(Fluid fluid, int amount) {
-        this(fluid, amount, DataComponentPatch.EMPTY);
-    }
+   private FluidStack(Holder<Fluid> fluid, int amount, PatchedDataComponentMap components) {
+      this.fluid = fluid;
+      this.amount = amount;
+      this.components = components;
+   }
 
-    public FluidStack(Holder<Fluid> fluid, int amount) {
-        this(fluid, amount, DataComponentPatch.EMPTY);
-    }
+   private FluidStack(@Nullable Void unused) {
+      this.fluid = null;
+      this.components = new PatchedDataComponentMap(DataComponentMap.EMPTY);
+   }
 
-    public FluidStack(Holder<Fluid> fluid, int amount, DataComponentPatch patch) {
-        this(fluid, amount, PatchedDataComponentMap.fromPatch(fluid.components(), patch));
-    }
+   public boolean isEmpty() {
+      return this == EMPTY || ((Fluid)this.fluid.value()).isSame(Fluids.EMPTY) || this.amount <= 0;
+   }
 
-    private FluidStack(Holder<Fluid> fluid, int amount, PatchedDataComponentMap components) {
-        this.fluid = fluid;
-        this.amount = amount;
-        this.components = components;
-    }
+   public FluidStack split(int amount) {
+      int i = Math.min(amount, this.getAmount());
+      FluidStack fluidStack = this.copyWithAmount(i);
+      this.shrink(i);
+      return fluidStack;
+   }
 
-    private FluidStack(@Nullable Void unused) {
-        this.fluid = null;
-        this.components = new PatchedDataComponentMap(DataComponentMap.EMPTY);
-    }
+   public FluidStack copyAndClear() {
+      if (this.isEmpty()) {
+         return EMPTY;
+      }
 
-    public boolean isEmpty() {
-        return this == EMPTY || fluid.value().isSame(Fluids.EMPTY) || this.amount <= 0;
-    }
+      FluidStack fluidStack = this.copy();
+      this.setAmount(0);
+      return fluidStack;
+   }
 
-    public FluidStack split(int amount) {
-        int i = Math.min(amount, getAmount());
-        FluidStack fluidStack = this.copyWithAmount(i);
-        this.shrink(i);
-        return fluidStack;
-    }
+   public Fluid getFluid() {
+      return (Fluid)this.typeHolder().value();
+   }
 
-    public FluidStack copyAndClear() {
-        if (this.isEmpty()) {
-            return EMPTY;
-        } else {
-            FluidStack fluidStack = this.copy();
-            this.setAmount(0);
-            return fluidStack;
-        }
-    }
+   public Holder<Fluid> typeHolder() {
+      return this.isEmpty() ? Mc26Compat.emptyFluidHolder() : this.fluid;
+   }
 
-    public Fluid getFluid() {
-        return typeHolder().value();
-    }
+   public FluidStack copy() {
+      return this.isEmpty() ? EMPTY : new FluidStack(this.typeHolder(), this.amount(), this.components.copy());
+   }
 
-    @Override
-    public Holder<Fluid> typeHolder() {
-        return isEmpty() ? Fluids.EMPTY.builtInRegistryHolder() : fluid;
-    }
+   public FluidStack copyWithAmount(int amount) {
+      if (this.isEmpty()) {
+         return EMPTY;
+      }
 
-    public FluidStack copy() {
-        if (this.isEmpty()) {
-            return EMPTY;
-        } else {
-            return new FluidStack(typeHolder(), amount(), this.components.copy());
-        }
-    }
+      FluidStack fluidStack = this.copy();
+      fluidStack.setAmount(amount);
+      return fluidStack;
+   }
 
-    public FluidStack copyWithAmount(int amount) {
-        if (this.isEmpty()) {
-            return EMPTY;
-        } else {
-            FluidStack fluidStack = this.copy();
-            fluidStack.setAmount(amount);
-            return fluidStack;
-        }
-    }
+   public FluidStack transmuteCopy(Fluid newFluid) {
+      return this.transmuteCopy(newFluid, this.amount());
+   }
 
-    public FluidStack transmuteCopy(Fluid newFluid) {
-        return transmuteCopy(newFluid, amount());
-    }
+   public FluidStack transmuteCopy(Fluid newFluid, int newAmount) {
+      return this.isEmpty() ? EMPTY : this.transmuteCopyIgnoreEmpty(newFluid, newAmount);
+   }
 
-    public FluidStack transmuteCopy(Fluid newFluid, int newAmount) {
-        return isEmpty() ? EMPTY : transmuteCopyIgnoreEmpty(newFluid, newAmount);
-    }
+   private FluidStack transmuteCopyIgnoreEmpty(Fluid newFluid, int newAmount) {
+      return new FluidStack(newFluid, newAmount, this.components.asPatch());
+   }
 
-    private FluidStack transmuteCopyIgnoreEmpty(Fluid newFluid, int newAmount) {
-        return new FluidStack(newFluid, newAmount, components.asPatch());
-    }
+   public static boolean matches(FluidStack first, FluidStack second) {
+      if (first == second) {
+         return true;
+      } else {
+         return first.getAmount() != second.getAmount() ? false : isSameFluidSameComponents(first, second);
+      }
+   }
 
-    public static boolean matches(FluidStack first, FluidStack second) {
-        if (first == second) {
-            return true;
-        } else {
-            return first.getAmount() != second.getAmount() ? false : isSameFluidSameComponents(first, second);
-        }
-    }
+   public static boolean matches(FluidStack a, @Nullable FluidStackTemplate b) {
+      return b == null ? a.isEmpty() : a.amount() == b.amount() && isSameFluidSameComponents(a, b);
+   }
 
-    public static boolean matches(FluidStack a, @Nullable FluidStackTemplate b) {
-        if (b == null) {
-            return a.isEmpty();
-        }
+   public static boolean isSameFluid(FluidStack first, FluidStack second) {
+      return first.is(second.getFluid());
+   }
 
-        return a.amount() == b.amount() && isSameFluidSameComponents(a, b);
-    }
+   public static boolean isSameFluidSameComponents(FluidStack first, FluidStack second) {
+      if (!first.is(second.getFluid())) {
+         return false;
+      } else {
+         return first.isEmpty() && second.isEmpty() ? true : Objects.equals(first.components, second.components);
+      }
+   }
 
-    public static boolean isSameFluid(FluidStack first, FluidStack second) {
-        return first.is(second.getFluid());
-    }
+   public static boolean isSameFluid(FluidStack a, @Nullable FluidStackTemplate b) {
+      return b == null ? a.isEmpty() : a.is(b.fluid());
+   }
 
-    public static boolean isSameFluidSameComponents(FluidStack first, FluidStack second) {
-        if (!first.is(second.getFluid())) {
-            return false;
-        } else {
-            return first.isEmpty() && second.isEmpty() ? true : Objects.equals(first.components, second.components);
-        }
-    }
+   public static boolean isSameFluidSameComponents(FluidStack a, @Nullable FluidStackTemplate b) {
+      return !a.isEmpty() && b != null ? a.is(b.fluid()) && a.getComponentsPatch().equals(b.components()) : a.isEmpty() == (b == null);
+   }
 
-    public static boolean isSameFluid(FluidStack a, @Nullable FluidStackTemplate b) {
-        return b == null ? a.isEmpty() : a.is(b.fluid());
-    }
+   public static MapCodec<FluidStack> lenientOptionalFieldOf(String fieldName) {
+      return CODEC.lenientOptionalFieldOf(fieldName).xmap(optional -> optional.orElse(EMPTY), stack -> stack.isEmpty() ? Optional.empty() : Optional.of(stack));
+   }
 
-    public static boolean isSameFluidSameComponents(FluidStack a, @Nullable FluidStackTemplate b) {
-        if (a.isEmpty() || b == null) {
-            return a.isEmpty() == (b == null);
-        } else {
-            return a.is(b.fluid()) && a.getComponentsPatch().equals(b.components());
-        }
-    }
+   public static int hashFluidAndComponents(@Nullable FluidStack stack) {
+      if (stack != null) {
+         int i = 31 + stack.getFluid().hashCode();
+         return 31 * i + stack.getComponents().hashCode();
+      } else {
+         return 0;
+      }
+   }
 
-    public static MapCodec<FluidStack> lenientOptionalFieldOf(String fieldName) {
-        return CODEC.lenientOptionalFieldOf(fieldName)
-                .xmap(optional -> optional.orElse(EMPTY), stack -> stack.isEmpty() ? Optional.empty() : Optional.of(stack));
-    }
+   public String getDescriptionId() {
+      return this.getFluidType().getDescriptionId(this);
+   }
 
-    public static int hashFluidAndComponents(@Nullable FluidStack stack) {
-        if (stack != null) {
-            int i = 31 + stack.getFluid().hashCode();
-            return 31 * i + stack.getComponents().hashCode();
-        } else {
-            return 0;
-        }
-    }
+   @Override
+   public String toString() {
+      return this.getAmount() + " " + this.getFluid();
+   }
 
-    public String getDescriptionId() {
-        return getFluidType().getDescriptionId(this);
-    }
+   public List<Component> getTooltipLines(TooltipContext context, @Nullable Player player, TooltipFlag flag) {
+      TooltipDisplay tooltipDisplay = (TooltipDisplay)this.getOrDefault(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT);
+      if (!flag.isCreative() && tooltipDisplay.hideTooltip()) {
+         return List.of();
+      }
 
-    @Override
-    public String toString() {
-        return this.getAmount() + " " + this.getFluid();
-    }
+      Fluid fluid = this.getFluid();
+      List<Component> list = Lists.newArrayList();
+      list.add(this.getHoverName());
+      EventHooks.onFluidTooltip(this, player, list, flag, context);
+      if (flag.isAdvanced()) {
+         list.add(Component.literal(BuiltInRegistries.FLUID.getKey(fluid).toString()).withStyle(ChatFormatting.DARK_GRAY));
+         int componentCount = this.components.size();
+         if (componentCount > 0) {
+            list.add(Component.translatable("item.components", new Object[]{componentCount}).withStyle(ChatFormatting.DARK_GRAY));
+         }
+      }
 
-    public List<Component> getTooltipLines(Item.TooltipContext context, @Nullable Player player, TooltipFlag flag) {
-        TooltipDisplay tooltipDisplay = this.getOrDefault(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT);
-        if (!flag.isCreative() && tooltipDisplay.hideTooltip()) {
-            return List.of();
-        } else {
-            Fluid fluid = getFluid();
-            List<Component> list = Lists.newArrayList();
-            list.add(this.getHoverName());
-            EventHooks.onFluidTooltip(this, player, list, flag, context);
-            if (flag.isAdvanced()) {
-                list.add(Component.literal(BuiltInRegistries.FLUID.getKey(fluid).toString()).withStyle(ChatFormatting.DARK_GRAY));
-                int componentCount = this.components.size();
-                if (componentCount > 0) {
-                    list.add(Component.translatable("item.components", componentCount).withStyle(ChatFormatting.DARK_GRAY));
-                }
-            }
-            return list;
-        }
-    }
+      return list;
+   }
 
-    @Nullable
-    @Override
-    public <T> T set(DataComponentType<T> type, @Nullable T component) {
-        return this.components.set(type, component);
-    }
+   @Override
+   public <T> @Nullable T set(DataComponentType<T> type, @Nullable T component) {
+      return (T)this.components.set(type, component);
+   }
 
-    public <T> @Nullable T set(TypedDataComponent<T> value) {
-        return components.set(value);
-    }
+   public <T> @Nullable T set(TypedDataComponent<T> value) {
+      return (T)this.components.set(value);
+   }
 
-    @Nullable
-    @Override
-    public <T> T remove(DataComponentType<? extends T> type) {
-        return this.components.remove(type);
-    }
+   @Override
+   public <T> @Nullable T remove(DataComponentType<? extends T> type) {
+      return (T)this.components.remove(type);
+   }
 
-    @Override
-    public void applyComponents(DataComponentPatch patch) {
-        this.components.applyPatch(patch);
-    }
+   @Override
+   public void applyComponents(DataComponentPatch patch) {
+      this.components.applyPatch(patch);
+   }
 
-    @Override
-    public void applyComponents(DataComponentMap components) {
-        this.components.setAll(components);
-    }
+   @Override
+   public void applyComponents(DataComponentMap components) {
+      this.components.setAll(components);
+   }
 
-    public Component getHoverName() {
-        return getFluidType().getDescription(this);
-    }
+   public Component getHoverName() {
+      return this.getFluidType().getDescription(this);
+   }
 
-    @Override
-    public int amount() {
-        return this.isEmpty() ? 0 : this.amount;
-    }
+   @Override
+   public int amount() {
+      return this.isEmpty() ? 0 : this.amount;
+   }
 
-    public int getAmount() {
-        return amount();
-    }
+   public int getAmount() {
+      return this.amount();
+   }
 
-    public void setAmount(int amount) {
-        this.amount = amount;
-    }
+   public void setAmount(int amount) {
+      this.amount = amount;
+   }
 
-    public void limitSize(int amount) {
-        if (!this.isEmpty() && this.getAmount() > amount) {
-            this.setAmount(amount);
-        }
-    }
+   public void limitSize(int amount) {
+      if (!this.isEmpty() && this.getAmount() > amount) {
+         this.setAmount(amount);
+      }
+   }
 
-    public void grow(int addedAmount) {
-        this.setAmount(this.getAmount() + addedAmount);
-    }
+   public void grow(int addedAmount) {
+      this.setAmount(this.getAmount() + addedAmount);
+   }
 
-    public void shrink(int removedAmount) {
-        this.grow(-removedAmount);
-    }
-
+   public void shrink(int removedAmount) {
+      this.grow(-removedAmount);
+   }
 }

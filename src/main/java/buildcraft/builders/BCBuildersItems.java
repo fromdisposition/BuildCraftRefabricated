@@ -1,81 +1,57 @@
-/* Copyright (c) 2016 SpaceToad and the BuildCraft team
- *
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.builders;
 
-import buildcraft.fabric.registry.DeferredItem;
-import buildcraft.fabric.registry.DeferredRegister;
-
 import buildcraft.api.enums.EnumSnapshotType;
-import net.minecraft.world.item.BlockItem;
-import buildcraft.fabric.registry.DeferredBlock;
-
 import buildcraft.builders.item.ItemFillerPlanner;
 import buildcraft.builders.item.ItemSchematicSingle;
 import buildcraft.builders.item.ItemSnapshot;
+import buildcraft.fabric.BCRegistries;
+import net.minecraft.world.item.BlockItem;
 
-public class BCBuildersItems {
-    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(BCBuilders.MODID);
+public final class BCBuildersItems {
+   public static BlockItem FRAME;
+   public static BlockItem FILLER;
+   public static BlockItem BUILDER;
+   public static BlockItem ARCHITECT;
+   public static BlockItem LIBRARY;
+   public static BlockItem REPLACER;
+   public static BlockItem QUARRY;
+   public static ItemSnapshot BLUEPRINT_CLEAN;
+   public static ItemSnapshot BLUEPRINT_USED;
+   public static ItemSnapshot TEMPLATE_CLEAN;
+   public static ItemSnapshot TEMPLATE_USED;
+   public static ItemSchematicSingle SCHEMATIC_SINGLE_CLEAN;
+   public static ItemSchematicSingle SCHEMATIC_SINGLE_USED;
+   public static ItemFillerPlanner FILLER_PLANNER;
 
-    public static final DeferredItem<BlockItem> FRAME = ITEMS
-            .registerSimpleBlockItem("frame", BCBuildersBlocks.FRAME);
+   private BCBuildersItems() {
+   }
 
-    public static final DeferredItem<BlockItem> FILLER = ITEMS
-            .registerSimpleBlockItem("filler", BCBuildersBlocks.FILLER);
-
-    public static final DeferredItem<BlockItem> BUILDER = ITEMS
-            .registerSimpleBlockItem("builder", BCBuildersBlocks.BUILDER);
-
-    public static final DeferredItem<BlockItem> ARCHITECT = ITEMS
-            .registerSimpleBlockItem("architect", BCBuildersBlocks.ARCHITECT);
-
-    public static final DeferredItem<BlockItem> LIBRARY = ITEMS
-            .registerSimpleBlockItem("library", BCBuildersBlocks.LIBRARY);
-
-    public static final DeferredItem<BlockItem> REPLACER = ITEMS
-            .registerSimpleBlockItem("replacer", BCBuildersBlocks.REPLACER);
-
-    public static final DeferredItem<BlockItem> QUARRY = ITEMS
-            .registerSimpleBlockItem("quarry", BCBuildersBlocks.QUARRY);
-
-    public static final DeferredItem<ItemSnapshot> BLUEPRINT_CLEAN = ITEMS.registerItem(
-            "blueprint_clean",
-            props -> new ItemSnapshot(props, EnumSnapshotType.BLUEPRINT, false),
-            props -> props.stacksTo(16));
-
-    public static final DeferredItem<ItemSnapshot> BLUEPRINT_USED = ITEMS.registerItem(
-            "blueprint_used",
-            props -> new ItemSnapshot(props, EnumSnapshotType.BLUEPRINT, true),
-            props -> props.stacksTo(1));
-
-    public static final DeferredItem<ItemSnapshot> TEMPLATE_CLEAN = ITEMS.registerItem(
-            "template_clean",
-            props -> new ItemSnapshot(props, EnumSnapshotType.TEMPLATE, false),
-            props -> props.stacksTo(16));
-
-    public static final DeferredItem<ItemSnapshot> TEMPLATE_USED = ITEMS.registerItem(
-            "template_used",
-            props -> new ItemSnapshot(props, EnumSnapshotType.TEMPLATE, true),
-            props -> props.stacksTo(1));
-
-    public static final DeferredItem<ItemSchematicSingle> SCHEMATIC_SINGLE_CLEAN = ITEMS.registerItem(
-            "schematic_single_clean",
-            props -> new ItemSchematicSingle(props, false),
-            props -> props.stacksTo(16));
-
-    public static final DeferredItem<ItemSchematicSingle> SCHEMATIC_SINGLE_USED = ITEMS.registerItem(
-            "schematic_single_used",
-            props -> new ItemSchematicSingle(props, true),
-            props -> props.stacksTo(1));
-
-    public static final DeferredItem<ItemFillerPlanner> FILLER_PLANNER = ITEMS.registerItem(
-            "filler_planner",
-            ItemFillerPlanner::new,
-            props -> props.stacksTo(1));
-
-    public static void register() {
-        ITEMS.register();
-    }
+   public static void register() {
+      FRAME = BCRegistries.registerBlockItem("buildcraftbuilders", "frame", BCBuildersBlocks.FRAME);
+      FILLER = BCRegistries.registerBlockItem("buildcraftbuilders", "filler", BCBuildersBlocks.FILLER);
+      BUILDER = BCRegistries.registerBlockItem("buildcraftbuilders", "builder", BCBuildersBlocks.BUILDER);
+      ARCHITECT = BCRegistries.registerBlockItem("buildcraftbuilders", "architect", BCBuildersBlocks.ARCHITECT);
+      LIBRARY = BCRegistries.registerBlockItem("buildcraftbuilders", "library", BCBuildersBlocks.LIBRARY);
+      REPLACER = BCRegistries.registerBlockItem("buildcraftbuilders", "replacer", BCBuildersBlocks.REPLACER);
+      QUARRY = BCRegistries.registerBlockItem("buildcraftbuilders", "quarry", BCBuildersBlocks.QUARRY);
+      BLUEPRINT_CLEAN = BCRegistries.registerItem(
+         "buildcraftbuilders", "blueprint_clean", props -> new ItemSnapshot(props, EnumSnapshotType.BLUEPRINT, false), p -> p.stacksTo(16)
+      );
+      BLUEPRINT_USED = BCRegistries.registerItem(
+         "buildcraftbuilders", "blueprint_used", props -> new ItemSnapshot(props, EnumSnapshotType.BLUEPRINT, true), p -> p.stacksTo(1)
+      );
+      TEMPLATE_CLEAN = BCRegistries.registerItem(
+         "buildcraftbuilders", "template_clean", props -> new ItemSnapshot(props, EnumSnapshotType.TEMPLATE, false), p -> p.stacksTo(16)
+      );
+      TEMPLATE_USED = BCRegistries.registerItem(
+         "buildcraftbuilders", "template_used", props -> new ItemSnapshot(props, EnumSnapshotType.TEMPLATE, true), p -> p.stacksTo(1)
+      );
+      SCHEMATIC_SINGLE_CLEAN = BCRegistries.registerItem(
+         "buildcraftbuilders", "schematic_single_clean", props -> new ItemSchematicSingle(props, false), p -> p.stacksTo(16)
+      );
+      SCHEMATIC_SINGLE_USED = BCRegistries.registerItem(
+         "buildcraftbuilders", "schematic_single_used", props -> new ItemSchematicSingle(props, true), p -> p.stacksTo(1)
+      );
+      FILLER_PLANNER = BCRegistries.registerItem("buildcraftbuilders", "filler_planner", ItemFillerPlanner::new, p -> p.stacksTo(1));
+   }
 }
-

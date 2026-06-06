@@ -1,131 +1,112 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * The BuildCraft API is distributed under the terms of the MIT License. */
 package buildcraft.api.statements;
 
+import buildcraft.api.core.render.ISprite;
+import buildcraft.lib.misc.NBTUtilBC;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
-import com.google.common.collect.ImmutableList;
-
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.ChatFormatting;
-
-import buildcraft.api.core.render.ISprite;
 
 public class StatementParameterItemStack implements IStatementParameter {
-    @Nonnull
-    private static final ItemStack EMPTY_STACK;
-    public static final StatementParameterItemStack EMPTY;
+   @Nonnull
+   private static final ItemStack EMPTY_STACK;
+   public static final StatementParameterItemStack EMPTY;
+   @Nonnull
+   protected final ItemStack stack;
 
-    static {
-        ItemStack stack = ItemStack.EMPTY;
-        if (stack == null)
-            throw new Error("Somehow ItemStack.EMPTY was null!");
-        EMPTY_STACK = stack;
-        EMPTY = new StatementParameterItemStack();
-    }
+   public StatementParameterItemStack() {
+      this.stack = EMPTY_STACK;
+   }
 
-    @Nonnull
-    protected final ItemStack stack;
+   public StatementParameterItemStack(@Nonnull ItemStack stack) {
+      this.stack = stack;
+   }
 
-    public StatementParameterItemStack() {
-        stack = EMPTY_STACK;
-    }
+   public StatementParameterItemStack(CompoundTag nbt) {
+      ItemStack read = ItemStack.EMPTY;
+      Tag stackPayload = nbt.get("stack");
+      if (stackPayload != null) {
+         read = ItemStack.CODEC.parse(NBTUtilBC.registryAwareOps(), stackPayload).resultOrPartial().orElse(ItemStack.EMPTY);
+      }
 
-    public StatementParameterItemStack(@Nonnull ItemStack stack) {
-        this.stack = stack;
-    }
+      this.stack = read.isEmpty() ? EMPTY_STACK : read;
+   }
 
-    public StatementParameterItemStack(CompoundTag nbt) {
-        ItemStack read = ItemStack.EMPTY;
-        Tag stackPayload = nbt.get("stack");
-        if (stackPayload != null) {
-            read = ItemStack.CODEC.parse(buildcraft.lib.misc.NBTUtilBC.registryAwareOps(), stackPayload)
-                    .resultOrPartial()
-                    .orElse(ItemStack.EMPTY);
-        }
-        stack = read.isEmpty() ? EMPTY_STACK : read;
-    }
+   @Override
+   public void writeToNbt(CompoundTag compound) {
+      if (!this.stack.isEmpty()) {
+         ItemStack.CODEC.encodeStart(NBTUtilBC.registryAwareOps(), this.stack).resultOrPartial().ifPresent(payload -> compound.put("stack", payload));
+      }
+   }
 
-    @Override
-    public void writeToNbt(CompoundTag compound) {
-        if (!stack.isEmpty()) {
-            ItemStack.CODEC.encodeStart(buildcraft.lib.misc.NBTUtilBC.registryAwareOps(), stack)
-                    .resultOrPartial()
-                    .ifPresent(payload -> compound.put("stack", payload));
-        }
-    }
+   @Override
+   public ISprite getSprite() {
+      return null;
+   }
 
-    @Override
-    public ISprite getSprite() {
-        return null;
-    }
+   @Nonnull
+   @Override
+   public ItemStack getItemStack() {
+      return this.stack;
+   }
 
-    @Override
-    @Nonnull
-    public ItemStack getItemStack() {
-        return stack;
-    }
+   public StatementParameterItemStack onClick(IStatementContainer source, IStatement stmt, ItemStack clickedStack, StatementMouseClick mouseClick) {
+      if (this.stack.isEmpty()) {
+         return EMPTY;
+      }
 
-    @Override
-    public StatementParameterItemStack onClick(
-            IStatementContainer source, IStatement stmt, ItemStack clickedStack, StatementMouseClick mouseClick) {
-        if (stack.isEmpty()) {
-            return EMPTY;
-        } else {
-            ItemStack newStack = stack.copy();
-            newStack.setCount(1);
-            return new StatementParameterItemStack(newStack);
-        }
-    }
+      ItemStack newStack = this.stack.copy();
+      newStack.setCount(1);
+      return new StatementParameterItemStack(newStack);
+   }
 
-    @Override
-    public boolean equals(Object object) {
-        if (object instanceof StatementParameterItemStack) {
-            StatementParameterItemStack param = (StatementParameterItemStack) object;
-            return ItemStack.isSameItem(stack, param.stack)
-                    && ItemStack.isSameItemSameComponents(stack, param.stack);
-        }
-        return false;
-    }
+   @Override
+   public boolean equals(Object object) {
+      return !(object instanceof StatementParameterItemStack param)
+         ? false
+         : ItemStack.isSameItem(this.stack, param.stack) && ItemStack.isSameItemSameComponents(this.stack, param.stack);
+   }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(stack);
-    }
+   @Override
+   public int hashCode() {
+      return Objects.hashCode(this.stack);
+   }
 
-    @Override
-    public String getDescription() {
-        throw new UnsupportedOperationException("Don't call getDescription directly!");
-    }
+   @Override
+   public String getDescription() {
+      throw new UnsupportedOperationException("Don't call getDescription directly!");
+   }
 
-    @Override
-    public List<String> getTooltip() {
-        if (stack.isEmpty()) {
-            return ImmutableList.of();
-        }
+   @Override
+   public List<String> getTooltip() {
+      return this.stack.isEmpty() ? ImmutableList.of() : ImmutableList.of(this.stack.getHoverName().getString());
+   }
 
-        return ImmutableList.of(stack.getHoverName().getString());
-    }
+   @Override
+   public String getUniqueTag() {
+      return "buildcraft:stack";
+   }
 
-    @Override
-    public String getUniqueTag() {
-        return "buildcraft:stack";
-    }
+   @Override
+   public IStatementParameter rotateLeft() {
+      return this;
+   }
 
-    @Override
-    public IStatementParameter rotateLeft() {
-        return this;
-    }
+   @Override
+   public IStatementParameter[] getPossible(IStatementContainer source) {
+      return null;
+   }
 
-    @Override
-    public IStatementParameter[] getPossible(IStatementContainer source) {
-        return null;
-    }
+   static {
+      ItemStack stack = ItemStack.EMPTY;
+      if (stack == null) {
+         throw new Error("Somehow ItemStack.EMPTY was null!");
+      }
+
+      EMPTY_STACK = stack;
+      EMPTY = new StatementParameterItemStack();
+   }
 }

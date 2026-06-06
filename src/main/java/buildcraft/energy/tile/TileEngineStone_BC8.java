@@ -1,254 +1,240 @@
-/* Copyright (c) 2016 SpaceToad and the BuildCraft team
- *
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.energy.tile;
-
-import javax.annotation.Nonnull;
-
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-import buildcraft.lib.transfer.item.ItemResource;
-import buildcraft.lib.transfer.item.ItemStackResourceHandler;
 
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.MjAPI;
-
 import buildcraft.energy.BCEnergyBlockEntities;
+import buildcraft.energy.container.ContainerEngineStone_BC8;
 import buildcraft.lib.engine.EngineConnector;
 import buildcraft.lib.engine.TileEngineBase_BC8;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import buildcraft.lib.misc.AdvancementUtil;
+import buildcraft.lib.transfer.handler.ItemStackResourceHandler;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
-@SuppressWarnings("deprecation")
 public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu {
-    private static final net.minecraft.resources.Identifier ADVANCEMENT_POWERING_UP
-        = net.minecraft.resources.Identifier.parse("buildcraftenergy:powering_up");
-    private static final net.minecraft.resources.Identifier ADVANCEMENT_LAVA_POWER
-        = net.minecraft.resources.Identifier.parse("buildcraftenergy:lava_power");
+   private static final Identifier ADVANCEMENT_POWERING_UP = Identifier.parse("buildcraftenergy:powering_up");
+   private static final Identifier ADVANCEMENT_LAVA_POWER = Identifier.parse("buildcraftenergy:lava_power");
+   private static final long MAX_OUTPUT = MjAPI.MJ;
+   private static final long MIN_OUTPUT = MAX_OUTPUT / 3L;
+   private static final long eLimit = (MAX_OUTPUT - MIN_OUTPUT) * 20L;
+   public int burnTime = 0;
+   public int totalBurnTime = 0;
+   private long esum = 0L;
+   private ItemStack fuelStack = ItemStack.EMPTY;
+   public final ItemStackResourceHandler fuelItemHandler = new ItemStackResourceHandler() {
+      @Override
+      protected ItemStack getStack() {
+         return TileEngineStone_BC8.this.fuelStack;
+      }
 
-    private static final long MAX_OUTPUT = MjAPI.MJ;
-    private static final long MIN_OUTPUT = MAX_OUTPUT / 3;
-    private static final long eLimit = (MAX_OUTPUT - MIN_OUTPUT) * 20;
+      @Override
+      protected void setStack(ItemStack stack) {
+         TileEngineStone_BC8.this.fuelStack = stack;
+      }
 
-    public int burnTime = 0;
-    public int totalBurnTime = 0;
-    private long esum = 0;
+      @Override
+      protected boolean isValid(ItemStack stack) {
+         return TileEngineStone_BC8.this.isValidFuel(stack);
+      }
 
-    private ItemStack fuelStack = ItemStack.EMPTY;
+      protected void onFinalCommit() {
+         TileEngineStone_BC8.this.setChanged();
+      }
+   };
 
-    public final ItemStackResourceHandler fuelItemHandler = new ItemStackResourceHandler() {
-        @Override
-        protected ItemStack getStack() {
-            return fuelStack;
-        }
+   public TileEngineStone_BC8(BlockPos pos, BlockState state) {
+      super(BCEnergyBlockEntities.ENGINE_STONE, pos, state);
+   }
 
-        @Override
-        protected void setStack(ItemStack stack) {
-            fuelStack = stack;
-        }
+   @Nullable
+   public Storage<ItemVariant> getSidedFuelStorage(@Nullable Direction direction) {
+      return direction != null && direction != this.getOrientation() ? this.fuelItemHandler.fabricItemStorage() : null;
+   }
 
-        @Override
-        protected boolean isValid(ItemResource resource) {
+   @Nonnull
+   public ItemStack getFuelStack() {
+      return this.fuelStack;
+   }
 
-            return isValidFuel(resource.toStack(1));
-        }
+   public void setFuelStack(@Nonnull ItemStack stack) {
+      this.fuelStack = stack;
+      this.setChanged();
+   }
 
-        @Override
-        protected void onRootCommit(ItemStack originalState) {
-            setChanged();
-        }
-    };
+   public boolean isValidFuel(@Nonnull ItemStack stack) {
+      return this.getBurnTime(stack) > 0;
+   }
 
-    public TileEngineStone_BC8(BlockPos pos, BlockState state) {
-        super(BCEnergyBlockEntities.ENGINE_STONE, pos, state);
-    }
+   private int getBurnTime(@Nonnull ItemStack stack) {
+      return !stack.isEmpty() && this.level != null ? this.level.fuelValues().burnDuration(stack) : 0;
+   }
 
-    @Nonnull
-    public ItemStack getFuelStack() {
-        return fuelStack;
-    }
+   @Nonnull
+   @Override
+   protected IMjConnector createConnector() {
+      return new EngineConnector(false);
+   }
 
-    public void setFuelStack(@Nonnull ItemStack stack) {
-        fuelStack = stack;
-        setChanged();
-    }
+   @Override
+   public boolean isBurning() {
+      return this.burnTime > 0;
+   }
 
-    public boolean isValidFuel(@Nonnull ItemStack stack) {
-        return getBurnTime(stack) > 0;
-    }
+   @Override
+   protected void engineUpdate() {
+      if (this.burnTime > 0) {
+         this.burnTime--;
+         if (this.getPowerStage() != EnumPowerStage.OVERHEAT) {
+            long output = this.getCurrentOutput();
+            this.addPower(output);
+         }
+      }
 
-    private int getBurnTime(@Nonnull ItemStack stack) {
-        if (stack.isEmpty() || level == null) return 0;
-        return level.fuelValues().burnDuration(stack);
-    }
-
-    @Nonnull
-    @Override
-    protected IMjConnector createConnector() {
-        return new EngineConnector(false);
-    }
-
-    @Override
-    public boolean isBurning() {
-        return burnTime > 0;
-    }
-
-    @Override
-    protected void engineUpdate() {
-
-        if (burnTime > 0) {
-            burnTime--;
-            if (getPowerStage() != EnumPowerStage.OVERHEAT) {
-                long output = getCurrentOutput();
-                addPower(output);
+      if (this.burnTime == 0 && this.isRedstonePowered) {
+         int newBurn = this.getBurnTime(this.fuelStack);
+         if (newBurn > 0) {
+            this.burnTime = newBurn;
+            this.totalBurnTime = newBurn;
+            if (this.getOwner() != null && this.level != null) {
+               AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT_POWERING_UP);
+               if (this.fuelStack.getItem() == Items.LAVA_BUCKET) {
+                  AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT_LAVA_POWER);
+               }
             }
-        }
 
-        if (burnTime == 0 && isRedstonePowered) {
-            int newBurn = getBurnTime(fuelStack);
-            if (newBurn > 0) {
-                burnTime = newBurn;
-                totalBurnTime = newBurn;
-                if (getOwner() != null && level != null) {
-                    AdvancementUtil.unlockAdvancement(getOwner().id(), level, ADVANCEMENT_POWERING_UP);
-                    if (fuelStack.getItem() == net.minecraft.world.item.Items.LAVA_BUCKET) {
-                        AdvancementUtil.unlockAdvancement(getOwner().id(), level, ADVANCEMENT_LAVA_POWER);
-                    }
-                }
-
-                ItemStack consumed = fuelStack.copy();
-                consumed.setCount(1);
-
-                fuelStack.shrink(1);
-                if (fuelStack.isEmpty()) {
-                    fuelStack = ItemStack.EMPTY;
-                }
-
-                net.minecraft.world.item.ItemStackTemplate containerTemplate = consumed.getItem().getCraftingRemainder();
-                ItemStack container = containerTemplate != null ? containerTemplate.create() : ItemStack.EMPTY;
-
-                if (!container.isEmpty()) {
-                    if (fuelStack.isEmpty()) {
-                        fuelStack = container;
-                    } else {
-
-                        if (level != null) {
-                            net.minecraft.world.entity.item.ItemEntity entity = new net.minecraft.world.entity.item.ItemEntity(
-                                level,
-                                getBlockPos().getX() + 0.5,
-                                getBlockPos().getY() + 1.0,
-                                getBlockPos().getZ() + 0.5,
-                                container
-                            );
-                            level.addFreshEntity(entity);
-                        }
-                    }
-                }
-                setChanged();
+            ItemStack consumed = this.fuelStack.copy();
+            consumed.setCount(1);
+            this.fuelStack.shrink(1);
+            if (this.fuelStack.isEmpty()) {
+               this.fuelStack = ItemStack.EMPTY;
             }
-        }
-    }
 
-    protected void addPower(long microMj) {
-        power = Math.min(power + microMj, getMaxPower());
-    }
-
-    @Override
-    public long maxPowerReceived() {
-        return 200 * MjAPI.MJ;
-    }
-
-    @Override
-    public long maxPowerExtracted() {
-        return 100 * MjAPI.MJ;
-    }
-
-    @Override
-    public long getMaxPower() {
-        return 1000 * MjAPI.MJ;
-    }
-
-    @Override
-    public float explosionRange() {
-        return 2;
-    }
-
-    @Override
-    public long getCurrentOutput() {
-
-        long e = 3 * getMaxPower() / 8 - power;
-        esum = clamp(esum + e, -eLimit, eLimit);
-        return clamp(e + esum / 20, MIN_OUTPUT, MAX_OUTPUT);
-    }
-
-    @Override
-    public long minPowerReceived() {
-        return MjAPI.MJ / 10;
-    }
-
-    private static long clamp(long val, long min, long max) {
-        return Math.max(min, Math.min(max, val));
-    }
-
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.putInt("burnTime", burnTime);
-        output.putInt("totalBurnTime", totalBurnTime);
-        output.putLong("esum", esum);
-        if (!fuelStack.isEmpty()) {
-            net.minecraft.resources.Identifier itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(fuelStack.getItem());
-            output.putString("fuelId", itemId.toString());
-            output.putInt("fuelCount", fuelStack.getCount());
-        }
-    }
-
-    @Override
-    public void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        burnTime = input.getIntOr("burnTime", 0);
-        totalBurnTime = input.getIntOr("totalBurnTime", 0);
-        esum = input.getLongOr("esum", 0L);
-        String fuelId = input.getStringOr("fuelId", "");
-        if (!fuelId.isEmpty()) {
-            net.minecraft.resources.Identifier id = net.minecraft.resources.Identifier.tryParse(fuelId);
-            if (id != null) {
-                net.minecraft.world.item.Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(id);
-                int count = input.getIntOr("fuelCount", 1);
-                if (item != null && item != net.minecraft.world.item.Items.AIR) {
-                    fuelStack = new ItemStack(item, count);
-                } else {
-                    fuelStack = ItemStack.EMPTY;
-                }
+            ItemStackTemplate containerTemplate = consumed.getItem().getCraftingRemainder();
+            ItemStack container = containerTemplate != null ? containerTemplate.create() : ItemStack.EMPTY;
+            if (!container.isEmpty()) {
+               if (this.fuelStack.isEmpty()) {
+                  this.fuelStack = container;
+               } else if (this.level != null) {
+                  ItemEntity entity = new ItemEntity(
+                     this.level, this.getBlockPos().getX() + 0.5, this.getBlockPos().getY() + 1.0, this.getBlockPos().getZ() + 0.5, container
+                  );
+                  this.level.addFreshEntity(entity);
+               }
             }
-        } else {
-            fuelStack = ItemStack.EMPTY;
-        }
-    }
 
-    @Override
-    public BlockEntity asBlockEntity() {
-        return this;
-    }
+            this.setChanged();
+         }
+      }
+   }
 
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable("block.buildcraftenergy.engine_stone");
-    }
+   protected void addPower(long microMj) {
+      this.power = Math.min(this.power + microMj, this.getMaxPower());
+   }
 
-    @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
-        return new buildcraft.energy.container.ContainerEngineStone_BC8(containerId, playerInv, this);
-    }
+   @Override
+   public long maxPowerReceived() {
+      return 200L * MjAPI.MJ;
+   }
+
+   @Override
+   public long maxPowerExtracted() {
+      return 100L * MjAPI.MJ;
+   }
+
+   @Override
+   public long getMaxPower() {
+      return 1000L * MjAPI.MJ;
+   }
+
+   @Override
+   public float explosionRange() {
+      return 2.0F;
+   }
+
+   @Override
+   public long getCurrentOutput() {
+      long e = 3L * this.getMaxPower() / 8L - this.power;
+      this.esum = clamp(this.esum + e, -eLimit, eLimit);
+      return clamp(e + this.esum / 20L, MIN_OUTPUT, MAX_OUTPUT);
+   }
+
+   @Override
+   public long minPowerReceived() {
+      return MjAPI.MJ / 10L;
+   }
+
+   private static long clamp(long val, long min, long max) {
+      return Math.max(min, Math.min(max, val));
+   }
+
+   @Override
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      output.putInt("burnTime", this.burnTime);
+      output.putInt("totalBurnTime", this.totalBurnTime);
+      output.putLong("esum", this.esum);
+      if (!this.fuelStack.isEmpty()) {
+         Identifier itemId = BuiltInRegistries.ITEM.getKey(this.fuelStack.getItem());
+         output.putString("fuelId", itemId.toString());
+         output.putInt("fuelCount", this.fuelStack.getCount());
+      }
+   }
+
+   @Override
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.burnTime = input.getIntOr("burnTime", 0);
+      this.totalBurnTime = input.getIntOr("totalBurnTime", 0);
+      this.esum = input.getLongOr("esum", 0L);
+      String fuelId = input.getStringOr("fuelId", "");
+      if (!fuelId.isEmpty()) {
+         Identifier id = Identifier.tryParse(fuelId);
+         if (id != null) {
+            Item item = (Item)BuiltInRegistries.ITEM.getValue(id);
+            int count = input.getIntOr("fuelCount", 1);
+            if (item != null && item != Items.AIR) {
+               this.fuelStack = new ItemStack(item, count);
+            } else {
+               this.fuelStack = ItemStack.EMPTY;
+            }
+         }
+      } else {
+         this.fuelStack = ItemStack.EMPTY;
+      }
+   }
+
+   @Override
+   public BlockEntity asBlockEntity() {
+      return this;
+   }
+
+   public Component getDisplayName() {
+      return Component.translatable("block.buildcraftenergy.engine_stone");
+   }
+
+   public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
+      return new ContainerEngineStone_BC8(containerId, playerInv, this);
+   }
 }

@@ -1,3 +1,4 @@
 package buildcraft.api.statements;
 
-public interface IAction extends IStatement {}
+public interface IAction extends IStatement {
+}

@@ -1,90 +1,85 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.transport.client.model;
-
-import java.util.List;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-
-import net.minecraft.client.resources.model.geometry.BakedQuad;
-
-import net.minecraft.core.Direction;
 
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.IPluggableStaticBaker;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableModelKey;
-
 import buildcraft.lib.client.model.IModelCache;
 import buildcraft.lib.client.model.ModelCache;
 import buildcraft.lib.client.model.ModelCacheMultipleSame;
-
 import buildcraft.transport.client.PipeRegistryClient;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet.Builder;
+import java.util.List;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.core.Direction;
 
 public class PipeModelCachePluggable {
-    public static final IModelCache<PluggableKey> cacheCutoutAll, cacheTranslucentAll;
-    public static final ModelCache<PluggableModelKey> cacheCutoutSingle, cacheTranslucentSingle;
+   public static final IModelCache<PipeModelCachePluggable.PluggableKey> cacheCutoutAll = new ModelCacheMultipleSame<>(
+      PipeModelCachePluggable.PluggableKey::getKeys, PipeModelCachePluggable.cacheCutoutSingle
+   );
+   public static final IModelCache<PipeModelCachePluggable.PluggableKey> cacheTranslucentAll = new ModelCacheMultipleSame<>(
+      PipeModelCachePluggable.PluggableKey::getKeys, PipeModelCachePluggable.cacheTranslucentSingle
+   );
+   public static final ModelCache<PluggableModelKey> cacheCutoutSingle = new ModelCache<>(PipeModelCachePluggable::generate);
+   public static final ModelCache<PluggableModelKey> cacheTranslucentSingle = new ModelCache<>(PipeModelCachePluggable::generate);
 
-    static {
-        cacheCutoutSingle = new ModelCache<>(PipeModelCachePluggable::generate);
-        cacheCutoutAll = new ModelCacheMultipleSame<>(PluggableKey::getKeys, cacheCutoutSingle);
+   private static <K extends PluggableModelKey> List<BakedQuad> generate(K key) {
+      if (key == null) {
+         return ImmutableList.of();
+      }
 
-        cacheTranslucentSingle = new ModelCache<>(PipeModelCachePluggable::generate);
-        cacheTranslucentAll = new ModelCacheMultipleSame<>(PluggableKey::getKeys, cacheTranslucentSingle);
-    }
+      IPluggableStaticBaker<K> baker = PipeRegistryClient.getPlugBaker(key);
+      return (List<BakedQuad>)(baker == null ? ImmutableList.of() : baker.bake(key));
+   }
 
-    private static <K extends PluggableModelKey> List<BakedQuad> generate(K key) {
-        if (key == null) {
-            return ImmutableList.of();
-        }
-        IPluggableStaticBaker<K> baker = PipeRegistryClient.getPlugBaker(key);
-        if (baker == null) {
-            return ImmutableList.of();
-        }
-        return baker.bake(key);
-    }
+   public static class PluggableKey {
+      private final ImmutableSet<PluggableModelKey> pluggables;
+      private final int hash;
 
-    public static class PluggableKey {
-        private final ImmutableSet<PluggableModelKey> pluggables;
-        private final int hash;
+      public PluggableKey(boolean isCutout, IPipeHolder holder) {
+         Builder<PluggableModelKey> builder = ImmutableSet.builder();
 
-        public PluggableKey(boolean isCutout, IPipeHolder holder) {
-            ImmutableSet.Builder<PluggableModelKey> builder = ImmutableSet.builder();
-            for (Direction side : Direction.values()) {
-                PipePluggable pluggable = holder.getPluggable(side);
-                if (pluggable == null) continue;
-                PluggableModelKey key = pluggable.getModelRenderKey(
-                    isCutout ? "cutout" : "translucent");
-                if (key != null) {
-                    builder.add(key);
-                }
+         for (Direction side : Direction.values()) {
+            PipePluggable pluggable = holder.getPluggable(side);
+            if (pluggable != null) {
+               PluggableModelKey key = pluggable.getModelRenderKey(isCutout ? "cutout" : "translucent");
+               if (key != null) {
+                  builder.add(key);
+               }
             }
-            this.pluggables = builder.build();
-            this.hash = pluggables.hashCode();
-        }
+         }
 
-        public ImmutableSet<PluggableModelKey> getKeys() {
-            return pluggables;
-        }
+         this.pluggables = builder.build();
+         this.hash = this.pluggables.hashCode();
+      }
 
-        @Override
-        public int hashCode() {
-            return hash;
-        }
+      public ImmutableSet<PluggableModelKey> getKeys() {
+         return this.pluggables;
+      }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
-            PluggableKey other = (PluggableKey) obj;
-            if (!pluggables.equals(other.pluggables)) return false;
+      @Override
+      public int hashCode() {
+         return this.hash;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+         if (this == obj) {
             return true;
-        }
-    }
+         }
+
+         if (obj == null) {
+            return false;
+         }
+
+         if (this.getClass() != obj.getClass()) {
+            return false;
+         }
+
+         PipeModelCachePluggable.PluggableKey other = (PipeModelCachePluggable.PluggableKey)obj;
+         return this.pluggables.equals(other.pluggables);
+      }
+   }
 }

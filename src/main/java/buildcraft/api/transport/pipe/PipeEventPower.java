@@ -1,90 +1,87 @@
 package buildcraft.api.transport.pipe;
 
+import buildcraft.api.mj.MjAPI;
 import net.minecraft.core.Direction;
 
-import buildcraft.api.mj.MjAPI;
-
 public abstract class PipeEventPower extends PipeEvent {
-    public final IFlowPower flow;
+   public final IFlowPower flow;
 
-    protected PipeEventPower(IPipeHolder holder, IFlowPower flow) {
-        super(holder);
-        this.flow = flow;
-    }
+   protected PipeEventPower(IPipeHolder holder, IFlowPower flow) {
+      super(holder);
+      this.flow = flow;
+   }
 
-    protected PipeEventPower(boolean canBeCancelled, IPipeHolder holder, IFlowPower flow) {
-        super(canBeCancelled, holder);
-        this.flow = flow;
-    }
+   protected PipeEventPower(boolean canBeCancelled, IPipeHolder holder, IFlowPower flow) {
+      super(canBeCancelled, holder);
+      this.flow = flow;
+   }
 
-    public static class Configure extends PipeEventPower {
-        private long maxPower = 10 * MjAPI.MJ;
+   public static class Configure extends PipeEventPower {
+      private long maxPower = 10L * MjAPI.MJ;
+      private long powerResistance = -1L;
+      private long powerLoss = -1L;
+      private boolean receiver = false;
+      private boolean disabled = false;
 
-        private long powerResistance = -1;
+      public Configure(IPipeHolder holder, IFlowPower flow) {
+         super(holder, flow);
+      }
 
-        private long powerLoss = -1;
-        private boolean receiver = false;
-        private boolean disabled = false;
+      public long getMaxPower() {
+         return this.maxPower;
+      }
 
-        public Configure(IPipeHolder holder, IFlowPower flow) {
-            super(holder, flow);
-        }
+      public void setMaxPower(long maxPower) {
+         this.maxPower = maxPower;
+      }
 
-        public long getMaxPower() {
-            return this.maxPower;
-        }
+      public long getPowerLoss() {
+         return this.powerLoss;
+      }
 
-        public void setMaxPower(long maxPower) {
-            this.maxPower = maxPower;
-        }
+      public void setPowerLoss(long powerLoss) {
+         this.powerLoss = powerLoss;
+      }
 
-        public long getPowerLoss() {
-            return this.powerLoss;
-        }
+      public long getPowerResistance() {
+         return this.powerResistance;
+      }
 
-        public void setPowerLoss(long powerLoss) {
-            this.powerLoss = powerLoss;
-        }
+      public void setPowerResistance(long powerResistance) {
+         this.powerResistance = powerResistance;
+      }
 
-        public long getPowerResistance() {
-            return this.powerResistance;
-        }
+      public boolean isReceiver() {
+         return this.receiver;
+      }
 
-        public void setPowerResistance(long powerResistance) {
-            this.powerResistance = powerResistance;
-        }
+      public void setReceiver(boolean receiver) {
+         this.receiver = receiver;
+      }
 
-        public boolean isReceiver() {
-            return this.receiver;
-        }
+      public void disableTransfer() {
+         this.disabled = true;
+      }
 
-        public void setReceiver(boolean receiver) {
-            this.receiver = receiver;
-        }
+      public boolean isTransferDisabled() {
+         return this.disabled;
+      }
+   }
 
-        public void disableTransfer() {
-            disabled = true;
-        }
+   public static class PrimaryDirection extends PipeEventPower {
+      private Direction facing;
 
-        public boolean isTransferDisabled() {
-            return disabled;
-        }
-    }
+      public PrimaryDirection(IPipeHolder holder, IFlowPower flow, Direction facing) {
+         super(holder, flow);
+         this.facing = facing;
+      }
 
-    public static class PrimaryDirection extends PipeEventPower {
-        private Direction facing;
+      public Direction getFacing() {
+         return this.facing;
+      }
 
-        public PrimaryDirection(IPipeHolder holder, IFlowPower flow, Direction facing) {
-            super(holder, flow);
-            this.facing = facing;
-        }
-
-        public Direction getFacing() {
-            return facing;
-        }
-
-        public void setFacing(Direction facing) {
-            this.facing = facing;
-        }
-    }
+      public void setFacing(Direction facing) {
+         this.facing = facing;
+      }
+   }
 }

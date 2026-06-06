@@ -1,137 +1,127 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.robotics.zone;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Random;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class ZoneChunk {
-    public BitSet property;
-    private boolean fullSet = false;
+   public BitSet property;
+   private boolean fullSet = false;
 
-    public ZoneChunk() {}
+   public ZoneChunk() {
+   }
 
-    public ZoneChunk(ZoneChunk old) {
-        if (old.property != null) {
-            property = BitSet.valueOf(old.property.toLongArray());
-        }
-        fullSet = old.fullSet;
-    }
+   public ZoneChunk(ZoneChunk old) {
+      if (old.property != null) {
+         this.property = BitSet.valueOf(old.property.toLongArray());
+      }
 
-    public boolean get(int xChunk, int zChunk) {
-        return fullSet || property != null && property.get(xChunk + zChunk * 16);
-    }
+      this.fullSet = old.fullSet;
+   }
 
-    public void set(int xChunk, int zChunk, boolean value) {
-        if (value) {
-            if (fullSet) {
-                return;
+   public boolean get(int xChunk, int zChunk) {
+      return this.fullSet || this.property != null && this.property.get(xChunk + zChunk * 16);
+   }
+
+   public void set(int xChunk, int zChunk, boolean value) {
+      if (value) {
+         if (this.fullSet) {
+            return;
+         }
+
+         if (this.property == null) {
+            this.property = new BitSet(256);
+         }
+
+         this.property.set(xChunk + zChunk * 16, true);
+         if (this.property.cardinality() >= 256) {
+            this.property = null;
+            this.fullSet = true;
+         }
+      } else {
+         if (this.fullSet) {
+            this.property = new BitSet(256);
+            this.property.flip(0, 255);
+            this.fullSet = false;
+         } else if (this.property == null) {
+            this.property = new BitSet(256);
+         }
+
+         this.property.set(xChunk + zChunk * 16, false);
+      }
+   }
+
+   public List<int[]> getAll() {
+      List<int[]> result = new ArrayList<>();
+
+      for (int zChunk = 0; zChunk < 16; zChunk++) {
+         for (int xChunk = 0; xChunk < 16; xChunk++) {
+            if (this.get(xChunk, zChunk)) {
+               result.add(new int[]{xChunk, zChunk});
             }
+         }
+      }
 
-            if (property == null) {
-                property = new BitSet(16 * 16);
-            }
+      return result;
+   }
 
-            property.set(xChunk + zChunk * 16, true);
+   public void writeToNBT(CompoundTag nbt) {
+      nbt.putBoolean("fullSet", this.fullSet);
+      if (this.property != null) {
+         nbt.putByteArray("bits", this.property.toByteArray());
+      }
+   }
 
-            if (property.cardinality() >= 16 * 16) {
-                property = null;
-                fullSet = true;
-            }
-        } else {
-            if (fullSet) {
-                property = new BitSet(16 * 16);
-                property.flip(0, 16 * 16 - 1);
-                fullSet = false;
-            } else if (property == null) {
+   public void readFromNBT(CompoundTag nbt) {
+      this.fullSet = nbt.getBooleanOr("fullSet", false);
+      nbt.getByteArray("bits").ifPresent(bytes -> this.property = BitSet.valueOf(bytes));
+   }
 
-                property = new BitSet(16 * 16);
-            }
+   public BlockPos getRandomBlockPos(Random rand) {
+      int x;
+      int z;
+      if (this.fullSet) {
+         x = rand.nextInt(16);
+         z = rand.nextInt(16);
+      } else {
+         int bitId = rand.nextInt(this.property.cardinality());
 
-            property.set(xChunk + zChunk * 16, false);
-        }
-    }
+         int bitPosition;
+         for (bitPosition = this.property.nextSetBit(0); bitId > 0; bitPosition = this.property.nextSetBit(bitPosition + 1)) {
+            bitId--;
+         }
 
-    public List<int[]> getAll() {
-        List<int[]> result = new ArrayList<>();
-        for (int zChunk = 0; zChunk < 16; zChunk++) {
-            for (int xChunk = 0; xChunk < 16; xChunk++) {
-                if (get(xChunk, zChunk)) {
-                    result.add(new int[]{xChunk, zChunk});
-                }
-            }
-        }
-        return result;
-    }
+         z = bitPosition / 16;
+         x = bitPosition - 16 * z;
+      }
 
-    public void writeToNBT(CompoundTag nbt) {
-        nbt.putBoolean("fullSet", fullSet);
+      int y = rand.nextInt(255);
+      return new BlockPos(x, y, z);
+   }
 
-        if (property != null) {
-            nbt.putByteArray("bits", property.toByteArray());
-        }
-    }
+   public boolean isEmpty() {
+      return !this.fullSet && (this.property == null || this.property.isEmpty());
+   }
 
-    public void readFromNBT(CompoundTag nbt) {
-        fullSet = nbt.getBooleanOr("fullSet", false);
+   public ZoneChunk readFromByteBuf(FriendlyByteBuf buf) {
+      int flags = buf.readUnsignedByte();
+      if ((flags & 1) != 0) {
+         this.property = BitSet.valueOf(buf.readByteArray());
+      }
 
-        nbt.getByteArray("bits").ifPresent(bytes -> {
-            property = BitSet.valueOf(bytes);
-        });
-    }
+      this.fullSet = (flags & 2) != 0;
+      return this;
+   }
 
-    public BlockPos getRandomBlockPos(Random rand) {
-        int x, z;
-
-        if (fullSet) {
-            x = rand.nextInt(16);
-            z = rand.nextInt(16);
-        } else {
-            int bitId = rand.nextInt(property.cardinality());
-            int bitPosition = property.nextSetBit(0);
-
-            while (bitId > 0) {
-                bitId--;
-                bitPosition = property.nextSetBit(bitPosition + 1);
-            }
-
-            z = bitPosition / 16;
-            x = bitPosition - 16 * z;
-        }
-        int y = rand.nextInt(255);
-
-        return new BlockPos(x, y, z);
-    }
-
-    public boolean isEmpty() {
-        return !fullSet && (property == null || property.isEmpty());
-    }
-
-    public ZoneChunk readFromByteBuf(FriendlyByteBuf buf) {
-        int flags = buf.readUnsignedByte();
-        if ((flags & 1) != 0) {
-            property = BitSet.valueOf(buf.readByteArray());
-        }
-        fullSet = (flags & 2) != 0;
-
-        return this;
-    }
-
-    public void writeToByteBuf(FriendlyByteBuf buf) {
-        int flags = (fullSet ? 2 : 0) | (property != null ? 1 : 0);
-        buf.writeByte(flags);
-        if (property != null) {
-            buf.writeByteArray(property.toByteArray());
-        }
-    }
+   public void writeToByteBuf(FriendlyByteBuf buf) {
+      int flags = (this.fullSet ? 2 : 0) | (this.property != null ? 1 : 0);
+      buf.writeByte(flags);
+      if (this.property != null) {
+         buf.writeByteArray(this.property.toByteArray());
+      }
+   }
 }

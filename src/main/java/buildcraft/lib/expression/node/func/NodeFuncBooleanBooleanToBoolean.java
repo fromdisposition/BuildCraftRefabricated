@@ -1,139 +1,125 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.node.func;
 
-import java.util.Objects;
-
 import buildcraft.lib.expression.NodeInliningHelper;
-import buildcraft.lib.expression.api.IDependantNode;
 import buildcraft.lib.expression.api.IDependancyVisitor;
-import buildcraft.lib.expression.api.IExpressionNode.INodeBoolean;
-import buildcraft.lib.expression.api.IExpressionNode.INodeDouble;
-import buildcraft.lib.expression.api.IExpressionNode.INodeLong;
-import buildcraft.lib.expression.api.IExpressionNode.INodeObject;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncBoolean;
+import buildcraft.lib.expression.api.IDependantNode;
+import buildcraft.lib.expression.api.IExpressionNode;
+import buildcraft.lib.expression.api.INodeFunc;
 import buildcraft.lib.expression.api.INodeStack;
 import buildcraft.lib.expression.api.InvalidExpressionException;
-import buildcraft.lib.expression.api.NodeTypes;
-import buildcraft.lib.expression.node.func.StringFunctionTri;
-import buildcraft.lib.expression.node.func.NodeFuncBase;
-import buildcraft.lib.expression.node.func.NodeFuncBase.IFunctionNode;
 import buildcraft.lib.expression.node.value.NodeConstantBoolean;
+import java.util.Objects;
 
-public class NodeFuncBooleanBooleanToBoolean extends NodeFuncBase implements INodeFuncBoolean {
+public class NodeFuncBooleanBooleanToBoolean extends NodeFuncBase implements INodeFunc.INodeFuncBoolean {
+   public final NodeFuncBooleanBooleanToBoolean.IFuncBooleanBooleanToBoolean function;
+   private final StringFunctionTri stringFunction;
 
-    public final IFuncBooleanBooleanToBoolean function;
-    private final StringFunctionTri stringFunction;
+   public NodeFuncBooleanBooleanToBoolean(String name, NodeFuncBooleanBooleanToBoolean.IFuncBooleanBooleanToBoolean function) {
+      this(function, (a, b) -> "[ boolean, boolean -> boolean ] " + name + "(" + a + ", " + b + ")");
+   }
 
-    public NodeFuncBooleanBooleanToBoolean(String name, IFuncBooleanBooleanToBoolean function) {
-        this(function, (a, b) -> "[ boolean, boolean -> boolean ] " + name + "(" + a + ", " + b +  ")");
-    }
+   public NodeFuncBooleanBooleanToBoolean(NodeFuncBooleanBooleanToBoolean.IFuncBooleanBooleanToBoolean function, StringFunctionTri stringFunction) {
+      this.function = function;
+      this.stringFunction = stringFunction;
+   }
 
-    public NodeFuncBooleanBooleanToBoolean(IFuncBooleanBooleanToBoolean function, StringFunctionTri stringFunction) {
+   @Override
+   public String toString() {
+      return this.stringFunction.apply("{A}", "{B}");
+   }
 
-        this.function = function;
-        this.stringFunction = stringFunction;
-    }
+   public NodeFuncBooleanBooleanToBoolean setNeverInline() {
+      super.setNeverInline();
+      return this;
+   }
 
-    @Override
-    public String toString() {
-        return stringFunction.apply("{A}", "{B}");
-    }
+   @Override
+   public IExpressionNode.INodeBoolean getNode(INodeStack stack) throws InvalidExpressionException {
+      IExpressionNode.INodeBoolean b = stack.popBoolean();
+      IExpressionNode.INodeBoolean a = stack.popBoolean();
+      return this.create(a, b);
+   }
 
-    @Override
-    public NodeFuncBooleanBooleanToBoolean setNeverInline() {
-        super.setNeverInline();
-        return this;
-    }
+   public NodeFuncBooleanBooleanToBoolean.FuncBooleanBooleanToBoolean create(IExpressionNode.INodeBoolean argA, IExpressionNode.INodeBoolean argB) {
+      return new NodeFuncBooleanBooleanToBoolean.FuncBooleanBooleanToBoolean(argA, argB);
+   }
 
-    @Override
-    public INodeBoolean getNode(INodeStack stack) throws InvalidExpressionException {
+   public class FuncBooleanBooleanToBoolean implements IExpressionNode.INodeBoolean, IDependantNode, NodeFuncBase.IFunctionNode {
+      public final IExpressionNode.INodeBoolean argA;
+      public final IExpressionNode.INodeBoolean argB;
 
-        INodeBoolean b = stack.popBoolean();
-        INodeBoolean a = stack.popBoolean();
+      public FuncBooleanBooleanToBoolean(IExpressionNode.INodeBoolean argA, IExpressionNode.INodeBoolean argB) {
+         this.argA = argA;
+         this.argB = argB;
+      }
 
-        return create(a, b);
-    }
+      @Override
+      public boolean evaluate() {
+         return NodeFuncBooleanBooleanToBoolean.this.function.apply(this.argA.evaluate(), this.argB.evaluate());
+      }
 
-    public FuncBooleanBooleanToBoolean create(INodeBoolean argA, INodeBoolean argB) {
-        return new FuncBooleanBooleanToBoolean(argA, argB);
-    }
-
-    public class FuncBooleanBooleanToBoolean implements INodeBoolean, IDependantNode, IFunctionNode {
-        public final INodeBoolean argA;
-        public final INodeBoolean argB;
-
-        public FuncBooleanBooleanToBoolean(INodeBoolean argA, INodeBoolean argB) {
-            this.argA = argA;
-            this.argB = argB;
-
-        }
-
-        @Override
-        public boolean evaluate() {
-            return function.apply(argA.evaluate(), argB.evaluate());
-        }
-
-        @Override
-        public INodeBoolean inline() {
-            if (!canInline) {
-
-                return NodeInliningHelper.tryInline(this, argA, argB,
-                    (a, b) -> new FuncBooleanBooleanToBoolean(a, b),
-                    (a, b) -> new FuncBooleanBooleanToBoolean(a, b)
-                );
-            }
-            return NodeInliningHelper.tryInline(this, argA, argB,
-                (a, b) -> new FuncBooleanBooleanToBoolean(a, b),
-                (a, b) -> NodeConstantBoolean.of(function.apply(a.evaluate(), b.evaluate()))
+      @Override
+      public IExpressionNode.INodeBoolean inline() {
+         return !NodeFuncBooleanBooleanToBoolean.this.canInline
+            ? NodeInliningHelper.tryInline(
+               this,
+               this.argA,
+               this.argB,
+               (a, b) -> NodeFuncBooleanBooleanToBoolean.this.new FuncBooleanBooleanToBoolean(a, b),
+               (a, b) -> NodeFuncBooleanBooleanToBoolean.this.new FuncBooleanBooleanToBoolean(a, b)
+            )
+            : NodeInliningHelper.tryInline(
+               this,
+               this.argA,
+               this.argB,
+               (a, b) -> NodeFuncBooleanBooleanToBoolean.this.new FuncBooleanBooleanToBoolean(a, b),
+               (a, b) -> NodeConstantBoolean.of(NodeFuncBooleanBooleanToBoolean.this.function.apply(a.evaluate(), b.evaluate()))
             );
-        }
+      }
 
-        @Override
-        public void visitDependants(IDependancyVisitor visitor) {
-            if (!canInline) {
-                if (function instanceof IDependantNode) {
-                    visitor.dependOn((IDependantNode) function);
-                } else {
-                    visitor.dependOnExplictly(this);
-                }
+      @Override
+      public void visitDependants(IDependancyVisitor visitor) {
+         if (!NodeFuncBooleanBooleanToBoolean.this.canInline) {
+            if (NodeFuncBooleanBooleanToBoolean.this.function instanceof IDependantNode) {
+               visitor.dependOn((IDependantNode)NodeFuncBooleanBooleanToBoolean.this.function);
+            } else {
+               visitor.dependOnExplictly(this);
             }
-            visitor.dependOn(argA, argB);
-        }
+         }
 
-        @Override
-        public String toString() {
-            return stringFunction.apply(argA.toString(), argB.toString());
-        }
+         visitor.dependOn(this.argA, this.argB);
+      }
 
-        @Override
-        public NodeFuncBase getFunction() {
-            return NodeFuncBooleanBooleanToBoolean.this;
-        }
+      @Override
+      public String toString() {
+         return NodeFuncBooleanBooleanToBoolean.this.stringFunction.apply(this.argA.toString(), this.argB.toString());
+      }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(argA, argB);
-        }
+      @Override
+      public NodeFuncBase getFunction() {
+         return NodeFuncBooleanBooleanToBoolean.this;
+      }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            FuncBooleanBooleanToBoolean other = (FuncBooleanBooleanToBoolean) obj;
-            return Objects.equals(argA, other.argA)
-            &&Objects.equals(argB, other.argB);
-        }
-    }
+      @Override
+      public int hashCode() {
+         return Objects.hash(this.argA, this.argB);
+      }
 
-    @FunctionalInterface
-    public interface IFuncBooleanBooleanToBoolean {
-        boolean apply(boolean a, boolean b);
-    }
+      @Override
+      public boolean equals(Object obj) {
+         if (obj == this) {
+            return true;
+         } else if (obj != null && this.getClass() == obj.getClass()) {
+            NodeFuncBooleanBooleanToBoolean.FuncBooleanBooleanToBoolean other = (NodeFuncBooleanBooleanToBoolean.FuncBooleanBooleanToBoolean)obj;
+            return Objects.equals(this.argA, other.argA) && Objects.equals(this.argB, other.argB);
+         } else {
+            return false;
+         }
+      }
+   }
+
+   @FunctionalInterface
+   public interface IFuncBooleanBooleanToBoolean {
+      boolean apply(boolean var1, boolean var2);
+   }
 }

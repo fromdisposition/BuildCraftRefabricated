@@ -1,160 +1,184 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.node.func;
 
-import java.util.Objects;
-
 import buildcraft.lib.expression.NodeInliningHelper;
-import buildcraft.lib.expression.api.IDependantNode;
 import buildcraft.lib.expression.api.IDependancyVisitor;
-import buildcraft.lib.expression.api.IExpressionNode.INodeBoolean;
-import buildcraft.lib.expression.api.IExpressionNode.INodeDouble;
-import buildcraft.lib.expression.api.IExpressionNode.INodeLong;
-import buildcraft.lib.expression.api.IExpressionNode.INodeObject;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncObject;
+import buildcraft.lib.expression.api.IDependantNode;
+import buildcraft.lib.expression.api.IExpressionNode;
+import buildcraft.lib.expression.api.INodeFunc;
 import buildcraft.lib.expression.api.INodeStack;
 import buildcraft.lib.expression.api.InvalidExpressionException;
 import buildcraft.lib.expression.api.NodeTypes;
-import buildcraft.lib.expression.node.func.StringFunctionQuad;
-import buildcraft.lib.expression.node.func.NodeFuncBase;
-import buildcraft.lib.expression.node.func.NodeFuncBase.IFunctionNode;
 import buildcraft.lib.expression.node.value.NodeConstantObject;
+import java.util.Objects;
 
-@SuppressWarnings("unchecked")
-public class NodeFuncObjectBooleanObjectToObject<A, C, R> extends NodeFuncBase implements INodeFuncObject<R> {
+public class NodeFuncObjectBooleanObjectToObject<A, C, R> extends NodeFuncBase implements INodeFunc.INodeFuncObject<R> {
+   public final NodeFuncObjectBooleanObjectToObject.IFuncObjectBooleanObjectToObject<A, C, R> function;
+   private final StringFunctionQuad stringFunction;
+   private final Class<A> argTypeA;
+   private final Class<C> argTypeC;
+   private final Class<R> returnType;
 
-    public final IFuncObjectBooleanObjectToObject<A, C, R> function;
-    private final StringFunctionQuad stringFunction;
-    private final Class<A> argTypeA;
-    private final Class<C> argTypeC;
-    private final Class<R> returnType;
+   public NodeFuncObjectBooleanObjectToObject(
+      String name,
+      Class<A> argTypeA,
+      Class<C> argTypeC,
+      Class<R> returnType,
+      NodeFuncObjectBooleanObjectToObject.IFuncObjectBooleanObjectToObject<A, C, R> function
+   ) {
+      this(
+         argTypeA,
+         argTypeC,
+         returnType,
+         function,
+         (a, b, c) -> "[ "
+            + NodeTypes.getName(argTypeA)
+            + ", boolean, "
+            + NodeTypes.getName(argTypeC)
+            + " -> "
+            + NodeTypes.getName(returnType)
+            + " ] "
+            + name
+            + "("
+            + a
+            + ", "
+            + b
+            + ", "
+            + c
+            + ")"
+      );
+   }
 
-    public NodeFuncObjectBooleanObjectToObject(String name, Class<A> argTypeA, Class<C> argTypeC, Class<R> returnType, IFuncObjectBooleanObjectToObject<A, C, R> function) {
-        this(argTypeA, argTypeC, returnType, function, (a, b, c) -> "[ " + NodeTypes.getName(argTypeA) + ", boolean, " + NodeTypes.getName(argTypeC) + " -> " + NodeTypes.getName(returnType) + " ] " + name + "(" + a + ", " + b + ", " + c +  ")");
-    }
+   public NodeFuncObjectBooleanObjectToObject(
+      Class<A> argTypeA,
+      Class<C> argTypeC,
+      Class<R> returnType,
+      NodeFuncObjectBooleanObjectToObject.IFuncObjectBooleanObjectToObject<A, C, R> function,
+      StringFunctionQuad stringFunction
+   ) {
+      this.argTypeA = argTypeA;
+      this.argTypeC = argTypeC;
+      this.returnType = returnType;
+      this.function = function;
+      this.stringFunction = stringFunction;
+   }
 
-    public NodeFuncObjectBooleanObjectToObject(Class<A> argTypeA, Class<C> argTypeC, Class<R> returnType, IFuncObjectBooleanObjectToObject<A, C, R> function, StringFunctionQuad stringFunction) {
-        this.argTypeA = argTypeA;
-        this.argTypeC = argTypeC;
-        this.returnType = returnType;
+   @Override
+   public Class<R> getType() {
+      return this.returnType;
+   }
 
-        this.function = function;
-        this.stringFunction = stringFunction;
-    }
+   @Override
+   public String toString() {
+      return this.stringFunction.apply("{A}", "{B}", "{C}");
+   }
 
-    @Override
-    public Class<R> getType() {
-        return returnType;
-    }
+   public NodeFuncObjectBooleanObjectToObject<A, C, R> setNeverInline() {
+      super.setNeverInline();
+      return this;
+   }
 
-    @Override
-    public String toString() {
-        return stringFunction.apply("{A}", "{B}", "{C}");
-    }
+   @Override
+   public IExpressionNode.INodeObject<R> getNode(INodeStack stack) throws InvalidExpressionException {
+      IExpressionNode.INodeObject<C> c = stack.popObject(this.argTypeC);
+      IExpressionNode.INodeBoolean b = stack.popBoolean();
+      IExpressionNode.INodeObject<A> a = stack.popObject(this.argTypeA);
+      return this.create(a, b, c);
+   }
 
-    @Override
-    public NodeFuncObjectBooleanObjectToObject<A, C, R> setNeverInline() {
-        super.setNeverInline();
-        return this;
-    }
+   public NodeFuncObjectBooleanObjectToObject<A, C, R>.FuncObjectBooleanObjectToObject create(
+      IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeBoolean argB, IExpressionNode.INodeObject<C> argC
+   ) {
+      return new NodeFuncObjectBooleanObjectToObject.FuncObjectBooleanObjectToObject(argA, argB, argC);
+   }
 
-    @Override
-    public INodeObject<R> getNode(INodeStack stack) throws InvalidExpressionException {
+   public class FuncObjectBooleanObjectToObject implements IExpressionNode.INodeObject<R>, IDependantNode, NodeFuncBase.IFunctionNode {
+      public final IExpressionNode.INodeObject<A> argA;
+      public final IExpressionNode.INodeBoolean argB;
+      public final IExpressionNode.INodeObject<C> argC;
 
-        INodeObject<C> c = stack.popObject(argTypeC);
-        INodeBoolean b = stack.popBoolean();
-        INodeObject<A> a = stack.popObject(argTypeA);
+      public FuncObjectBooleanObjectToObject(IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeBoolean argB, IExpressionNode.INodeObject<C> argC) {
+         this.argA = argA;
+         this.argB = argB;
+         this.argC = argC;
+      }
 
-        return create(a, b, c);
-    }
+      @Override
+      public Class<R> getType() {
+         return NodeFuncObjectBooleanObjectToObject.this.returnType;
+      }
 
-    public FuncObjectBooleanObjectToObject create(INodeObject<A> argA, INodeBoolean argB, INodeObject<C> argC) {
-        return new FuncObjectBooleanObjectToObject(argA, argB, argC);
-    }
+      @Override
+      public R evaluate() {
+         return NodeFuncObjectBooleanObjectToObject.this.function.apply(this.argA.evaluate(), this.argB.evaluate(), this.argC.evaluate());
+      }
 
-    public class FuncObjectBooleanObjectToObject implements INodeObject<R>, IDependantNode, IFunctionNode {
-        public final INodeObject<A> argA;
-        public final INodeBoolean argB;
-        public final INodeObject<C> argC;
-
-        public FuncObjectBooleanObjectToObject(INodeObject<A> argA, INodeBoolean argB, INodeObject<C> argC) {
-            this.argA = argA;
-            this.argB = argB;
-            this.argC = argC;
-
-        }
-
-        @Override
-        public Class<R> getType() {
-            return returnType;
-        }
-
-        @Override
-        public R evaluate() {
-            return function.apply(argA.evaluate(), argB.evaluate(), argC.evaluate());
-        }
-
-        @Override
-        public INodeObject<R> inline() {
-            if (!canInline) {
-
-                return NodeInliningHelper.tryInline(this, argA, argB, argC,
-                    (a, b, c) -> new FuncObjectBooleanObjectToObject(a, b, c),
-                    (a, b, c) -> new FuncObjectBooleanObjectToObject(a, b, c)
-                );
-            }
-            return NodeInliningHelper.tryInline(this, argA, argB, argC,
-                (a, b, c) -> new FuncObjectBooleanObjectToObject(a, b, c),
-                (a, b, c) -> new NodeConstantObject<>(returnType, function.apply(a.evaluate(), b.evaluate(), c.evaluate()))
+      @Override
+      public IExpressionNode.INodeObject<R> inline() {
+         return !NodeFuncObjectBooleanObjectToObject.this.canInline
+            ? NodeInliningHelper.tryInline(
+               this,
+               this.argA,
+               this.argB,
+               this.argC,
+               (a, b, c) -> NodeFuncObjectBooleanObjectToObject.this.new FuncObjectBooleanObjectToObject(a, b, c),
+               (a, b, c) -> NodeFuncObjectBooleanObjectToObject.this.new FuncObjectBooleanObjectToObject(a, b, c)
+            )
+            : NodeInliningHelper.tryInline(
+               this,
+               this.argA,
+               this.argB,
+               this.argC,
+               (a, b, c) -> NodeFuncObjectBooleanObjectToObject.this.new FuncObjectBooleanObjectToObject(a, b, c),
+               (a, b, c) -> new NodeConstantObject<>(
+                  NodeFuncObjectBooleanObjectToObject.this.returnType,
+                  NodeFuncObjectBooleanObjectToObject.this.function.apply(a.evaluate(), b.evaluate(), c.evaluate())
+               )
             );
-        }
+      }
 
-        @Override
-        public void visitDependants(IDependancyVisitor visitor) {
-            if (!canInline) {
-                if (function instanceof IDependantNode) {
-                    visitor.dependOn((IDependantNode) function);
-                } else {
-                    visitor.dependOnExplictly(this);
-                }
+      @Override
+      public void visitDependants(IDependancyVisitor visitor) {
+         if (!NodeFuncObjectBooleanObjectToObject.this.canInline) {
+            if (NodeFuncObjectBooleanObjectToObject.this.function instanceof IDependantNode) {
+               visitor.dependOn((IDependantNode)NodeFuncObjectBooleanObjectToObject.this.function);
+            } else {
+               visitor.dependOnExplictly(this);
             }
-            visitor.dependOn(argA, argB, argC);
-        }
+         }
 
-        @Override
-        public String toString() {
-            return stringFunction.apply(argA.toString(), argB.toString(), argC.toString());
-        }
+         visitor.dependOn(this.argA, this.argB, this.argC);
+      }
 
-        @Override
-        public NodeFuncBase getFunction() {
-            return NodeFuncObjectBooleanObjectToObject.this;
-        }
+      @Override
+      public String toString() {
+         return NodeFuncObjectBooleanObjectToObject.this.stringFunction.apply(this.argA.toString(), this.argB.toString(), this.argC.toString());
+      }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(argA, argB, argC);
-        }
+      @Override
+      public NodeFuncBase getFunction() {
+         return NodeFuncObjectBooleanObjectToObject.this;
+      }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            FuncObjectBooleanObjectToObject other = (FuncObjectBooleanObjectToObject) obj;
-            return Objects.equals(argA, other.argA)
-            &&Objects.equals(argB, other.argB)
-            &&Objects.equals(argC, other.argC);
-        }
-    }
+      @Override
+      public int hashCode() {
+         return Objects.hash(this.argA, this.argB, this.argC);
+      }
 
-    @FunctionalInterface
-    public interface IFuncObjectBooleanObjectToObject<A, C, R> {
-        R apply(A a, boolean b, C c);
-    }
+      @Override
+      public boolean equals(Object obj) {
+         if (obj == this) {
+            return true;
+         } else if (obj != null && this.getClass() == obj.getClass()) {
+            NodeFuncObjectBooleanObjectToObject<A, C, R>.FuncObjectBooleanObjectToObject other = (NodeFuncObjectBooleanObjectToObject.FuncObjectBooleanObjectToObject)obj;
+            return Objects.equals(this.argA, other.argA) && Objects.equals(this.argB, other.argB) && Objects.equals(this.argC, other.argC);
+         } else {
+            return false;
+         }
+      }
+   }
+
+   @FunctionalInterface
+   public interface IFuncObjectBooleanObjectToObject<A, C, R> {
+      R apply(A var1, boolean var2, C var3);
+   }
 }

@@ -1,12 +1,12 @@
 package buildcraft.api.facades;
 
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 
 public interface IFacadeState {
-    boolean isTransparent();
+   boolean isTransparent();
 
-    BlockState getBlockState();
+   BlockState getBlockState();
 
-    ItemStack getRequiredStack();
+   ItemStack getRequiredStack();
 }

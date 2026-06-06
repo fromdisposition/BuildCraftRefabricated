@@ -3,11 +3,11 @@ package buildcraft.api.statements;
 import net.minecraft.core.Direction;
 
 public interface ITriggerExternalOverride {
-    enum Result {
-        TRUE,
-        FALSE,
-        IGNORE
-    }
+   ITriggerExternalOverride.Result override(Direction var1, IStatementContainer var2, ITriggerExternal var3, IStatementParameter[] var4);
 
-    Result override(Direction side, IStatementContainer source, ITriggerExternal trigger, IStatementParameter[] parameters);
+   enum Result {
+      TRUE,
+      FALSE,
+      IGNORE;
+   }
 }

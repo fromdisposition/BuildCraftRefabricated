@@ -3,33 +3,30 @@ package buildcraft.api.registry;
 import java.util.Map;
 import java.util.Set;
 
-import buildcraft.api.registry.IReloadableRegistry.PackType;
-
 public interface IReloadableRegistryManager {
+   IReloadableRegistry.PackType getType();
 
-    PackType getType();
+   boolean isLoadingAll();
 
-    boolean isLoadingAll();
+   void reload(IReloadableRegistry<?> var1);
 
-    void reload(IReloadableRegistry<?> registry);
+   void reload(IReloadableRegistry<?>... var1);
 
-    void reload(IReloadableRegistry<?>... registries);
+   void reload(Set<IReloadableRegistry<?>> var1);
 
-    void reload(Set<IReloadableRegistry<?>> registries);
+   boolean isInReload();
 
-    boolean isInReload();
+   int getReloadCount();
 
-    int getReloadCount();
+   Map<String, IReloadableRegistry<?>> getAllRegistries();
 
-    Map<String, IReloadableRegistry<?>> getAllRegistries();
+   <R> IReloadableRegistry<R> createRegistry(String var1);
 
-    <R> IReloadableRegistry<R> createRegistry(String name);
+   <R> IScriptableRegistry<R> createScriptableRegistry(String var1);
 
-    <R> IScriptableRegistry<R> createScriptableRegistry(String entryPath);
+   void registerRegistry(String var1, IScriptableRegistry<?> var2);
 
-    void registerRegistry(String entryType, IScriptableRegistry<?> registry);
-
-    default void registerRegistry(IScriptableRegistry<?> registry) {
-        registerRegistry(registry.getEntryType(), registry);
-    }
+   default void registerRegistry(IScriptableRegistry<?> registry) {
+      this.registerRegistry(registry.getEntryType(), registry);
+   }
 }

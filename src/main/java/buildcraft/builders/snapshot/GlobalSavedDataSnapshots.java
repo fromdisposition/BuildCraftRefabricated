@@ -1,11 +1,15 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.builders.snapshot;
 
+import buildcraft.api.core.BCLog;
+import buildcraft.api.core.InvalidInputDataException;
+import buildcraft.lib.fabric.loader.GamePaths;
+import buildcraft.lib.misc.data.SingleCache;
+import buildcraft.lib.nbt.NbtSquisher;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,175 +21,173 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
 import javax.annotation.Nullable;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
-
-import org.apache.commons.lang3.tuple.Pair;
-
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
-
-import buildcraft.lib.fabric.loader.GamePaths;
-import buildcraft.fabric.env.Env;
-
-import buildcraft.api.core.BCLog;
-import buildcraft.api.core.InvalidInputDataException;
-import buildcraft.lib.misc.data.SingleCache;
-import buildcraft.lib.nbt.NbtSquisher;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class GlobalSavedDataSnapshots {
-    private static final String SNAPSHOT_FILE_EXTENSION = ".bcnbt";
+   private static final String SNAPSHOT_FILE_EXTENSION = ".bcnbt";
+   private static final Map<GlobalSavedDataSnapshots.Side, GlobalSavedDataSnapshots> INSTANCES = new EnumMap<>(GlobalSavedDataSnapshots.Side.class);
+   private final LoadingCache<Snapshot.Key, Optional<Snapshot>> snapshotsCache = CacheBuilder.newBuilder()
+      .expireAfterAccess(10L, TimeUnit.MINUTES)
+      .build(CacheLoader.from(key -> Optional.ofNullable(this.readSnapshot(key)).map(Pair::getLeft)));
+   private final SingleCache<List<Snapshot.Key>> listCache = new SingleCache<>(this::readList, 1L, TimeUnit.SECONDS);
+   private final File snapshotsFile;
+   private static final Logger LOGGER = LogManager.getLogger("BCSavedSnapshots");
 
-    public enum Side {
-        CLIENT, SERVER;
-    }
+   private GlobalSavedDataSnapshots(GlobalSavedDataSnapshots.Side side) {
+      this.snapshotsFile = new File(GamePaths.GAMEDIR.toFile(), "snapshots-" + side.name().toLowerCase(Locale.ROOT));
+      if (!this.snapshotsFile.exists()) {
+         if (!this.snapshotsFile.mkdirs()) {
+            throw new RuntimeException("Failed to make the directories required for snapshots: " + this.snapshotsFile);
+         }
+      } else if (!this.snapshotsFile.isDirectory()) {
+         throw new IllegalStateException("The snapshots directory was not a directory: " + this.snapshotsFile);
+      }
+   }
 
-    private static final Map<Side, GlobalSavedDataSnapshots> INSTANCES = new EnumMap<>(Side.class);
-    private final LoadingCache<Snapshot.Key, Optional<Snapshot>> snapshotsCache = CacheBuilder.newBuilder()
-        .expireAfterAccess(10, TimeUnit.MINUTES)
-        .build(CacheLoader.from(key -> Optional.ofNullable(readSnapshot(key)).map(Pair::getLeft)));
-    private final SingleCache<List<Snapshot.Key>> listCache = new SingleCache<>(
-        this::readList,
-        1,
-        TimeUnit.SECONDS
-    );
-    private final File snapshotsFile;
+   public static void reInit(GlobalSavedDataSnapshots.Side side) {
+      INSTANCES.put(side, new GlobalSavedDataSnapshots(side));
+   }
 
-    private GlobalSavedDataSnapshots(Side side) {
-        snapshotsFile = new File(
-            GamePaths.GAMEDIR.toFile(),
-            "snapshots-" + side.name().toLowerCase(Locale.ROOT)
-        );
-        if (!snapshotsFile.exists()) {
-            if (!snapshotsFile.mkdirs()) {
-                throw new RuntimeException("Failed to make the directories required for snapshots: " + snapshotsFile);
+   public static GlobalSavedDataSnapshots get(GlobalSavedDataSnapshots.Side side) {
+      if (!INSTANCES.containsKey(side)) {
+         INSTANCES.put(side, new GlobalSavedDataSnapshots(side));
+      }
+
+      return INSTANCES.get(side);
+   }
+
+   public static GlobalSavedDataSnapshots get(Level world) {
+      return get(world.isClientSide() ? GlobalSavedDataSnapshots.Side.CLIENT : GlobalSavedDataSnapshots.Side.SERVER);
+   }
+
+   private Pair<Snapshot, File> readSnapshot(Snapshot.Key key) {
+      File direct = this.snapshotFileFor(key);
+      if (direct.isFile()) {
+         return this.readSnapshotFile(direct, key);
+      }
+
+      String targetPrefix = key.toString();
+      LOGGER.debug("readSnapshot: looking for key-prefix={} in dir={}", targetPrefix, this.snapshotsFile);
+      File[] files = this.snapshotsFile.listFiles();
+      if (files == null) {
+         LOGGER.warn("readSnapshot: listFiles() returned null for dir={}", this.snapshotsFile);
+         return null;
+      }
+
+      int matchedPrefix = 0;
+
+      for (File snapshotFile : files) {
+         if (snapshotFile.getName().startsWith(targetPrefix) && snapshotFile.getName().endsWith(".bcnbt")) {
+            matchedPrefix++;
+            Pair<Snapshot, File> loaded = this.readSnapshotFile(snapshotFile, key);
+            if (loaded != null) {
+               return loaded;
             }
-        } else if (!snapshotsFile.isDirectory()) {
-            throw new IllegalStateException("The snapshots directory was not a directory: " + snapshotsFile);
-        }
-    }
+         }
+      }
 
-    public static void reInit(Side side) {
-        INSTANCES.put(side, new GlobalSavedDataSnapshots(side));
-    }
+      LOGGER.debug("readSnapshot: no file matched prefix={} (files-with-prefix-match={})", targetPrefix, matchedPrefix);
+      return null;
+   }
 
-    public static GlobalSavedDataSnapshots get(Side side) {
-        if (!INSTANCES.containsKey(side)) {
-            INSTANCES.put(side, new GlobalSavedDataSnapshots(side));
-        }
-        return INSTANCES.get(side);
-    }
+   @Nullable
+   private Pair<Snapshot, File> readSnapshotFile(File snapshotFile, Snapshot.Key key) {
+      try (FileInputStream fileInputStream = new FileInputStream(snapshotFile)) {
+         Snapshot snapshot = Snapshot.readFromNBT(NbtSquisher.expand(fileInputStream));
+         if (Objects.equals(snapshot.key, key)) {
+            return Pair.of(snapshot, snapshotFile);
+         }
 
-    public static GlobalSavedDataSnapshots get(Level world) {
-        return get(world.isClientSide() ? Side.CLIENT : Side.SERVER);
-    }
+         LOGGER.debug("readSnapshot: file {} key mismatch", snapshotFile.getName());
+      } catch (InvalidInputDataException e) {
+         LOGGER.warn("readSnapshot: corrupted snapshot file {}: {}", snapshotFile, e.getMessage());
+      } catch (IOException e) {
+         LOGGER.warn("readSnapshot: IO error reading {}", snapshotFile, e);
+      } catch (Throwable t) {
+         LOGGER.error("readSnapshot: unexpected error reading {}", snapshotFile, t);
+      }
 
-    private static final org.apache.logging.log4j.Logger LOGGER =
-            org.apache.logging.log4j.LogManager.getLogger("BCSavedSnapshots");
+      return null;
+   }
 
-    private Pair<Snapshot, File> readSnapshot(Snapshot.Key key) {
-        String targetPrefix = key.toString();
-        LOGGER.info("readSnapshot: looking for key-prefix={} in dir={}", targetPrefix, snapshotsFile);
-        File[] files = snapshotsFile.listFiles();
-        if (files == null) {
-            LOGGER.warn("readSnapshot: listFiles() returned null for dir={}", snapshotsFile);
-            return null;
-        }
-        LOGGER.info("readSnapshot: directory has {} entries", files.length);
-        int matchedPrefix = 0;
-        for (File snapshotFile : files) {
-            if (snapshotFile.getName().startsWith(targetPrefix) &&
-                snapshotFile.getName().endsWith(SNAPSHOT_FILE_EXTENSION)) {
-                matchedPrefix++;
-                try (FileInputStream fileInputStream = new FileInputStream(snapshotFile)) {
-                    Snapshot snapshot = Snapshot.readFromNBT(NbtSquisher.expand(fileInputStream));
-                    String loadedHash = snapshot.key == null || snapshot.key.hash == null
-                            ? "null"
-                            : buildcraft.lib.misc.HashUtil.convertHashToString(snapshot.key.hash);
-                    boolean matches = Objects.equals(snapshot.key, key);
-                    LOGGER.info("readSnapshot: loaded {} class={} loadedHash={} loadedHeader={} "
-                            + "requestedHeader={} equals={}",
-                            snapshotFile.getName(),
-                            snapshot.getClass().getSimpleName(),
-                            loadedHash,
-                            snapshot.key != null && snapshot.key.header != null,
-                            key.header != null,
-                            matches);
-                    if (matches) {
-                        return Pair.of(snapshot, snapshotFile);
-                    }
-                } catch (InvalidInputDataException e) {
-                    LOGGER.warn("readSnapshot: corrupted snapshot file {}: {}", snapshotFile, e.getMessage());
-                } catch (IOException e) {
-                    LOGGER.warn("readSnapshot: IO error reading {}", snapshotFile, e);
-                } catch (Throwable t) {
-                    LOGGER.error("readSnapshot: unexpected error reading {}", snapshotFile, t);
-                }
+   private File snapshotFileFor(Snapshot.Key key) {
+      return new File(this.snapshotsFile, key.toString() + ".bcnbt");
+   }
+
+   private List<Snapshot.Key> readList() {
+      Builder<Snapshot.Key> listBuilder = ImmutableList.builder();
+      File[] files = this.snapshotsFile.listFiles();
+      if (files != null) {
+         for (File snapshotFile : files) {
+            if (snapshotFile.getName().endsWith(".bcnbt")) {
+               try (FileInputStream fileInputStream = new FileInputStream(snapshotFile)) {
+                  Snapshot snapshot = Snapshot.readFromNBT(NbtSquisher.expand(fileInputStream));
+                  if (snapshotFile.getName().startsWith(snapshot.key.toString())) {
+                     listBuilder.add(snapshot.key);
+                  }
+               } catch (InvalidInputDataException e) {
+                  BCLog.logger.warn("Skipping corrupted snapshot file: " + snapshotFile + " - " + e.getMessage());
+               } catch (IOException io) {
+                  BCLog.logger.error("Failed to read the snapshot " + snapshotFile, io);
+               }
             }
-        }
-        LOGGER.warn("readSnapshot: no file matched prefix={} (files-with-prefix-match={})", targetPrefix, matchedPrefix);
-        return null;
-    }
+         }
+      }
 
-    private List<Snapshot.Key> readList() {
-        ImmutableList.Builder<Snapshot.Key> listBuilder = ImmutableList.builder();
-        File[] files = snapshotsFile.listFiles();
-        if (files != null) {
-            for (File snapshotFile : files) {
-                if (snapshotFile.getName().endsWith(SNAPSHOT_FILE_EXTENSION)) {
-                    try (FileInputStream fileInputStream = new FileInputStream(snapshotFile)) {
-                        Snapshot snapshot = Snapshot.readFromNBT(NbtSquisher.expand(fileInputStream));
-                        if (snapshotFile.getName().startsWith(snapshot.key.toString())) {
-                            listBuilder.add(snapshot.key);
-                        }
-                    } catch (InvalidInputDataException e) {
-                        BCLog.logger.warn("Skipping corrupted snapshot file: " + snapshotFile + " - " + e.getMessage());
-                    } catch (IOException io) {
-                        BCLog.logger.error("Failed to read the snapshot " + snapshotFile, io);
-                    }
-                }
-            }
-        }
-        return listBuilder.build();
-    }
+      return listBuilder.build();
+   }
 
-    public void addSnapshot(Snapshot snapshot) {
-        File snapshotFile = new File(
-            snapshotsFile,
-            snapshot.key.toString() + SNAPSHOT_FILE_EXTENSION
-        );
-        if (!snapshotFile.exists()) {
+   public void addSnapshot(Snapshot snapshot) {
+      File snapshotFile = this.snapshotFileFor(snapshot.key);
+      if (snapshotFile.exists()) {
+         this.snapshotsCache.invalidate(snapshot.key);
+      } else {
+         CompoundTag nbt = Snapshot.writeToNBT(snapshot);
+         this.snapshotsCache.invalidate(snapshot.key);
+         this.listCache.clear();
+         BuildersNetworkAsync.runDiskWrite(() -> {
             try (FileOutputStream fileOutputStream = new FileOutputStream(snapshotFile)) {
-                NbtSquisher.squishVanilla(Snapshot.writeToNBT(snapshot), fileOutputStream);
+               NbtSquisher.squishVanilla(nbt, fileOutputStream);
             } catch (IOException e) {
-                BCLog.logger.error("Failed to write the snapshot file: " + snapshotFile, e);
+               BCLog.logger.error("Failed to write the snapshot file: " + snapshotFile, e);
+               if (snapshotFile.exists() && !snapshotFile.delete()) {
+                  BCLog.logger.warn("Failed to delete partial snapshot file: {}", snapshotFile);
+               }
             }
-        }
-        snapshotsCache.invalidate(snapshot.key);
-        listCache.clear();
-    }
 
-    public void removeSnapshot(Snapshot.Key key) {
-        Optional.ofNullable(readSnapshot(key)).map(Pair::getRight).ifPresent(snapshotFile -> {
-            if (!snapshotFile.delete()) {
-                BCLog.logger.error("Failed to delete the snapshot file: " + snapshotFile);
-            }
-            snapshotsCache.invalidate(key);
-        });
-        listCache.clear();
-    }
+            this.snapshotsCache.invalidate(snapshot.key);
+            this.listCache.clear();
+         });
+      }
+   }
 
-    @Nullable
-    public Snapshot getSnapshot(@Nullable Snapshot.Key key) {
-        if (key == null) return null;
-        return snapshotsCache.getUnchecked(key).orElse(null);
-    }
+   public void removeSnapshot(Snapshot.Key key) {
+      Optional.ofNullable(this.readSnapshot(key)).<File>map(Pair::getRight).ifPresent(snapshotFile -> {
+         if (!snapshotFile.delete()) {
+            BCLog.logger.error("Failed to delete the snapshot file: " + snapshotFile);
+         }
 
-    public List<Snapshot.Key> getList() {
-        return listCache.get();
-    }
+         this.snapshotsCache.invalidate(key);
+      });
+      this.listCache.clear();
+   }
+
+   @Nullable
+   public Snapshot getSnapshot(@Nullable Snapshot.Key key) {
+      return key == null ? null : (Snapshot)((Optional)this.snapshotsCache.getUnchecked(key)).orElse(null);
+   }
+
+   public List<Snapshot.Key> getList() {
+      return this.listCache.get();
+   }
+
+   public enum Side {
+      CLIENT,
+      SERVER;
+   }
 }

@@ -1,66 +1,47 @@
 package buildcraft.builders.snapshot;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import buildcraft.lib.net.BcPacketDistributor;
+import buildcraft.lib.sync.ClientKeyedCache;
+import java.util.Arrays;
 import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 
-import buildcraft.fabric.client.ClientPacketDistributor;
-
 public enum ClientArchitectPreviews {
-    INSTANCE;
+   INSTANCE;
 
-    private final Map<BlockPos, Blueprint> previews = new HashMap<>();
-    private final Set<BlockPos> pending = new HashSet<>();
+   private final ClientKeyedCache<BlockPos, Blueprint> cache = new ClientKeyedCache<>(
+      pos -> BcPacketDistributor.sendToServer(BuildersClientRequestPayload.architectPreview(pos.immutable()))
+   );
 
-    @Nullable
-    public Blueprint get(BlockPos pos) {
-        Blueprint cached = previews.get(pos);
-        if (cached == null && !pending.contains(pos)) {
-            pending.add(pos);
-            ClientPacketDistributor.sendToServer(new ArchitectPreviewRequestPayload(pos.immutable()));
-        }
-        return cached;
-    }
+   @Nullable
+   public Blueprint get(BlockPos pos) {
+      return this.cache.get(pos.immutable());
+   }
 
-    public void requestRefresh(BlockPos pos) {
-        BlockPos key = pos.immutable();
-        if (!pending.contains(key)) {
-            pending.add(key);
-            ClientPacketDistributor.sendToServer(new ArchitectPreviewRequestPayload(key));
-        }
-    }
+   public void requestRefresh(BlockPos pos) {
+      this.cache.request(pos.immutable());
+   }
 
-    public void onReceived(BlockPos pos, @Nullable Blueprint blueprint) {
-        BlockPos key = pos.immutable();
-        pending.remove(key);
-        if (blueprint == null) {
-            previews.remove(key);
-            return;
-        }
-        Blueprint existing = previews.get(key);
-        if (existing != null && sameContent(existing, blueprint)) {
+   public void onReceived(BlockPos pos, @Nullable Blueprint blueprint) {
+      BlockPos key = pos.immutable();
+      if (blueprint == null) {
+         this.cache.remove(key);
+      } else {
+         this.cache.putIfAbsentOrEquals(key, blueprint, ClientArchitectPreviews::sameContent);
+      }
+   }
 
-            return;
-        }
-        previews.put(key, blueprint);
-    }
+   public void invalidate(BlockPos pos) {
+      this.cache.remove(pos.immutable());
+   }
 
-    public void invalidate(BlockPos pos) {
-        BlockPos key = pos.immutable();
-        previews.remove(key);
-        pending.remove(key);
-    }
-
-    private static boolean sameContent(Blueprint a, Blueprint b) {
-        if (a.key == null || b.key == null) return false;
-        byte[] ah = a.key.hash;
-        byte[] bh = b.key.hash;
-        if (ah == null || bh == null || ah.length == 0 || bh.length == 0) return false;
-        return java.util.Arrays.equals(ah, bh);
-    }
+   private static boolean sameContent(Blueprint a, Blueprint b) {
+      if (a.key != null && b.key != null) {
+         byte[] ah = a.key.hash;
+         byte[] bh = b.key.hash;
+         return ah != null && bh != null && ah.length != 0 && bh.length != 0 ? Arrays.equals(ah, bh) : false;
+      } else {
+         return false;
+      }
+   }
 }

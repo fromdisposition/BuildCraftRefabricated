@@ -1,15 +1,15 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.builders.snapshot;
 
+import buildcraft.api.mj.MjAPI;
+import buildcraft.lib.misc.BlockUtil;
+import buildcraft.lib.misc.NBTUtilBC;
+import buildcraft.lib.misc.VecUtil;
+import buildcraft.lib.net.PacketBufferBC;
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -17,824 +17,756 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import com.google.common.collect.ImmutableList;
-
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
-import buildcraft.api.mj.MjAPI;
-
-import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.misc.NBTUtilBC;
-import buildcraft.lib.misc.VecUtil;
-import buildcraft.lib.net.PacketBufferBC;
-
 public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
-    private static final int MAX_QUEUE_SIZE = 16;
-    @SuppressWarnings("WeakerAccess")
-    protected static final byte CHECK_RESULT_UNKNOWN = 0;
-    @SuppressWarnings("WeakerAccess")
-    protected static final byte CHECK_RESULT_CORRECT = 1;
-    @SuppressWarnings("WeakerAccess")
-    protected static final byte CHECK_RESULT_TO_BREAK = 2;
-    @SuppressWarnings("WeakerAccess")
-    protected static final byte CHECK_RESULT_TO_PLACE = 3;
-    private static final byte REQUIRED_UNKNOWN = 0;
-    private static final byte REQUIRED_TRUE = 1;
-    private static final byte REQUIRED_FALSE = 2;
-    private static final int CHECKS_PER_TICK = 10;
-    private static final long MAX_POWER_PER_TICK = 256 * MjAPI.MJ;
+   private static final int MAX_QUEUE_SIZE = 16;
+   protected static final byte CHECK_RESULT_UNKNOWN = 0;
+   protected static final byte CHECK_RESULT_CORRECT = 1;
+   protected static final byte CHECK_RESULT_TO_BREAK = 2;
+   protected static final byte CHECK_RESULT_TO_PLACE = 3;
+   private static final byte REQUIRED_UNKNOWN = 0;
+   private static final byte REQUIRED_TRUE = 1;
+   private static final byte REQUIRED_FALSE = 2;
+   private static final int CHECKS_PER_TICK = 10;
+   private static final long MAX_POWER_PER_TICK = 256L * MjAPI.MJ;
+   protected final T tile;
+   public final Queue<SnapshotBuilder<T>.BreakTask> breakTasks = new ArrayDeque<>();
+   public final Queue<SnapshotBuilder<T>.BreakTask> clientBreakTasks = new ArrayDeque<>();
+   public final Set<SnapshotBuilder<T>.BreakTask> clientBreakTasksCache = new HashSet<>();
+   public final Queue<SnapshotBuilder<T>.BreakTask> prevClientBreakTasks = new ArrayDeque<>();
+   public final Queue<SnapshotBuilder<T>.PlaceTask> placeTasks = new ArrayDeque<>();
+   public final Queue<SnapshotBuilder<T>.PlaceTask> clientPlaceTasks = new ArrayDeque<>();
+   public final Queue<SnapshotBuilder<T>.PlaceTask> prevClientPlaceTasks = new ArrayDeque<>();
+   protected byte[] checkResults;
+   private byte[] requiredCache;
+   private int[] breakOrder;
+   private int[] placeOrder;
+   private int[] checkOrder;
+   private int currentCheckIndex;
+   public Vec3 robotPos;
+   public Vec3 prevRobotPos;
+   public Vec3 visualRobotPos;
+   public Vec3 visualPrevRobotPos;
+   public int leftToBreak = 0;
+   public int leftToPlace = 0;
+   @Nullable
+   private Boolean areaHasFluidCache;
 
-    protected final T tile;
+   protected SnapshotBuilder(T tile) {
+      this.tile = tile;
+   }
 
-    public final Queue<BreakTask> breakTasks = new ArrayDeque<>();
-    public final Queue<BreakTask> clientBreakTasks = new ArrayDeque<>();
-    public final java.util.Set<BreakTask> clientBreakTasksCache = new java.util.HashSet<>();
-    @SuppressWarnings("WeakerAccess")
-    public final Queue<BreakTask> prevClientBreakTasks = new ArrayDeque<>();
-    public final Queue<PlaceTask> placeTasks = new ArrayDeque<>();
-    public final Queue<PlaceTask> clientPlaceTasks = new ArrayDeque<>();
-    @SuppressWarnings("WeakerAccess")
-    public final Queue<PlaceTask> prevClientPlaceTasks = new ArrayDeque<>();
-    @SuppressWarnings("WeakerAccess")
-    protected byte[] checkResults;
-    private byte[] requiredCache;
-    private int[] breakOrder;
-    private int[] placeOrder;
-    private int[] checkOrder;
-    private int currentCheckIndex;
+   protected abstract Snapshot.BuildingInfo getBuildingInfo();
 
-    public Vec3 robotPos;
-    public Vec3 prevRobotPos;
+   protected EnumFluidHandlingMode getFluidMode() {
+      return this.tile.getFluidMode();
+   }
 
-    public Vec3 visualRobotPos;
-    public Vec3 visualPrevRobotPos;
-    public int leftToBreak = 0;
-    public int leftToPlace = 0;
+   private int breakPriorityTier(BlockPos pos) {
+      FluidState fs = this.tile.getWorldBC().getFluidState(pos);
+      if (fs.isEmpty()) {
+         return 2;
+      } else {
+         return fs.isSource() ? 0 : 1;
+      }
+   }
 
-    @SuppressWarnings("WeakerAccess")
-    protected SnapshotBuilder(T tile) {
-        this.tile = tile;
-    }
+   protected boolean isAllowedDuringFluidMop(BlockPos blockPos) {
+      return false;
+   }
 
-    protected abstract Snapshot.BuildingInfo getBuildingInfo();
+   protected boolean isFragileSchematicAt(BlockPos blockPos) {
+      return false;
+   }
 
-    protected EnumFluidHandlingMode getFluidMode() {
-        return tile.getFluidMode();
-    }
+   protected void invalidateFluidCache() {
+      this.areaHasFluidCache = null;
+   }
 
-    private int breakPriorityTier(BlockPos pos) {
-        net.minecraft.world.level.material.FluidState fs = tile.getWorldBC().getFluidState(pos);
-        if (fs.isEmpty()) return 2;
-        return fs.isSource() ? 0 : 1;
-    }
+   protected boolean buildAreaHasAnyFluid() {
+      if (this.areaHasFluidCache != null) {
+         return this.areaHasFluidCache;
+      }
 
-    protected boolean isAllowedDuringFluidMop(BlockPos blockPos) {
-        return false;
-    }
+      Snapshot.BuildingInfo info = this.getBuildingInfo();
+      if (info == null) {
+         this.areaHasFluidCache = false;
+         return false;
+      }
 
-    protected boolean isFragileSchematicAt(BlockPos blockPos) {
-        return false;
-    }
+      BlockPos min = info.box.min();
+      BlockPos max = info.box.max();
 
-    protected boolean buildAreaHasAnyFluid() {
-        Snapshot.BuildingInfo info = getBuildingInfo();
-        if (info == null) return false;
-        for (BlockPos pos : info.box.getBlocksInArea()) {
-            if (!tile.getWorldBC().getFluidState(pos).isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
+      for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
+         if (!this.tile.getWorldBC().getFluidState(pos).isEmpty()) {
+            this.areaHasFluidCache = true;
+            return true;
+         }
+      }
 
-    public void validate() {
+      this.areaHasFluidCache = false;
+      return false;
+   }
 
-    }
+   public void validate() {
+   }
 
-    public void invalidate() {
+   public void invalidate() {
+   }
 
-    }
+   protected abstract boolean isAir(BlockPos var1);
 
-    protected abstract boolean isAir(BlockPos blockPos);
+   protected abstract boolean canPlace(BlockPos var1);
 
-    protected abstract boolean canPlace(BlockPos blockPos);
+   protected abstract boolean isReadyToPlace(BlockPos var1);
 
-    protected abstract boolean isReadyToPlace(BlockPos blockPos);
+   protected abstract boolean hasEnoughToPlaceItems(BlockPos var1);
 
-    protected abstract boolean hasEnoughToPlaceItems(BlockPos blockPos);
+   protected abstract List<ItemStack> getToPlaceItems(BlockPos var1);
 
-    protected abstract List<ItemStack> getToPlaceItems(BlockPos blockPos);
+   protected abstract boolean doPlaceTask(SnapshotBuilder<T>.PlaceTask var1);
 
-    protected abstract boolean doPlaceTask(PlaceTask placeTask);
+   private void cancelBreakTask(SnapshotBuilder<T>.BreakTask breakTask) {
+      if (this.tile.getWorldBC() != null && !this.tile.getWorldBC().isClientSide()) {
+         this.tile.getBattery().addPower(Math.min(breakTask.power, this.tile.getBattery().getCapacity() - this.tile.getBattery().getStored()), false);
+      }
+   }
 
-    private void cancelBreakTask(BreakTask breakTask) {
-        if (tile.getWorldBC() != null && !tile.getWorldBC().isClientSide()) {
-            tile.getBattery().addPower(
-                Math.min(breakTask.power, tile.getBattery().getCapacity() - tile.getBattery().getStored()),
-                false
-            );
-        }
-    }
+   protected void cancelPlaceTask(SnapshotBuilder<T>.PlaceTask placeTask) {
+      if (this.tile.getWorldBC() != null && !this.tile.getWorldBC().isClientSide()) {
+         this.tile.getBattery().addPower(Math.min(placeTask.power, this.tile.getBattery().getCapacity() - this.tile.getBattery().getStored()), false);
+      }
+   }
 
-    protected void cancelPlaceTask(PlaceTask placeTask) {
-        if (tile.getWorldBC() != null && !tile.getWorldBC().isClientSide()) {
-            tile.getBattery().addPower(
-                Math.min(placeTask.power, tile.getBattery().getCapacity() - tile.getBattery().getStored()),
-                false
-            );
-        }
-    }
+   protected abstract boolean isBlockCorrect(BlockPos var1);
 
-    protected abstract boolean isBlockCorrect(BlockPos blockPos);
+   public Vec3 getPlaceTaskItemPos(SnapshotBuilder<T>.PlaceTask placeTask) {
+      Vec3 height = Vec3.atLowerCornerOf(placeTask.pos.subtract(this.tile.getBuilderPos()));
+      double progress = placeTask.power * 1.0 / placeTask.getTarget();
+      return Vec3.atLowerCornerOf(this.tile.getBuilderPos())
+         .add(height.scale(progress))
+         .add(new Vec3(0.0, Math.sin(progress * Math.PI) * (Math.abs(height.y) + 1.0), 0.0))
+         .add(new Vec3(0.5, 1.0, 0.5));
+   }
 
-    public Vec3 getPlaceTaskItemPos(PlaceTask placeTask) {
-        Vec3 height = Vec3.atLowerCornerOf(placeTask.pos.subtract(tile.getBuilderPos()));
-        double progress = placeTask.power * 1D / placeTask.getTarget();
-        return Vec3.atLowerCornerOf(tile.getBuilderPos())
-            .add(height.scale(progress))
-            .add(new Vec3(0, Math.sin(progress * Math.PI) * (Math.abs(height.y) + 1), 0))
-            .add(new Vec3(0.5, 1, 0.5));
-    }
+   public void updateSnapshot() {
+      Snapshot.BuildingInfo info = this.getBuildingInfo();
+      int volume = info.box.size().getX() * info.box.size().getY() * info.box.size().getZ();
+      this.checkResults = new byte[volume];
+      Arrays.fill(this.checkResults, (byte)0);
+      this.requiredCache = new byte[volume];
+      Arrays.fill(this.requiredCache, (byte)0);
+      this.invalidateFluidCache();
+      List<BlockPos> blocks = info.box.getBlocksInArea();
+      BlockPos center = info.box.center();
+      BlockPos builderPos = this.tile.getBuilderPos();
+      int centerX = center.getX();
+      int centerY = center.getY();
+      int centerZ = center.getZ();
+      int builderX = builderPos.getX();
+      int builderY = builderPos.getY();
+      int builderZ = builderPos.getZ();
+      this.breakOrder = blocks.stream().sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos -> {
+         int dx = blockPos.getX() - centerX;
+         int dz = blockPos.getZ() - centerZ;
+         return (double)dx * dx + (double)dz * dz + 100000.0 - Math.abs(blockPos.getY() - builderY) * 100000;
+      }))).mapToInt(this::posToIndex).toArray();
+      this.placeOrder = blocks.stream().sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos -> {
+         int dx = blockPos.getX() - builderX;
+         int dz = blockPos.getZ() - builderZ;
+         return 100000.0 - ((double)dx * dx + (double)dz * dz) + Math.abs(blockPos.getY() - builderY) * 100000;
+      }))).mapToInt(this::posToIndex).toArray();
+      this.checkOrder = blocks.stream().sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos -> {
+         int dx = blockPos.getX() - centerX;
+         int dy = blockPos.getY() - centerY;
+         int dz = blockPos.getZ() - centerZ;
+         return (double)dx * dx + (double)dy * dy + (double)dz * dz;
+      }))).mapToInt(this::posToIndex).toArray();
+   }
 
-    public void updateSnapshot() {
-        checkResults = new byte[
-            getBuildingInfo().box.size().getX() *
-                getBuildingInfo().box.size().getY() *
-                getBuildingInfo().box.size().getZ()
-            ];
-        Arrays.fill(checkResults, CHECK_RESULT_UNKNOWN);
-        requiredCache = new byte[
-            getBuildingInfo().box.size().getX() *
-                getBuildingInfo().box.size().getY() *
-                getBuildingInfo().box.size().getZ()
-            ];
-        Arrays.fill(requiredCache, REQUIRED_UNKNOWN);
-        breakOrder = getBuildingInfo().box.getBlocksInArea().stream()
-            .sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos ->
-                Math.pow(blockPos.getX() - getBuildingInfo().box.center().getX(), 2) +
-                    Math.pow(blockPos.getZ() - getBuildingInfo().box.center().getZ(), 2) +
-                    100_000 - Math.abs(blockPos.getY() - tile.getBuilderPos().getY()) * 100_000
-            )))
-            .mapToInt(this::posToIndex)
-            .toArray();
-        placeOrder = getBuildingInfo().box.getBlocksInArea().stream()
-            .sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos ->
-                100_000 - (Math.pow(blockPos.getX() - tile.getBuilderPos().getX(), 2) +
-                    Math.pow(blockPos.getZ() - tile.getBuilderPos().getZ(), 2)) +
-                    Math.abs(blockPos.getY() - tile.getBuilderPos().getY()) * 100_000
-            )))
-            .mapToInt(this::posToIndex)
-            .toArray();
-        checkOrder = getBuildingInfo().box.getBlocksInArea().stream()
-            .sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos ->
-                Math.pow(blockPos.getX() - getBuildingInfo().box.center().getX(), 2) +
-                    Math.pow(blockPos.getY() - getBuildingInfo().box.center().getY(), 2) +
-                    Math.pow(blockPos.getZ() - getBuildingInfo().box.center().getZ(), 2)
-            )))
-            .mapToInt(this::posToIndex)
-            .toArray();
-    }
+   public void resourcesChanged() {
+      if (this.requiredCache != null) {
+         Arrays.fill(this.requiredCache, (byte)0);
+      }
+   }
 
-    public void resourcesChanged() {
+   public void cancel() {
+      this.breakTasks.forEach(this::cancelBreakTask);
+      this.placeTasks.forEach(this::cancelPlaceTask);
+      this.breakTasks.clear();
+      this.clientBreakTasks.clear();
+      this.prevClientBreakTasks.clear();
+      this.placeTasks.clear();
+      this.clientPlaceTasks.clear();
+      this.prevClientPlaceTasks.clear();
+      this.checkResults = null;
+      this.requiredCache = null;
+      this.areaHasFluidCache = null;
+      this.breakOrder = null;
+      this.placeOrder = null;
+      this.checkOrder = null;
+      this.currentCheckIndex = 0;
+      this.robotPos = null;
+      this.prevRobotPos = null;
+      this.leftToBreak = 0;
+      this.leftToPlace = 0;
+   }
 
-        if (requiredCache != null) {
-            Arrays.fill(requiredCache, REQUIRED_UNKNOWN);
-        }
-    }
+   public boolean tick() {
+      boolean checkResultsChanged = false;
 
-    public void cancel() {
-        breakTasks.forEach(this::cancelBreakTask);
-        placeTasks.forEach(this::cancelPlaceTask);
-        breakTasks.clear();
-        clientBreakTasks.clear();
-        prevClientBreakTasks.clear();
-        placeTasks.clear();
-        clientPlaceTasks.clear();
-        prevClientPlaceTasks.clear();
-        checkResults = null;
-        requiredCache = null;
-        breakOrder = null;
-        placeOrder = null;
-        checkOrder = null;
-        currentCheckIndex = 0;
-        robotPos = null;
-        prevRobotPos = null;
-        leftToBreak = 0;
-        leftToPlace = 0;
-    }
+      for (int i = 0; i < 10; i++) {
+         if (this.check(this.indexToPos(this.checkOrder[this.currentCheckIndex]))) {
+            checkResultsChanged = true;
+         }
 
-    public boolean tick() {
+         this.currentCheckIndex = (this.currentCheckIndex + 1) % this.checkOrder.length;
+      }
 
-        boolean checkResultsChanged = false;
+      Iterator<SnapshotBuilder<T>.BreakTask> iterator = this.breakTasks.iterator();
 
-        for (int i = 0; i < CHECKS_PER_TICK; i++) {
-            if (check(indexToPos(checkOrder[currentCheckIndex]))) {
-                checkResultsChanged = true;
-            }
-            currentCheckIndex = (currentCheckIndex + 1) % checkOrder.length;
-        }
+      while (iterator.hasNext()) {
+         SnapshotBuilder<T>.BreakTask breakTask = iterator.next();
+         if (this.checkResults[this.posToIndex(breakTask.pos)] == 1) {
+            iterator.remove();
+            this.cancelBreakTask(breakTask);
+         }
+      }
 
-        for (Iterator<BreakTask> iterator = breakTasks.iterator(); iterator.hasNext(); ) {
-            BreakTask breakTask = iterator.next();
-            if (checkResults[posToIndex(breakTask.pos)] == CHECK_RESULT_CORRECT) {
-                iterator.remove();
-                cancelBreakTask(breakTask);
-            }
-        }
-        for (Iterator<PlaceTask> iterator = placeTasks.iterator(); iterator.hasNext(); ) {
-            PlaceTask placeTask = iterator.next();
-            if (checkResults[posToIndex(placeTask.pos)] == CHECK_RESULT_CORRECT) {
-                iterator.remove();
-                cancelPlaceTask(placeTask);
-            }
-        }
+      Iterator<SnapshotBuilder<T>.PlaceTask> placeIterator = this.placeTasks.iterator();
 
-        boolean isDone = true;
+      while (placeIterator.hasNext()) {
+         SnapshotBuilder<T>.PlaceTask placeTask = placeIterator.next();
+         if (this.checkResults[this.posToIndex(placeTask.pos)] == 1) {
+            placeIterator.remove();
+            this.cancelPlaceTask(placeTask);
+         }
+      }
 
-        for (byte result : checkResults) {
-            if (result == CHECK_RESULT_UNKNOWN) {
-                isDone = false;
-                break;
-            }
-        }
+      boolean isDone = true;
 
-        if (isDone && (!breakTasks.isEmpty() || !placeTasks.isEmpty())) {
+      for (byte result : this.checkResults) {
+         if (result == 0) {
             isDone = false;
-        }
+            break;
+         }
+      }
 
-        if (tile.canExcavate()) {
-            Set<Integer> breakTasksIndexes = breakTasks.stream()
-                .map(breakTask -> posToIndex(breakTask.pos))
-                .collect(Collectors.toSet());
-            int[] blocks = Arrays.stream(breakOrder)
-                .filter(i -> checkResults[i] == CHECK_RESULT_TO_BREAK && !breakTasksIndexes.contains(i))
-                .toArray();
-            leftToBreak = blocks.length;
-            if (blocks.length != 0) {
-                isDone = false;
-            }
+      if (isDone && (!this.breakTasks.isEmpty() || !this.placeTasks.isEmpty())) {
+         isDone = false;
+      }
 
-            Arrays.stream(blocks)
-                .mapToObj(this::indexToPos)
-                .filter(this::shouldBreakQueueAcceptFluid)
-                .sorted(Comparator.comparingInt(this::breakPriorityTier))
-                .map(blockPos ->
-                    new BreakTask(
-                        blockPos,
-                        0
-                    )
-                )
-                .limit(MAX_QUEUE_SIZE - breakTasks.size())
-                .forEach(breakTasks::add);
-        } else {
-            leftToBreak = 0;
-        }
+      if (this.tile.canExcavate()) {
+         Set<Integer> breakTasksIndexes = this.breakTasks.stream().map(breakTask -> this.posToIndex(breakTask.pos)).collect(Collectors.toSet());
+         int[] blocks = Arrays.stream(this.breakOrder).filter(i -> this.checkResults[i] == 2 && !breakTasksIndexes.contains(i)).toArray();
+         this.leftToBreak = blocks.length;
+         if (blocks.length != 0) {
+            isDone = false;
+         }
 
-        {
-            Set<Integer> placeTasksIndexes = placeTasks.stream()
-                .map(placeTask -> posToIndex(placeTask.pos))
-                .collect(Collectors.toSet());
-            int[] blocks = Arrays.stream(placeOrder)
-                .filter(i -> checkResults[i] == CHECK_RESULT_TO_PLACE && !placeTasksIndexes.contains(i))
-                .toArray();
-            leftToPlace = blocks.length;
+         Arrays.stream(blocks)
+            .mapToObj(this::indexToPos)
+            .filter(this::shouldBreakQueueAcceptFluid)
+            .sorted(Comparator.comparingInt(this::breakPriorityTier))
+            .map(blockPos -> new SnapshotBuilder.BreakTask(blockPos, 0L))
+            .limit(16 - this.breakTasks.size())
+            .forEach(this.breakTasks::add);
+      } else {
+         this.leftToBreak = 0;
+      }
 
-            boolean areaHasFluid = (getFluidMode() == EnumFluidHandlingMode.CLEAR
-                    || getFluidMode() == EnumFluidHandlingMode.REPLACE)
-                && buildAreaHasAnyFluid();
-            boolean clearStillMopping = areaHasFluid
-                && getFluidMode() == EnumFluidHandlingMode.CLEAR;
-            boolean replaceFragileGated = areaHasFluid
-                && getFluidMode() == EnumFluidHandlingMode.REPLACE;
-            if (!tile.canExcavate() || breakTasks.isEmpty()) {
-                if (blocks.length != 0) {
-                    isDone = false;
-                }
-                Arrays.stream(blocks)
-                    .filter(i -> {
-                        if (requiredCache[i] != REQUIRED_UNKNOWN) {
-                            return requiredCache[i] == REQUIRED_TRUE;
-                        }
-                        boolean has = hasEnoughToPlaceItems(indexToPos(i));
-                        requiredCache[i] = has ? REQUIRED_TRUE : REQUIRED_FALSE;
-                        return has;
-                    })
-                    .mapToObj(this::indexToPos)
-                    .filter(pos -> {
-                        if (clearStillMopping) return isAllowedDuringFluidMop(pos);
-                        if (replaceFragileGated && isFragileSchematicAt(pos)) return false;
-                        return true;
-                    })
-                    .filter(this::isReadyToPlace)
-                    .limit(MAX_QUEUE_SIZE - placeTasks.size())
-                    .filter(this::canPlace)
-                    .map(blockPos ->
-                        new PlaceTask(
-                            blockPos,
-                            getToPlaceItems(blockPos),
-                            0
-                        )
-                    )
-                    .filter(placeTask -> placeTask.items != null)
-                    .forEach(placeTasks::add);
-            }
-        }
+      Set<Integer> placeTasksIndexes = this.placeTasks.stream().map(placeTaskx -> this.posToIndex(placeTaskx.pos)).collect(Collectors.toSet());
+      int[] blocks = Arrays.stream(this.placeOrder).filter(i -> this.checkResults[i] == 3 && !placeTasksIndexes.contains(i)).toArray();
+      this.leftToPlace = blocks.length;
+      boolean areaHasFluid = (this.getFluidMode() == EnumFluidHandlingMode.CLEAR || this.getFluidMode() == EnumFluidHandlingMode.REPLACE)
+         && this.buildAreaHasAnyFluid();
+      boolean clearStillMopping = areaHasFluid && this.getFluidMode() == EnumFluidHandlingMode.CLEAR;
+      boolean replaceFragileGated = areaHasFluid && this.getFluidMode() == EnumFluidHandlingMode.REPLACE;
+      if (!this.tile.canExcavate() || this.breakTasks.isEmpty()) {
+         if (blocks.length != 0) {
+            isDone = false;
+         }
 
-        long max = Math.min(
-            (long) (
-                MAX_POWER_PER_TICK *
-                    (double) (tile.getBattery().getStored() + MAX_POWER_PER_TICK / 10) /
-                    (tile.getBattery().getCapacity() * 2)
-            ),
-            MAX_POWER_PER_TICK
-        );
+         Arrays.stream(blocks)
+            .filter(i -> {
+               if (this.requiredCache[i] != 0) {
+                  return this.requiredCache[i] == 1;
+               }
 
-        if (!breakTasks.isEmpty()) {
-            for (Iterator<BreakTask> iterator = breakTasks.iterator(); iterator.hasNext(); ) {
-                BreakTask breakTask = iterator.next();
-                if (breakTask.isImpossible()) {
+               boolean has = this.hasEnoughToPlaceItems(this.indexToPos(i));
+               this.requiredCache[i] = (byte)(has ? 1 : 2);
+               return has;
+            })
+            .mapToObj(this::indexToPos)
+            .filter(pos -> clearStillMopping ? this.isAllowedDuringFluidMop(pos) : !replaceFragileGated || !this.isFragileSchematicAt(pos))
+            .filter(this::isReadyToPlace)
+            .limit(16 - this.placeTasks.size())
+            .filter(this::canPlace)
+            .map(blockPos -> new SnapshotBuilder.PlaceTask(blockPos, this.getToPlaceItems(blockPos), 0L))
+            .filter(placeTaskx -> placeTaskx.items != null)
+            .forEach(this.placeTasks::add);
+      }
 
-                    cancelBreakTask(breakTask);
-                    iterator.remove();
-                    continue;
-                }
-                long target = breakTask.getTarget();
-                breakTask.power += tile.getBattery().extractPower(
-                    0,
-                    Math.min(
-                        target - breakTask.power,
-                        max / breakTasks.size()
-                    )
-                );
-                if (breakTask.power >= target) {
-                    clientBreakTasksCache.add(breakTask);
-                    tile.getWorldBC().destroyBlockProgress(
-                        breakTask.pos.hashCode(),
-                        breakTask.pos,
-                        -1
-                    );
+      long max = Math.min(
+         (long)((double)MAX_POWER_PER_TICK * (this.tile.getBattery().getStored() + MAX_POWER_PER_TICK / 10L) / (this.tile.getBattery().getCapacity() * 2L)),
+         MAX_POWER_PER_TICK
+      );
+      if (!this.breakTasks.isEmpty()) {
+         Iterator<SnapshotBuilder<T>.BreakTask> iteratorx = this.breakTasks.iterator();
 
-                    Optional<BlockUtil.BreakResult> result = BlockUtil.breakBlockAndGetDropsWithXp(
-                        (ServerLevel) tile.getWorldBC(),
-                        breakTask.pos,
-                        tile.getBreakingTool(),
-                        tile.getOwner()
-                    );
-
-                    if (result.isEmpty()) {
-                        cancelBreakTask(breakTask);
-                    } else {
-                        BlockUtil.BreakResult br = result.get();
-                        tile.onBlockBroken(breakTask.pos, br.drops(), br.xp(), br.capturedFluid());
-                    }
-                    if (check(breakTask.pos)) {
-                        checkResultsChanged = true;
-                    }
-                    iterator.remove();
-                } else {
-                    clientBreakTasksCache.add(breakTask);
-                    tile.getWorldBC().destroyBlockProgress(
-                        breakTask.pos.hashCode(),
-                        breakTask.pos,
-                        (int) ((breakTask.power * 9) / target)
-                    );
-                }
-            }
-        }
-
-        if (!placeTasks.isEmpty()) {
-            for (Iterator<PlaceTask> iterator = placeTasks.iterator(); iterator.hasNext(); ) {
-                PlaceTask placeTask = iterator.next();
-                long target = placeTask.getTarget();
-                placeTask.power += tile.getBattery().extractPower(
-                    0,
-                    Math.min(
-                        target - placeTask.power,
-                        max / placeTasks.size()
-                    )
-                );
-                if (placeTask.power >= target) {
-                    if (!doPlaceTask(placeTask)) {
-                        cancelPlaceTask(placeTask);
-                    }
-                    if (check(placeTask.pos)) {
-                        checkResultsChanged = true;
-                    }
-                    iterator.remove();
-                }
-            }
-        }
-
-        if (checkResultsChanged) {
-            afterChecks();
-        }
-
-        return isDone;
-    }
-
-    public void clientTick() {
-        long stored = tile.getBattery().getStored();
-        long max = Math.min(
-            (long) (
-                MAX_POWER_PER_TICK *
-                    (double) (stored + MAX_POWER_PER_TICK / 10) /
-                    (tile.getBattery().getCapacity() * 2)
-            ),
-            MAX_POWER_PER_TICK
-        );
-
-        prevClientBreakTasks.clear();
-        for (BreakTask task : clientBreakTasks) {
-            prevClientBreakTasks.add(new BreakTask(task.pos, task.power));
-            long target = task.getTarget();
-            if (stored > 0 && task.power < target) {
-                long increment = Math.min(target - task.power, max / Math.max(1, clientBreakTasks.size()));
-                task.power += Math.min(increment, stored);
-            }
-        }
-
-        prevClientPlaceTasks.clear();
-        for (PlaceTask task : clientPlaceTasks) {
-            prevClientPlaceTasks.add(new PlaceTask(task.pos, task.items, task.power));
-            long target = task.getTarget();
-            if (stored > 0 && clientBreakTasks.isEmpty() && task.power < target) {
-                long increment = Math.min(target - task.power, max / Math.max(1, clientPlaceTasks.size()));
-                task.power += Math.min(increment, stored);
-            }
-        }
-
-        prevRobotPos = robotPos;
-        if (!clientBreakTasks.isEmpty()) {
-            Vec3 newRobotPos = clientBreakTasks.stream()
-                .map(breakTask -> breakTask.pos)
-                .map(Vec3::atLowerCornerOf)
-                .map(VecUtil.VEC_HALF::add)
-                .reduce(Vec3.ZERO, Vec3::add)
-                .scale(1D / clientBreakTasks.size());
-            newRobotPos = new Vec3(
-                newRobotPos.x,
-                clientBreakTasks.stream()
-                    .map(breakTask -> breakTask.pos)
-                    .mapToDouble(BlockPos::getY)
-                    .max()
-                    .orElse(newRobotPos.y),
-                newRobotPos.z
-            );
-            newRobotPos = newRobotPos.add(new Vec3(0, 3, 0));
-            Vec3 oldRobotPos = robotPos;
-            robotPos = newRobotPos;
-            if (oldRobotPos != null) {
-                robotPos = oldRobotPos.add(newRobotPos.subtract(oldRobotPos).scale(1 / 4D));
-            }
-        } else if (!clientPlaceTasks.isEmpty()) {
-            Vec3 newRobotPos = clientPlaceTasks.stream()
-                .map(placeTask -> placeTask.pos)
-                .map(Vec3::atLowerCornerOf)
-                .map(VecUtil.VEC_HALF::add)
-                .reduce(Vec3.ZERO, Vec3::add)
-                .scale(1D / clientPlaceTasks.size());
-            newRobotPos = newRobotPos.add(new Vec3(0, 3, 0));
-            Vec3 oldRobotPos = robotPos;
-            robotPos = newRobotPos;
-            if (oldRobotPos != null) {
-                robotPos = oldRobotPos.add(newRobotPos.subtract(oldRobotPos).scale(1 / 4D));
-            }
-        } else {
-            robotPos = null;
-        }
-
-        visualPrevRobotPos = visualRobotPos;
-
-        if (robotPos != null) {
-            if (visualRobotPos == null) {
-                visualRobotPos = robotPos;
-                visualPrevRobotPos = robotPos;
+         while (iteratorx.hasNext()) {
+            SnapshotBuilder<T>.BreakTask breakTask = iteratorx.next();
+            if (breakTask.isImpossible()) {
+               this.cancelBreakTask(breakTask);
+               iteratorx.remove();
             } else {
-                visualRobotPos = visualRobotPos.add(robotPos.subtract(visualRobotPos).scale(0.25D));
+               long target = breakTask.getTarget();
+               breakTask.power = breakTask.power + this.tile.getBattery().extractPower(0L, Math.min(target - breakTask.power, max / this.breakTasks.size()));
+               if (breakTask.power >= target) {
+                  this.clientBreakTasksCache.add(breakTask);
+                  this.tile.getWorldBC().destroyBlockProgress(breakTask.pos.hashCode(), breakTask.pos, -1);
+                  Optional<BlockUtil.BreakResult> result = BlockUtil.breakBlockAndGetDropsWithXp(
+                     (ServerLevel)this.tile.getWorldBC(), breakTask.pos, this.tile.getBreakingTool(), this.tile.getOwner()
+                  );
+                  if (result.isEmpty()) {
+                     this.cancelBreakTask(breakTask);
+                  } else {
+                     BlockUtil.BreakResult br = result.get();
+                     this.tile.onBlockBroken(breakTask.pos, br.drops(), br.xp(), br.capturedFluid());
+                  }
+
+                  if (this.check(breakTask.pos)) {
+                     checkResultsChanged = true;
+                  }
+
+                  this.invalidateFluidCache();
+                  iteratorx.remove();
+               } else {
+                  this.clientBreakTasksCache.add(breakTask);
+                  this.tile.getWorldBC().destroyBlockProgress(breakTask.pos.hashCode(), breakTask.pos, (int)(breakTask.power * 9L / target));
+               }
             }
-        } else {
-            visualRobotPos = null;
-            visualPrevRobotPos = null;
-        }
-    }
+         }
+      }
 
-    public void receiveServerTaskData(Queue<BreakTask> serverBreakTasks, Queue<PlaceTask> serverPlaceTasks) {
-        receiveServerTaskData(serverBreakTasks, serverPlaceTasks, clientBreakTasks, clientPlaceTasks);
-    }
+      if (!this.placeTasks.isEmpty()) {
+         Iterator<SnapshotBuilder<T>.PlaceTask> iteratorx = this.placeTasks.iterator();
 
-    public void receiveServerTaskData(
-            Queue<BreakTask> serverBreakTasks, Queue<PlaceTask> serverPlaceTasks,
-            Iterable<BreakTask> savedClientBreak, Iterable<PlaceTask> savedClientPlace) {
+         while (iteratorx.hasNext()) {
+            SnapshotBuilder<T>.PlaceTask placeTask = iteratorx.next();
+            long target = placeTask.getTarget();
+            placeTask.power = placeTask.power + this.tile.getBattery().extractPower(0L, Math.min(target - placeTask.power, max / this.placeTasks.size()));
+            if (placeTask.power >= target) {
+               if (!this.doPlaceTask(placeTask)) {
+                  this.cancelPlaceTask(placeTask);
+               }
 
-        Queue<BreakTask> mergedBreak = new ArrayDeque<>();
-        for (BreakTask serverTask : serverBreakTasks) {
-            long mergedPower = serverTask.power;
-            for (BreakTask clientTask : savedClientBreak) {
-                if (clientTask.pos.equals(serverTask.pos)) {
-                    mergedPower = Math.max(mergedPower, clientTask.power);
-                    break;
-                }
+               if (this.check(placeTask.pos)) {
+                  checkResultsChanged = true;
+               }
+
+               this.invalidateFluidCache();
+               iteratorx.remove();
             }
-            mergedBreak.add(new BreakTask(serverTask.pos, mergedPower));
-        }
-        clientBreakTasks.clear();
-        clientBreakTasks.addAll(mergedBreak);
+         }
+      }
 
-        Queue<PlaceTask> mergedPlace = new ArrayDeque<>();
-        for (PlaceTask serverTask : serverPlaceTasks) {
-            long mergedPower = serverTask.power;
-            for (PlaceTask clientTask : savedClientPlace) {
-                if (clientTask.pos.equals(serverTask.pos)) {
-                    mergedPower = Math.max(mergedPower, clientTask.power);
-                    break;
-                }
+      if (checkResultsChanged) {
+         this.afterChecks();
+      }
+
+      return isDone;
+   }
+
+   public void clientTick() {
+      long stored = this.tile.getBattery().getStored();
+      long max = Math.min(
+         (long)((double)MAX_POWER_PER_TICK * (stored + MAX_POWER_PER_TICK / 10L) / (this.tile.getBattery().getCapacity() * 2L)), MAX_POWER_PER_TICK
+      );
+      this.prevClientBreakTasks.clear();
+
+      for (SnapshotBuilder<T>.BreakTask task : this.clientBreakTasks) {
+         this.prevClientBreakTasks.add(new SnapshotBuilder.BreakTask(task.pos, task.power));
+         long target = task.getTarget();
+         if (stored > 0L && task.power < target) {
+            long increment = Math.min(target - task.power, max / Math.max(1, this.clientBreakTasks.size()));
+            task.power = task.power + Math.min(increment, stored);
+         }
+      }
+
+      this.prevClientPlaceTasks.clear();
+
+      for (SnapshotBuilder<T>.PlaceTask task : this.clientPlaceTasks) {
+         this.prevClientPlaceTasks.add(new SnapshotBuilder.PlaceTask(task.pos, task.items, task.power));
+         long target = task.getTarget();
+         if (stored > 0L && this.clientBreakTasks.isEmpty() && task.power < target) {
+            long increment = Math.min(target - task.power, max / Math.max(1, this.clientPlaceTasks.size()));
+            task.power = task.power + Math.min(increment, stored);
+         }
+      }
+
+      this.prevRobotPos = this.robotPos;
+      if (!this.clientBreakTasks.isEmpty()) {
+         Vec3 newRobotPos = this.clientBreakTasks
+            .stream()
+            .map(breakTask -> breakTask.pos)
+            .map(Vec3::atLowerCornerOf)
+            .<Vec3>map(VecUtil.VEC_HALF::add)
+            .reduce(Vec3.ZERO, Vec3::add)
+            .scale(1.0 / this.clientBreakTasks.size());
+         newRobotPos = new Vec3(
+            newRobotPos.x, this.clientBreakTasks.stream().map(breakTask -> breakTask.pos).mapToDouble(Vec3i::getY).max().orElse(newRobotPos.y), newRobotPos.z
+         );
+         newRobotPos = newRobotPos.add(new Vec3(0.0, 3.0, 0.0));
+         Vec3 oldRobotPos = this.robotPos;
+         this.robotPos = newRobotPos;
+         if (oldRobotPos != null) {
+            this.robotPos = oldRobotPos.add(newRobotPos.subtract(oldRobotPos).scale(0.25));
+         }
+      } else if (!this.clientPlaceTasks.isEmpty()) {
+         Vec3 newRobotPos = this.clientPlaceTasks
+            .stream()
+            .map(placeTask -> placeTask.pos)
+            .map(Vec3::atLowerCornerOf)
+            .<Vec3>map(VecUtil.VEC_HALF::add)
+            .reduce(Vec3.ZERO, Vec3::add)
+            .scale(1.0 / this.clientPlaceTasks.size());
+         newRobotPos = newRobotPos.add(new Vec3(0.0, 3.0, 0.0));
+         Vec3 oldRobotPos = this.robotPos;
+         this.robotPos = newRobotPos;
+         if (oldRobotPos != null) {
+            this.robotPos = oldRobotPos.add(newRobotPos.subtract(oldRobotPos).scale(0.25));
+         }
+      } else {
+         this.robotPos = null;
+      }
+
+      this.visualPrevRobotPos = this.visualRobotPos;
+      if (this.robotPos != null) {
+         if (this.visualRobotPos == null) {
+            this.visualRobotPos = this.robotPos;
+            this.visualPrevRobotPos = this.robotPos;
+         } else {
+            this.visualRobotPos = this.visualRobotPos.add(this.robotPos.subtract(this.visualRobotPos).scale(0.25));
+         }
+      } else {
+         this.visualRobotPos = null;
+         this.visualPrevRobotPos = null;
+      }
+   }
+
+   public void receiveServerTaskData(Queue<SnapshotBuilder<T>.BreakTask> serverBreakTasks, Queue<SnapshotBuilder<T>.PlaceTask> serverPlaceTasks) {
+      this.receiveServerTaskData(serverBreakTasks, serverPlaceTasks, this.clientBreakTasks, this.clientPlaceTasks);
+   }
+
+   public void receiveServerTaskData(
+      Queue<SnapshotBuilder<T>.BreakTask> serverBreakTasks,
+      Queue<SnapshotBuilder<T>.PlaceTask> serverPlaceTasks,
+      Iterable<SnapshotBuilder<T>.BreakTask> savedClientBreak,
+      Iterable<SnapshotBuilder<T>.PlaceTask> savedClientPlace
+   ) {
+      Queue<SnapshotBuilder<T>.BreakTask> mergedBreak = new ArrayDeque<>();
+
+      for (SnapshotBuilder<T>.BreakTask serverTask : serverBreakTasks) {
+         long mergedPower = serverTask.power;
+
+         for (SnapshotBuilder<T>.BreakTask clientTask : savedClientBreak) {
+            if (clientTask.pos.equals(serverTask.pos)) {
+               mergedPower = Math.max(mergedPower, clientTask.power);
+               break;
             }
-            mergedPlace.add(new PlaceTask(serverTask.pos, serverTask.items, mergedPower));
-        }
-        clientPlaceTasks.clear();
-        clientPlaceTasks.addAll(mergedPlace);
-    }
+         }
 
-    private boolean shouldBreakQueueAcceptFluid(BlockPos blockPos) {
-        FluidState fs = tile.getWorldBC().getFluidState(blockPos);
-        if (fs.isEmpty()) return true;
-        return getFluidMode() == EnumFluidHandlingMode.CLEAR;
-    }
+         mergedBreak.add(new SnapshotBuilder.BreakTask(serverTask.pos, mergedPower));
+      }
 
-    public void invalidateChecksForFluidPositions() {
-        if (checkResults == null || getBuildingInfo() == null) return;
-        for (int i = 0; i < checkResults.length; i++) {
-            BlockPos pos = indexToPos(i);
-            if (!tile.getWorldBC().getFluidState(pos).isEmpty()) {
-                checkResults[i] = CHECK_RESULT_UNKNOWN;
+      this.clientBreakTasks.clear();
+      this.clientBreakTasks.addAll(mergedBreak);
+      Queue<SnapshotBuilder<T>.PlaceTask> mergedPlace = new ArrayDeque<>();
+
+      for (SnapshotBuilder<T>.PlaceTask serverTask : serverPlaceTasks) {
+         long mergedPower = serverTask.power;
+
+         for (SnapshotBuilder<T>.PlaceTask clientTask : savedClientPlace) {
+            if (clientTask.pos.equals(serverTask.pos)) {
+               mergedPower = Math.max(mergedPower, clientTask.power);
+               break;
             }
-        }
-    }
+         }
 
-    @SuppressWarnings("WeakerAccess")
-    protected int posToIndex(BlockPos blockPos) {
-        return getBuildingInfo().getSnapshot().posToIndex(getBuildingInfo().fromWorld(blockPos));
-    }
+         mergedPlace.add(new SnapshotBuilder.PlaceTask(serverTask.pos, serverTask.items, mergedPower));
+      }
 
-    @SuppressWarnings("WeakerAccess")
-    protected BlockPos indexToPos(int i) {
-        return getBuildingInfo().toWorld(getBuildingInfo().getSnapshot().indexToPos(i));
-    }
+      this.clientPlaceTasks.clear();
+      this.clientPlaceTasks.addAll(mergedPlace);
+   }
 
-    protected boolean check(BlockPos blockPos) {
-        int i = posToIndex(blockPos);
-        byte prev = checkResults[i];
-        if (isAir(blockPos)) {
-            if (tile.getWorldBC().isEmptyBlock(blockPos)) {
-                checkResults[i] = CHECK_RESULT_CORRECT;
-            } else {
-                checkResults[i] = CHECK_RESULT_TO_BREAK;
+   private boolean shouldBreakQueueAcceptFluid(BlockPos blockPos) {
+      FluidState fs = this.tile.getWorldBC().getFluidState(blockPos);
+      return fs.isEmpty() ? true : this.getFluidMode() == EnumFluidHandlingMode.CLEAR;
+   }
+
+   public void invalidateChecksForFluidPositions() {
+      if (this.checkResults != null && this.getBuildingInfo() != null) {
+         for (int i = 0; i < this.checkResults.length; i++) {
+            BlockPos pos = this.indexToPos(i);
+            if (!this.tile.getWorldBC().getFluidState(pos).isEmpty()) {
+               this.checkResults[i] = 0;
             }
-        } else {
-            if (isBlockCorrect(blockPos)) {
-                checkResults[i] = CHECK_RESULT_CORRECT;
-            } else if (canPlace(blockPos)) {
-                checkResults[i] = CHECK_RESULT_TO_PLACE;
-            } else {
-                checkResults[i] = CHECK_RESULT_TO_BREAK;
+         }
+      }
+   }
+
+   protected int posToIndex(BlockPos blockPos) {
+      return this.getBuildingInfo().getSnapshot().posToIndex(this.getBuildingInfo().fromWorld(blockPos));
+   }
+
+   protected BlockPos indexToPos(int i) {
+      return this.getBuildingInfo().toWorld(this.getBuildingInfo().getSnapshot().indexToPos(i));
+   }
+
+   protected boolean check(BlockPos blockPos) {
+      int i = this.posToIndex(blockPos);
+      byte prev = this.checkResults[i];
+      if (this.isAir(blockPos)) {
+         if (this.tile.getWorldBC().isEmptyBlock(blockPos)) {
+            this.checkResults[i] = 1;
+         } else {
+            this.checkResults[i] = 2;
+         }
+      } else if (this.isBlockCorrect(blockPos)) {
+         this.checkResults[i] = 1;
+      } else if (this.canPlace(blockPos)) {
+         this.checkResults[i] = 3;
+      } else {
+         this.checkResults[i] = 2;
+      }
+
+      return prev != this.checkResults[i];
+   }
+
+   protected void afterChecks() {
+   }
+
+   public void writeToByteBuf(PacketBufferBC buffer) {
+      buffer.writeInt(this.breakTasks.size());
+      this.breakTasks.forEach(breakTask -> breakTask.writePayload(buffer));
+      buffer.writeInt(this.placeTasks.size());
+      this.placeTasks.forEach(placeTask -> placeTask.writePayload(buffer));
+      buffer.writeInt(this.leftToBreak);
+      buffer.writeInt(this.leftToPlace);
+   }
+
+   public void readFromByteBuf(PacketBufferBC buffer) {
+      this.breakTasks.clear();
+      IntStream.range(0, buffer.readInt()).mapToObj(i -> new SnapshotBuilder.BreakTask(buffer)).forEach(this.breakTasks::add);
+      this.placeTasks.clear();
+      IntStream.range(0, buffer.readInt()).mapToObj(i -> new SnapshotBuilder.PlaceTask(buffer)).forEach(this.placeTasks::add);
+      this.leftToBreak = buffer.readInt();
+      this.leftToPlace = buffer.readInt();
+   }
+
+   public CompoundTag serializeNBT() {
+      CompoundTag nbt = new CompoundTag();
+      if (this.checkResults != null) {
+         nbt.putByteArray("checkResults", this.checkResults);
+      } else {
+         nbt.putByteArray("checkResults", new byte[0]);
+      }
+
+      nbt.put("breakTasks", NBTUtilBC.writeCompoundList(this.breakTasks.stream().map(SnapshotBuilder.BreakTask::writeToNBT)));
+      nbt.put("placeTasks", NBTUtilBC.writeCompoundList(this.placeTasks.stream().map(SnapshotBuilder.PlaceTask::writeToNBT)));
+      nbt.putInt("currentCheckIndex", this.currentCheckIndex);
+      return nbt;
+   }
+
+   public CompoundTag serializeClientNBT() {
+      CompoundTag nbt = new CompoundTag();
+      nbt.put("breakTasks", NBTUtilBC.writeCompoundList(this.clientBreakTasksCache.stream().map(SnapshotBuilder.BreakTask::writeToNBT)));
+      nbt.put("placeTasks", NBTUtilBC.writeCompoundList(this.placeTasks.stream().map(SnapshotBuilder.PlaceTask::writeToNBT)));
+      return nbt;
+   }
+
+   public void onNetworkSync() {
+      this.clientBreakTasksCache.clear();
+   }
+
+   public void deserializeNBT(CompoundTag nbt) {
+      if (this.getBuildingInfo() != null) {
+         this.updateSnapshot();
+         byte[] loadedCheckResults = nbt.getByteArray("checkResults").orElse(new byte[0]);
+         if (loadedCheckResults.length == this.checkResults.length) {
+            System.arraycopy(loadedCheckResults, 0, this.checkResults, 0, this.checkResults.length);
+         }
+
+         this.breakTasks.clear();
+         NBTUtilBC.readCompoundList(nbt.get("breakTasks")).map(x$0 -> new SnapshotBuilder.BreakTask(x$0)).forEach(this.breakTasks::add);
+         this.placeTasks.clear();
+         NBTUtilBC.readCompoundList(nbt.get("placeTasks")).map(x$0 -> new SnapshotBuilder.PlaceTask(x$0)).forEach(this.placeTasks::add);
+         this.currentCheckIndex = nbt.getIntOr("currentCheckIndex", 0);
+      }
+   }
+
+   public void loadClientNBT(CompoundTag tag, Iterable<SnapshotBuilder<T>.BreakTask> savedClientBreak, Iterable<SnapshotBuilder<T>.PlaceTask> savedClientPlace) {
+      Queue<SnapshotBuilder<T>.BreakTask> serverBreak = new ArrayDeque<>();
+      Queue<SnapshotBuilder<T>.PlaceTask> serverPlace = new ArrayDeque<>();
+      NBTUtilBC.readCompoundList(tag.get("breakTasks")).map(x$0 -> new SnapshotBuilder.BreakTask(x$0)).forEach(serverBreak::add);
+      NBTUtilBC.readCompoundList(tag.get("placeTasks")).map(x$0 -> new SnapshotBuilder.PlaceTask(x$0)).forEach(serverPlace::add);
+      this.receiveServerTaskData(serverBreak, serverPlace, savedClientBreak, savedClientPlace);
+   }
+
+   public class BreakTask {
+      public final BlockPos pos;
+      public long power;
+
+      public BreakTask(BlockPos pos, long power) {
+         this.pos = pos;
+         this.power = power;
+      }
+
+      public BreakTask(PacketBufferBC buffer) {
+         this.pos = buffer.readBlockPos();
+         this.power = buffer.readLong();
+      }
+
+      public BreakTask(CompoundTag nbt) {
+         this.pos = new BlockPos((int)nbt.getLongOr("pos_x", 0L), (int)nbt.getLongOr("pos_y", 0L), (int)nbt.getLongOr("pos_z", 0L));
+         this.power = nbt.getLongOr("power", 0L);
+      }
+
+      public boolean isImpossible() {
+         return BlockUtil.isUnbreakableBlock(SnapshotBuilder.this.tile.getWorldBC(), this.pos, SnapshotBuilder.this.tile.getOwner())
+            ? true
+            : SnapshotBuilder.this.tile.getWorldBC() instanceof ServerLevel serverLevel
+               && !BlockUtil.canMachineBreak(serverLevel, this.pos, SnapshotBuilder.this.tile.getOwner());
+      }
+
+      public long getTarget() {
+         return BlockUtil.computeBlockBreakPower(SnapshotBuilder.this.tile.getWorldBC(), this.pos);
+      }
+
+      public void writePayload(PacketBufferBC buffer) {
+         buffer.writeBlockPos(this.pos);
+         buffer.writeLong(this.power);
+      }
+
+      public CompoundTag writeToNBT() {
+         CompoundTag nbt = new CompoundTag();
+         nbt.putLong("pos_x", this.pos.getX());
+         nbt.putLong("pos_y", this.pos.getY());
+         nbt.putLong("pos_z", this.pos.getZ());
+         nbt.putLong("power", this.power);
+         return nbt;
+      }
+   }
+
+   public class PlaceTask {
+      public final BlockPos pos;
+      public final List<ItemStack> items;
+      public long power;
+
+      public PlaceTask(BlockPos pos, List<ItemStack> items, long power) {
+         this.pos = pos;
+         this.items = Optional.ofNullable(items).<List<ItemStack>>map(ImmutableList::copyOf).orElse(null);
+         this.power = power;
+      }
+
+      public PlaceTask(PacketBufferBC buffer) {
+         this.pos = buffer.readBlockPos();
+         this.items = IntStream.range(0, buffer.readInt())
+            .mapToObj(
+               j -> {
+                  CompoundTag itemTag = buffer.readNbt();
+                  Tag payload = itemTag == null ? null : itemTag.get("stack");
+                  ItemStack stack = payload == null
+                     ? ItemStack.EMPTY
+                     : ItemStack.CODEC.parse(NBTUtilBC.registryAwareOps(), payload).resultOrPartial().orElse(ItemStack.EMPTY);
+                  int count = buffer.readInt();
+                  return stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(count);
+               }
+            )
+            .collect(Collectors.toList());
+         this.power = buffer.readLong();
+      }
+
+      public PlaceTask(CompoundTag nbt) {
+         this.pos = new BlockPos((int)nbt.getLongOr("pos_x", 0L), (int)nbt.getLongOr("pos_y", 0L), (int)nbt.getLongOr("pos_z", 0L));
+         this.items = ImmutableList.copyOf(NBTUtilBC.readCompoundList(nbt.get("items")).map(tag -> {
+            if (tag.contains("id")) {
+               String idStr = tag.getString("id").orElse("");
+               Identifier id = Identifier.tryParse(idStr);
+               if (id != null) {
+                  Item item = (Item)BuiltInRegistries.ITEM.getValue(id);
+                  if (item != null && item != Items.AIR) {
+                     return new ItemStack(item, tag.getInt("count").orElse(1));
+                  }
+               }
             }
-        }
-        return prev != checkResults[i];
-    }
 
-    protected void afterChecks() {
-    }
+            return ItemStack.EMPTY;
+         }).filter(stack -> !stack.isEmpty()).collect(Collectors.toList()));
+         this.power = nbt.getLongOr("power", 0L);
+      }
 
-    public void writeToByteBuf(PacketBufferBC buffer) {
-        buffer.writeInt(breakTasks.size());
-        breakTasks.forEach(breakTask -> breakTask.writePayload(buffer));
-        buffer.writeInt(placeTasks.size());
-        placeTasks.forEach(placeTask -> placeTask.writePayload(buffer));
-        buffer.writeInt(leftToBreak);
-        buffer.writeInt(leftToPlace);
-    }
+      public long getTarget() {
+         return (long)(Math.sqrt(this.pos.distSqr(SnapshotBuilder.this.tile.getBuilderPos())) * 10.0 * MjAPI.MJ);
+      }
 
-    public void readFromByteBuf(PacketBufferBC buffer) {
-        breakTasks.clear();
-        IntStream.range(0, buffer.readInt()).mapToObj(i -> new BreakTask(buffer)).forEach(breakTasks::add);
-        placeTasks.clear();
-        IntStream.range(0, buffer.readInt()).mapToObj(i -> new PlaceTask(buffer)).forEach(placeTasks::add);
-        leftToBreak = buffer.readInt();
-        leftToPlace = buffer.readInt();
-    }
+      public void writePayload(PacketBufferBC buffer) {
+         buffer.writeBlockPos(this.pos);
+         buffer.writeInt(this.items.size());
+         this.items
+            .forEach(
+               item -> {
+                  CompoundTag tag = new CompoundTag();
+                  if (!item.isEmpty()) {
+                     ItemStack.CODEC
+                        .encodeStart(NBTUtilBC.registryAwareOps(), item.copyWithCount(1))
+                        .resultOrPartial()
+                        .ifPresent(payload -> tag.put("stack", payload));
+                  }
 
-    public CompoundTag serializeNBT() {
-        CompoundTag nbt = new CompoundTag();
-        if (checkResults != null) {
-            nbt.putByteArray("checkResults", checkResults);
-        } else {
-            nbt.putByteArray("checkResults", new byte[0]);
-        }
-        nbt.put("breakTasks", NBTUtilBC.writeCompoundList(breakTasks.stream().map(BreakTask::writeToNBT)));
-        nbt.put("placeTasks", NBTUtilBC.writeCompoundList(placeTasks.stream().map(PlaceTask::writeToNBT)));
-        nbt.putInt("currentCheckIndex", currentCheckIndex);
-        return nbt;
-    }
-
-    public CompoundTag serializeClientNBT() {
-        CompoundTag nbt = new CompoundTag();
-        nbt.put("breakTasks", NBTUtilBC.writeCompoundList(clientBreakTasksCache.stream().map(BreakTask::writeToNBT)));
-        nbt.put("placeTasks", NBTUtilBC.writeCompoundList(placeTasks.stream().map(PlaceTask::writeToNBT)));
-        return nbt;
-    }
-
-    public void onNetworkSync() {
-        clientBreakTasksCache.clear();
-    }
-
-    public void deserializeNBT(CompoundTag nbt) {
-        if (getBuildingInfo() == null) {
-            return;
-        }
-        updateSnapshot();
-        byte[] loadedCheckResults = nbt.getByteArray("checkResults").orElse(new byte[0]);
-        if (loadedCheckResults.length == checkResults.length) {
-            System.arraycopy(loadedCheckResults, 0, checkResults, 0, checkResults.length);
-        }
-        breakTasks.clear();
-        NBTUtilBC.readCompoundList(nbt.get("breakTasks")).map(BreakTask::new).forEach(breakTasks::add);
-        placeTasks.clear();
-        NBTUtilBC.readCompoundList(nbt.get("placeTasks")).map(PlaceTask::new).forEach(placeTasks::add);
-        currentCheckIndex = nbt.getIntOr("currentCheckIndex", 0);
-    }
-
-    public void loadClientNBT(CompoundTag tag,
-            Iterable<BreakTask> savedClientBreak, Iterable<PlaceTask> savedClientPlace) {
-        Queue<BreakTask> serverBreak = new ArrayDeque<>();
-        Queue<PlaceTask> serverPlace = new ArrayDeque<>();
-        NBTUtilBC.readCompoundList(tag.get("breakTasks")).map(BreakTask::new).forEach(serverBreak::add);
-        NBTUtilBC.readCompoundList(tag.get("placeTasks")).map(PlaceTask::new).forEach(serverPlace::add);
-        receiveServerTaskData(serverBreak, serverPlace, savedClientBreak, savedClientPlace);
-    }
-
-    public class BreakTask {
-        public final BlockPos pos;
-        public long power;
-
-        @SuppressWarnings("WeakerAccess")
-        public BreakTask(BlockPos pos, long power) {
-            this.pos = pos;
-            this.power = power;
-        }
-
-        @SuppressWarnings("WeakerAccess")
-        public BreakTask(PacketBufferBC buffer) {
-            pos = buffer.readBlockPos();
-            power = buffer.readLong();
-        }
-
-        @SuppressWarnings("WeakerAccess")
-        public BreakTask(CompoundTag nbt) {
-            pos = new BlockPos(
-                (int) nbt.getLongOr("pos_x", 0),
-                (int) nbt.getLongOr("pos_y", 0),
-                (int) nbt.getLongOr("pos_z", 0)
+                  buffer.writeNbt(tag);
+                  buffer.writeInt(item.getCount());
+               }
             );
-            power = nbt.getLongOr("power", 0L);
-        }
+         buffer.writeLong(this.power);
+      }
 
-        @SuppressWarnings("WeakerAccess")
-        public boolean isImpossible() {
-            if (BlockUtil.isUnbreakableBlock(tile.getWorldBC(), pos, tile.getOwner())) {
-                return true;
+      public CompoundTag writeToNBT() {
+         CompoundTag nbt = new CompoundTag();
+         nbt.putLong("pos_x", this.pos.getX());
+         nbt.putLong("pos_y", this.pos.getY());
+         nbt.putLong("pos_z", this.pos.getZ());
+         ListTag list = new ListTag();
+
+         for (ItemStack stack : this.items) {
+            if (!stack.isEmpty()) {
+               CompoundTag itemNbt = new CompoundTag();
+               Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
+               itemNbt.putString("id", itemId.toString());
+               itemNbt.putInt("count", stack.getCount());
+               list.add(itemNbt);
             }
+         }
 
-            if (tile.getWorldBC() instanceof ServerLevel serverLevel
-                    && !BlockUtil.canMachineBreak(serverLevel, pos, tile.getOwner())) {
-                return true;
-            }
-            return false;
-        }
-
-        public long getTarget() {
-            return BlockUtil.computeBlockBreakPower(tile.getWorldBC(), pos);
-        }
-
-        public void writePayload(PacketBufferBC buffer) {
-            buffer.writeBlockPos(pos);
-            buffer.writeLong(power);
-        }
-
-        public CompoundTag writeToNBT() {
-            CompoundTag nbt = new CompoundTag();
-            nbt.putLong("pos_x", pos.getX());
-            nbt.putLong("pos_y", pos.getY());
-            nbt.putLong("pos_z", pos.getZ());
-            nbt.putLong("power", power);
-            return nbt;
-        }
-    }
-
-    public class PlaceTask {
-        public final BlockPos pos;
-        public final List<ItemStack> items;
-        public long power;
-
-        @SuppressWarnings("WeakerAccess")
-        public PlaceTask(BlockPos pos, List<ItemStack> items, long power) {
-            this.pos = pos;
-            this.items = Optional.ofNullable(items).map(ImmutableList::copyOf).orElse(null);
-            this.power = power;
-        }
-
-        @SuppressWarnings("WeakerAccess")
-        public PlaceTask(PacketBufferBC buffer) {
-            pos = buffer.readBlockPos();
-            items = IntStream.range(0, buffer.readInt())
-                .mapToObj(j -> {
-                    CompoundTag itemTag = buffer.readNbt();
-                    Tag payload = itemTag == null ? null : itemTag.get("stack");
-                    ItemStack stack = payload == null
-                        ? ItemStack.EMPTY
-                        : ItemStack.CODEC.parse(NBTUtilBC.registryAwareOps(), payload)
-                            .resultOrPartial()
-                            .orElse(ItemStack.EMPTY);
-                    int count = buffer.readInt();
-                    return stack.isEmpty() ? ItemStack.EMPTY : stack.copyWithCount(count);
-                })
-                .collect(Collectors.toList());
-            power = buffer.readLong();
-        }
-
-        @SuppressWarnings("WeakerAccess")
-        public PlaceTask(CompoundTag nbt) {
-            pos = new BlockPos(
-                (int) nbt.getLongOr("pos_x", 0),
-                (int) nbt.getLongOr("pos_y", 0),
-                (int) nbt.getLongOr("pos_z", 0)
-            );
-            items = ImmutableList.copyOf(
-                NBTUtilBC.readCompoundList(nbt.get("items"))
-                    .map(tag -> {
-                        if (tag.contains("id")) {
-                            String idStr = tag.getString("id").orElse("");
-                            net.minecraft.resources.Identifier id = net.minecraft.resources.Identifier.tryParse(idStr);
-                            if (id != null) {
-                                net.minecraft.world.item.Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(id);
-                                if (item != null && item != net.minecraft.world.item.Items.AIR) {
-                                    return new net.minecraft.world.item.ItemStack(item, tag.getInt("count").orElse(1));
-                                }
-                            }
-                        }
-                        return net.minecraft.world.item.ItemStack.EMPTY;
-                    })
-                    .filter(stack -> !stack.isEmpty())
-                    .collect(java.util.stream.Collectors.toList())
-            );
-            power = nbt.getLongOr("power", 0L);
-        }
-
-        public long getTarget() {
-            return (long) (Math.sqrt(pos.distSqr(tile.getBuilderPos())) * 10 * MjAPI.MJ);
-        }
-
-        public void writePayload(PacketBufferBC buffer) {
-            buffer.writeBlockPos(pos);
-            buffer.writeInt(items.size());
-            items.forEach(item -> {
-                CompoundTag tag = new CompoundTag();
-                if (!item.isEmpty()) {
-                    ItemStack.CODEC.encodeStart(NBTUtilBC.registryAwareOps(), item.copyWithCount(1))
-                            .resultOrPartial()
-                            .ifPresent(payload -> tag.put("stack", payload));
-                }
-                buffer.writeNbt(tag);
-                buffer.writeInt(item.getCount());
-            });
-            buffer.writeLong(power);
-        }
-
-        public CompoundTag writeToNBT() {
-            CompoundTag nbt = new CompoundTag();
-            nbt.putLong("pos_x", pos.getX());
-            nbt.putLong("pos_y", pos.getY());
-            nbt.putLong("pos_z", pos.getZ());
-            net.minecraft.nbt.ListTag list = new net.minecraft.nbt.ListTag();
-            for (net.minecraft.world.item.ItemStack stack : items) {
-                if (!stack.isEmpty()) {
-                    net.minecraft.nbt.CompoundTag itemNbt = new net.minecraft.nbt.CompoundTag();
-                    net.minecraft.resources.Identifier itemId = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
-                    itemNbt.putString("id", itemId.toString());
-                    itemNbt.putInt("count", stack.getCount());
-                    list.add(itemNbt);
-                }
-            }
-            nbt.put("items", list);
-            nbt.putLong("power", power);
-            return nbt;
-        }
-    }
+         nbt.put("items", list);
+         nbt.putLong("power", this.power);
+         return nbt;
+      }
+   }
 }

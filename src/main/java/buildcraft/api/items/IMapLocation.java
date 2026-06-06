@@ -1,48 +1,40 @@
 package buildcraft.api.items;
 
-import java.util.List;
-
-import javax.annotation.Nonnull;
-
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
-
 import buildcraft.api.core.IBox;
 import buildcraft.api.core.IZone;
+import java.util.List;
+import javax.annotation.Nonnull;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
 
 public interface IMapLocation extends INamedItem {
-    enum MapLocationType {
-        CLEAN,
-        SPOT,
-        AREA,
-        PATH,
-        ZONE,
+   BlockPos getPoint(@Nonnull ItemStack var1);
 
-        PATH_REPEATING;
+   IBox getBox(@Nonnull ItemStack var1);
 
-        public final int meta = ordinal();
+   IZone getZone(@Nonnull ItemStack var1);
 
-        public static MapLocationType getFromStack(@Nonnull ItemStack stack) {
-            int dam = 0;
-            if (dam < 0 || dam >= values().length) {
-                return MapLocationType.CLEAN;
-            }
-            return values()[dam];
-        }
+   List<BlockPos> getPath(@Nonnull ItemStack var1);
 
-        public void setToStack(@Nonnull ItemStack stack) {
-            ;
-        }
-    }
+   Direction getPointSide(@Nonnull ItemStack var1);
 
-    BlockPos getPoint(@Nonnull ItemStack stack);
+   enum MapLocationType {
+      CLEAN,
+      SPOT,
+      AREA,
+      PATH,
+      ZONE,
+      PATH_REPEATING;
 
-    IBox getBox(@Nonnull ItemStack stack);
+      public final int meta = this.ordinal();
 
-    IZone getZone(@Nonnull ItemStack stack);
+      public static IMapLocation.MapLocationType getFromStack(@Nonnull ItemStack stack) {
+         int dam = 0;
+         return dam >= 0 && dam < values().length ? values()[dam] : CLEAN;
+      }
 
-    List<BlockPos> getPath(@Nonnull ItemStack stack);
-
-    Direction getPointSide(@Nonnull ItemStack stack);
+      public void setToStack(@Nonnull ItemStack stack) {
+      }
+   }
 }

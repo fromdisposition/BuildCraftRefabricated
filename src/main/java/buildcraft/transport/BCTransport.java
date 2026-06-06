@@ -3,12 +3,12 @@ package buildcraft.transport;
 import buildcraft.fabric.BCTransportFabric;
 
 public final class BCTransport {
-    public static final String MODID = "buildcrafttransport";
+   public static final String MODID = "buildcrafttransport";
 
-    private BCTransport() {}
+   private BCTransport() {
+   }
 
-    public static void init() {
-        BCTransportFabric.register();
-    }
+   public static void init() {
+      BCTransportFabric.register();
+   }
 }
-

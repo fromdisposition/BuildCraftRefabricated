@@ -1,21 +1,19 @@
 package buildcraft.transport;
 
-import net.minecraft.world.level.block.entity.BlockEntityType;
-
 import buildcraft.fabric.BCRegistries;
 import buildcraft.transport.tile.TileFilteredBuffer;
 import buildcraft.transport.tile.TilePipeHolder;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public final class BCTransportBlockEntities {
-    public static BlockEntityType<TileFilteredBuffer> FILTERED_BUFFER;
-    public static BlockEntityType<TilePipeHolder> PIPE_HOLDER;
+   public static BlockEntityType<TileFilteredBuffer> FILTERED_BUFFER;
+   public static BlockEntityType<TilePipeHolder> PIPE_HOLDER;
 
-    private BCTransportBlockEntities() {}
+   private BCTransportBlockEntities() {
+   }
 
-    public static void register() {
-        FILTERED_BUFFER = BCRegistries.registerBlockEntity(BCTransport.MODID, 
-                "filtered_buffer", TileFilteredBuffer::new, BCTransportBlocks.FILTERED_BUFFER.get());
-        PIPE_HOLDER = BCRegistries.registerBlockEntity(BCTransport.MODID, 
-                "pipe_holder", TilePipeHolder::new, BCTransportBlocks.PIPE_HOLDER.get());
-    }
+   public static void register() {
+      FILTERED_BUFFER = BCRegistries.registerBlockEntity("buildcrafttransport", "filtered_buffer", TileFilteredBuffer::new, BCTransportBlocks.FILTERED_BUFFER);
+      PIPE_HOLDER = BCRegistries.registerBlockEntity("buildcrafttransport", "pipe_holder", TilePipeHolder::new, BCTransportBlocks.PIPE_HOLDER);
+   }
 }

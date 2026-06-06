@@ -1,92 +1,100 @@
 package buildcraft.lib.client.guide.parts;
 
-import java.util.List;
-
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.guide.PageLine;
 import buildcraft.lib.client.guide.entry.PageValue;
 import buildcraft.lib.client.guide.font.IFontRenderer;
 import buildcraft.lib.client.guide.ref.GuideGroupSet;
-import buildcraft.lib.client.guide.ref.GuideGroupSet.GroupDirection;
 import buildcraft.lib.gui.ISimpleDrawable;
+import java.util.List;
 
 public class GuidePartGroup extends GuidePart {
+   public final GuideGroupSet group;
+   private final GuideText[] texts;
+   private final Object[] values;
 
-    public final GuideGroupSet group;
-    private final GuideText[] texts;
-    private final Object[] values;
+   public GuidePartGroup(GuiGuide gui, GuideGroupSet group, GuideGroupSet.GroupDirection direction) {
+      super(gui);
+      this.group = group;
+      List<PageValue<?>> groupValues = group.getValues(direction);
+      this.values = new Object[groupValues.size()];
 
-    public GuidePartGroup(GuiGuide gui, GuideGroupSet group, GroupDirection direction) {
-        super(gui);
-        this.group = group;
-        List<PageValue<?>> groupValues = group.getValues(direction);
-        values = new Object[groupValues.size()];
-        for (int i = 0; i < values.length; i++) {
-            values[i] = groupValues.get(i).value;
-        }
-        texts = new GuideText[1 + values.length];
-        texts[0] = new GuideText(gui, group.getTitle(direction));
-        int i = 1;
-        for (PageValue<?> single : groupValues) {
-            ISimpleDrawable icon = single.createDrawable();
-            texts[i++] = new GuideText(gui, new PageLine(icon, icon, 1, single.title, true, single::getTooltip));
-        }
-    }
+      for (int i = 0; i < this.values.length; i++) {
+         this.values[i] = groupValues.get(i).value;
+      }
 
-    @Override
-    public int hashCode() {
-        return group.hashCode();
-    }
+      this.texts = new GuideText[1 + this.values.length];
+      this.texts[0] = new GuideText(gui, group.getTitle(direction));
+      int i = 1;
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        GuidePartGroup other = (GuidePartGroup) obj;
-        return group == other.group;
-    }
+      for (PageValue<?> single : groupValues) {
+         ISimpleDrawable icon = single.createDrawable();
+         this.texts[i++] = new GuideText(gui, new PageLine(icon, icon, 1, single.title, true, single::getTooltip));
+      }
+   }
 
-    @Override
-    public void setFontRenderer(IFontRenderer fontRenderer) {
-        super.setFontRenderer(fontRenderer);
-        for (GuideText text : texts) {
-            text.setFontRenderer(fontRenderer);
-        }
-    }
+   @Override
+   public int hashCode() {
+      return this.group.hashCode();
+   }
 
-    @Override
-    public PagePosition renderIntoArea(int x, int y, int width, int height, PagePosition current, int index) {
-        if (getFontRenderer() != null) {
-            current = current.guaranteeSpace(getFontRenderer().getMaxFontHeight() * 4, height);
-        }
-        for (GuideText text : texts) {
-            current = text.renderIntoArea(x, y, width, height, current, index);
-        }
-        return current;
-    }
+   @Override
+   public boolean equals(Object obj) {
+      if (obj == this) {
+         return true;
+      } else if (obj != null && this.getClass() == obj.getClass()) {
+         GuidePartGroup other = (GuidePartGroup)obj;
+         return this.group == other.group;
+      } else {
+         return false;
+      }
+   }
 
-    @Override
-    public PagePosition handleMouseClick(int x, int y, int width, int height, PagePosition current, int index,
-        int mouseX, int mouseY) {
-        if (getFontRenderer() != null) {
-            current = current.guaranteeSpace(getFontRenderer().getMaxFontHeight() * 4, height);
-        }
-        for (int i = 0; i < texts.length; i++) {
-            GuideText text = texts[i];
-            current = text.handleMouseClick(x, y, width, height, current, index, mouseX, mouseY);
-            if (text.wasHovered && current.page == index && i > 0) {
-                Object value = values[i - 1];
-                GuidePageFactory factory = GuideManager.INSTANCE.getFactoryFor(value);
-                if (factory != null) {
-                    GuidePageBase newPage = factory.createNew(gui);
-                    if (newPage != null) {
-                        gui.openPage(newPage);
-                        return new PagePosition(Integer.MAX_VALUE / 4, 0);
-                    }
-                }
+   @Override
+   public void setFontRenderer(IFontRenderer fontRenderer) {
+      super.setFontRenderer(fontRenderer);
+
+      for (GuideText text : this.texts) {
+         text.setFontRenderer(fontRenderer);
+      }
+   }
+
+   @Override
+   public GuidePart.PagePosition renderIntoArea(int x, int y, int width, int height, GuidePart.PagePosition current, int index) {
+      if (this.getFontRenderer() != null) {
+         current = current.guaranteeSpace(this.getFontRenderer().getMaxFontHeight() * 4, height);
+      }
+
+      for (GuideText text : this.texts) {
+         current = text.renderIntoArea(x, y, width, height, current, index);
+      }
+
+      return current;
+   }
+
+   @Override
+   public GuidePart.PagePosition handleMouseClick(int x, int y, int width, int height, GuidePart.PagePosition current, int index, int mouseX, int mouseY) {
+      if (this.getFontRenderer() != null) {
+         current = current.guaranteeSpace(this.getFontRenderer().getMaxFontHeight() * 4, height);
+      }
+
+      for (int i = 0; i < this.texts.length; i++) {
+         GuideText text = this.texts[i];
+         current = text.handleMouseClick(x, y, width, height, current, index, mouseX, mouseY);
+         if (text.wasHovered && current.page == index && i > 0) {
+            Object value = this.values[i - 1];
+            GuidePageFactory factory = GuideManager.INSTANCE.getFactoryFor(value);
+            if (factory != null) {
+               GuidePageBase newPage = factory.createNew(this.gui);
+               if (newPage != null) {
+                  this.gui.openPage(newPage);
+                  return new GuidePart.PagePosition(536870911, 0);
+               }
             }
-        }
-        return current;
-    }
+         }
+      }
+
+      return current;
+   }
 }

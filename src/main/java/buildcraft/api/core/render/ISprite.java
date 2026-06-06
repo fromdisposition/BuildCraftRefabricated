@@ -1,12 +1,9 @@
 package buildcraft.api.core.render;
 
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-
 public interface ISprite {
+   void bindTexture();
 
-    void bindTexture();
+   double getInterpU(double var1);
 
-    double getInterpU(double u);
-
-    double getInterpV(double v);
+   double getInterpV(double var1);
 }

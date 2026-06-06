@@ -1,43 +1,39 @@
 package buildcraft.api.recipes;
 
-import javax.annotation.Nonnull;
-
 import com.google.common.collect.ImmutableList;
-
-import net.minecraft.world.item.ItemStack;
+import javax.annotation.Nonnull;
 import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.ItemStack;
 
 public abstract class IntegrationRecipe {
-    public final Object name;
+   public final Object name;
 
-    public IntegrationRecipe(Object name) {
-        this.name = name;
-    }
+   public IntegrationRecipe(Object name) {
+      this.name = name;
+   }
 
-    public abstract ItemStack getOutput(@Nonnull ItemStack target, NonNullList<ItemStack> toIntegrate);
+   public abstract ItemStack getOutput(@Nonnull ItemStack var1, NonNullList<ItemStack> var2);
 
-    public abstract ImmutableList<IngredientStack> getRequirements(@Nonnull ItemStack output);
+   public abstract ImmutableList<IngredientStack> getRequirements(@Nonnull ItemStack var1);
 
-    public abstract long getRequiredMicroJoules(ItemStack output);
+   public abstract long getRequiredMicroJoules(ItemStack var1);
 
-    public abstract IngredientStack getCenterStack();
+   public abstract IngredientStack getCenterStack();
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+   @Override
+   public boolean equals(Object o) {
+      if (this == o) {
+         return true;
+      } else if (o != null && this.getClass() == o.getClass()) {
+         IntegrationRecipe that = (IntegrationRecipe)o;
+         return this.name.equals(that.name);
+      } else {
+         return false;
+      }
+   }
 
-        IntegrationRecipe that = (IntegrationRecipe) o;
-
-        return name.equals(that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
+   @Override
+   public int hashCode() {
+      return this.name.hashCode();
+   }
 }

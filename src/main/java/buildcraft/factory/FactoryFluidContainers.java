@@ -1,105 +1,79 @@
 package buildcraft.factory;
 
+import buildcraft.lib.fabric.transfer.FluidStorageOps;
+import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.tile.ItemHandlerSimple;
+import buildcraft.lib.transfer.fabric.TransferConvert;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.world.item.ItemStack;
 
-import buildcraft.lib.fluids.FluidConstants;
-
-import buildcraft.lib.tile.item.ItemHandlerSimple;
-
-import buildcraft.lib.transfer.ResourceHandlerUtil;
-
-import buildcraft.lib.transfer.access.ItemAccess;
-
-import buildcraft.lib.transfer.fluid.BucketResourceHandler;
-
-import buildcraft.lib.transfer.fluid.FluidResource;
-
-import buildcraft.lib.transfer.fluid.FluidStacksResourceHandler;
-
-import buildcraft.lib.transfer.transaction.Transaction;
-
 public final class FactoryFluidContainers {
+   private FactoryFluidContainers() {
+   }
 
-    private FactoryFluidContainers() {}
+   public static void syncDrainSlot(ItemHandlerSimple slots, int slot, Storage<FluidVariant> tank) {
+      ItemStack stack = slots.getStackInSlot(slot);
+      if (!stack.isEmpty() && stack.getCount() == 1) {
+         Storage<FluidVariant> hand = TriggerTransferAccess.itemFluidStorage(stack);
+         if (hand != null) {
+            Transaction tx = Transaction.openOuter();
 
-    public static boolean tryDrainBucketIntoTank(ItemStack stack, FluidStacksResourceHandler tank) {
+            try {
+               long moved = FluidStorageOps.move(hand, tank, TransferConvert.mbToDroplets(1000L), tx);
+               if (moved > 0L) {
+                  tx.commit();
+                  slots.setStackInSlot(slot, stack);
+               }
+            } catch (Throwable var9) {
+               if (tx != null) {
+                  try {
+                     tx.close();
+                  } catch (Throwable var8) {
+                     var9.addSuppressed(var8);
+                  }
+               }
 
-        if (stack.isEmpty() || stack.getCount() != 1) {
-
-            return false;
-
-        }
-
-        BucketResourceHandler from = new BucketResourceHandler(ItemAccess.forStack(stack));
-
-        try (var tx = Transaction.openRoot()) {
-
-            int moved = ResourceHandlerUtil.move(from, tank, r -> !r.isEmpty(), FluidConstants.BUCKET_VOLUME, tx);
-
-            if (moved > 0) {
-
-                tx.commit();
-
-                return true;
-
+               throw var9;
             }
 
-        }
+            if (tx != null) {
+               tx.close();
+            }
+         }
+      }
+   }
 
-        return false;
+   public static void syncFillSlot(ItemHandlerSimple slots, int slot, Storage<FluidVariant> tank) {
+      ItemStack stack = slots.getStackInSlot(slot);
+      if (!stack.isEmpty() && stack.getCount() == 1) {
+         Storage<FluidVariant> hand = TriggerTransferAccess.itemFluidStorage(stack);
+         if (hand != null) {
+            Transaction tx = Transaction.openOuter();
 
-    }
+            try {
+               long moved = FluidStorageOps.move(tank, hand, TransferConvert.mbToDroplets(1000L), tx);
+               if (moved > 0L) {
+                  tx.commit();
+                  slots.setStackInSlot(slot, stack);
+               }
+            } catch (Throwable var9) {
+               if (tx != null) {
+                  try {
+                     tx.close();
+                  } catch (Throwable var8) {
+                     var9.addSuppressed(var8);
+                  }
+               }
 
-    public static boolean tryFillBucketFromTank(ItemStack stack, FluidStacksResourceHandler tank) {
-
-        if (stack.isEmpty() || stack.getCount() != 1) {
-
-            return false;
-
-        }
-
-        BucketResourceHandler to = new BucketResourceHandler(ItemAccess.forStack(stack));
-
-        try (var tx = Transaction.openRoot()) {
-
-            int moved = ResourceHandlerUtil.move(tank, to, r -> !r.isEmpty(), FluidConstants.BUCKET_VOLUME, tx);
-
-            if (moved > 0) {
-
-                tx.commit();
-
-                return true;
-
+               throw var9;
             }
 
-        }
-
-        return false;
-
-    }
-
-    public static void syncDrainSlot(ItemHandlerSimple slots, int slot, FluidStacksResourceHandler tank) {
-
-        ItemStack stack = slots.getStackInSlot(slot);
-
-        if (tryDrainBucketIntoTank(stack, tank)) {
-
-            slots.setStackInSlot(slot, stack);
-
-        }
-
-    }
-
-    public static void syncFillSlot(ItemHandlerSimple slots, int slot, FluidStacksResourceHandler tank) {
-
-        ItemStack stack = slots.getStackInSlot(slot);
-
-        if (tryFillBucketFromTank(stack, tank)) {
-
-            slots.setStackInSlot(slot, stack);
-
-        }
-
-    }
-
+            if (tx != null) {
+               tx.close();
+            }
+         }
+      }
+   }
 }

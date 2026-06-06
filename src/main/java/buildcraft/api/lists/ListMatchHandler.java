@@ -1,31 +1,29 @@
 package buildcraft.api.lists;
 
 import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.ItemStack;
 
 public abstract class ListMatchHandler {
-    public enum Type {
-        TYPE,
-        MATERIAL,
-        CLASS
-    }
+   public abstract boolean matches(ListMatchHandler.Type var1, @Nonnull ItemStack var2, @Nonnull ItemStack var3, boolean var4);
 
-    public abstract boolean matches(Type type, @Nonnull ItemStack stack, @Nonnull ItemStack target, boolean precise);
+   public abstract boolean isValidSource(ListMatchHandler.Type var1, @Nonnull ItemStack var2);
 
-    public abstract boolean isValidSource(Type type, @Nonnull ItemStack stack);
+   @Nullable
+   public NonNullList<ItemStack> getClientExamples(ListMatchHandler.Type type, @Nonnull ItemStack stack) {
+      return null;
+   }
 
-    @Nullable
-    public NonNullList<ItemStack> getClientExamples(Type type, @Nonnull ItemStack stack) {
-        return null;
-    }
+   @Nonnull
+   public List<String> describeMatch(ListMatchHandler.Type type, @Nonnull ItemStack stack) {
+      return List.of();
+   }
 
-    @Nonnull
-    public List<String> describeMatch(Type type, @Nonnull ItemStack stack) {
-        return List.of();
-    }
+   public enum Type {
+      TYPE,
+      MATERIAL,
+      CLASS;
+   }
 }

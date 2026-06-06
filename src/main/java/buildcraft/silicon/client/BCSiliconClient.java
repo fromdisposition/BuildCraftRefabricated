@@ -1,104 +1,94 @@
 package buildcraft.silicon.client;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import buildcraft.api.transport.pipe.PipeApiClient;
+import buildcraft.fabric.client.event.ClientPlayerNetworkEvent;
+import buildcraft.fabric.client.event.ModelEvent;
+import buildcraft.lib.client.fluid.FluidClientCache;
+import buildcraft.silicon.BCSiliconItems;
+import buildcraft.silicon.client.model.FacadeItemModel;
+import buildcraft.silicon.client.model.GateItemModel;
+import buildcraft.silicon.client.model.LensItemModel;
+import buildcraft.silicon.client.model.key.KeyPlugFacade;
+import buildcraft.silicon.client.model.key.KeyPlugGate;
+import buildcraft.silicon.client.model.key.KeyPlugLens;
+import buildcraft.silicon.client.model.key.KeyPlugSimple;
+import buildcraft.silicon.client.model.plug.PlugBakerFacade;
+import buildcraft.silicon.client.model.plug.PlugBakerLens;
+import buildcraft.silicon.client.model.plug.PlugBakerSimpleItems;
+import buildcraft.silicon.client.model.plug.PlugGateBaker;
+import buildcraft.silicon.client.render.PlugGateRenderer;
+import buildcraft.silicon.client.render.PlugPulsarRenderer;
+import buildcraft.silicon.plug.FacadeStateManager;
+import buildcraft.silicon.plug.PluggableGate;
+import buildcraft.silicon.plug.PluggablePulsar;
+import buildcraft.transport.client.model.PipeModelCacheAll;
+import java.util.Map;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import buildcraft.fabric.event.EventPriority;
-import buildcraft.fabric.event.SubscribeEvent;
-import buildcraft.fabric.client.event.ModelEvent;
-import buildcraft.fabric.client.event.RegisterMenuScreensEvent;
-
-import buildcraft.api.transport.pipe.PipeApiClient;
-
-import buildcraft.silicon.BCSiliconItems;
-import buildcraft.silicon.BCSiliconMenuTypes;
-import buildcraft.silicon.client.model.FacadeItemModel;
-import buildcraft.silicon.client.model.key.KeyPlugFacade;
-import buildcraft.silicon.client.model.key.KeyPlugGate;
-import buildcraft.silicon.client.model.plug.PlugBakerFacade;
-import buildcraft.silicon.gui.GuiAdvancedCraftingTable;
-import buildcraft.silicon.gui.GuiAssemblyTable;
-import buildcraft.silicon.gui.GuiIntegrationTable;
-import buildcraft.silicon.plug.FacadeStateManager;
+import net.minecraft.world.level.block.state.BlockState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BCSiliconClient {
-    private static final Logger LOGGER = LoggerFactory.getLogger("BuildCraft");
+   private static final Logger LOGGER = LoggerFactory.getLogger("BuildCraft");
+   private static Map<BlockState, BlockStateModel> cachedBlockStateModels;
 
-    private static java.util.Map<net.minecraft.world.level.block.state.BlockState,
+   public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
+      if (PipeApiClient.registry != null) {
+         PipeApiClient.registry.registerBaker(KeyPlugGate.class, PlugGateBaker.INSTANCE);
+         PipeApiClient.registry.registerBaker(KeyPlugFacade.class, PlugBakerFacade.INSTANCE);
+         PipeApiClient.registry.registerBaker(KeyPlugLens.class, PlugBakerLens.INSTANCE);
+         PipeApiClient.registry.registerBaker(KeyPlugSimple.class, PlugBakerSimpleItems.INSTANCE);
+         PipeApiClient.registry.registerRenderer(PluggablePulsar.class, PlugPulsarRenderer.INSTANCE);
+         PipeApiClient.registry.registerRenderer(PluggableGate.class, PlugGateRenderer.INSTANCE);
+      } else {
+         LOGGER.warn("[silicon.client] PipeApiClient.registry is null at ModifyBakingResult! Facade in-world rendering will not work.");
+      }
 
-            net.minecraft.client.renderer.block.dispatch.BlockStateModel> cachedBlockStateModels;
+      Map<Identifier, ItemModel> itemModels = event.getBakingResult().itemStackModels();
+      Identifier facadeId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_FACADE);
+      ItemModel vanillaModel = itemModels.get(facadeId);
+      if (vanillaModel != null) {
+         itemModels.put(facadeId, new FacadeItemModel());
+      }
 
-    @SubscribeEvent
-    public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
+      Identifier gateId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_GATE);
+      ItemModel vanillaGateModel = itemModels.get(gateId);
+      if (vanillaGateModel != null) {
+         itemModels.put(gateId, new GateItemModel());
+      }
 
-        if (PipeApiClient.registry != null) {
-            PipeApiClient.registry.registerBaker(KeyPlugGate.class, buildcraft.silicon.client.model.plug.PlugGateBaker.INSTANCE);
-            PipeApiClient.registry.registerBaker(KeyPlugFacade.class, PlugBakerFacade.INSTANCE);
-            PipeApiClient.registry.registerBaker(buildcraft.silicon.client.model.key.KeyPlugLens.class, buildcraft.silicon.client.model.plug.PlugBakerLens.INSTANCE);
-            PipeApiClient.registry.registerBaker(buildcraft.silicon.client.model.key.KeyPlugSimple.class, buildcraft.silicon.client.model.plug.PlugBakerSimpleItems.INSTANCE);
+      Identifier lensId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_LENS);
+      ItemModel vanillaLensModel = itemModels.get(lensId);
+      if (vanillaLensModel != null) {
+         itemModels.put(lensId, new LensItemModel());
+      }
 
-            PipeApiClient.registry.registerRenderer(buildcraft.silicon.plug.PluggablePulsar.class, buildcraft.silicon.client.render.PlugPulsarRenderer.INSTANCE);
-            PipeApiClient.registry.registerRenderer(buildcraft.silicon.plug.PluggableGate.class, buildcraft.silicon.client.render.PlugGateRenderer.INSTANCE);
-        } else {
-            LOGGER.warn("[silicon.client] PipeApiClient.registry is null at ModifyBakingResult! "
-                + "Facade in-world rendering will not work.");
-        }
+      FacadeItemModel.onModelBake();
+      GateItemModel.onModelBake();
+      LensItemModel.onModelBake();
+      PlugGateBaker.onModelBake();
+      PlugGateRenderer.onModelBake();
+      PipeModelCacheAll.clearAll();
+      FluidClientCache.clear();
+      PlugBakerSimpleItems.onModelBake();
+      cachedBlockStateModels = event.getBakingResult().blockStateModels();
+   }
 
-        var itemModels = event.getBakingResult().itemStackModels();
-        Identifier facadeId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_FACADE.get());
+   public static void runDeferredDedup() {
+      if (cachedBlockStateModels != null) {
+         FacadeDeduplicator.deduplicateVisuallyIdentical(cachedBlockStateModels);
+         cachedBlockStateModels = null;
+      }
+   }
 
-        ItemModel vanillaModel = itemModels.get(facadeId);
-        if (vanillaModel != null) {
-            itemModels.put(facadeId, new FacadeItemModel());
-        }
-
-        Identifier gateId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_GATE.get());
-        ItemModel vanillaGateModel = itemModels.get(gateId);
-        if (vanillaGateModel != null) {
-            itemModels.put(gateId, new buildcraft.silicon.client.model.GateItemModel());
-        }
-
-        Identifier lensId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_LENS.get());
-        ItemModel vanillaLensModel = itemModels.get(lensId);
-        if (vanillaLensModel != null) {
-            itemModels.put(lensId, new buildcraft.silicon.client.model.LensItemModel());
-        }
-
-        FacadeItemModel.onModelBake();
-        buildcraft.silicon.client.model.GateItemModel.onModelBake();
-        buildcraft.silicon.client.model.LensItemModel.onModelBake();
-        buildcraft.silicon.client.model.plug.PlugGateBaker.onModelBake();
-        buildcraft.silicon.client.render.PlugGateRenderer.onModelBake();
-
-        buildcraft.transport.client.model.PipeModelCacheAll.clearModels();
-        buildcraft.silicon.client.model.plug.PlugBakerSimpleItems.onModelBake();
-
-        cachedBlockStateModels = event.getBakingResult().blockStateModels();
-    }
-
-    public static void runDeferredDedup() {
-        if (cachedBlockStateModels != null) {
-            FacadeDeduplicator.deduplicateVisuallyIdentical(cachedBlockStateModels);
-            cachedBlockStateModels = null;
-        }
-    }
-
-    public static final class GameBus {
-
-        @SubscribeEvent(priority = EventPriority.HIGH)
-        public static void onClientLoggingIn(buildcraft.fabric.client.event.ClientPlayerNetworkEvent.LoggingIn event) {
-            FacadeStateManager.ensureInitialized();
-            runDeferredDedup();
-            FacadeDeduplicator.applyRedirectAuthority();
-        }
-    }
-
-    /** @deprecated Fabric client wiring is in {@link buildcraft.fabric.BCSiliconFabricClient}. */
-    @Deprecated
-    public static void initClient() {
-    }
+   public static final class GameBus {
+      public static void onClientLoggingIn(ClientPlayerNetworkEvent.LoggingIn event) {
+         FacadeStateManager.ensureInitialized();
+         BCSiliconClient.runDeferredDedup();
+         FacadeDeduplicator.applyRedirectAuthority();
+      }
+   }
 }
-

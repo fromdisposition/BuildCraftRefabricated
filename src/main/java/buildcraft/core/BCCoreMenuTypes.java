@@ -1,28 +1,26 @@
 package buildcraft.core;
 
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.inventory.MenuType;
-
 import buildcraft.core.list.ContainerList;
 import buildcraft.core.list.ListOpenContext;
 import buildcraft.fabric.BCRegistries;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.inventory.MenuType;
 
 public final class BCCoreMenuTypes {
-    public static MenuType<ContainerList> LIST;
+   public static MenuType<ContainerList> LIST;
 
-    private BCCoreMenuTypes() {}
+   private BCCoreMenuTypes() {
+   }
 
-    public static void register() {
-        LIST = Registry.register(
-                BuiltInRegistries.MENU,
-                BCRegistries.id(BCCore.MODID, "list"),
-                new MenuType<>((syncId, inv) -> {
-                    net.minecraft.world.InteractionHand hand = ListOpenContext.consume(inv.player);
-                    if (hand == null) {
-                        hand = net.minecraft.world.InteractionHand.MAIN_HAND;
-                    }
-                    return new ContainerList(syncId, inv, hand);
-                }, net.minecraft.world.flag.FeatureFlags.DEFAULT_FLAGS));
-    }
+   public static void register() {
+      LIST = BCRegistries.registerMenuType("buildcraftcore", "list", new MenuType((syncId, inv) -> {
+         InteractionHand hand = ListOpenContext.consume(inv.player);
+         if (hand == null) {
+            hand = InteractionHand.MAIN_HAND;
+         }
+
+         return new ContainerList(syncId, inv, hand);
+      }, FeatureFlags.DEFAULT_FLAGS));
+   }
 }

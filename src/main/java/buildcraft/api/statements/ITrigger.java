@@ -1,3 +1,4 @@
 package buildcraft.api.statements;
 
-public interface ITrigger extends IStatement {}
+public interface ITrigger extends IStatement {
+}

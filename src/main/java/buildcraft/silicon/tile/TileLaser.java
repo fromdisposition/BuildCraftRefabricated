@@ -1,18 +1,30 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.silicon.tile;
 
+import buildcraft.api.core.SafeTimeTracker;
+import buildcraft.api.mj.ILaserTarget;
+import buildcraft.api.mj.ILaserTargetBlock;
+import buildcraft.api.mj.MjAPI;
+import buildcraft.api.mj.MjBattery;
+import buildcraft.api.tiles.IDebuggable;
+import buildcraft.lib.block.ILocalBlockUpdateSubscriber;
+import buildcraft.lib.block.LocalBlockUpdateNotifier;
+import buildcraft.lib.debug.IAdvDebugTarget;
+import buildcraft.lib.fabric.transfer.MjEnergyStorage;
+import buildcraft.lib.misc.MessageUtil;
+import buildcraft.lib.misc.VolumeUtil;
+import buildcraft.lib.misc.data.AverageLong;
+import buildcraft.lib.mj.MjBatteryReceiver;
+import buildcraft.lib.tile.IBlockEntityLoadHook;
+import buildcraft.silicon.BCSiliconBlockEntities;
+import buildcraft.silicon.BCSiliconBlocks;
+import buildcraft.silicon.block.BlockLaser;
+import buildcraft.silicon.client.render.RenderLaser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -23,298 +35,261 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
-import buildcraft.api.core.SafeTimeTracker;
-import buildcraft.api.mj.ILaserTarget;
-import buildcraft.api.mj.ILaserTargetBlock;
-import buildcraft.api.mj.MjAPI;
-import buildcraft.api.mj.MjBattery;
+public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscriber, IDebuggable, IAdvDebugTarget, IBlockEntityLoadHook {
+   private static final int TARGETING_RANGE = 6;
+   private final SafeTimeTracker clientLaserMoveInterval = new SafeTimeTracker(5L, 10L);
+   private final SafeTimeTracker serverTargetMoveInterval = new SafeTimeTracker(10L, 20L);
+   private final SafeTimeTracker rescanInterval = new SafeTimeTracker(40L, 20L);
+   private final List<BlockPos> targetPositions = new ArrayList<>();
+   private BlockPos targetPos;
+   public Vec3 laserPos;
+   private boolean worldHasUpdated = true;
+   private final AverageLong avgPower = new AverageLong(100);
+   private long averageClient;
+   private final MjBattery battery;
+   private final MjBatteryReceiver mjReceiver;
+   private boolean registered = false;
 
-import buildcraft.lib.block.ILocalBlockUpdateSubscriber;
-import buildcraft.lib.block.LocalBlockUpdateNotifier;
-import buildcraft.lib.debug.IAdvDebugTarget;
-import buildcraft.lib.misc.MessageUtil;
-import buildcraft.lib.misc.VolumeUtil;
-import buildcraft.lib.misc.data.AverageLong;
-import buildcraft.lib.mj.MjBatteryReceiver;
+   public TileLaser(BlockPos pos, BlockState state) {
+      super(BCSiliconBlockEntities.LASER, pos, state);
+      this.battery = new MjBattery(1024L * MjAPI.MJ);
+      this.mjReceiver = new MjBatteryReceiver(this.battery);
+   }
 
-import buildcraft.api.tiles.IDebuggable;
-import buildcraft.silicon.BCSiliconBlockEntities;
-import buildcraft.silicon.BCSiliconBlocks;
-import buildcraft.silicon.block.BlockLaser;
+   public MjBatteryReceiver getMjReceiver() {
+      return this.mjReceiver;
+   }
 
-public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscriber, IDebuggable, IAdvDebugTarget,
-        buildcraft.lib.tile.IBlockEntityLoadHook {
-    private static final int TARGETING_RANGE = 6;
+   public MjBattery getBattery() {
+      return this.battery;
+   }
 
-    private final SafeTimeTracker clientLaserMoveInterval = new SafeTimeTracker(5, 10);
-    private final SafeTimeTracker serverTargetMoveInterval = new SafeTimeTracker(10, 20);
-    private final SafeTimeTracker rescanInterval = new SafeTimeTracker(40, 20);
+   public @Nullable MjEnergyStorage getSidedEnergyStorage() {
+      return MjEnergyStorage.createIfRfEnabled(this.getBattery());
+   }
 
-    private final List<BlockPos> targetPositions = new ArrayList<>();
-    private BlockPos targetPos;
-    public Vec3 laserPos;
-    private boolean worldHasUpdated = true;
+   @Override
+   public int getUpdateRange() {
+      return 6;
+   }
 
-    private final AverageLong avgPower = new AverageLong(100);
-    private long averageClient;
-    private final MjBattery battery;
-    private final MjBatteryReceiver mjReceiver;
+   @Override
+   public BlockPos getSubscriberPos() {
+      return this.getBlockPos();
+   }
 
-    public TileLaser(BlockPos pos, BlockState state) {
-        super(BCSiliconBlockEntities.LASER, pos, state);
-        battery = new MjBattery(1024 * MjAPI.MJ);
-        mjReceiver = new MjBatteryReceiver(battery);
-    }
+   @Override
+   public void setLevelUpdated(Level world, BlockPos eventPos, BlockState oldState, BlockState newState, int flags) {
+      this.worldHasUpdated = true;
+   }
 
-    public MjBatteryReceiver getMjReceiver() {
-        return mjReceiver;
-    }
-
-    public MjBattery getBattery() {
-        return battery;
-    }
-
-    @Override
-    public int getUpdateRange() {
-        return TARGETING_RANGE;
-    }
-
-    @Override
-    public BlockPos getSubscriberPos() {
-        return getBlockPos();
-    }
-
-    @Override
-    public void setLevelUpdated(Level world, BlockPos eventPos, BlockState oldState, BlockState newState, int flags) {
-        this.worldHasUpdated = true;
-    }
-
-    private void findPossibleTargets() {
-        targetPositions.clear();
-        BlockState state = level.getBlockState(worldPosition);
-        if (state.getBlock() != BCSiliconBlocks.LASER.get()) {
-            return;
-        }
-        Direction face = state.getValue(BlockLaser.FACING);
-
-        VolumeUtil.iterateCone(level, worldPosition, face, TARGETING_RANGE, true, (w, s, p, visible) -> {
-            if (!visible) {
-                return;
+   private void findPossibleTargets() {
+      this.targetPositions.clear();
+      BlockState state = this.level.getBlockState(this.worldPosition);
+      if (state.getBlock() == BCSiliconBlocks.LASER) {
+         Direction face = (Direction)state.getValue(BlockLaser.FACING);
+         VolumeUtil.iterateCone(this.level, this.worldPosition, face, 6, true, (w, s, p, visible) -> {
+            if (visible) {
+               BlockState stateAt = this.level.getBlockState(p);
+               if (stateAt.getBlock() instanceof ILaserTargetBlock) {
+                  BlockEntity tileAt = this.level.getBlockEntity(p);
+                  if (tileAt instanceof ILaserTarget) {
+                     this.targetPositions.add(p);
+                  }
+               }
             }
-            BlockState stateAt = level.getBlockState(p);
-            if (stateAt.getBlock() instanceof ILaserTargetBlock) {
-                BlockEntity tileAt = level.getBlockEntity(p);
-                if (tileAt instanceof ILaserTarget) {
-                    targetPositions.add(p);
-                }
-            }
-        });
-    }
+         });
+      }
+   }
 
-    private void randomlyChooseTargetPos() {
-        List<BlockPos> targetsNeedingPower = new ArrayList<>();
-        for (BlockPos position : targetPositions) {
-            if (isPowerNeededAt(position)) {
-                targetsNeedingPower.add(position);
-            }
-        }
-        if (targetsNeedingPower.isEmpty()) {
-            targetPos = null;
-            return;
-        }
-        targetPos = targetsNeedingPower.get(level.getRandom().nextInt(targetsNeedingPower.size()));
-    }
+   private void randomlyChooseTargetPos() {
+      List<BlockPos> targetsNeedingPower = new ArrayList<>();
 
-    private boolean isPowerNeededAt(BlockPos position) {
-        if (position != null) {
-            BlockEntity tile = level.getBlockEntity(position);
-            if (tile instanceof ILaserTarget target) {
-                return target.getRequiredLaserPower() > 0;
-            }
-        }
-        return false;
-    }
+      for (BlockPos position : this.targetPositions) {
+         if (this.isPowerNeededAt(position)) {
+            targetsNeedingPower.add(position);
+         }
+      }
 
-    private ILaserTarget getTarget() {
-        if (targetPos != null) {
-            BlockEntity tile = level.getBlockEntity(targetPos);
-            if (tile instanceof ILaserTarget) {
-                return (ILaserTarget) tile;
-            }
-        }
-        return null;
-    }
+      if (targetsNeedingPower.isEmpty()) {
+         this.targetPos = null;
+      } else {
+         this.targetPos = targetsNeedingPower.get(this.level.getRandom().nextInt(targetsNeedingPower.size()));
+      }
+   }
 
-    private void updateLaser() {
-        if (targetPos != null) {
-            laserPos = Vec3.atLowerCornerOf(targetPos).add(
-                (5 + level.getRandom().nextInt(6) + 0.5) / 16D,
-                9 / 16D,
-                (5 + level.getRandom().nextInt(6) + 0.5) / 16D
-            );
-        } else {
-            laserPos = null;
-        }
-    }
+   private boolean isPowerNeededAt(BlockPos position) {
+      return position != null && this.level.getBlockEntity(position) instanceof ILaserTarget target ? target.getRequiredLaserPower() > 0L : false;
+   }
 
-    public long getAverageClient() {
-        return averageClient;
-    }
+   private ILaserTarget getTarget() {
+      if (this.targetPos != null) {
+         BlockEntity tile = this.level.getBlockEntity(this.targetPos);
+         if (tile instanceof ILaserTarget) {
+            return (ILaserTarget)tile;
+         }
+      }
 
-    public long getMaxPowerPerTick() {
-        return 4 * MjAPI.MJ;
-    }
+      return null;
+   }
 
-    public void clientTick() {
-        if (clientLaserMoveInterval.markTimeIfDelay(level) || targetPos == null) {
-            updateLaser();
-        }
-    }
+   private void updateLaser() {
+      if (this.targetPos != null) {
+         this.laserPos = Vec3.atLowerCornerOf(this.targetPos)
+            .add((5 + this.level.getRandom().nextInt(6) + 0.5) / 16.0, 0.5625, (5 + this.level.getRandom().nextInt(6) + 0.5) / 16.0);
+      } else {
+         this.laserPos = null;
+      }
+   }
 
-    public void serverTick() {
-        ensureRegistered();
-        avgPower.tick();
+   public long getAverageClient() {
+      return this.averageClient;
+   }
 
-        BlockPos previousTargetPos = targetPos;
-        if (worldHasUpdated || rescanInterval.markTimeIfDelay(level)) {
-            findPossibleTargets();
-            worldHasUpdated = false;
-        }
+   public long getMaxPowerPerTick() {
+      return 4L * MjAPI.MJ;
+   }
 
-        if (battery.getStored() <= 0) {
-            targetPos = null;
-        } else {
-            if (!isPowerNeededAt(targetPos)) {
-                targetPos = null;
-            }
+   public void clientTick() {
+      if (this.clientLaserMoveInterval.markTimeIfDelay(this.level) || this.targetPos == null) {
+         this.updateLaser();
+      }
+   }
 
-            if (serverTargetMoveInterval.markTimeIfDelay(level) || !isPowerNeededAt(targetPos)) {
-                randomlyChooseTargetPos();
-            }
-        }
+   public void serverTick() {
+      this.ensureRegistered();
+      this.avgPower.tick();
+      BlockPos previousTargetPos = this.targetPos;
+      if (this.worldHasUpdated || this.rescanInterval.markTimeIfDelay(this.level)) {
+         this.findPossibleTargets();
+         this.worldHasUpdated = false;
+      }
 
-        ILaserTarget target = getTarget();
-        if (target != null) {
-            long max = getMaxPowerPerTick();
-            max *= battery.getStored() + max;
-            max /= battery.getCapacity() / 2;
-            max = Math.min(Math.min(max, getMaxPowerPerTick()), target.getRequiredLaserPower());
-            long power = battery.extractPower(0, max);
-            long excess = target.receiveLaserPower(power);
-            if (excess > 0) {
-                battery.addPowerChecking(excess, false);
-            }
-            avgPower.push(power - excess);
-        } else {
-            avgPower.clear();
-        }
+      if (this.battery.getStored() <= 0L) {
+         this.targetPos = null;
+      } else {
+         if (!this.isPowerNeededAt(this.targetPos)) {
+            this.targetPos = null;
+         }
 
-        averageClient = (long) avgPower.getAverage();
+         if (this.serverTargetMoveInterval.markTimeIfDelay(this.level) || !this.isPowerNeededAt(this.targetPos)) {
+            this.randomlyChooseTargetPos();
+         }
+      }
 
-        if (!Objects.equals(previousTargetPos, targetPos) || true) {
+      ILaserTarget target = this.getTarget();
+      if (target != null) {
+         long max = this.getMaxPowerPerTick();
+         max *= this.battery.getStored() + max;
+         max /= this.battery.getCapacity() / 2L;
+         max = Math.min(Math.min(max, this.getMaxPowerPerTick()), target.getRequiredLaserPower());
+         long power = this.battery.extractPower(0L, max);
+         long excess = target.receiveLaserPower(power);
+         if (excess > 0L) {
+            this.battery.addPowerChecking(excess, false);
+         }
 
-            setChanged();
-            MessageUtil.sendUpdateToTrackingPlayers(this);
-        }
-    }
+         this.avgPower.push(power - excess);
+      } else {
+         this.avgPower.clear();
+      }
 
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.store("battery", CompoundTag.CODEC, battery.serializeNBT());
-        if (laserPos != null) {
-            output.putDouble("laser_x", laserPos.x);
-            output.putDouble("laser_y", laserPos.y);
-            output.putDouble("laser_z", laserPos.z);
-        }
-        if (targetPos != null) {
-            output.putInt("target_x", targetPos.getX());
-            output.putInt("target_y", targetPos.getY());
-            output.putInt("target_z", targetPos.getZ());
-            output.putBoolean("has_target", true);
-        }
-        CompoundTag avgTag = new CompoundTag();
-        avgPower.writeToNbt(avgTag, "average_power");
-        output.store("avg_power", CompoundTag.CODEC, avgTag);
-    }
+      this.averageClient = (long)this.avgPower.getAverage();
+      if (Objects.equals(previousTargetPos, this.targetPos)) {
+      }
 
-    @Override
-    public void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        input.read("battery", CompoundTag.CODEC).ifPresent(batteryTag -> battery.deserializeNBT(batteryTag));
-        if (input.getBooleanOr("has_target", false)) {
-            targetPos = new BlockPos(
-                input.getIntOr("target_x", 0),
-                input.getIntOr("target_y", 0),
-                input.getIntOr("target_z", 0)
-            );
-        } else {
-            targetPos = null;
-        }
-        double lx = input.getDoubleOr("laser_x", Double.NaN);
-        if (!Double.isNaN(lx)) {
-            laserPos = new Vec3(
-                lx,
-                input.getDoubleOr("laser_y", 0),
-                input.getDoubleOr("laser_z", 0)
-            );
-        }
-        input.read("avg_power", CompoundTag.CODEC)
-            .ifPresent(tag -> avgPower.readFromNbt(tag, "average_power"));
-        averageClient = (long) avgPower.getAverage();
-    }
+      this.setChanged();
+      MessageUtil.sendUpdateToTrackingPlayers(this);
+   }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return this.saveCustomOnly(registries);
-    }
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      output.store("battery", CompoundTag.CODEC, this.battery.serializeNBT());
+      if (this.laserPos != null) {
+         output.putDouble("laser_x", this.laserPos.x);
+         output.putDouble("laser_y", this.laserPos.y);
+         output.putDouble("laser_z", this.laserPos.z);
+      }
 
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
+      if (this.targetPos != null) {
+         output.putInt("target_x", this.targetPos.getX());
+         output.putInt("target_y", this.targetPos.getY());
+         output.putInt("target_z", this.targetPos.getZ());
+         output.putBoolean("has_target", true);
+      }
 
-    public void onLoad() {
-        if (level != null && level.isClientSide()) {
-            buildcraft.silicon.client.render.RenderLaser.addLaser(this);
-        }
-    }
+      CompoundTag avgTag = new CompoundTag();
+      this.avgPower.writeToNbt(avgTag, "average_power");
+      output.store("avg_power", CompoundTag.CODEC, avgTag);
+   }
 
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
-        if (level != null && !level.isClientSide()) {
-            LocalBlockUpdateNotifier.instance(level).removeSubscriberFromUpdateNotifications(this);
-        }
-        if (level != null && level.isClientSide()) {
-            buildcraft.silicon.client.render.RenderLaser.removeLaser(this);
-        }
-    }
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      input.read("battery", CompoundTag.CODEC).ifPresent(batteryTag -> this.battery.deserializeNBT(batteryTag));
+      if (input.getBooleanOr("has_target", false)) {
+         this.targetPos = new BlockPos(input.getIntOr("target_x", 0), input.getIntOr("target_y", 0), input.getIntOr("target_z", 0));
+      } else {
+         this.targetPos = null;
+      }
 
-    private boolean registered = false;
-    private void ensureRegistered() {
-        if (!registered && level != null && !level.isClientSide()) {
-            LocalBlockUpdateNotifier.instance(level).registerSubscriberForUpdateNotifications(this);
-            registered = true;
-        }
-    }
+      double lx = input.getDoubleOr("laser_x", Double.NaN);
+      if (!Double.isNaN(lx)) {
+         this.laserPos = new Vec3(lx, input.getDoubleOr("laser_y", 0.0), input.getDoubleOr("laser_z", 0.0));
+      }
 
-    @Override
-    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
-        left.add("battery = " + battery.getStored() + " / " + battery.getCapacity());
-        left.add("target = " + targetPos);
-        left.add("laser = " + laserPos);
-        left.add("average = " + averageClient);
-        if (level != null && level.isClientSide()) {
-            left.add("active_lasers = " + buildcraft.silicon.client.render.RenderLaser.getActiveCount());
-        }
-    }
+      input.read("avg_power", CompoundTag.CODEC).ifPresent(tag -> this.avgPower.readFromNbt(tag, "average_power"));
+      this.averageClient = (long)this.avgPower.getAverage();
+   }
 
-    @Override
-    public Component getAdvDebugMessage() {
-        return Component.translatable("chat.debugger.laser");
-    }
+   public CompoundTag getUpdateTag(Provider registries) {
+      return this.saveCustomOnly(registries);
+   }
+
+   public Packet<ClientGamePacketListener> getUpdatePacket() {
+      return ClientboundBlockEntityDataPacket.create(this);
+   }
+
+   @Override
+   public void onLoad() {
+      if (this.level != null && this.level.isClientSide()) {
+         RenderLaser.addLaser(this);
+      }
+   }
+
+   public void setRemoved() {
+      super.setRemoved();
+      if (this.level != null && !this.level.isClientSide()) {
+         LocalBlockUpdateNotifier.instance(this.level).removeSubscriberFromUpdateNotifications(this);
+      }
+
+      if (this.level != null && this.level.isClientSide()) {
+         RenderLaser.removeLaser(this);
+      }
+   }
+
+   private void ensureRegistered() {
+      if (!this.registered && this.level != null && !this.level.isClientSide()) {
+         LocalBlockUpdateNotifier.instance(this.level).registerSubscriberForUpdateNotifications(this);
+         this.registered = true;
+      }
+   }
+
+   @Override
+   public void getDebugInfo(List<String> left, List<String> right, Direction side) {
+      left.add("battery = " + this.battery.getStored() + " / " + this.battery.getCapacity());
+      left.add("target = " + this.targetPos);
+      left.add("laser = " + this.laserPos);
+      left.add("average = " + this.averageClient);
+      if (this.level != null && this.level.isClientSide()) {
+         left.add("active_lasers = " + RenderLaser.getActiveCount());
+      }
+   }
+
+   @Override
+   public Component getAdvDebugMessage() {
+      return Component.translatable("chat.debugger.laser");
+   }
 }

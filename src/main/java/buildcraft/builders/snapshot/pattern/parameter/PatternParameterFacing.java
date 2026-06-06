@@ -1,107 +1,92 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.builders.snapshot.pattern.parameter;
-
-import java.util.EnumMap;
-import java.util.Map;
-
-import javax.annotation.Nonnull;
-
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.Direction;
 
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.StatementMouseClick;
-
+import buildcraft.builders.BCBuildersSprites;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.misc.StackUtil;
-
-import buildcraft.builders.BCBuildersSprites;
+import java.util.EnumMap;
+import java.util.Map;
+import javax.annotation.Nonnull;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 
 public enum PatternParameterFacing implements IStatementParameter {
-    DOWN(Direction.DOWN),
-    UP(Direction.UP),
-    NORTH(Direction.NORTH),
-    SOUTH(Direction.SOUTH),
-    WEST(Direction.WEST),
-    EAST(Direction.EAST);
+   DOWN(Direction.DOWN),
+   UP(Direction.UP),
+   NORTH(Direction.NORTH),
+   SOUTH(Direction.SOUTH),
+   WEST(Direction.WEST),
+   EAST(Direction.EAST);
 
-    public final Direction face;
+   public final Direction face;
+   private static final Map<Direction, PatternParameterFacing> faceToParam = new EnumMap<>(Direction.class);
 
-    private static final Map<Direction, PatternParameterFacing> faceToParam;
+   PatternParameterFacing(Direction face) {
+      this.face = face;
+   }
 
-    static {
-        faceToParam = new EnumMap<>(Direction.class);
-        for (PatternParameterFacing param : values()) {
-            faceToParam.put(param.face, param);
-        }
-    }
+   public static PatternParameterFacing readFromNbt(CompoundTag nbt) {
+      return values()[MathUtil.clamp(nbt.getByte("v").orElse((byte)0), 0, 6)];
+   }
 
-    PatternParameterFacing(Direction face) {
-        this.face = face;
-    }
+   public static PatternParameterFacing get(Direction face) {
+      return faceToParam.get(face);
+   }
 
-    public static PatternParameterFacing readFromNbt(CompoundTag nbt) {
-        return values()[MathUtil.clamp(nbt.getByte("v").orElse((byte) 0), 0, 6)];
-    }
+   @Override
+   public void writeToNbt(CompoundTag nbt) {
+      nbt.putByte("v", (byte)this.ordinal());
+   }
 
-    public static PatternParameterFacing get(Direction face) {
-        return faceToParam.get(face);
-    }
+   @Override
+   public String getUniqueTag() {
+      return "buildcraft:fillerParameterFacing";
+   }
 
-    @Override
-    public void writeToNbt(CompoundTag nbt) {
-        nbt.putByte("v", (byte) ordinal());
-    }
+   @Override
+   public ISprite getSprite() {
+      return BCBuildersSprites.PARAM_FACE.get(this.face);
+   }
 
-    @Override
-    public String getUniqueTag() {
-        return "buildcraft:fillerParameterFacing";
-    }
+   @Nonnull
+   @Override
+   public ItemStack getItemStack() {
+      return StackUtil.EMPTY;
+   }
 
-    @Override
-    public ISprite getSprite() {
-        return BCBuildersSprites.PARAM_FACE.get(face);
-    }
+   @Override
+   public String getDescription() {
+      return LocaleUtil.localize("buildcraft.param.facing." + this.face.getSerializedName());
+   }
 
-    @Nonnull
-    @Override
-    public ItemStack getItemStack() {
-        return StackUtil.EMPTY;
-    }
+   public PatternParameterFacing onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
+      return null;
+   }
 
-    @Override
-    public String getDescription() {
-        return LocaleUtil.localize("buildcraft.param.facing." + face.getSerializedName());
-    }
+   @Override
+   public IStatementParameter rotateLeft() {
+      return this;
+   }
 
-    @Override
-    public PatternParameterFacing onClick(IStatementContainer source, IStatement stmt, ItemStack stack,
-        StatementMouseClick mouse) {
-        return null;
-    }
+   @Override
+   public IStatementParameter[] getPossible(IStatementContainer source) {
+      return values();
+   }
 
-    @Override
-    public IStatementParameter rotateLeft() {
-        return this;
-    }
+   @Override
+   public boolean isPossibleOrdered() {
+      return false;
+   }
 
-    @Override
-    public IStatementParameter[] getPossible(IStatementContainer source) {
-        return values();
-    }
-
-    @Override
-    public boolean isPossibleOrdered() {
-        return false;
-    }
+   static {
+      for (PatternParameterFacing param : values()) {
+         faceToParam.put(param.face, param);
+      }
+   }
 }

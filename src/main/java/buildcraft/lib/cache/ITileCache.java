@@ -1,26 +1,21 @@
 package buildcraft.lib.cache;
 
-import net.minecraft.resources.Identifier;
-
 import javax.annotation.Nullable;
-
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 
 public interface ITileCache {
+   void invalidate();
 
-    void invalidate();
+   @Nullable
+   TileCacheRet getTile(BlockPos var1);
 
-    @Nullable
-    TileCacheRet getTile(BlockPos pos);
+   @Nullable
+   TileCacheRet getTile(Direction var1);
 
-    @Nullable
-    TileCacheRet getTile(Direction offset);
-
-    public enum TileCacheState {
-        CACHED,
-        NOT_CACHED,
-        NOT_PRESENT;
-    }
+   enum TileCacheState {
+      CACHED,
+      NOT_CACHED,
+      NOT_PRESENT;
+   }
 }

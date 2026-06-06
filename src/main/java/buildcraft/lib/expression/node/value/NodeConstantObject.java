@@ -1,59 +1,53 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.node.value;
 
+import buildcraft.lib.expression.api.IConstantNode;
+import buildcraft.lib.expression.api.IExpressionNode;
 import java.util.Objects;
 
-import buildcraft.lib.expression.api.IConstantNode;
-import buildcraft.lib.expression.api.IExpressionNode.INodeObject;
+public final class NodeConstantObject<T> implements IExpressionNode.INodeObject<T>, IConstantNode {
+   public static final NodeConstantObject<String> EMPTY_STRING = new NodeConstantObject<>(String.class, "");
+   public final Class<T> type;
+   public final T value;
 
-public final class NodeConstantObject<T> implements INodeObject<T>, IConstantNode {
-    public static final NodeConstantObject<String> EMPTY_STRING = new NodeConstantObject<>(String.class, "");
+   public NodeConstantObject(Class<T> type, T value) {
+      this.type = type;
+      this.value = value;
+   }
 
-    public final Class<T> type;
-    public final T value;
+   @Override
+   public Class<T> getType() {
+      return this.type;
+   }
 
-    public NodeConstantObject(Class<T> type, T value) {
-        this.type = type;
-        this.value = value;
-    }
+   @Override
+   public T evaluate() {
+      return this.value;
+   }
 
-    @Override
-    public Class<T> getType() {
-        return type;
-    }
+   @Override
+   public IExpressionNode.INodeObject<T> inline() {
+      return this;
+   }
 
-    @Override
-    public T evaluate() {
-        return value;
-    }
+   @Override
+   public String toString() {
+      return this.value instanceof String ? "'" + this.value + "'" : this.value.toString();
+   }
 
-    @Override
-    public INodeObject<T> inline() {
-        return this;
-    }
+   @Override
+   public int hashCode() {
+      return Objects.hashCode(this.value);
+   }
 
-    @Override
-    public String toString() {
-        return value instanceof String ? ("'" + value + "'") : value.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(value);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        NodeConstantObject<?> other = (NodeConstantObject<?>) obj;
-        return getType() == other.getType() && Objects.equals(value, other.value);
-    }
+   @Override
+   public boolean equals(Object obj) {
+      if (obj == this) {
+         return true;
+      } else if (obj != null && obj.getClass() == this.getClass()) {
+         NodeConstantObject<?> other = (NodeConstantObject<?>)obj;
+         return this.getType() == other.getType() && Objects.equals(this.value, other.value);
+      } else {
+         return false;
+      }
+   }
 }

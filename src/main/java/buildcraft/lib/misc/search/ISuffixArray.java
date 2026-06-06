@@ -1,33 +1,30 @@
 package buildcraft.lib.misc.search;
 
-import net.minecraft.resources.Identifier;
-
 import java.util.List;
-
 import net.minecraft.util.profiling.ProfilerFiller;
 
 public interface ISuffixArray<T> {
-    void add(T obj, String name);
+   void add(T var1, String var2);
 
-    void generate(ProfilerFiller prof);
+   void generate(ProfilerFiller var1);
 
-    SearchResult<T> search(String substring, int maxResults);
+   ISuffixArray.SearchResult<T> search(String var1, int var2);
 
-    public static final class SearchResult<T> {
-        public final List<T> results;
-        public final int realResultCount;
+   final class SearchResult<T> {
+      public final List<T> results;
+      public final int realResultCount;
 
-        public SearchResult(List<T> results, int realResultCount) {
-            this.results = results;
-            this.realResultCount = realResultCount;
-        }
+      public SearchResult(List<T> results, int realResultCount) {
+         this.results = results;
+         this.realResultCount = realResultCount;
+      }
 
-        public SearchResult(List<T> results) {
-            this(results, results.size());
-        }
+      public SearchResult(List<T> results) {
+         this(results, results.size());
+      }
 
-        public boolean hasAllResults() {
-            return results.size() == realResultCount;
-        }
-    }
+      public boolean hasAllResults() {
+         return this.results.size() == this.realResultCount;
+      }
+   }
 }

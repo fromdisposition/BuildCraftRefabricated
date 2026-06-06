@@ -1,99 +1,104 @@
 package buildcraft.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public final class BCCoreConfig {
+   public static final BCCoreConfig.BooleanValue worldGen = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue minePlayerProtected = new BCCoreConfig.BooleanValue(false);
+   public static final BCCoreConfig.BooleanValue pumpsConsumeWater = new BCCoreConfig.BooleanValue(false);
+   public static final BCCoreConfig.IntValue markerMaxDistance = new BCCoreConfig.IntValue(64);
+   public static final BCCoreConfig.IntValue pumpMaxDistance = new BCCoreConfig.IntValue(64);
+   public static final BCCoreConfig.IntValue networkUpdateRate = new BCCoreConfig.IntValue(10);
+   public static final BCCoreConfig.DoubleValue miningMultiplier = new BCCoreConfig.DoubleValue(1.0);
+   public static final BCCoreConfig.IntValue miningMaxDepth = new BCCoreConfig.IntValue(512);
 
-    public static final BooleanValue worldGen = new BooleanValue(true);
-    public static final BooleanValue minePlayerProtected = new BooleanValue(false);
-    public static final BooleanValue pumpsConsumeWater = new BooleanValue(false);
-    public static final IntValue markerMaxDistance = new IntValue(64);
-    public static final IntValue pumpMaxDistance = new IntValue(64);
-    public static final IntValue networkUpdateRate = new IntValue(10);
-    public static final DoubleValue miningMultiplier = new DoubleValue(1.0);
-    public static final IntValue miningMaxDepth = new IntValue(512);
+   private BCCoreConfig() {
+   }
 
-    private BCCoreConfig() {}
+   public static void buildGeneral(Object builder) {
+   }
 
-    public static void buildGeneral(Object builder) {}
+   public static void buildWorldgen(Object builder) {
+   }
 
-    public static void buildWorldgen(Object builder) {}
+   public static final class BooleanValue {
+      private boolean value;
 
-    public static final class BooleanValue {
-        private boolean value;
+      public BooleanValue(boolean value) {
+         this.value = value;
+      }
 
-        public BooleanValue(boolean value) {
-            this.value = value;
-        }
+      public boolean get() {
+         return this.value;
+      }
 
-        public boolean get() {
-            return value;
-        }
+      public void set(boolean value) {
+         this.value = value;
+      }
+   }
 
-        public void set(boolean value) {
-            this.value = value;
-        }
-    }
+   public static final class DoubleValue {
+      private double value;
 
-    public static final class IntValue {
-        private int value;
+      public DoubleValue(double value) {
+         this.value = value;
+      }
 
-        public IntValue(int value) {
-            this.value = value;
-        }
+      public double get() {
+         return this.value;
+      }
 
-        public int get() {
-            return value;
-        }
+      public void set(double value) {
+         this.value = value;
+      }
+   }
 
-        public void set(int value) {
-            this.value = value;
-        }
-    }
+   public static final class EnumValue<T extends Enum<T>> {
+      private T value;
 
-    public static final class DoubleValue {
-        private double value;
+      public EnumValue(T value) {
+         this.value = value;
+      }
 
-        public DoubleValue(double value) {
-            this.value = value;
-        }
+      public T get() {
+         return this.value;
+      }
 
-        public double get() {
-            return value;
-        }
+      public void set(T value) {
+         this.value = value;
+      }
+   }
 
-        public void set(double value) {
-            this.value = value;
-        }
-    }
+   public static final class IntValue {
+      private int value;
 
-    public static final class StringListValue {
-        private java.util.List<String> value;
+      public IntValue(int value) {
+         this.value = value;
+      }
 
-        public StringListValue(java.util.List<String> value) {
-            this.value = new java.util.ArrayList<>(value);
-        }
+      public int get() {
+         return this.value;
+      }
 
-        public java.util.List<? extends String> get() {
-            return value;
-        }
+      public void set(int value) {
+         this.value = value;
+      }
+   }
 
-        public void set(java.util.List<String> value) {
-            this.value = new java.util.ArrayList<>(value);
-        }
-    }
+   public static final class StringListValue {
+      private List<String> value;
 
-    public static final class EnumValue<T extends Enum<T>> {
-        private T value;
+      public StringListValue(List<String> value) {
+         this.value = new ArrayList<>(value);
+      }
 
-        public EnumValue(T value) {
-            this.value = value;
-        }
+      public List<? extends String> get() {
+         return this.value;
+      }
 
-        public T get() {
-            return value;
-        }
-
-        public void set(T value) {
-            this.value = value;
-        }
-    }
+      public void set(List<String> value) {
+         this.value = new ArrayList<>(value);
+      }
+   }
 }

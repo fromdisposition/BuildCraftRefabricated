@@ -1,129 +1,124 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
 package buildcraft.lib.client.render;
 
-import java.util.Random;
-
 import com.mojang.blaze3d.vertex.PoseStack;
-
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
+import java.util.Random;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-import com.mojang.math.Axis;
-
 public class ItemRenderUtil {
+   private static final Random modelOffsetRandom = new Random(0L);
+   private static PoseStack currentPoseStack;
+   private static SubmitNodeCollector currentCollector;
+   private static int currentLight;
+   private static ItemStackRenderState renderState;
 
-    private static final Random modelOffsetRandom = new Random(0);
+   public static void beginItemBatch(PoseStack poseStack, SubmitNodeCollector collector, int light) {
+      currentPoseStack = poseStack;
+      currentCollector = collector;
+      currentLight = light;
+      renderState = new ItemStackRenderState();
+   }
 
-    private static PoseStack currentPoseStack;
-    private static SubmitNodeCollector currentCollector;
-    private static int currentLight;
-    private static ItemStackRenderState renderState;
+   public static PoseStack getCurrentPoseStack() {
+      return currentPoseStack;
+   }
 
-    public static void beginItemBatch(PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        currentPoseStack = poseStack;
-        currentCollector = collector;
-        currentLight = light;
-        renderState = new ItemStackRenderState();
-    }
+   public static void renderItemStack(double x, double y, double z, ItemStack stack, int lightc, Direction dir, VertexConsumer bb) {
+      renderItemStack(x, y, z, stack, stack.getCount(), lightc, dir, bb);
+   }
 
-    public static PoseStack getCurrentPoseStack() {
-        return currentPoseStack;
-    }
-
-    public static void renderItemStack(double x, double y, double z, ItemStack stack,
-            int lightc, Direction dir, com.mojang.blaze3d.vertex.VertexConsumer bb) {
-        renderItemStack(x, y, z, stack, stack.getCount(), lightc, dir, bb);
-    }
-
-    public static void renderItemStack(double x, double y, double z, ItemStack stack,
-            int stackCount, int lightc, Direction dir, com.mojang.blaze3d.vertex.VertexConsumer bb) {
-        if (stack.isEmpty() || currentPoseStack == null || currentCollector == null) {
-            return;
-        }
-        if (dir == null) {
+   public static void renderItemStack(double x, double y, double z, ItemStack stack, int stackCount, int lightc, Direction dir, VertexConsumer bb) {
+      if (!stack.isEmpty() && currentPoseStack != null && currentCollector != null) {
+         if (dir == null) {
             dir = Direction.EAST;
-        }
+         }
 
-        ItemModelResolver resolver = Minecraft.getInstance().getItemModelResolver();
-        renderState.clear();
-        resolver.updateForTopItem(renderState, stack, ItemDisplayContext.FIXED,
-                Minecraft.getInstance().level, null, 0);
-
-        if (renderState.isEmpty()) {
-            return;
-        }
-
-        final int itemModelCount = getStackModelCount(stackCount);
-        if (itemModelCount > 1) {
-            setupModelOffsetRandom(stack);
-        }
-
-        for (int i = 0; i < itemModelCount; i++) {
-            currentPoseStack.pushPose();
-
-            float dx = 0, dy = 0, dz = 0;
-            if (i > 0) {
-                dx = (modelOffsetRandom.nextFloat() * 2.0F - 1.0F) * 0.08F;
-                dy = (modelOffsetRandom.nextFloat() * 2.0F - 1.0F) * 0.08F;
-                dz = (modelOffsetRandom.nextFloat() * 2.0F - 1.0F) * 0.08F;
+         ItemModelResolver resolver = Minecraft.getInstance().getItemModelResolver();
+         renderState.clear();
+         resolver.updateForTopItem(renderState, stack, ItemDisplayContext.FIXED, Minecraft.getInstance().level, null, 0);
+         if (!renderState.isEmpty()) {
+            int itemModelCount = getStackModelCount(stackCount);
+            if (itemModelCount > 1) {
+               setupModelOffsetRandom(stack);
             }
 
-            currentPoseStack.translate(x + dx, y + dy, z + dz);
+            for (int i = 0; i < itemModelCount; i++) {
+               currentPoseStack.pushPose();
+               float dx = 0.0F;
+               float dy = 0.0F;
+               float dz = 0.0F;
+               if (i > 0) {
+                  dx = (modelOffsetRandom.nextFloat() * 2.0F - 1.0F) * 0.08F;
+                  dy = (modelOffsetRandom.nextFloat() * 2.0F - 1.0F) * 0.08F;
+                  dz = (modelOffsetRandom.nextFloat() * 2.0F - 1.0F) * 0.08F;
+               }
 
-            currentPoseStack.scale(0.60f, 0.60f, 0.60f);
+               currentPoseStack.translate(x + dx, y + dy, z + dz);
+               currentPoseStack.scale(0.6F, 0.6F, 0.6F);
+               applyDirectionRotation(currentPoseStack, dir);
+               renderState.submit(currentPoseStack, currentCollector, lightc, OverlayTexture.NO_OVERLAY, 0);
+               currentPoseStack.popPose();
+            }
+         }
+      }
+   }
 
-            applyDirectionRotation(currentPoseStack, dir);
+   private static void applyDirectionRotation(PoseStack ps, Direction dir) {
+      switch (dir) {
+         case NORTH:
+            ps.mulPose(Axis.YP.rotationDegrees(180.0F));
+            break;
+         case EAST:
+            ps.mulPose(Axis.YP.rotationDegrees(90.0F));
+            break;
+         case WEST:
+            ps.mulPose(Axis.YP.rotationDegrees(-90.0F));
+            break;
+         case UP:
+            ps.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            break;
+         case DOWN:
+            ps.mulPose(Axis.XP.rotationDegrees(90.0F));
+         case SOUTH:
+      }
+   }
 
-            renderState.submit(currentPoseStack, currentCollector,
-                    lightc, OverlayTexture.NO_OVERLAY, 0);
+   private static void setupModelOffsetRandom(ItemStack stack) {
+      long seed;
+      if (stack.isEmpty()) {
+         seed = 137L;
+      } else {
+         Identifier key = BuiltInRegistries.ITEM.getKey(stack.getItem());
+         seed = key != null ? key.hashCode() & 2147483647L : 127L;
+      }
 
-            currentPoseStack.popPose();
-        }
-    }
+      modelOffsetRandom.setSeed(seed);
+   }
 
-    private static void applyDirectionRotation(PoseStack ps, Direction dir) {
+   private static int getStackModelCount(int stackCount) {
+      if (stackCount > 48) {
+         return 5;
+      } else if (stackCount > 32) {
+         return 4;
+      } else if (stackCount > 16) {
+         return 3;
+      } else {
+         return stackCount > 1 ? 2 : 1;
+      }
+   }
 
-        switch (dir) {
-            case NORTH -> ps.mulPose(Axis.YP.rotationDegrees(180));
-            case EAST -> ps.mulPose(Axis.YP.rotationDegrees(90));
-            case WEST -> ps.mulPose(Axis.YP.rotationDegrees(-90));
-            case UP -> ps.mulPose(Axis.XP.rotationDegrees(-90));
-            case DOWN -> ps.mulPose(Axis.XP.rotationDegrees(90));
-            case SOUTH -> {}
-        }
-    }
-
-    private static void setupModelOffsetRandom(ItemStack stack) {
-        final long seed;
-        if (stack.isEmpty()) {
-            seed = 137;
-        } else {
-            var key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem());
-            seed = key != null ? (key.hashCode() & 0x7F_FF_FF_FFL) : 127L;
-        }
-        modelOffsetRandom.setSeed(seed);
-    }
-
-    private static int getStackModelCount(int stackCount) {
-        if (stackCount > 48) return 5;
-        if (stackCount > 32) return 4;
-        if (stackCount > 16) return 3;
-        if (stackCount > 1) return 2;
-        return 1;
-    }
-
-    public static void endItemBatch() {
-        currentPoseStack = null;
-        currentCollector = null;
-    }
+   public static void endItemBatch() {
+      currentPoseStack = null;
+      currentCollector = null;
+   }
 }

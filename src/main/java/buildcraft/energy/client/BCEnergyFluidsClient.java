@@ -3,9 +3,10 @@ package buildcraft.energy.client;
 import buildcraft.fabric.BCEnergyFabricClient;
 
 public final class BCEnergyFluidsClient {
-    private BCEnergyFluidsClient() {}
+   private BCEnergyFluidsClient() {
+   }
 
-    public static void init() {
-        BCEnergyFabricClient.init();
-    }
+   public static void init() {
+      BCEnergyFabricClient.init();
+   }
 }

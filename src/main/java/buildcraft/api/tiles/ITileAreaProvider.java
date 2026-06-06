@@ -1,9 +1,8 @@
 package buildcraft.api.tiles;
 
+import buildcraft.api.core.IAreaProvider;
 import net.minecraft.core.BlockPos;
 
-import buildcraft.api.core.IAreaProvider;
-
 public interface ITileAreaProvider extends IAreaProvider {
-    boolean isValidFromLocation(BlockPos pos);
+   boolean isValidFromLocation(BlockPos var1);
 }

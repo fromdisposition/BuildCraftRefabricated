@@ -1,133 +1,127 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.transport.client.model;
 
+import buildcraft.lib.client.model.IModelCache;
+import buildcraft.lib.client.model.ModelCacheJoiner;
+import buildcraft.transport.client.render.PipeBehaviourRendererStripes;
+import buildcraft.transport.client.render.PipeWireRenderer;
+import buildcraft.transport.tile.TilePipeHolder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import net.minecraft.client.resources.model.geometry.BakedQuad;
-
-import buildcraft.lib.client.model.IModelCache;
-import buildcraft.lib.client.model.ModelCacheJoiner;
-import buildcraft.lib.client.model.ModelCacheJoiner.ModelKeyWrapper;
-
-import buildcraft.transport.client.model.PipeModelCacheBase.PipeBaseCutoutKey;
-import buildcraft.transport.client.model.PipeModelCacheBase.PipeBaseTranslucentKey;
-import buildcraft.transport.client.model.PipeModelCachePluggable.PluggableKey;
-import buildcraft.transport.client.model.key.PipeModelKey;
-import buildcraft.transport.tile.TilePipeHolder;
-
 public class PipeModelCacheAll {
-    static final IModelCache<PipeAllCutoutKey> cacheCutout;
-    static final IModelCache<PipeAllTranslucentKey> cacheTranslucent;
+   static final IModelCache<PipeModelCacheAll.PipeAllCutoutKey> cacheCutout;
+   static final IModelCache<PipeModelCacheAll.PipeAllTranslucentKey> cacheTranslucent;
 
-    static {
-        List<ModelKeyWrapper<PipeAllCutoutKey, ?>> cutout = new ArrayList<>();
-        cutout.add(new ModelKeyWrapper<>(PipeAllCutoutKey::getBaseCutout, PipeModelCacheBase.cacheCutout));
-        cutout.add(new ModelKeyWrapper<>(PipeAllCutoutKey::getPluggable, PipeModelCachePluggable.cacheCutoutAll));
-        cacheCutout = new ModelCacheJoiner<>(cutout);
+   public static void clearModels() {
+      cacheCutout.clear();
+      cacheTranslucent.clear();
+   }
 
-        List<ModelKeyWrapper<PipeAllTranslucentKey, ?>> translucent = new ArrayList<>();
-        translucent.add(new ModelKeyWrapper<>(PipeAllTranslucentKey::getBaseTranslucent, PipeModelCacheBase.cacheTranslucent));
-        translucent.add(new ModelKeyWrapper<>(PipeAllTranslucentKey::getPluggable, PipeModelCachePluggable.cacheTranslucentAll));
-        cacheTranslucent = new ModelCacheJoiner<>(translucent);
-    }
+   public static void clearAll() {
+      clearModels();
+      PipeMutableQuadCache.clearCaches();
+      PipeBaseModelGenStandard.clearSpriteCaches();
+      PipeWireRenderer.clearCaches();
+      PipeBehaviourRendererStripes.clearCaches();
+   }
 
-    public static List<BakedQuad> getCutoutModel(TilePipeHolder tile) {
-        return cacheCutout.bake(new PipeAllCutoutKey(tile));
-    }
+   static {
+      List<ModelCacheJoiner.ModelKeyWrapper<PipeModelCacheAll.PipeAllCutoutKey, ?>> cutout = new ArrayList<>();
+      cutout.add(new ModelCacheJoiner.ModelKeyWrapper<>(PipeModelCacheAll.PipeAllCutoutKey::getBaseCutout, PipeModelCacheBase.cacheCutout));
+      cutout.add(new ModelCacheJoiner.ModelKeyWrapper<>(PipeModelCacheAll.PipeAllCutoutKey::getPluggable, PipeModelCachePluggable.cacheCutoutAll));
+      cacheCutout = new ModelCacheJoiner<>(cutout);
+      List<ModelCacheJoiner.ModelKeyWrapper<PipeModelCacheAll.PipeAllTranslucentKey, ?>> translucent = new ArrayList<>();
+      translucent.add(new ModelCacheJoiner.ModelKeyWrapper<>(PipeModelCacheAll.PipeAllTranslucentKey::getBaseTranslucent, PipeModelCacheBase.cacheTranslucent));
+      translucent.add(
+         new ModelCacheJoiner.ModelKeyWrapper<>(PipeModelCacheAll.PipeAllTranslucentKey::getPluggable, PipeModelCachePluggable.cacheTranslucentAll)
+      );
+      cacheTranslucent = new ModelCacheJoiner<>(translucent);
+   }
 
-    public static List<BakedQuad> getTranslucentModel(TilePipeHolder tile) {
-        return cacheTranslucent.bake(new PipeAllTranslucentKey(tile));
-    }
+   public static class PipeAllCutoutKey {
+      private final PipeModelCacheBase.PipeBaseCutoutKey cutout;
+      private final PipeModelCachePluggable.PluggableKey pluggable;
+      private final int hash;
 
-    public static List<buildcraft.lib.client.model.MutableQuad> getTranslucentMutableModel(TilePipeHolder tile) {
-        if (tile.getPipe() == null) return java.util.Collections.emptyList();
-        PipeModelKey modelKey = tile.getPipe().getModel();
-        PipeBaseTranslucentKey key = new PipeBaseTranslucentKey(modelKey);
-        if (!key.shouldRender()) return java.util.Collections.emptyList();
-        return PipeModelCacheBase.generator.generateTranslucentMutable(key);
-    }
+      public PipeAllCutoutKey(TilePipeHolder tile) {
+         this.cutout = new PipeModelCacheBase.PipeBaseCutoutKey(tile.getPipe().getModel());
+         this.pluggable = new PipeModelCachePluggable.PluggableKey(true, tile);
+         this.hash = Objects.hash(this.cutout, this.pluggable);
+      }
 
-    public static void clearModels() {
-        cacheCutout.clear();
-        cacheTranslucent.clear();
-    }
+      public PipeModelCacheBase.PipeBaseCutoutKey getBaseCutout() {
+         return this.cutout;
+      }
 
-    public static class PipeAllCutoutKey {
-        private final PipeBaseCutoutKey cutout;
-        private final PluggableKey pluggable;
-        private final int hash;
+      public PipeModelCachePluggable.PluggableKey getPluggable() {
+         return this.pluggable;
+      }
 
-        public PipeAllCutoutKey(TilePipeHolder tile) {
-            cutout = new PipeBaseCutoutKey(tile.getPipe().getModel());
-            this.pluggable = new PluggableKey(true, tile);
-            hash = Objects.hash(cutout, pluggable);
-        }
+      @Override
+      public int hashCode() {
+         return this.hash;
+      }
 
-        public PipeBaseCutoutKey getBaseCutout() {
-            return cutout;
-        }
-
-        public PluggableKey getPluggable() {
-            return pluggable;
-        }
-
-        @Override
-        public int hashCode() {
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
-            PipeAllCutoutKey other = (PipeAllCutoutKey) obj;
-            if (!cutout.equals(other.cutout)) return false;
-            if (!pluggable.equals(other.pluggable)) return false;
+      @Override
+      public boolean equals(Object obj) {
+         if (this == obj) {
             return true;
-        }
-    }
+         }
 
-    public static class PipeAllTranslucentKey {
-        private final PipeBaseTranslucentKey translucent;
-        private final PluggableKey pluggable;
-        private final int hash;
+         if (obj == null) {
+            return false;
+         }
 
-        public PipeAllTranslucentKey(TilePipeHolder tile) {
-            translucent = new PipeBaseTranslucentKey(tile.getPipe().getModel());
-            this.pluggable = new PluggableKey(false, tile);
-            hash = Objects.hash(translucent, pluggable);
-        }
+         if (this.getClass() != obj.getClass()) {
+            return false;
+         }
 
-        public PipeBaseTranslucentKey getBaseTranslucent() {
-            return translucent;
-        }
+         PipeModelCacheAll.PipeAllCutoutKey other = (PipeModelCacheAll.PipeAllCutoutKey)obj;
+         return !this.cutout.equals(other.cutout) ? false : this.pluggable.equals(other.pluggable);
+      }
+   }
 
-        public PluggableKey getPluggable() {
-            return pluggable;
-        }
+   public static class PipeAllTranslucentKey {
+      private final PipeModelCacheBase.PipeBaseTranslucentKey translucent;
+      private final PipeModelCachePluggable.PluggableKey pluggable;
+      private final int hash;
 
-        @Override
-        public int hashCode() {
-            return hash;
-        }
+      public PipeAllTranslucentKey(TilePipeHolder tile) {
+         this.translucent = new PipeModelCacheBase.PipeBaseTranslucentKey(tile.getPipe().getModel());
+         this.pluggable = new PipeModelCachePluggable.PluggableKey(false, tile);
+         this.hash = Objects.hash(this.translucent, this.pluggable);
+      }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) return true;
-            if (obj == null) return false;
-            if (getClass() != obj.getClass()) return false;
-            PipeAllTranslucentKey other = (PipeAllTranslucentKey) obj;
-            if (!translucent.equals(other.translucent)) return false;
-            if (!pluggable.equals(other.pluggable)) return false;
+      public PipeModelCacheBase.PipeBaseTranslucentKey getBaseTranslucent() {
+         return this.translucent;
+      }
+
+      public PipeModelCachePluggable.PluggableKey getPluggable() {
+         return this.pluggable;
+      }
+
+      @Override
+      public int hashCode() {
+         return this.hash;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+         if (this == obj) {
             return true;
-        }
-    }
+         }
+
+         if (obj == null) {
+            return false;
+         }
+
+         if (this.getClass() != obj.getClass()) {
+            return false;
+         }
+
+         PipeModelCacheAll.PipeAllTranslucentKey other = (PipeModelCacheAll.PipeAllTranslucentKey)obj;
+         return !this.translucent.equals(other.translucent) ? false : this.pluggable.equals(other.pluggable);
+      }
+   }
 }

@@ -1,35 +1,4 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
 package buildcraft.lib.engine;
-
-import java.util.UUID;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.mojang.authlib.GameProfile;
-
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.util.profiling.Profiler;
-import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
@@ -37,523 +6,561 @@ import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.IMjRedstoneReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjToRfAutoConvertor;
+import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.api.tiles.IDebuggable;
-
 import buildcraft.lib.BCLibConfig;
+import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.LocaleUtil;
-
-import buildcraft.lib.attachments.Attachments;
-import buildcraft.lib.attachments.AttachmentQueries;
-import buildcraft.lib.transfer.energy.EnergyHandler;
+import buildcraft.lib.misc.data.ModelVariableData;
+import buildcraft.lib.mj.MjBlockCapabilities;
+import com.mojang.authlib.GameProfile;
+import java.util.List;
+import java.util.UUID;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup.Provider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.Level.ExplosionInteraction;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import team.reborn.energy.api.EnergyStorage;
 
 public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebuggable {
+   public static final Identifier ADVANCEMENT_TO_MUCH_POWER = Identifier.parse("buildcraftenergy:to_much_power");
+   public static final float MIN_HEAT = 20.0F;
+   public static final float MAX_HEAT = 250.0F;
+   @Nullable
+   private GameProfile owner;
+   protected Direction orientation = Direction.UP;
+   protected long power = 0L;
+   public long currentOutput = 0L;
+   protected float heat = 20.0F;
+   protected float progress = 0.0F;
+   protected int progressPart = 0;
+   protected boolean isPumping = false;
+   protected boolean isRedstonePowered = false;
+   private float lastProgress = 0.0F;
+   private float clientProgress = 0.0F;
+   private boolean clientIsPumping = false;
+   Direction prevOrientation = Direction.UP;
+   boolean prevIsPumping = false;
+   EnumPowerStage prevPowerStage = EnumPowerStage.BLUE;
+   protected int orientationChecksRemaining = 1;
+   protected boolean checkRedstonePower = true;
+   protected int redstonePollTimer = 0;
+   private EnumPowerStage powerStage = EnumPowerStage.BLUE;
+   public final ModelVariableData clientModelData = new ModelVariableData();
+   private IMjConnector mjConnector;
 
-    public static final Identifier ADVANCEMENT_TO_MUCH_POWER =
-        Identifier.parse("buildcraftenergy:to_much_power");
+   public long getPower() {
+      return this.power;
+   }
 
-    public static final float MIN_HEAT = 20f;
-    public static final float MAX_HEAT = 250f;
+   public TileEngineBase_BC8(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+      super(type, pos, state);
+   }
 
-    @Nullable
-    private GameProfile owner;
+   public abstract boolean isBurning();
 
-    protected Direction orientation = Direction.UP;
-    protected long power = 0;
-    public long currentOutput = 0;
+   protected abstract void engineUpdate();
 
-    public long getPower() { return power; }
-    protected float heat = MIN_HEAT;
-    protected float progress = 0;
-    protected int progressPart = 0;
-    protected boolean isPumping = false;
-    protected boolean isRedstonePowered = false;
+   public abstract long getMaxPower();
 
-    private float lastProgress = 0;
-    private float clientProgress = 0;
-    private boolean clientIsPumping = false;
+   public abstract long minPowerReceived();
 
-    Direction prevOrientation = Direction.UP;
-    boolean prevIsPumping = false;
-    EnumPowerStage prevPowerStage = EnumPowerStage.BLUE;
+   public abstract long maxPowerReceived();
 
-    protected int orientationChecksRemaining = 1;
-    protected boolean checkRedstonePower = true;
-    protected int redstonePollTimer = 0;
+   public abstract long maxPowerExtracted();
 
-    private EnumPowerStage powerStage = EnumPowerStage.BLUE;
+   public abstract long getCurrentOutput();
 
-    public final buildcraft.lib.misc.data.ModelVariableData clientModelData = new buildcraft.lib.misc.data.ModelVariableData();
+   public abstract float explosionRange();
 
-    private IMjConnector mjConnector;
+   @Nonnull
+   protected abstract IMjConnector createConnector();
 
-    public TileEngineBase_BC8(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
-    }
+   public void onPlacedBy(@Nullable LivingEntity placer, ItemStack stack) {
+      if (placer instanceof Player player) {
+         this.owner = player.getGameProfile();
+      }
 
-    public abstract boolean isBurning();
+      if (this.getBlockState().hasProperty(BuildCraftProperties.BLOCK_FACING_6)) {
+         this.setOrientation((Direction)this.getBlockState().getValue(BuildCraftProperties.BLOCK_FACING_6));
+      }
+   }
 
-    protected abstract void engineUpdate();
+   @Nullable
+   public GameProfile getOwner() {
+      return this.owner;
+   }
 
-    public abstract long getMaxPower();
+   public void setOwner(@Nullable GameProfile owner) {
+      this.owner = owner;
+   }
 
-    public abstract long minPowerReceived();
+   protected int getMaxChainLength() {
+      return 2;
+   }
 
-    public abstract long maxPowerReceived();
+   public double getPistonSpeed() {
+      switch (this.getPowerStage()) {
+         case BLUE:
+            return 0.02;
+         case GREEN:
+            return 0.04;
+         case YELLOW:
+            return 0.08;
+         case RED:
+            return 0.12;
+         default:
+            return 0.0;
+      }
+   }
 
-    public abstract long maxPowerExtracted();
+   public void updateHeatLevel() {
+      this.heat = (float)(230.0 * this.getEnergyLevel() + 20.0);
+   }
 
-    public abstract long getCurrentOutput();
+   protected EnumPowerStage computePowerStage() {
+      float heatLevel = this.getHeatLevel();
+      if (heatLevel < 0.25F) {
+         return EnumPowerStage.BLUE;
+      } else if (heatLevel < 0.5F) {
+         return EnumPowerStage.GREEN;
+      } else if (heatLevel < 0.75F) {
+         return EnumPowerStage.YELLOW;
+      } else {
+         return heatLevel < 0.85F ? EnumPowerStage.RED : EnumPowerStage.OVERHEAT;
+      }
+   }
 
-    public abstract float explosionRange();
+   public float getHeat() {
+      return this.heat;
+   }
 
-    @Nonnull
-    protected abstract IMjConnector createConnector();
+   public float getHeatLevel() {
+      return (this.heat - 20.0F) / 230.0F;
+   }
 
-    public void onPlacedBy(@Nullable LivingEntity placer, net.minecraft.world.item.ItemStack stack) {
-        if (placer instanceof net.minecraft.world.entity.player.Player player) {
-            owner = player.getGameProfile();
-        }
-        if (getBlockState().hasProperty(buildcraft.api.properties.BuildCraftProperties.BLOCK_FACING_6)) {
-            setOrientation(getBlockState().getValue(buildcraft.api.properties.BuildCraftProperties.BLOCK_FACING_6));
-        }
-    }
+   public double getEnergyLevel() {
+      long max = this.getMaxPower();
+      return max <= 0L ? 0.0 : (double)this.power / max;
+   }
 
-    @Nullable
-    public GameProfile getOwner() {
-        return owner;
-    }
+   public final EnumPowerStage getPowerStage() {
+      if (this.level != null && !this.level.isClientSide()) {
+         if (this.powerStage == EnumPowerStage.OVERHEAT) {
+            return this.powerStage;
+         }
 
-    public void setOwner(@Nullable GameProfile owner) {
-        this.owner = owner;
-    }
-
-    protected int getMaxChainLength() {
-        return 2;
-    }
-
-    public double getPistonSpeed() {
-        switch (getPowerStage()) {
-            case BLUE:   return 0.02;
-            case GREEN:  return 0.04;
-            case YELLOW: return 0.08;
-            case RED:    return 0.12;
-            default:     return 0;
-        }
-    }
-
-    public void updateHeatLevel() {
-        heat = (float) (((MAX_HEAT - MIN_HEAT) * getEnergyLevel()) + MIN_HEAT);
-    }
-
-    protected EnumPowerStage computePowerStage() {
-        float heatLevel = getHeatLevel();
-        if (heatLevel < 0.25f) return EnumPowerStage.BLUE;
-        if (heatLevel < 0.5f) return EnumPowerStage.GREEN;
-        if (heatLevel < 0.75f) return EnumPowerStage.YELLOW;
-        if (heatLevel < 0.85f) return EnumPowerStage.RED;
-        return EnumPowerStage.OVERHEAT;
-    }
-
-    public float getHeat() {
-        return heat;
-    }
-
-    public float getHeatLevel() {
-        return (heat - MIN_HEAT) / (MAX_HEAT - MIN_HEAT);
-    }
-
-    public double getEnergyLevel() {
-        long max = getMaxPower();
-        if (max <= 0) return 0;
-        return (double) power / max;
-    }
-
-    public final EnumPowerStage getPowerStage() {
-        if (level != null && !level.isClientSide()) {
-            if (powerStage == EnumPowerStage.OVERHEAT) {
-                return powerStage;
-            }
-            EnumPowerStage newStage = computePowerStage();
-            if (powerStage != newStage) {
-                powerStage = newStage;
-                if (powerStage == EnumPowerStage.OVERHEAT) {
-                    overheat();
-                }
-                setChanged();
-            }
-        }
-        return powerStage;
-    }
-
-    protected void overheat() {
-        isPumping = false;
-        if (!BCLibConfig.canEnginesExplode.get()) return;
-        float range = explosionRange();
-        if (range > 0 && level != null) {
-            level.explode(null, getBlockPos().getX() + 0.5, getBlockPos().getY() + 0.5,
-                getBlockPos().getZ() + 0.5, range, Level.ExplosionInteraction.BLOCK);
-            level.removeBlock(getBlockPos(), false);
-        }
-    }
-
-    public boolean clearOverheat(@Nullable Player player) {
-        if (powerStage != EnumPowerStage.OVERHEAT) return false;
-        heat = MIN_HEAT;
-        powerStage = computePowerStage();
-        isPumping = false;
-        setChanged();
-        if (level != null && !level.isClientSide()) {
-            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-            if (player != null) {
-                AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_TO_MUCH_POWER);
-            }
-        }
-        return true;
-    }
-
-    public boolean hasAlternateReceiver() {
-        for (Direction d : Direction.values()) {
-            if (d == orientation) continue;
-            if (getReceiverToPower(d) != null) return true;
-        }
-        return false;
-    }
-
-    public IMjConnector getMjConnector() {
-        if (mjConnector == null) {
-            mjConnector = createConnector();
-        }
-        return mjConnector;
-    }
-
-    public long extractPower(long min, long max, boolean doExtract) {
-        if (power < min) return 0;
-        long actualMax = Math.min(max, maxPowerExtracted());
-        if (actualMax < min) return 0;
-        long extracted = Math.min(power, actualMax);
-        if (doExtract) {
-            power -= extracted;
-        }
-        return extracted;
-    }
-
-    @Nullable
-    public IMjReceiver getReceiverToPower(Direction side) {
-        if (level == null) return null;
-
-        BlockPos pos = getBlockPos();
-        for (int len = 0; len <= getMaxChainLength(); len++) {
-            BlockPos targetPos = pos.relative(side);
-            BlockEntity tile = level.getBlockEntity(targetPos);
-            if (tile == null) {
-                return null;
-            }
-            if (tile.getClass() == getClass()) {
-
-                if (((TileEngineBase_BC8) tile).orientation != side) {
-                    return null;
-                }
-                pos = targetPos;
-                continue;
+         EnumPowerStage newStage = this.computePowerStage();
+         if (this.powerStage != newStage) {
+            this.powerStage = newStage;
+            if (this.powerStage == EnumPowerStage.OVERHEAT) {
+               this.overheat();
             }
 
-            IMjReceiver receiver = AttachmentQueries.getBlock(level, MjAPI.CAP_RECEIVER, targetPos, side.getOpposite());
-            if (receiver != null && receiver.canConnect(getMjConnector()) && getMjConnector().canConnect(receiver)) {
-                return receiver;
-            }
+            this.setChanged();
+         }
+      }
 
-            EnergyHandler feHandler = AttachmentQueries.getBlock(level, Attachments.Energy.BLOCK, targetPos, side.getOpposite());
-            if (feHandler != null) {
-                IMjReceiver feReceiver = MjToRfAutoConvertor.createReceiver(feHandler);
-                if (feReceiver != null && feReceiver.canConnect(getMjConnector())) {
-                    return feReceiver;
-                }
-            }
+      return this.powerStage;
+   }
+
+   protected void overheat() {
+      this.isPumping = false;
+      if (BCLibConfig.canEnginesExplode.get()) {
+         float range = this.explosionRange();
+         if (range > 0.0F && this.level != null) {
+            this.level
+               .explode(
+                  null, this.getBlockPos().getX() + 0.5, this.getBlockPos().getY() + 0.5, this.getBlockPos().getZ() + 0.5, range, ExplosionInteraction.BLOCK
+               );
+            this.level.removeBlock(this.getBlockPos(), false);
+         }
+      }
+   }
+
+   public boolean clearOverheat(@Nullable Player player) {
+      if (this.powerStage != EnumPowerStage.OVERHEAT) {
+         return false;
+      }
+
+      this.heat = 20.0F;
+      this.powerStage = this.computePowerStage();
+      this.isPumping = false;
+      this.setChanged();
+      if (this.level != null && !this.level.isClientSide()) {
+         this.level.sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
+         if (player != null) {
+            AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_TO_MUCH_POWER);
+         }
+      }
+
+      return true;
+   }
+
+   public boolean hasAlternateReceiver() {
+      for (Direction d : Direction.values()) {
+         if (d != this.orientation && this.getReceiverToPower(d) != null) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   public IMjConnector getMjConnector() {
+      if (this.mjConnector == null) {
+         this.mjConnector = this.createConnector();
+      }
+
+      return this.mjConnector;
+   }
+
+   public long extractPower(long min, long max, boolean doExtract) {
+      if (this.power < min) {
+         return 0L;
+      }
+
+      long actualMax = Math.min(max, this.maxPowerExtracted());
+      if (actualMax < min) {
+         return 0L;
+      }
+
+      long extracted = Math.min(this.power, actualMax);
+      if (doExtract) {
+         this.power -= extracted;
+      }
+
+      return extracted;
+   }
+
+   @Nullable
+   public IMjReceiver getReceiverToPower(Direction side) {
+      if (this.level == null) {
+         return null;
+      }
+
+      BlockPos pos = this.getBlockPos();
+
+      for (int len = 0; len <= this.getMaxChainLength(); len++) {
+         BlockPos targetPos = pos.relative(side);
+         BlockEntity tile = this.level.getBlockEntity(targetPos);
+         if (tile == null) {
             return null;
-        }
+         }
 
-        return null;
-    }
+         if (tile.getClass() != this.getClass()) {
+            IMjReceiver receiver = MjBlockCapabilities.getReceiver(this.level, targetPos, side.getOpposite());
+            if (receiver != null && receiver.canConnect(this.getMjConnector()) && this.getMjConnector().canConnect(receiver)) {
+               return receiver;
+            }
 
-    protected void sendPower(@Nullable IMjReceiver receiver) {
-        if (receiver == null) {
-            currentOutput = 0;
-            return;
-        }
-        long requested = receiver.getPowerRequested();
-        long extracted = extractPower(0, requested, false);
-        if (extracted > 0) {
+            EnergyStorage feStorage = TriggerTransferAccess.blockEnergyStorage(this.level, targetPos, side.getOpposite());
+            if (feStorage != null) {
+               IMjReceiver feReceiver = MjToRfAutoConvertor.createReceiver(feStorage);
+               if (feReceiver != null && feReceiver.canConnect(this.getMjConnector())) {
+                  return feReceiver;
+               }
+            }
+
+            return null;
+         }
+
+         if (((TileEngineBase_BC8)tile).orientation != side) {
+            return null;
+         }
+
+         pos = targetPos;
+      }
+
+      return null;
+   }
+
+   protected void sendPower(@Nullable IMjReceiver receiver) {
+      if (receiver == null) {
+         this.currentOutput = 0L;
+      } else {
+         long requested = receiver.getPowerRequested();
+         long extracted = this.extractPower(0L, requested, false);
+         if (extracted > 0L) {
             long excess = receiver.receivePower(extracted, false);
             long actualSent = extracted - excess;
-            extractPower(actualSent, actualSent, true);
-            currentOutput = actualSent;
-        } else {
-            currentOutput = 0;
-        }
-    }
+            this.extractPower(actualSent, actualSent, true);
+            this.currentOutput = actualSent;
+         } else {
+            this.currentOutput = 0L;
+         }
+      }
+   }
 
-    public static <T extends TileEngineBase_BC8> void serverTick(Level level, BlockPos pos, BlockState state, T engine) {
-        ProfilerFiller _profiler = Profiler.get();
-        _profiler.push("buildcraft:engine_serverTick");
-        try {
+   public static <T extends TileEngineBase_BC8> void serverTick(Level level, BlockPos pos, BlockState state, T engine) {
+      ProfilerFiller _profiler = Profiler.get();
+      _profiler.push("buildcraft:engine_serverTick");
 
-        engine.redstonePollTimer++;
-        if (engine.redstonePollTimer >= 10) {
+      try {
+         engine.redstonePollTimer++;
+         if (engine.redstonePollTimer >= 10) {
             engine.redstonePollTimer = 0;
             engine.checkRedstonePower = true;
-        }
+         }
 
-        if (engine.checkRedstonePower) {
+         if (engine.checkRedstonePower) {
             engine.checkRedstoneLevel();
-        }
+         }
 
-        if (engine.orientationChecksRemaining > 0) {
+         if (engine.orientationChecksRemaining > 0) {
             engine.orientationChecksRemaining--;
-
             if (engine.getReceiverToPower(engine.orientation) == null) {
-
-                if (engine.attemptRotation()) {
-                    engine.orientationChecksRemaining = 0;
-                    level.setBlock(pos, state.setValue(
-                            buildcraft.api.properties.BuildCraftProperties.BLOCK_FACING_6,
-                            engine.orientation), 3);
-                    level.sendBlockUpdated(pos, state, state, 3);
-                }
+               if (engine.attemptRotation()) {
+                  engine.orientationChecksRemaining = 0;
+                  level.setBlock(pos, (BlockState)state.setValue(BuildCraftProperties.BLOCK_FACING_6, engine.orientation), 3);
+                  level.sendBlockUpdated(pos, state, state, 3);
+               }
             } else {
-
-                engine.orientationChecksRemaining = 0;
+               engine.orientationChecksRemaining = 0;
             }
-        }
+         }
 
-        engine.updateHeatLevel();
-        engine.getPowerStage();
+         engine.updateHeatLevel();
+         engine.getPowerStage();
+         if (engine.getPowerStage() != EnumPowerStage.OVERHEAT) {
+            if (!engine.isRedstonePowered) {
+               if (engine.power > MjAPI.MJ) {
+                  engine.power = engine.power - MjAPI.MJ;
+               } else if (engine.power > 0L) {
+                  engine.power = 0L;
+               }
+            }
 
-        if (engine.getPowerStage() == EnumPowerStage.OVERHEAT) {
-            engine.power = Math.max(engine.power - 10, 0);
+            engine.engineUpdate();
+            IMjReceiver receiver = engine.getReceiverToPower(engine.orientation);
+            boolean pulsedPower = receiver instanceof IMjRedstoneReceiver;
+            if (engine.progressPart != 0) {
+               engine.progress = engine.progress + (float)engine.getPistonSpeed();
+               if (engine.progress > 0.5F && engine.progressPart == 1) {
+                  engine.progressPart = 2;
+                  if (pulsedPower) {
+                     engine.sendPower(receiver);
+                  }
+               } else if (engine.progress >= 1.0F) {
+                  engine.progress = 0.0F;
+                  engine.progressPart = 0;
+               }
+            } else if (engine.isRedstonePowered && engine.isBurning() && receiver != null) {
+               long requested = receiver.getPowerRequested();
+               if (requested > 0L && engine.extractPower(0L, requested, false) > 0L) {
+                  engine.progressPart = 1;
+                  engine.setPumping(true);
+               } else {
+                  engine.setPumping(false);
+               }
+            } else {
+               engine.setPumping(false);
+            }
+
+            if (!pulsedPower) {
+               if (engine.isRedstonePowered && engine.isBurning()) {
+                  engine.sendPower(receiver);
+               } else {
+                  engine.currentOutput = 0L;
+               }
+            }
+
+            engine.setChanged();
+            boolean needsSync = false;
+            if (engine.orientation != engine.prevOrientation) {
+               engine.prevOrientation = engine.orientation;
+               needsSync = true;
+            }
+
+            if (engine.isPumping != engine.prevIsPumping) {
+               engine.prevIsPumping = engine.isPumping;
+               needsSync = true;
+            }
+
+            if (engine.getPowerStage() != engine.prevPowerStage) {
+               engine.prevPowerStage = engine.getPowerStage();
+               needsSync = true;
+            }
+
+            if (needsSync) {
+               level.sendBlockUpdated(pos, state, state, 3);
+            }
+
             return;
-        }
+         }
 
-        if (!engine.isRedstonePowered) {
-            if (engine.power > MjAPI.MJ) {
-                engine.power -= MjAPI.MJ;
-            } else if (engine.power > 0) {
-                engine.power = 0;
+         engine.power = Math.max(engine.power - 10L, 0L);
+      } finally {
+         _profiler.pop();
+      }
+   }
+
+   public void checkRedstoneLevel() {
+      this.checkRedstonePower = false;
+      if (this.level != null) {
+         this.isRedstonePowered = this.level.hasNeighborSignal(this.getBlockPos());
+      }
+   }
+
+   public void onNeighborUpdate() {
+      this.checkRedstonePower = true;
+      this.orientationChecksRemaining = 5;
+   }
+
+   protected final void setPumping(boolean active) {
+      if (this.isPumping != active) {
+         this.isPumping = active;
+         this.setChanged();
+      }
+   }
+
+   public boolean isPumping() {
+      return this.isPumping;
+   }
+
+   public Direction getOrientation() {
+      return this.orientation;
+   }
+
+   public void setOrientation(Direction dir) {
+      this.orientation = dir;
+      this.orientationChecksRemaining = 1;
+      this.setChanged();
+   }
+
+   public void rotateOrientation() {
+      int next = (this.orientation.ordinal() + 1) % 6;
+      this.setOrientation(Direction.values()[next]);
+   }
+
+   public boolean attemptRotation() {
+      Direction current = this.orientation;
+      Direction[] dirs = Direction.values();
+
+      for (int i = 0; i < 6; i++) {
+         current = dirs[(current.ordinal() + 1) % 6];
+         if (this.isFacingReceiver(current)) {
+            if (current != this.orientation) {
+               this.setOrientation(current);
+               return true;
             }
-        }
 
-        engine.engineUpdate();
+            return false;
+         }
+      }
 
-        IMjReceiver receiver = engine.getReceiverToPower(engine.orientation);
-        boolean pulsedPower = receiver instanceof IMjRedstoneReceiver;
+      return false;
+   }
 
-        if (engine.progressPart != 0) {
-            engine.progress += (float) engine.getPistonSpeed();
-            if (engine.progress > 0.5f && engine.progressPart == 1) {
-                engine.progressPart = 2;
+   private boolean isFacingReceiver(Direction dir) {
+      return this.getReceiverToPower(dir) != null;
+   }
 
-                if (pulsedPower) {
-                    engine.sendPower(receiver);
-                }
-            } else if (engine.progress >= 1.0f) {
-                engine.progress = 0;
-                engine.progressPart = 0;
-            }
-        } else if (engine.isRedstonePowered && engine.isBurning() && receiver != null) {
-            long requested = receiver.getPowerRequested();
-            if (requested > 0 && engine.extractPower(0, requested, false) > 0) {
-                engine.progressPart = 1;
-                engine.setPumping(true);
-            } else {
-                engine.setPumping(false);
-            }
-        } else {
-            engine.setPumping(false);
-        }
+   public void clientTick() {
+      this.lastProgress = this.clientProgress;
+      this.clientIsPumping = this.isPumping;
+      if (this.clientIsPumping) {
+         this.clientProgress = this.clientProgress + (float)this.getPistonSpeed();
+         if (this.clientProgress >= 1.0F) {
+            this.clientProgress = 0.0F;
+         }
+      } else if (this.clientProgress > 0.0F) {
+         this.clientProgress -= 0.02F;
+         if (this.clientProgress < 0.0F) {
+            this.clientProgress = 0.0F;
+         }
+      }
+   }
 
-        if (!pulsedPower) {
-            if (engine.isRedstonePowered && engine.isBurning()) {
-                engine.sendPower(receiver);
-            } else {
-                engine.currentOutput = 0;
-            }
-        }
+   public float getProgressClient(float partialTicks) {
+      if (this.lastProgress > 0.8F && this.clientProgress < 0.2F) {
+         float interp = this.lastProgress + (1.0F + this.clientProgress - this.lastProgress) * partialTicks;
+         return interp >= 1.0F ? interp - 1.0F : interp;
+      } else {
+         return this.lastProgress + (this.clientProgress - this.lastProgress) * partialTicks;
+      }
+   }
 
-        engine.setChanged();
+   public CompoundTag getUpdateTag(Provider registries) {
+      return this.saveCustomOnly(registries);
+   }
 
-        boolean needsSync = false;
-        if (engine.orientation != engine.prevOrientation) {
-            engine.prevOrientation = engine.orientation;
-            needsSync = true;
-        }
-        if (engine.isPumping != engine.prevIsPumping) {
-            engine.prevIsPumping = engine.isPumping;
-            needsSync = true;
-        }
-        if (engine.getPowerStage() != engine.prevPowerStage) {
-            engine.prevPowerStage = engine.getPowerStage();
-            needsSync = true;
-        }
-        if (needsSync) {
-            level.sendBlockUpdated(pos, state, state, 3);
-        }
-        } finally {
-            _profiler.pop();
-        }
-    }
+   public Packet<ClientGamePacketListener> getUpdatePacket() {
+      return ClientboundBlockEntityDataPacket.create(this);
+   }
 
-    public void checkRedstoneLevel() {
-        checkRedstonePower = false;
-        if (level != null) {
-            isRedstonePowered = level.hasNeighborSignal(getBlockPos());
-        }
-    }
+   @Override
+   public void getDebugInfo(List<String> left, List<String> right, Direction side) {
+      left.add("facing = " + this.orientation);
+      left.add("heat = " + LocaleUtil.localizeHeat(this.heat) + " -- " + String.format("%.2f %%", this.getHeatLevel() * 100.0F));
+      left.add("power = " + LocaleUtil.localizeMj(this.power));
+      left.add("stage = " + this.getPowerStage());
+      left.add("progress = " + this.progress);
+      left.add("last = " + LocaleUtil.localizeMjFlow(this.currentOutput));
+   }
 
-    public void onNeighborUpdate() {
-        checkRedstonePower = true;
+   @Override
+   public void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
+      left.add("Current Model Variables:");
+      this.clientModelData.addDebugInfo(left);
+   }
 
-        orientationChecksRemaining = 5;
-    }
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      output.putByte("orientation", (byte)this.orientation.ordinal());
+      output.putLong("power", this.power);
+      output.putFloat("heat", this.heat);
+      output.putFloat("progress", this.progress);
+      output.putBoolean("isPumping", this.isPumping);
+      output.putBoolean("isRedstonePowered", this.isRedstonePowered);
+      output.putByte("powerStage", (byte)this.powerStage.ordinal());
+      if (this.owner != null && this.owner.id() != null) {
+         output.putString("ownerUUID", this.owner.id().toString());
+         if (this.owner.name() != null) {
+            output.putString("ownerName", this.owner.name());
+         }
+      }
+   }
 
-    protected final void setPumping(boolean active) {
-        if (isPumping == active) return;
-        isPumping = active;
-        setChanged();
-    }
-
-    public boolean isPumping() {
-        return isPumping;
-    }
-
-    public Direction getOrientation() {
-        return orientation;
-    }
-
-    public void setOrientation(Direction dir) {
-        orientation = dir;
-        orientationChecksRemaining = 1;
-        setChanged();
-    }
-
-    public void rotateOrientation() {
-        int next = (orientation.ordinal() + 1) % 6;
-        setOrientation(Direction.values()[next]);
-    }
-
-    public boolean attemptRotation() {
-        Direction current = orientation;
-        Direction[] dirs = Direction.values();
-        for (int i = 0; i < 6; i++) {
-            current = dirs[(current.ordinal() + 1) % 6];
-            if (isFacingReceiver(current)) {
-                if (current != orientation) {
-                    setOrientation(current);
-                    return true;
-                }
-                return false;
-            }
-        }
-        return false;
-    }
-
-    private boolean isFacingReceiver(Direction dir) {
-        return getReceiverToPower(dir) != null;
-    }
-
-    public void clientTick() {
-        lastProgress = clientProgress;
-        clientIsPumping = isPumping;
-        if (clientIsPumping) {
-            clientProgress += (float) getPistonSpeed();
-            if (clientProgress >= 1.0f) {
-                clientProgress = 0;
-            }
-        } else {
-
-            if (clientProgress > 0) {
-                clientProgress -= 0.02f;
-                if (clientProgress < 0) clientProgress = 0;
-            }
-        }
-    }
-
-    public float getProgressClient(float partialTicks) {
-
-        if (lastProgress > 0.8f && clientProgress < 0.2f) {
-
-            float interp = lastProgress + (1.0f + clientProgress - lastProgress) * partialTicks;
-            return interp >= 1.0f ? interp - 1.0f : interp;
-        }
-        return lastProgress + (clientProgress - lastProgress) * partialTicks;
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return this.saveCustomOnly(registries);
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    @Override
-    public void getDebugInfo(java.util.List<String> left, java.util.List<String> right, Direction side) {
-        left.add("facing = " + orientation);
-        left.add("heat = " + LocaleUtil.localizeHeat(heat) + " -- " + String.format("%.2f %%", getHeatLevel() * 100f));
-        left.add("power = " + LocaleUtil.localizeMj(power));
-        left.add("stage = " + getPowerStage());
-        left.add("progress = " + progress);
-        left.add("last = " + LocaleUtil.localizeMjFlow(currentOutput));
-    }
-
-    @Override
-    public void getClientDebugInfo(java.util.List<String> left, java.util.List<String> right, Direction side) {
-        left.add("Current Model Variables:");
-        clientModelData.addDebugInfo(left);
-    }
-
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.putByte("orientation", (byte) orientation.ordinal());
-        output.putLong("power", power);
-        output.putFloat("heat", heat);
-        output.putFloat("progress", progress);
-        output.putBoolean("isPumping", isPumping);
-        output.putBoolean("isRedstonePowered", isRedstonePowered);
-        output.putByte("powerStage", (byte) powerStage.ordinal());
-
-        if (owner != null && owner.id() != null) {
-            output.putString("ownerUUID", owner.id().toString());
-            if (owner.name() != null) {
-                output.putString("ownerName", owner.name());
-            }
-        }
-    }
-
-    @Override
-    public void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        int ord = input.getByteOr("orientation", (byte) Direction.UP.ordinal());
-        orientation = Direction.values()[Math.min(ord, 5)];
-        power = input.getLongOr("power", 0L);
-        heat = input.getFloatOr("heat", MIN_HEAT);
-        progress = input.getFloatOr("progress", 0f);
-        isPumping = input.getBooleanOr("isPumping", false);
-        isRedstonePowered = input.getBooleanOr("isRedstonePowered", false);
-        int ps = input.getByteOr("powerStage", (byte) 0);
-        powerStage = EnumPowerStage.VALUES[Math.min(ps, EnumPowerStage.VALUES.length - 1)];
-
-        String uuidStr = input.getStringOr("ownerUUID", "");
-        if (!uuidStr.isEmpty()) {
-            try {
-                UUID uuid = UUID.fromString(uuidStr);
-                String name = input.getStringOr("ownerName", "Unknown");
-                owner = new GameProfile(uuid, name);
-            } catch (IllegalArgumentException e) {
-                owner = null;
-            }
-        }
-    }
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      int ord = input.getByteOr("orientation", (byte)Direction.UP.ordinal());
+      this.orientation = Direction.values()[Math.min(ord, 5)];
+      this.power = input.getLongOr("power", 0L);
+      this.heat = input.getFloatOr("heat", 20.0F);
+      this.progress = input.getFloatOr("progress", 0.0F);
+      this.isPumping = input.getBooleanOr("isPumping", false);
+      this.isRedstonePowered = input.getBooleanOr("isRedstonePowered", false);
+      int ps = input.getByteOr("powerStage", (byte)0);
+      this.powerStage = EnumPowerStage.VALUES[Math.min(ps, EnumPowerStage.VALUES.length - 1)];
+      String uuidStr = input.getStringOr("ownerUUID", "");
+      if (!uuidStr.isEmpty()) {
+         try {
+            UUID uuid = UUID.fromString(uuidStr);
+            String name = input.getStringOr("ownerName", "Unknown");
+            this.owner = new GameProfile(uuid, name);
+         } catch (IllegalArgumentException e) {
+            this.owner = null;
+         }
+      }
+   }
 }

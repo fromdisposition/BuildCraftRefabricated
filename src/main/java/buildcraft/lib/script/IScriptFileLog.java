@@ -1,68 +1,62 @@
 package buildcraft.lib.script;
 
-import net.minecraft.resources.Identifier;
-
+import com.google.gson.JsonSyntaxException;
 import java.util.Collection;
 import java.util.List;
-
 import javax.annotation.Nullable;
 
-import com.google.gson.JsonSyntaxException;
-
 public interface IScriptFileLog {
+   int END_OF_LINE = Integer.MAX_VALUE;
 
-    static final int END_OF_LINE = Integer.MAX_VALUE;
+   void error(int var1, int var2, int var3, String var4);
 
-    void error(int line, int startIndex, int endIndex, String message);
+   default void error(int line, String message) {
+      this.error(line, 0, Integer.MAX_VALUE, message);
+   }
 
-    default void error(int line, String message) {
-        error(line, 0, END_OF_LINE, message);
-    }
+   void populateFile(@Nullable SourceFile var1, List<String> var2);
 
-    void populateFile(@Nullable SourceFile file, List<String> lines);
+   void errorMissingArgument(int var1, int var2, String var3);
 
-    void errorMissingArgument(int line, int argIndex, String argDesc);
+   void infoSkippingIfBlock(int var1);
 
-    void infoSkippingIfBlock(int line);
+   void infoEndSkipping(int var1);
 
-    void infoEndSkipping(int line);
+   void infoConditionalResult(int var1, int var2, int var3, boolean var4);
 
-    void infoConditionalResult(int tokenStart, int startIndex, int endIndex, boolean shouldCall);
+   void errorFunctionUnknown(int var1, int var2, int var3, Collection<String> var4);
 
-    void errorFunctionUnknown(int line, int startIndex, int endIndex, Collection<String> knownFunctions);
+   default void errorStdMissingName(int line) {
+      this.error(line, "Missing name: ");
+   }
 
-    default void errorStdMissingName(int line) {
-        error(line, "Missing name: ");
-    }
+   void errorStdInvalidJson(int var1, JsonSyntaxException var2);
 
-    void errorStdInvalidJson(int line, JsonSyntaxException jse);
+   void errorStdUnknownFile(int var1, String var2);
 
-    void errorStdUnknownFile(int line, String file);
+   default void errorImportMissingFile(int line) {
+      this.error(line, "Cannot find the file ");
+   }
 
-    default void errorImportMissingFile(int line) {
-        error(line, "Cannot find the file ");
-    }
+   void errorImportNotFound(int var1, String var2);
 
-    void errorImportNotFound(int line, String sourceFile);
+   void errorImportMissingStarter(int var1, String var2);
 
-    void errorImportMissingStarter(int line, String sourceFile);
+   void errorImportRecursiveReplace(int var1, String var2);
 
-    void errorImportRecursiveReplace(int line, String newSourceFile);
+   void errorAliasInvalidArgCount(int var1, int var2, int var3, @Nullable Integer var4);
 
-    void errorAliasInvalidArgCount(int line, int startIndex, int endIndex, @Nullable Integer parsed);
+   default void errorAliasMissingName(int tokenStart) {
+      this.errorMissingArgument(tokenStart, 0, "The custom name for the function");
+   }
 
-    default void errorAliasMissingName(int tokenStart) {
-        errorMissingArgument(tokenStart, 0, "The custom name for the function");
-    }
+   default void errorAliasMissingArgCount(int tokenStart) {
+      this.errorMissingArgument(tokenStart, 1, "The number of arguments for the function");
+   }
 
-    default void errorAliasMissingArgCount(int tokenStart) {
-        errorMissingArgument(tokenStart, 1, "The number of arguments for the function");
-    }
+   default void errorAliasMissingReplacement(int line) {
+      this.errorMissingArgument(line, 2, "The replacement for the alias. This can include ${1} and ${2} etc for the aliased arguments.");
+   }
 
-    default void errorAliasMissingReplacement(int line) {
-        errorMissingArgument(line, 2,
-            "The replacement for the alias. This can include ${1} and ${2} etc for the aliased arguments.");
-    }
-
-    void replace(int removeStart, int removeEnd, @Nullable SourceFile from, int fromStart, List<String> newLines);
+   void replace(int var1, int var2, @Nullable SourceFile var3, int var4, List<String> var5);
 }

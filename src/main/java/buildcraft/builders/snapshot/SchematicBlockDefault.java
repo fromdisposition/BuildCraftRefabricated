@@ -1,11 +1,12 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.builders.snapshot;
 
+import buildcraft.api.core.InvalidInputDataException;
+import buildcraft.api.schematics.ISchematicBlock;
+import buildcraft.api.schematics.SchematicBlockContext;
+import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.misc.BlockUtil;
+import buildcraft.lib.misc.NBTUtilBC;
+import com.mojang.authlib.GameProfile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,734 +16,682 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.annotation.Nonnull;
-
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.StairBlock;
-import net.minecraft.world.level.block.state.properties.BedPart;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.TagValueInput;
 
-import buildcraft.lib.fluids.FluidStack;
-
-import buildcraft.api.core.InvalidInputDataException;
-import buildcraft.api.schematics.ISchematicBlock;
-import buildcraft.api.schematics.SchematicBlockContext;
-
-import buildcraft.lib.misc.NBTUtilBC;
-
-@SuppressWarnings("deprecation")
 public class SchematicBlockDefault implements ISchematicBlock {
+   private static final Direction[] FRAGILE_FLUID_NEIGHBOUR_DIRS = new Direction[]{
+      Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP
+   };
+   protected final Set<BlockPos> requiredBlockOffsets = new HashSet<>();
+   protected BlockState blockState;
+   protected final List<Property<?>> ignoredProperties = new ArrayList<>();
+   protected CompoundTag tileNbt;
+   protected Rotation tileRotation = Rotation.NONE;
+   protected Block placeBlock;
+   protected final Set<BlockPos> updateBlockOffsets = new HashSet<>();
+   protected final Set<Block> canBeReplacedWithBlocks = new HashSet<>();
 
-    private static final Direction[] FRAGILE_FLUID_NEIGHBOUR_DIRS = {
-        Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST, Direction.UP
-    };
+   public static boolean predicate(SchematicBlockContext context) {
+      if (context.blockState.isAir()) {
+         return false;
+      }
 
-    @SuppressWarnings("WeakerAccess")
-    protected final Set<BlockPos> requiredBlockOffsets = new HashSet<>();
-    @SuppressWarnings("WeakerAccess")
-    protected BlockState blockState;
-    @SuppressWarnings("WeakerAccess")
-    protected final List<Property<?>> ignoredProperties = new ArrayList<>();
-    @SuppressWarnings("WeakerAccess")
-    protected CompoundTag tileNbt;
-    @SuppressWarnings("WeakerAccess")
-    protected Rotation tileRotation = Rotation.NONE;
-    @SuppressWarnings("WeakerAccess")
-    protected Block placeBlock;
-    @SuppressWarnings("WeakerAccess")
-    protected final Set<BlockPos> updateBlockOffsets = new HashSet<>();
-    @SuppressWarnings("WeakerAccess")
-    protected final Set<Block> canBeReplacedWithBlocks = new HashSet<>();
+      Identifier registryName = BuiltInRegistries.BLOCK.getKey(context.block);
+      if (registryName == null) {
+         return false;
+      }
 
-    @SuppressWarnings("unused")
-    public static boolean predicate(SchematicBlockContext context) {
-        if (context.blockState.isAir()) {
-            return false;
-        }
-        Identifier registryName = BuiltInRegistries.BLOCK.getKey(context.block);
-        if (registryName == null) return false;
-        if (!RulesLoader.READ_DOMAINS.contains(registryName.getNamespace())) return false;
-        BlockEntity be = context.world.getBlockEntity(context.pos);
-        CompoundTag beNbt = be != null
-            ? be.saveWithoutMetadata(context.world.registryAccess())
-            : null;
-        return RulesLoader.getRules(context.blockState, beNbt)
+      if (!RulesLoader.READ_DOMAINS.contains(registryName.getNamespace())) {
+         return false;
+      }
+
+      BlockEntity be = context.world.getBlockEntity(context.pos);
+      CompoundTag beNbt = be != null ? be.saveWithoutMetadata(context.world.registryAccess()) : null;
+      return RulesLoader.getRules(context.blockState, beNbt).stream().noneMatch(rule -> rule.ignore);
+   }
+
+   protected void setRequiredBlockOffsets(SchematicBlockContext context, Set<JsonRule> rules) {
+      this.requiredBlockOffsets.clear();
+      rules.stream().map(rule -> rule.requiredBlockOffsets).filter(Objects::nonNull).flatMap(Collection::stream).forEach(this.requiredBlockOffsets::add);
+      this.addClassBasedRequiredBlockOffsets(context.block, context.blockState);
+   }
+
+   protected void addClassBasedRequiredBlockOffsets(Block block, BlockState state) {
+      if (block instanceof FallingBlock) {
+         this.requiredBlockOffsets.add(new BlockPos(0, -1, 0));
+      }
+
+      if (block instanceof BedBlock && state != null && state.hasProperty(BedBlock.PART) && state.hasProperty(BedBlock.FACING)) {
+         BedPart part = (BedPart)state.getValue(BedBlock.PART);
+         Direction facing = (Direction)state.getValue(BedBlock.FACING);
+         if (part == BedPart.HEAD) {
+            this.requiredBlockOffsets.add(BlockPos.ZERO.relative(facing.getOpposite()));
+         } else if (part == BedPart.FOOT) {
+            this.requiredBlockOffsets.add(new BlockPos(facing.getStepX(), -1, facing.getStepZ()));
+         }
+      }
+
+      if (block instanceof DoorBlock && state != null && state.hasProperty(DoorBlock.HALF)) {
+         DoubleBlockHalf half = (DoubleBlockHalf)state.getValue(DoorBlock.HALF);
+         if (half == DoubleBlockHalf.UPPER) {
+            this.requiredBlockOffsets.add(new BlockPos(0, -1, 0));
+         } else if (half == DoubleBlockHalf.LOWER) {
+            this.requiredBlockOffsets.add(new BlockPos(0, -1, 0));
+         }
+      }
+
+      if (block instanceof DoublePlantBlock && state != null && state.hasProperty(DoublePlantBlock.HALF)) {
+         DoubleBlockHalf half = (DoubleBlockHalf)state.getValue(DoublePlantBlock.HALF);
+         if (half == DoubleBlockHalf.UPPER) {
+            this.requiredBlockOffsets.add(new BlockPos(0, -1, 0));
+         } else if (half == DoubleBlockHalf.LOWER) {
+            this.requiredBlockOffsets.add(new BlockPos(0, -1, 0));
+         }
+      }
+   }
+
+   protected void setBlockState(SchematicBlockContext context, Set<JsonRule> rules) {
+      this.blockState = context.blockState;
+   }
+
+   protected void setIgnoredProperties(SchematicBlockContext context, Set<JsonRule> rules) {
+      this.ignoredProperties.clear();
+      rules.stream()
+         .map(rule -> rule.ignoredProperties)
+         .filter(Objects::nonNull)
+         .flatMap(Collection::stream)
+         .flatMap(propertyName -> context.blockState.getProperties().stream().filter(property -> property.getName().equals(propertyName)))
+         .forEach(this.ignoredProperties::add);
+      this.addClassBasedIgnoredProperties();
+   }
+
+   protected void addClassBasedIgnoredProperties() {
+      if (this.placeBlock instanceof StairBlock) {
+         this.addIgnoredPropertyByName("shape");
+      }
+   }
+
+   private void addIgnoredPropertyByName(String name) {
+      if (this.blockState != null) {
+         this.blockState
+            .getProperties()
             .stream()
-            .noneMatch(rule -> rule.ignore);
-    }
-
-    @SuppressWarnings({"unused", "WeakerAccess"})
-    protected void setRequiredBlockOffsets(SchematicBlockContext context, Set<JsonRule> rules) {
-        requiredBlockOffsets.clear();
-        rules.stream()
-            .map(rule -> rule.requiredBlockOffsets)
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
-            .forEach(requiredBlockOffsets::add);
-        addClassBasedRequiredBlockOffsets(context.block, context.blockState);
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    protected void addClassBasedRequiredBlockOffsets(Block block, BlockState state) {
-        if (block instanceof FallingBlock) {
-            requiredBlockOffsets.add(new BlockPos(0, -1, 0));
-        }
-        if (block instanceof BedBlock && state != null
-                && state.hasProperty(BedBlock.PART) && state.hasProperty(BedBlock.FACING)) {
-            BedPart part = state.getValue(BedBlock.PART);
-            Direction facing = state.getValue(BedBlock.FACING);
-            if (part == BedPart.HEAD) {
-
-                requiredBlockOffsets.add(BlockPos.ZERO.relative(facing.getOpposite()));
-            } else if (part == BedPart.FOOT) {
-
-                requiredBlockOffsets.add(new BlockPos(facing.getStepX(), -1, facing.getStepZ()));
-            }
-        }
-        if (block instanceof DoorBlock && state != null && state.hasProperty(DoorBlock.HALF)) {
-            DoubleBlockHalf half = state.getValue(DoorBlock.HALF);
-            if (half == DoubleBlockHalf.UPPER) {
-
-                requiredBlockOffsets.add(new BlockPos(0, -1, 0));
-            } else if (half == DoubleBlockHalf.LOWER) {
-
-                requiredBlockOffsets.add(new BlockPos(0, -1, 0));
-            }
-        }
-
-        if (block instanceof DoublePlantBlock && state != null
-                && state.hasProperty(DoublePlantBlock.HALF)) {
-            DoubleBlockHalf half = state.getValue(DoublePlantBlock.HALF);
-            if (half == DoubleBlockHalf.UPPER) {
-
-                requiredBlockOffsets.add(new BlockPos(0, -1, 0));
-            } else if (half == DoubleBlockHalf.LOWER) {
-
-                requiredBlockOffsets.add(new BlockPos(0, -1, 0));
-            }
-        }
-    }
-
-    @SuppressWarnings({"unused", "WeakerAccess"})
-    protected void setBlockState(SchematicBlockContext context, Set<JsonRule> rules) {
-        blockState = context.blockState;
-    }
-
-    @SuppressWarnings({"unused", "WeakerAccess"})
-    protected void setIgnoredProperties(SchematicBlockContext context, Set<JsonRule> rules) {
-        ignoredProperties.clear();
-        rules.stream()
-            .map(rule -> rule.ignoredProperties)
-            .filter(Objects::nonNull)
-            .flatMap(List::stream)
-            .flatMap(propertyName ->
-                context.blockState.getProperties().stream()
-                    .filter(property -> property.getName().equals(propertyName))
-            )
-            .forEach(ignoredProperties::add);
-        addClassBasedIgnoredProperties();
-    }
-
-    @SuppressWarnings("WeakerAccess")
-    protected void addClassBasedIgnoredProperties() {
-        if (placeBlock instanceof StairBlock) {
-            addIgnoredPropertyByName("shape");
-        }
-    }
-
-    private void addIgnoredPropertyByName(String name) {
-        if (blockState == null) return;
-        blockState.getProperties().stream()
             .filter(p -> p.getName().equals(name))
-            .filter(p -> !ignoredProperties.contains(p))
+            .filter(p -> !this.ignoredProperties.contains(p))
             .findFirst()
-            .ifPresent(ignoredProperties::add);
-    }
+            .ifPresent(this.ignoredProperties::add);
+      }
+   }
 
-    @SuppressWarnings({"unused", "WeakerAccess"})
-    protected void setTileNbt(SchematicBlockContext context, Set<JsonRule> rules) {
-        tileNbt = null;
-        BlockEntity tileEntity = context.world.getBlockEntity(context.pos);
-        if (tileEntity != null) {
-            tileNbt = tileEntity.saveWithoutMetadata(context.world.registryAccess());
-        }
-    }
+   protected void setTileNbt(SchematicBlockContext context, Set<JsonRule> rules) {
+      this.tileNbt = null;
+      BlockEntity tileEntity = context.world.getBlockEntity(context.pos);
+      if (tileEntity != null) {
+         this.tileNbt = tileEntity.saveWithoutMetadata(context.world.registryAccess());
+      }
+   }
 
-    @SuppressWarnings({"unused", "WeakerAccess"})
-    protected void setPlaceBlock(SchematicBlockContext context, Set<JsonRule> rules) {
-        placeBlock = rules.stream()
-            .map(rule -> rule.placeBlock)
-            .filter(Objects::nonNull)
-            .findFirst()
-            .map(Identifier::parse)
-            .map(BuiltInRegistries.BLOCK::getValue)
-            .orElse(context.block);
-    }
+   protected void setPlaceBlock(SchematicBlockContext context, Set<JsonRule> rules) {
+      this.placeBlock = rules.stream()
+         .map(rule -> rule.placeBlock)
+         .filter(Objects::nonNull)
+         .findFirst()
+         .map(Identifier::parse)
+         .<Block>map(BuiltInRegistries.BLOCK::getValue)
+         .orElse(context.block);
+   }
 
-    @SuppressWarnings({"unused", "WeakerAccess"})
-    protected void setUpdateBlockOffsets(SchematicBlockContext context, Set<JsonRule> rules) {
-        updateBlockOffsets.clear();
-        if (rules.stream().map(rule -> rule.updateBlockOffsets).anyMatch(Objects::nonNull)) {
-            rules.stream()
-                .map(rule -> rule.updateBlockOffsets)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .forEach(updateBlockOffsets::add);
-        } else {
-            Stream.of(Direction.values())
-                .map(Direction::getUnitVec3i)
-                .map(BlockPos::new)
-                .forEach(updateBlockOffsets::add);
-            updateBlockOffsets.add(BlockPos.ZERO);
-        }
-    }
+   protected void setUpdateBlockOffsets(SchematicBlockContext context, Set<JsonRule> rules) {
+      this.updateBlockOffsets.clear();
+      if (rules.stream().map(rule -> rule.updateBlockOffsets).anyMatch(Objects::nonNull)) {
+         rules.stream().map(rule -> rule.updateBlockOffsets).filter(Objects::nonNull).flatMap(Collection::stream).forEach(this.updateBlockOffsets::add);
+      } else {
+         Stream.of(Direction.values()).map(Direction::getUnitVec3i).map(BlockPos::new).forEach(this.updateBlockOffsets::add);
+         this.updateBlockOffsets.add(BlockPos.ZERO);
+      }
+   }
 
-    @SuppressWarnings({"unused", "WeakerAccess"})
-    protected void setCanBeReplacedWithBlocks(SchematicBlockContext context, Set<JsonRule> rules) {
-        canBeReplacedWithBlocks.clear();
-        rules.stream()
-            .map(rule -> rule.canBeReplacedWithBlocks)
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
-            .map(Identifier::parse)
-            .map(BuiltInRegistries.BLOCK::getValue)
-            .forEach(canBeReplacedWithBlocks::add);
-        canBeReplacedWithBlocks.add(context.block);
-        canBeReplacedWithBlocks.add(placeBlock);
-    }
+   protected void setCanBeReplacedWithBlocks(SchematicBlockContext context, Set<JsonRule> rules) {
+      this.canBeReplacedWithBlocks.clear();
+      rules.stream()
+         .map(rule -> rule.canBeReplacedWithBlocks)
+         .filter(Objects::nonNull)
+         .flatMap(Collection::stream)
+         .map(Identifier::parse)
+         .map(BuiltInRegistries.BLOCK::getValue)
+         .forEach(this.canBeReplacedWithBlocks::add);
+      this.canBeReplacedWithBlocks.add(context.block);
+      this.canBeReplacedWithBlocks.add(this.placeBlock);
+   }
 
-    @Override
-    public void init(SchematicBlockContext context) {
-        BlockEntity be = context.world.getBlockEntity(context.pos);
-        CompoundTag beNbt = be != null
-            ? be.saveWithoutMetadata(context.world.registryAccess())
-            : null;
-        Set<JsonRule> rules = RulesLoader.getRules(context.blockState, beNbt);
-        setRequiredBlockOffsets(context, rules);
-        setBlockState(context, rules);
-        setIgnoredProperties(context, rules);
-        setTileNbt(context, rules);
-        setPlaceBlock(context, rules);
-        setUpdateBlockOffsets(context, rules);
-        setCanBeReplacedWithBlocks(context, rules);
-    }
+   @Override
+   public void init(SchematicBlockContext context) {
+      BlockEntity be = context.world.getBlockEntity(context.pos);
+      CompoundTag beNbt = be != null ? be.saveWithoutMetadata(context.world.registryAccess()) : null;
+      Set<JsonRule> rules = RulesLoader.getRules(context.blockState, beNbt);
+      this.setRequiredBlockOffsets(context, rules);
+      this.setBlockState(context, rules);
+      this.setIgnoredProperties(context, rules);
+      this.setTileNbt(context, rules);
+      this.setPlaceBlock(context, rules);
+      this.setUpdateBlockOffsets(context, rules);
+      this.setCanBeReplacedWithBlocks(context, rules);
+   }
 
-    @Nonnull
-    @Override
-    public Set<BlockPos> getRequiredBlockOffsets() {
-        return requiredBlockOffsets;
-    }
+   @Nonnull
+   @Override
+   public Set<BlockPos> getRequiredBlockOffsets() {
+      return this.requiredBlockOffsets;
+   }
 
-    @Nonnull
-    @Override
-    public List<ItemStack> computeRequiredItems() {
-        return computeRequiredItems(true);
-    }
+   @Nonnull
+   @Override
+   public List<ItemStack> computeRequiredItems() {
+      return this.computeRequiredItems(true);
+   }
 
-    @Nonnull
-    public List<ItemStack> computeRequiredItems(boolean includeContainerContents) {
+   @Nonnull
+   public List<ItemStack> computeRequiredItems(boolean includeContainerContents) {
+      if (this.placeBlock instanceof BedBlock
+         && this.blockState != null
+         && this.blockState.hasProperty(BedBlock.PART)
+         && this.blockState.getValue(BedBlock.PART) == BedPart.HEAD) {
+         return Collections.emptyList();
+      }
 
-        if (placeBlock instanceof BedBlock && blockState != null
-                && blockState.hasProperty(BedBlock.PART)
-                && blockState.getValue(BedBlock.PART) == BedPart.HEAD) {
-            return java.util.Collections.emptyList();
-        }
+      if (this.placeBlock instanceof DoorBlock
+         && this.blockState != null
+         && this.blockState.hasProperty(DoorBlock.HALF)
+         && this.blockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) {
+         return Collections.emptyList();
+      }
 
-        if (placeBlock instanceof DoorBlock && blockState != null
-                && blockState.hasProperty(DoorBlock.HALF)
-                && blockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.UPPER) {
-            return java.util.Collections.emptyList();
-        }
+      if (this.placeBlock instanceof DoublePlantBlock
+         && this.blockState != null
+         && this.blockState.hasProperty(DoublePlantBlock.HALF)
+         && this.blockState.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER) {
+         return Collections.emptyList();
+      }
 
-        if (placeBlock instanceof DoublePlantBlock && blockState != null
-                && blockState.hasProperty(DoublePlantBlock.HALF)
-                && blockState.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.UPPER) {
-            return java.util.Collections.emptyList();
-        }
-        Set<JsonRule> rules = RulesLoader.getRules(blockState, tileNbt);
-        List<List<RequiredExtractor>> extractorLists = rules.stream()
-            .map(rule -> rule.requiredExtractors)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-        return (
-            extractorLists.isEmpty()
-                ? Stream.of(new RequiredExtractorItemFromBlock())
-                : extractorLists.stream().flatMap(Collection::stream)
-        )
-            .filter(extractor -> includeContainerContents || !(extractor instanceof RequiredExtractorItemsList))
-            .flatMap(extractor -> extractor.extractItemsFromBlock(blockState, tileNbt).stream())
-            .filter(stack -> !stack.isEmpty())
-            .collect(Collectors.toList());
-    }
+      Set<JsonRule> rules = RulesLoader.getRules(this.blockState, this.tileNbt);
+      List<List<RequiredExtractor>> extractorLists = rules.stream().map(rule -> rule.requiredExtractors).filter(Objects::nonNull).collect(Collectors.toList());
+      return (extractorLists.isEmpty() ? Stream.of(new RequiredExtractorItemFromBlock()) : extractorLists.stream().flatMap(Collection::stream))
+         .filter(extractor -> includeContainerContents || !(extractor instanceof RequiredExtractorItemsList))
+         .flatMap(extractor -> extractor.extractItemsFromBlock(this.blockState, this.tileNbt).stream())
+         .filter(stack -> !stack.isEmpty())
+         .collect(Collectors.toList());
+   }
 
-    @Nonnull
-    @Override
-    public List<FluidStack> computeRequiredFluids() {
-        Set<JsonRule> rules = RulesLoader.getRules(blockState, tileNbt);
-        return rules.stream()
-            .map(rule -> rule.requiredExtractors)
-            .filter(Objects::nonNull)
-            .flatMap(Collection::stream)
-            .flatMap(extractor -> extractor.extractFluidsFromBlock(blockState, tileNbt).stream())
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-    }
+   @Nonnull
+   @Override
+   public List<FluidStack> computeRequiredFluids() {
+      Set<JsonRule> rules = RulesLoader.getRules(this.blockState, this.tileNbt);
+      return rules.stream()
+         .map(rule -> rule.requiredExtractors)
+         .filter(Objects::nonNull)
+         .flatMap(Collection::stream)
+         .flatMap(extractor -> extractor.extractFluidsFromBlock(this.blockState, this.tileNbt).stream())
+         .filter(Objects::nonNull)
+         .collect(Collectors.toList());
+   }
 
-    @Override
-    public BlockState getBlockStateForRender() {
-        return blockState;
-    }
+   @Override
+   public BlockState getBlockStateForRender() {
+      return this.blockState;
+   }
 
-    @Override
-    public CompoundTag getTileNbtForRender() {
-        return tileNbt;
-    }
+   @Override
+   public CompoundTag getTileNbtForRender() {
+      return this.tileNbt;
+   }
 
-    @Override
-    public SchematicBlockDefault getRotated(Rotation rotation) {
-        SchematicBlockDefault schematicBlock = SchematicBlockManager.createCleanCopy(this);
-        requiredBlockOffsets.stream()
-            .map(blockPos -> blockPos.rotate(rotation))
-            .forEach(schematicBlock.requiredBlockOffsets::add);
-        schematicBlock.blockState = blockState.rotate(rotation);
-        schematicBlock.ignoredProperties.addAll(ignoredProperties);
-        schematicBlock.tileNbt = tileNbt;
-        schematicBlock.tileRotation = tileRotation.getRotated(rotation);
-        schematicBlock.placeBlock = placeBlock;
-        updateBlockOffsets.stream()
-            .map(blockPos -> blockPos.rotate(rotation))
-            .forEach(schematicBlock.updateBlockOffsets::add);
-        schematicBlock.canBeReplacedWithBlocks.addAll(canBeReplacedWithBlocks);
-        return schematicBlock;
-    }
+   public SchematicBlockDefault getRotated(Rotation rotation) {
+      SchematicBlockDefault schematicBlock = SchematicBlockManager.createCleanCopy(this);
+      this.requiredBlockOffsets.stream().map(blockPos -> blockPos.rotate(rotation)).forEach(schematicBlock.requiredBlockOffsets::add);
+      schematicBlock.blockState = this.blockState.rotate(rotation);
+      schematicBlock.ignoredProperties.addAll(this.ignoredProperties);
+      schematicBlock.tileNbt = this.tileNbt;
+      schematicBlock.tileRotation = this.tileRotation.getRotated(rotation);
+      schematicBlock.placeBlock = this.placeBlock;
+      this.updateBlockOffsets.stream().map(blockPos -> blockPos.rotate(rotation)).forEach(schematicBlock.updateBlockOffsets::add);
+      schematicBlock.canBeReplacedWithBlocks.addAll(this.canBeReplacedWithBlocks);
+      return schematicBlock;
+   }
 
-    @Override
-    public boolean canBuild(Level level, BlockPos blockPos) {
-        return level.isEmptyBlock(blockPos);
-    }
+   @Override
+   public boolean canBuild(Level level, BlockPos blockPos) {
+      return level.isEmptyBlock(blockPos);
+   }
 
-    @Override
-    public boolean build(Level level, BlockPos blockPos) {
-        return build(level, blockPos, EnumFluidHandlingMode.NO_REPLACE, true);
-    }
+   @Override
+   public boolean build(Level level, BlockPos blockPos) {
+      return this.build(level, blockPos, EnumFluidHandlingMode.NO_REPLACE, true);
+   }
 
-    public boolean build(Level level, BlockPos blockPos, EnumFluidHandlingMode fluidMode) {
-        return build(level, blockPos, fluidMode, true);
-    }
+   public boolean build(Level level, BlockPos blockPos, EnumFluidHandlingMode fluidMode) {
+      return this.build(level, blockPos, fluidMode, true);
+   }
 
-    @SuppressWarnings("Duplicates")
-    public boolean build(Level level, BlockPos blockPos, EnumFluidHandlingMode fluidMode,
-                         boolean includeContainerContents) {
-        if (placeBlock == Blocks.AIR) {
-            return true;
-        }
-        BlockState newBlockState = blockState;
-        if (placeBlock != blockState.getBlock()) {
-            newBlockState = placeBlock.defaultBlockState();
-            for (Property<?> property : blockState.getProperties()) {
-                if (newBlockState.getProperties().contains(property)) {
-                    newBlockState = copyProperty(property, newBlockState, blockState);
-                }
+   public boolean build(
+      Level level, BlockPos blockPos, EnumFluidHandlingMode fluidMode, boolean includeContainerContents, GameProfile owner, BlockPos machineOrigin
+   ) {
+      return this.build(level, blockPos, fluidMode, includeContainerContents, owner, machineOrigin, true);
+   }
+
+   public boolean build(Level level, BlockPos blockPos, EnumFluidHandlingMode fluidMode, boolean includeContainerContents) {
+      return this.build(level, blockPos, fluidMode, includeContainerContents, null, null, true);
+   }
+
+   private boolean build(
+      Level level,
+      BlockPos blockPos,
+      EnumFluidHandlingMode fluidMode,
+      boolean includeContainerContents,
+      @Nullable GameProfile owner,
+      @Nullable BlockPos machineOrigin,
+      boolean checkPrimaryPos
+   ) {
+      if (this.placeBlock == Blocks.AIR) {
+         return true;
+      } else if (checkPrimaryPos
+         && owner != null
+         && level instanceof ServerLevel serverLevel
+         && !BlockUtil.canMachinePlace(serverLevel, blockPos, owner, machineOrigin)) {
+         return false;
+      } else {
+         BlockState newBlockState = this.blockState;
+         if (this.placeBlock != this.blockState.getBlock()) {
+            newBlockState = this.placeBlock.defaultBlockState();
+
+            for (Property<?> property : this.blockState.getProperties()) {
+               if (newBlockState.getProperties().contains(property)) {
+                  newBlockState = copyProperty(property, newBlockState, this.blockState);
+               }
             }
-        }
-        for (Property<?> property : ignoredProperties) {
-            newBlockState = copyProperty(property, newBlockState, placeBlock.defaultBlockState());
-        }
+         }
 
-        boolean willDestroyFluidAtPos = false;
-        if (fluidMode == EnumFluidHandlingMode.REPLACE || fluidMode == EnumFluidHandlingMode.CLEAR) {
+         for (Property<?> property : this.ignoredProperties) {
+            newBlockState = copyProperty(property, newBlockState, this.placeBlock.defaultBlockState());
+         }
+
+         boolean willDestroyFluidAtPos = false;
+         if (fluidMode == EnumFluidHandlingMode.REPLACE || fluidMode == EnumFluidHandlingMode.CLEAR) {
             FluidState existing = level.getFluidState(blockPos);
             if (!existing.isEmpty() && existing.isSource()) {
-                boolean waterloggable =
-                    existing.getType() == Fluids.WATER
-                        && newBlockState.hasProperty(BlockStateProperties.WATERLOGGED);
-                if (waterloggable) {
-
-                    boolean schematicWantsWater = blockState.hasProperty(BlockStateProperties.WATERLOGGED)
-                        && blockState.getValue(BlockStateProperties.WATERLOGGED);
-                    if (fluidMode == EnumFluidHandlingMode.REPLACE || schematicWantsWater) {
-                        newBlockState = newBlockState.setValue(BlockStateProperties.WATERLOGGED, true);
-                    } else {
-
-                        newBlockState = newBlockState.setValue(BlockStateProperties.WATERLOGGED, false);
-                    }
-                } else {
-                    willDestroyFluidAtPos = true;
-                }
+               boolean waterloggable = existing.getType() == Fluids.WATER && newBlockState.hasProperty(BlockStateProperties.WATERLOGGED);
+               if (waterloggable) {
+                  boolean schematicWantsWater = this.blockState.hasProperty(BlockStateProperties.WATERLOGGED)
+                     && (Boolean)this.blockState.getValue(BlockStateProperties.WATERLOGGED);
+                  if (fluidMode != EnumFluidHandlingMode.REPLACE && !schematicWantsWater) {
+                     newBlockState = (BlockState)newBlockState.setValue(BlockStateProperties.WATERLOGGED, false);
+                  } else {
+                     newBlockState = (BlockState)newBlockState.setValue(BlockStateProperties.WATERLOGGED, true);
+                  }
+               } else {
+                  willDestroyFluidAtPos = true;
+               }
             }
-        }
+         }
 
-        if (fluidMode == EnumFluidHandlingMode.REPLACE || fluidMode == EnumFluidHandlingMode.CLEAR) {
+         if (fluidMode == EnumFluidHandlingMode.REPLACE || fluidMode == EnumFluidHandlingMode.CLEAR) {
             boolean placedAsWaterlogged = newBlockState.hasProperty(BlockStateProperties.WATERLOGGED)
-                    && newBlockState.getValue(BlockStateProperties.WATERLOGGED);
+               && (Boolean)newBlockState.getValue(BlockStateProperties.WATERLOGGED);
             if (!placedAsWaterlogged) {
-                for (Direction dir : FRAGILE_FLUID_NEIGHBOUR_DIRS) {
-                    FluidState neighbour = level.getFluidState(blockPos.relative(dir));
-                    if (!neighbour.isEmpty() && newBlockState.canBeReplaced(neighbour.getType())) {
-                        return false;
-                    }
-                }
+               for (Direction dir : FRAGILE_FLUID_NEIGHBOUR_DIRS) {
+                  FluidState neighbour = level.getFluidState(blockPos.relative(dir));
+                  if (!neighbour.isEmpty() && newBlockState.canBeReplaced(neighbour.getType())) {
+                     return false;
+                  }
+               }
             }
-        }
+         }
 
-        if (newBlockState.getBlock() instanceof BedBlock
-                && newBlockState.hasProperty(BedBlock.PART)
-                && newBlockState.getValue(BedBlock.PART) == BedPart.FOOT) {
-            Direction facing = newBlockState.getValue(BedBlock.FACING);
+         if (newBlockState.getBlock() instanceof BedBlock && newBlockState.hasProperty(BedBlock.PART) && newBlockState.getValue(BedBlock.PART) == BedPart.FOOT) {
+            Direction facing = (Direction)newBlockState.getValue(BedBlock.FACING);
             BlockPos headPos = blockPos.relative(facing);
             BlockState atHead = level.getBlockState(headPos);
             if (!atHead.isAir() && !atHead.canBeReplaced(Fluids.WATER)) {
-                return false;
+               return false;
             }
-        }
+         }
 
-        if (newBlockState.getBlock() instanceof DoorBlock
-                && newBlockState.hasProperty(DoorBlock.HALF)
-                && newBlockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
+         if (newBlockState.getBlock() instanceof DoorBlock
+            && newBlockState.hasProperty(DoorBlock.HALF)
+            && newBlockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
             BlockPos upperPos = blockPos.above();
             BlockState atUpper = level.getBlockState(upperPos);
             if (!atUpper.isAir() && !atUpper.canBeReplaced(Fluids.WATER)) {
-                return false;
+               return false;
             }
-        }
+         }
 
-        if (newBlockState.getBlock() instanceof DoublePlantBlock
-                && newBlockState.hasProperty(DoublePlantBlock.HALF)
-                && newBlockState.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.LOWER) {
+         if (newBlockState.getBlock() instanceof DoublePlantBlock
+            && newBlockState.hasProperty(DoublePlantBlock.HALF)
+            && newBlockState.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.LOWER) {
             BlockPos upperPos = blockPos.above();
             BlockState atUpper = level.getBlockState(upperPos);
             if (!atUpper.isAir() && !atUpper.canBeReplaced(Fluids.WATER)) {
-                return false;
+               return false;
             }
-        }
+         }
 
-        if (willDestroyFluidAtPos) {
-            level.destroyBlock(blockPos, false);
-        }
-
-        if (newBlockState.getBlock() instanceof LeavesBlock
-                && newBlockState.hasProperty(LeavesBlock.PERSISTENT)) {
-            newBlockState = newBlockState.setValue(LeavesBlock.PERSISTENT, true);
-        }
-        boolean placed = level.setBlock(blockPos, newBlockState, 11);
-        if (placed) {
-
-            BlockPos secondHalfPos = null;
-            if (newBlockState.getBlock() instanceof BedBlock
-                    && newBlockState.hasProperty(BedBlock.PART)
-                    && newBlockState.getValue(BedBlock.PART) == BedPart.FOOT) {
-                Direction facing = newBlockState.getValue(BedBlock.FACING);
-                secondHalfPos = blockPos.relative(facing);
-                BlockState headState = newBlockState.setValue(BedBlock.PART, BedPart.HEAD);
-                level.setBlock(secondHalfPos, headState, 3);
-            } else if (newBlockState.getBlock() instanceof DoorBlock
-                    && newBlockState.hasProperty(DoorBlock.HALF)
-                    && newBlockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
-                secondHalfPos = blockPos.above();
-                BlockState upperState = newBlockState.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
-                level.setBlock(secondHalfPos, upperState, 3);
-            } else if (newBlockState.getBlock() instanceof DoublePlantBlock
-                    && newBlockState.hasProperty(DoublePlantBlock.HALF)
-                    && newBlockState.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.LOWER) {
-
-                secondHalfPos = blockPos.above();
-                BlockState upperState = newBlockState.setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER);
-                level.setBlock(secondHalfPos, upperState, 3);
-            }
-
-            BlockState afterShape = newBlockState;
-            for (Direction dir : Direction.values()) {
-                BlockPos neighborPos = blockPos.relative(dir);
-                BlockState neighborState = level.getBlockState(neighborPos);
-                BlockState updated = afterShape.updateShape(
-                    level, level, blockPos, dir, neighborPos, neighborState, level.getRandom()
-                );
-                if (updated.isAir()) {
-
-                    level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
-                    if (secondHalfPos != null) {
-                        level.setBlock(secondHalfPos, Blocks.AIR.defaultBlockState(), 3);
-                    }
-                    return false;
-                }
-                if (!updated.equals(afterShape)) {
-                    level.setBlock(blockPos, updated, 3);
-                    afterShape = updated;
-                }
-            }
-            updateBlockOffsets.stream()
-                .map(blockPos::offset)
-                .forEach(updatePos -> level.neighborChanged(updatePos, placeBlock, null));
-            if (tileNbt != null) {
-                BlockEntity tileEntity = level.getBlockEntity(blockPos);
-                if (tileEntity != null) {
-                    CompoundTag newTileNbt = tileNbt.copy();
-                    if (!includeContainerContents) {
-                        stripContainerContentsFromNbt(newTileNbt);
-                    }
-                    newTileNbt.putInt("x", blockPos.getX());
-                    newTileNbt.putInt("y", blockPos.getY());
-                    newTileNbt.putInt("z", blockPos.getZ());
-                    tileEntity.loadWithComponents(
-                        TagValueInput.create(
-                            ProblemReporter.DISCARDING,
-                            level.registryAccess(),
-                            newTileNbt
-                        )
-                    );
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private void stripContainerContentsFromNbt(CompoundTag tileNbt) {
-        Set<JsonRule> rules = RulesLoader.getRules(blockState, tileNbt);
-        for (JsonRule rule : rules) {
-            if (rule.requiredExtractors == null) continue;
-            for (RequiredExtractor extractor : rule.requiredExtractors) {
-                extractor.clearItemsFromBlock(tileNbt);
-            }
-        }
-    }
-
-    @Override
-    @SuppressWarnings("Duplicates")
-    public boolean buildWithoutChecks(Level level, BlockPos blockPos) {
-        if (level.setBlock(blockPos, blockState, 0)) {
-            if (tileNbt != null) {
-                BlockEntity tileEntity = level.getBlockEntity(blockPos);
-                if (tileEntity != null) {
-                    CompoundTag newTileNbt = tileNbt.copy();
-                    newTileNbt.putInt("x", blockPos.getX());
-                    newTileNbt.putInt("y", blockPos.getY());
-                    newTileNbt.putInt("z", blockPos.getZ());
-                    tileEntity.loadWithComponents(
-                        TagValueInput.create(
-                            ProblemReporter.DISCARDING,
-                            level.registryAccess(),
-                            newTileNbt
-                        )
-                    );
-                }
-            }
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean isBuilt(Level level, BlockPos blockPos) {
-        return isBuilt(level, blockPos, EnumFluidHandlingMode.NO_REPLACE);
-    }
-
-    public boolean isWaterlogClearOnly(Level level, BlockPos blockPos, EnumFluidHandlingMode fluidMode) {
-        if (fluidMode != EnumFluidHandlingMode.CLEAR) return false;
-        if (blockState == null) return false;
-        BlockState worldState = level.getBlockState(blockPos);
-        if (worldState.getBlock() != blockState.getBlock()) return false;
-        if (!worldState.hasProperty(BlockStateProperties.WATERLOGGED)
-                || !blockState.hasProperty(BlockStateProperties.WATERLOGGED)) {
+         if (willDestroyFluidAtPos && !machineDestroyBlock(level, blockPos, owner, machineOrigin)) {
             return false;
-        }
-        return worldState.getValue(BlockStateProperties.WATERLOGGED)
-                && !blockState.getValue(BlockStateProperties.WATERLOGGED);
-    }
+         }
 
-    public boolean isBuilt(Level level, BlockPos blockPos, EnumFluidHandlingMode fluidMode) {
-        if (blockState == null) return false;
-        BlockState worldState = level.getBlockState(blockPos);
-        if (!canBeReplacedWithBlocks.contains(worldState.getBlock())) return false;
-        if (fluidMode != EnumFluidHandlingMode.CLEAR
-                && worldState.hasProperty(BlockStateProperties.WATERLOGGED)
-                && blockState.hasProperty(BlockStateProperties.WATERLOGGED)
-                && worldState.getValue(BlockStateProperties.WATERLOGGED)
-                && !blockState.getValue(BlockStateProperties.WATERLOGGED)) {
+         if (newBlockState.getBlock() instanceof LeavesBlock && newBlockState.hasProperty(LeavesBlock.PERSISTENT)) {
+            newBlockState = (BlockState)newBlockState.setValue(LeavesBlock.PERSISTENT, true);
+         }
 
-            worldState = worldState.setValue(BlockStateProperties.WATERLOGGED, false);
-        }
-        return blockStatesWithoutBlockEqual(blockState, worldState, ignoredProperties);
-    }
+         boolean placed = machineSetBlock(level, blockPos, newBlockState, 11, owner, machineOrigin);
+         if (!placed) {
+            return false;
+         }
 
-    @Override
-    public CompoundTag serializeNBT() {
-        CompoundTag nbt = new CompoundTag();
-        nbt.put(
-            "requiredBlockOffsets",
-            NBTUtilBC.writeCompoundList(
-                requiredBlockOffsets.stream()
-                    .map(NBTUtilBC::writeBlockPos)
-            )
-        );
-        nbt.put("blockState", NbtUtils.writeBlockState(blockState));
-        nbt.put(
-            "ignoredProperties",
-            NBTUtilBC.writeStringList(
-                ignoredProperties.stream()
-                    .map(Property::getName)
-            )
-        );
-        if (tileNbt != null) {
-            nbt.put("tileNbt", tileNbt);
-        }
-        nbt.put("tileRotation", NBTUtilBC.writeEnum(tileRotation));
-        nbt.putString("placeBlock", BuiltInRegistries.BLOCK.getKey(placeBlock).toString());
-        nbt.put(
-            "updateBlockOffsets",
-            NBTUtilBC.writeCompoundList(
-                updateBlockOffsets.stream()
-                    .map(NBTUtilBC::writeBlockPos)
-            )
-        );
-        nbt.put(
-            "canBeReplacedWithBlocks",
-            NBTUtilBC.writeStringList(
-                canBeReplacedWithBlocks.stream()
-                    .map(BuiltInRegistries.BLOCK::getKey)
-                    .map(Object::toString)
-            )
-        );
-        return nbt;
-    }
+         BlockPos secondHalfPos = null;
+         if (newBlockState.getBlock() instanceof BedBlock && newBlockState.hasProperty(BedBlock.PART) && newBlockState.getValue(BedBlock.PART) == BedPart.FOOT) {
+            Direction facing = (Direction)newBlockState.getValue(BedBlock.FACING);
+            secondHalfPos = blockPos.relative(facing);
+            BlockState headState = (BlockState)newBlockState.setValue(BedBlock.PART, BedPart.HEAD);
+            if (!machineSetBlock(level, secondHalfPos, headState, 3, owner, machineOrigin)) {
+               return false;
+            }
+         } else if (newBlockState.getBlock() instanceof DoorBlock
+            && newBlockState.hasProperty(DoorBlock.HALF)
+            && newBlockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
+            secondHalfPos = blockPos.above();
+            BlockState upperState = (BlockState)newBlockState.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
+            if (!machineSetBlock(level, secondHalfPos, upperState, 3, owner, machineOrigin)) {
+               return false;
+            }
+         } else if (newBlockState.getBlock() instanceof DoublePlantBlock
+            && newBlockState.hasProperty(DoublePlantBlock.HALF)
+            && newBlockState.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.LOWER) {
+            secondHalfPos = blockPos.above();
+            BlockState upperState = (BlockState)newBlockState.setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER);
+            if (!machineSetBlock(level, secondHalfPos, upperState, 3, owner, machineOrigin)) {
+               return false;
+            }
+         }
 
-    @Override
-    public void deserializeNBT(CompoundTag nbt) throws InvalidInputDataException {
-        NBTUtilBC.readCompoundList(nbt.get("requiredBlockOffsets"))
-            .map(NBTUtilBC::readBlockPos)
-            .forEach(requiredBlockOffsets::add);
-        blockState = NbtUtils.readBlockState(
-            BuiltInRegistries.BLOCK,
-            nbt.getCompoundOrEmpty("blockState")
-        );
-        NBTUtilBC.readStringList(nbt.get("ignoredProperties"))
-            .map(propertyName ->
-                blockState.getProperties().stream()
-                    .filter(property -> property.getName().equals(propertyName))
-                    .findFirst()
-                    .orElse(null)
-            )
-            .filter(java.util.Objects::nonNull)
-            .forEach(ignoredProperties::add);
-        if (nbt.contains("tileNbt")) {
-            tileNbt = nbt.getCompoundOrEmpty("tileNbt");
-        }
-        tileRotation = NBTUtilBC.readEnum(nbt.get("tileRotation"), Rotation.class);
-        if (tileRotation == null) tileRotation = Rotation.NONE;
-        placeBlock = BuiltInRegistries.BLOCK.getValue(Identifier.parse(nbt.getStringOr("placeBlock", "")));
-        NBTUtilBC.readCompoundList(nbt.get("updateBlockOffsets"))
-            .map(NBTUtilBC::readBlockPos)
-            .forEach(updateBlockOffsets::add);
-        NBTUtilBC.readStringList(nbt.get("canBeReplacedWithBlocks"))
-            .map(Identifier::parse)
-            .map(BuiltInRegistries.BLOCK::getValue)
-            .forEach(canBeReplacedWithBlocks::add);
+         BlockState afterShape = newBlockState;
 
-        java.util.Set<JsonRule> currentRules = RulesLoader.getRules(blockState, tileNbt);
-        java.util.Set<String> migratedIgnoredNames = new java.util.HashSet<>();
-        for (Property<?> existing : ignoredProperties) {
-            migratedIgnoredNames.add(existing.getName());
-        }
-        currentRules.stream()
-            .map(rule -> rule.ignoredProperties)
+         for (Direction dir : Direction.values()) {
+            BlockPos neighborPos = blockPos.relative(dir);
+            BlockState neighborState = level.getBlockState(neighborPos);
+            BlockState updated = afterShape.updateShape(level, level, blockPos, dir, neighborPos, neighborState, level.getRandom());
+            if (updated.isAir()) {
+               level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
+               if (secondHalfPos != null) {
+                  level.setBlock(secondHalfPos, Blocks.AIR.defaultBlockState(), 3);
+               }
+
+               return false;
+            }
+
+            if (!updated.equals(afterShape)) {
+               level.setBlock(blockPos, updated, 3);
+               afterShape = updated;
+            }
+         }
+
+         this.updateBlockOffsets.stream().<BlockPos>map(blockPos::offset).forEach(updatePos -> level.neighborChanged(updatePos, this.placeBlock, null));
+         if (this.tileNbt != null) {
+            BlockEntity tileEntity = level.getBlockEntity(blockPos);
+            if (tileEntity != null) {
+               CompoundTag newTileNbt = this.tileNbt.copy();
+               if (!includeContainerContents) {
+                  this.stripContainerContentsFromNbt(newTileNbt);
+               }
+
+               newTileNbt.putInt("x", blockPos.getX());
+               newTileNbt.putInt("y", blockPos.getY());
+               newTileNbt.putInt("z", blockPos.getZ());
+               tileEntity.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), newTileNbt));
+            }
+         }
+
+         return true;
+      }
+   }
+
+   private static boolean machineSetBlock(Level level, BlockPos pos, BlockState state, int flags, @Nullable GameProfile owner, @Nullable BlockPos machineOrigin) {
+      return level instanceof ServerLevel serverLevel && owner != null
+         ? BlockUtil.machineSetBlock(serverLevel, pos, state, flags, owner, machineOrigin)
+         : level.setBlock(pos, state, flags);
+   }
+
+   private static boolean machineDestroyBlock(Level level, BlockPos pos, @Nullable GameProfile owner, @Nullable BlockPos machineOrigin) {
+      return level instanceof ServerLevel serverLevel && owner != null && !BlockUtil.canMachineBreak(serverLevel, pos, owner)
+         ? false
+         : level.destroyBlock(pos, false);
+   }
+
+   private void stripContainerContentsFromNbt(CompoundTag tileNbt) {
+      for (JsonRule rule : RulesLoader.getRules(this.blockState, tileNbt)) {
+         if (rule.requiredExtractors != null) {
+            for (RequiredExtractor extractor : rule.requiredExtractors) {
+               extractor.clearItemsFromBlock(tileNbt);
+            }
+         }
+      }
+   }
+
+   @Override
+   public boolean buildWithoutChecks(Level level, BlockPos blockPos) {
+      if (level.setBlock(blockPos, this.blockState, 0)) {
+         if (this.tileNbt != null) {
+            BlockEntity tileEntity = level.getBlockEntity(blockPos);
+            if (tileEntity != null) {
+               CompoundTag newTileNbt = this.tileNbt.copy();
+               newTileNbt.putInt("x", blockPos.getX());
+               newTileNbt.putInt("y", blockPos.getY());
+               newTileNbt.putInt("z", blockPos.getZ());
+               tileEntity.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), newTileNbt));
+            }
+         }
+
+         return true;
+      } else {
+         return false;
+      }
+   }
+
+   @Override
+   public boolean isBuilt(Level level, BlockPos blockPos) {
+      return this.isBuilt(level, blockPos, EnumFluidHandlingMode.NO_REPLACE);
+   }
+
+   public boolean isWaterlogClearOnly(Level level, BlockPos blockPos, EnumFluidHandlingMode fluidMode) {
+      if (fluidMode != EnumFluidHandlingMode.CLEAR) {
+         return false;
+      } else if (this.blockState == null) {
+         return false;
+      } else {
+         BlockState worldState = level.getBlockState(blockPos);
+         if (worldState.getBlock() != this.blockState.getBlock()) {
+            return false;
+         } else {
+            return worldState.hasProperty(BlockStateProperties.WATERLOGGED) && this.blockState.hasProperty(BlockStateProperties.WATERLOGGED)
+               ? (Boolean)worldState.getValue(BlockStateProperties.WATERLOGGED) && !(Boolean)this.blockState.getValue(BlockStateProperties.WATERLOGGED)
+               : false;
+         }
+      }
+   }
+
+   public boolean isBuilt(Level level, BlockPos blockPos, EnumFluidHandlingMode fluidMode) {
+      if (this.blockState == null) {
+         return false;
+      }
+
+      BlockState worldState = level.getBlockState(blockPos);
+      if (!this.canBeReplacedWithBlocks.contains(worldState.getBlock())) {
+         return false;
+      }
+
+      if (fluidMode != EnumFluidHandlingMode.CLEAR
+         && worldState.hasProperty(BlockStateProperties.WATERLOGGED)
+         && this.blockState.hasProperty(BlockStateProperties.WATERLOGGED)
+         && (Boolean)worldState.getValue(BlockStateProperties.WATERLOGGED)
+         && !(Boolean)this.blockState.getValue(BlockStateProperties.WATERLOGGED)) {
+         worldState = (BlockState)worldState.setValue(BlockStateProperties.WATERLOGGED, false);
+      }
+
+      return blockStatesWithoutBlockEqual(this.blockState, worldState, this.ignoredProperties);
+   }
+
+   @Override
+   public CompoundTag serializeNBT() {
+      CompoundTag nbt = new CompoundTag();
+      nbt.put("requiredBlockOffsets", NBTUtilBC.writeCompoundList(this.requiredBlockOffsets.stream().map(NBTUtilBC::writeBlockPos)));
+      nbt.put("blockState", NbtUtils.writeBlockState(this.blockState));
+      nbt.put("ignoredProperties", NBTUtilBC.writeStringList(this.ignoredProperties.stream().map(Property::getName)));
+      if (this.tileNbt != null) {
+         nbt.put("tileNbt", this.tileNbt);
+      }
+
+      nbt.put("tileRotation", NBTUtilBC.writeEnum(this.tileRotation));
+      nbt.putString("placeBlock", BuiltInRegistries.BLOCK.getKey(this.placeBlock).toString());
+      nbt.put("updateBlockOffsets", NBTUtilBC.writeCompoundList(this.updateBlockOffsets.stream().map(NBTUtilBC::writeBlockPos)));
+      nbt.put(
+         "canBeReplacedWithBlocks",
+         NBTUtilBC.writeStringList(this.canBeReplacedWithBlocks.stream().<Identifier>map(BuiltInRegistries.BLOCK::getKey).map(Object::toString))
+      );
+      return nbt;
+   }
+
+   @Override
+   public void deserializeNBT(CompoundTag nbt) throws InvalidInputDataException {
+      NBTUtilBC.readCompoundList(nbt.get("requiredBlockOffsets")).map(NBTUtilBC::readBlockPos).forEach(this.requiredBlockOffsets::add);
+      this.blockState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, nbt.getCompoundOrEmpty("blockState"));
+      NBTUtilBC.readStringList(nbt.get("ignoredProperties"))
+         .map(propertyName -> this.blockState.getProperties().stream().filter(property -> property.getName().equals(propertyName)).findFirst().orElse(null))
+         .filter(Objects::nonNull)
+         .forEach(this.ignoredProperties::add);
+      if (nbt.contains("tileNbt")) {
+         this.tileNbt = nbt.getCompoundOrEmpty("tileNbt");
+      }
+
+      this.tileRotation = NBTUtilBC.readEnum(nbt.get("tileRotation"), Rotation.class);
+      if (this.tileRotation == null) {
+         this.tileRotation = Rotation.NONE;
+      }
+
+      this.placeBlock = (Block)BuiltInRegistries.BLOCK.getValue(Identifier.parse(nbt.getStringOr("placeBlock", "")));
+      NBTUtilBC.readCompoundList(nbt.get("updateBlockOffsets")).map(NBTUtilBC::readBlockPos).forEach(this.updateBlockOffsets::add);
+      NBTUtilBC.readStringList(nbt.get("canBeReplacedWithBlocks"))
+         .map(Identifier::parse)
+         .map(BuiltInRegistries.BLOCK::getValue)
+         .forEach(this.canBeReplacedWithBlocks::add);
+      Set<JsonRule> currentRules = RulesLoader.getRules(this.blockState, this.tileNbt);
+      Set<String> migratedIgnoredNames = new HashSet<>();
+
+      for (Property<?> existing : this.ignoredProperties) {
+         migratedIgnoredNames.add(existing.getName());
+      }
+
+      currentRules.stream()
+         .map(rule -> rule.ignoredProperties)
+         .filter(Objects::nonNull)
+         .flatMap(Collection::stream)
+         .filter(migratedIgnoredNames::add)
+         .flatMap(propertyName -> this.blockState.getProperties().stream().filter(property -> property.getName().equals(propertyName)))
+         .forEach(this.ignoredProperties::add);
+      this.addClassBasedIgnoredProperties();
+      if (this.placeBlock != null) {
+         this.addClassBasedRequiredBlockOffsets(this.placeBlock, this.blockState);
+      }
+
+      if (this.requiredBlockOffsets.isEmpty()) {
+         currentRules.stream()
+            .map(rule -> rule.requiredBlockOffsets)
             .filter(Objects::nonNull)
-            .flatMap(List::stream)
-            .filter(migratedIgnoredNames::add)
-            .flatMap(propertyName ->
-                blockState.getProperties().stream()
-                    .filter(property -> property.getName().equals(propertyName))
-            )
-            .forEach(ignoredProperties::add);
+            .flatMap(Collection::stream)
+            .forEach(this.requiredBlockOffsets::add);
+      }
+   }
 
-        addClassBasedIgnoredProperties();
+   private static <T extends Comparable<T>> BlockState copyProperty(Property<T> property, BlockState dest, BlockState source) {
+      return (BlockState)dest.setValue(property, source.getValue(property));
+   }
 
-        if (placeBlock != null) {
-            addClassBasedRequiredBlockOffsets(placeBlock, blockState);
-        }
+   private static boolean blockStatesWithoutBlockEqual(BlockState a, BlockState b, List<Property<?>> ignored) {
+      for (Property<?> property : a.getProperties()) {
+         if (!ignored.contains(property)) {
+            if (!b.getProperties().contains(property)) {
+               return false;
+            }
 
-        if (requiredBlockOffsets.isEmpty()) {
-            currentRules.stream()
-                .map(rule -> rule.requiredBlockOffsets)
-                .filter(Objects::nonNull)
-                .flatMap(java.util.Collection::stream)
-                .forEach(requiredBlockOffsets::add);
-        }
-    }
+            if (!propertyValuesEqual(property, a, b)) {
+               return false;
+            }
+         }
+      }
 
-    @SuppressWarnings("unchecked")
-    private static <T extends Comparable<T>> BlockState copyProperty(
-        Property<T> property, BlockState dest, BlockState source
-    ) {
-        return dest.setValue(property, source.getValue(property));
-    }
+      return true;
+   }
 
-    private static boolean blockStatesWithoutBlockEqual(
-        BlockState a, BlockState b, List<Property<?>> ignored
-    ) {
-        for (Property<?> property : a.getProperties()) {
-            if (ignored.contains(property)) continue;
-            if (!b.getProperties().contains(property)) return false;
-            if (!propertyValuesEqual(property, a, b)) return false;
-        }
-        return true;
-    }
+   private static <T extends Comparable<T>> boolean propertyValuesEqual(Property<T> property, BlockState a, BlockState b) {
+      return a.getValue(property).equals(b.getValue(property));
+   }
 
-    @SuppressWarnings("unchecked")
-    private static <T extends Comparable<T>> boolean propertyValuesEqual(
-        Property<T> property, BlockState a, BlockState b
-    ) {
-        return a.getValue(property).equals(b.getValue(property));
-    }
+   @Override
+   public boolean equals(Object o) {
+      if (this == o) {
+         return true;
+      } else if (o != null && this.getClass() == o.getClass()) {
+         SchematicBlockDefault that = (SchematicBlockDefault)o;
+         return this.requiredBlockOffsets.equals(that.requiredBlockOffsets)
+            && this.blockState.equals(that.blockState)
+            && this.ignoredProperties.equals(that.ignoredProperties)
+            && (this.tileNbt != null ? this.tileNbt.equals(that.tileNbt) : that.tileNbt == null)
+            && this.tileRotation == that.tileRotation
+            && this.placeBlock.equals(that.placeBlock)
+            && this.updateBlockOffsets.equals(that.updateBlockOffsets)
+            && this.canBeReplacedWithBlocks.equals(that.canBeReplacedWithBlocks);
+      } else {
+         return false;
+      }
+   }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SchematicBlockDefault that = (SchematicBlockDefault) o;
-        return requiredBlockOffsets.equals(that.requiredBlockOffsets) &&
-            blockState.equals(that.blockState) &&
-            ignoredProperties.equals(that.ignoredProperties) &&
-            (tileNbt != null ? tileNbt.equals(that.tileNbt) : that.tileNbt == null) &&
-            tileRotation == that.tileRotation &&
-            placeBlock.equals(that.placeBlock) &&
-            updateBlockOffsets.equals(that.updateBlockOffsets) &&
-            canBeReplacedWithBlocks.equals(that.canBeReplacedWithBlocks);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = requiredBlockOffsets.hashCode();
-        result = 31 * result + blockState.hashCode();
-        result = 31 * result + ignoredProperties.hashCode();
-        result = 31 * result + (tileNbt != null ? tileNbt.hashCode() : 0);
-        result = 31 * result + tileRotation.hashCode();
-        result = 31 * result + placeBlock.hashCode();
-        result = 31 * result + updateBlockOffsets.hashCode();
-        result = 31 * result + canBeReplacedWithBlocks.hashCode();
-        return result;
-    }
+   @Override
+   public int hashCode() {
+      int result = this.requiredBlockOffsets.hashCode();
+      result = 31 * result + this.blockState.hashCode();
+      result = 31 * result + this.ignoredProperties.hashCode();
+      result = 31 * result + (this.tileNbt != null ? this.tileNbt.hashCode() : 0);
+      result = 31 * result + this.tileRotation.hashCode();
+      result = 31 * result + this.placeBlock.hashCode();
+      result = 31 * result + this.updateBlockOffsets.hashCode();
+      return 31 * result + this.canBeReplacedWithBlocks.hashCode();
+   }
 }

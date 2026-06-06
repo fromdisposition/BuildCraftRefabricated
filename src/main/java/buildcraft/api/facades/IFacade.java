@@ -1,9 +1,9 @@
 package buildcraft.api.facades;
 
 public interface IFacade {
-    FacadeType getType();
+   FacadeType getType();
 
-    boolean isHollow();
+   boolean isHollow();
 
-    IFacadePhasedState[] getPhasedStates();
+   IFacadePhasedState[] getPhasedStates();
 }

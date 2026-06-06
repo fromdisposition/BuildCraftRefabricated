@@ -1,538 +1,552 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.factory.tile;
-
-import java.util.UUID;
-
-import javax.annotation.Nullable;
-
-import com.mojang.authlib.GameProfile;
-
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
-
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.transfer.fluid.FluidResource;
-import buildcraft.lib.transfer.fluid.FluidStacksResourceHandler;
-import buildcraft.lib.transfer.transaction.Transaction;
-import buildcraft.lib.transfer.transaction.TransactionContext;
 
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IRefineryRecipeManager;
-import buildcraft.api.recipes.IRefineryRecipeManager.IDistillationRecipe;
 import buildcraft.api.tiles.IDebuggable;
-import buildcraft.lib.fluid.FluidSmoother;
-
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.factory.BCFactoryAttachments;
-import buildcraft.factory.FactoryFluidContainers;
 import buildcraft.factory.BCFactoryBlockEntities;
+import buildcraft.factory.FactoryFluidContainers;
+import buildcraft.factory.block.BlockDistiller;
 import buildcraft.factory.container.ContainerDistiller;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import buildcraft.lib.mj.MjBatteryReceiver;
+import buildcraft.lib.fabric.transfer.MjEnergyStorage;
+import buildcraft.lib.fabric.transfer.SidedFluidStorages;
+import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.lib.fluid.FluidSmoother;
+import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
+import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MessageUtil;
+import buildcraft.lib.mj.MjBatteryReceiver;
+import buildcraft.lib.tile.ItemHandlerSimple;
+import buildcraft.lib.transfer.fabric.TransferConvert;
+import com.mojang.authlib.GameProfile;
+import java.util.List;
+import java.util.UUID;
+import javax.annotation.Nullable;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup.Provider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
-@SuppressWarnings("this-escape")
 public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
+   public static final long MAX_MJ_PER_TICK = 6L * MjAPI.MJ;
+   private static final Identifier ADVANCEMENT_HEATING_AND_DISTILLING = Identifier.parse("buildcraftfactory:heating_and_distilling");
+   private static final Identifier ADVANCEMENT_REFINE_AND_REDEFINE = Identifier.parse("buildcraftenergy:refine_and_redefine");
+   public final SingleFluidTank tankIn = new SingleFluidTank(4000, SingleFluidTank.TankAccess.filteredInput(this::isDistillableFluid));
+   public final SingleFluidTank tankGasOut = new SingleFluidTank(4000, SingleFluidTank.TankAccess.MACHINE_OUTPUT);
+   public final SingleFluidTank tankLiquidOut = new SingleFluidTank(4000, SingleFluidTank.TankAccess.MACHINE_OUTPUT);
+   private final MjBattery mjBattery = new MjBattery(1024L * MjAPI.MJ);
+   private final IMjReceiver mjReceiver = new MjBatteryReceiver(this.mjBattery);
+   public final ItemHandlerSimple containerSlots = new ItemHandlerSimple(3, 1);
+   private final FluidSmoother smoothIn;
+   private final FluidSmoother smoothGasOut;
+   private final FluidSmoother smoothLiquidOut;
+   private IRefineryRecipeManager.IDistillationRecipe currentRecipe;
+   private long distillPower;
+   private boolean isActive;
+   private boolean isStuck;
+   private GameProfile owner;
+   private boolean wasDistillingForAdvancement;
+   private long powerAvgSmoothed;
+   private long powerAvgClient;
+   private double animState;
+   private double prevAnimState;
+   private int lastSyncedIn;
+   private int lastSyncedGas;
+   private int lastSyncedLiquid;
+   private FluidStack lastSyncedInFluid;
+   private FluidStack lastSyncedGasFluid;
+   private FluidStack lastSyncedLiquidFluid;
+   private boolean lastSyncedActive;
+   private boolean lastSyncedStuck;
+   private long lastSyncedPower;
 
-    public static final long MAX_MJ_PER_TICK = 6 * MjAPI.MJ;
+   public TileDistiller_BC8(BlockPos pos, BlockState state) {
+      super(BCFactoryBlockEntities.DISTILLER, pos, state);
+      this.containerSlots.setCallback((handler, slot, bef, aft) -> this.setChanged());
+      this.smoothIn = new FluidSmoother(this.tankIn);
+      this.smoothGasOut = new FluidSmoother(this.tankGasOut);
+      this.smoothLiquidOut = new FluidSmoother(this.tankLiquidOut);
+      this.distillPower = 0L;
+      this.isActive = false;
+      this.isStuck = false;
+      this.wasDistillingForAdvancement = false;
+      this.powerAvgSmoothed = 0L;
+      this.powerAvgClient = 0L;
+      this.animState = 0.0;
+      this.prevAnimState = 0.0;
+      this.lastSyncedIn = -1;
+      this.lastSyncedGas = -1;
+      this.lastSyncedLiquid = -1;
+      this.lastSyncedInFluid = FluidStack.EMPTY;
+      this.lastSyncedGasFluid = FluidStack.EMPTY;
+      this.lastSyncedLiquidFluid = FluidStack.EMPTY;
+      this.lastSyncedActive = false;
+      this.lastSyncedStuck = false;
+      this.lastSyncedPower = -1L;
+   }
 
-    private static final Identifier ADVANCEMENT_HEATING_AND_DISTILLING =
-        Identifier.parse("buildcraftfactory:heating_and_distilling");
-    private static final Identifier ADVANCEMENT_REFINE_AND_REDEFINE =
-        Identifier.parse("buildcraftenergy:refine_and_redefine");
+   public SingleFluidTank getTankIn() {
+      return this.tankIn;
+   }
 
-    private final InputTank tankIn = new InputTank();
-    private final OutputTank tankGasOut = new OutputTank();
-    private final OutputTank tankLiquidOut = new OutputTank();
+   public SingleFluidTank getTankGasOut() {
+      return this.tankGasOut;
+   }
 
-    private final MjBattery mjBattery = new MjBattery(1024 * MjAPI.MJ);
-    private final IMjReceiver mjReceiver = new MjBatteryReceiver(mjBattery);
+   public SingleFluidTank getTankLiquidOut() {
+      return this.tankLiquidOut;
+   }
 
-    public final buildcraft.lib.tile.item.ItemHandlerSimple containerSlots =
-        new buildcraft.lib.tile.item.ItemHandlerSimple(3, 1);
+   public IMjReceiver getMjReceiver() {
+      return this.mjReceiver;
+   }
 
-    {
-        containerSlots.setCallback((handler, slot, bef, aft) -> setChanged());
-    }
+   public MjBattery getBattery() {
+      return this.mjBattery;
+   }
 
-    private final FluidSmoother smoothIn = new FluidSmoother(tankIn);
-    private final FluidSmoother smoothGasOut = new FluidSmoother(tankGasOut);
-    private final FluidSmoother smoothLiquidOut = new FluidSmoother(tankLiquidOut);
+   @Nullable
+   public MjEnergyStorage getSidedEnergyStorage() {
+      return MjEnergyStorage.createIfRfEnabled(this.mjBattery);
+   }
 
-    private IDistillationRecipe currentRecipe;
-    private long distillPower = 0;
-    private boolean isActive = false;
+   @Nullable
+   public GameProfile getOwner() {
+      return this.owner;
+   }
 
-    private boolean isStuck = false;
+   public void onPlacedBy(@Nullable LivingEntity placer) {
+      if (placer instanceof Player player) {
+         this.owner = player.getGameProfile();
+         this.setChanged();
+         if (this.level != null && !this.level.isClientSide()) {
+            MessageUtil.sendUpdateToTrackingPlayers(this);
+         }
+      }
+   }
 
-    private GameProfile owner;
+   @Nullable
+   public Storage<FluidVariant> getSidedFluidStorage(@Nullable Direction direction) {
+      if (direction == null) {
+         return null;
+      } else if (direction == Direction.UP) {
+         return SidedFluidStorages.extractOnly(this.tankGasOut);
+      } else {
+         return direction == Direction.DOWN ? SidedFluidStorages.extractOnly(this.tankLiquidOut) : SidedFluidStorages.insertOnly(this.tankIn);
+      }
+   }
 
-    private boolean wasDistillingForAdvancement = false;
+   public FluidSmoother getSmoothIn() {
+      return this.smoothIn;
+   }
 
-    private long powerAvgSmoothed = 0;
-    private long powerAvgClient = 0;
+   public FluidSmoother getSmoothGasOut() {
+      return this.smoothGasOut;
+   }
 
-    private double animState = 0;
-    private double prevAnimState = 0;
+   public FluidSmoother getSmoothLiquidOut() {
+      return this.smoothLiquidOut;
+   }
 
-    private int lastSyncedIn = -1;
-    private int lastSyncedGas = -1;
-    private int lastSyncedLiquid = -1;
-    private FluidResource lastSyncedInResource = FluidResource.EMPTY;
-    private FluidResource lastSyncedGasResource = FluidResource.EMPTY;
-    private FluidResource lastSyncedLiquidResource = FluidResource.EMPTY;
-    private boolean lastSyncedActive = false;
-    private boolean lastSyncedStuck = false;
-    private long lastSyncedPower = -1;
+   public boolean isActive() {
+      return this.isActive;
+   }
 
-    public TileDistiller_BC8(BlockPos pos, BlockState state) {
-        super(BCFactoryBlockEntities.DISTILLER, pos, state);
-    }
+   public boolean isStuck() {
+      return this.isStuck;
+   }
 
-    public InputTank getTankIn() {
-        return tankIn;
-    }
+   public long getPowerAvgClient() {
+      return this.powerAvgClient;
+   }
 
-    public OutputTank getTankGasOut() {
-        return tankGasOut;
-    }
+   public double getAnimState() {
+      return this.animState;
+   }
 
-    public OutputTank getTankLiquidOut() {
-        return tankLiquidOut;
-    }
+   public double getPrevAnimState() {
+      return this.prevAnimState;
+   }
 
-    public IMjReceiver getMjReceiver() {
-        return mjReceiver;
-    }
+   public void clientTick() {
+      this.smoothIn.tick();
+      this.smoothGasOut.tick();
+      this.smoothLiquidOut.tick();
+      this.prevAnimState = this.animState;
+      double changeSpeed = this.isActive && MAX_MJ_PER_TICK > 0L ? (double)this.powerAvgClient / MAX_MJ_PER_TICK * 0.06 : 0.01;
+      if (this.isActive) {
+         this.animState += changeSpeed;
+         if (this.animState >= 1.5) {
+            this.animState--;
+            this.prevAnimState--;
+         }
+      } else {
+         this.animState = this.animState > changeSpeed ? this.animState - changeSpeed : 0.0;
+      }
+   }
 
-    public MjBattery getBattery() {
-        return mjBattery;
-    }
+   private boolean isDistillableFluid(FluidStack fluid) {
+      IRefineryRecipeManager manager = BuildcraftRecipeRegistry.refineryRecipes;
+      if (manager == null) {
+         return false;
+      }
 
-    @Nullable
-    public GameProfile getOwner() {
-        return owner;
-    }
+      IRefineryRecipeManager.IDistillationRecipe recipe = manager.getDistillationRegistry().getRecipeForInput(fluid);
+      return recipe != null;
+   }
 
-    public void onPlacedBy(@Nullable LivingEntity placer) {
-        if (placer instanceof Player player) {
-            owner = player.getGameProfile();
-            setChanged();
-            if (level != null && !level.isClientSide()) {
-                MessageUtil.sendUpdateToTrackingPlayers(this);
+   public static boolean qualifiesForHeatingAdvancement(int inputHeat, boolean isNether) {
+      if (inputHeat < 0) {
+         return false;
+      }
+
+      int naturalHeat = isNether ? 2 : 0;
+      return inputHeat != naturalHeat;
+   }
+
+   private void creditRefineAndRedefine(FluidStack outGas, FluidStack outLiquid) {
+      if (this.owner != null && this.level != null && !this.level.isClientSide()) {
+         MinecraftServer server = this.level.getServer();
+         if (server != null) {
+            ServerPlayer player = server.getPlayerList().getPlayer(this.owner.id());
+            if (player != null) {
+               BCFactoryAttachments.OilAndFuelProduction tracker = BCFactoryAttachments.get(player);
+               String gasBase = BCEnergyFluidsFabric.getBaseName(outGas.getFluid());
+               if (gasBase != null) {
+                  String justSaturated = tracker.recordProduction(gasBase, outGas.getAmount());
+                  if (justSaturated != null) {
+                     AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_REFINE_AND_REDEFINE, justSaturated);
+                  }
+               }
+
+               String liquidBase = BCEnergyFluidsFabric.getBaseName(outLiquid.getFluid());
+               if (liquidBase != null) {
+                  String justSaturated = tracker.recordProduction(liquidBase, outLiquid.getAmount());
+                  if (justSaturated != null) {
+                     AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_REFINE_AND_REDEFINE, justSaturated);
+                  }
+               }
             }
-        }
-    }
+         }
+      }
+   }
 
-    @Nullable
-    public FluidStacksResourceHandler getTankForSide(@Nullable Direction side) {
-        if (side == null) return null;
-        if (side == Direction.UP) return tankGasOut;
-        if (side == Direction.DOWN) return tankLiquidOut;
-        return tankIn;
-    }
+   public void serverTick() {
+      if (this.level != null && !this.level.isClientSide()) {
+         if (this.level.getGameTime() % 5L == 0L) {
+            FactoryFluidContainers.syncDrainSlot(this.containerSlots, 0, this.tankIn);
+            FactoryFluidContainers.syncFillSlot(this.containerSlots, 1, this.tankGasOut);
+            FactoryFluidContainers.syncFillSlot(this.containerSlots, 2, this.tankLiquidOut);
+         }
 
-    public FluidSmoother getSmoothIn() {
-        return smoothIn;
-    }
-
-    public FluidSmoother getSmoothGasOut() {
-        return smoothGasOut;
-    }
-
-    public FluidSmoother getSmoothLiquidOut() {
-        return smoothLiquidOut;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public boolean isStuck() {
-        return isStuck;
-    }
-
-    public long getPowerAvgClient() {
-        return powerAvgClient;
-    }
-
-    public double getAnimState() {
-        return animState;
-    }
-
-    public double getPrevAnimState() {
-        return prevAnimState;
-    }
-
-    public void clientTick() {
-        smoothIn.tick();
-        smoothGasOut.tick();
-        smoothLiquidOut.tick();
-
-        prevAnimState = animState;
-
-        double changeSpeed = isActive && MAX_MJ_PER_TICK > 0
-                ? ((double) powerAvgClient / MAX_MJ_PER_TICK) * 0.06
-                : 0.01;
-        if (isActive) {
-            animState += changeSpeed;
-
-            if (animState >= 1.5) {
-                animState -= 1.0;
-                prevAnimState -= 1.0;
-            }
-        } else {
-            animState = animState > changeSpeed ? animState - changeSpeed : 0;
-        }
-    }
-
-    private boolean isDistillableFluid(FluidStack fluid) {
-        IRefineryRecipeManager manager = BuildcraftRecipeRegistry.refineryRecipes;
-        if (manager == null) return false;
-        IDistillationRecipe recipe = manager.getDistillationRegistry().getRecipeForInput(fluid);
-        return recipe != null;
-    }
-
-    public static boolean qualifiesForHeatingAdvancement(int inputHeat, boolean isNether) {
-        if (inputHeat < 0) {
-            return false;
-        }
-        int naturalHeat = isNether ? 2 : 0;
-        return inputHeat != naturalHeat;
-    }
-
-    private void creditRefineAndRedefine(FluidStack outGas, FluidStack outLiquid) {
-        if (owner == null || level == null || level.isClientSide()) return;
-        net.minecraft.server.MinecraftServer server = level.getServer();
-        if (server == null) return;
-        net.minecraft.server.level.ServerPlayer player = server.getPlayerList().getPlayer(owner.id());
-        if (player == null) return;
-        var tracker = BCFactoryAttachments.get(player);
-        String gasBase = BCEnergyFluidsFabric.getBaseName(outGas.getFluid());
-        if (gasBase != null) {
-            String justSaturated = tracker.recordProduction(gasBase, outGas.getAmount());
-            if (justSaturated != null) {
-                AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_REFINE_AND_REDEFINE, justSaturated);
-            }
-        }
-        String liquidBase = BCEnergyFluidsFabric.getBaseName(outLiquid.getFluid());
-        if (liquidBase != null) {
-            String justSaturated = tracker.recordProduction(liquidBase, outLiquid.getAmount());
-            if (justSaturated != null) {
-                AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_REFINE_AND_REDEFINE, justSaturated);
-            }
-        }
-    }
-
-    public void serverTick() {
-        if (level == null || level.isClientSide()) return;
-
-        if (level.getGameTime() % 5 == 0) {
-            FactoryFluidContainers.syncDrainSlot(containerSlots, 0, tankIn);
-            FactoryFluidContainers.syncFillSlot(containerSlots, 1, tankGasOut);
-            FactoryFluidContainers.syncFillSlot(containerSlots, 2, tankLiquidOut);
-        }
-
-        mjBattery.tick(level, worldPosition);
-
-        currentRecipe = null;
-        IRefineryRecipeManager manager = BuildcraftRecipeRegistry.refineryRecipes;
-        if (manager != null) {
-            FluidStack inFluid = tankIn.getResource(0).toStack(tankIn.getAmountAsInt(0));
+         this.mjBattery.tick(this.level, this.worldPosition);
+         this.currentRecipe = null;
+         IRefineryRecipeManager manager = BuildcraftRecipeRegistry.refineryRecipes;
+         if (manager != null) {
+            FluidStack inFluid = this.tankIn.getFluidStack();
             if (!inFluid.isEmpty()) {
-                currentRecipe = manager.getDistillationRegistry().getRecipeForInput(inFluid);
+               this.currentRecipe = manager.getDistillationRegistry().getRecipeForInput(inFluid);
             }
-        }
+         }
 
-        if (currentRecipe == null) {
-            mjBattery.addPowerChecking(distillPower, false);
-            distillPower = 0;
-            isActive = false;
-            isStuck = false;
-        } else {
-            FluidStack reqIn = currentRecipe.in();
-            FluidStack outLiquid = currentRecipe.outLiquid();
-            FluidStack outGas = currentRecipe.outGas();
-
-            FluidResource resIn = tankIn.getResource(0);
+         if (this.currentRecipe == null) {
+            this.mjBattery.addPowerChecking(this.distillPower, false);
+            this.distillPower = 0L;
+            this.isActive = false;
+            this.isStuck = false;
+         } else {
+            FluidStack reqIn = this.currentRecipe.in();
+            FluidStack outLiquid = this.currentRecipe.outLiquid();
+            FluidStack outGas = this.currentRecipe.outGas();
+            FluidStack resIn = this.tankIn.getFluidStack();
             boolean canExtract = !resIn.isEmpty()
-                    && buildcraft.lib.misc.FluidUtilBC.areEquivalentFluidResources(resIn, FluidResource.of(reqIn))
-                    && tankIn.getAmountAsInt(0) >= reqIn.getAmount();
+               && FluidUtilBC.areEquivalentFluidStacks(resIn.copyWithAmount(1), reqIn.copyWithAmount(1))
+               && this.tankIn.getAmountMb() >= reqIn.getAmount();
+            long outLiquidDroplets = TransferConvert.mbToDroplets(outLiquid.getAmount());
+            long outGasDroplets = TransferConvert.mbToDroplets(outGas.getAmount());
+            Transaction tx = Transaction.openOuter();
 
             boolean canFillLiquid;
-            try (Transaction tx = Transaction.openRoot()) {
-                canFillLiquid = tankLiquidOut.insertInternal(0, FluidResource.of(outLiquid), outLiquid.getAmount(), tx) >= outLiquid.getAmount();
-            }
             boolean canFillGas;
-            try (Transaction tx = Transaction.openRoot()) {
-                canFillGas = tankGasOut.insertInternal(0, FluidResource.of(outGas), outGas.getAmount(), tx) >= outGas.getAmount();
+            try {
+               canFillLiquid = this.tankLiquidOut.insertInternal(TransferConvert.toVariant(outLiquid), outLiquidDroplets, tx) >= outLiquidDroplets;
+            } catch (Throwable var27) {
+               if (tx != null) {
+                  try {
+                     tx.close();
+                  } catch (Throwable var24) {
+                     var27.addSuppressed(var24);
+                  }
+               }
+
+               throw var27;
             }
 
-            isStuck = !canFillLiquid || !canFillGas;
+            if (tx != null) {
+               tx.close();
+            }
 
+            Transaction txx = Transaction.openOuter();
+
+            try {
+               canFillGas = this.tankGasOut.insertInternal(TransferConvert.toVariant(outGas), outGasDroplets, txx) >= outGasDroplets;
+            } catch (Throwable var26) {
+               if (txx != null) {
+                  try {
+                     txx.close();
+                  } catch (Throwable var23) {
+                     var26.addSuppressed(var23);
+                  }
+               }
+
+               throw var26;
+            }
+
+            if (txx != null) {
+               txx.close();
+            }
+
+            this.isStuck = !canFillLiquid || !canFillGas;
             if (canExtract && canFillLiquid && canFillGas) {
-                long max = MAX_MJ_PER_TICK;
-                max *= mjBattery.getStored() + max;
-                max /= mjBattery.getCapacity() / 2;
-                max = Math.min(max, MAX_MJ_PER_TICK);
-                long power = mjBattery.extractPower(0, max);
+               long max = MAX_MJ_PER_TICK;
+               long var39 = max * (this.mjBattery.getStored() + max);
+               long var40 = var39 / (this.mjBattery.getCapacity() / 2L);
+               long var41 = Math.min(var40, MAX_MJ_PER_TICK);
+               long power = this.mjBattery.extractPower(0L, var41);
+               this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((var41 - this.powerAvgSmoothed) * 0.05);
+               this.distillPower += power;
+               this.isActive = power > 0L;
+               long powerReq = this.currentRecipe.powerRequired();
+               if (this.distillPower >= powerReq) {
+                  this.isActive = true;
+                  this.distillPower -= powerReq;
+                  Transaction txxx = Transaction.openOuter();
 
-                powerAvgSmoothed += (long) ((max - powerAvgSmoothed) * 0.05);
-                distillPower += power;
-                isActive = power > 0;
-                long powerReq = currentRecipe.powerRequired();
-                if (distillPower >= powerReq) {
-                    isActive = true;
-                    distillPower -= powerReq;
-                    try (Transaction tx = Transaction.openRoot()) {
-                        tankIn.extractInternal(0, resIn, reqIn.getAmount(), tx);
-                        tankGasOut.insertInternal(0, FluidResource.of(outGas), outGas.getAmount(), tx);
-                        tankLiquidOut.insertInternal(0, FluidResource.of(outLiquid), outLiquid.getAmount(), tx);
-                        tx.commit();
-                    }
-                    creditRefineAndRedefine(outGas, outLiquid);
-                }
+                  try {
+                     this.tankIn.extractInternal(TransferConvert.toVariant(resIn), TransferConvert.mbToDroplets(reqIn.getAmount()), txxx);
+                     this.tankGasOut.insertInternal(TransferConvert.toVariant(outGas), outGasDroplets, txxx);
+                     this.tankLiquidOut.insertInternal(TransferConvert.toVariant(outLiquid), outLiquidDroplets, txxx);
+                     txxx.commit();
+                  } catch (Throwable var25) {
+                     if (txxx != null) {
+                        try {
+                           txxx.close();
+                        } catch (Throwable var22) {
+                           var25.addSuppressed(var22);
+                        }
+                     }
+
+                     throw var25;
+                  }
+
+                  if (txxx != null) {
+                     txxx.close();
+                  }
+
+                  this.creditRefineAndRedefine(outGas, outLiquid);
+               }
             } else {
-                mjBattery.addPowerChecking(distillPower, false);
-                distillPower = 0;
-                isActive = false;
+               this.mjBattery.addPowerChecking(this.distillPower, false);
+               this.distillPower = 0L;
+               this.isActive = false;
             }
-        }
+         }
 
-        boolean distilling = isActive && currentRecipe != null;
-        if (distilling && !wasDistillingForAdvancement && owner != null) {
-            int inputHeat = BCEnergyFluidsFabric.getHeat(currentRecipe.in().getFluid());
-            if (qualifiesForHeatingAdvancement(inputHeat, level.dimension() == Level.NETHER)) {
-                AdvancementUtil.unlockAdvancement(owner.id(), level, ADVANCEMENT_HEATING_AND_DISTILLING);
+         boolean distilling = this.isActive && this.currentRecipe != null;
+         if (distilling && !this.wasDistillingForAdvancement && this.owner != null) {
+            int inputHeat = BCEnergyFluidsFabric.getHeat(this.currentRecipe.in().getFluid());
+            if (qualifiesForHeatingAdvancement(inputHeat, this.level.dimension() == Level.NETHER)) {
+               AdvancementUtil.unlockAdvancement(this.owner.id(), this.level, ADVANCEMENT_HEATING_AND_DISTILLING);
             }
-        }
-        wasDistillingForAdvancement = distilling;
+         }
 
-        if (currentRecipe == null || !isActive) {
-            powerAvgSmoothed += (long) ((0 - powerAvgSmoothed) * 0.05);
-        }
+         this.wasDistillingForAdvancement = distilling;
+         if (this.currentRecipe == null || !this.isActive) {
+            this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((0L - this.powerAvgSmoothed) * 0.05);
+         }
 
-        long halfMJ = MjAPI.MJ / 2;
-        powerAvgClient = Math.round(powerAvgSmoothed / (double) halfMJ) * halfMJ;
-        powerAvgClient = Math.min(powerAvgClient, MAX_MJ_PER_TICK);
-
-        int curIn = tankIn.getAmountAsInt(0);
-        int curGas = tankGasOut.getAmountAsInt(0);
-        int curLiq = tankLiquidOut.getAmountAsInt(0);
-        FluidResource curInResource = tankIn.getResource(0);
-        FluidResource curGasResource = tankGasOut.getResource(0);
-        FluidResource curLiqResource = tankLiquidOut.getResource(0);
-        boolean needsSync = curIn != lastSyncedIn || curGas != lastSyncedGas || curLiq != lastSyncedLiquid
-                || !buildcraft.lib.misc.FluidUtilBC.areEquivalentFluidResources(curInResource, lastSyncedInResource)
-                || !buildcraft.lib.misc.FluidUtilBC.areEquivalentFluidResources(curGasResource, lastSyncedGasResource)
-                || !buildcraft.lib.misc.FluidUtilBC.areEquivalentFluidResources(curLiqResource, lastSyncedLiquidResource)
-                || isActive != lastSyncedActive || isStuck != lastSyncedStuck || powerAvgClient != lastSyncedPower;
-        if (needsSync) {
-            lastSyncedIn = curIn;
-            lastSyncedGas = curGas;
-            lastSyncedLiquid = curLiq;
-            lastSyncedInResource = curInResource;
-            lastSyncedGasResource = curGasResource;
-            lastSyncedLiquidResource = curLiqResource;
-            lastSyncedActive = isActive;
-            lastSyncedStuck = isStuck;
-            lastSyncedPower = powerAvgClient;
-            setChanged();
+         long halfMJ = MjAPI.MJ / 2L;
+         this.powerAvgClient = Math.round((double)this.powerAvgSmoothed / halfMJ) * halfMJ;
+         this.powerAvgClient = Math.min(this.powerAvgClient, MAX_MJ_PER_TICK);
+         int curIn = this.tankIn.getAmountMb();
+         int curGas = this.tankGasOut.getAmountMb();
+         int curLiq = this.tankLiquidOut.getAmountMb();
+         FluidStack curInFluid = syncIdentity(this.tankIn.getFluidStack());
+         FluidStack curGasFluid = syncIdentity(this.tankGasOut.getFluidStack());
+         FluidStack curLiqFluid = syncIdentity(this.tankLiquidOut.getFluidStack());
+         boolean needsSync = curIn != this.lastSyncedIn
+            || curGas != this.lastSyncedGas
+            || curLiq != this.lastSyncedLiquid
+            || !FluidUtilBC.areEquivalentFluidStacks(curInFluid, this.lastSyncedInFluid)
+            || !FluidUtilBC.areEquivalentFluidStacks(curGasFluid, this.lastSyncedGasFluid)
+            || !FluidUtilBC.areEquivalentFluidStacks(curLiqFluid, this.lastSyncedLiquidFluid)
+            || this.isActive != this.lastSyncedActive
+            || this.isStuck != this.lastSyncedStuck
+            || this.powerAvgClient != this.lastSyncedPower;
+         if (needsSync) {
+            this.lastSyncedIn = curIn;
+            this.lastSyncedGas = curGas;
+            this.lastSyncedLiquid = curLiq;
+            this.lastSyncedInFluid = curInFluid;
+            this.lastSyncedGasFluid = curGasFluid;
+            this.lastSyncedLiquidFluid = curLiqFluid;
+            this.lastSyncedActive = this.isActive;
+            this.lastSyncedStuck = this.isStuck;
+            this.lastSyncedPower = this.powerAvgClient;
+            this.setChanged();
             MessageUtil.sendUpdateToTrackingPlayers(this);
-        }
-    }
+         }
+      }
+   }
 
-    @Override
-    public void getDebugInfo(java.util.List<String> left, java.util.List<String> right, Direction side) {
+   @Override
+   public void getDebugInfo(List<String> left, List<String> right, Direction side) {
+      left.add("In = " + FluidUtilBC.getDebugString(this.tankIn.getFluidStack()));
+      left.add("GasOut = " + FluidUtilBC.getDebugString(this.tankGasOut.getFluidStack()));
+      left.add("LiquidOut = " + FluidUtilBC.getDebugString(this.tankLiquidOut.getFluidStack()));
+      left.add("Battery = " + this.mjBattery.getDebugString());
+      left.add("Progress = " + MjAPI.formatMj(this.distillPower));
+      left.add("Rate = " + LocaleUtil.localizeMjFlow(this.powerAvgClient));
+      left.add("CurrRecipe = " + this.currentRecipe);
+   }
 
-        left.add("In = " + buildcraft.lib.misc.FluidUtilBC.getDebugString(tankIn.getResource(0).toStack(tankIn.getAmountAsInt(0))));
-        left.add("GasOut = " + buildcraft.lib.misc.FluidUtilBC.getDebugString(tankGasOut.getResource(0).toStack(tankGasOut.getAmountAsInt(0))));
-        left.add("LiquidOut = " + buildcraft.lib.misc.FluidUtilBC.getDebugString(tankLiquidOut.getResource(0).toStack(tankLiquidOut.getAmountAsInt(0))));
-        left.add("Battery = " + mjBattery.getDebugString());
-        left.add("Progress = " + MjAPI.formatMj(distillPower));
-        left.add("Rate = " + buildcraft.lib.misc.LocaleUtil.localizeMjFlow(powerAvgClient));
-        left.add("CurrRecipe = " + currentRecipe);
-    }
+   @Override
+   public void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
+      if (this.smoothIn != null) {
+         this.smoothIn.getDebugInfo(left, right, side);
+      }
 
-    @Override
-    public void getClientDebugInfo(java.util.List<String> left, java.util.List<String> right, Direction side) {
-        if (smoothIn != null) smoothIn.getDebugInfo(left, right, side);
-        if (smoothGasOut != null) smoothGasOut.getDebugInfo(left, right, side);
-        if (smoothLiquidOut != null) smoothLiquidOut.getDebugInfo(left, right, side);
+      if (this.smoothGasOut != null) {
+         this.smoothGasOut.getDebugInfo(left, right, side);
+      }
 
-        Direction facing = Direction.WEST;
-        if (level != null) {
-            BlockState state = level.getBlockState(worldPosition);
-            if (state.hasProperty(buildcraft.factory.block.BlockDistiller.FACING)) {
-                facing = state.getValue(buildcraft.factory.block.BlockDistiller.FACING);
-            }
-        }
-        left.add("Model Variables:");
-        left.add("  facing = " + facing);
-        left.add("  active = " + isActive);
-        left.add("  power_average = " + (powerAvgClient / MjAPI.MJ));
-        left.add("  power_max = " + (MAX_MJ_PER_TICK / MjAPI.MJ));
-        left.add("Current Model Variables:");
-        left.add("  animState = " + String.format("%.4f", animState));
-    }
+      if (this.smoothLiquidOut != null) {
+         this.smoothLiquidOut.getDebugInfo(left, right, side);
+      }
 
-    @Override
-    public BlockEntity asBlockEntity() {
-        return this;
-    }
+      Direction facing = Direction.WEST;
+      if (this.level != null) {
+         BlockState state = this.level.getBlockState(this.worldPosition);
+         if (state.hasProperty(BlockDistiller.FACING)) {
+            facing = (Direction)state.getValue(BlockDistiller.FACING);
+         }
+      }
 
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable("block.buildcraftfactory.distiller");
-    }
+      left.add("Model Variables:");
+      left.add("  facing = " + facing);
+      left.add("  active = " + this.isActive);
+      left.add("  power_average = " + this.powerAvgClient / MjAPI.MJ);
+      left.add("  power_max = " + MAX_MJ_PER_TICK / MjAPI.MJ);
+      left.add("Current Model Variables:");
+      left.add("  animState = " + String.format("%.4f", this.animState));
+   }
 
-    @Nullable
-    @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
-        return new ContainerDistiller(containerId, playerInv, this);
-    }
+   @Override
+   public BlockEntity asBlockEntity() {
+      return this;
+   }
 
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        if (owner != null && owner.id() != null) {
-            output.putString("ownerUUID", owner.id().toString());
-            if (owner.name() != null) {
-                output.putString("ownerName", owner.name());
-            }
-        }
+   public Component getDisplayName() {
+      return Component.translatable("block.buildcraftfactory.distiller");
+   }
 
-        if (!tankIn.getResource(0).isEmpty()) {
-            output.store("fluidIn", FluidStack.CODEC, tankIn.getResource(0).toStack(tankIn.getAmountAsInt(0)));
-        }
-        if (!tankGasOut.getResource(0).isEmpty()) {
-            output.store("fluidGasOut", FluidStack.CODEC, tankGasOut.getResource(0).toStack(tankGasOut.getAmountAsInt(0)));
-        }
-        if (!tankLiquidOut.getResource(0).isEmpty()) {
-            output.store("fluidLiquidOut", FluidStack.CODEC, tankLiquidOut.getResource(0).toStack(tankLiquidOut.getAmountAsInt(0)));
-        }
-        output.putLong("mjStored", mjBattery.getStored());
-        output.putLong("distillPower", distillPower);
-        output.putBoolean("isActive", isActive);
-        output.putBoolean("isStuck", isStuck);
-        output.putLong("powerAvgClient", powerAvgClient);
-        output.store("containerSlots", net.minecraft.nbt.CompoundTag.CODEC, containerSlots.serializeNBT());
-    }
+   @Nullable
+   public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
+      return new ContainerDistiller(containerId, playerInv, this);
+   }
 
-    @Override
-    public void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        String ownerUuid = input.getStringOr("ownerUUID", "");
-        if (!ownerUuid.isEmpty()) {
-            try {
-                owner = new GameProfile(UUID.fromString(ownerUuid), input.getStringOr("ownerName", "Unknown"));
-            } catch (IllegalArgumentException e) {
-                owner = null;
-            }
-        }
-        loadTank(tankIn, input, "fluidIn");
-        loadTank(tankGasOut, input, "fluidGasOut");
-        loadTank(tankLiquidOut, input, "fluidLiquidOut");
-        mjBattery.addPowerChecking(input.getLongOr("mjStored", 0L), false);
-        distillPower = input.getLongOr("distillPower", 0L);
-        isActive = input.getBooleanOr("isActive", false);
-        isStuck = input.getBooleanOr("isStuck", false);
-        powerAvgClient = input.getLongOr("powerAvgClient", 0L);
-        containerSlots.deserializeNBT(input.read("containerSlots", net.minecraft.nbt.CompoundTag.CODEC).orElseGet(net.minecraft.nbt.CompoundTag::new));
-    }
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      if (this.owner != null && this.owner.id() != null) {
+         output.putString("ownerUUID", this.owner.id().toString());
+         if (this.owner.name() != null) {
+            output.putString("ownerName", this.owner.name());
+         }
+      }
 
-    private static void loadTank(FluidStacksResourceHandler tank, ValueInput input, String key) {
-        FluidStack fluid = input.read(key, FluidStack.CODEC).orElse(FluidStack.EMPTY);
-        if (fluid.isEmpty()) {
-            tank.set(0, FluidResource.EMPTY, 0);
-        } else {
-            tank.set(0, FluidResource.of(fluid), fluid.getAmount());
-        }
-    }
+      if (!this.tankIn.isEmpty()) {
+         output.store("fluidIn", FluidStack.CODEC, this.tankIn.getFluidStack());
+      }
 
-    @Override
-    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
-        return this.saveCustomOnly(registries);
-    }
+      if (!this.tankGasOut.isEmpty()) {
+         output.store("fluidGasOut", FluidStack.CODEC, this.tankGasOut.getFluidStack());
+      }
 
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
+      if (!this.tankLiquidOut.isEmpty()) {
+         output.store("fluidLiquidOut", FluidStack.CODEC, this.tankLiquidOut.getFluidStack());
+      }
 
-    public class InputTank extends FluidStacksResourceHandler {
-        private boolean internalExtract = false;
+      output.putLong("mjStored", this.mjBattery.getStored());
+      output.putLong("distillPower", this.distillPower);
+      output.putBoolean("isActive", this.isActive);
+      output.putBoolean("isStuck", this.isStuck);
+      output.putLong("powerAvgClient", this.powerAvgClient);
+      output.store("containerSlots", CompoundTag.CODEC, this.containerSlots.serializeNBT());
+   }
 
-        public InputTank() {
-            super(1, 4000);
-        }
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      String ownerUuid = input.getStringOr("ownerUUID", "");
+      if (!ownerUuid.isEmpty()) {
+         try {
+            this.owner = new GameProfile(UUID.fromString(ownerUuid), input.getStringOr("ownerName", "Unknown"));
+         } catch (IllegalArgumentException e) {
+            this.owner = null;
+         }
+      }
 
-        @Override
-        public boolean isValid(int index, FluidResource resource) {
+      loadTank(this.tankIn, input, "fluidIn");
+      loadTank(this.tankGasOut, input, "fluidGasOut");
+      loadTank(this.tankLiquidOut, input, "fluidLiquidOut");
+      this.mjBattery.addPowerChecking(input.getLongOr("mjStored", 0L), false);
+      this.distillPower = input.getLongOr("distillPower", 0L);
+      this.isActive = input.getBooleanOr("isActive", false);
+      this.isStuck = input.getBooleanOr("isStuck", false);
+      this.powerAvgClient = input.getLongOr("powerAvgClient", 0L);
+      this.containerSlots.deserializeNBT((CompoundTag)input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new));
+   }
 
-            return isDistillableFluid(resource.toStack(1));
-        }
+   private static FluidStack syncIdentity(FluidStack stack) {
+      return stack.isEmpty() ? FluidStack.EMPTY : stack.copyWithAmount(1);
+   }
 
-        @Override
-        public int extract(int index, FluidResource resource, int amount, TransactionContext tx) {
-            return internalExtract ? super.extract(index, resource, amount, tx) : 0;
-        }
+   private static void loadTank(SingleFluidTank tank, ValueInput input, String key) {
+      FluidStack fluid = input.read(key, FluidStack.CODEC).orElse(FluidStack.EMPTY);
+      tank.setContents(fluid);
+   }
 
-        public int extractInternal(int index, FluidResource resource, int amount, TransactionContext tx) {
-            internalExtract = true;
-            try {
-                return super.extract(index, resource, amount, tx);
-            } finally {
-                internalExtract = false;
-            }
-        }
-    }
+   public CompoundTag getUpdateTag(Provider registries) {
+      return this.saveCustomOnly(registries);
+   }
 
-    public static class OutputTank extends FluidStacksResourceHandler {
-        private boolean internalInsert = false;
-
-        public OutputTank() {
-            super(1, 4000);
-        }
-
-        @Override
-        public boolean isValid(int index, FluidResource resource) {
-            return internalInsert;
-        }
-
-        public int insertInternal(int index, FluidResource resource, int amount, TransactionContext tx) {
-            internalInsert = true;
-            try {
-                return super.insert(index, resource, amount, tx);
-            } finally {
-                internalInsert = false;
-            }
-        }
-    }
+   public Packet<ClientGamePacketListener> getUpdatePacket() {
+      return ClientboundBlockEntityDataPacket.create(this);
+   }
 }

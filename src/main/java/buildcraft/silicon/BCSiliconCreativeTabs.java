@@ -1,55 +1,51 @@
 package buildcraft.silicon;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemStack;
-
 import buildcraft.fabric.BCRegistries;
+import buildcraft.silicon.client.BCSiliconClient;
 import buildcraft.silicon.plug.FacadeBlockStateInfo;
 import buildcraft.silicon.plug.FacadeInstance;
 import buildcraft.silicon.plug.FacadeStateManager;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTab.Output;
+import net.minecraft.world.item.CreativeModeTab.Row;
 
 public final class BCSiliconCreativeTabs {
-    public static CreativeModeTab FACADE_TAB;
+   public static CreativeModeTab FACADE_TAB;
+   public static final ResourceKey<CreativeModeTab> FACADE_TAB_KEY = BCRegistries.creativeTabKey("buildcraftsilicon", "facades");
 
-    public static final ResourceKey<CreativeModeTab> FACADE_TAB_KEY =
-            ResourceKey.create(
-                    net.minecraft.core.registries.Registries.CREATIVE_MODE_TAB,
-                    BCRegistries.id(BCSilicon.MODID, "facades"));
+   private BCSiliconCreativeTabs() {
+   }
 
-    private BCSiliconCreativeTabs() {}
+   public static void register() {
+      FACADE_TAB = BCRegistries.registerCreativeTab(
+         "buildcraftsilicon",
+         "facades",
+         CreativeModeTab.builder(Row.TOP, 4)
+            .title(Component.translatable("itemGroup.buildcraft.facades"))
+            .icon(
+               () -> {
+                  FacadeBlockStateInfo preview = FacadeStateManager.previewState;
+                  return preview != null && preview != FacadeStateManager.defaultState
+                     ? BCSiliconItems.PLUG_FACADE.createItemStack(FacadeInstance.createSingle(preview, false))
+                     : BCSiliconItems.PLUG_FACADE.getDefaultInstance();
+               }
+            )
+            .displayItems((parameters, output) -> addFacadeItems(output))
+            .build()
+      );
+   }
 
-    public static void register() {
-        FACADE_TAB = net.minecraft.core.Registry.register(
-                BuiltInRegistries.CREATIVE_MODE_TAB,
-                BCRegistries.id(BCSilicon.MODID, "facades"),
-                CreativeModeTab.builder(CreativeModeTab.Row.TOP, 4)
-                        .title(Component.translatable("itemGroup.buildcraft.facades"))
-                        .icon(() -> {
-                            FacadeBlockStateInfo preview = FacadeStateManager.previewState;
-                            if (preview != null && preview != FacadeStateManager.defaultState) {
-                                return BCSiliconItems.PLUG_FACADE.get()
-                                        .createItemStack(FacadeInstance.createSingle(preview, false));
-                            }
-                            return BCSiliconItems.PLUG_FACADE.get().getDefaultInstance();
-                        })
-                        .displayItems((parameters, output) -> addFacadeItems(output))
-                        .build());
-    }
+   private static void addFacadeItems(Output output) {
+      FacadeStateManager.ensureInitialized();
+      BCSiliconClient.runDeferredDedup();
 
-    private static void addFacadeItems(CreativeModeTab.Output output) {
-        FacadeStateManager.ensureInitialized();
-        buildcraft.silicon.client.BCSiliconClient.runDeferredDedup();
-        for (FacadeBlockStateInfo info : FacadeStateManager.validFacadeStates.values()) {
-            if (info.isVisible) {
-                output.accept(BCSiliconItems.PLUG_FACADE.get()
-                        .createItemStack(FacadeInstance.createSingle(info, false)));
-                output.accept(BCSiliconItems.PLUG_FACADE.get()
-                        .createItemStack(FacadeInstance.createSingle(info, true)));
-            }
-        }
-    }
+      for (FacadeBlockStateInfo info : FacadeStateManager.validFacadeStates.values()) {
+         if (info.isVisible) {
+            output.accept(BCSiliconItems.PLUG_FACADE.createItemStack(FacadeInstance.createSingle(info, false)));
+            output.accept(BCSiliconItems.PLUG_FACADE.createItemStack(FacadeInstance.createSingle(info, true)));
+         }
+      }
+   }
 }

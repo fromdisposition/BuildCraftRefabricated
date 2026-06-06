@@ -1,20 +1,19 @@
 package buildcraft.lib.expression.api;
 
 public interface IDependancyVisitor {
+   void dependOn(IExpressionNode var1);
 
-    void dependOn(IExpressionNode node);
+   void dependOn(IExpressionNode... var1);
 
-    void dependOn(IExpressionNode... nodes);
+   void dependOnNodes(Iterable<? extends IExpressionNode> var1);
 
-    void dependOnNodes(Iterable<? extends IExpressionNode> nodes);
+   void dependOn(IDependantNode var1);
 
-    void dependOn(IDependantNode child);
+   void dependOn(IDependantNode... var1);
 
-    void dependOn(IDependantNode... children);
+   void dependOnChildren(Iterable<? extends IDependantNode> var1);
 
-    void dependOnChildren(Iterable<? extends IDependantNode> children);
+   void dependOnExplictly(IExpressionNode var1);
 
-    void dependOnExplictly(IExpressionNode node);
-
-    void dependOnUnknown();
+   void dependOnUnknown();
 }

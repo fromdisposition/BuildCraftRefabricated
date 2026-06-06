@@ -1,37 +1,51 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
 package buildcraft.lib.client.render.tile;
 
+import buildcraft.lib.client.render.BCLibRenderTypes;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.PoseStack.Pose;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
 
 public final class LedRenderUtil {
+   public static final int COLOUR_OFF = -14741477;
+   public static final int COLOUR_GREEN_ON = -8921737;
+   public static final int COLOUR_RED_ON = -14540067;
 
-    public static final int COLOUR_OFF = 0xFF_1f_10_1b;
+   public static VertexConsumer begin(MultiBufferSource bufferSource) {
+      return bufferSource.getBuffer(BCLibRenderTypes.led());
+   }
 
-    public static final int COLOUR_GREEN_ON = 0xFF_77_DD_77;
+   public static void render(RenderPartCube led, Pose pose, VertexConsumer consumer, Direction skipFace, int colour) {
+      led.center.colouri(colour);
+      led.render(pose, consumer, skipFace);
+   }
 
-    public static final int COLOUR_RED_ON = 0xFF_22_22_DD;
+   public static void flush(BufferSource bufferSource) {
+      bufferSource.endBatch(BCLibRenderTypes.led());
+   }
 
-    public static void setFacePosition(RenderPartCube led, Direction face, double insetBlocks,
-                                       double sideOffset, double y) {
-        final double ledX, ledZ;
-        final int dX, dZ;
-        if (face.getAxis() == Direction.Axis.X) {
-            dX = 0;
-            dZ = face.getAxisDirection().getStep();
-            ledZ = 0.5;
-            ledX = (face == Direction.EAST) ? 1.0 - insetBlocks : insetBlocks;
-        } else {
-            dX = -face.getAxisDirection().getStep();
-            dZ = 0;
-            ledX = 0.5;
-            ledZ = (face == Direction.SOUTH) ? 1.0 - insetBlocks : insetBlocks;
-        }
-        led.center.positiond(ledX + dX * sideOffset, y, ledZ + dZ * sideOffset);
-    }
+   public static void setFacePosition(RenderPartCube led, Direction face, double insetBlocks, double sideOffset, double y) {
+      double ledX;
+      double ledZ;
+      int dX;
+      int dZ;
+      if (face.getAxis() == Axis.X) {
+         dX = 0;
+         dZ = face.getAxisDirection().getStep();
+         ledZ = 0.5;
+         ledX = face == Direction.EAST ? 1.0 - insetBlocks : insetBlocks;
+      } else {
+         dX = -face.getAxisDirection().getStep();
+         dZ = 0;
+         ledX = 0.5;
+         ledZ = face == Direction.SOUTH ? 1.0 - insetBlocks : insetBlocks;
+      }
 
-    private LedRenderUtil() {}
+      led.center.positiond(ledX + dX * sideOffset, y, ledZ + dZ * sideOffset);
+   }
+
+   private LedRenderUtil() {
+   }
 }

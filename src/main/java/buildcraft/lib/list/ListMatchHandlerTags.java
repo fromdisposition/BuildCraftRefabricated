@@ -1,127 +1,138 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.list;
 
+import buildcraft.api.lists.ListMatchHandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderSet;
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import buildcraft.api.lists.ListMatchHandler;
-
 public class ListMatchHandlerTags extends ListMatchHandler {
+   @Override
+   public boolean isValidSource(ListMatchHandler.Type type, @Nonnull ItemStack stack) {
+      if (stack.isEmpty()) {
+         return false;
+      } else {
+         return type != ListMatchHandler.Type.TYPE && type != ListMatchHandler.Type.MATERIAL ? false : tagsOf(stack).findAny().isPresent();
+      }
+   }
 
-    @Override
-    public boolean isValidSource(Type type, @Nonnull ItemStack stack) {
-        if (stack.isEmpty()) return false;
-        if (type != Type.TYPE && type != Type.MATERIAL) return false;
+   @Override
+   public boolean matches(ListMatchHandler.Type type, @Nonnull ItemStack source, @Nonnull ItemStack target, boolean precise) {
+      if (source.isEmpty() || target.isEmpty()) {
+         return false;
+      }
 
-        return tagsOf(stack).findAny().isPresent();
-    }
+      if (type != ListMatchHandler.Type.TYPE && type != ListMatchHandler.Type.MATERIAL) {
+         return false;
+      }
 
-    @Override
-    public boolean matches(Type type, @Nonnull ItemStack source, @Nonnull ItemStack target, boolean precise) {
-        if (source.isEmpty() || target.isEmpty()) return false;
-        if (type != Type.TYPE && type != Type.MATERIAL) return false;
-        Set<String> sourceParts = collectParts(source, type);
-        if (sourceParts.isEmpty()) return false;
-        Set<String> targetParts = collectParts(target, type);
-        return !Collections.disjoint(sourceParts, targetParts);
-    }
+      Set<String> sourceParts = collectParts(source, type);
+      if (sourceParts.isEmpty()) {
+         return false;
+      }
 
-    @Nullable
-    @Override
-    public NonNullList<ItemStack> getClientExamples(Type type, @Nonnull ItemStack stack) {
-        if (stack.isEmpty()) return null;
-        if (type != Type.TYPE && type != Type.MATERIAL) return null;
+      Set<String> targetParts = collectParts(target, type);
+      return !Collections.disjoint(sourceParts, targetParts);
+   }
 
-        Set<String> parts = collectParts(stack, type);
-        if (parts.isEmpty()) return null;
+   @Nullable
+   @Override
+   public NonNullList<ItemStack> getClientExamples(ListMatchHandler.Type type, @Nonnull ItemStack stack) {
+      if (stack.isEmpty()) {
+         return null;
+      }
 
-        Set<Item> seen = new HashSet<>();
-        NonNullList<ItemStack> out = NonNullList.create();
+      if (type != ListMatchHandler.Type.TYPE && type != ListMatchHandler.Type.MATERIAL) {
+         return null;
+      }
 
-        BuiltInRegistries.ITEM.getTags().forEach((HolderSet.Named<Item> named) -> {
-            TagKey<Item> tag = named.key();
-            String part = partOf(tag, type);
-            if (!parts.contains(part)) return;
+      Set<String> parts = collectParts(stack, type);
+      if (parts.isEmpty()) {
+         return null;
+      }
+
+      Set<Item> seen = new HashSet<>();
+      NonNullList<ItemStack> out = NonNullList.create();
+      BuiltInRegistries.ITEM.getTags().forEach(named -> {
+         TagKey<Item> tag = named.key();
+         String part = partOf(tag, type);
+         if (parts.contains(part)) {
             for (Holder<Item> h : named) {
-                Item item = h.value();
-                if (seen.add(item)) {
-                    out.add(new ItemStack(item));
-                }
+               Item item = (Item)h.value();
+               if (seen.add(item)) {
+                  out.add(new ItemStack(item));
+               }
             }
-        });
-        return out;
-    }
+         }
+      });
+      return out;
+   }
 
-    @Nonnull
-    @Override
-    public List<String> describeMatch(Type type, @Nonnull ItemStack stack) {
-        if (stack.isEmpty()) return List.of();
-        if (type != Type.TYPE && type != Type.MATERIAL) return List.of();
+   @Nonnull
+   @Override
+   public List<String> describeMatch(ListMatchHandler.Type type, @Nonnull ItemStack stack) {
+      if (stack.isEmpty()) {
+         return List.of();
+      }
 
-        Set<String> out = new LinkedHashSet<>();
-        tagsOf(stack).forEach(tag -> {
-            String part = partOf(tag, type);
-            out.add("#" + tag.location() + " (" + part + ")");
-        });
-        return new ArrayList<>(out);
-    }
+      if (type != ListMatchHandler.Type.TYPE && type != ListMatchHandler.Type.MATERIAL) {
+         return List.of();
+      }
 
-    private static java.util.stream.Stream<TagKey<Item>> tagsOf(ItemStack stack) {
+      Set<String> out = new LinkedHashSet<>();
+      tagsOf(stack).forEach(tag -> {
+         String part = partOf((TagKey<Item>)tag, type);
+         out.add("#" + tag.location() + " (" + part + ")");
+      });
+      return new ArrayList<>(out);
+   }
 
-        return stack.typeHolder().tags();
+   private static Stream<TagKey<Item>> tagsOf(ItemStack stack) {
+      return stack.typeHolder().tags();
+   }
 
-    }
+   private static Set<String> collectParts(ItemStack stack, ListMatchHandler.Type type) {
+      List<TagKey<Item>> tags = tagsOf(stack).toList();
+      Set<String> parts = new HashSet<>();
+      if (type == ListMatchHandler.Type.MATERIAL) {
+         boolean hasSlashed = tags.stream().anyMatch(t -> t.location().getPath().indexOf(47) >= 0);
 
-    private static Set<String> collectParts(ItemStack stack, Type type) {
-        List<TagKey<Item>> tags = tagsOf(stack).toList();
-        Set<String> parts = new HashSet<>();
-        if (type == Type.MATERIAL) {
-            boolean hasSlashed = tags.stream().anyMatch(t -> t.location().getPath().indexOf('/') >= 0);
-            for (TagKey<Item> tag : tags) {
-                boolean slashed = tag.location().getPath().indexOf('/') >= 0;
-                if (hasSlashed && !slashed) {
-                    continue;
-                }
-                parts.add(partOf(tag, type));
+         for (TagKey<Item> tag : tags) {
+            boolean slashed = tag.location().getPath().indexOf(47) >= 0;
+            if (!hasSlashed || slashed) {
+               parts.add(partOf(tag, type));
             }
-        } else {
-            for (TagKey<Item> tag : tags) {
-                parts.add(partOf(tag, type));
-            }
-        }
-        return parts;
-    }
+         }
+      } else {
+         for (TagKey<Item> tag : tags) {
+            parts.add(partOf(tag, type));
+         }
+      }
 
-    @Nonnull
-    private static String partOf(TagKey<Item> tag, Type type) {
-        String path = tag.location().getPath();
-        int slash = path.indexOf('/');
-        if (slash < 0) return path;
-        if (type == Type.TYPE) {
-            return path.substring(0, slash);
-        }
+      return parts;
+   }
 
-        if (slash == path.length() - 1) return path;
-        return path.substring(slash + 1);
-    }
+   @Nonnull
+   private static String partOf(TagKey<Item> tag, ListMatchHandler.Type type) {
+      String path = tag.location().getPath();
+      int slash = path.indexOf(47);
+      if (slash < 0) {
+         return path;
+      } else if (type == ListMatchHandler.Type.TYPE) {
+         return path.substring(0, slash);
+      } else {
+         return slash == path.length() - 1 ? path : path.substring(slash + 1);
+      }
+   }
 }

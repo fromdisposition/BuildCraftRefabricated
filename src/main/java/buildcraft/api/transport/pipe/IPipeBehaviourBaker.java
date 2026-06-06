@@ -1,9 +1,8 @@
 package buildcraft.api.transport.pipe;
 
 import java.util.List;
-
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 
 public interface IPipeBehaviourBaker<B extends PipeBehaviour> {
-    List<BakedQuad> bake(B behaviour);
+   List<BakedQuad> bake(B var1);
 }

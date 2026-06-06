@@ -8,19 +8,11 @@ import net.minecraft.world.phys.HitResult;
 import org.jspecify.annotations.Nullable;
 
 public interface ClientBlockExtensions {
-    default boolean addHitEffects(
-            BlockState state,
-            Level level,
-            @Nullable HitResult target,
-            ParticleEngine manager) {
-        return false;
-    }
+   default boolean addHitEffects(BlockState state, Level level, @Nullable HitResult target, ParticleEngine manager) {
+      return false;
+   }
 
-    default boolean addDestroyEffects(
-            BlockState state,
-            Level level,
-            BlockPos pos,
-            ParticleEngine manager) {
-        return false;
-    }
+   default boolean addDestroyEffects(BlockState state, Level level, BlockPos pos, ParticleEngine manager) {
+      return false;
+   }
 }

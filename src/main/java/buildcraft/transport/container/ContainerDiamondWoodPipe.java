@@ -1,94 +1,88 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
 package buildcraft.transport.container;
 
+import buildcraft.api.core.BCLog;
+import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.fabric.network.BCPayloadContext;
+import buildcraft.lib.gui.BcMenu;
+import buildcraft.lib.gui.slot.SlotPhantom;
+import buildcraft.lib.net.PacketBufferBC;
+import buildcraft.transport.BCTransportMenuTypes;
+import buildcraft.transport.pipe.behaviour.PipeBehaviourWoodDiamond;
+import buildcraft.transport.tile.TilePipeHolder;
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import buildcraft.api.core.BCLog;
-import buildcraft.api.transport.pipe.IPipeHolder;
+public class ContainerDiamondWoodPipe extends BcMenu {
+   private static final int NET_FILTER_MODE = 1;
+   @Nullable
+   private final IPipeHolder pipeHolder;
+   @Nullable
+   public final PipeBehaviourWoodDiamond behaviour;
 
-import buildcraft.lib.gui.ContainerBC_Neptune;
-import buildcraft.lib.gui.slot.SlotPhantom;
-import buildcraft.lib.net.PacketBufferBC;
+   public ContainerDiamondWoodPipe(int containerId, Inventory playerInv, BlockPos pos) {
+      this(containerId, playerInv, getBehaviour(playerInv, pos));
+   }
 
-import buildcraft.transport.BCTransportMenuTypes;
-import buildcraft.transport.pipe.behaviour.PipeBehaviourWoodDiamond;
-import buildcraft.transport.pipe.behaviour.PipeBehaviourWoodDiamond.FilterMode;
-import buildcraft.transport.tile.TilePipeHolder;
+   public ContainerDiamondWoodPipe(int containerId, Inventory playerInv, PipeBehaviourWoodDiamond behaviour) {
+      super(BCTransportMenuTypes.DIAMOND_WOOD_PIPE, containerId, playerInv.player);
+      this.behaviour = behaviour;
+      if (behaviour == null) {
+         this.pipeHolder = null;
+         this.addFullPlayerInventory(8, 79);
+      } else {
+         this.pipeHolder = behaviour.pipe.getHolder();
 
-@SuppressWarnings("this-escape")
-public class ContainerDiamondWoodPipe extends ContainerBC_Neptune {
-    private static final int NET_FILTER_MODE = 1;
+         for (int i = 0; i < 9; i++) {
+            this.addSlot(new SlotPhantom(behaviour.filters, i, 8 + i * 18, 18));
+         }
 
-    @javax.annotation.Nullable
-    private final IPipeHolder pipeHolder;
-    @javax.annotation.Nullable
-    public final PipeBehaviourWoodDiamond behaviour;
+         this.addFullPlayerInventory(8, 79);
+         this.pipeHolder.onPlayerOpen(playerInv.player);
+      }
+   }
 
-    public ContainerDiamondWoodPipe(int containerId, Inventory playerInv, BlockPos pos) {
-        this(containerId, playerInv, getBehaviour(playerInv, pos));
-    }
+   public void removed(Player player) {
+      super.removed(player);
+      if (this.pipeHolder != null) {
+         this.pipeHolder.onPlayerClose(player);
+      }
+   }
 
-    public ContainerDiamondWoodPipe(int containerId, Inventory playerInv, PipeBehaviourWoodDiamond behaviour) {
-        super(BCTransportMenuTypes.DIAMOND_WOOD_PIPE, containerId, playerInv.player);
-        this.behaviour = behaviour;
-        if (behaviour == null) {
-            this.pipeHolder = null;
-            addFullPlayerInventory(8, 79);
-            return;
-        }
-        this.pipeHolder = behaviour.pipe.getHolder();
+   private static PipeBehaviourWoodDiamond getBehaviour(Inventory playerInv, BlockPos pos) {
+      if (playerInv.player.level() != null
+         && playerInv.player.level().getBlockEntity(pos) instanceof TilePipeHolder holder
+         && holder.getPipe() != null
+         && holder.getPipe().getBehaviour() instanceof PipeBehaviourWoodDiamond wd) {
+         return wd;
+      }
 
-        for (int i = 0; i < 9; i++) {
-            addSlot(new SlotPhantom(behaviour.filters, i, 8 + i * 18, 18));
-        }
+      BCLog.logger.warn("[transport.gui] No wood-diamond pipe behaviour at {}", pos);
+      return null;
+   }
 
-        addFullPlayerInventory(8, 79);
-    }
+   public void sendNewFilterMode(PipeBehaviourWoodDiamond.FilterMode newFilterMode) {
+      this.sendMessage(1, buffer -> buffer.writeEnum(newFilterMode));
+   }
 
-    private static PipeBehaviourWoodDiamond getBehaviour(Inventory playerInv, BlockPos pos) {
-        if (playerInv.player.level() != null) {
-            var be = playerInv.player.level().getBlockEntity(pos);
-            if (be instanceof TilePipeHolder holder && holder.getPipe() != null) {
-                if (holder.getPipe().getBehaviour() instanceof PipeBehaviourWoodDiamond wd) {
-                    return wd;
-                }
-            }
-        }
-        BCLog.logger.warn("[transport.gui] No wood-diamond pipe behaviour at {}", pos);
-        return null;
-    }
+   @Override
+   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+      super.readMessage(id, buffer, isClient, ctx);
+      if (id == 1 && !isClient && this.behaviour != null) {
+         this.behaviour.filterMode = (PipeBehaviourWoodDiamond.FilterMode)buffer.readEnum(PipeBehaviourWoodDiamond.FilterMode.class);
+         this.behaviour.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
+      }
+   }
 
-    public void sendNewFilterMode(FilterMode newFilterMode) {
-        this.sendMessage(NET_FILTER_MODE, (buffer) -> buffer.writeEnum(newFilterMode));
-    }
+   @Override
+   public boolean stillValid(Player player) {
+      return this.pipeHolder != null && this.pipeHolder.canPlayerInteract(player);
+   }
 
-    @Override
-    public void readMessage(int id, PacketBufferBC buffer, boolean isClient,
-            buildcraft.fabric.network.BCPayloadContext ctx) {
-        super.readMessage(id, buffer, isClient, ctx);
-        if (id == NET_FILTER_MODE && !isClient && behaviour != null) {
-            behaviour.filterMode = buffer.readEnum(FilterMode.class);
-            behaviour.pipe.getHolder().scheduleNetworkUpdate(
-                    buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
-        }
-    }
-
-    @Override
-    public boolean stillValid(Player player) {
-        return pipeHolder != null && pipeHolder.canPlayerInteract(player);
-    }
-
-    @Override
-    public ItemStack quickMoveStack(Player player, int slotIndex) {
-
-        return ItemStack.EMPTY;
-    }
+   @Override
+   public ItemStack quickMoveStack(Player player, int slotIndex) {
+      return ItemStack.EMPTY;
+   }
 }

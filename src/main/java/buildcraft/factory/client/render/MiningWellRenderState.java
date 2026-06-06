@@ -1,6 +1,7 @@
 package buildcraft.factory.client.render;
 
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import buildcraft.factory.tile.TileMiningWell;
+import buildcraft.lib.client.render.tile.BcBerState;
 
-public class MiningWellRenderState extends BlockEntityRenderState {
+public class MiningWellRenderState extends BcBerState<TileMiningWell> {
 }

@@ -1,200 +1,223 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.gui.widget;
-
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-
-import buildcraft.lib.attachments.Attachments;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.transfer.ResourceHandler;
-import buildcraft.lib.transfer.fluid.FluidResource;
-import buildcraft.lib.transfer.transaction.Transaction;
-import buildcraft.fabric.network.BCPayloadContext;
 
 import buildcraft.api.fuels.BuildcraftFuelRegistry;
 import buildcraft.api.fuels.ISolidCoolant;
-import buildcraft.lib.gui.ContainerBC_Neptune;
+import buildcraft.fabric.network.BCPayloadContext;
+import buildcraft.lib.fabric.transfer.FluidStorageOps;
+import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
+import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.Widget_Neptune;
+import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.net.PacketBufferBC;
+import buildcraft.lib.transfer.fabric.TransferConvert;
+import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
-public class WidgetFluidTank extends Widget_Neptune<ContainerBC_Neptune> {
-    private static final byte NET_CLICK = 0;
+public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
+   private static final byte NET_CLICK = 0;
+   private final @Nullable Storage<FluidVariant> tank;
 
-    private final ResourceHandler<FluidResource> tank;
+   public WidgetFluidTank(BcMenu container, @Nullable Storage<FluidVariant> tank) {
+      super(container);
+      this.tank = tank;
+   }
 
-    public WidgetFluidTank(ContainerBC_Neptune container, ResourceHandler<FluidResource> tank) {
-        super(container);
-        this.tank = tank;
-    }
+   public @Nullable Storage<FluidVariant> getTankStorage() {
+      return this.tank;
+   }
 
-    private boolean canAccessTank() {
-        return tank != null && tank.size() > 0;
-    }
+   private boolean canAccessTank() {
+      return this.tank != null;
+   }
 
-    @Override
-    public void handleWidgetDataServer(BCPayloadContext ctx, PacketBufferBC buffer) {
-        byte id = buffer.readByte();
-        if (id == NET_CLICK) {
-            onGuiClicked();
-        }
-    }
+   @Override
+   public void handleWidgetDataServer(BCPayloadContext ctx, PacketBufferBC buffer) {
+      byte id = buffer.readByte();
+      if (id == 0) {
+         this.onGuiClicked();
+      }
+   }
 
-    public void sendClick() {
-        sendWidgetData(buf -> buf.writeByte(NET_CLICK));
-    }
+   public void sendClick() {
+      this.sendWidgetData(buf -> buf.writeByte(0));
+   }
 
-    private boolean drainTankIntoInventoryBucket(Player player) {
-        if (!canAccessTank()) {
-            return false;
-        }
-        FluidResource tankFluid = tank.size() > 0 ? tank.getResource(0) : FluidResource.EMPTY;
-        if (tankFluid.isEmpty() || tank.getAmountAsLong(0) <= 0) {
-            return false;
-        }
-        net.minecraft.world.entity.player.Inventory inv = player.getInventory();
-        int size = inv.getContainerSize();
-        for (int i = 0; i < size; i++) {
-            ItemStack invStack = inv.getItem(i);
-            if (invStack.isEmpty()) continue;
-            buildcraft.lib.transfer.access.ItemAccess slotAccess =
-                    buildcraft.lib.transfer.access.ItemAccess.forPlayerSlot(player, i).oneByOne();
-            ResourceHandler<FluidResource> slotCap = slotAccess.getCapability(Attachments.Fluid.ITEM);
-            if (slotCap == null || slotCap.size() == 0) continue;
+   private boolean drainTankIntoInventoryBucket(Player player) {
+      if (!this.canAccessTank()) {
+         return false;
+      }
 
-            if (!slotCap.getResource(0).isEmpty()) continue;
-            try (Transaction tx = Transaction.openRoot()) {
-                int moved = buildcraft.lib.transfer.ResourceHandlerUtil.move(
-                        tank, slotCap, r -> true, Integer.MAX_VALUE, tx);
-                if (moved > 0) {
-                    tx.commit();
-                    return true;
-                }
+      FluidStorageSnapshot snapshot = FluidStorageSnapshot.of(this.tank);
+      if (snapshot.isEmpty()) {
+         return false;
+      }
+
+      Inventory inv = player.getInventory();
+      int size = inv.getContainerSize();
+
+      for (int i = 0; i < size; i++) {
+         ItemStack invStack = inv.getItem(i);
+         if (!invStack.isEmpty()) {
+            ContainerItemContext slotContext = ContainerItemContext.ofPlayerSlot(player, PlayerInventoryStorage.of(player).getSlot(i));
+            Storage<FluidVariant> slotStorage = TriggerTransferAccess.itemFluidStorage(invStack, slotContext);
+            if (slotStorage != null && FluidStorageSnapshot.of(slotStorage).isEmpty() && FluidStorageOps.move(this.tank, slotStorage, Long.MAX_VALUE) > 0L) {
+               return true;
             }
-        }
-        return false;
-    }
+         }
+      }
 
-    private void onGuiClicked() {
-        if (!canAccessTank()) {
-            return;
-        }
-        Player player = container.player;
-        ItemStack held = player.containerMenu.getCarried();
-        if (held.isEmpty()) {
-            return;
-        }
+      return false;
+   }
 
-        transferStackToTank(player);
-        if (player instanceof ServerPlayer sp) {
-            sp.containerMenu.broadcastChanges();
-        }
-    }
+   private void onGuiClicked() {
+      if (this.canAccessTank()) {
+         Player player = this.container.player;
+         ItemStack held = player.containerMenu.getCarried();
+         if (!held.isEmpty()) {
+            this.transferStackToTank(player);
+            if (player instanceof ServerPlayer sp) {
+               sp.containerMenu.broadcastChanges();
+            }
+         }
+      }
+   }
 
-    private void transferStackToTank(Player player) {
-        if (player.level().isClientSide()) {
-            return;
-        }
-        if (!canAccessTank()) {
-            return;
-        }
-        ItemStack carried = player.containerMenu.getCarried();
-        boolean isCreative = player.getAbilities().instabuild;
+   private void transferStackToTank(Player player) {
+      if (!player.level().isClientSide()) {
+         if (this.canAccessTank()) {
+            ItemStack carried = player.containerMenu.getCarried();
+            boolean isCreative = player.getAbilities().instabuild;
+            if (isCreative) {
+               ItemStack bucketCopy = carried.copy();
+               ContainerItemContext copyContext = ContainerItemContext.withConstant(bucketCopy);
+               Storage<FluidVariant> bucketStorage = TriggerTransferAccess.itemFluidStorage(bucketCopy, copyContext);
+               if (bucketStorage != null) {
+                  FluidStorageSnapshot bucketSnapshot = FluidStorageSnapshot.of(bucketStorage);
+                  if (!bucketSnapshot.isEmpty()) {
+                     Transaction tx = Transaction.openOuter();
 
-        if (isCreative) {
-
-            ItemStack bucketCopy = carried.copy();
-            buildcraft.lib.transfer.access.ItemAccess copyAccess =
-                buildcraft.lib.transfer.access.ItemAccess.forStack(bucketCopy);
-            ResourceHandler<FluidResource> bucketCap = copyAccess.getCapability(Attachments.Fluid.ITEM);
-
-            if (bucketCap != null && bucketCap.size() > 0) {
-                FluidResource bucketFluid = bucketCap.getResource(0);
-                long bucketAmount = bucketCap.getAmountAsLong(0);
-                if (!bucketFluid.isEmpty() && bucketAmount > 0) {
-                    try (Transaction tx = Transaction.openRoot()) {
-                        int filled = tank.insert(0, bucketFluid, (int) bucketAmount, tx);
-                        if (filled > 0) {
-                            tx.commit();
+                     try {
+                        long filled = this.tank
+                           .insert(TransferConvert.toVariant(bucketSnapshot.fluid()), TransferConvert.mbToDroplets(bucketSnapshot.amountMb()), tx);
+                        if (filled > 0L) {
+                           tx.commit();
                         }
-                    }
-                    return;
-                }
-
-                if (!tank.getResource(0).isEmpty() && tank.getAmountAsLong(0) > 0) {
-                    try (Transaction tx = Transaction.openRoot()) {
-                        int drained = tank.extract(0,
-                            tank.getResource(0),
-                            (int) Math.min(1000L, tank.getAmountAsLong(0)),
-                            tx);
-                        if (drained > 0) {
-                            tx.commit();
+                     } catch (Throwable var18) {
+                        if (tx != null) {
+                           try {
+                              tx.close();
+                           } catch (Throwable var17) {
+                              var18.addSuppressed(var17);
+                           }
                         }
-                    }
-                }
-                return;
-            }
 
-        } else {
-            ItemStack original = carried.copy();
-            buildcraft.lib.transfer.access.ItemAccess access = buildcraft.lib.transfer.access.ItemAccess.forPlayerCursor(player, player.containerMenu).oneByOne();
-            ResourceHandler<FluidResource> itemHandlerIn = access.getCapability(Attachments.Fluid.ITEM);
+                        throw var18;
+                     }
 
-            if (itemHandlerIn != null) {
+                     if (tx != null) {
+                        tx.close();
+                     }
 
-                try (Transaction tx = Transaction.openRoot()) {
-                    int moved = buildcraft.lib.transfer.ResourceHandlerUtil.move(
-                            itemHandlerIn, tank, r -> true, Integer.MAX_VALUE, tx
-                    );
-                    if (moved > 0) {
-                        tx.commit();
-                        return;
-                    }
-                }
+                     return;
+                  }
 
-                try (Transaction tx = Transaction.openRoot()) {
-                    int moved = buildcraft.lib.transfer.ResourceHandlerUtil.move(
-                            tank, itemHandlerIn, r -> true, Integer.MAX_VALUE, tx
-                    );
-                    if (moved > 0) {
-                        tx.commit();
-                        return;
-                    }
-                }
+                  FluidStorageSnapshot snapshot = FluidStorageSnapshot.of(this.tank);
+                  if (!snapshot.isEmpty()) {
+                     FluidVariant variant = TransferConvert.toVariant(snapshot.fluid());
+                     long toDrain = TransferConvert.mbToDroplets(Math.min(1000, snapshot.amountMb()));
+                     Transaction tx = Transaction.openOuter();
 
-                if (drainTankIntoInventoryBucket(player)) {
-                    return;
-                }
-            }
-        }
-
-        if (BuildcraftFuelRegistry.coolant != null) {
-            ItemStack stack = player.containerMenu.getCarried();
-            ItemStack singleCopyCoolant = stack.copyWithCount(1);
-            ISolidCoolant solidCoolant = BuildcraftFuelRegistry.coolant.getSolidCoolant(singleCopyCoolant);
-            if (solidCoolant != null) {
-                FluidStack fluidCoolant = solidCoolant.getFluidFromSolidCoolant(singleCopyCoolant);
-                if (fluidCoolant != null && !fluidCoolant.isEmpty()) {
-                    try (Transaction tx = Transaction.openRoot()) {
-                        int filled = tank.insert(0, FluidResource.of(fluidCoolant), fluidCoolant.getAmount(), tx);
-                        if (filled == fluidCoolant.getAmount()) {
-                            tx.commit();
-
-                            buildcraft.lib.misc.AdvancementUtil.unlockAdvancement(
-                                player, net.minecraft.resources.Identifier.parse("buildcraftenergy:ice_cool"));
-                            if (!isCreative) {
-                                stack.shrink(1);
-                            }
-                            return;
+                     try {
+                        long drained = this.tank.extract(variant, toDrain, tx);
+                        if (drained > 0L) {
+                           tx.commit();
                         }
-                    }
-                }
+                     } catch (Throwable var19) {
+                        if (tx != null) {
+                           try {
+                              tx.close();
+                           } catch (Throwable var16) {
+                              var19.addSuppressed(var16);
+                           }
+                        }
+
+                        throw var19;
+                     }
+
+                     if (tx != null) {
+                        tx.close();
+                     }
+                  }
+
+                  return;
+               }
+            } else {
+               ItemStack original = carried.copy();
+               ContainerItemContext cursorContext = ContainerItemContext.ofPlayerCursor(player, player.containerMenu);
+               Storage<FluidVariant> handStorage = TriggerTransferAccess.itemFluidStorage(original, cursorContext);
+               if (handStorage != null) {
+                  if (FluidStorageOps.move(handStorage, this.tank, Long.MAX_VALUE) > 0L) {
+                     return;
+                  }
+
+                  if (FluidStorageOps.move(this.tank, handStorage, Long.MAX_VALUE) > 0L) {
+                     return;
+                  }
+
+                  if (this.drainTankIntoInventoryBucket(player)) {
+                     return;
+                  }
+               }
             }
-        }
-    }
+
+            if (BuildcraftFuelRegistry.coolant != null) {
+               ItemStack stack = player.containerMenu.getCarried();
+               ItemStack singleCopyCoolant = stack.copyWithCount(1);
+               ISolidCoolant solidCoolant = BuildcraftFuelRegistry.coolant.getSolidCoolant(singleCopyCoolant);
+               if (solidCoolant != null) {
+                  FluidStack fluidCoolant = solidCoolant.getFluidFromSolidCoolant(singleCopyCoolant);
+                  if (fluidCoolant != null && !fluidCoolant.isEmpty()) {
+                     Transaction tx = Transaction.openOuter();
+
+                     try {
+                        long filled = this.tank.insert(TransferConvert.toVariant(fluidCoolant), TransferConvert.mbToDroplets(fluidCoolant.getAmount()), tx);
+                        if (filled == TransferConvert.mbToDroplets(fluidCoolant.getAmount())) {
+                           tx.commit();
+                           AdvancementUtil.unlockAdvancement(player, Identifier.parse("buildcraftenergy:ice_cool"));
+                           if (!isCreative) {
+                              stack.shrink(1);
+                           }
+                        }
+                     } catch (Throwable var20) {
+                        if (tx != null) {
+                           try {
+                              tx.close();
+                           } catch (Throwable var15) {
+                              var20.addSuppressed(var15);
+                           }
+                        }
+
+                        throw var20;
+                     }
+
+                     if (tx != null) {
+                        tx.close();
+                     }
+                  }
+               }
+            }
+         }
+      }
+   }
 }

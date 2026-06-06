@@ -1,12 +1,6 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.factory.integration.jei;
 
-import buildcraft.api.recipes.IRefineryRecipeManager.ICoolableRecipe;
-import buildcraft.api.recipes.IRefineryRecipeManager.IHeatableRecipe;
+import buildcraft.api.recipes.IRefineryRecipeManager;
 
-public record HeatExchangerRecipePair(IHeatableRecipe heatable, ICoolableRecipe coolable) {}
+public record HeatExchangerRecipePair(IRefineryRecipeManager.IHeatableRecipe heatable, IRefineryRecipeManager.ICoolableRecipe coolable) {
+}

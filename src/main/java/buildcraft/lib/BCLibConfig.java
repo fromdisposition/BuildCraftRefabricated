@@ -1,81 +1,81 @@
 package buildcraft.lib;
 
 public final class BCLibConfig {
-    public static final PowerMode POWER_MODE = PowerMode.MJ_ONLY;
-    public static final ColorBlindMode COLOR_BLIND_MODE = ColorBlindMode.AUTO;
-    public static final double MJ_RF_CONVERSION = 0.1;
-    public static final boolean CAN_ENGINES_EXPLODE = false;
+   public static final BCLibConfig.PowerMode POWER_MODE = BCLibConfig.PowerMode.MJ_ONLY;
+   public static final BCLibConfig.ColorBlindMode COLOR_BLIND_MODE = BCLibConfig.ColorBlindMode.AUTO;
+   public static final double MJ_RF_CONVERSION = 0.1;
+   public static final boolean CAN_ENGINES_EXPLODE = false;
+   public static final BCLibConfig.EnumValue<BCLibConfig.PowerMode> powerMode = new BCLibConfig.EnumValue<>(POWER_MODE);
+   public static final BCLibConfig.EnumValue<BCLibConfig.ColorBlindMode> colorBlindMode = new BCLibConfig.EnumValue<>(COLOR_BLIND_MODE);
+   public static final BCLibConfig.DoubleValue mjRfConversionAmount = new BCLibConfig.DoubleValue(0.1);
+   public static final BCLibConfig.BooleanValue canEnginesExplode = new BCLibConfig.BooleanValue(false);
 
-    public static final EnumValue<PowerMode> powerMode = new EnumValue<>(POWER_MODE);
-    public static final EnumValue<ColorBlindMode> colorBlindMode = new EnumValue<>(COLOR_BLIND_MODE);
-    public static final DoubleValue mjRfConversionAmount = new DoubleValue(MJ_RF_CONVERSION);
-    public static final BooleanValue canEnginesExplode = new BooleanValue(CAN_ENGINES_EXPLODE);
+   private BCLibConfig() {
+   }
 
-    private BCLibConfig() {}
+   public static final class BooleanValue {
+      private boolean value;
 
-    public enum PowerMode {
-        MJ_ONLY(false),
-        MJ_AUTOCONVERT_RF(true),
-        DISPLAY_RF(true);
+      public BooleanValue(boolean value) {
+         this.value = value;
+      }
 
-        public final boolean autoconvert;
+      public boolean get() {
+         return this.value;
+      }
 
-        PowerMode(boolean autoconvert) {
-            this.autoconvert = autoconvert;
-        }
-    }
+      public void set(boolean value) {
+         this.value = value;
+      }
+   }
 
-    public enum ColorBlindMode {
-        AUTO,
-        ON,
-        OFF
-    }
+   public enum ColorBlindMode {
+      AUTO,
+      ON,
+      OFF;
+   }
 
-    public static final class EnumValue<T> {
-        private T value;
+   public static final class DoubleValue {
+      private double value;
 
-        public EnumValue(T value) {
-            this.value = value;
-        }
+      public DoubleValue(double value) {
+         this.value = value;
+      }
 
-        public T get() {
-            return value;
-        }
+      public double get() {
+         return this.value;
+      }
 
-        public void set(T value) {
-            this.value = value;
-        }
-    }
+      public void set(double value) {
+         this.value = value;
+      }
+   }
 
-    public static final class DoubleValue {
-        private double value;
+   public static final class EnumValue<T> {
+      private T value;
 
-        public DoubleValue(double value) {
-            this.value = value;
-        }
+      public EnumValue(T value) {
+         this.value = value;
+      }
 
-        public double get() {
-            return value;
-        }
+      public T get() {
+         return this.value;
+      }
 
-        public void set(double value) {
-            this.value = value;
-        }
-    }
+      public void set(T value) {
+         this.value = value;
+      }
+   }
 
-    public static final class BooleanValue {
-        private boolean value;
+   public enum PowerMode {
+      MJ_ONLY(false),
+      MJ_AUTOCONVERT_RF(true),
+      DISPLAY_RF(true);
 
-        public BooleanValue(boolean value) {
-            this.value = value;
-        }
+      public final boolean autoconvert;
 
-        public boolean get() {
-            return value;
-        }
-
-        public void set(boolean value) {
-            this.value = value;
-        }
-    }
+      PowerMode(boolean autoconvert) {
+         this.autoconvert = autoconvert;
+      }
+   }
 }

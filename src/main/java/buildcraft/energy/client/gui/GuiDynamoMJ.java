@@ -1,140 +1,144 @@
 package buildcraft.energy.client.gui;
 
-import buildcraft.lib.gui.BCGraphics;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.player.Inventory;
-
+import buildcraft.core.BCCoreItems;
+import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.container.ContainerDynamoMJ;
-import buildcraft.lib.gui.GuiBC8;
+import buildcraft.energy.tile.TileDynamoMJ;
+import buildcraft.lib.gui.BCGraphics;
+import buildcraft.lib.gui.BcScreen;
+import buildcraft.lib.gui.GuiElementSimple;
 import buildcraft.lib.gui.GuiIcon;
+import buildcraft.lib.gui.elem.ToolTip;
 import buildcraft.lib.gui.help.DummyHelpElement;
 import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.ledger.LedgerEngine;
 import buildcraft.lib.gui.ledger.LedgerOwnership;
+import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.lib.misc.LocaleUtil;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ItemLike;
 
-public class GuiDynamoMJ extends GuiBC8<ContainerDynamoMJ> {
-    private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/mj_dynamo_gui.png");
-    private static final int SIZE_X = 176, SIZE_Y = 177;
-    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0, 0, SIZE_X, SIZE_Y);
-    private static final GuiIcon ICON_RF = new GuiIcon(TEXTURE, SIZE_X, 0, 16, 60);
-    private static final buildcraft.lib.gui.pos.GuiRectangle RECT_UPGRADE_HELP = new buildcraft.lib.gui.pos.GuiRectangle(44, 44, 70, 16);
-    private static final buildcraft.lib.gui.pos.GuiRectangle RECT_UPGRADE_TOOLTIP = new buildcraft.lib.gui.pos.GuiRectangle(42, 20, 74, 20);
-    private static final buildcraft.lib.gui.pos.GuiRectangle RECT_RF_BATTERY = new buildcraft.lib.gui.pos.GuiRectangle(138, 17, 8, 62);
+public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/mj_dynamo_gui.png");
+   private static final int SIZE_X = 176;
+   private static final int SIZE_Y = 177;
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 177.0);
+   private static final GuiIcon ICON_RF = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 60.0);
+   private static final GuiRectangle RECT_UPGRADE_HELP = new GuiRectangle(44.0, 44.0, 70.0, 16.0);
+   private static final GuiRectangle RECT_UPGRADE_TOOLTIP = new GuiRectangle(42.0, 20.0, 74.0, 20.0);
+   private static final GuiRectangle RECT_RF_BATTERY = new GuiRectangle(138.0, 17.0, 8.0, 62.0);
 
-    public GuiDynamoMJ(ContainerDynamoMJ menu, Inventory playerInv, Component title) {
-        super(menu, playerInv, title, SIZE_X, SIZE_Y);
-    }
+   public GuiDynamoMJ(ContainerDynamoMJ menu, Inventory playerInv, Component title) {
+      super(menu, playerInv, title, 176, 177);
+   }
 
-    @Override
-    protected void initGuiElements() {
-        if (menu.dynamo != null) {
-            mainGui.shownElements.add(new LedgerOwnership(mainGui,
-                () -> menu.dynamo != null ? menu.dynamo.getOwner() : null,
-                true
-            ));
+   @Override
+   protected void initGuiElements() {
+      if (((ContainerDynamoMJ)this.menu).dynamo != null) {
+         this.mainGui
+            .shownElements
+            .add(
+               new LedgerOwnership(
+                  this.mainGui, () -> ((ContainerDynamoMJ)this.menu).dynamo != null ? ((ContainerDynamoMJ)this.menu).dynamo.getOwner() : null, true
+               )
+            );
+         this.mainGui
+            .shownElements
+            .add(
+               new LedgerEngine(
+                  this.mainGui,
+                  ((ContainerDynamoMJ)this.menu)::getSyncedCurrentOutput,
+                  ((ContainerDynamoMJ)this.menu)::getSyncedPower,
+                  ((ContainerDynamoMJ)this.menu)::getSyncedHeat,
+                  ((ContainerDynamoMJ)this.menu)::getSyncedPowerStage,
+                  ((ContainerDynamoMJ)this.menu)::isSyncedBurningEngine,
+                  true
+               )
+            );
+         this.mainGui
+            .shownElements
+            .add(
+               new DummyHelpElement(
+                  RECT_UPGRADE_HELP.offset(this.mainGui.rootElement),
+                  new ElementHelpInfo("buildcraft.help.dynamo.upgrades.title", -10053121, "buildcraft.help.dynamo.upgrades")
+               )
+            );
+         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, RECT_UPGRADE_TOOLTIP.offset(this.mainGui.rootElement)) {
+            @Override
+            public void addToolTips(List<ToolTip> tooltips) {
+               if (this.contains(GuiDynamoMJ.this.mainGui.mouse)) {
+                  List<String> lines = new ArrayList<>();
+                  lines.add(LocaleUtil.localize("buildcraft.gui.rf_engine.upgrade_types"));
+                  TileDynamoMJ.initUpgrades();
+                  String unitLabel = LocaleUtil.localize(BCEnergyConfig.rfFeKey("buildcraft.gui.rf_engine.upgrade_rate_unit"));
 
-            mainGui.shownElements.add(new LedgerEngine(mainGui,
-                menu::getSyncedCurrentOutput,
-                menu::getSyncedPower,
-                menu::getSyncedHeat,
-                menu::getSyncedPowerStage,
-                menu::isSyncedBurningEngine,
-                true
-            ));
+                  for (Entry<Item, Long> entry : TileDynamoMJ.UPGRADE_VALUES.entrySet()) {
+                     String itemName = new ItemStack((ItemLike)entry.getKey()).getHoverName().getString();
+                     long mj = entry.getValue();
+                     int rfPerTick = (int)(mj / 100000L);
+                     lines.add(itemName + " = +" + rfPerTick * 20 + " " + unitLabel);
+                  }
 
-            mainGui.shownElements.add(new DummyHelpElement(
-                RECT_UPGRADE_HELP.offset(mainGui.rootElement),
-                new ElementHelpInfo("buildcraft.help.dynamo.upgrades.title", 0xFF_66_99_FF,
-                    "buildcraft.help.dynamo.upgrades")
-            ));
+                  tooltips.add(new ToolTip(lines));
+               }
+            }
+         });
+         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, RECT_RF_BATTERY.offset(this.mainGui.rootElement)) {
+            @Override
+            public void addHelpElements(List<ElementHelpInfo.HelpPosition> elements) {
+               long mjPerTick = ((ContainerDynamoMJ)GuiDynamoMJ.this.menu).dynamo.getMjPerTick();
+               int rfPerTick = ((ContainerDynamoMJ)GuiDynamoMJ.this.menu).dynamo.getFeProductionRate(mjPerTick);
+               String mj = LocaleUtil.localizeMjFlow(mjPerTick);
+               String rf = LocaleUtil.localizeRfFlow(rfPerTick);
+               String conversion = LocaleUtil.localize(BCEnergyConfig.rfFeKey("buildcraft.help.dynamo.battery"), mj, rf);
+               ElementHelpInfo help = ElementHelpInfo.preTranslated(BCEnergyConfig.rfFeKey("buildcraft.help.dynamo.battery.title"), -13391309, conversion);
+               elements.add(help.target(this));
+            }
 
-            mainGui.shownElements.add(new buildcraft.lib.gui.GuiElementSimple(mainGui, RECT_UPGRADE_TOOLTIP.offset(mainGui.rootElement)) {
-                @Override
-                public void addToolTips(java.util.List<buildcraft.lib.gui.elem.ToolTip> tooltips) {
-                    if (contains(mainGui.mouse)) {
-                        java.util.List<String> lines = new java.util.ArrayList<>();
-                        lines.add(LocaleUtil.localize("buildcraft.gui.rf_engine.upgrade_types"));
-                        buildcraft.energy.tile.TileDynamoMJ.initUpgrades();
-                        String unitLabel = LocaleUtil.localize(
-                            buildcraft.energy.BCEnergyConfig.rfFeKey("buildcraft.gui.rf_engine.upgrade_rate_unit"));
-                        for (java.util.Map.Entry<net.minecraft.world.item.Item, Long> entry : buildcraft.energy.tile.TileDynamoMJ.UPGRADE_VALUES.entrySet()) {
-                            String itemName = new net.minecraft.world.item.ItemStack(entry.getKey()).getHoverName().getString();
-                            long mj = entry.getValue();
-                            int rfPerTick = (int) (mj / 100000L);
-                            lines.add(itemName + " = +" + (rfPerTick * 20) + " " + unitLabel);
-                        }
-                        tooltips.add(new buildcraft.lib.gui.elem.ToolTip(lines));
-                    }
-                }
-            });
+            @Override
+            public void addToolTips(List<ToolTip> tooltips) {
+               if (this.contains(GuiDynamoMJ.this.mainGui.mouse)) {
+                  int current = ((ContainerDynamoMJ)GuiDynamoMJ.this.menu).getSyncedFeStored();
+                  int max = 10000;
+                  tooltips.add(new ToolTip(current + " / " + max + " FE"));
+               }
+            }
+         });
+      }
+   }
 
-            mainGui.shownElements.add(new buildcraft.lib.gui.GuiElementSimple(mainGui, RECT_RF_BATTERY.offset(mainGui.rootElement)) {
-                @Override
-                public void addHelpElements(java.util.List<ElementHelpInfo.HelpPosition> elements) {
+   @Override
+   protected void drawBackgroundTexture(BCGraphics graphics) {
+      ICON_GUI.drawAt(this.mainGui.rootElement);
+      int x = (int)this.mainGui.rootElement.getX();
+      int y = (int)this.mainGui.rootElement.getY();
+      ItemStack gearIron = new ItemStack(BCCoreItems.GEAR_IRON);
+      ItemStack gearGold = new ItemStack(BCCoreItems.GEAR_GOLD);
+      graphics.item(gearIron, x + 60, y + 21);
+      graphics.item(gearGold, x + 83, y + 21);
+      graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 39, y + 18, 39.0F, 18.0F, 80, 23, 80, 23, 256, 256, -1509949441);
+      double rfHeight = 60.0 * ((ContainerDynamoMJ)this.menu).getSyncedFeStored() / 10000.0;
+      double scale = Minecraft.getInstance().getWindow().getGuiScale();
+      rfHeight = Math.round(rfHeight * scale) / scale;
+      ICON_RF.drawCutInside(new GuiRectangle(139.0, 78.0 - rfHeight, 6.0, rfHeight).offset(this.mainGui.rootElement));
+   }
 
-                    long mjPerTick = menu.dynamo.getMjPerTick();
-                    int rfPerTick = menu.dynamo.getFeProductionRate(mjPerTick);
-                    String mj = LocaleUtil.localizeMjFlow(mjPerTick);
-                    String rf = LocaleUtil.localizeRfFlow(rfPerTick);
-                    String conversion = LocaleUtil.localize(
-                        buildcraft.energy.BCEnergyConfig.rfFeKey("buildcraft.help.dynamo.battery"), mj, rf);
-                    ElementHelpInfo help = ElementHelpInfo
-                        .preTranslated(
-                            buildcraft.energy.BCEnergyConfig.rfFeKey("buildcraft.help.dynamo.battery.title"),
-                            0xFF_33_AA_33, conversion);
-                    elements.add(help.target(this));
-                }
-
-                @Override
-                public void addToolTips(java.util.List<buildcraft.lib.gui.elem.ToolTip> tooltips) {
-                    if (contains(mainGui.mouse)) {
-                        int current = menu.getSyncedFeStored();
-                        int max = buildcraft.energy.tile.TileDynamoMJ.MAX_FE;
-                        tooltips.add(new buildcraft.lib.gui.elem.ToolTip(current + " / " + max + " FE"));
-                    }
-                }
-            });
-        }
-    }
-
-    @Override
-    protected void drawBackgroundTexture(BCGraphics graphics) {
-        ICON_GUI.drawAt(mainGui.rootElement);
-
-        int x = (int) mainGui.rootElement.getX();
-        int y = (int) mainGui.rootElement.getY();
-
-        net.minecraft.world.item.ItemStack gearIron = new net.minecraft.world.item.ItemStack(buildcraft.core.BCCoreItems.GEAR_IRON);
-        net.minecraft.world.item.ItemStack gearGold = new net.minecraft.world.item.ItemStack(buildcraft.core.BCCoreItems.GEAR_GOLD);
-
-        graphics.item(gearIron, x + 60, y + 21);
-        graphics.item(gearGold, x + 83, y + 21);
-
-        graphics.blit(
-            net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, TEXTURE,
-            x + 39, y + 18,
-            39.0f, 18.0f,
-            80, 23,
-            80, 23,
-            256, 256,
-            0xA5FFFFFF
-        );
-
-        double rfHeight = 60.0 * menu.getSyncedFeStored() / buildcraft.energy.tile.TileDynamoMJ.MAX_FE;
-        double scale = net.minecraft.client.Minecraft.getInstance().getWindow().getGuiScale();
-        rfHeight = (Math.round(rfHeight * scale)) / scale;
-        ICON_RF.drawCutInside(new buildcraft.lib.gui.pos.GuiRectangle(139, 18 + 60 - rfHeight, 6, rfHeight).offset(mainGui.rootElement));
-    }
-
-    @Override
-    protected void drawForegroundLayer() {
-        BCGraphics graphics = GuiIcon.getGuiGraphics();
-        String str = title.getString();
-        int strWidth = font.width(str);
-        int titleX = (imageWidth - strWidth) / 2;
-        graphics.text(font, str, titleX, 6, 0xFF404040, false);
-        graphics.text(font, playerInventoryTitle, 8, imageHeight - 96 + 2, 0xFF404040, false);
-    }
+   @Override
+   protected void drawForegroundLayer() {
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
+      String str = this.title.getString();
+      int strWidth = this.font.width(str);
+      int titleX = (this.imageWidth - strWidth) / 2;
+      graphics.text(this.font, str, titleX, 6, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 96 + 2, -12566464, false);
+   }
 }

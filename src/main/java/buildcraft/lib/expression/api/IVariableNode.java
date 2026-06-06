@@ -1,60 +1,53 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.api;
 
-@SuppressWarnings("unchecked")
 public interface IVariableNode extends IExpressionNode {
+   void set(IExpressionNode var1);
 
-    void set(IExpressionNode from);
+   void setConstant(boolean var1);
 
-    void setConstant(boolean isConst);
+   boolean isConstant();
 
-    boolean isConstant();
+   interface IVariableNodeBoolean extends IVariableNode, IExpressionNode.INodeBoolean {
+      void set(boolean var1);
 
-    public interface IVariableNodeLong extends IVariableNode, INodeLong {
-        void set(long value);
+      @Override
+      default void set(IExpressionNode from) {
+         this.set(((IExpressionNode.INodeBoolean)from).evaluate());
+      }
+   }
 
-        @Override
-        default void set(IExpressionNode from) {
-            set(((INodeLong) from).evaluate());
-        }
-    }
+   interface IVariableNodeDouble extends IVariableNode, IExpressionNode.INodeDouble {
+      void set(double var1);
 
-    public interface IVariableNodeDouble extends IVariableNode, INodeDouble {
-        void set(double value);
+      @Override
+      default void set(IExpressionNode from) {
+         this.set(((IExpressionNode.INodeDouble)from).evaluate());
+      }
+   }
 
-        @Override
-        default void set(IExpressionNode from) {
-            set(((INodeDouble) from).evaluate());
-        }
-    }
+   interface IVariableNodeLong extends IVariableNode, IExpressionNode.INodeLong {
+      void set(long var1);
 
-    public interface IVariableNodeBoolean extends IVariableNode, INodeBoolean {
-        void set(boolean value);
+      @Override
+      default void set(IExpressionNode from) {
+         this.set(((IExpressionNode.INodeLong)from).evaluate());
+      }
+   }
 
-        @Override
-        default void set(IExpressionNode from) {
-            set(((INodeBoolean) from).evaluate());
-        }
-    }
+   interface IVariableNodeObject<T> extends IVariableNode, IExpressionNode.INodeObject<T> {
+      void set(T var1);
 
-    public interface IVariableNodeObject<T> extends IVariableNode, INodeObject<T> {
-        void set(T value);
+      default void setUnchecked(Object to) {
+         if (to.getClass() != this.getType()) {
+            throw new ClassCastException(to.getClass() + " cannot be cast to " + this.getType());
+         }
 
-        default void setUnchecked(Object to) {
-            if (to.getClass() != getType()) {
-                throw new ClassCastException(to.getClass() + " cannot be cast to " + getType());
-            }
-            set((T) to);
-        }
+         this.set((T)to);
+      }
 
-        @Override
-        default void set(IExpressionNode from) {
-            setUnchecked(((INodeObject<?>) from).evaluate());
-        }
-    }
+      @Override
+      default void set(IExpressionNode from) {
+         this.setUnchecked(((IExpressionNode.INodeObject)from).evaluate());
+      }
+   }
 }

@@ -1,15 +1,11 @@
 package buildcraft.lib.misc.collect;
 
-import net.minecraft.resources.Identifier;
-
-import java.util.Map;
-
 public interface TypedMap<V> {
-    <T extends V> T get(Class<T> clazz);
+   <T extends V> T get(Class<T> var1);
 
-    void put(V value);
+   void put(V var1);
 
-    void clear();
+   void clear();
 
-    void remove(V value);
+   void remove(V var1);
 }

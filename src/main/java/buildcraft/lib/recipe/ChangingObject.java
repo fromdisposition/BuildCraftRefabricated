@@ -1,66 +1,64 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.recipe;
-
-import net.minecraft.resources.Identifier;
 
 import java.util.Arrays;
 import java.util.List;
 
-import net.minecraft.world.item.ItemStack;
-
-@SuppressWarnings("this-escape")
 public class ChangingObject<T> {
-    protected final T[] options;
-    private final int hash;
-    private int timeGap = 1000;
+   protected final T[] options;
+   private final int hash;
+   private int timeGap = 1000;
 
-    public ChangingObject(T[] options) {
-        if (options.length == 0) {
-            throw new IllegalStateException("Must provide at least 1 option!");
-        }
-        this.options = options;
-        hash = computeHash();
-    }
+   public ChangingObject(T[] options) {
+      if (options.length == 0) {
+         throw new IllegalStateException("Must provide at least 1 option!");
+      }
 
-    protected int computeHash() {
-        return Arrays.hashCode(options);
-    }
+      this.options = options;
+      this.hash = this.computeHash();
+   }
 
-    public T get() {
-        return get(0);
-    }
+   protected int computeHash() {
+      return Arrays.hashCode(this.options);
+   }
 
-    public T get(int indexOffset) {
-        long now = (System.currentTimeMillis() / timeGap) % options.length;
-        int i = (int) now + indexOffset;
-        return options[i % options.length];
-    }
+   public T get() {
+      return this.get(0);
+   }
 
-    public List<T> getOptions() {
-        return Arrays.asList(options);
-    }
+   public T get(int indexOffset) {
+      long now = System.currentTimeMillis() / this.timeGap % this.options.length;
+      int i = (int)now + indexOffset;
+      return this.options[i % this.options.length];
+   }
 
-    public void setTimeGap(int timeGap) {
-        this.timeGap = timeGap;
-    }
+   public List<T> getOptions() {
+      return Arrays.asList(this.options);
+   }
 
-    @Override
-    public int hashCode() {
-        return hash;
-    }
+   public void setTimeGap(int timeGap) {
+      this.timeGap = timeGap;
+   }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null) return false;
-        if (obj.getClass() != getClass()) return false;
-        ChangingObject<?> other = (ChangingObject<?>) obj;
-        if (hash != other.hash) return false;
-        return Arrays.equals(options, other.options);
-    }
+   @Override
+   public int hashCode() {
+      return this.hash;
+   }
+
+   @Override
+   public boolean equals(Object obj) {
+      if (obj == this) {
+         return true;
+      }
+
+      if (obj == null) {
+         return false;
+      }
+
+      if (obj.getClass() != this.getClass()) {
+         return false;
+      }
+
+      ChangingObject<?> other = (ChangingObject<?>)obj;
+      return this.hash != other.hash ? false : Arrays.equals(this.options, other.options);
+   }
 }

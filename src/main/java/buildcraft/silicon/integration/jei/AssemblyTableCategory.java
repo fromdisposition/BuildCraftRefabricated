@@ -1,13 +1,11 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.silicon.integration.jei;
 
+import buildcraft.api.mj.MjAPI;
+import buildcraft.lib.gui.BCGraphics;
+import buildcraft.lib.misc.LocaleUtil;
+import buildcraft.silicon.BCSiliconItems;
 import java.util.List;
-
+import mezz.jei.api.gui.builder.IIngredientAcceptor;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -17,90 +15,73 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.category.AbstractRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import buildcraft.lib.gui.BCGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-import buildcraft.api.mj.MjAPI;
-
-import buildcraft.silicon.BCSiliconItems;
-
 public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipeJei> {
+   private static final int TEX_U = 3;
+   private static final int TEX_V = 27;
+   private static final int TEX_W = 89;
+   private static final int TEX_H = 86;
+   private static final int SLOT_X = 5;
+   private static final int SLOT_Y = 9;
+   private static final int SLOT_PITCH = 18;
+   private static final int MAX_INPUT_SLOTS = 12;
+   private static final int OUTPUT_X = 105;
+   private static final int OUTPUT_Y = 9;
+   private static final int POWER_X = 4;
+   private static final int POWER_Y = 88;
+   private static final int POWER_COLOR = -12566464;
+   private static final int WIDTH = 129;
+   private static final int HEIGHT = 98;
+   private final IDrawable background;
 
-    private static final int TEX_U = 3, TEX_V = 27;
-    private static final int TEX_W = 89, TEX_H = 86;
+   public AssemblyTableCategory(IGuiHelper guiHelper) {
+      super(
+         AssemblyRecipeJeiTypes.ASSEMBLY,
+         Component.translatable("gui.jei.category.buildcraft.assembly_table"),
+         guiHelper.createDrawableItemLike(BCSiliconItems.ASSEMBLY_TABLE),
+         129,
+         98
+      );
+      this.background = guiHelper.createDrawable(Identifier.parse("buildcraftsilicon:textures/gui/assembly_table.png"), 3, 27, 89, 86);
+   }
 
-    private static final int SLOT_X = 8 - TEX_U;
-    private static final int SLOT_Y = 36 - TEX_V;
-    private static final int SLOT_PITCH = 18;
-    private static final int MAX_INPUT_SLOTS = 12;
+   public void draw(AssemblyRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
+      this.background.draw(graphics);
+      double mj = (double)recipe.microJoules() / MjAPI.MJ;
+      String powerStr = Component.translatable("gui.jei.category.buildcraft.assembly_table.power", new Object[]{LocaleUtil.localizeMj(recipe.microJoules())})
+         .getString();
+      Font font = Minecraft.getInstance().font;
+      new BCGraphics(graphics).text(font, powerStr, 4, 88, -12566464, false);
+   }
 
-    private static final int OUTPUT_X = TEX_W + 16;
-    private static final int OUTPUT_Y = SLOT_Y;
+   public void setRecipe(IRecipeLayoutBuilder builder, AssemblyRecipeJei recipe, IFocusGroup focuses) {
+      List<List<ItemStack>> inputs = recipe.inputSlots();
+      int inputCount = Math.min(inputs.size(), 12);
+      IRecipeSlotBuilder[] inputSlotBuilders = new IRecipeSlotBuilder[inputCount];
 
-    private static final int POWER_X = 4, POWER_Y = TEX_H + 2;
-    private static final int POWER_COLOR = 0xFF404040;
-
-    private static final int WIDTH = OUTPUT_X + 24;
-    private static final int HEIGHT = TEX_H + 12;
-
-    private final IDrawable background;
-
-    public AssemblyTableCategory(IGuiHelper guiHelper) {
-        super(
-                AssemblyRecipeJeiTypes.ASSEMBLY,
-                Component.translatable("gui.jei.category.buildcraft.assembly_table"),
-                guiHelper.createDrawableItemLike(BCSiliconItems.ASSEMBLY_TABLE.get()),
-                WIDTH, HEIGHT
-        );
-        this.background = guiHelper.createDrawable(
-                Identifier.parse("buildcraftsilicon:textures/gui/assembly_table.png"),
-                TEX_U, TEX_V, TEX_W, TEX_H);
-    }
-
-    @Override
-
-    public void draw(AssemblyRecipeJei recipe, IRecipeSlotsView slots, net.minecraft.client.gui.GuiGraphicsExtractor graphics,
-                     double mouseX, double mouseY) {
-
-        background.draw(graphics);
-
-        double mj = recipe.microJoules() / (double) MjAPI.MJ;
-        String powerStr = Component.translatable(
-                "gui.jei.category.buildcraft.assembly_table.power",
-                buildcraft.lib.misc.LocaleUtil.localizeMj(recipe.microJoules())).getString();
-        Font font = Minecraft.getInstance().font;
-        new buildcraft.lib.gui.BCGraphics(graphics).text(font, powerStr, POWER_X, POWER_Y, POWER_COLOR, false);
-    }
-
-    @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, AssemblyRecipeJei recipe, IFocusGroup focuses) {
-        List<List<ItemStack>> inputs = recipe.inputSlots();
-        int inputCount = Math.min(inputs.size(), MAX_INPUT_SLOTS);
-        IRecipeSlotBuilder[] inputSlotBuilders = new IRecipeSlotBuilder[inputCount];
-        for (int i = 0; i < inputCount; i++) {
-            List<ItemStack> slot = inputs.get(i);
-            if (slot.isEmpty()) continue;
+      for (int i = 0; i < inputCount; i++) {
+         List<ItemStack> slot = inputs.get(i);
+         if (!slot.isEmpty()) {
             int col = i % 3;
             int row = i / 3;
-            int x = SLOT_X + col * SLOT_PITCH;
-            int y = SLOT_Y + row * SLOT_PITCH;
-            inputSlotBuilders[i] = builder.addInputSlot(x, y).addItemStacks(slot);
-        }
+            int x = 5 + col * 18;
+            int y = 9 + row * 18;
+            inputSlotBuilders[i] = (IRecipeSlotBuilder)builder.addInputSlot(x, y).addItemStacks(slot);
+         }
+      }
 
-        IRecipeSlotBuilder outputSlotBuilder = null;
-        if (!recipe.outputs().isEmpty()) {
-            outputSlotBuilder = builder.addOutputSlot(OUTPUT_X, OUTPUT_Y)
-                    .setOutputSlotBackground()
-                    .addItemStacks(recipe.outputs());
-        }
+      IRecipeSlotBuilder outputSlotBuilder = null;
+      if (!recipe.outputs().isEmpty()) {
+         outputSlotBuilder = (IRecipeSlotBuilder)builder.addOutputSlot(105, 9).setOutputSlotBackground().addItemStacks(recipe.outputs());
+      }
 
-        int linkIdx = recipe.focusLinkInputIndex();
-        if (linkIdx >= 0 && linkIdx < inputCount
-                && inputSlotBuilders[linkIdx] != null
-                && outputSlotBuilder != null) {
-            builder.createFocusLink(inputSlotBuilders[linkIdx], outputSlotBuilder);
-        }
-    }
+      int linkIdx = recipe.focusLinkInputIndex();
+      if (linkIdx >= 0 && linkIdx < inputCount && inputSlotBuilders[linkIdx] != null && outputSlotBuilder != null) {
+         builder.createFocusLink(new IIngredientAcceptor[]{inputSlotBuilders[linkIdx], outputSlotBuilder});
+      }
+   }
 }

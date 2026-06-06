@@ -1,25 +1,20 @@
 package buildcraft.robotics;
 
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.inventory.MenuType;
-
 import buildcraft.fabric.BCRegistries;
 import buildcraft.lib.BCLib;
 import buildcraft.lib.fabric.menu.ExtendedMenuTypes;
 import buildcraft.robotics.container.ContainerZonePlanner;
+import net.minecraft.world.inventory.MenuType;
 
 public final class BCRoboticsMenuTypes {
-    public static MenuType<ContainerZonePlanner> ZONE_PLANNER;
+   public static MenuType<ContainerZonePlanner> ZONE_PLANNER;
 
-    private BCRoboticsMenuTypes() {}
+   private BCRoboticsMenuTypes() {
+   }
 
-    public static void register() {
-        if (BCLib.DEV) {
-            ZONE_PLANNER = Registry.register(
-                    BuiltInRegistries.MENU,
-                    BCRegistries.id(BCRobotics.MODID, "zone_planner"),
-                    ExtendedMenuTypes.create(ContainerZonePlanner::new));
-        }
-    }
+   public static void register() {
+      if (BCLib.DEV) {
+         ZONE_PLANNER = BCRegistries.registerMenuType("buildcraftrobotics", "zone_planner", ExtendedMenuTypes.create(ContainerZonePlanner::new));
+      }
+   }
 }

@@ -1,146 +1,150 @@
 package buildcraft.lib.client.guide.parts.contents;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-
-import javax.annotation.Nullable;
-
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.font.IFontRenderer;
 import buildcraft.lib.client.guide.parts.GuideChapter;
 import buildcraft.lib.client.guide.parts.GuidePageBase;
 import buildcraft.lib.client.guide.parts.GuidePageFactory;
 import buildcraft.lib.client.guide.parts.GuidePart;
-import buildcraft.lib.client.guide.parts.GuidePart.PagePosition;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import javax.annotation.Nullable;
 
 public class ContentsNodeGui {
-    public final GuiGuide gui;
-    public final ContentsNode node;
+   public final GuiGuide gui;
+   public final ContentsNode node;
+   private IFontRenderer fontRenderer;
+   private List<GuideChapter> chapters;
+   private GuidePart[] parts;
+   private PageLink[] links;
 
-    private IFontRenderer fontRenderer;
-    private List<GuideChapter> chapters;
-    private GuidePart[] parts;
-    private PageLink[] links;
+   public ContentsNodeGui(GuiGuide gui, ContentsNode node) {
+      this.gui = gui;
+      this.node = node;
+   }
 
-    public ContentsNodeGui(GuiGuide gui, ContentsNode node) {
-        this.gui = gui;
-        this.node = node;
-    }
+   public List<GuideChapter> getChapters() {
+      if (this.populate() || this.chapters == null) {
+         this.chapters = new ArrayList<>();
 
-    public List<GuideChapter> getChapters() {
-        if (populate() || chapters == null) {
-            chapters = new ArrayList<>();
-            for (GuidePart part : parts) {
-                if (part instanceof GuideChapter) {
-                    chapters.add((GuideChapter) part);
-                }
+         for (GuidePart part : this.parts) {
+            if (part instanceof GuideChapter) {
+               this.chapters.add((GuideChapter)part);
             }
-        }
-        return chapters;
-    }
+         }
+      }
 
-    public void setFontRenderer(IFontRenderer fontRenderer) {
-        this.fontRenderer = fontRenderer;
-        if (parts != null) {
-            for (GuidePart part : parts) {
-                part.setFontRenderer(fontRenderer);
+      return this.chapters;
+   }
+
+   public void setFontRenderer(IFontRenderer fontRenderer) {
+      this.fontRenderer = fontRenderer;
+      if (this.parts != null) {
+         for (GuidePart part : this.parts) {
+            part.setFontRenderer(fontRenderer);
+         }
+      }
+   }
+
+   public void invalidate() {
+      this.parts = null;
+      this.links = null;
+      this.chapters = null;
+   }
+
+   private boolean populate() {
+      if (this.parts != null) {
+         return false;
+      }
+
+      List<GuidePart> allText = new ArrayList<>();
+      List<PageLink> allLinks = new ArrayList<>();
+      Deque<IContentsNode> queue = new ArrayDeque<>();
+      IContentsNode[] children = this.node.getVisibleChildren();
+
+      for (int i = children.length - 1; i >= 0; i--) {
+         queue.addLast(children[i]);
+      }
+
+      while (!queue.isEmpty()) {
+         IContentsNode next = queue.removeLast();
+         GuidePart part = next.createGuidePart(this.gui);
+         if (this.fontRenderer != null) {
+            part.setFontRenderer(this.fontRenderer);
+         }
+
+         allText.add(part);
+         if (next instanceof PageLink) {
+            allLinks.add((PageLink)next);
+         } else {
+            allLinks.add(null);
+         }
+
+         IContentsNode[] nextChildren = next.getVisibleChildren();
+
+         for (int i = nextChildren.length - 1; i >= 0; i--) {
+            queue.addLast(nextChildren[i]);
+         }
+      }
+
+      this.parts = allText.toArray(new GuidePart[0]);
+      this.links = allLinks.toArray(new PageLink[0]);
+      return true;
+   }
+
+   public GuidePart.PagePosition render(int x, int y, int width, int height, GuidePart.PagePosition current, int index) {
+      return this.iterate(current, height, (pos, part, link) -> part.renderIntoArea(x, y, width, height, pos, index));
+   }
+
+   public void onClicked(int x, int y, int width, int height, GuidePart.PagePosition current, int index) {
+      this.iterate(current, height, (pos, part, link) -> {
+         pos = part.renderIntoArea(x, y, width, height, pos, -1);
+         if (pos.page == index && part.wasHovered() && link != null) {
+            GuidePageFactory factory = link.getFactoryLink();
+            if (factory != null) {
+               GuidePageBase page = factory.createNew(this.gui);
+               if (page != null) {
+                  this.gui.openPage(page);
+                  return null;
+               }
             }
-        }
-    }
+         }
 
-    public void invalidate() {
-        parts = null;
-        links = null;
-        chapters = null;
-    }
+         return pos;
+      });
+   }
 
-    private boolean populate() {
-        if (parts == null) {
-            List<GuidePart> allText = new ArrayList<>();
-            List<PageLink> allLinks = new ArrayList<>();
+   @Nullable
+   private GuidePart.PagePosition iterate(GuidePart.PagePosition pos, int height, ContentsNodeGui.IGuideBitIter iter) {
+      this.populate();
 
-            Deque<IContentsNode> queue = new ArrayDeque<>();
-            IContentsNode[] children = node.getVisibleChildren();
-            for (int i = children.length - 1; i >= 0; i--) {
-                queue.addLast(children[i]);
+      for (int i = 0; i < this.links.length; i++) {
+         GuidePart part = this.parts[i];
+         PageLink link = this.links[i];
+         int space = 16;
+         if (link == null) {
+            for (int j = i; j < this.links.length; j++) {
+               if (this.links[j] != null) {
+                  pos = pos.guaranteeSpace(space * (1 + j - i), height);
+                  break;
+               }
             }
-            while (!queue.isEmpty()) {
-                IContentsNode next = queue.removeLast();
-                GuidePart part = next.createGuidePart(gui);
-                if (fontRenderer != null) {
-                    part.setFontRenderer(fontRenderer);
-                }
-                allText.add(part);
-                if (next instanceof PageLink) {
-                    allLinks.add((PageLink) next);
-                } else {
-                    allLinks.add(null);
-                }
-                IContentsNode[] nextChildren = next.getVisibleChildren();
-                for (int i = nextChildren.length - 1; i >= 0; i--) {
-                    queue.addLast(nextChildren[i]);
-                }
-            }
-            parts = allText.toArray(new GuidePart[0]);
-            links = allLinks.toArray(new PageLink[0]);
-            return true;
-        }
-        return false;
-    }
+         }
 
-    public PagePosition render(int x, int y, int width, int height, PagePosition current, int index) {
-        return iterate(current, height, (pos, part, link) -> part.renderIntoArea(x, y, width, height, pos, index));
-    }
+         pos = iter.iterate(pos, part, link);
+         if (pos == null) {
+            return null;
+         }
+      }
 
-    public void onClicked(int x, int y, int width, int height, PagePosition current, int index) {
-        iterate(current, height, (pos, part, link) -> {
-            pos = part.renderIntoArea(x, y, width, height, pos, -1);
-            if (pos.page == index && part.wasHovered()) {
-                if (link != null) {
-                    GuidePageFactory factory = link.getFactoryLink();
-                    if (factory != null) {
-                        GuidePageBase page = factory.createNew(gui);
-                        if (page != null) {
-                            gui.openPage(page);
-                            return null;
-                        }
-                    }
-                }
-            }
-            return pos;
-        });
-    }
+      return pos;
+   }
 
-    @FunctionalInterface
-    private interface IGuideBitIter {
-        @Nullable
-        PagePosition iterate(PagePosition pos, GuidePart part, PageLink link);
-    }
-
-    @Nullable
-    private PagePosition iterate(PagePosition pos, int height, IGuideBitIter iter) {
-        populate();
-        for (int i = 0; i < links.length; i++) {
-            GuidePart part = parts[i];
-            PageLink link = links[i];
-
-            int space = 16;
-            if (link == null) {
-                for (int j = i; j < links.length; j++) {
-                    if (links[j] != null) {
-                        pos = pos.guaranteeSpace(space * (1 + j - i), height);
-                        break;
-                    }
-                }
-            }
-
-            pos = iter.iterate(pos, part, link);
-            if (pos == null) {
-                return null;
-            }
-        }
-        return pos;
-    }
+   @FunctionalInterface
+   private interface IGuideBitIter {
+      @Nullable
+      GuidePart.PagePosition iterate(GuidePart.PagePosition var1, GuidePart var2, PageLink var3);
+   }
 }

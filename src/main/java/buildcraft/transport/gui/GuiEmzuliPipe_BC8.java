@@ -1,199 +1,218 @@
 package buildcraft.transport.gui;
 
 import buildcraft.lib.gui.BCGraphics;
+import buildcraft.lib.gui.BcScreen;
+import buildcraft.lib.gui.GuiIcon;
 import buildcraft.lib.gui.button.BCButton;
+import buildcraft.lib.gui.help.DummyHelpElement;
+import buildcraft.lib.gui.help.ElementHelpInfo;
+import buildcraft.lib.gui.pos.GuiRectangle;
+import buildcraft.lib.misc.ColourUtil;
+import buildcraft.transport.container.ContainerEmzuliPipe_BC8;
+import buildcraft.transport.pipe.behaviour.PipeBehaviourEmzuli;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.DyeColor;
 
-import buildcraft.lib.gui.GuiBC8;
-import buildcraft.lib.gui.GuiIcon;
-import buildcraft.lib.gui.help.DummyHelpElement;
-import buildcraft.lib.gui.help.ElementHelpInfo;
-import buildcraft.lib.gui.pos.GuiRectangle;
-import buildcraft.lib.misc.ColourUtil;
+public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
+   private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/pipe_emzuli.png");
+   private static final int SIZE_X = 176;
+   private static final int SIZE_Y = 166;
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 166.0);
+   private GuiEmzuliPipe_BC8.PaintButton[] paintButtons = new GuiEmzuliPipe_BC8.PaintButton[4];
+   private static final int[][] FILTER_SLOTS = new int[][]{{25, 21}, {25, 49}, {134, 21}, {134, 49}};
+   private static final int[][] PAINT_BUTTONS = new int[][]{{49, 19}, {49, 47}, {106, 19}, {106, 47}};
+   private GuiEmzuliPipe_BC8.PaintButton activePressedButton = null;
 
-import buildcraft.transport.container.ContainerEmzuliPipe_BC8;
-import buildcraft.transport.pipe.behaviour.PipeBehaviourEmzuli.SlotIndex;
+   public GuiEmzuliPipe_BC8(ContainerEmzuliPipe_BC8 menu, Inventory playerInv, Component title) {
+      super(menu, playerInv, title, 176, 166);
+   }
 
-public class GuiEmzuliPipe_BC8 extends GuiBC8<ContainerEmzuliPipe_BC8> {
-    private static final Identifier TEXTURE =
-            Identifier.parse("buildcrafttransport:textures/gui/pipe_emzuli.png");
-    private static final int SIZE_X = 176, SIZE_Y = 166;
-    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0, 0, SIZE_X, SIZE_Y);
+   @Override
+   protected void drawBackgroundTexture(BCGraphics graphics) {
+      ICON_GUI.drawAt(this.mainGui.rootElement);
+   }
 
-    private PaintButton[] paintButtons = new PaintButton[4];
+   @Override
+   protected void initGuiElements() {
+      this.paintButtons[0] = this.addPaintButton(PipeBehaviourEmzuli.SlotIndex.SQUARE, 49, 19);
+      this.paintButtons[1] = this.addPaintButton(PipeBehaviourEmzuli.SlotIndex.CIRCLE, 49, 47);
+      this.paintButtons[2] = this.addPaintButton(PipeBehaviourEmzuli.SlotIndex.TRIANGLE, 106, 19);
+      this.paintButtons[3] = this.addPaintButton(PipeBehaviourEmzuli.SlotIndex.CROSS, 106, 47);
 
-    public GuiEmzuliPipe_BC8(ContainerEmzuliPipe_BC8 menu, Inventory playerInv, Component title) {
-        super(menu, playerInv, title, SIZE_X, SIZE_Y);
-    }
+      for (int[] pos : FILTER_SLOTS) {
+         this.mainGui
+            .shownElements
+            .add(
+               new DummyHelpElement(
+                  new GuiRectangle(pos[0], pos[1], 16.0, 16.0).offset(this.mainGui.rootElement),
+                  new ElementHelpInfo("buildcraft.help.emzuli.filter.title", -7811841, "buildcraft.help.emzuli.filter.desc")
+               )
+            );
+      }
 
-    @Override
-    protected void drawBackgroundTexture(BCGraphics graphics) {
-        ICON_GUI.drawAt(mainGui.rootElement);
-    }
+      for (int[] pos : PAINT_BUTTONS) {
+         this.mainGui
+            .shownElements
+            .add(
+               new DummyHelpElement(
+                  new GuiRectangle(pos[0], pos[1], 20.0, 20.0).offset(this.mainGui.rootElement),
+                  new ElementHelpInfo(
+                     "buildcraft.help.emzuli.paint.title", -2249985, "buildcraft.help.emzuli.paint.desc1", "buildcraft.help.emzuli.paint.desc2"
+                  )
+               )
+            );
+      }
+   }
 
-    private static final int[][] FILTER_SLOTS = { {25, 21}, {25, 49}, {134, 21}, {134, 49} };
+   private GuiEmzuliPipe_BC8.PaintButton addPaintButton(PipeBehaviourEmzuli.SlotIndex index, int x, int y) {
+      int bx = this.leftPos + x;
+      int by = this.topPos + y;
+      GuiEmzuliPipe_BC8.PaintButton btn = new GuiEmzuliPipe_BC8.PaintButton(index, bx, by);
+      this.addRenderableWidget(btn);
+      return btn;
+   }
 
-    private static final int[][] PAINT_BUTTONS = { {49, 19}, {49, 47}, {106, 19}, {106, 47} };
+   @Override
+   public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+      int mouseX = (int)event.x();
+      int mouseY = (int)event.y();
+      int button = event.button();
 
-    @Override
-    protected void initGuiElements() {
-        paintButtons[0] = addPaintButton(SlotIndex.SQUARE, 49, 19);
-        paintButtons[1] = addPaintButton(SlotIndex.CIRCLE, 49, 47);
-        paintButtons[2] = addPaintButton(SlotIndex.TRIANGLE, 106, 19);
-        paintButtons[3] = addPaintButton(SlotIndex.CROSS, 106, 47);
-
-        for (int[] pos : FILTER_SLOTS) {
-            mainGui.shownElements.add(new DummyHelpElement(
-                    new GuiRectangle(pos[0], pos[1], 16, 16).offset(mainGui.rootElement),
-                    new ElementHelpInfo("buildcraft.help.emzuli.filter.title", 0xFF_88_CC_FF,
-                            "buildcraft.help.emzuli.filter.desc")));
-        }
-        for (int[] pos : PAINT_BUTTONS) {
-            mainGui.shownElements.add(new DummyHelpElement(
-                    new GuiRectangle(pos[0], pos[1], 20, 20).offset(mainGui.rootElement),
-                    new ElementHelpInfo("buildcraft.help.emzuli.paint.title", 0xFF_DD_AA_FF,
-                            "buildcraft.help.emzuli.paint.desc1",
-                            "buildcraft.help.emzuli.paint.desc2")));
-        }
-    }
-
-    private PaintButton addPaintButton(SlotIndex index, int x, int y) {
-        int bx = leftPos + x;
-        int by = topPos + y;
-        PaintButton btn = new PaintButton(index, bx, by);
-        addRenderableWidget(btn);
-        return btn;
-    }
-
-    private PaintButton activePressedButton = null;
-
-    @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        int mouseX = (int) event.x();
-        int mouseY = (int) event.y();
-        int button = event.button();
-        for (PaintButton btn : paintButtons) {
-            if (btn != null && btn.isMouseOver(mouseX, mouseY)) {
-                btn.handleClick(button);
-                activePressedButton = btn;
-                return true;
-            }
-        }
-        return super.mouseClicked(event, doubleClick);
-    }
-
-    @Override
-    public boolean mouseReleased(MouseButtonEvent event) {
-        if (activePressedButton != null) {
-            activePressedButton = null;
+      for (GuiEmzuliPipe_BC8.PaintButton btn : this.paintButtons) {
+         if (btn != null && btn.isMouseOver(mouseX, mouseY)) {
+            btn.handleClick(button);
+            this.activePressedButton = btn;
             return true;
-        }
-        return super.mouseReleased(event);
-    }
+         }
+      }
 
-    private class PaintButton extends BCButton {
-        private final SlotIndex index;
-        private int pressedButton = -1;
+      return super.mouseClicked(event, doubleClick);
+   }
 
-        public PaintButton(SlotIndex index, int x, int y) {
-            super(x, y, 20, 20, Component.empty());
-            this.index = index;
-            updateTooltip();
-        }
+   @Override
+   public boolean mouseReleased(MouseButtonEvent event) {
+      if (this.activePressedButton != null) {
+         this.activePressedButton = null;
+         return true;
+      } else {
+         return super.mouseReleased(event);
+      }
+   }
 
-        @Override
-        public void onPress(net.minecraft.client.input.InputWithModifiers input) {
+   private static DyeColor cycleColour(DyeColor current) {
+      if (current == null) {
+         return DyeColor.WHITE;
+      }
 
-        }
+      int next = current.ordinal() + 1;
+      return next >= 16 ? null : DyeColor.byId(next);
+   }
 
-        public void handleClick(int button) {
-            DyeColor current = menu.behaviour.slotColours.get(index);
-            DyeColor next;
-            switch (button) {
-                case 0 -> next = cycleColour(current);
-                case 1 -> next = cycleColourBackward(current);
-                case 2 -> next = null;
-                default -> { return; }
-            }
-            menu.paintWidgets.get(index).setColour(next);
-            if (next == null) menu.behaviour.slotColours.remove(index);
-            else menu.behaviour.slotColours.put(index, next);
-            updateTooltip();
+   private static DyeColor cycleColourBackward(DyeColor current) {
+      if (current == null) {
+         return DyeColor.byId(15);
+      }
 
-            pressedButton = button;
-        }
+      int next = current.ordinal() - 1;
+      return next < 0 ? null : DyeColor.byId(next);
+   }
 
-        private void updateTooltip() {
-            DyeColor colour = menu.behaviour.slotColours.get(index);
-            Component tooltip;
-            if (colour == null) {
-                tooltip = Component.translatable("gui.pipes.emzuli.nopaint");
-            } else {
-                tooltip = Component.translatable("gui.pipes.emzuli.paint",
-                        ColourUtil.getTextFullTooltip(colour));
-            }
-            this.setTooltip(net.minecraft.client.gui.components.Tooltip.create(tooltip));
-        }
+   @Override
+   protected void drawForegroundLayer() {
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
+      String titleStr = Component.translatable("gui.pipes.emzuli.title").getString();
+      int titleX = (this.imageWidth - this.font.width(titleStr)) / 2;
+      graphics.text(this.font, titleStr, titleX, 6, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 93, -12566464, false);
+      PipeBehaviourEmzuli.SlotIndex currentSlot = ((ContainerEmzuliPipe_BC8)this.menu).behaviour.getCurrentSlot();
 
-        @Override
-        protected void drawButtonContent(BCGraphics graphics, int mouseX, int mouseY, float partialTick) {
+      for (PipeBehaviourEmzuli.SlotIndex index : ((ContainerEmzuliPipe_BC8)this.menu).behaviour.getActiveSlots()) {
+         boolean current = index == currentSlot;
+         int ix = index.ordinal() < 2 ? 4 : 155;
+         int iy = index.ordinal() % 2 == 0 ? 21 : 49;
+         int colour = current ? -16711936 : -256;
+         graphics.fill(ix, iy, ix + 4, iy + 16, colour);
+      }
+   }
 
-            int v = (activePressedButton == this) ? 20 : 0;
-            GuiIcon bgIcon = new GuiIcon(TEXTURE, 176, v, 20, 20, 256);
-            bgIcon.drawAt(getX(), getY());
+   private class PaintButton extends BCButton {
+      private final PipeBehaviourEmzuli.SlotIndex index;
+      private int pressedButton = -1;
 
-            DyeColor colour = menu.behaviour.slotColours.get(index);
-            if (colour == null) {
-                GuiIcon noPaint = new GuiIcon(TEXTURE, 176, 40, 16, 16, 256);
-                noPaint.drawAt(getX() + 2, getY() + 2);
-            } else {
-                Identifier brushTex = Identifier.parse("buildcraftcore:textures/item/paintbrush/" + colour.getName() + ".png");
-                GuiIcon brushIcon = new GuiIcon(brushTex, 0, 0, 16, 16, 16);
-                brushIcon.drawAt(getX() + 2, getY() + 2);
-            }
-        }
+      public PaintButton(PipeBehaviourEmzuli.SlotIndex index, int x, int y) {
+         super(x, y, 20, 20, Component.empty());
+         this.index = index;
+         this.updateTooltip();
+      }
 
-        @Override
-        protected void updateWidgetNarration(net.minecraft.client.gui.narration.NarrationElementOutput output) {
-            this.defaultButtonNarrationText(output);
-        }
-    }
+      public void onPress(InputWithModifiers input) {
+      }
 
-    private static DyeColor cycleColour(DyeColor current) {
-        if (current == null) return DyeColor.WHITE;
-        int next = current.ordinal() + 1;
-        if (next >= 16) return null;
-        return DyeColor.byId(next);
-    }
+      public void handleClick(int button) {
+         DyeColor current = ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);
+         DyeColor next;
+         switch (button) {
+            case 0:
+               next = GuiEmzuliPipe_BC8.cycleColour(current);
+               break;
+            case 1:
+               next = GuiEmzuliPipe_BC8.cycleColourBackward(current);
+               break;
+            case 2:
+               next = null;
+               break;
+            default:
+               return;
+         }
 
-    private static DyeColor cycleColourBackward(DyeColor current) {
-        if (current == null) return DyeColor.byId(15);
-        int next = current.ordinal() - 1;
-        if (next < 0) return null;
-        return DyeColor.byId(next);
-    }
+         ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).paintWidgets.get(this.index).setColour(next);
+         if (next == null) {
+            ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.remove(this.index);
+         } else {
+            ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.put(this.index, next);
+         }
 
-    @Override
-    protected void drawForegroundLayer() {
-        BCGraphics graphics = GuiIcon.getGuiGraphics();
+         this.updateTooltip();
+         this.pressedButton = button;
+      }
 
-        String titleStr = Component.translatable("gui.pipes.emzuli.title").getString();
-        int titleX = (imageWidth - font.width(titleStr)) / 2;
-        graphics.text(font, titleStr, titleX, 6, 0xFF404040, false);
+      private void updateTooltip() {
+         DyeColor colour = ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);
+         Component tooltip;
+         if (colour == null) {
+            tooltip = Component.translatable("gui.pipes.emzuli.nopaint");
+         } else {
+            tooltip = Component.translatable("gui.pipes.emzuli.paint", new Object[]{ColourUtil.getTextFullTooltip(colour)});
+         }
 
-        graphics.text(font, playerInventoryTitle, 8, imageHeight - 93, 0xFF404040, false);
+         this.setTooltip(Tooltip.create(tooltip));
+      }
 
-        SlotIndex currentSlot = menu.behaviour.getCurrentSlot();
-        for (SlotIndex index : menu.behaviour.getActiveSlots()) {
-            boolean current = index == currentSlot;
-            int ix = (index.ordinal() < 2 ? 4 : 155);
-            int iy = (index.ordinal() % 2 == 0 ? 21 : 49);
-            int colour = current ? 0xFF00FF00 : 0xFFFFFF00;
-            graphics.fill(ix, iy, ix + 4, iy + 16, colour);
-        }
-    }
+      @Override
+      protected void drawButtonContent(BCGraphics graphics, int mouseX, int mouseY, float partialTick) {
+         int v = GuiEmzuliPipe_BC8.this.activePressedButton == this ? 20 : 0;
+         GuiIcon bgIcon = new GuiIcon(GuiEmzuliPipe_BC8.TEXTURE, 176.0, v, 20.0, 20.0, 256);
+         bgIcon.drawAt(this.getX(), this.getY());
+         DyeColor colour = ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);
+         if (colour == null) {
+            GuiIcon noPaint = new GuiIcon(GuiEmzuliPipe_BC8.TEXTURE, 176.0, 40.0, 16.0, 16.0, 256);
+            noPaint.drawAt(this.getX() + 2, this.getY() + 2);
+         } else {
+            Identifier brushTex = Identifier.parse("buildcraftcore:textures/item/paintbrush/" + colour.getName() + ".png");
+            GuiIcon brushIcon = new GuiIcon(brushTex, 0.0, 0.0, 16.0, 16.0, 16);
+            brushIcon.drawAt(this.getX() + 2, this.getY() + 2);
+         }
+      }
+
+      @Override
+      protected void updateWidgetNarration(NarrationElementOutput output) {
+         this.defaultButtonNarrationText(output);
+      }
+   }
 }

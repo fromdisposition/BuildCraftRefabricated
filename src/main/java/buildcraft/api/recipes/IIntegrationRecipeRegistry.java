@@ -1,10 +1,7 @@
 package buildcraft.api.recipes;
 
-import java.util.Iterator;
-
 public interface IIntegrationRecipeRegistry extends IIntegrationRecipeProvider {
-    void addRecipe(IntegrationRecipe recipe);
+   void addRecipe(IntegrationRecipe var1);
 
-    Iterable<IntegrationRecipe> getAllRecipes();
-
+   Iterable<IntegrationRecipe> getAllRecipes();
 }

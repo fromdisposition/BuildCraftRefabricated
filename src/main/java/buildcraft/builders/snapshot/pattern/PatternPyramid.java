@@ -1,102 +1,92 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- * <p/>
- * BuildCraft is distributed under the terms of the Minecraft Mod Public License 1.0, or MMPL. Please check the contents
- * of the license located in http://www.mod-buildcraft.com/MMPL-1.0.txt */
 package buildcraft.builders.snapshot.pattern;
-
-import java.util.EnumMap;
-import java.util.Map;
 
 import buildcraft.api.filler.IFilledTemplate;
 import buildcraft.api.filler.IFillerPatternShape;
 import buildcraft.api.statements.IStatementParameter;
-
-import buildcraft.lib.client.sprite.SpriteHolderRegistry.SpriteHolder;
-
 import buildcraft.builders.BCBuildersSprites;
 import buildcraft.builders.snapshot.pattern.parameter.PatternParameterCenter;
 import buildcraft.builders.snapshot.pattern.parameter.PatternParameterYDir;
+import buildcraft.lib.client.sprite.SpriteHolderRegistry;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class PatternPyramid extends Pattern implements IFillerPatternShape {
-    private static final Map<PatternParameterCenter, PyramidDir> PYRAMID_DIRS = new EnumMap<>(PatternParameterCenter.class);
+   private static final Map<PatternParameterCenter, PatternPyramid.PyramidDir> PYRAMID_DIRS = new EnumMap<>(PatternParameterCenter.class);
 
-    private static class PyramidDir {
+   public PatternPyramid() {
+      super("pyramid");
+   }
 
-        public final int xLowerDiff, xUpperDiff, zLowerDiff, zUpperDiff;
+   public SpriteHolderRegistry.SpriteHolder getSprite() {
+      return BCBuildersSprites.FILLER_PYRAMID;
+   }
 
-        public PyramidDir(PatternParameterCenter param) {
-            xLowerDiff = param.offsetX >= 0 ? 1 : 0;
-            xUpperDiff = param.offsetX <= 0 ? -1 : 0;
-            zLowerDiff = param.offsetZ >= 0 ? 1 : 0;
-            zUpperDiff = param.offsetZ <= 0 ? -1 : 0;
-        }
-    }
+   @Override
+   public int maxParameters() {
+      return 2;
+   }
 
-    static {
-        for (PatternParameterCenter param : PatternParameterCenter.values()) {
-            PYRAMID_DIRS.put(param, new PyramidDir(param));
-        }
-    }
+   @Override
+   public int minParameters() {
+      return 2;
+   }
 
-    public PatternPyramid() {
-        super("pyramid");
-    }
+   @Override
+   public IStatementParameter createParameter(int index) {
+      switch (index) {
+         case 0:
+            return PatternParameterYDir.UP;
+         case 1:
+            return PatternParameterCenter.CENTER;
+         default:
+            return null;
+      }
+   }
 
-    @Override
-    public SpriteHolder getSprite() {
-        return BCBuildersSprites.FILLER_PYRAMID;
-    }
+   @Override
+   public boolean fillTemplate(IFilledTemplate filledTemplate, IStatementParameter[] params) {
+      PatternPyramid.PyramidDir dir = params.length >= 2 && params[1] != null
+         ? PYRAMID_DIRS.get((PatternParameterCenter)params[1])
+         : PYRAMID_DIRS.get(PatternParameterCenter.CENTER);
+      int stepY = params.length >= 1 && params[0] != null && !((PatternParameterYDir)params[0]).up ? -1 : 1;
+      int y = stepY == 1 ? 0 : filledTemplate.getMax().getY();
+      int xLower = 0;
+      int xUpper = filledTemplate.getMax().getX();
+      int zLower = 0;
+      int zUpper = filledTemplate.getMax().getZ();
 
-    @Override
-    public int maxParameters() {
-        return 2;
-    }
+      while (y >= 0 && y <= filledTemplate.getMax().getY()) {
+         filledTemplate.setAreaXZ(xLower, xUpper, y, zLower, zUpper, true);
+         xLower += dir.xLowerDiff;
+         xUpper += dir.xUpperDiff;
+         zLower += dir.zLowerDiff;
+         zUpper += dir.zUpperDiff;
+         y += stepY;
+         if (xLower > xUpper || zLower > zUpper) {
+            break;
+         }
+      }
 
-    @Override
-    public int minParameters() {
-        return 2;
-    }
+      return true;
+   }
 
-    @Override
-    public IStatementParameter createParameter(int index) {
-        switch (index) {
-            case 0:
-                return PatternParameterYDir.UP;
-            case 1:
-                return PatternParameterCenter.CENTER;
-            default:
-                return null;
-        }
-    }
+   static {
+      for (PatternParameterCenter param : PatternParameterCenter.values()) {
+         PYRAMID_DIRS.put(param, new PatternPyramid.PyramidDir(param));
+      }
+   }
 
-    @Override
-    public boolean fillTemplate(IFilledTemplate filledTemplate, IStatementParameter[] params) {
+   private static class PyramidDir {
+      public final int xLowerDiff;
+      public final int xUpperDiff;
+      public final int zLowerDiff;
+      public final int zUpperDiff;
 
-        PyramidDir dir = params.length >= 2 && params[1] != null
-            ? PYRAMID_DIRS.get((PatternParameterCenter) params[1])
-            : PYRAMID_DIRS.get(PatternParameterCenter.CENTER);
-        int stepY = params.length >= 1 && params[0] != null && !(((PatternParameterYDir) params[0]).up) ? -1 : 1;
-
-        int y = stepY == 1 ? 0 : filledTemplate.getMax().getY();
-
-        int xLower = 0;
-        int xUpper = filledTemplate.getMax().getX();
-        int zLower = 0;
-        int zUpper = filledTemplate.getMax().getZ();
-
-        while (y >= 0 && y <= filledTemplate.getMax().getY()) {
-            filledTemplate.setAreaXZ(xLower, xUpper, y, zLower, zUpper, true);
-
-            xLower += dir.xLowerDiff;
-            xUpper += dir.xUpperDiff;
-            zLower += dir.zLowerDiff;
-            zUpper += dir.zUpperDiff;
-            y += stepY;
-
-            if (xLower > xUpper || zLower > zUpper) {
-                break;
-            }
-        }
-        return true;
-    }
+      public PyramidDir(PatternParameterCenter param) {
+         this.xLowerDiff = param.offsetX >= 0 ? 1 : 0;
+         this.xUpperDiff = param.offsetX <= 0 ? -1 : 0;
+         this.zLowerDiff = param.offsetZ >= 0 ? 1 : 0;
+         this.zUpperDiff = param.offsetZ <= 0 ? -1 : 0;
+      }
+   }
 }

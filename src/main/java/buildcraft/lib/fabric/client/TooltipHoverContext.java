@@ -1,28 +1,27 @@
 package buildcraft.lib.fabric.client;
 
+import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
-import net.minecraft.world.item.ItemStack;
-
 public final class TooltipHoverContext {
-    private static final ThreadLocal<ItemStack> HOVERED = new ThreadLocal<>();
+   private static final ThreadLocal<ItemStack> HOVERED = new ThreadLocal<>();
 
-    private TooltipHoverContext() {}
+   private TooltipHoverContext() {
+   }
 
-    public static void set(@Nullable ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            HOVERED.remove();
-        } else {
-            HOVERED.set(stack);
-        }
-    }
+   public static void set(@Nullable ItemStack stack) {
+      if (stack != null && !stack.isEmpty()) {
+         HOVERED.set(stack);
+      } else {
+         HOVERED.remove();
+      }
+   }
 
-    @Nullable
-    public static ItemStack get() {
-        return HOVERED.get();
-    }
+   public static @Nullable ItemStack get() {
+      return HOVERED.get();
+   }
 
-    public static void clear() {
-        HOVERED.remove();
-    }
+   public static void clear() {
+      HOVERED.remove();
+   }
 }

@@ -8,8 +8,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface PipeEventHandler {
+   PipeEventPriority priority() default PipeEventPriority.NORMAL;
 
-    PipeEventPriority priority() default PipeEventPriority.NORMAL;
-
-    boolean receiveCancelled() default false;
+   boolean receiveCancelled() default false;
 }

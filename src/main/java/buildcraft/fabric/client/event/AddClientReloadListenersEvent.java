@@ -1,4 +1,4 @@
 package buildcraft.fabric.client.event;
 
-public class AddClientReloadListenersEvent extends BCClientEvents.AddClientReloadListenersEvent {}
-
+public class AddClientReloadListenersEvent extends BCClientEvents.AddClientReloadListenersEvent {
+}

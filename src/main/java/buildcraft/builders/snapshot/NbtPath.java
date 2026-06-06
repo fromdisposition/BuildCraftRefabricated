@@ -1,16 +1,9 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.builders.snapshot;
 
-import java.util.List;
-
+import buildcraft.lib.misc.NBTUtilBC;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.reflect.TypeToken;
-
+import java.util.List;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.CompoundTag;
@@ -24,159 +17,139 @@ import net.minecraft.nbt.ShortTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 
-import buildcraft.lib.misc.NBTUtilBC;
-
 public class NbtPath {
-    private final List<String> elements;
+   private final List<String> elements;
+   public static final JsonDeserializer<NbtPath> DESERIALIZER = (json, typeOfT, context) -> new NbtPath(
+      (List<String>)context.deserialize(json, (new TypeToken<List<String>>() {}).getType())
+   );
 
-    private NbtPath(List<String> elements) {
-        this.elements = elements;
-    }
+   private NbtPath(List<String> elements) {
+      this.elements = elements;
+   }
 
-    public Tag get(ByteTag tag) {
-        return elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL;
-    }
+   public Tag get(ByteTag tag) {
+      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+   }
 
-    public Tag get(ShortTag tag) {
-        return elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL;
-    }
+   public Tag get(ShortTag tag) {
+      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+   }
 
-    public Tag get(IntTag tag) {
-        return elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL;
-    }
+   public Tag get(IntTag tag) {
+      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+   }
 
-    public Tag get(LongTag tag) {
-        return elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL;
-    }
+   public Tag get(LongTag tag) {
+      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+   }
 
-    public Tag get(FloatTag tag) {
-        return elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL;
-    }
+   public Tag get(FloatTag tag) {
+      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+   }
 
-    public Tag get(DoubleTag tag) {
-        return elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL;
-    }
+   public Tag get(DoubleTag tag) {
+      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+   }
 
-    public Tag get(ByteArrayTag tag) {
-        if (elements.size() == 1) {
-            int key;
-            try {
-                key = Integer.parseInt(elements.get(0));
-            } catch (NumberFormatException e) {
-                return NBTUtilBC.NBT_NULL;
-            }
-            byte[] bytes = tag.getAsByteArray();
-            if (key >= 0 && key < bytes.length) {
-                return ByteTag.valueOf(bytes[key]);
-            } else {
-                return NBTUtilBC.NBT_NULL;
-            }
-        } else if (elements.isEmpty()) {
-            return tag;
-        } else {
+   public Tag get(ByteArrayTag tag) {
+      if (this.elements.size() == 1) {
+         int key;
+         try {
+            key = Integer.parseInt(this.elements.get(0));
+         } catch (NumberFormatException e) {
             return NBTUtilBC.NBT_NULL;
-        }
-    }
+         }
 
-    public Tag get(StringTag tag) {
-        return elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL;
-    }
+         byte[] bytes = tag.getAsByteArray();
+         return (Tag)(key >= 0 && key < bytes.length ? ByteTag.valueOf(bytes[key]) : NBTUtilBC.NBT_NULL);
+      } else {
+         return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      }
+   }
 
-    public Tag get(ListTag tag) {
-        if (elements.size() == 1) {
-            int key;
-            try {
-                key = Integer.parseInt(elements.get(0));
-            } catch (NumberFormatException e) {
-                return NBTUtilBC.NBT_NULL;
-            }
-            if (key >= 0 && key < tag.size()) {
-                return new NbtPath(elements.subList(1, elements.size())).get(tag.get(key));
-            } else {
-                return NBTUtilBC.NBT_NULL;
-            }
-        } else if (elements.isEmpty()) {
-            return tag;
-        } else {
+   public Tag get(StringTag tag) {
+      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+   }
+
+   public Tag get(ListTag tag) {
+      if (this.elements.size() == 1) {
+         int key;
+         try {
+            key = Integer.parseInt(this.elements.get(0));
+         } catch (NumberFormatException e) {
             return NBTUtilBC.NBT_NULL;
-        }
-    }
+         }
 
-    public Tag get(CompoundTag tag) {
-        if (!elements.isEmpty()) {
-            String key = elements.get(0);
-            if (tag.contains(key)) {
-                return new NbtPath(elements.subList(1, elements.size())).get(tag.get(key));
-            } else {
-                return NBTUtilBC.NBT_NULL;
-            }
-        } else {
-            return tag;
-        }
-    }
+         return key >= 0 && key < tag.size() ? new NbtPath(this.elements.subList(1, this.elements.size())).get(tag.get(key)) : NBTUtilBC.NBT_NULL;
+      } else {
+         return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      }
+   }
 
-    public Tag get(IntArrayTag tag) {
-        if (elements.size() == 1) {
-            int key;
-            try {
-                key = Integer.parseInt(elements.get(0));
-            } catch (NumberFormatException e) {
-                return NBTUtilBC.NBT_NULL;
-            }
-            int[] ints = tag.getAsIntArray();
-            if (key >= 0 && key < ints.length) {
-                return IntTag.valueOf(ints[key]);
-            } else {
-                return NBTUtilBC.NBT_NULL;
-            }
-        } else if (elements.isEmpty()) {
-            return tag;
-        } else {
+   public Tag get(CompoundTag tag) {
+      if (!this.elements.isEmpty()) {
+         String key = this.elements.get(0);
+         return tag.contains(key) ? new NbtPath(this.elements.subList(1, this.elements.size())).get(tag.get(key)) : NBTUtilBC.NBT_NULL;
+      } else {
+         return tag;
+      }
+   }
+
+   public Tag get(IntArrayTag tag) {
+      if (this.elements.size() == 1) {
+         int key;
+         try {
+            key = Integer.parseInt(this.elements.get(0));
+         } catch (NumberFormatException e) {
             return NBTUtilBC.NBT_NULL;
-        }
-    }
+         }
 
-    public Tag get(Tag tag) {
-        if (tag == null) return NBTUtilBC.NBT_NULL;
-        return switch (tag.getId()) {
-            case Tag.TAG_BYTE -> get((ByteTag) tag);
-            case Tag.TAG_SHORT -> get((ShortTag) tag);
-            case Tag.TAG_INT -> get((IntTag) tag);
-            case Tag.TAG_LONG -> get((LongTag) tag);
-            case Tag.TAG_FLOAT -> get((FloatTag) tag);
-            case Tag.TAG_DOUBLE -> get((DoubleTag) tag);
-            case Tag.TAG_BYTE_ARRAY -> get((ByteArrayTag) tag);
-            case Tag.TAG_STRING -> get((StringTag) tag);
-            case Tag.TAG_LIST -> get((ListTag) tag);
-            case Tag.TAG_COMPOUND -> get((CompoundTag) tag);
-            case Tag.TAG_INT_ARRAY -> get((IntArrayTag) tag);
-            default -> NBTUtilBC.NBT_NULL;
-        };
-    }
+         int[] ints = tag.getAsIntArray();
+         return (Tag)(key >= 0 && key < ints.length ? IntTag.valueOf(ints[key]) : NBTUtilBC.NBT_NULL);
+      } else {
+         return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      }
+   }
 
-    public void remove(CompoundTag root) {
-        if (elements.isEmpty()) return;
-        CompoundTag current = root;
-        for (int i = 0; i < elements.size() - 1; i++) {
-            Tag next = current.get(elements.get(i));
-            if (!(next instanceof CompoundTag c)) return;
+   public Tag get(Tag tag) {
+      if (tag == null) {
+         return NBTUtilBC.NBT_NULL;
+      }
+
+      return switch (tag.getId()) {
+         case 1 -> this.get((ByteTag)tag);
+         case 2 -> this.get((ShortTag)tag);
+         case 3 -> this.get((IntTag)tag);
+         case 4 -> this.get((LongTag)tag);
+         case 5 -> this.get((FloatTag)tag);
+         case 6 -> this.get((DoubleTag)tag);
+         case 7 -> this.get((ByteArrayTag)tag);
+         case 8 -> this.get((StringTag)tag);
+         case 9 -> this.get((ListTag)tag);
+         case 10 -> this.get((CompoundTag)tag);
+         case 11 -> this.get((IntArrayTag)tag);
+         default -> NBTUtilBC.NBT_NULL;
+      };
+   }
+
+   public void remove(CompoundTag root) {
+      if (!this.elements.isEmpty()) {
+         CompoundTag current = root;
+
+         for (int i = 0; i < this.elements.size() - 1; i++) {
+            if (!(current.get(this.elements.get(i)) instanceof CompoundTag c)) {
+               return;
+            }
+
             current = c;
-        }
-        current.remove(elements.get(elements.size() - 1));
-    }
+         }
 
-    @Override
-    public String toString() {
-        return "NbtPath{" + elements + "}";
-    }
+         current.remove(this.elements.get(this.elements.size() - 1));
+      }
+   }
 
-    @SuppressWarnings("WeakerAccess")
-    public static final JsonDeserializer<NbtPath> DESERIALIZER = (json, typeOfT, context) ->
-        new NbtPath(
-            context.deserialize(
-                json,
-                new TypeToken<List<String>>() {
-                }.getType()
-            )
-        );
+   @Override
+   public String toString() {
+      return "NbtPath{" + this.elements + "}";
+   }
 }

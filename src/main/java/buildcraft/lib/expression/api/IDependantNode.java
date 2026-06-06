@@ -1,5 +1,5 @@
 package buildcraft.lib.expression.api;
 
 public interface IDependantNode {
-    void visitDependants(IDependancyVisitor visitor);
+   void visitDependants(IDependancyVisitor var1);
 }

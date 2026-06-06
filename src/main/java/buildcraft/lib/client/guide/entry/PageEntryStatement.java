@@ -1,24 +1,10 @@
 package buildcraft.lib.client.guide.entry;
 
-import net.minecraft.resources.Identifier;
-
-import java.util.List;
-import java.util.TreeMap;
-
-import javax.annotation.Nullable;
-
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
-
-import net.minecraft.util.profiling.ProfilerFiller;
-
-import buildcraft.api.registry.IScriptableRegistry.OptionallyDisabled;
+import buildcraft.api.registry.IScriptableRegistry;
 import buildcraft.api.statements.IAction;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.ITrigger;
 import buildcraft.api.statements.StatementManager;
-
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.guide.data.JsonTypeTags;
@@ -27,77 +13,76 @@ import buildcraft.lib.client.guide.parts.contents.PageLinkStatement;
 import buildcraft.lib.client.guide.ref.GuideGroupManager;
 import buildcraft.lib.gui.ISimpleDrawable;
 import buildcraft.lib.gui.statement.GuiElementStatementSource;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+import java.util.List;
+import java.util.TreeMap;
+import javax.annotation.Nullable;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.profiling.ProfilerFiller;
 
 public class PageEntryStatement extends PageValueType<IStatement> {
+   public static final PageEntryStatement INSTANCE = new PageEntryStatement();
+   private static final JsonTypeTags TRIGGER_TAGS = new JsonTypeTags("buildcraft.guide.contents.triggers");
+   private static final JsonTypeTags ACTION_TAGS = new JsonTypeTags("buildcraft.guide.contents.actions");
 
-    public static final PageEntryStatement INSTANCE = new PageEntryStatement();
+   @Override
+   public Class<IStatement> getEntryClass() {
+      return IStatement.class;
+   }
 
-    private static final JsonTypeTags TRIGGER_TAGS = new JsonTypeTags("buildcraft.guide.contents.triggers");
-    private static final JsonTypeTags ACTION_TAGS = new JsonTypeTags("buildcraft.guide.contents.actions");
-
-    @Override
-    public Class<IStatement> getEntryClass() {
-        return IStatement.class;
-    }
-
-    @Override
-    public void iterateAllDefault(IEntryLinkConsumer consumer, ProfilerFiller prof) {
-        for (IStatement statement : new TreeMap<>(StatementManager.statements).values()) {
-            if (!GuideManager.INSTANCE.objectsAdded.add(statement)) {
-                continue;
-            }
-
-            final JsonTypeTags parent;
+   @Override
+   public void iterateAllDefault(IEntryLinkConsumer consumer, ProfilerFiller prof) {
+      for (IStatement statement : new TreeMap<>(StatementManager.statements).values()) {
+         if (GuideManager.INSTANCE.objectsAdded.add(statement)) {
+            JsonTypeTags parent;
             if (statement instanceof ITrigger) {
-                parent = TRIGGER_TAGS;
-            } else if (statement instanceof IAction) {
-                parent = ACTION_TAGS;
+               parent = TRIGGER_TAGS;
             } else {
-                continue;
+               if (!(statement instanceof IAction)) {
+                  continue;
+               }
+
+               parent = ACTION_TAGS;
             }
 
             boolean hidden = GuideManager.INSTANCE.isStatementHiddenByCategory(statement);
             consumer.addChild(parent, new PageLinkStatement(!hidden, statement));
-        }
-    }
+         }
+      }
+   }
 
-    @Override
-    public OptionallyDisabled<PageEntry<IStatement>> deserialize(Identifier name, JsonObject json,
-        JsonDeserializationContext ctx) {
-        if (!json.has("statement")) {
-            throw new JsonSyntaxException("Missing 'statement' field in " + json);
-        }
-        String stmntName = json.get("statement").getAsString();
-        IStatement stmnt = StatementManager.statements.get(stmntName);
-        if (stmnt == null) {
+   @Override
+   public IScriptableRegistry.OptionallyDisabled<PageEntry<IStatement>> deserialize(Identifier name, JsonObject json, JsonDeserializationContext ctx) {
+      if (!json.has("statement")) {
+         throw new JsonSyntaxException("Missing 'statement' field in " + json);
+      } else {
+         String stmntName = json.get("statement").getAsString();
+         IStatement stmnt = StatementManager.statements.get(stmntName);
+         if (stmnt == null) {
             throw new JsonSyntaxException("Unknown statement '" + stmntName + "'");
-        }
-        return new OptionallyDisabled<>(new PageEntry<>(this, name, json, stmnt));
-    }
+         } else {
+            return new IScriptableRegistry.OptionallyDisabled<>(new PageEntry<>(this, name, json, stmnt));
+         }
+      }
+   }
 
-    @Override
-    public List<String> getTooltip(IStatement value) {
-        return value.getTooltip();
-    }
+   public List<String> getTooltip(IStatement value) {
+      return value.getTooltip();
+   }
 
-    @Override
-    public String getTitle(IStatement value) {
-        List<String> tooltip = value.getTooltip();
-        if (tooltip.isEmpty()) {
-            return value.getClass().toString();
-        } else {
-            return tooltip.get(0);
-        }
-    }
+   public String getTitle(IStatement value) {
+      List<String> tooltip = value.getTooltip();
+      return tooltip.isEmpty() ? value.getClass().toString() : tooltip.get(0);
+   }
 
-    @Override
-    @Nullable
-    public ISimpleDrawable createDrawable(IStatement value) {
-        return (x, y) -> GuiElementStatementSource.drawGuiSlot(value, x, y);
-    }
+   @Nullable
+   public ISimpleDrawable createDrawable(IStatement value) {
+      return (x, y) -> GuiElementStatementSource.drawGuiSlot(value, x, y);
+   }
 
-    @Override
-    public void addPageEntries(IStatement value, GuiGuide gui, List<GuidePart> parts) {
-        GuideGroupManager.appendLinkedChapters(INSTANCE.wrap(value), gui, parts);
-    }
+   public void addPageEntries(IStatement value, GuiGuide gui, List<GuidePart> parts) {
+      GuideGroupManager.appendLinkedChapters(INSTANCE.wrap(value), gui, parts);
+   }
 }

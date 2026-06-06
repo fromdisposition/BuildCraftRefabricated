@@ -1,20 +1,16 @@
 package buildcraft.api.filler;
 
 import java.util.Collection;
-
 import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 
-import buildcraft.api.statements.IStatement;
-
 public interface IFillerRegistry {
-    void addPattern(IFillerPattern pattern);
+   void addPattern(IFillerPattern var1);
 
-    @Nullable
-    IFillerPattern getPattern(String name);
+   @Nullable
+   IFillerPattern getPattern(String var1);
 
-    Collection<IFillerPattern> getPatterns();
+   Collection<IFillerPattern> getPatterns();
 
-    IFilledTemplate createFilledTemplate(BlockPos pos, BlockPos size);
+   IFilledTemplate createFilledTemplate(BlockPos var1, BlockPos var2);
 }

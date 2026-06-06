@@ -1,115 +1,82 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
 package buildcraft.lib.client.render;
 
-import java.util.function.Function;
-
 import com.mojang.blaze3d.pipeline.DepthStencilState;
-
 import com.mojang.blaze3d.pipeline.RenderPipeline;
-
-import net.minecraft.util.Util;
-
+import com.mojang.blaze3d.pipeline.RenderPipeline.Snippet;
+import java.util.function.Function;
 import net.minecraft.client.renderer.RenderPipelines;
-
+import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
-
 import net.minecraft.client.renderer.rendertype.RenderType;
-
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-
+import net.minecraft.client.renderer.rendertype.RenderSetup.OutlineProperty;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Util;
 
 public final class BCLibRenderTypes {
+   public static final RenderPipeline LED_PIPELINE = RenderPipeline.builder(new Snippet[]{RenderPipelines.DEBUG_FILLED_SNIPPET})
+      .withLocation(Identifier.fromNamespaceAndPath("buildcraftlib", "pipeline/led"))
+      .withDepthStencilState(DepthStencilState.DEFAULT)
+      .build();
+   private static final RenderType LED = RenderType.create(
+      "buildcraft:led", RenderSetup.builder(LED_PIPELINE).setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).createRenderSetup()
+   );
+   private static final RenderType DEBUG_SOLID = RenderType.create("buildcraft:debug_solid", RenderSetup.builder(LED_PIPELINE).createRenderSetup());
+   private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(
+      texture -> RenderType.create(
+         "buildcraft:entity_translucent_cull",
+         RenderSetup.builder(RenderPipelines.ENTITY_TRANSLUCENT_CULL)
+            .withTexture("Sampler0", texture)
+            .useLightmap()
+            .useOverlay()
+            .affectsCrumbling()
+            .sortOnUpload()
+            .setOutline(OutlineProperty.NONE)
+            .createRenderSetup()
+      )
+   );
 
-    public static final RenderPipeline LED_PIPELINE = RenderPipeline.builder(RenderPipelines.DEBUG_FILLED_SNIPPET)
-            .withLocation(Identifier.fromNamespaceAndPath("buildcraftlib", "pipeline/led"))
+   public static RenderType led() {
+      return LED;
+   }
 
-            .withDepthStencilState(DepthStencilState.DEFAULT)
+   public static RenderType debugFilled() {
+      return RenderTypes.debugFilledBox();
+   }
 
-            .build();
+   public static RenderType debugSolid() {
+      return DEBUG_SOLID;
+   }
 
-    private static final RenderType LED = RenderType.create(
-            "buildcraft:led",
-            RenderSetup.builder(LED_PIPELINE)
-                    .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-                    .createRenderSetup()
-    );
+   public static RenderType entityTranslucentCull(Identifier texture) {
+      return ENTITY_TRANSLUCENT_CULL.apply(texture);
+   }
 
-    private static final RenderType DEBUG_SOLID = RenderType.create(
-            "buildcraft:debug_solid",
-            RenderSetup.builder(LED_PIPELINE).createRenderSetup()
-    );
+   public static RenderType entityCutout(Identifier texture) {
+      return RenderTypes.entityCutout(texture);
+   }
 
-    public static RenderType led() {
-        return LED;
-    }
+   public static RenderType entityTranslucent(Identifier texture) {
+      return RenderTypes.entityTranslucent(texture);
+   }
 
-    public static RenderType debugFilled() {
+   public static RenderType entitySolid(Identifier texture) {
+      return RenderTypes.entitySolid(texture);
+   }
 
-        return RenderTypes.debugFilledBox();
+   public static RenderType lines() {
+      return RenderTypes.lines();
+   }
 
-    }
+   public static RenderType entityCutoutCull(Identifier texture) {
+      return RenderTypes.entityCutoutCull(texture);
+   }
 
-    public static RenderType debugSolid() {
-        return DEBUG_SOLID;
-    }
+   public static RenderType translucentItemSheet() {
+      return Sheets.translucentBlockItemSheet();
+   }
 
-    private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(
-            texture -> RenderType.create(
-                    "buildcraft:entity_translucent_cull",
-                    RenderSetup.builder(RenderPipelines.ENTITY_TRANSLUCENT_CULL)
-                            .withTexture("Sampler0", texture)
-                            .useLightmap()
-                            .useOverlay()
-                            .affectsCrumbling()
-                            .sortOnUpload()
-                            .setOutline(RenderSetup.OutlineProperty.NONE)
-                            .createRenderSetup()));
-
-    public static RenderType entityTranslucentCull(Identifier texture) {
-        return ENTITY_TRANSLUCENT_CULL.apply(texture);
-    }
-
-    public static RenderType entityCutout(Identifier texture) {
-
-        return RenderTypes.entityCutout(texture);
-
-    }
-
-    public static RenderType entityTranslucent(Identifier texture) {
-
-        return RenderTypes.entityTranslucent(texture);
-
-    }
-
-    public static RenderType entitySolid(Identifier texture) {
-
-        return RenderTypes.entitySolid(texture);
-
-    }
-
-    public static RenderType lines() {
-
-        return RenderTypes.lines();
-
-    }
-
-    public static RenderType entityCutoutCull(Identifier texture) {
-
-        return RenderTypes.entityCutoutCull(texture);
-
-    }
-
-    public static RenderType translucentItemSheet() {
-
-        return net.minecraft.client.renderer.Sheets.translucentBlockItemSheet();
-
-    }
-
-    private BCLibRenderTypes() {}
+   private BCLibRenderTypes() {
+   }
 }

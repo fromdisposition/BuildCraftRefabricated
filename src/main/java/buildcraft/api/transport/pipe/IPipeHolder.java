@@ -1,94 +1,90 @@
 package buildcraft.api.transport.pipe;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import com.mojang.authlib.GameProfile;
-
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
-
 import buildcraft.api.statements.containers.IRedstoneStatementContainer;
 import buildcraft.api.transport.IWireManager;
 import buildcraft.api.transport.pluggable.PipePluggable;
+import com.mojang.authlib.GameProfile;
+import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 public interface IPipeHolder extends IRedstoneStatementContainer {
-    Level getPipeWorld();
+   Level getPipeWorld();
 
-    BlockPos getPipePos();
+   BlockPos getPipePos();
 
-    BlockEntity getPipeTile();
+   BlockEntity getPipeTile();
 
-    IPipe getPipe();
+   IPipe getPipe();
 
-    boolean canPlayerInteract(Player player);
+   boolean canPlayerInteract(Player var1);
 
-    @Nullable
-    PipePluggable getPluggable(Direction side);
+   @Nullable
+   PipePluggable getPluggable(Direction var1);
 
-    @Nullable
-    BlockEntity getNeighbourTile(Direction side);
+   @Nullable
+   BlockEntity getNeighbourTile(Direction var1);
 
-    @Nullable
-    IPipe getNeighbourPipe(Direction side);
+   @Nullable
+   IPipe getNeighbourPipe(Direction var1);
 
-    @Nullable
-    <T> T getCapabilityFromPipe(Direction side, @Nonnull Object capability);
+   IWireManager getWireManager();
 
-    IWireManager getWireManager();
+   GameProfile getOwner();
 
-    GameProfile getOwner();
+   boolean fireEvent(PipeEvent var1);
 
-    boolean fireEvent(PipeEvent event);
+   void scheduleRenderUpdate();
 
-    void scheduleRenderUpdate();
+   void scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver... var1);
 
-    void scheduleNetworkUpdate(PipeMessageReceiver... parts);
+   void scheduleNetworkGuiUpdate(IPipeHolder.PipeMessageReceiver... var1);
 
-    void scheduleNetworkGuiUpdate(PipeMessageReceiver... parts);
+   void sendMessage(IPipeHolder.PipeMessageReceiver var1, IPipeHolder.IWriter var2);
 
-    void sendMessage(PipeMessageReceiver to, IWriter writer);
+   void sendGuiMessage(IPipeHolder.PipeMessageReceiver var1, IPipeHolder.IWriter var2);
 
-    void sendGuiMessage(PipeMessageReceiver to, IWriter writer);
+   void onPlayerOpen(Player var1);
 
-    void onPlayerOpen(Player player);
+   void onPlayerClose(Player var1);
 
-    void onPlayerClose(Player player);
+   default void wakePipe() {
+   }
 
-    enum PipeMessageReceiver {
-        BEHAVIOUR(null),
-        FLOW(null),
-        PLUGGABLE_DOWN(Direction.DOWN),
-        PLUGGABLE_UP(Direction.UP),
-        PLUGGABLE_NORTH(Direction.NORTH),
-        PLUGGABLE_SOUTH(Direction.SOUTH),
-        PLUGGABLE_WEST(Direction.WEST),
-        PLUGGABLE_EAST(Direction.EAST),
-        WIRES(null);
+   interface IWriter {
+      void write(FriendlyByteBuf var1);
+   }
 
-        public static final PipeMessageReceiver[] VALUES = values();
-        public static final PipeMessageReceiver[] PLUGGABLES = new PipeMessageReceiver[6];
+   enum PipeMessageReceiver {
+      BEHAVIOUR(null),
+      FLOW(null),
+      PLUGGABLE_DOWN(Direction.DOWN),
+      PLUGGABLE_UP(Direction.UP),
+      PLUGGABLE_NORTH(Direction.NORTH),
+      PLUGGABLE_SOUTH(Direction.SOUTH),
+      PLUGGABLE_WEST(Direction.WEST),
+      PLUGGABLE_EAST(Direction.EAST),
+      @Deprecated
+      WIRES(null);
 
-        static {
-            for (PipeMessageReceiver type : VALUES) {
-                if (type.face != null) {
-                    PLUGGABLES[type.face.ordinal()] = type;
-                }
+      public static final IPipeHolder.PipeMessageReceiver[] VALUES = values();
+      public static final IPipeHolder.PipeMessageReceiver[] PLUGGABLES = new IPipeHolder.PipeMessageReceiver[6];
+      public final Direction face;
+
+      PipeMessageReceiver(Direction face) {
+         this.face = face;
+      }
+
+      static {
+         for (IPipeHolder.PipeMessageReceiver type : VALUES) {
+            if (type.face != null) {
+               PLUGGABLES[type.face.ordinal()] = type;
             }
-        }
-
-        public final Direction face;
-
-        PipeMessageReceiver(Direction face) {
-            this.face = face;
-        }
-    }
-
-    interface IWriter {
-        void write(FriendlyByteBuf buffer);
-    }
+         }
+      }
+   }
 }

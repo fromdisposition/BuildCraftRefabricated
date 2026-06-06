@@ -1,27 +1,43 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.factory.tile;
 
+import buildcraft.api.items.FluidItemDrops;
+import buildcraft.api.recipes.BuildcraftRecipeRegistry;
+import buildcraft.api.recipes.IRefineryRecipeManager;
+import buildcraft.api.tiles.IDebuggable;
+import buildcraft.factory.BCFactoryBlockEntities;
+import buildcraft.factory.FactoryFluidContainers;
+import buildcraft.factory.block.BlockHeatExchange;
+import buildcraft.factory.container.ContainerHeatExchange;
+import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
+import buildcraft.lib.fabric.transfer.SidedFluidStorages;
+import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fluid.FluidSmoother;
+import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.misc.MessageUtil;
+import buildcraft.lib.tile.ItemHandlerSimple;
+import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.transfer.neighbor.NeighborTransfers;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.function.Predicate;
-
 import javax.annotation.Nullable;
-
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -34,910 +50,914 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import buildcraft.lib.attachments.Attachments;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.transfer.ResourceHandler;
-import buildcraft.lib.transfer.fluid.FluidResource;
-import buildcraft.lib.transfer.fluid.FluidStacksResourceHandler;
-import buildcraft.lib.transfer.transaction.Transaction;
-import buildcraft.lib.transfer.transaction.TransactionContext;
-
-import buildcraft.api.recipes.BuildcraftRecipeRegistry;
-import buildcraft.api.recipes.IRefineryRecipeManager;
-import buildcraft.api.recipes.IRefineryRecipeManager.ICoolableRecipe;
-import buildcraft.api.recipes.IRefineryRecipeManager.IHeatableRecipe;
-import buildcraft.api.tiles.IDebuggable;
-import buildcraft.api.items.FluidItemDrops;
-import buildcraft.factory.BCFactoryBlockEntities;
-import buildcraft.factory.FactoryFluidContainers;
-import buildcraft.factory.BCFactoryBlocks;
-import buildcraft.factory.block.BlockHeatExchange;
-import buildcraft.factory.block.BlockHeatExchange.EnumExchangePart;
-import buildcraft.factory.container.ContainerHeatExchange;
-import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import net.minecraft.server.level.ServerPlayer;
-import buildcraft.lib.fluid.FluidSmoother;
-import buildcraft.lib.misc.FluidUtilBC;
-import buildcraft.lib.misc.MessageUtil;
-import buildcraft.lib.tile.item.ItemHandlerSimple;
-
-@SuppressWarnings("this-escape")
 public class TileHeatExchange extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
+   private static final int[] FLUID_MULT = new int[]{5, 10, 20};
+   protected TileHeatExchange.ExchangeSection section;
+   private boolean checkNeighbours;
+   private int lastSyncHash = 0;
+   public final ItemHandlerSimple containerSlots = new ItemHandlerSimple(4, 1);
 
-    private static final int[] FLUID_MULT = { 5, 10, 20 };
+   public TileHeatExchange(BlockPos pos, BlockState state) {
+      super(BCFactoryBlockEntities.HEAT_EXCHANGE, pos, state);
+      this.containerSlots.setCallback((handler, slot, bef, aft) -> this.setChanged());
+   }
 
-    protected ExchangeSection section;
-    private boolean checkNeighbours;
+   public boolean isStart() {
+      return this.section instanceof TileHeatExchange.ExchangeSectionStart;
+   }
 
-    private int lastSyncHash = 0;
+   public boolean isEnd() {
+      return this.section instanceof TileHeatExchange.ExchangeSectionEnd;
+   }
 
-    public final ItemHandlerSimple containerSlots = new ItemHandlerSimple(4, 1);
+   @Nullable
+   public TileHeatExchange.ExchangeSection getSection() {
+      return this.section;
+   }
 
-    {
-        containerSlots.setCallback((handler, slot, bef, aft) -> setChanged());
-    }
+   @Nullable
+   public SingleFluidTank getFluidTankForDirection(@Nullable Direction direction) {
+      if (this.section != null && direction != null) {
+         Direction facing = this.getFacing();
+         if (facing == null) {
+            return null;
+         }
 
-    public TileHeatExchange(BlockPos pos, BlockState state) {
-        super(BCFactoryBlockEntities.HEAT_EXCHANGE, pos, state);
-    }
-
-    public boolean isStart() {
-        return section instanceof ExchangeSectionStart;
-    }
-
-    public boolean isEnd() {
-        return section instanceof ExchangeSectionEnd;
-    }
-
-    @Nullable
-    public ExchangeSection getSection() {
-        return section;
-    }
-
-    @Nullable
-    public FluidStacksResourceHandler getFluidTankForDirection(@Nullable Direction direction) {
-        if (section == null || direction == null) return null;
-        Direction facing = getFacing();
-        if (facing == null) return null;
-
-        if (section instanceof ExchangeSectionStart) {
+         if (this.section instanceof TileHeatExchange.ExchangeSectionStart) {
             if (direction == Direction.DOWN) {
-                return section.tankInput;
+               return this.section.tankInput;
             }
+
             if (direction == facing.getClockWise()) {
-                return section.tankOutput;
+               return this.section.tankOutput;
             }
-        } else if (section instanceof ExchangeSectionEnd) {
+         } else if (this.section instanceof TileHeatExchange.ExchangeSectionEnd) {
             if (direction == Direction.UP) {
-                return section.tankOutput;
+               return this.section.tankOutput;
             }
+
             if (direction == facing.getCounterClockWise()) {
-                return section.tankInput;
+               return this.section.tankInput;
             }
-        }
-        return null;
-    }
+         }
 
-    public void markCheckNeighbours() {
-        checkNeighbours = true;
-    }
+         return null;
+      } else {
+         return null;
+      }
+   }
 
-    @Nullable
-    public TileHeatExchange findStart() {
-        if (isStart()) return this;
-        if (level == null) return null;
-        Direction facing = getFacing();
-        if (facing == null) return null;
-        Direction dirToStart = facing.getClockWise();
-        for (int i = 1; i < 6; i++) {
-            BlockEntity neighbour = level.getBlockEntity(worldPosition.relative(dirToStart, i));
-            if (neighbour instanceof TileHeatExchange other) {
-                if (other.getFacing() != facing) {
-                    return null;
-                }
-                if (other.isStart()) {
-                    return other;
-                }
-            } else {
-                return null;
-            }
-        }
-        return null;
-    }
+   @Nullable
+   public Storage<FluidVariant> getSidedFluidStorage(@Nullable Direction direction) {
+      SingleFluidTank tank = this.getFluidTankForDirection(direction);
+      if (tank == null || this.section == null) {
+         return null;
+      } else {
+         return tank == this.section.tankOutput ? SidedFluidStorages.extractOnly(tank) : SidedFluidStorages.insertOnly(tank);
+      }
+   }
 
-    @Nullable
-    Direction getFacing() {
-        BlockState state = getBlockState();
-        if (state.getBlock() instanceof BlockHeatExchange) {
-            return state.getValue(BlockHeatExchange.FACING);
-        }
-        return null;
-    }
+   public void markCheckNeighbours() {
+      this.checkNeighbours = true;
+   }
 
-    public void serverTick() {
-        if (level == null) return;
-        if (checkNeighbours) {
-            checkNeighbours = false;
-            Deque<TileHeatExchange> exchangers = findAdjacentExchangers();
+   @Nullable
+   public TileHeatExchange findStart() {
+      if (this.isStart()) {
+         return this;
+      }
+
+      if (this.level == null) {
+         return null;
+      }
+
+      Direction facing = this.getFacing();
+      if (facing == null) {
+         return null;
+      }
+
+      Direction dirToStart = facing.getClockWise();
+
+      for (int i = 1; i < 6; i++) {
+         if (!(this.level.getBlockEntity(this.worldPosition.relative(dirToStart, i)) instanceof TileHeatExchange other)) {
+            return null;
+         }
+
+         if (other.getFacing() != facing) {
+            return null;
+         }
+
+         if (other.isStart()) {
+            return other;
+         }
+      }
+
+      return null;
+   }
+
+   @Nullable
+   Direction getFacing() {
+      BlockState state = this.getBlockState();
+      return state.getBlock() instanceof BlockHeatExchange ? (Direction)state.getValue(BlockHeatExchange.FACING) : null;
+   }
+
+   public void serverTick() {
+      if (this.level != null) {
+         if (this.checkNeighbours) {
+            this.checkNeighbours = false;
+            Deque<TileHeatExchange> exchangers = this.findAdjacentExchangers();
             if (exchangers.isEmpty()) {
-                checkNeighbours = true;
+               this.checkNeighbours = true;
             } else if (exchangers.size() < 3) {
-                for (TileHeatExchange tile : exchangers) {
-                    tile.removeSection();
-                }
+               for (TileHeatExchange tile : exchangers) {
+                  tile.removeSection();
+               }
             } else if (exchangers.size() <= 5) {
-                ExchangeSectionStart sectionStart = null;
-                ExchangeSectionEnd sectionEnd = null;
-                for (TileHeatExchange exchange : exchangers) {
-                    exchange.checkNeighbours = false;
-                    if (exchange.section instanceof ExchangeSectionStart existingStart) {
-                        if (sectionStart == null) {
-                            sectionStart = existingStart;
-                        }
-                    } else if (exchange.section instanceof ExchangeSectionEnd existingEnd) {
-                        if (sectionEnd == null) {
-                            sectionEnd = existingEnd;
-                        }
-                    }
-                    exchange.section = null;
-                }
-                if (sectionStart == null) {
-                    sectionStart = new ExchangeSectionStart(exchangers.getFirst());
-                }
-                if (sectionEnd == null) {
-                    sectionEnd = new ExchangeSectionEnd(exchangers.getLast());
-                }
-                sectionStart.endSection = sectionEnd;
-                sectionStart.middleCount = exchangers.size() - 2;
-                exchangers.getFirst().setSection(sectionStart);
-                exchangers.getLast().setSection(sectionEnd);
+               TileHeatExchange.ExchangeSectionStart sectionStart = null;
+               TileHeatExchange.ExchangeSectionEnd sectionEnd = null;
 
-                updatePartProperties(exchangers);
+               for (TileHeatExchange exchange : exchangers) {
+                  exchange.checkNeighbours = false;
+                  if (exchange.section instanceof TileHeatExchange.ExchangeSectionStart existingStart) {
+                     if (sectionStart == null) {
+                        sectionStart = existingStart;
+                     }
+                  } else if (exchange.section instanceof TileHeatExchange.ExchangeSectionEnd existingEnd && sectionEnd == null) {
+                     sectionEnd = existingEnd;
+                  }
 
-                for (TileHeatExchange exchange : exchangers) {
-                    exchange.syncToClient();
-                }
+                  exchange.section = null;
+               }
+
+               if (sectionStart == null) {
+                  sectionStart = new TileHeatExchange.ExchangeSectionStart(exchangers.getFirst());
+               }
+
+               if (sectionEnd == null) {
+                  sectionEnd = new TileHeatExchange.ExchangeSectionEnd(exchangers.getLast());
+               }
+
+               sectionStart.endSection = sectionEnd;
+               sectionStart.middleCount = exchangers.size() - 2;
+               exchangers.getFirst().setSection(sectionStart);
+               exchangers.getLast().setSection(sectionEnd);
+               this.updatePartProperties(exchangers);
+
+               for (TileHeatExchange exchange : exchangers) {
+                  exchange.syncToClient();
+               }
             }
-        }
-        if (section != null) {
-            section.tick();
-        }
+         }
 
-        int hash = computeSyncHash();
-        if (hash != lastSyncHash) {
-            lastSyncHash = hash;
-            syncToClient();
-        }
-    }
+         if (this.section != null) {
+            this.section.tick();
+         }
 
-    public void clientTick() {
-        if (level == null) return;
-        if (checkNeighbours) {
-            Deque<TileHeatExchange> exchangers = findAdjacentExchangers();
+         int hash = this.computeSyncHash();
+         if (hash != this.lastSyncHash) {
+            this.lastSyncHash = hash;
+            this.syncToClient();
+         }
+      }
+   }
 
+   public void clientTick() {
+      if (this.level != null) {
+         if (this.checkNeighbours) {
+            Deque<TileHeatExchange> exchangers = this.findAdjacentExchangers();
             if (exchangers.size() > 2) {
-                TileHeatExchange start = exchangers.getFirst();
-                TileHeatExchange end = exchangers.getLast();
-                if (start.isStart() && end.isEnd()) {
-                    ((ExchangeSectionStart) start.section).endSection = (ExchangeSectionEnd) end.section;
-                    checkNeighbours = false;
-                }
+               TileHeatExchange start = exchangers.getFirst();
+               TileHeatExchange end = exchangers.getLast();
+               if (start.isStart() && end.isEnd()) {
+                  ((TileHeatExchange.ExchangeSectionStart)start.section).endSection = (TileHeatExchange.ExchangeSectionEnd)end.section;
+                  this.checkNeighbours = false;
+               }
             }
-        }
-        if (section != null) {
-            section.clientTick();
-        }
-    }
+         }
 
-    private void removeSection() {
-        if (section == null) return;
-        if (level != null && !level.isClientSide()) {
+         if (this.section != null) {
+            this.section.clientTick();
+         }
+      }
+   }
+
+   private void removeSection() {
+      if (this.section != null) {
+         if (this.level != null && !this.level.isClientSide()) {
             NonNullList<ItemStack> toDrop = NonNullList.create();
-            FluidItemDrops.addFluidDrops(toDrop, section.tankInput, section.tankOutput);
+            FluidItemDrops.addFluidDrops(toDrop, this.section.tankInput, this.section.tankOutput);
+
             for (ItemStack drop : toDrop) {
-                Block.popResource(level, worldPosition, drop);
+               Block.popResource(this.level, this.worldPosition, drop);
             }
-        }
-        section = null;
+         }
 
-        if (level != null) {
-            BlockState oldState = getBlockState();
+         this.section = null;
+         if (this.level != null) {
+            BlockState oldState = this.getBlockState();
             if (oldState.getBlock() instanceof BlockHeatExchange) {
-                BlockState newState = oldState.setValue(BlockHeatExchange.PART, EnumExchangePart.MIDDLE);
-                if (oldState != newState) {
-                    level.setBlock(worldPosition, newState, Block.UPDATE_ALL);
-                }
+               BlockState newState = (BlockState)oldState.setValue(BlockHeatExchange.PART, BlockHeatExchange.EnumExchangePart.MIDDLE);
+               if (oldState != newState) {
+                  this.level.setBlock(this.worldPosition, newState, 3);
+               }
             }
-        }
-        syncToClient();
-    }
+         }
 
-    private void setSection(ExchangeSection section) {
-        if (this.section != section) {
-            this.section = section;
-            section.setTile(this);
-            syncToClient();
-        }
-    }
+         this.syncToClient();
+      }
+   }
 
-    private void updatePartProperties(Deque<TileHeatExchange> exchangers) {
-        if (level == null) return;
-        TileHeatExchange[] arr = exchangers.toArray(new TileHeatExchange[0]);
-        for (int i = 0; i < arr.length; i++) {
+   private void setSection(TileHeatExchange.ExchangeSection section) {
+      if (this.section != section) {
+         this.section = section;
+         section.setTile(this);
+         this.syncToClient();
+      }
+   }
+
+   private void updatePartProperties(Deque<TileHeatExchange> exchangers) {
+      if (this.level != null) {
+         TileHeatExchange[] arr = exchangers.toArray(new TileHeatExchange[0]);
+
+         for (int i = 0; i < arr.length; i++) {
             TileHeatExchange tile = arr[i];
-            EnumExchangePart part;
+            BlockHeatExchange.EnumExchangePart part;
             if (i == 0) {
-                part = EnumExchangePart.START;
+               part = BlockHeatExchange.EnumExchangePart.START;
             } else if (i == arr.length - 1) {
-                part = EnumExchangePart.END;
+               part = BlockHeatExchange.EnumExchangePart.END;
             } else {
-                part = EnumExchangePart.MIDDLE;
+               part = BlockHeatExchange.EnumExchangePart.MIDDLE;
             }
+
             BlockState oldState = tile.getBlockState();
             if (oldState.getBlock() instanceof BlockHeatExchange) {
-                BlockState newState = oldState.setValue(BlockHeatExchange.PART, part);
-                if (oldState != newState) {
-                    level.setBlock(tile.worldPosition, newState, Block.UPDATE_ALL);
-                }
+               BlockState newState = (BlockState)oldState.setValue(BlockHeatExchange.PART, part);
+               if (oldState != newState) {
+                  this.level.setBlock(tile.worldPosition, newState, 3);
+               }
             }
-        }
-    }
+         }
+      }
+   }
 
-    private Deque<TileHeatExchange> findAdjacentExchangers() {
-        Direction thisFacing = getFacing();
-        if (thisFacing == null) {
-            return new ArrayDeque<>();
-        }
-        Direction dirToStart = thisFacing.getClockWise();
-        Direction dirToEnd = thisFacing.getCounterClockWise();
-        Deque<TileHeatExchange> exchangers = new ArrayDeque<>();
-        exchangers.add(this);
-        for (int i = 1; i < 6; i++) {
-            BlockEntity neighbour = level.getBlockEntity(worldPosition.relative(dirToStart, i));
-            if (neighbour instanceof TileHeatExchange other) {
-                if (other.getFacing() != thisFacing) {
-                    break;
-                }
-                exchangers.addFirst(other);
-            } else {
-                break;
-            }
-        }
-        for (int i = 1; i < 6; i++) {
-            BlockEntity neighbour = level.getBlockEntity(worldPosition.relative(dirToEnd, i));
-            if (neighbour instanceof TileHeatExchange other) {
-                if (other.getFacing() != thisFacing) {
-                    break;
-                }
-                exchangers.addLast(other);
-            } else {
-                break;
-            }
-        }
-        return exchangers;
-    }
+   private Deque<TileHeatExchange> findAdjacentExchangers() {
+      Direction thisFacing = this.getFacing();
+      if (thisFacing == null) {
+         return new ArrayDeque<>();
+      }
 
-    public boolean rotate() {
-        Direction thisFacing = getFacing();
-        if (thisFacing == null || level == null) return false;
-        Deque<TileHeatExchange> exchangers = findAdjacentExchangers();
-        if (exchangers.size() == 1) {
+      Direction dirToStart = thisFacing.getClockWise();
+      Direction dirToEnd = thisFacing.getCounterClockWise();
+      Deque<TileHeatExchange> exchangers = new ArrayDeque<>();
+      exchangers.add(this);
 
-            Direction[] horizontals = { Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST };
+      for (int i = 1; i < 6; i++) {
+         if (!(this.level.getBlockEntity(this.worldPosition.relative(dirToStart, i)) instanceof TileHeatExchange other) || other.getFacing() != thisFacing) {
+            break;
+         }
+
+         exchangers.addFirst(other);
+      }
+
+      for (int i = 1; i < 6; i++) {
+         if (!(this.level.getBlockEntity(this.worldPosition.relative(dirToEnd, i)) instanceof TileHeatExchange other) || other.getFacing() != thisFacing) {
+            break;
+         }
+
+         exchangers.addLast(other);
+      }
+
+      return exchangers;
+   }
+
+   public boolean rotate() {
+      Direction thisFacing = this.getFacing();
+      if (thisFacing != null && this.level != null) {
+         Deque<TileHeatExchange> exchangers = this.findAdjacentExchangers();
+         if (exchangers.size() == 1) {
+            Direction[] horizontals = new Direction[]{Direction.SOUTH, Direction.WEST, Direction.NORTH, Direction.EAST};
             int idx = 0;
+
             for (int i = 0; i < horizontals.length; i++) {
-                if (horizontals[i] == thisFacing) {
-                    idx = i;
-                    break;
-                }
+               if (horizontals[i] == thisFacing) {
+                  idx = i;
+                  break;
+               }
             }
+
             Direction next = horizontals[(idx + 1) % 4];
-            level.setBlock(worldPosition, getBlockState().setValue(BlockHeatExchange.FACING, next),
-                    Block.UPDATE_ALL);
-        } else {
+            this.level.setBlock(this.worldPosition, (BlockState)this.getBlockState().setValue(BlockHeatExchange.FACING, next), 3);
+         } else {
+            TileHeatExchange.ExchangeSectionStart start = null;
+            TileHeatExchange.ExchangeSectionEnd end = null;
 
-            ExchangeSectionStart start = null;
-            ExchangeSectionEnd end = null;
             for (TileHeatExchange exchange : exchangers) {
-                if (exchange.section instanceof ExchangeSectionStart s) {
-                    start = s;
-                } else if (exchange.section instanceof ExchangeSectionEnd e) {
-                    end = e;
-                }
-                exchange.section = null;
-                level.setBlock(exchange.worldPosition,
-                        exchange.getBlockState().setValue(BlockHeatExchange.FACING, thisFacing.getOpposite()),
-                        Block.UPDATE_ALL);
-                exchange.checkNeighbours = true;
-                exchange.setChanged();
+               if (exchange.section instanceof TileHeatExchange.ExchangeSectionStart s) {
+                  start = s;
+               } else if (exchange.section instanceof TileHeatExchange.ExchangeSectionEnd e) {
+                  end = e;
+               }
+
+               exchange.section = null;
+               this.level
+                  .setBlock(exchange.worldPosition, (BlockState)exchange.getBlockState().setValue(BlockHeatExchange.FACING, thisFacing.getOpposite()), 3);
+               exchange.checkNeighbours = true;
+               exchange.setChanged();
             }
+
             if (start != null) {
-                TileHeatExchange tile = exchangers.getLast();
-                tile.section = start;
-                start.setTile(tile);
-                tile.setChanged();
-                tile.syncToClient();
+               TileHeatExchange tile = exchangers.getLast();
+               tile.section = start;
+               start.setTile(tile);
+               tile.setChanged();
+               tile.syncToClient();
             }
+
             if (end != null) {
-                TileHeatExchange tile = exchangers.getFirst();
-                tile.section = end;
-                end.setTile(tile);
-                tile.setChanged();
-                tile.syncToClient();
+               TileHeatExchange tile = exchangers.getFirst();
+               tile.section = end;
+               end.setTile(tile);
+               tile.setChanged();
+               tile.syncToClient();
             }
-        }
-        return true;
-    }
+         }
 
-    private int computeSyncHash() {
-        if (section == null) return 0;
-        int h = section instanceof ExchangeSectionStart ? 1 : 2;
-        h = h * 31 + section.tankInput.getAmountAsInt(0);
-        h = h * 31 + section.tankOutput.getAmountAsInt(0);
-        h = h * 31 + fluidResourceSyncHash(section.tankInput.getResource(0));
-        h = h * 31 + fluidResourceSyncHash(section.tankOutput.getResource(0));
-        if (section instanceof ExchangeSectionStart s) {
-            h = h * 31 + s.progressState.ordinal();
-            h = h * 31 + s.middleCount;
-        }
-        return h;
-    }
+         return true;
+      } else {
+         return false;
+      }
+   }
 
-    private static int fluidResourceSyncHash(FluidResource resource) {
-        if (resource == null || resource.isEmpty()) {
-            return 0;
-        }
-        net.minecraft.world.level.material.Fluid canonical = FluidUtilBC.canonicalFluid(resource.getFluid());
-        net.minecraft.resources.Identifier key = net.minecraft.core.registries.BuiltInRegistries.FLUID.getKey(canonical);
-        int fluidHash = key != null ? key.hashCode() : 0;
-        return 31 * fluidHash + resource.getComponentsPatch().hashCode();
-    }
+   private int computeSyncHash() {
+      if (this.section == null) {
+         return 0;
+      }
 
-    private void syncToClient() {
-        if (level != null && !level.isClientSide()) {
-            setChanged();
-            MessageUtil.sendUpdateToTrackingPlayers(this);
-        }
-    }
+      int h = this.section instanceof TileHeatExchange.ExchangeSectionStart ? 1 : 2;
+      h = h * 31 + this.section.tankInput.getAmountMb();
+      h = h * 31 + this.section.tankOutput.getAmountMb();
+      h = h * 31 + fluidStackSyncHash(this.section.tankInput.getFluidStack());
+      h = h * 31 + fluidStackSyncHash(this.section.tankOutput.getFluidStack());
+      if (this.section instanceof TileHeatExchange.ExchangeSectionStart s) {
+         h = h * 31 + s.progressState.ordinal();
+         h = h * 31 + s.middleCount;
+      }
 
-    @Override
-    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
-        if (section == null) {
-            left.add("section = null");
-        } else {
-            left.add("section = " + (section instanceof ExchangeSectionStart ? "start" : "end"));
-            section.getDebugInfo(left, right, side);
-        }
-    }
+      return h;
+   }
 
-    @Override
-    public void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
-        if (section == null) {
-            left.add("section = null");
-        } else {
-            left.add("section = " + (section instanceof ExchangeSectionStart ? "start" : "end"));
-            section.getClientDebugInfo(left, right, side);
-        }
-    }
+   private static int fluidStackSyncHash(FluidStack stack) {
+      return stack != null && !stack.isEmpty() ? FluidStack.hashFluidAndComponents(stack) : 0;
+   }
 
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
-        if (section instanceof ExchangeSectionStart s) {
-            s.endSection = null;
-        }
-    }
+   private void syncToClient() {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.setChanged();
+         MessageUtil.sendUpdateToTrackingPlayers(this);
+      }
+   }
 
-    @Override
-    public void clearRemoved() {
-        super.clearRemoved();
-        checkNeighbours = true;
-    }
+   @Override
+   public void getDebugInfo(List<String> left, List<String> right, Direction side) {
+      if (this.section == null) {
+         left.add("section = null");
+      } else {
+         left.add("section = " + (this.section instanceof TileHeatExchange.ExchangeSectionStart ? "start" : "end"));
+         this.section.getDebugInfo(left, right, side);
+      }
+   }
 
-    @Override
-    public BlockEntity asBlockEntity() {
-        return this;
-    }
+   @Override
+   public void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
+      if (this.section == null) {
+         left.add("section = null");
+      } else {
+         left.add("section = " + (this.section instanceof TileHeatExchange.ExchangeSectionStart ? "start" : "end"));
+         this.section.getClientDebugInfo(left, right, side);
+      }
+   }
 
-    @Override
-    public BlockPos getScreenOpeningData(ServerPlayer player) {
-        TileHeatExchange start = findStart();
-        return start != null ? start.getBlockPos() : getBlockPos();
-    }
+   public void setRemoved() {
+      super.setRemoved();
+      if (this.section instanceof TileHeatExchange.ExchangeSectionStart s) {
+         s.endSection = null;
+      }
+   }
 
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable("block.buildcraftfactory.heat_exchange");
-    }
+   public void clearRemoved() {
+      super.clearRemoved();
+      this.checkNeighbours = true;
+   }
 
-    @Nullable
-    @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
-        return new ContainerHeatExchange(containerId, playerInv, findStart());
-    }
+   @Override
+   public BlockEntity asBlockEntity() {
+      return this;
+   }
 
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.store("containerSlots", CompoundTag.CODEC, containerSlots.serializeNBT());
-        if (section != null) {
-            output.putBoolean("hasSection", true);
-            output.putBoolean("isStart", section instanceof ExchangeSectionStart);
-            FluidStack inStack = section.tankInput.getResource(0).toStack(section.tankInput.getAmountAsInt(0));
-            if (!inStack.isEmpty()) {
-                output.store("sectionInput", FluidStack.CODEC, inStack);
-            }
-            FluidStack outStack = section.tankOutput.getResource(0).toStack(section.tankOutput.getAmountAsInt(0));
-            if (!outStack.isEmpty()) {
-                output.store("sectionOutput", FluidStack.CODEC, outStack);
-            }
-            if (section instanceof ExchangeSectionStart s) {
-                output.putInt("middleCount", s.middleCount);
-                output.putInt("progress", s.progress);
-                output.putInt("progressState", s.progressState.ordinal());
-            }
-        } else {
-            output.putBoolean("hasSection", false);
-        }
-    }
+   @Override
+   public BlockPos getScreenOpeningData(ServerPlayer player) {
+      TileHeatExchange start = this.findStart();
+      return start != null ? start.getBlockPos() : this.getBlockPos();
+   }
 
-    @Override
-    public void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        containerSlots.deserializeNBT(input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new));
-        if (input.getBooleanOr("hasSection", false)) {
-            boolean isStart = input.getBooleanOr("isStart", true);
-            if (isStart) {
+   public Component getDisplayName() {
+      return Component.translatable("block.buildcraftfactory.heat_exchange");
+   }
 
-                ExchangeSectionStart s;
-                if (section instanceof ExchangeSectionStart existing) {
-                    s = existing;
-                } else {
-                    s = new ExchangeSectionStart(this);
-                }
+   @Nullable
+   public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
+      return new ContainerHeatExchange(containerId, playerInv, this.findStart());
+   }
 
-                loadTank(s.tankInput, input, "sectionInput");
-                loadTank(s.tankOutput, input, "sectionOutput");
-                s.middleCount = input.getIntOr("middleCount", 1);
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      output.store("containerSlots", CompoundTag.CODEC, this.containerSlots.serializeNBT());
+      if (this.section != null) {
+         output.putBoolean("hasSection", true);
+         output.putBoolean("isStart", this.section instanceof TileHeatExchange.ExchangeSectionStart);
+         FluidStack inStack = this.section.tankInput.getFluidStack();
+         if (!inStack.isEmpty()) {
+            output.store("sectionInput", FluidStack.CODEC, inStack);
+         }
 
-                int stateOrd = input.getIntOr("progressState", 0);
-                s.progressState = EnumProgressState.values()[Math.min(stateOrd, EnumProgressState.values().length - 1)];
-                section = s;
+         FluidStack outStack = this.section.tankOutput.getFluidStack();
+         if (!outStack.isEmpty()) {
+            output.store("sectionOutput", FluidStack.CODEC, outStack);
+         }
+
+         if (this.section instanceof TileHeatExchange.ExchangeSectionStart s) {
+            output.putInt("middleCount", s.middleCount);
+            output.putInt("progress", s.progress);
+            output.putInt("progressState", s.progressState.ordinal());
+         }
+      } else {
+         output.putBoolean("hasSection", false);
+      }
+   }
+
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.containerSlots.deserializeNBT((CompoundTag)input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new));
+      if (input.getBooleanOr("hasSection", false)) {
+         boolean isStart = input.getBooleanOr("isStart", true);
+         if (isStart) {
+            TileHeatExchange.ExchangeSectionStart s;
+            if (this.section instanceof TileHeatExchange.ExchangeSectionStart existing) {
+               s = existing;
             } else {
-
-                ExchangeSectionEnd e;
-                if (section instanceof ExchangeSectionEnd existing) {
-                    e = existing;
-                } else {
-                    e = new ExchangeSectionEnd(this);
-                }
-                loadTank(e.tankInput, input, "sectionInput");
-                loadTank(e.tankOutput, input, "sectionOutput");
-                section = e;
+               s = new TileHeatExchange.ExchangeSectionStart(this);
             }
-        } else if (section != null) {
-            section = null;
-        }
-        checkNeighbours = true;
-    }
 
-    private static void loadTank(FluidStacksResourceHandler tank, ValueInput input, String key) {
-        FluidStack fluid = input.read(key, FluidStack.CODEC).orElse(FluidStack.EMPTY);
-        if (fluid.isEmpty()) {
-            tank.set(0, FluidResource.EMPTY, 0);
-        } else {
-            tank.set(0, FluidResource.of(fluid), fluid.getAmount());
-        }
-    }
+            loadTank(s.tankInput, input, "sectionInput");
+            loadTank(s.tankOutput, input, "sectionOutput");
+            s.middleCount = input.getIntOr("middleCount", 1);
+            int stateOrd = input.getIntOr("progressState", 0);
+            s.progressState = TileHeatExchange.EnumProgressState.values()[Math.min(stateOrd, TileHeatExchange.EnumProgressState.values().length - 1)];
+            this.section = s;
+         } else {
+            TileHeatExchange.ExchangeSectionEnd e;
+            if (this.section instanceof TileHeatExchange.ExchangeSectionEnd existing) {
+               e = existing;
+            } else {
+               e = new TileHeatExchange.ExchangeSectionEnd(this);
+            }
 
-    @Override
-    public CompoundTag getUpdateTag(net.minecraft.core.HolderLookup.Provider registries) {
-        return this.saveCustomOnly(registries);
-    }
+            loadTank(e.tankInput, input, "sectionInput");
+            loadTank(e.tankOutput, input, "sectionOutput");
+            this.section = e;
+         }
+      } else if (this.section != null) {
+         this.section = null;
+      }
 
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
+      this.checkNeighbours = true;
+   }
 
-    public enum EnumProgressState {
+   private static void loadTank(SingleFluidTank tank, ValueInput input, String key) {
+      FluidStack fluid = input.read(key, FluidStack.CODEC).orElse(FluidStack.EMPTY);
+      if (fluid.isEmpty()) {
+         tank.setContents(FluidStack.EMPTY);
+      } else {
+         tank.setContents(fluid);
+      }
+   }
 
-        OFF,
+   public CompoundTag getUpdateTag(Provider registries) {
+      return this.saveCustomOnly(registries);
+   }
 
-        PREPARING,
+   public Packet<ClientGamePacketListener> getUpdatePacket() {
+      return ClientboundBlockEntityDataPacket.create(this);
+   }
 
-        RUNNING,
+   public enum EnumProgressState {
+      OFF,
+      PREPARING,
+      RUNNING,
+      STOPPING;
+   }
 
-        STOPPING
-    }
+   public abstract static class ExchangeSection {
+      public final SingleFluidTank tankInput;
+      public final SingleFluidTank tankOutput;
+      public final FluidSmoother smoothedTankInput;
+      public final FluidSmoother smoothedTankOutput;
+      private TileHeatExchange tile;
 
-    public static abstract class ExchangeSection {
-        public final FluidStacksResourceHandler tankInput;
-        public final OutputTank tankOutput;
-        public final FluidSmoother smoothedTankInput, smoothedTankOutput;
-        private TileHeatExchange tile;
+      ExchangeSection(TileHeatExchange tile, Predicate<FluidStack> inputFilter) {
+         this.tankInput = new SingleFluidTank(2000, SingleFluidTank.TankAccess.filteredInput(inputFilter::test));
+         this.tankOutput = new SingleFluidTank(2000, SingleFluidTank.TankAccess.MACHINE_OUTPUT);
+         this.smoothedTankInput = new FluidSmoother(this.tankInput);
+         this.smoothedTankOutput = new FluidSmoother(this.tankOutput);
+         this.tile = tile;
+      }
 
-        ExchangeSection(TileHeatExchange tile, Predicate<FluidStack> inputFilter) {
-            tankInput = new FluidStacksResourceHandler(1, 2000) {
-                @Override
-                public boolean isValid(int index, FluidResource resource) {
-                    return inputFilter.test(resource.toStack(1));
-                }
-            };
-            tankOutput = new OutputTank();
-            smoothedTankInput = new FluidSmoother(tankInput);
-            smoothedTankOutput = new FluidSmoother(tankOutput);
-            this.tile = tile;
-        }
+      void tick() {
+      }
 
-        void tick() {
+      void clientTick() {
+         this.smoothedTankInput.tick();
+         this.smoothedTankOutput.tick();
+      }
 
-        }
+      void getDebugInfo(List<String> left, List<String> right, Direction side) {
+         left.add("tank_input = " + FluidUtilBC.getDebugString(this.tankInput.getFluidStack()));
+         left.add("tank_output = " + FluidUtilBC.getDebugString(this.tankOutput.getFluidStack()));
+      }
 
-        void clientTick() {
-            smoothedTankInput.tick();
-            smoothedTankOutput.tick();
-        }
+      void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
+         this.smoothedTankInput.getDebugInfo(left, right, side);
+         this.smoothedTankOutput.getDebugInfo(left, right, side);
+      }
 
-        void getDebugInfo(List<String> left, List<String> right, Direction side) {
-            FluidStack inStack = tankInput.getResource(0).toStack(tankInput.getAmountAsInt(0));
-            FluidStack outStack = tankOutput.getResource(0).toStack(tankOutput.getAmountAsInt(0));
-            left.add("tank_input = " + FluidUtilBC.getDebugString(inStack));
-            left.add("tank_output = " + FluidUtilBC.getDebugString(outStack));
-        }
+      public TileHeatExchange getTile() {
+         return this.tile;
+      }
 
-        void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
-            smoothedTankInput.getDebugInfo(left, right, side);
-            smoothedTankOutput.getDebugInfo(left, right, side);
-        }
+      public void setTile(TileHeatExchange tile) {
+         this.tile = tile;
+      }
 
-        public TileHeatExchange getTile() {
-            return tile;
-        }
+      @Nullable
+      Storage<FluidVariant> getFluidAutoOutputTarget() {
+         return null;
+      }
+   }
 
-        public void setTile(TileHeatExchange tile) {
-            this.tile = tile;
-        }
+   public static class ExchangeSectionEnd extends TileHeatExchange.ExchangeSection {
+      ExchangeSectionEnd(TileHeatExchange tile) {
+         super(tile, TileHeatExchange.ExchangeSectionEnd::isCoolant);
+      }
 
-        @Nullable
-        ResourceHandler<FluidResource> getFluidAutoOutputTarget() {
+      private static boolean isCoolant(FluidStack fluid) {
+         IRefineryRecipeManager manager = BuildcraftRecipeRegistry.refineryRecipes;
+         return manager == null ? false : manager.getCoolableRegistry().getRecipeForInput(fluid) != null;
+      }
+
+      @Nullable
+      @Override
+      Storage<FluidVariant> getFluidAutoOutputTarget() {
+         return this.getTile().level == null
+            ? null
+            : TriggerTransferAccess.blockFluidStorage(this.getTile().level, this.getTile().worldPosition.above(), Direction.DOWN);
+      }
+   }
+
+   public static class ExchangeSectionStart extends TileHeatExchange.ExchangeSection {
+      TileHeatExchange.ExchangeSectionEnd endSection;
+      public int middleCount;
+      int progress = 0;
+      int progressLast = 0;
+      TileHeatExchange.EnumProgressState progressState = TileHeatExchange.EnumProgressState.OFF;
+
+      ExchangeSectionStart(TileHeatExchange tile) {
+         super(tile, TileHeatExchange.ExchangeSectionStart::isHeatant);
+      }
+
+      public TileHeatExchange.ExchangeSectionEnd getEndSection() {
+         return this.endSection;
+      }
+
+      public TileHeatExchange.EnumProgressState getProgressState() {
+         return this.progressState;
+      }
+
+      public double getProgress(float partialTicks) {
+         return (this.progressLast + (this.progress - this.progressLast) * partialTicks) / 120.0;
+      }
+
+      private static boolean isHeatant(FluidStack fluid) {
+         IRefineryRecipeManager manager = BuildcraftRecipeRegistry.refineryRecipes;
+         return manager == null ? false : manager.getHeatableRegistry().getRecipeForInput(fluid) != null;
+      }
+
+      @Nullable
+      @Override
+      Storage<FluidVariant> getFluidAutoOutputTarget() {
+         Direction facing = this.getTile().getFacing();
+         if (facing != null && this.getTile().level != null) {
+            BlockPos targetPos = this.getTile().worldPosition.relative(facing.getClockWise());
+            return TriggerTransferAccess.blockFluidStorage(this.getTile().level, targetPos, facing.getCounterClockWise());
+         } else {
             return null;
-        }
-    }
+         }
+      }
 
-    public static class OutputTank extends FluidStacksResourceHandler {
-        private boolean internalInsert = false;
-
-        public OutputTank() {
-            super(1, 2000);
-        }
-
-        @Override
-        public boolean isValid(int index, FluidResource resource) {
-            return internalInsert;
-        }
-
-        public int insertInternal(int index, FluidResource resource, int amount, TransactionContext tx) {
-            internalInsert = true;
-            try {
-                return super.insert(index, resource, amount, tx);
-            } finally {
-                internalInsert = false;
-            }
-        }
-    }
-
-    public static class ExchangeSectionStart extends ExchangeSection {
-        ExchangeSectionEnd endSection;
-        public int middleCount;
-        int progress = 0;
-        int progressLast = 0;
-        EnumProgressState progressState = EnumProgressState.OFF;
-
-        ExchangeSectionStart(TileHeatExchange tile) {
-            super(tile, ExchangeSectionStart::isHeatant);
-        }
-
-        public ExchangeSectionEnd getEndSection() {
-            return endSection;
-        }
-
-        public EnumProgressState getProgressState() {
-            return progressState;
-        }
-
-        public double getProgress(float partialTicks) {
-            return (progressLast + (progress - progressLast) * partialTicks) / 120.0;
-        }
-
-        private static boolean isHeatant(FluidStack fluid) {
-            IRefineryRecipeManager manager = BuildcraftRecipeRegistry.refineryRecipes;
-            if (manager == null) return false;
-            return manager.getHeatableRegistry().getRecipeForInput(fluid) != null;
-        }
-
-        @Nullable
-        @Override
-        ResourceHandler<FluidResource> getFluidAutoOutputTarget() {
-            Direction facing = getTile().getFacing();
-            if (facing == null || getTile().level == null) return null;
-            BlockPos targetPos = getTile().worldPosition.relative(facing.getClockWise());
-            return buildcraft.lib.attachments.AttachmentQueries.getBlock(
-                    getTile().level,
-                    Attachments.Fluid.BLOCK,
-                    targetPos,
-                    facing.getCounterClockWise());
-        }
-
-        @Override
-        void tick() {
-            super.tick();
-            updateProgress();
-            if (getTile().level != null && !getTile().level.isClientSide()) {
-                if (endSection != null) {
-                    craft();
-                } else if (progressState != EnumProgressState.OFF) {
-                    progressState = EnumProgressState.STOPPING;
-                }
-                output();
-                processContainerSlots();
-            }
-        }
-
-        @SuppressWarnings("removal")
-        private void processContainerSlots() {
-            TileHeatExchange tile = getTile();
-            if (tile == null || tile.level == null) return;
-            if (tile.level.getGameTime() % 5 != 0) return;
-
-            if (endSection != null) {
-                drainSlotIntoTank(tile, 0, endSection.tankInput);
+      @Override
+      void tick() {
+         super.tick();
+         this.updateProgress();
+         if (this.getTile().level != null && !this.getTile().level.isClientSide()) {
+            if (this.endSection != null) {
+               this.craft();
+            } else if (this.progressState != TileHeatExchange.EnumProgressState.OFF) {
+               this.progressState = TileHeatExchange.EnumProgressState.STOPPING;
             }
 
-            drainSlotIntoTank(tile, 1, this.tankInput);
+            this.output();
+            this.processContainerSlots();
+         }
+      }
 
-            if (endSection != null) {
-                fillSlotFromTank(tile, 2, endSection.tankOutput);
+      private void processContainerSlots() {
+         TileHeatExchange tile = this.getTile();
+         if (tile != null && tile.level != null) {
+            if (tile.level.getGameTime() % 5L == 0L) {
+               if (this.endSection != null) {
+                  drainSlotIntoTank(tile, 0, this.endSection.tankInput);
+               }
+
+               drainSlotIntoTank(tile, 1, this.tankInput);
+               if (this.endSection != null) {
+                  fillSlotFromTank(tile, 2, this.endSection.tankOutput);
+               }
+
+               fillSlotFromTank(tile, 3, this.tankOutput);
             }
+         }
+      }
 
-            fillSlotFromTank(tile, 3, this.tankOutput);
-        }
+      private static void drainSlotIntoTank(TileHeatExchange tile, int slot, SingleFluidTank tank) {
+         FactoryFluidContainers.syncDrainSlot(tile.containerSlots, slot, tank);
+      }
 
-        private static void drainSlotIntoTank(TileHeatExchange tile, int slot, FluidStacksResourceHandler tank) {
-            FactoryFluidContainers.syncDrainSlot(tile.containerSlots, slot, tank);
-        }
+      private static void fillSlotFromTank(TileHeatExchange tile, int slot, SingleFluidTank tank) {
+         FactoryFluidContainers.syncFillSlot(tile.containerSlots, slot, tank);
+      }
 
-        private static void fillSlotFromTank(TileHeatExchange tile, int slot, FluidStacksResourceHandler tank) {
-            FactoryFluidContainers.syncFillSlot(tile.containerSlots, slot, tank);
-        }
+      @Override
+      void clientTick() {
+         super.clientTick();
+         this.updateProgress();
+         this.spawnParticles();
+      }
 
-        @Override
-        void clientTick() {
-            super.clientTick();
-            updateProgress();
-            spawnParticles();
-        }
+      private void updateProgress() {
+         this.progressLast = this.progress;
+         switch (this.progressState) {
+            case PREPARING:
+            case RUNNING:
+               int lag = 120;
+               this.progress++;
+               if (this.progress >= lag) {
+                  this.progress = lag;
+                  this.progressState = TileHeatExchange.EnumProgressState.RUNNING;
+               }
+               break;
+            case STOPPING:
+               this.progress--;
+               if (this.progress <= 0) {
+                  this.progress = 0;
+                  this.progressState = TileHeatExchange.EnumProgressState.OFF;
+               }
+         }
+      }
 
-        private void updateProgress() {
-            progressLast = progress;
-            switch (progressState) {
-                case STOPPING -> {
-                    progress--;
-                    if (progress <= 0) {
-                        progress = 0;
-                        progressState = EnumProgressState.OFF;
-                    }
-                }
-                case PREPARING, RUNNING -> {
-                    int lag = 120;
-                    progress++;
-                    if (progress >= lag) {
-                        progress = lag;
-                        progressState = EnumProgressState.RUNNING;
-                    }
-                }
-                default -> {}
-            }
-        }
-
-        private void craft() {
-            if (endSection == null) return;
-            FluidStacksResourceHandler c_in = endSection.tankInput;
-            OutputTank c_out = tankOutput;
-            FluidStacksResourceHandler h_in = tankInput;
-            OutputTank h_out = endSection.tankOutput;
+      private void craft() {
+         if (this.endSection != null) {
+            SingleFluidTank c_in = this.endSection.tankInput;
+            SingleFluidTank c_out = this.tankOutput;
+            SingleFluidTank h_in = this.tankInput;
+            SingleFluidTank h_out = this.endSection.tankOutput;
             IRefineryRecipeManager reg = BuildcraftRecipeRegistry.refineryRecipes;
             if (reg == null) {
-                progressState = EnumProgressState.STOPPING;
-                return;
-            }
-            FluidStack c_in_fluid = c_in.getResource(0).toStack(c_in.getAmountAsInt(0));
-            FluidStack h_in_fluid = h_in.getResource(0).toStack(h_in.getAmountAsInt(0));
-            ICoolableRecipe c_recipe = reg.getCoolableRegistry().getRecipeForInput(c_in_fluid);
-            IHeatableRecipe h_recipe = reg.getHeatableRegistry().getRecipeForInput(h_in_fluid);
-            if (h_recipe == null || c_recipe == null) {
-                progressState = EnumProgressState.STOPPING;
-                return;
-            }
-            if (c_recipe.heatFrom() <= h_recipe.heatFrom()) {
-                progressState = EnumProgressState.STOPPING;
-                return;
-            }
-            int c_diff = c_recipe.heatFrom() - c_recipe.heatTo();
-            int h_diff = h_recipe.heatTo() - h_recipe.heatFrom();
-            if (h_diff < 1 || c_diff < 1) {
-                progressState = EnumProgressState.STOPPING;
-                return;
-            }
-
-            int max_amount = FLUID_MULT[Math.min(middleCount - 1, FLUID_MULT.length - 1)];
-            FluidStack c_in_f = setAmount(c_recipe.in(), max_amount);
-            FluidStack c_out_f = setAmount(c_recipe.out(), max_amount);
-            FluidStack h_in_f = setAmount(h_recipe.in(), max_amount);
-            FluidStack h_out_f = setAmount(h_recipe.out(), max_amount);
-
-            int c_out_amount = c_out_f == null || c_out_f.isEmpty()
-                    ? max_amount
-                    : simulateInsert(c_out, c_out_f);
-            int h_out_amount = h_out_f == null || h_out_f.isEmpty()
-                    ? max_amount
-                    : simulateInsert(h_out, h_out_f);
-
-            int c_in_amount = simulateExtract(c_in, c_in_f);
-            int h_in_amount = simulateExtract(h_in, h_in_f);
-
-            int min_common = Math.min(Math.min(c_out_amount, h_out_amount),
-                    Math.min(c_in_amount, h_in_amount));
-
-            if (min_common > 0) {
-                c_in_f = setAmount(c_recipe.in(), min_common);
-                c_out_f = setAmount(c_recipe.out(), min_common);
-                h_in_f = setAmount(h_recipe.in(), min_common);
-                h_out_f = setAmount(h_recipe.out(), min_common);
-
-                if (progressState == EnumProgressState.OFF) {
-                    progressState = EnumProgressState.PREPARING;
-                } else if (progressState == EnumProgressState.RUNNING) {
-
-                    try (Transaction tx = Transaction.openRoot()) {
-                        boolean ok = true;
-                        if (c_out_f != null && !c_out_f.isEmpty()) {
-                            int n = c_out.insertInternal(0, FluidResource.of(c_out_f), c_out_f.getAmount(), tx);
-                            ok = ok && n == c_out_f.getAmount();
-                        }
-                        if (ok && h_out_f != null && !h_out_f.isEmpty()) {
-                            int n = h_out.insertInternal(0, FluidResource.of(h_out_f), h_out_f.getAmount(), tx);
-                            ok = ok && n == h_out_f.getAmount();
-                        }
-                        if (ok) {
-                            int n = c_in.extract(0, FluidResource.of(c_in_f), c_in_f.getAmount(), tx);
-                            ok = n == c_in_f.getAmount();
-                        }
-                        if (ok) {
-                            int n = h_in.extract(0, FluidResource.of(h_in_f), h_in_f.getAmount(), tx);
-                            ok = n == h_in_f.getAmount();
-                        }
-                        if (ok) tx.commit();
-                    }
-                }
+               this.progressState = TileHeatExchange.EnumProgressState.STOPPING;
             } else {
-                progressState = EnumProgressState.STOPPING;
+               FluidStack c_in_fluid = c_in.getFluidStack();
+               FluidStack h_in_fluid = h_in.getFluidStack();
+               IRefineryRecipeManager.ICoolableRecipe c_recipe = reg.getCoolableRegistry().getRecipeForInput(c_in_fluid);
+               IRefineryRecipeManager.IHeatableRecipe h_recipe = reg.getHeatableRegistry().getRecipeForInput(h_in_fluid);
+               if (h_recipe != null && c_recipe != null) {
+                  if (c_recipe.heatFrom() <= h_recipe.heatFrom()) {
+                     this.progressState = TileHeatExchange.EnumProgressState.STOPPING;
+                  } else {
+                     int c_diff = c_recipe.heatFrom() - c_recipe.heatTo();
+                     int h_diff = h_recipe.heatTo() - h_recipe.heatFrom();
+                     if (h_diff >= 1 && c_diff >= 1) {
+                        int max_amount = TileHeatExchange.FLUID_MULT[Math.min(this.middleCount - 1, TileHeatExchange.FLUID_MULT.length - 1)];
+                        FluidStack c_in_f = setAmount(c_recipe.in(), max_amount);
+                        FluidStack c_out_f = setAmount(c_recipe.out(), max_amount);
+                        FluidStack h_in_f = setAmount(h_recipe.in(), max_amount);
+                        FluidStack h_out_f = setAmount(h_recipe.out(), max_amount);
+                        int c_out_amount = c_out_f != null && !c_out_f.isEmpty() ? simulateInsert(c_out, c_out_f) : max_amount;
+                        int h_out_amount = h_out_f != null && !h_out_f.isEmpty() ? simulateInsert(h_out, h_out_f) : max_amount;
+                        int c_in_amount = simulateExtract(c_in, c_in_f);
+                        int h_in_amount = simulateExtract(h_in, h_in_f);
+                        int min_common = Math.min(Math.min(c_out_amount, h_out_amount), Math.min(c_in_amount, h_in_amount));
+                        if (min_common > 0) {
+                           c_in_f = setAmount(c_recipe.in(), min_common);
+                           c_out_f = setAmount(c_recipe.out(), min_common);
+                           h_in_f = setAmount(h_recipe.in(), min_common);
+                           h_out_f = setAmount(h_recipe.out(), min_common);
+                           if (this.progressState == TileHeatExchange.EnumProgressState.OFF) {
+                              this.progressState = TileHeatExchange.EnumProgressState.PREPARING;
+                           } else if (this.progressState == TileHeatExchange.EnumProgressState.RUNNING) {
+                              Transaction tx = Transaction.openOuter();
+
+                              try {
+                                 boolean ok = true;
+                                 if (c_out_f != null && !c_out_f.isEmpty()) {
+                                    long n = c_out.insertInternal(TransferConvert.toVariant(c_out_f), TransferConvert.mbToDroplets(c_out_f.getAmount()), tx);
+                                    ok = ok && TransferConvert.dropletsToMb(n) == c_out_f.getAmount();
+                                 }
+
+                                 if (ok && h_out_f != null && !h_out_f.isEmpty()) {
+                                    long n = h_out.insertInternal(TransferConvert.toVariant(h_out_f), TransferConvert.mbToDroplets(h_out_f.getAmount()), tx);
+                                    ok = ok && TransferConvert.dropletsToMb(n) == h_out_f.getAmount();
+                                 }
+
+                                 if (ok) {
+                                    long n = c_in.extractInternal(TransferConvert.toVariant(c_in_f), TransferConvert.mbToDroplets(c_in_f.getAmount()), tx);
+                                    ok = ok && TransferConvert.dropletsToMb(n) == c_in_f.getAmount();
+                                 }
+
+                                 if (ok) {
+                                    long n = h_in.extractInternal(TransferConvert.toVariant(h_in_f), TransferConvert.mbToDroplets(h_in_f.getAmount()), tx);
+                                    ok = ok && TransferConvert.dropletsToMb(n) == h_in_f.getAmount();
+                                 }
+
+                                 if (ok) {
+                                    tx.commit();
+                                 }
+                              } catch (Throwable var27) {
+                                 if (tx != null) {
+                                    try {
+                                       tx.close();
+                                    } catch (Throwable var26) {
+                                       var27.addSuppressed(var26);
+                                    }
+                                 }
+
+                                 throw var27;
+                              }
+
+                              if (tx != null) {
+                                 tx.close();
+                              }
+                           }
+                        } else {
+                           this.progressState = TileHeatExchange.EnumProgressState.STOPPING;
+                        }
+                     } else {
+                        this.progressState = TileHeatExchange.EnumProgressState.STOPPING;
+                     }
+                  }
+               } else {
+                  this.progressState = TileHeatExchange.EnumProgressState.STOPPING;
+               }
             }
-        }
+         }
+      }
 
-        private void spawnParticles() {
-            if (progressState != EnumProgressState.RUNNING) return;
-            ExchangeSectionEnd end = endSection;
-            if (end == null || getTile().level == null) return;
+      private void spawnParticles() {
+         if (this.progressState == TileHeatExchange.EnumProgressState.RUNNING) {
+            TileHeatExchange.ExchangeSectionEnd end = this.endSection;
+            if (end != null && this.getTile().level != null) {
+               Vec3 from = Vec3.atCenterOf(this.getTile().getBlockPos());
+               FluidStack c_in_f = end.tankInput.getFluidStack();
+               if (!c_in_f.isEmpty() && FluidUtilBC.areFluidsEqual(c_in_f.getFluid(), Fluids.LAVA)) {
+                  Direction facing = this.getTile().getFacing();
+                  if (facing != null) {
+                     this.spewForth(from, facing.getClockWise(), true);
+                  }
+               }
 
-            Vec3 from = Vec3.atCenterOf(getTile().getBlockPos());
-            FluidStack c_in_f = end.tankInput.getResource(0).toStack(end.tankInput.getAmountAsInt(0));
-
-            if (!c_in_f.isEmpty() && FluidUtilBC.areFluidsEqual(c_in_f.getFluid(), Fluids.LAVA)) {
-                Direction facing = getTile().getFacing();
-                if (facing != null) {
-                    spewForth(from, facing.getClockWise(), true);
-                }
+               FluidStack h_in_f = this.tankInput.getFluidStack();
+               from = Vec3.atCenterOf(end.getTile().getBlockPos());
+               if (!h_in_f.isEmpty() && FluidUtilBC.areFluidsEqual(h_in_f.getFluid(), Fluids.WATER)) {
+                  this.spewForth(from, Direction.UP, false);
+               }
             }
+         }
+      }
 
-            FluidStack h_in_f = tankInput.getResource(0).toStack(tankInput.getAmountAsInt(0));
-            from = Vec3.atCenterOf(end.getTile().getBlockPos());
-
-            if (!h_in_f.isEmpty() && FluidUtilBC.areFluidsEqual(h_in_f.getFluid(), Fluids.WATER)) {
-                spewForth(from, Direction.UP, false);
-            }
-        }
-
-        private void spewForth(Vec3 from, Direction dir, boolean smoke) {
-            Level w = getTile().getLevel();
-            if (w == null) return;
+      private void spewForth(Vec3 from, Direction dir, boolean smoke) {
+         Level w = this.getTile().getLevel();
+         if (w != null) {
             Vec3 vecDir = Vec3.atLowerCornerOf(dir.getUnitVec3i());
             from = from.add(vecDir);
-            double x = from.x, y = from.y, z = from.z;
+            double x = from.x;
+            double y = from.y;
+            double z = from.z;
             Vec3 motion = vecDir.scale(0.4);
+
             for (int i = 0; i < 3; i++) {
-                double dx = motion.x + (Math.random() - 0.5) * 0.1;
-                double dy = motion.y + (Math.random() - 0.5) * 0.1;
-                double dz = motion.z + (Math.random() - 0.5) * 0.1;
-                w.addParticle(smoke ? ParticleTypes.LARGE_SMOKE : ParticleTypes.CLOUD,
-                        x, y, z, dx, dy, dz);
+               double dx = motion.x + (Math.random() - 0.5) * 0.1;
+               double dy = motion.y + (Math.random() - 0.5) * 0.1;
+               double dz = motion.z + (Math.random() - 0.5) * 0.1;
+               w.addParticle(smoke ? ParticleTypes.LARGE_SMOKE : ParticleTypes.CLOUD, x, y, z, dx, dy, dz);
             }
-        }
+         }
+      }
 
-        private void output() {
-            ResourceHandler<FluidResource> thisOut = getFluidAutoOutputTarget();
-            if (thisOut != null) {
-                moveFluid(tankOutput, thisOut, 1000);
+      private void output() {
+         Storage<FluidVariant> thisOut = this.getFluidAutoOutputTarget();
+         if (thisOut != null) {
+            NeighborTransfers.moveFluidCommitted(this.tankOutput, thisOut, 1000);
+         }
+
+         if (this.endSection != null) {
+            Storage<FluidVariant> endOut = this.endSection.getFluidAutoOutputTarget();
+            if (endOut != null) {
+               NeighborTransfers.moveFluidCommitted(this.endSection.tankOutput, endOut, 1000);
             }
-            if (endSection != null) {
-                ResourceHandler<FluidResource> endOut = endSection.getFluidAutoOutputTarget();
-                if (endOut != null) {
-                    moveFluid(endSection.tankOutput, endOut, 1000);
-                }
+         }
+      }
+
+      @Override
+      void getDebugInfo(List<String> left, List<String> right, Direction side) {
+         super.getDebugInfo(left, right, side);
+         left.add("progress = " + this.progress);
+         left.add("state = " + this.progressState);
+         left.add("has_end = " + (this.endSection != null));
+      }
+
+      @Nullable
+      private static FluidStack setAmount(@Nullable FluidStack fluid, int amount) {
+         return fluid != null && !fluid.isEmpty() ? fluid.copyWithAmount(amount) : null;
+      }
+
+      private static int simulateExtract(SingleFluidTank t, @Nullable FluidStack fluid) {
+         if (fluid != null && !fluid.isEmpty()) {
+            Transaction tx = Transaction.openOuter();
+
+            int var5;
+            try {
+               long moved = t.extractInternal(TransferConvert.toVariant(fluid), TransferConvert.mbToDroplets(fluid.getAmount()), tx);
+               var5 = (int)TransferConvert.dropletsToMb(moved);
+            } catch (Throwable var7) {
+               if (tx != null) {
+                  try {
+                     tx.close();
+                  } catch (Throwable var6) {
+                     var7.addSuppressed(var6);
+                  }
+               }
+
+               throw var7;
             }
-        }
 
-        @Override
-        void getDebugInfo(List<String> left, List<String> right, Direction side) {
-            super.getDebugInfo(left, right, side);
-            left.add("progress = " + progress);
-            left.add("state = " + progressState);
-            left.add("has_end = " + (endSection != null));
-        }
-
-        @Nullable
-        private static FluidStack setAmount(@Nullable FluidStack fluid, int amount) {
-            if (fluid == null || fluid.isEmpty()) return null;
-            return fluid.copyWithAmount(amount);
-        }
-
-        private static int simulateExtract(FluidStacksResourceHandler t, @Nullable FluidStack fluid) {
-            if (fluid == null || fluid.isEmpty()) return 0;
-            try (Transaction tx = Transaction.openRoot()) {
-                return t.extract(0, FluidResource.of(fluid), fluid.getAmount(), tx);
+            if (tx != null) {
+               tx.close();
             }
-        }
 
-        private static int simulateInsert(OutputTank t, @Nullable FluidStack fluid) {
-            if (fluid == null || fluid.isEmpty()) return 0;
-            try (Transaction tx = Transaction.openRoot()) {
-                return t.insertInternal(0, FluidResource.of(fluid), fluid.getAmount(), tx);
+            return var5;
+         } else {
+            return 0;
+         }
+      }
+
+      private static int simulateInsert(SingleFluidTank t, @Nullable FluidStack fluid) {
+         if (fluid != null && !fluid.isEmpty()) {
+            Transaction tx = Transaction.openOuter();
+
+            int var5;
+            try {
+               long moved = t.insertInternal(TransferConvert.toVariant(fluid), TransferConvert.mbToDroplets(fluid.getAmount()), tx);
+               var5 = (int)TransferConvert.dropletsToMb(moved);
+            } catch (Throwable var7) {
+               if (tx != null) {
+                  try {
+                     tx.close();
+                  } catch (Throwable var6) {
+                     var7.addSuppressed(var6);
+                  }
+               }
+
+               throw var7;
             }
-        }
 
-        private static void moveFluid(FluidStacksResourceHandler from, ResourceHandler<FluidResource> to, int maxAmount) {
-            try (Transaction tx = Transaction.openRoot()) {
-                int moved = buildcraft.lib.transfer.ResourceHandlerUtil.move(
-                    from, to, r -> true, maxAmount, tx
-                );
-                if (moved > 0) tx.commit();
+            if (tx != null) {
+               tx.close();
             }
-        }
-    }
 
-    public static class ExchangeSectionEnd extends ExchangeSection {
-        ExchangeSectionEnd(TileHeatExchange tile) {
-            super(tile, ExchangeSectionEnd::isCoolant);
-        }
-
-        private static boolean isCoolant(FluidStack fluid) {
-            IRefineryRecipeManager manager = BuildcraftRecipeRegistry.refineryRecipes;
-            if (manager == null) return false;
-            return manager.getCoolableRegistry().getRecipeForInput(fluid) != null;
-        }
-
-        @Nullable
-        @Override
-        ResourceHandler<FluidResource> getFluidAutoOutputTarget() {
-            if (getTile().level == null) return null;
-            return buildcraft.lib.attachments.AttachmentQueries.getBlock(
-                    getTile().level,
-                    Attachments.Fluid.BLOCK,
-                    getTile().worldPosition.above(),
-                    Direction.DOWN);
-        }
-    }
+            return var5;
+         } else {
+            return 0;
+         }
+      }
+   }
 }

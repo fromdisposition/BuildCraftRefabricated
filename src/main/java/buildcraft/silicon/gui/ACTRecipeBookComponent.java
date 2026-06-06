@@ -1,18 +1,14 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.silicon.gui;
 
+import buildcraft.lib.fabric.client.GhostSlotsAccess;
+import buildcraft.silicon.container.ContainerAdvancedCraftingTable;
 import java.util.List;
-
 import net.minecraft.client.gui.components.WidgetSprites;
-import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.gui.screens.recipebook.GhostSlots;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
 import net.minecraft.client.gui.screens.recipebook.SearchRecipeBookCategory;
+import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent.TabInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.recipebook.PlaceRecipeHelper;
 import net.minecraft.resources.Identifier;
@@ -24,89 +20,86 @@ import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
-
-import buildcraft.lib.fabric.client.GhostSlotsAccess;
-import buildcraft.silicon.container.ContainerAdvancedCraftingTable;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 
 public class ACTRecipeBookComponent extends RecipeBookComponent<ContainerAdvancedCraftingTable> {
-    private static final WidgetSprites FILTER_BUTTON_SPRITES = new WidgetSprites(
-        Identifier.withDefaultNamespace("recipe_book/filter_enabled"),
-        Identifier.withDefaultNamespace("recipe_book/filter_disabled"),
-        Identifier.withDefaultNamespace("recipe_book/filter_enabled_highlighted"),
-        Identifier.withDefaultNamespace("recipe_book/filter_disabled_highlighted")
-    );
-    private static final Component ONLY_CRAFTABLES_TOOLTIP = Component.translatable("gui.recipebook.toggleRecipes.craftable");
-    private static final List<RecipeBookComponent.TabInfo> TABS = List.of(
-        new RecipeBookComponent.TabInfo(SearchRecipeBookCategory.CRAFTING),
-        new RecipeBookComponent.TabInfo(Items.IRON_AXE, Items.GOLDEN_SWORD, RecipeBookCategories.CRAFTING_EQUIPMENT),
-        new RecipeBookComponent.TabInfo(Items.BRICKS, RecipeBookCategories.CRAFTING_BUILDING_BLOCKS),
-        new RecipeBookComponent.TabInfo(Items.LAVA_BUCKET, Items.APPLE, RecipeBookCategories.CRAFTING_MISC),
-        new RecipeBookComponent.TabInfo(Items.REDSTONE, RecipeBookCategories.CRAFTING_REDSTONE)
-    );
+   private static final WidgetSprites FILTER_BUTTON_SPRITES = new WidgetSprites(
+      Identifier.withDefaultNamespace("recipe_book/filter_enabled"),
+      Identifier.withDefaultNamespace("recipe_book/filter_disabled"),
+      Identifier.withDefaultNamespace("recipe_book/filter_enabled_highlighted"),
+      Identifier.withDefaultNamespace("recipe_book/filter_disabled_highlighted")
+   );
+   private static final Component ONLY_CRAFTABLES_TOOLTIP = Component.translatable("gui.recipebook.toggleRecipes.craftable");
+   private static final List<TabInfo> TABS = List.of(
+      new TabInfo(SearchRecipeBookCategory.CRAFTING),
+      new TabInfo(Items.IRON_AXE, Items.GOLDEN_SWORD, RecipeBookCategories.CRAFTING_EQUIPMENT),
+      new TabInfo(Items.BRICKS, RecipeBookCategories.CRAFTING_BUILDING_BLOCKS),
+      new TabInfo(Items.LAVA_BUCKET, Items.APPLE, RecipeBookCategories.CRAFTING_MISC),
+      new TabInfo(Items.REDSTONE, RecipeBookCategories.CRAFTING_REDSTONE)
+   );
 
-    public ACTRecipeBookComponent(ContainerAdvancedCraftingTable menu) {
-        super(menu, TABS);
-    }
+   public ACTRecipeBookComponent(ContainerAdvancedCraftingTable menu) {
+      super(menu, TABS);
+   }
 
-    @Override
-    protected boolean isCraftingSlot(Slot slot) {
-        return this.menu.getResultSlot() == slot || this.menu.getInputGridSlots().contains(slot);
-    }
+   protected boolean isCraftingSlot(Slot slot) {
+      return ((ContainerAdvancedCraftingTable)this.menu).getResultSlot() == slot
+         || ((ContainerAdvancedCraftingTable)this.menu).getInputGridSlots().contains(slot);
+   }
 
-    private boolean canDisplay(RecipeDisplay display) {
-        int w = this.menu.getGridWidth();
-        int h = this.menu.getGridHeight();
+   private boolean canDisplay(RecipeDisplay display) {
+      int w = ((ContainerAdvancedCraftingTable)this.menu).getGridWidth();
+      int h = ((ContainerAdvancedCraftingTable)this.menu).getGridHeight();
 
-        return switch (display) {
-            case ShapedCraftingRecipeDisplay shaped -> w >= shaped.width() && h >= shaped.height();
-            case ShapelessCraftingRecipeDisplay shapeless -> w * h >= shapeless.ingredients().size();
-            default -> false;
-        };
-    }
+      return switch (display) {
+         case ShapedCraftingRecipeDisplay shaped -> w >= shaped.width() && h >= shaped.height();
+         case ShapelessCraftingRecipeDisplay shapeless -> w * h >= shapeless.ingredients().size();
+         default -> false;
+      };
+   }
 
-    @Override
-    protected void fillGhostRecipe(GhostSlots ghostSlots, RecipeDisplay display, ContextMap context) {
-        GhostSlotsAccess.setResult(ghostSlots, this.menu.getResultSlot(), context, display.result());
-        switch (display) {
-            case ShapedCraftingRecipeDisplay shaped: {
-                List<Slot> slots = this.menu.getInputGridSlots();
-                PlaceRecipeHelper.placeRecipe(
-                    this.menu.getGridWidth(),
-                    this.menu.getGridHeight(),
-                    shaped.width(),
-                    shaped.height(),
-                    shaped.ingredients(),
-                    (slotDisplay, gridIdx, x, y) -> {
-                        Slot slot = slots.get(gridIdx);
-                        GhostSlotsAccess.setInput(ghostSlots, slot, context, slotDisplay);
-                    }
-                );
-                break;
+   protected void fillGhostRecipe(GhostSlots ghostSlots, RecipeDisplay display, ContextMap context) {
+      GhostSlotsAccess.setResult(ghostSlots, ((ContainerAdvancedCraftingTable)this.menu).getResultSlot(), context, display.result());
+      switch (display) {
+         case ShapedCraftingRecipeDisplay shaped: {
+            List<Slot> slots = ((ContainerAdvancedCraftingTable)this.menu).getInputGridSlots();
+            PlaceRecipeHelper.placeRecipe(
+               ((ContainerAdvancedCraftingTable)this.menu).getGridWidth(),
+               ((ContainerAdvancedCraftingTable)this.menu).getGridHeight(),
+               shaped.width(),
+               shaped.height(),
+               shaped.ingredients(),
+               (slotDisplay, gridIdx, x, y) -> {
+                  Slot slot = slots.get(gridIdx);
+                  GhostSlotsAccess.setInput(ghostSlots, slot, context, slotDisplay);
+               }
+            );
+            break;
+         }
+         case ShapelessCraftingRecipeDisplay shapeless: {
+            label15: {
+               List<Slot> slots = ((ContainerAdvancedCraftingTable)this.menu).getInputGridSlots();
+               int count = Math.min(shapeless.ingredients().size(), slots.size());
+
+               for (int i = 0; i < count; i++) {
+                  GhostSlotsAccess.setInput(ghostSlots, slots.get(i), context, (SlotDisplay)shapeless.ingredients().get(i));
+               }
+               break label15;
             }
-            case ShapelessCraftingRecipeDisplay shapeless: {
-                List<Slot> slots = this.menu.getInputGridSlots();
-                int count = Math.min(shapeless.ingredients().size(), slots.size());
-                for (int i = 0; i < count; i++) {
-                    GhostSlotsAccess.setInput(ghostSlots, slots.get(i), context, shapeless.ingredients().get(i));
-                }
-                break;
-            }
-            default: break;
-        }
-    }
+         }
+         default:
+      }
+   }
 
-    @Override
-    protected WidgetSprites getFilterButtonTextures() {
-        return FILTER_BUTTON_SPRITES;
-    }
+   protected WidgetSprites getFilterButtonTextures() {
+      return FILTER_BUTTON_SPRITES;
+   }
 
-    @Override
-    protected Component getRecipeFilterName() {
-        return ONLY_CRAFTABLES_TOOLTIP;
-    }
+   protected Component getRecipeFilterName() {
+      return ONLY_CRAFTABLES_TOOLTIP;
+   }
 
-    @Override
-    protected void selectMatchingRecipes(RecipeCollection collection, StackedItemContents contents) {
-        collection.selectRecipes(contents, this::canDisplay);
-    }
+   protected void selectMatchingRecipes(RecipeCollection collection, StackedItemContents contents) {
+      collection.selectRecipes(contents, this::canDisplay);
+   }
 }

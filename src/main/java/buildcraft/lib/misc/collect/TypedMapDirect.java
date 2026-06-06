@@ -1,38 +1,31 @@
 package buildcraft.lib.misc.collect;
 
-import net.minecraft.resources.Identifier;
-
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 
 public class TypedMapDirect<V> implements TypedMap<V> {
+   private final Map<Class<?>, V> internalMap = new HashMap<>();
 
-    private final Map<Class<?>, V> internalMap = new HashMap<>();
+   @Nullable
+   @Override
+   public <T extends V> T get(Class<T> clazz) {
+      T val = clazz.cast(this.internalMap.get(clazz));
+      return val != null ? val : null;
+   }
 
-    @Override
-    @Nullable
-    public <T extends V> T get(Class<T> clazz) {
-        T val = clazz.cast(internalMap.get(clazz));
-        if (val != null) {
-            return val;
-        }
-        return null;
-    }
+   @Override
+   public void put(V value) {
+      this.internalMap.put(value.getClass(), value);
+   }
 
-    @Override
-    public void put(V value) {
-        internalMap.put(value.getClass(), value);
-    }
+   @Override
+   public void clear() {
+      this.internalMap.clear();
+   }
 
-    @Override
-    public void clear() {
-        internalMap.clear();
-    }
-
-    @Override
-    public void remove(V value) {
-        internalMap.remove(value.getClass(), value);
-    }
+   @Override
+   public void remove(V value) {
+      this.internalMap.remove(value.getClass(), value);
+   }
 }

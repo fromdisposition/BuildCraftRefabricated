@@ -1,35 +1,29 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * The BuildCraft API is distributed under the terms of the MIT License. Please check the contents of the license, which
- * should be located as "LICENSE.API" in the BuildCraft source code distribution. */
 package buildcraft.api.fuels;
 
-import java.util.Collection;
-
-import net.minecraft.world.level.material.Fluid;
 import buildcraft.lib.fluids.FluidStack;
+import java.util.Collection;
+import net.minecraft.world.level.material.Fluid;
 
 public interface IFuelManager {
-    <F extends IFuel> F addFuel(F fuel);
+   <F extends IFuel> F addFuel(F var1);
 
-    IFuel addFuel(FluidStack fluid, long powerPerCycle, int totalBurningTime);
+   IFuel addFuel(FluidStack var1, long var2, int var4);
 
-    default IFuel addFuel(Fluid fluid, long powerPerCycle, int totalBurningTime) {
-        return addFuel(new FluidStack(fluid, 1), powerPerCycle, totalBurningTime);
-    }
+   default IFuel addFuel(Fluid fluid, long powerPerCycle, int totalBurningTime) {
+      return this.addFuel(new FluidStack(fluid, 1), powerPerCycle, totalBurningTime);
+   }
 
-    IDirtyFuel addDirtyFuel(FluidStack fuel, long powerPerCycle, int totalBurningTime, FluidStack residue);
+   IFuelManager.IDirtyFuel addDirtyFuel(FluidStack var1, long var2, int var4, FluidStack var5);
 
-    default IDirtyFuel addDirtyFuel(Fluid fuel, long powerPerCycle, int totalBurningTime, FluidStack residue) {
-        return addDirtyFuel(new FluidStack(fuel, 1), powerPerCycle, totalBurningTime, residue);
-    }
+   default IFuelManager.IDirtyFuel addDirtyFuel(Fluid fuel, long powerPerCycle, int totalBurningTime, FluidStack residue) {
+      return this.addDirtyFuel(new FluidStack(fuel, 1), powerPerCycle, totalBurningTime, residue);
+   }
 
-    Collection<IFuel> getFuels();
+   Collection<IFuel> getFuels();
 
-    IFuel getFuel(FluidStack fluid);
+   IFuel getFuel(FluidStack var1);
 
-    interface IDirtyFuel extends IFuel {
-
-        FluidStack getResidue();
-    }
+   interface IDirtyFuel extends IFuel {
+      FluidStack getResidue();
+   }
 }

@@ -1,93 +1,83 @@
 package buildcraft.api.registry;
 
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public interface IScriptableRegistry<E> extends IReloadableRegistry<E> {
+   String getEntryType();
 
-    String getEntryType();
+   Map<String, Class<? extends E>> getScriptableTypes();
 
-    Map<String, Class<? extends E>> getScriptableTypes();
+   Map<String, IScriptableRegistry.IEntryDeserializer<? extends E>> getCustomDeserializers();
 
-    Map<String, IEntryDeserializer<? extends E>> getCustomDeserializers();
+   default void addSimpleType(String name, Class<? extends E> type) {
+      this.getScriptableTypes().put(name, type);
+   }
 
-    default void addSimpleType(String name, Class<? extends E> type) {
-        getScriptableTypes().put(name, type);
-    }
+   default void addCustomType(String name, IScriptableRegistry.IEntryDeserializer<? extends E> deserializer) {
+      this.getCustomDeserializers().put(name, deserializer);
+   }
 
-    default void addCustomType(String name, IEntryDeserializer<? extends E> deserializer) {
-        getCustomDeserializers().put(name, deserializer);
-    }
+   Set<String> getSourceDomains();
 
-    Set<String> getSourceDomains();
+   @FunctionalInterface
+   interface IEntryDeserializer<E> {
+      IScriptableRegistry.OptionallyDisabled<E> deserialize(Object var1, JsonObject var2, JsonDeserializationContext var3) throws JsonSyntaxException;
+   }
 
-    @FunctionalInterface
-    public interface IEntryDeserializer<E> {
+   @FunctionalInterface
+   interface ISimpleEntryDeserializer<E> extends IScriptableRegistry.IEntryDeserializer<E> {
+      @Override
+      default IScriptableRegistry.OptionallyDisabled<E> deserialize(Object name, JsonObject obj, JsonDeserializationContext ctx) throws JsonSyntaxException {
+         return new IScriptableRegistry.OptionallyDisabled<>(this.deserializeConst(name, obj, ctx));
+      }
 
-        OptionallyDisabled<E> deserialize(Object name, JsonObject obj, JsonDeserializationContext ctx)
-            throws JsonSyntaxException;
-    }
+      E deserializeConst(Object var1, JsonObject var2, JsonDeserializationContext var3) throws JsonSyntaxException;
+   }
 
-    @FunctionalInterface
-    public interface ISimpleEntryDeserializer<E> extends IEntryDeserializer<E> {
+   final class OptionallyDisabled<E> {
+      @Nullable
+      private final E object;
+      @Nullable
+      private final String reason;
 
-        @Override
-        default OptionallyDisabled<E> deserialize(Object name, JsonObject obj, JsonDeserializationContext ctx)
-            throws JsonSyntaxException {
-            return new OptionallyDisabled<>(deserializeConst(name, obj, ctx));
-        }
+      public OptionallyDisabled(E object) {
+         this.object = object;
+         this.reason = null;
+      }
 
-        E deserializeConst(Object name, JsonObject obj, JsonDeserializationContext ctx)
-            throws JsonSyntaxException;
-    }
+      public OptionallyDisabled(String reason) {
+         this.object = null;
+         this.reason = reason;
+      }
 
-    public static final class OptionallyDisabled<E> {
+      public boolean isPresent() {
+         return this.object != null;
+      }
 
-        @Nullable
-        private final E object;
+      @Nonnull
+      public E get() {
+         E o = this.object;
+         if (o != null) {
+            return o;
+         } else {
+            throw new IllegalStateException("This object has been disabled! You must call isPresent() first!");
+         }
+      }
 
-        @Nullable
-        private final String reason;
-
-        public OptionallyDisabled(E object) {
-            this.object = object;
-            this.reason = null;
-        }
-
-        public OptionallyDisabled(String reason) {
-            this.object = null;
-            this.reason = reason;
-        }
-
-        public boolean isPresent() {
-            return object != null;
-        }
-
-        @Nonnull
-        public E get() {
-            final E o = object;
-            if (o != null) {
-                return o;
-            } else {
-                throw new IllegalStateException("This object has been disabled! You must call isPresent() first!");
-            }
-        }
-
-        @Nonnull
-        public String getDisabledReason() {
-            final String r = reason;
-            if (r != null) {
-                return r;
-            } else {
-                throw new IllegalStateException("This object has not been disabled! You must call isPresent() first!");
-            }
-        }
-    }
+      @Nonnull
+      public String getDisabledReason() {
+         String r = this.reason;
+         if (r != null) {
+            return r;
+         } else {
+            throw new IllegalStateException("This object has not been disabled! You must call isPresent() first!");
+         }
+      }
+   }
 }

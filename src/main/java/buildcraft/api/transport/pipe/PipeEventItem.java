@@ -1,391 +1,375 @@
 package buildcraft.api.transport.pipe;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList.Builder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
 
 public abstract class PipeEventItem extends PipeEvent {
+   public final IFlowItems flow;
 
-    public final IFlowItems flow;
+   protected PipeEventItem(IPipeHolder holder, IFlowItems flow) {
+      super(holder);
+      this.flow = flow;
+   }
 
-    protected PipeEventItem(IPipeHolder holder, IFlowItems flow) {
-        super(holder);
-        this.flow = flow;
-    }
+   @Deprecated
+   protected PipeEventItem(boolean canBeCancelled, IPipeHolder holder, IFlowItems flow) {
+      super(canBeCancelled, holder);
+      this.flow = flow;
+   }
 
-    @Deprecated
-    protected PipeEventItem(boolean canBeCancelled, IPipeHolder holder, IFlowItems flow) {
-        super(canBeCancelled, holder);
-        this.flow = flow;
-    }
+   public static class Drop extends PipeEventItem {
+      private final ItemEntity entity;
 
-    public static class TryInsert extends PipeEventItem {
-        public final DyeColor colour;
-        public final Direction from;
+      public Drop(IPipeHolder holder, IFlowItems flow, ItemEntity entity) {
+         super(holder, flow);
+         this.entity = entity;
+      }
 
-        @Nonnull
-        public final ItemStack attempting;
+      @Nonnull
+      public ItemStack getStack() {
+         ItemStack item = this.entity.getItem();
+         return item.isEmpty() ? ItemStack.EMPTY : item;
+      }
 
-        public int accepted;
+      public void setStack(ItemStack stack) {
+         if (stack == null) {
+            throw new NullPointerException("stack");
+         }
 
-        public TryInsert(IPipeHolder holder, IFlowItems flow, DyeColor colour, Direction from,
-            @Nonnull ItemStack attempting) {
-            super(true, holder, flow);
-            this.colour = colour;
-            this.from = from;
-            this.attempting = attempting;
-            this.accepted = attempting.getCount();
-        }
+         if (stack.isEmpty()) {
+            this.entity.setItem(ItemStack.EMPTY);
+         } else {
+            this.entity.setItem(stack);
+         }
+      }
 
-        @Override
-        public void cancel() {
-            super.cancel();
-        }
-    }
+      public ItemEntity getEntity() {
+         return this.entity;
+      }
+   }
 
-    public static abstract class ReachDest extends PipeEventItem {
-        public DyeColor colour;
-        @Nonnull
-        private ItemStack stack;
+   public abstract static class Ejected extends PipeEventItem {
+      public final ItemStack inserted;
+      @Nonnull
+      private ItemStack excess;
+      public final Direction to;
 
-        public ReachDest(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack) {
-            super(holder, flow);
-            this.colour = colour;
-            this.stack = stack;
-        }
+      protected Ejected(IPipeHolder holder, IFlowItems flow, ItemStack inserted, ItemStack excess, Direction to) {
+         super(holder, flow);
+         this.inserted = inserted;
+         this.excess = excess;
+         this.to = to;
+      }
 
-        @Nonnull
-        public ItemStack getStack() {
-            return this.stack;
-        }
+      @Nonnull
+      public ItemStack getExcess() {
+         return this.excess;
+      }
 
-        public void setStack(ItemStack stack) {
-            if (stack == null) {
-                throw new NullPointerException("stack");
-            } else {
-                this.stack = stack;
-            }
-        }
-    }
+      public void setExcess(ItemStack stack) {
+         if (stack == null) {
+            throw new NullPointerException("stack");
+         }
 
-    public static class OnInsert extends ReachDest {
-        public final Direction from;
+         this.excess = stack;
+      }
 
-        public OnInsert(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack,
-            Direction from) {
-            super(holder, flow, colour, stack);
-            this.from = from;
-        }
-    }
+      public static class IntoPipe extends PipeEventItem.Ejected {
+         public final IFlowItems otherPipe;
 
-    public static class ReachCenter extends ReachDest {
-        public final Direction from;
+         public IntoPipe(IPipeHolder holder, IFlowItems flow, ItemStack inserted, ItemStack excess, Direction to, IFlowItems otherPipe) {
+            super(holder, flow, inserted, excess, to);
+            this.otherPipe = otherPipe;
+         }
+      }
 
-        public ReachCenter(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack,
-            Direction from) {
-            super(holder, flow, colour, stack);
-            this.from = from;
-        }
-    }
+      public static class IntoTile extends PipeEventItem.Ejected {
+         public final BlockEntity tile;
 
-    public static class ReachEnd extends ReachDest {
-        public final Direction to;
+         public IntoTile(IPipeHolder holder, IFlowItems flow, ItemStack inserted, ItemStack excess, Direction to, BlockEntity tile) {
+            super(holder, flow, inserted, excess, to);
+            this.tile = tile;
+         }
+      }
+   }
 
-        public ReachEnd(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack,
-            Direction to) {
-            super(holder, flow, colour, stack);
-            this.to = to;
-        }
-    }
+   public static class FindDest extends PipeEventItem.OrderedEvent {
+      public final ImmutableList<PipeEventItem.ItemEntry> items;
 
-    public static abstract class Ejected extends PipeEventItem {
+      public FindDest(IPipeHolder holder, IFlowItems flow, List<EnumSet<Direction>> orderedDestinations, ImmutableList<PipeEventItem.ItemEntry> items) {
+         super(holder, flow, orderedDestinations);
+         this.items = items;
+      }
+   }
 
-        public final ItemStack inserted;
+   public static class ItemEntry {
+      public final DyeColor colour;
+      @Nonnull
+      public final ItemStack stack;
+      public final Direction from;
+      @Nullable
+      public List<Direction> to;
 
-        @Nonnull
-        private ItemStack excess;
+      public ItemEntry(DyeColor colour, @Nonnull ItemStack stack, Direction from) {
+         this.colour = colour;
+         this.stack = stack;
+         this.from = from;
+      }
+   }
 
-        public final Direction to;
+   public static class ModifySpeed extends PipeEventItem {
+      public final PipeEventItem.ItemEntry item;
+      public final double currentSpeed;
+      public double targetSpeed = 0.0;
+      public double maxSpeedChange = 0.0;
 
-        protected Ejected(IPipeHolder holder, IFlowItems flow, ItemStack inserted, ItemStack excess, Direction to) {
-            super(holder, flow);
-            this.inserted = inserted;
-            this.excess = excess;
-            this.to = to;
-        }
+      public ModifySpeed(IPipeHolder holder, IFlowItems flow, PipeEventItem.ItemEntry item, double initSpeed) {
+         super(holder, flow);
+         this.item = item;
+         this.currentSpeed = initSpeed;
+      }
 
-        @Nonnull
-        public ItemStack getExcess() {
-            return this.excess;
-        }
+      public void modifyTo(double target, double maxDelta) {
+         this.targetSpeed = target;
+         this.maxSpeedChange = maxDelta;
+      }
+   }
 
-        public void setExcess(ItemStack stack) {
-            if (stack == null) {
-                throw new NullPointerException("stack");
-            } else {
-                this.excess = stack;
-            }
-        }
+   public static class OnInsert extends PipeEventItem.ReachDest {
+      public final Direction from;
 
-        public static class IntoPipe extends Ejected {
-            public final IFlowItems otherPipe;
+      public OnInsert(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack, Direction from) {
+         super(holder, flow, colour, stack);
+         this.from = from;
+      }
+   }
 
-            public IntoPipe(IPipeHolder holder, IFlowItems flow, ItemStack inserted, ItemStack excess, Direction to,
-                IFlowItems otherPipe) {
-                super(holder, flow, inserted, excess, to);
-                this.otherPipe = otherPipe;
-            }
-        }
+   public abstract static class OrderedEvent extends PipeEventItem {
+      public final List<EnumSet<Direction>> orderedDestinations;
 
-        public static class IntoTile extends Ejected {
-            public final BlockEntity tile;
+      public OrderedEvent(IPipeHolder holder, IFlowItems flow, List<EnumSet<Direction>> orderedDestinations) {
+         super(holder, flow);
+         this.orderedDestinations = orderedDestinations;
+      }
 
-            public IntoTile(IPipeHolder holder, IFlowItems flow, ItemStack inserted, ItemStack excess, Direction to,
-                BlockEntity tile) {
-                super(holder, flow, inserted, excess, to);
-                this.tile = tile;
-            }
-        }
-    }
+      public EnumSet<Direction> getAllPossibleDestinations() {
+         EnumSet<Direction> set = EnumSet.noneOf(Direction.class);
 
-    public static class SideCheck extends PipeEventItem {
-        public final DyeColor colour;
-        public final Direction from;
-        @Nonnull
-        public final ItemStack stack;
+         for (EnumSet<Direction> e : this.orderedDestinations) {
+            set.addAll(e);
+         }
 
-        private final int[] priority = new int[6];
-        private final EnumSet<Direction> allowed = EnumSet.allOf(Direction.class);
+         return set;
+      }
 
-        public SideCheck(IPipeHolder holder, IFlowItems flow, DyeColor colour, Direction from,
-            @Nonnull ItemStack stack) {
-            super(holder, flow);
-            this.colour = colour;
-            this.from = from;
-            this.stack = stack;
-        }
+      public ImmutableList<Direction> generateRandomOrder() {
+         Builder<Direction> builder = ImmutableList.builder();
 
-        public boolean isAllowed(Direction side) {
-            return allowed.contains(side);
-        }
+         for (EnumSet<Direction> set : this.orderedDestinations) {
+            List<Direction> faces = new ArrayList<>(set);
+            Collections.shuffle(faces);
+            builder.addAll(faces);
+         }
 
-        public void disallow(Direction... sides) {
-            for (Direction side : sides) {
-                allowed.remove(side);
-            }
-        }
+         return builder.build();
+      }
+   }
 
-        public void disallowAll(Collection<Direction> sides) {
-            allowed.removeAll(sides);
-        }
+   public static class ReachCenter extends PipeEventItem.ReachDest {
+      public final Direction from;
 
-        public void disallowAllExcept(Direction... sides) {
-            allowed.retainAll(Lists.newArrayList(sides));
-        }
+      public ReachCenter(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack, Direction from) {
+         super(holder, flow, colour, stack);
+         this.from = from;
+      }
+   }
 
-        public void disallowAll() {
-            allowed.clear();
-        }
+   public abstract static class ReachDest extends PipeEventItem {
+      public DyeColor colour;
+      @Nonnull
+      private ItemStack stack;
 
-        public void increasePriority(Direction side) {
-            increasePriority(side, 1);
-        }
+      public ReachDest(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack) {
+         super(holder, flow);
+         this.colour = colour;
+         this.stack = stack;
+      }
 
-        public void increasePriority(Direction side, int by) {
-            priority[side.ordinal()] -= by;
-        }
+      @Nonnull
+      public ItemStack getStack() {
+         return this.stack;
+      }
 
-        public void decreasePriority(Direction side) {
-            decreasePriority(side, 1);
-        }
+      public void setStack(ItemStack stack) {
+         if (stack == null) {
+            throw new NullPointerException("stack");
+         }
 
-        public void decreasePriority(Direction side, int by) {
-            increasePriority(side, -by);
-        }
+         this.stack = stack;
+      }
+   }
 
-        public List<EnumSet<Direction>> getOrder() {
+   public static class ReachEnd extends PipeEventItem.ReachDest {
+      public final Direction to;
 
-            switch (allowed.size()) {
-                case 0:
-                    return ImmutableList.of();
-                case 1:
-                    return ImmutableList.of(allowed);
-                default:
-            }
-            priority_search: {
-                int val = priority[0];
-                for (int i = 1; i < priority.length; i++) {
-                    if (priority[i] != val) {
-                        break priority_search;
-                    }
-                }
+      public ReachEnd(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack, Direction to) {
+         super(holder, flow, colour, stack);
+         this.to = to;
+      }
+   }
 
-                return ImmutableList.of(allowed);
-            }
+   public static class SideCheck extends PipeEventItem {
+      public final DyeColor colour;
+      public final Direction from;
+      @Nonnull
+      public final ItemStack stack;
+      private final int[] priority = new int[6];
+      private final EnumSet<Direction> allowed = EnumSet.allOf(Direction.class);
 
-            int[] ordered = Arrays.copyOf(priority, 6);
-            Arrays.sort(ordered);
-            int last = 0;
-            List<EnumSet<Direction>> list = Lists.newArrayList();
-            for (int i = 0; i < 6; i++) {
-                int current = ordered[i];
-                if (i != 0 && current == last) {
-                    continue;
-                }
-                last = current;
-                EnumSet<Direction> set = EnumSet.noneOf(Direction.class);
-                for (Direction face : Direction.values()) {
-                    if (allowed.contains(face)) {
-                        if (priority[face.ordinal()] == current) {
-                            set.add(face);
+      public SideCheck(IPipeHolder holder, IFlowItems flow, DyeColor colour, Direction from, @Nonnull ItemStack stack) {
+         super(holder, flow);
+         this.colour = colour;
+         this.from = from;
+         this.stack = stack;
+      }
+
+      public boolean isAllowed(Direction side) {
+         return this.allowed.contains(side);
+      }
+
+      public void disallow(Direction... sides) {
+         for (Direction side : sides) {
+            this.allowed.remove(side);
+         }
+      }
+
+      public void disallowAll(Collection<Direction> sides) {
+         this.allowed.removeAll(sides);
+      }
+
+      public void disallowAllExcept(Direction... sides) {
+         this.allowed.retainAll(Lists.newArrayList(sides));
+      }
+
+      public void disallowAll() {
+         this.allowed.clear();
+      }
+
+      public void increasePriority(Direction side) {
+         this.increasePriority(side, 1);
+      }
+
+      public void increasePriority(Direction side, int by) {
+         this.priority[side.ordinal()] -= by;
+      }
+
+      public void decreasePriority(Direction side) {
+         this.decreasePriority(side, 1);
+      }
+
+      public void decreasePriority(Direction side, int by) {
+         this.increasePriority(side, -by);
+      }
+
+      public List<EnumSet<Direction>> getOrder() {
+         switch (this.allowed.size()) {
+            case 0:
+               return ImmutableList.of();
+            case 1:
+               return ImmutableList.of(this.allowed);
+            default:
+               int val = this.priority[0];
+
+               for (int i = 1; i < this.priority.length; i++) {
+                  if (this.priority[i] != val) {
+                     int[] ordered = Arrays.copyOf(this.priority, 6);
+                     Arrays.sort(ordered);
+                     i = 0;
+                     List<EnumSet<Direction>> list = Lists.newArrayList();
+
+                     for (int ix = 0; ix < 6; ix++) {
+                        int current = ordered[ix];
+                        if (ix == 0 || current != i) {
+                           i = current;
+                           EnumSet<Direction> set = EnumSet.noneOf(Direction.class);
+
+                           for (Direction face : Direction.values()) {
+                              if (this.allowed.contains(face) && this.priority[face.ordinal()] == current) {
+                                 set.add(face);
+                              }
+                           }
+
+                           if (set.size() > 0) {
+                              list.add(set);
+                           }
                         }
-                    }
-                }
-                if (set.size() > 0) {
-                    list.add(set);
-                }
-            }
-            return list;
-        }
-    }
+                     }
 
-    public static class TryBounce extends PipeEventItem {
-        public final DyeColor colour;
-        public final Direction from;
-        @Nonnull
-        public final ItemStack stack;
-        public boolean canBounce = false;
+                     return list;
+                  }
+               }
 
-        public TryBounce(IPipeHolder holder, IFlowItems flow, DyeColor colour, Direction from,
-            @Nonnull ItemStack stack) {
-            super(holder, flow);
-            this.colour = colour;
-            this.from = from;
-            this.stack = stack;
-        }
-    }
+               return ImmutableList.of(this.allowed);
+         }
+      }
+   }
 
-    public static class Drop extends PipeEventItem {
-        private final ItemEntity entity;
+   public static class Split extends PipeEventItem.OrderedEvent {
+      public final List<PipeEventItem.ItemEntry> items = new ArrayList<>();
 
-        public Drop(IPipeHolder holder, IFlowItems flow, ItemEntity entity) {
-            super(holder, flow);
-            this.entity = entity;
-        }
+      public Split(IPipeHolder holder, IFlowItems flow, List<EnumSet<Direction>> order, PipeEventItem.ItemEntry toSplit) {
+         super(holder, flow, order);
+         this.items.add(toSplit);
+      }
+   }
 
-        @Nonnull
-        public ItemStack getStack() {
-            ItemStack item = entity.getItem();
-            return item.isEmpty() ? ItemStack.EMPTY : item;
-        }
+   public static class TryBounce extends PipeEventItem {
+      public final DyeColor colour;
+      public final Direction from;
+      @Nonnull
+      public final ItemStack stack;
+      public boolean canBounce = false;
 
-        public void setStack(ItemStack stack) {
-            if (stack == null) {
-                throw new NullPointerException("stack");
-            } else if (stack.isEmpty()) {
-                entity.setItem(ItemStack.EMPTY);
-            } else {
-                entity.setItem(stack);
-            }
-        }
+      public TryBounce(IPipeHolder holder, IFlowItems flow, DyeColor colour, Direction from, @Nonnull ItemStack stack) {
+         super(holder, flow);
+         this.colour = colour;
+         this.from = from;
+         this.stack = stack;
+      }
+   }
 
-        public ItemEntity getEntity() {
-            return this.entity;
-        }
-    }
+   public static class TryInsert extends PipeEventItem {
+      public final DyeColor colour;
+      public final Direction from;
+      @Nonnull
+      public final ItemStack attempting;
+      public int accepted;
 
-    public static abstract class OrderedEvent extends PipeEventItem {
-        public final List<EnumSet<Direction>> orderedDestinations;
+      public TryInsert(IPipeHolder holder, IFlowItems flow, DyeColor colour, Direction from, @Nonnull ItemStack attempting) {
+         super(true, holder, flow);
+         this.colour = colour;
+         this.from = from;
+         this.attempting = attempting;
+         this.accepted = attempting.getCount();
+      }
 
-        public OrderedEvent(IPipeHolder holder, IFlowItems flow, List<EnumSet<Direction>> orderedDestinations) {
-            super(holder, flow);
-            this.orderedDestinations = orderedDestinations;
-        }
-
-        public EnumSet<Direction> getAllPossibleDestinations() {
-            EnumSet<Direction> set = EnumSet.noneOf(Direction.class);
-            for (EnumSet<Direction> e : orderedDestinations) {
-                set.addAll(e);
-            }
-            return set;
-        }
-
-        public ImmutableList<Direction> generateRandomOrder() {
-            ImmutableList.Builder<Direction> builder = ImmutableList.builder();
-            for (EnumSet<Direction> set : orderedDestinations) {
-                List<Direction> faces = new ArrayList<>(set);
-                Collections.shuffle(faces);
-                builder.addAll(faces);
-            }
-            return builder.build();
-        }
-    }
-
-    public static class Split extends OrderedEvent {
-        public final List<ItemEntry> items = new ArrayList<>();
-
-        public Split(IPipeHolder holder, IFlowItems flow, List<EnumSet<Direction>> order, ItemEntry toSplit) {
-            super(holder, flow, order);
-            items.add(toSplit);
-        }
-    }
-
-    public static class FindDest extends OrderedEvent {
-        public final ImmutableList<ItemEntry> items;
-
-        public FindDest(IPipeHolder holder, IFlowItems flow, List<EnumSet<Direction>> orderedDestinations,
-            ImmutableList<ItemEntry> items) {
-            super(holder, flow, orderedDestinations);
-            this.items = items;
-        }
-    }
-
-    public static class ModifySpeed extends PipeEventItem {
-        public final ItemEntry item;
-        public final double currentSpeed;
-        public double targetSpeed = 0;
-        public double maxSpeedChange = 0;
-
-        public ModifySpeed(IPipeHolder holder, IFlowItems flow, ItemEntry item, double initSpeed) {
-            super(holder, flow);
-            this.item = item;
-            currentSpeed = initSpeed;
-        }
-
-        public void modifyTo(double target, double maxDelta) {
-            targetSpeed = target;
-            maxSpeedChange = maxDelta;
-        }
-    }
-
-    public static class ItemEntry {
-        public final DyeColor colour;
-        @Nonnull
-        public final ItemStack stack;
-        public final Direction from;
-
-        @Nullable
-        public List<Direction> to;
-
-        public ItemEntry(DyeColor colour, @Nonnull ItemStack stack, Direction from) {
-            this.colour = colour;
-            this.stack = stack;
-            this.from = from;
-        }
-    }
+      @Override
+      public void cancel() {
+         super.cancel();
+      }
+   }
 }

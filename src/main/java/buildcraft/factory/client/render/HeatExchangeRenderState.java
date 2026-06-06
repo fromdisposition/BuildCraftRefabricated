@@ -1,6 +1,7 @@
 package buildcraft.factory.client.render;
 
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import buildcraft.factory.tile.TileHeatExchange;
+import buildcraft.lib.client.render.tile.BcBerState;
 
-public class HeatExchangeRenderState extends BlockEntityRenderState {
+public class HeatExchangeRenderState extends BcBerState<TileHeatExchange> {
 }

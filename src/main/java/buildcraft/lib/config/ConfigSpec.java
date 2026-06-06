@@ -5,137 +5,143 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class ConfigSpec {
-    public static class BooleanValue {
-        private boolean value;
+   public static class BooleanValue {
+      private boolean value;
 
-        public BooleanValue(boolean value) {
-            this.value = value;
-        }
+      public BooleanValue(boolean value) {
+         this.value = value;
+      }
 
-        public boolean get() {
-            return value;
-        }
+      public boolean get() {
+         return this.value;
+      }
 
-        public void set(boolean value) {
-            this.value = value;
-        }
-    }
+      public void set(boolean value) {
+         this.value = value;
+      }
+   }
 
-    public static class IntValue {
-        private int value;
+   public static class Builder {
+      public ConfigSpec.Builder push(String path) {
+         return this;
+      }
 
-        public IntValue(int value) {
-            this.value = value;
-        }
+      public ConfigSpec.Builder pop() {
+         return this;
+      }
 
-        public int get() {
-            return value;
-        }
+      public ConfigSpec.Builder comment(String... comment) {
+         return this;
+      }
 
-        public void set(int value) {
-            this.value = value;
-        }
-    }
+      public ConfigSpec.BooleanValue define(String path, boolean defaultValue) {
+         return new ConfigSpec.BooleanValue(defaultValue);
+      }
 
-    public static class LongValue {
-        private long value;
+      public ConfigSpec.IntValue defineInRange(String path, int defaultValue, int min, int max) {
+         return new ConfigSpec.IntValue(defaultValue);
+      }
 
-        public LongValue(long value) {
-            this.value = value;
-        }
+      public ConfigSpec.LongValue defineInRange(String path, long defaultValue, long min, long max) {
+         return new ConfigSpec.LongValue(defaultValue);
+      }
 
-        public long get() {
-            return value;
-        }
+      public ConfigSpec.DoubleValue defineInRange(String path, double defaultValue, double min, double max) {
+         return new ConfigSpec.DoubleValue(defaultValue);
+      }
 
-        public void set(long value) {
-            this.value = value;
-        }
-    }
+      public <T extends Enum<T>> ConfigSpec.EnumValue<T> defineEnum(String path, T defaultValue) {
+         return new ConfigSpec.EnumValue<>(defaultValue);
+      }
 
-    public static class DoubleValue {
-        private double value;
+      public ConfigSpec.ConfigValue<List<? extends String>> defineListAllowEmpty(
+         String path, List<? extends String> defaultValue, Supplier<String> elementSupplier, Predicate<Object> validator
+      ) {
+         return new ConfigSpec.ConfigValue<>(defaultValue);
+      }
 
-        public DoubleValue(double value) {
-            this.value = value;
-        }
+      public ConfigSpec build() {
+         return new ConfigSpec();
+      }
+   }
 
-        public double get() {
-            return value;
-        }
+   public static class ConfigValue<T> {
+      private T value;
 
-        public void set(double value) {
-            this.value = value;
-        }
-    }
+      public ConfigValue(T value) {
+         this.value = value;
+      }
 
-    public static class ConfigValue<T> {
-        private T value;
+      public T get() {
+         return this.value;
+      }
 
-        public ConfigValue(T value) {
-            this.value = value;
-        }
+      public void set(T value) {
+         this.value = value;
+      }
+   }
 
-        public T get() {
-            return value;
-        }
+   public static class DoubleValue {
+      private double value;
 
-        public void set(T value) {
-            this.value = value;
-        }
-    }
+      public DoubleValue(double value) {
+         this.value = value;
+      }
 
-    public static class EnumValue<T extends Enum<T>> {
-        private T value;
+      public double get() {
+         return this.value;
+      }
 
-        public EnumValue(T value) {
-            this.value = value;
-        }
+      public void set(double value) {
+         this.value = value;
+      }
+   }
 
-        public T get() {
-            return value;
-        }
+   public static class EnumValue<T extends Enum<T>> {
+      private T value;
 
-        public void set(T value) {
-            this.value = value;
-        }
-    }
+      public EnumValue(T value) {
+         this.value = value;
+      }
 
-    public static class Builder {
-        public Builder push(String path) { return this; }
-        public Builder pop() { return this; }
-        public Builder comment(String... comment) { return this; }
+      public T get() {
+         return this.value;
+      }
 
-        public BooleanValue define(String path, boolean defaultValue) {
-            return new BooleanValue(defaultValue);
-        }
+      public void set(T value) {
+         this.value = value;
+      }
+   }
 
-        public IntValue defineInRange(String path, int defaultValue, int min, int max) {
-            return new IntValue(defaultValue);
-        }
+   public static class IntValue {
+      private int value;
 
-        public LongValue defineInRange(String path, long defaultValue, long min, long max) {
-            return new LongValue(defaultValue);
-        }
+      public IntValue(int value) {
+         this.value = value;
+      }
 
-        public DoubleValue defineInRange(String path, double defaultValue, double min, double max) {
-            return new DoubleValue(defaultValue);
-        }
+      public int get() {
+         return this.value;
+      }
 
-        public <T extends Enum<T>> EnumValue<T> defineEnum(String path, T defaultValue) {
-            return new EnumValue<>(defaultValue);
-        }
+      public void set(int value) {
+         this.value = value;
+      }
+   }
 
-        public ConfigValue<List<? extends String>> defineListAllowEmpty(
-                String path,
-                List<? extends String> defaultValue,
-                Supplier<String> elementSupplier,
-                Predicate<Object> validator) {
-            @SuppressWarnings("unchecked")
-            ConfigValue<List<? extends String>> value = new ConfigValue<>((List<? extends String>) defaultValue);
-            return value;
-        }
+   public static class LongValue {
+      private long value;
 
-        public ConfigSpec build() { return new ConfigSpec(); }
-    }
+      public LongValue(long value) {
+         this.value = value;
+      }
+
+      public long get() {
+         return this.value;
+      }
+
+      public void set(long value) {
+         this.value = value;
+      }
+   }
 }

@@ -4,29 +4,28 @@ import java.util.Collection;
 import java.util.Map;
 
 public interface IReloadableRegistry<E> {
+   IReloadableRegistryManager getManager();
 
-    public enum PackType {
-        RESOURCE_PACK("assets"),
-        DATA_PACK("data");
+   default void reload() {
+      this.getManager().reload(this);
+   }
 
-        public final String prefix;
+   <T extends E> T addPermanent(T var1);
 
-        PackType(String prefix) {
-            this.prefix = prefix;
-        }
-    }
+   Collection<E> getPermanent();
 
-    IReloadableRegistryManager getManager();
+   Map<Object, E> getReloadableEntryMap();
 
-    default void reload() {
-        getManager().reload(this);
-    }
+   Iterable<E> getAllEntries();
 
-    <T extends E> T addPermanent(T recipe);
+   enum PackType {
+      RESOURCE_PACK("assets"),
+      DATA_PACK("data");
 
-    Collection<E> getPermanent();
+      public final String prefix;
 
-    Map<Object, E> getReloadableEntryMap();
-
-    Iterable<E> getAllEntries();
+      PackType(String prefix) {
+         this.prefix = prefix;
+      }
+   }
 }

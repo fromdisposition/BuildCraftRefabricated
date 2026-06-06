@@ -6,13 +6,13 @@ import buildcraft.robotics.BCRoboticsItems;
 import buildcraft.robotics.BCRoboticsMenuTypes;
 
 public final class BCRoboticsFabric {
-    private BCRoboticsFabric() {}
+   private BCRoboticsFabric() {
+   }
 
-    public static void register() {
-        BCRoboticsBlocks.register();
-        BCRoboticsItems.register();
-        BCRoboticsBlockEntities.register();
-        BCRoboticsMenuTypes.register();
-    }
+   public static void register() {
+      BCRoboticsBlocks.register();
+      BCRoboticsItems.register();
+      BCRoboticsBlockEntities.register();
+      BCRoboticsMenuTypes.register();
+   }
 }
-

@@ -6,5 +6,5 @@ A tool only accessible via cheats. When held in a hand in survival mode, the F3 
 <chapter name="Overlay coverage"/>
 Two BuildCraft tiles currently draw an in-world overlay when right-clicked with the Debugger:
 <bold><link inline="buildcraft:block/quarry"/>:</bold> a translucent green box covers every chunk the quarry is keeping force-loaded, inset slightly from each chunk boundary so neighbouring chunks read as separate volumes. Useful for confirming what and how many chunks a quarry is keeping loaded during its process.
-<bold><link inline="buildcraft:placeholder/laser"/>:</bold> small cubes mark every block inside the laser's six-block targeting cone. Green cubes are reachable along an unobstructed line back to the laser; red cubes are blocked by an intervening block. Useful for diagnosing why a laser is failing to feed its target.
+<bold><link inline="buildcraft:block/laser"/>:</bold> small cubes mark every block inside the laser's six-block targeting cone. Green cubes are reachable along an unobstructed line back to the laser; red cubes are blocked by an intervening block. Useful for diagnosing why a laser is failing to feed its target.
 At this time, no other blocks have additional debugging features such as these.

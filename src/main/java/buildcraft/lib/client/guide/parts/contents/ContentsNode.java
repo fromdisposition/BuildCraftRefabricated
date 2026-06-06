@@ -1,5 +1,10 @@
 package buildcraft.lib.client.guide.parts.contents;
 
+import buildcraft.lib.client.guide.GuiGuide;
+import buildcraft.lib.client.guide.PageLine;
+import buildcraft.lib.client.guide.parts.GuideChapterWithin;
+import buildcraft.lib.client.guide.parts.GuidePart;
+import buildcraft.lib.client.guide.parts.GuideText;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -7,124 +12,116 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.annotation.Nullable;
-
 import net.minecraft.ChatFormatting;
 
-import buildcraft.lib.client.guide.GuiGuide;
-import buildcraft.lib.client.guide.PageLine;
-import buildcraft.lib.client.guide.parts.GuideChapterWithin;
-import buildcraft.lib.client.guide.parts.GuidePart;
-import buildcraft.lib.client.guide.parts.GuideText;
-
 public class ContentsNode implements IContentsNode {
+   public final String title;
+   public final int indent;
+   private final boolean ignoreSortWeight;
+   private final Map<String, IContentsNode> nodes = new HashMap<>();
+   private IContentsNode[] sortedNodes = new IContentsNode[0];
+   IContentsNode[] visibleNodes = new IContentsNode[0];
+   private boolean needsSorting = false;
 
-    public final String title;
-    public final int indent;
+   public ContentsNode(String title, int indent) {
+      this(title, indent, false);
+   }
 
-    private final boolean ignoreSortWeight;
-    private final Map<String, IContentsNode> nodes = new HashMap<>();
-    private IContentsNode[] sortedNodes = new IContentsNode[0];
-    IContentsNode[] visibleNodes = new IContentsNode[0];
-    private boolean needsSorting = false;
+   public ContentsNode(String title, int indent, boolean ignoreSortWeight) {
+      this.title = title;
+      this.indent = indent;
+      this.ignoreSortWeight = ignoreSortWeight;
+   }
 
-    public ContentsNode(String title, int indent) {
-        this(title, indent, false);
-    }
+   @Override
+   public String getSearchName() {
+      return this.title;
+   }
 
-    public ContentsNode(String title, int indent, boolean ignoreSortWeight) {
-        this.title = title;
-        this.indent = indent;
-        this.ignoreSortWeight = ignoreSortWeight;
-    }
+   @Override
+   public int getSortIndex() {
+      int min = Integer.MAX_VALUE;
 
-    @Override
-    public String getSearchName() {
-        return title;
-    }
+      for (IContentsNode child : this.nodes.values()) {
+         min = Math.min(min, child.getSortIndex());
+      }
 
-    @Override
-    public int getSortIndex() {
+      return min == Integer.MAX_VALUE ? 0 : min;
+   }
 
-        int min = Integer.MAX_VALUE;
-        for (IContentsNode child : nodes.values()) {
-            min = Math.min(min, child.getSortIndex());
-        }
-        return min == Integer.MAX_VALUE ? 0 : min;
-    }
+   @Override
+   public GuidePart createGuidePart(GuiGuide gui) {
+      return this.indent == 0
+         ? new GuideChapterWithin(gui, ChatFormatting.UNDERLINE + this.title)
+         : new GuideText(gui, new PageLine(this.indent + 1, ChatFormatting.UNDERLINE + this.title, false));
+   }
 
-    @Override
-    public GuidePart createGuidePart(GuiGuide gui) {
-        if (indent == 0) {
-            return new GuideChapterWithin(gui, ChatFormatting.UNDERLINE + title);
-        } else {
-            return new GuideText(gui, new PageLine(indent + 1, ChatFormatting.UNDERLINE + title, false));
-        }
-    }
+   @Nullable
+   public IContentsNode getChild(String childKey) {
+      return this.nodes.get(childKey);
+   }
 
-    @Nullable
-    public IContentsNode getChild(String childKey) {
-        return nodes.get(childKey);
-    }
+   @Override
+   public void addChild(IContentsNode node) {
+      this.nodes.put(node.getSearchName(), node);
+      this.needsSorting = true;
+   }
 
-    @Override
-    public void addChild(IContentsNode node) {
-        nodes.put(node.getSearchName(), node);
-        needsSorting = true;
-    }
+   @Override
+   public IContentsNode[] getVisibleChildren() {
+      return this.visibleNodes;
+   }
 
-    @Override
-    public IContentsNode[] getVisibleChildren() {
-        return visibleNodes;
-    }
+   @Override
+   public boolean isVisible() {
+      return this.visibleNodes.length != 0;
+   }
 
-    @Override
-    public boolean isVisible() {
-        return visibleNodes.length != 0;
-    }
+   @Override
+   public void sort() {
+      if (this.needsSorting) {
+         this.needsSorting = false;
+         this.sortedNodes = this.nodes.values().toArray(new IContentsNode[0]);
+         Comparator<IContentsNode> byName = Comparator.comparing(IContentsNode::getSearchName, String.CASE_INSENSITIVE_ORDER);
+         Arrays.sort(this.sortedNodes, this.ignoreSortWeight ? byName : Comparator.comparingInt(IContentsNode::getSortIndex).thenComparing(byName));
 
-    @Override
-    public void sort() {
-        if (!needsSorting) return;
-        needsSorting = false;
-        sortedNodes = nodes.values().toArray(new IContentsNode[0]);
-
-        Comparator<IContentsNode> byName =
-            Comparator.comparing(IContentsNode::getSearchName, String.CASE_INSENSITIVE_ORDER);
-        Arrays.sort(sortedNodes, ignoreSortWeight
-            ? byName
-            : Comparator.comparingInt(IContentsNode::getSortIndex).thenComparing(byName));
-        for (IContentsNode node : sortedNodes) {
+         for (IContentsNode node : this.sortedNodes) {
             node.sort();
-        }
-        calcVisibility();
-    }
+         }
 
-    @Override
-    public void calcVisibility() {
-        List<IContentsNode> visible = new ArrayList<>();
-        for (IContentsNode node : sortedNodes) {
-            if (node.isVisible()) {
-                visible.add(node);
-            }
-        }
-        visibleNodes = visible.toArray(new IContentsNode[0]);
-    }
+         this.calcVisibility();
+      }
+   }
 
-    @Override
-    public void resetVisibility() {
-        for (IContentsNode node : sortedNodes) {
-            node.resetVisibility();
-        }
-        calcVisibility();
-    }
+   @Override
+   public void calcVisibility() {
+      List<IContentsNode> visible = new ArrayList<>();
 
-    @Override
-    public void setVisible(Set<PageLink> matches) {
-        for (IContentsNode node : sortedNodes) {
-            node.setVisible(matches);
-        }
-        calcVisibility();
-    }
+      for (IContentsNode node : this.sortedNodes) {
+         if (node.isVisible()) {
+            visible.add(node);
+         }
+      }
+
+      this.visibleNodes = visible.toArray(new IContentsNode[0]);
+   }
+
+   @Override
+   public void resetVisibility() {
+      for (IContentsNode node : this.sortedNodes) {
+         node.resetVisibility();
+      }
+
+      this.calcVisibility();
+   }
+
+   @Override
+   public void setVisible(Set<PageLink> matches) {
+      for (IContentsNode node : this.sortedNodes) {
+         node.setVisible(matches);
+      }
+
+      this.calcVisibility();
+   }
 }

@@ -1,65 +1,55 @@
-/* Copyright (c) 2016 SpaceToad and the BuildCraft team
- *
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.core.block;
 
+import buildcraft.core.tile.TileMarkerVolume;
+import buildcraft.lib.block.BlockMarkerBase;
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
-import javax.annotation.Nullable;
-
-import buildcraft.lib.block.BlockMarkerBase;
-import buildcraft.core.tile.TileMarkerVolume;
 
 public class BlockMarkerVolume extends BlockMarkerBase {
-    public BlockMarkerVolume(Properties properties) {
-        super(properties);
-    }
+   public BlockMarkerVolume(Properties properties) {
+      super(properties);
+   }
 
-    @Override
-    public BlockEntity createTileEntity(BlockPos pos, BlockState state) {
-        return new TileMarkerVolume(pos, state);
-    }
+   @Override
+   public BlockEntity createTileEntity(BlockPos pos, BlockState state) {
+      return new TileMarkerVolume(pos, state);
+   }
 
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos,
-            Player player, BlockHitResult hitResult) {
-        if (!world.isClientSide()) {
-            BlockEntity tile = world.getBlockEntity(pos);
-            if (tile instanceof TileMarkerVolume volume) {
-                volume.onManualConnectionAttempt(player);
-            }
-        }
-        return InteractionResult.SUCCESS;
-    }
+   protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
+      if (!world.isClientSide() && world.getBlockEntity(pos) instanceof TileMarkerVolume volume) {
+         volume.onManualConnectionAttempt(player);
+      }
 
-    @Override
-    protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block blockIn, @Nullable Orientation orientation, boolean isMoving) {
-        checkSignalState(world, pos);
-    }
+      return InteractionResult.SUCCESS;
+   }
 
-    @Override
-    public boolean canSurvive(BlockState state, net.minecraft.world.level.LevelReader level, BlockPos pos) {
-        return true;
-    }
+   protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block blockIn, @Nullable Orientation orientation, boolean isMoving) {
+      checkSignalState(world, pos);
+   }
 
-    private static void checkSignalState(Level world, BlockPos pos) {
-        if (world.isClientSide()) {
-            return;
-        }
-        BlockEntity tile = world.getBlockEntity(pos);
-        if (tile instanceof TileMarkerVolume volume) {
+   @Override
+   public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
+      return true;
+   }
+
+   private static void checkSignalState(Level world, BlockPos pos) {
+      if (!world.isClientSide()) {
+         if (world.getBlockEntity(pos) instanceof TileMarkerVolume volume) {
             boolean powered = world.hasNeighborSignal(pos);
             if (volume.isShowingSignals() != powered) {
-                volume.switchSignals();
+               volume.switchSignals();
             }
-        }
-    }
+         }
+      }
+   }
 }

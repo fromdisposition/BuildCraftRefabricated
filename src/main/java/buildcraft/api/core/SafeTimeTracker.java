@@ -1,62 +1,54 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * The BuildCraft API is distributed under the terms of the MIT License. Please check the contents of the license, which
- * should be located as "LICENSE.API" in the BuildCraft source code distribution. */
 package buildcraft.api.core;
 
 import net.minecraft.world.level.Level;
 
 public class SafeTimeTracker {
+   private long lastMark = Long.MIN_VALUE;
+   private long duration = -1L;
+   private long randomRange = 0L;
+   private long lastRandomDelay = 0L;
+   private long internalDelay = 1L;
 
-    private long lastMark = Long.MIN_VALUE;
-    private long duration = -1;
-    private long randomRange = 0;
-    private long lastRandomDelay = 0;
-    private long internalDelay = 1;
+   public SafeTimeTracker() {
+   }
 
-    public SafeTimeTracker() {
+   public SafeTimeTracker(long delay) {
+      this.internalDelay = delay;
+   }
 
-    }
+   public SafeTimeTracker(long delay, long random) {
+      this.internalDelay = delay;
+      this.randomRange = random;
+   }
 
-    public SafeTimeTracker(long delay) {
-        internalDelay = delay;
-    }
+   public boolean markTimeIfDelay(Level world) {
+      return this.markTimeIfDelay(world, this.internalDelay);
+   }
 
-    public SafeTimeTracker(long delay, long random) {
-        internalDelay = delay;
-        randomRange = random;
-    }
-
-    public boolean markTimeIfDelay(Level world) {
-        return markTimeIfDelay(world, internalDelay);
-    }
-
-    public boolean markTimeIfDelay(Level world, long delay) {
-        if (world == null) {
+   public boolean markTimeIfDelay(Level world, long delay) {
+      if (world == null) {
+         return false;
+      } else {
+         long currentTime = world.getGameTime();
+         if (currentTime < this.lastMark) {
+            this.lastMark = currentTime;
             return false;
-        }
-
-        long currentTime = world.getGameTime();
-
-        if (currentTime < lastMark) {
-            lastMark = currentTime;
-            return false;
-        } else if (lastMark + delay + lastRandomDelay <= currentTime) {
-            duration = currentTime - lastMark;
-            lastMark = currentTime;
-            lastRandomDelay = (int) (Math.random() * randomRange);
-
+         } else if (this.lastMark + delay + this.lastRandomDelay <= currentTime) {
+            this.duration = currentTime - this.lastMark;
+            this.lastMark = currentTime;
+            this.lastRandomDelay = (int)(Math.random() * this.randomRange);
             return true;
-        } else {
+         } else {
             return false;
-        }
-    }
+         }
+      }
+   }
 
-    public long durationOfLastDelay() {
-        return duration > 0 ? duration : 0;
-    }
+   public long durationOfLastDelay() {
+      return this.duration > 0L ? this.duration : 0L;
+   }
 
-    public void markTime(Level world) {
-        lastMark = world.getGameTime();
-    }
+   public void markTime(Level world) {
+      this.lastMark = world.getGameTime();
+   }
 }

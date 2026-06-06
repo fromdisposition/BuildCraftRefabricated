@@ -1,8 +1,8 @@
 package buildcraft.core;
 
 public final class BCUnifiedConfig {
+   public static final Object SPEC = new Object();
 
-    public static final Object SPEC = new Object();
-
-    private BCUnifiedConfig() {}
+   private BCUnifiedConfig() {
+   }
 }

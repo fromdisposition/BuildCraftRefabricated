@@ -1,17 +1,26 @@
-/* Copyright (c) 2016 SpaceToad and the BuildCraft team
- *
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.builders.tile;
 
+import buildcraft.api.core.BCLog;
+import buildcraft.api.core.EnumPipePart;
+import buildcraft.api.enums.EnumSnapshotType;
+import buildcraft.builders.BCBuildersBlockEntities;
+import buildcraft.builders.BCBuildersItems;
+import buildcraft.builders.container.ContainerElectronicLibrary;
+import buildcraft.builders.item.ItemSnapshot;
+import buildcraft.builders.snapshot.GlobalSavedDataSnapshots;
+import buildcraft.builders.snapshot.Snapshot;
+import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
+import buildcraft.lib.nbt.NbtSquisher;
+import buildcraft.lib.tile.BcBlockEntity;
+import buildcraft.lib.tile.ItemHandlerManager;
+import buildcraft.lib.tile.ItemHandlerSimple;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
 import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -25,202 +34,174 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-import buildcraft.api.core.BCLog;
-import buildcraft.api.core.EnumPipePart;
-import buildcraft.api.enums.EnumSnapshotType;
+public class TileElectronicLibrary extends BcBlockEntity implements MenuProvider, BlockEntityExtendedMenu {
+   public final ItemHandlerSimple invDownIn = this.itemManager
+      .addInvHandler(
+         "downIn", 1, (slot, stack) -> stack.getItem() instanceof ItemSnapshot snap && snap.isUsed(), ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES
+      );
+   public final ItemHandlerSimple invDownOut = this.itemManager.addInvHandler("downOut", 1, ItemHandlerManager.EnumAccess.EXTRACT, EnumPipePart.VALUES);
+   public final ItemHandlerSimple invUpIn = this.itemManager
+      .addInvHandler("upIn", 1, (slot, stack) -> stack.getItem() instanceof ItemSnapshot, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
+   public final ItemHandlerSimple invUpOut = this.itemManager.addInvHandler("upOut", 1, ItemHandlerManager.EnumAccess.EXTRACT, EnumPipePart.VALUES);
+   @Nullable
+   public Snapshot.Key selected = null;
+   public int progressDown = -1;
+   public int progressUp = -1;
+   private final Set<Player> watchingPlayers = new HashSet<>();
+   private static final int MIN_TICKS_BETWEEN_DOWNLOADS = 4;
+   private long lastDownloadBroadcastTick = -4L;
+   private boolean uploadRequestInFlight;
 
-import buildcraft.lib.nbt.NbtSquisher;
-import buildcraft.lib.tile.TileBC_Neptune;
-import buildcraft.lib.tile.item.ItemHandlerManager.EnumAccess;
-import buildcraft.lib.tile.item.ItemHandlerSimple;
+   public TileElectronicLibrary(BlockPos pos, BlockState state) {
+      super(BCBuildersBlockEntities.LIBRARY, pos, state);
+   }
 
-import buildcraft.builders.BCBuildersBlockEntities;
-import buildcraft.builders.BCBuildersItems;
-import buildcraft.builders.container.ContainerElectronicLibrary;
-import buildcraft.builders.item.ItemSnapshot;
-import buildcraft.builders.snapshot.GlobalSavedDataSnapshots;
-import buildcraft.builders.snapshot.Snapshot;
+   @Override
+   public void onPlacedBy(@Nullable LivingEntity placer, ItemStack stack) {
+      super.onPlacedBy(placer, stack);
+      if (this.level != null && !this.level.isClientSide()) {
+         this.setChanged();
+         this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+      }
+   }
 
-public class TileElectronicLibrary extends TileBC_Neptune implements MenuProvider,
-        buildcraft.lib.fabric.menu.BlockEntityExtendedMenu {
+   @Override
+   public void onPlayerOpen(Player player) {
+      super.onPlayerOpen(player);
+      this.watchingPlayers.add(player);
+   }
 
-    public final ItemHandlerSimple invDownIn = itemManager.addInvHandler(
-        "downIn", 1,
-        (slot, stack) -> stack.getItem() instanceof ItemSnapshot snap && snap.isUsed(),
-        EnumAccess.INSERT, EnumPipePart.VALUES
-    );
+   @Override
+   public void onPlayerClose(Player player) {
+      super.onPlayerClose(player);
+      this.watchingPlayers.remove(player);
+   }
 
-    public final ItemHandlerSimple invDownOut = itemManager.addInvHandler(
-        "downOut", 1, EnumAccess.EXTRACT, EnumPipePart.VALUES
-    );
-
-    public final ItemHandlerSimple invUpIn = itemManager.addInvHandler(
-        "upIn", 1,
-        (slot, stack) -> stack.getItem() instanceof ItemSnapshot,
-        EnumAccess.INSERT, EnumPipePart.VALUES
-    );
-
-    public final ItemHandlerSimple invUpOut = itemManager.addInvHandler(
-        "upOut", 1, EnumAccess.EXTRACT, EnumPipePart.VALUES
-    );
-
-    @Nullable
-    public Snapshot.Key selected = null;
-
-    public int progressDown = -1;
-    public int progressUp = -1;
-
-    private final Set<Player> watchingPlayers = new HashSet<>();
-
-    public TileElectronicLibrary(BlockPos pos, BlockState state) {
-        super(BCBuildersBlockEntities.LIBRARY, pos, state);
-    }
-
-    @Override
-    public void onPlacedBy(@Nullable LivingEntity placer, ItemStack stack) {
-        super.onPlacedBy(placer, stack);
-        if (level != null && !level.isClientSide()) {
-            setChanged();
-
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-        }
-    }
-
-    @Override
-    public void onPlayerOpen(Player player) {
-        super.onPlayerOpen(player);
-        watchingPlayers.add(player);
-    }
-
-    @Override
-    public void onPlayerClose(Player player) {
-        super.onPlayerClose(player);
-        watchingPlayers.remove(player);
-    }
-
-    public void tick() {
-        if (level == null || level.isClientSide()) {
-            return;
-        }
-
-        if (!invDownIn.getStackInSlot(0).isEmpty() && invDownOut.getStackInSlot(0).isEmpty()) {
-            if (progressDown == -1) {
-                progressDown = 0;
+   public void tick() {
+      if (this.level != null && !this.level.isClientSide()) {
+         if (!this.invDownIn.getStackInSlot(0).isEmpty() && this.invDownOut.getStackInSlot(0).isEmpty()) {
+            if (this.progressDown == -1) {
+               this.progressDown = 0;
             }
-            if (progressDown >= 50) {
-                ItemStack inStack = invDownIn.getStackInSlot(0);
 
-                invDownOut.setStackInSlot(0, inStack.copy());
-                invDownIn.setStackInSlot(0, ItemStack.EMPTY);
-                progressDown = -1;
-                setChanged();
-
-                broadcastDownload(inStack);
+            if (this.progressDown >= 50) {
+               ItemStack inStack = this.invDownIn.getStackInSlot(0);
+               this.invDownOut.setStackInSlot(0, inStack.copy());
+               this.invDownIn.setStackInSlot(0, ItemStack.EMPTY);
+               this.progressDown = -1;
+               this.setChanged();
+               this.broadcastDownload(inStack);
             } else {
-                progressDown++;
+               this.progressDown++;
             }
-        } else if (progressDown != -1) {
-            progressDown = -1;
-        }
+         } else if (this.progressDown != -1) {
+            this.progressDown = -1;
+         }
 
-        if (selected != null && !invUpIn.getStackInSlot(0).isEmpty() && invUpOut.getStackInSlot(0).isEmpty()) {
-            if (progressUp == -1) {
-                progressUp = 0;
+         if (this.selected != null && !this.invUpIn.getStackInSlot(0).isEmpty() && this.invUpOut.getStackInSlot(0).isEmpty()) {
+            if (this.progressUp == -1) {
+               this.progressUp = 0;
             }
-            if (progressUp >= 50) {
 
-                requestUpload();
-                progressUp = -1;
+            if (this.progressUp >= 50) {
+               this.requestUpload();
+               this.progressUp = -1;
             } else {
-                progressUp++;
+               this.progressUp++;
             }
-        } else if (progressUp != -1) {
-            progressUp = -1;
-        }
-    }
+         } else if (this.progressUp != -1) {
+            this.progressUp = -1;
+            this.uploadRequestInFlight = false;
+         }
+      }
+   }
 
-    private void broadcastDownload(ItemStack usedItem) {
-        Snapshot.Header header = ItemSnapshot.getHeader(usedItem);
-        if (header == null) return;
+   private void broadcastDownload(ItemStack usedItem) {
+      long tick = this.level.getGameTime();
+      if (tick - this.lastDownloadBroadcastTick >= 4L) {
+         this.lastDownloadBroadcastTick = tick;
+         Snapshot.Header header = ItemSnapshot.getHeader(usedItem);
+         if (header != null) {
+            Snapshot snapshot = GlobalSavedDataSnapshots.get(this.level).getSnapshot(header.key);
+            if (snapshot != null) {
+               Snapshot snapshotWithHeader = snapshot.copy();
+               snapshotWithHeader.key = new Snapshot.Key(snapshot.key, header);
 
-        Snapshot snapshot = GlobalSavedDataSnapshots.get(level).getSnapshot(header.key);
-        if (snapshot == null) return;
+               byte[] data;
+               try {
+                  ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                  NbtSquisher.squishVanilla(Snapshot.writeToNBT(snapshotWithHeader), baos);
+                  data = baos.toByteArray();
+               } catch (IOException e) {
+                  BCLog.logger.warn("[library] Failed to serialize snapshot for download broadcast", e);
+                  return;
+               }
 
-        Snapshot snapshotWithHeader = snapshot.copy();
-        snapshotWithHeader.key = new Snapshot.Key(snapshot.key, header);
+               for (Player p : this.watchingPlayers) {
+                  if (p.containerMenu instanceof ContainerElectronicLibrary container) {
+                     container.sendDownloadData(data);
+                  }
+               }
+            }
+         }
+      }
+   }
 
-        byte[] data;
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            NbtSquisher.squishVanilla(Snapshot.writeToNBT(snapshotWithHeader), baos);
-            data = baos.toByteArray();
-        } catch (IOException e) {
-            BCLog.logger.warn("[library] Failed to serialize snapshot for download broadcast", e);
-            return;
-        }
+   private void requestUpload() {
+      if (this.selected != null && !this.uploadRequestInFlight) {
+         this.uploadRequestInFlight = true;
+         Snapshot.Key key = this.selected;
 
-        for (Player p : watchingPlayers) {
+         for (Player p : this.watchingPlayers) {
             if (p.containerMenu instanceof ContainerElectronicLibrary container) {
-                container.sendDownloadData(data);
+               container.sendMessage(3, buf -> key.writeToByteBuf(buf));
+               break;
             }
-        }
-    }
+         }
+      }
+   }
 
-    private void requestUpload() {
-        if (selected == null) return;
-        final Snapshot.Key key = selected;
-        for (Player p : watchingPlayers) {
-            if (p.containerMenu instanceof ContainerElectronicLibrary container) {
-                container.sendMessage(ContainerElectronicLibrary.NET_UPLOAD_REQUEST, buf -> key.writeToByteBuf(buf));
-            }
-        }
-    }
+   public void onUploadReceived(Snapshot snapshot) {
+      this.uploadRequestInFlight = false;
+      GlobalSavedDataSnapshots.get(this.level).addSnapshot(snapshot);
+      Snapshot.Header header = snapshot.key.header;
+      if (header == null) {
+         header = new Snapshot.Header(snapshot.key, new UUID(0L, 0L), new Date(), "Snapshot");
+      }
 
-    public void onUploadReceived(Snapshot snapshot) {
-        GlobalSavedDataSnapshots.get(level).addSnapshot(snapshot);
-        Snapshot.Header header = snapshot.key.header;
-        if (header == null) {
-            header = new Snapshot.Header(snapshot.key, new UUID(0, 0), new java.util.Date(), "Snapshot");
-        }
-        EnumSnapshotType type = snapshot.getType();
-        ItemSnapshot usedItem = type == EnumSnapshotType.BLUEPRINT
-            ? BCBuildersItems.BLUEPRINT_USED.get()
-            : BCBuildersItems.TEMPLATE_USED.get();
-        invUpOut.setStackInSlot(0, usedItem.createUsedStack(header));
-        invUpIn.setStackInSlot(0, ItemStack.EMPTY);
-        setChanged();
-    }
+      EnumSnapshotType type = snapshot.getType();
+      ItemSnapshot usedItem = type == EnumSnapshotType.BLUEPRINT ? BCBuildersItems.BLUEPRINT_USED : BCBuildersItems.TEMPLATE_USED;
+      this.invUpOut.setStackInSlot(0, usedItem.createUsedStack(header));
+      this.invUpIn.setStackInSlot(0, ItemStack.EMPTY);
+      this.setChanged();
+   }
 
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.putInt("progressDown", progressDown);
-        output.putInt("progressUp", progressUp);
-        output.store("items", CompoundTag.CODEC, itemManager.serializeNBT());
-        if (selected != null) {
-            output.store("selected", CompoundTag.CODEC, selected.serializeNBT());
-        }
-    }
+   @Override
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      output.putInt("progressDown", this.progressDown);
+      output.putInt("progressUp", this.progressUp);
+      output.store("items", CompoundTag.CODEC, this.itemManager.serializeNBT());
+      if (this.selected != null) {
+         output.store("selected", CompoundTag.CODEC, this.selected.serializeNBT());
+      }
+   }
 
-    @Override
-    public void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        progressDown = input.getIntOr("progressDown", -1);
-        progressUp = input.getIntOr("progressUp", -1);
-        input.read("items", CompoundTag.CODEC).ifPresent(itemManager::deserializeNBT);
-        selected = input.read("selected", CompoundTag.CODEC)
-            .map(Snapshot.Key::new)
-            .orElse(null);
-    }
+   @Override
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.progressDown = input.getIntOr("progressDown", -1);
+      this.progressUp = input.getIntOr("progressUp", -1);
+      input.read("items", CompoundTag.CODEC).ifPresent(this.itemManager::deserializeNBT);
+      this.selected = input.read("selected", CompoundTag.CODEC).map(Snapshot.Key::new).orElse(null);
+   }
 
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable("tile.buildcraftbuilders.library.name");
-    }
+   public Component getDisplayName() {
+      return Component.translatable("tile.buildcraftbuilders.library.name");
+   }
 
-    @Nullable
-    @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
-        return new ContainerElectronicLibrary(containerId, playerInv, this);
-    }
+   @Nullable
+   public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
+      return new ContainerElectronicLibrary(containerId, playerInv, this);
+   }
 }

@@ -10,7 +10,7 @@
   "buildcraft.guide.page.guide_page_format": "Guide Page File Format",
   "buildcraft.guide.page.pipe_wires": "Pipe Wires",
   "buildcraft.guide.page.logic_gates": "Logic Gates",
-  "buildcraft.guide.not_available": "Guide book not yet available.",
+  "buildcraft.guide.note.linked": "Opens guide page: %s",
   "buildcraft_guide_book.reloaded": "Guide Book Reloaded",
   "buildcraft.guide.too_many_results": "Too many results to display: %s",
   "buildcraft.guide.chapter_list": "Chapters",

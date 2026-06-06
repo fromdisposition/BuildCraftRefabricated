@@ -1,140 +1,190 @@
 package buildcraft.api.mj;
 
-import buildcraft.lib.transfer.energy.EnergyHandler;
-import buildcraft.lib.transfer.transaction.Transaction;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import team.reborn.energy.api.EnergyStorage;
 
 public class MjToRfAutoConvertor implements IMjReadable {
+   final EnergyStorage fe;
 
-    final EnergyHandler fe;
+   public static MjToRfAutoConvertor create(EnergyStorage fe) {
+      if (fe == null) {
+         return null;
+      } else {
+         return !MjAPI.isRfAutoConversionEnabled() ? null : new OfBoth(fe);
+      }
+   }
 
-    public static MjToRfAutoConvertor create(EnergyHandler fe) {
-        if (fe == null) {
-            return null;
-        }
-        if (!MjAPI.isRfAutoConversionEnabled()) {
-            return null;
-        }
+   public static IMjReceiver createReceiver(EnergyStorage storage) {
+      return create(storage) instanceof IMjReceiver receiver ? receiver : null;
+   }
 
-        return new OfBoth(fe);
-    }
+   public static IMjPassiveProvider createProvider(EnergyStorage storage) {
+      return create(storage) instanceof IMjPassiveProvider provider ? provider : null;
+   }
 
-    public static IMjReceiver createReceiver(EnergyHandler fe) {
-        MjToRfAutoConvertor convertor = create(fe);
-        if (convertor instanceof IMjReceiver) {
-            return (IMjReceiver) convertor;
-        } else {
-            return null;
-        }
-    }
+   MjToRfAutoConvertor(EnergyStorage storage) {
+      this.fe = storage;
+   }
 
-    public static IMjPassiveProvider createProvider(EnergyHandler fe) {
-        MjToRfAutoConvertor convertor = create(fe);
-        if (convertor instanceof IMjPassiveProvider) {
-            return (IMjPassiveProvider) convertor;
-        } else {
-            return null;
-        }
-    }
+   @Override
+   public boolean canConnect(IMjConnector other) {
+      return true;
+   }
 
-    MjToRfAutoConvertor(EnergyHandler handler) {
-        this.fe = handler;
-    }
+   @Override
+   public long getStored() {
+      return this.fe.getAmount() * MjAPI.getRfConversion().mjPerRf;
+   }
 
-    @Override
-    public boolean canConnect(IMjConnector other) {
-        return true;
-    }
+   @Override
+   public long getCapacity() {
+      return this.fe.getCapacity() * MjAPI.getRfConversion().mjPerRf;
+   }
 
-    @Override
-    public long getStored() {
-        return fe.getAmountAsLong() * MjAPI.getRfConversion().mjPerRf;
-    }
+   long implGetPowerRequested() {
+      Transaction tx = Transaction.openOuter();
 
-    @Override
-    public long getCapacity() {
-        return fe.getCapacityAsLong() * MjAPI.getRfConversion().mjPerRf;
-    }
-
-    long implGetPowerRequested() {
-        return (fe.getCapacityAsLong() - fe.getAmountAsLong()) * MjAPI.getRfConversion().mjPerRf;
-    }
-
-    long implReceivePower(long microJoules, boolean simulate) {
-        long mjPerRf = MjAPI.getRfConversion().mjPerRf;
-        int maxRf = (int) (microJoules / mjPerRf);
-        if (maxRf <= 0) {
-            return microJoules;
-        }
-
-        if (simulate) {
-
-            try (Transaction tx = Transaction.openRoot()) {
-                int received = fe.insert(maxRf, tx);
-
-                return microJoules - received * mjPerRf;
+      long accepted;
+      try {
+         accepted = this.fe.insert(Long.MAX_VALUE, tx);
+      } catch (Throwable var7) {
+         if (tx != null) {
+            try {
+               tx.close();
+            } catch (Throwable var6) {
+               var7.addSuppressed(var6);
             }
-        } else {
-            try (Transaction tx = Transaction.openRoot()) {
-                int received = fe.insert(maxRf, tx);
-                tx.commit();
-                return microJoules - received * mjPerRf;
+         }
+
+         throw var7;
+      }
+
+      if (tx != null) {
+         tx.close();
+      }
+
+      return accepted <= 0L ? 0L : accepted * MjAPI.getRfConversion().mjPerRf;
+   }
+
+   long implReceivePower(long microJoules, boolean simulate) {
+      long mjPerRf = MjAPI.getRfConversion().mjPerRf;
+      long maxRf = microJoules / mjPerRf;
+      if (maxRf <= 0L) {
+         return microJoules;
+      }
+
+      if (simulate) {
+         Transaction tx = Transaction.openOuter();
+
+         long var19;
+         try {
+            long received = this.fe.insert(maxRf, tx);
+            var19 = microJoules - received * mjPerRf;
+         } catch (Throwable var16) {
+            if (tx != null) {
+               try {
+                  tx.close();
+               } catch (Throwable var14) {
+                  var16.addSuppressed(var14);
+               }
             }
-        }
-    }
 
-    long implExtractPower(long min, long max, boolean simulate) {
-        long mjPerRf = MjAPI.getRfConversion().mjPerRf;
-        int maxRf = (int) (max / mjPerRf);
-        if (maxRf <= 0) {
-            return 0;
-        }
+            throw var16;
+         }
 
-        long extractedMJ;
-        try (Transaction simTx = Transaction.openRoot()) {
-            int extractedRF = fe.extract(maxRf, simTx);
-            extractedMJ = extractedRF * mjPerRf;
+         if (tx != null) {
+            tx.close();
+         }
 
-        }
+         return var19;
+      } else {
+         Transaction tx = Transaction.openOuter();
 
-        if (extractedMJ < min) {
-            return 0;
-        }
-
-        if (!simulate) {
-            try (Transaction tx = Transaction.openRoot()) {
-                int extractedRF = fe.extract(maxRf, tx);
-                tx.commit();
-                return extractedRF * mjPerRf;
+         long var11;
+         try {
+            long received = this.fe.insert(maxRf, tx);
+            tx.commit();
+            var11 = microJoules - received * mjPerRf;
+         } catch (Throwable var15) {
+            if (tx != null) {
+               try {
+                  tx.close();
+               } catch (Throwable var13) {
+                  var15.addSuppressed(var13);
+               }
             }
-        }
 
-        return extractedMJ;
-    }
-}
+            throw var15;
+         }
 
-final class OfBoth extends MjToRfAutoConvertor implements IMjReceiver, IMjPassiveProvider {
+         if (tx != null) {
+            tx.close();
+         }
 
-    OfBoth(EnergyHandler handler) {
-        super(handler);
-    }
+         return var11;
+      }
+   }
 
-    @Override
-    public boolean canReceive() {
-        return true;
-    }
+   long implExtractPower(long min, long max, boolean simulate) {
+      long mjPerRf = MjAPI.getRfConversion().mjPerRf;
+      long maxRf = max / mjPerRf;
+      if (maxRf <= 0L) {
+         return 0L;
+      }
 
-    @Override
-    public long getPowerRequested() {
-        return implGetPowerRequested();
-    }
+      Transaction simTx = Transaction.openOuter();
 
-    @Override
-    public long receivePower(long microJoules, boolean simulate) {
-        return implReceivePower(microJoules, simulate);
-    }
+      long extractedMJ;
+      try {
+         long extractedRF = this.fe.extract(maxRf, simTx);
+         extractedMJ = extractedRF * mjPerRf;
+      } catch (Throwable var20) {
+         if (simTx != null) {
+            try {
+               simTx.close();
+            } catch (Throwable var18) {
+               var20.addSuppressed(var18);
+            }
+         }
 
-    @Override
-    public long extractPower(long min, long max, boolean simulate) {
-        return implExtractPower(min, max, simulate);
-    }
+         throw var20;
+      }
+
+      if (simTx != null) {
+         simTx.close();
+      }
+
+      if (extractedMJ < min) {
+         return 0L;
+      }
+
+      if (!simulate) {
+         simTx = Transaction.openOuter();
+
+         long var15;
+         try {
+            long extractedRF = this.fe.extract(maxRf, simTx);
+            simTx.commit();
+            var15 = extractedRF * mjPerRf;
+         } catch (Throwable var19) {
+            if (simTx != null) {
+               try {
+                  simTx.close();
+               } catch (Throwable var17) {
+                  var19.addSuppressed(var17);
+               }
+            }
+
+            throw var19;
+         }
+
+         if (simTx != null) {
+            simTx.close();
+         }
+
+         return var15;
+      } else {
+         return extractedMJ;
+      }
+   }
 }

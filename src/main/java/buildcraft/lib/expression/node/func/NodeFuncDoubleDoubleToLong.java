@@ -1,139 +1,125 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.node.func;
 
-import java.util.Objects;
-
 import buildcraft.lib.expression.NodeInliningHelper;
-import buildcraft.lib.expression.api.IDependantNode;
 import buildcraft.lib.expression.api.IDependancyVisitor;
-import buildcraft.lib.expression.api.IExpressionNode.INodeBoolean;
-import buildcraft.lib.expression.api.IExpressionNode.INodeDouble;
-import buildcraft.lib.expression.api.IExpressionNode.INodeLong;
-import buildcraft.lib.expression.api.IExpressionNode.INodeObject;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncLong;
+import buildcraft.lib.expression.api.IDependantNode;
+import buildcraft.lib.expression.api.IExpressionNode;
+import buildcraft.lib.expression.api.INodeFunc;
 import buildcraft.lib.expression.api.INodeStack;
 import buildcraft.lib.expression.api.InvalidExpressionException;
-import buildcraft.lib.expression.api.NodeTypes;
-import buildcraft.lib.expression.node.func.StringFunctionTri;
-import buildcraft.lib.expression.node.func.NodeFuncBase;
-import buildcraft.lib.expression.node.func.NodeFuncBase.IFunctionNode;
 import buildcraft.lib.expression.node.value.NodeConstantLong;
+import java.util.Objects;
 
-public class NodeFuncDoubleDoubleToLong extends NodeFuncBase implements INodeFuncLong {
+public class NodeFuncDoubleDoubleToLong extends NodeFuncBase implements INodeFunc.INodeFuncLong {
+   public final NodeFuncDoubleDoubleToLong.IFuncDoubleDoubleToLong function;
+   private final StringFunctionTri stringFunction;
 
-    public final IFuncDoubleDoubleToLong function;
-    private final StringFunctionTri stringFunction;
+   public NodeFuncDoubleDoubleToLong(String name, NodeFuncDoubleDoubleToLong.IFuncDoubleDoubleToLong function) {
+      this(function, (a, b) -> "[ double, double -> long ] " + name + "(" + a + ", " + b + ")");
+   }
 
-    public NodeFuncDoubleDoubleToLong(String name, IFuncDoubleDoubleToLong function) {
-        this(function, (a, b) -> "[ double, double -> long ] " + name + "(" + a + ", " + b +  ")");
-    }
+   public NodeFuncDoubleDoubleToLong(NodeFuncDoubleDoubleToLong.IFuncDoubleDoubleToLong function, StringFunctionTri stringFunction) {
+      this.function = function;
+      this.stringFunction = stringFunction;
+   }
 
-    public NodeFuncDoubleDoubleToLong(IFuncDoubleDoubleToLong function, StringFunctionTri stringFunction) {
+   @Override
+   public String toString() {
+      return this.stringFunction.apply("{A}", "{B}");
+   }
 
-        this.function = function;
-        this.stringFunction = stringFunction;
-    }
+   public NodeFuncDoubleDoubleToLong setNeverInline() {
+      super.setNeverInline();
+      return this;
+   }
 
-    @Override
-    public String toString() {
-        return stringFunction.apply("{A}", "{B}");
-    }
+   @Override
+   public IExpressionNode.INodeLong getNode(INodeStack stack) throws InvalidExpressionException {
+      IExpressionNode.INodeDouble b = stack.popDouble();
+      IExpressionNode.INodeDouble a = stack.popDouble();
+      return this.create(a, b);
+   }
 
-    @Override
-    public NodeFuncDoubleDoubleToLong setNeverInline() {
-        super.setNeverInline();
-        return this;
-    }
+   public NodeFuncDoubleDoubleToLong.FuncDoubleDoubleToLong create(IExpressionNode.INodeDouble argA, IExpressionNode.INodeDouble argB) {
+      return new NodeFuncDoubleDoubleToLong.FuncDoubleDoubleToLong(argA, argB);
+   }
 
-    @Override
-    public INodeLong getNode(INodeStack stack) throws InvalidExpressionException {
+   public class FuncDoubleDoubleToLong implements IExpressionNode.INodeLong, IDependantNode, NodeFuncBase.IFunctionNode {
+      public final IExpressionNode.INodeDouble argA;
+      public final IExpressionNode.INodeDouble argB;
 
-        INodeDouble b = stack.popDouble();
-        INodeDouble a = stack.popDouble();
+      public FuncDoubleDoubleToLong(IExpressionNode.INodeDouble argA, IExpressionNode.INodeDouble argB) {
+         this.argA = argA;
+         this.argB = argB;
+      }
 
-        return create(a, b);
-    }
+      @Override
+      public long evaluate() {
+         return NodeFuncDoubleDoubleToLong.this.function.apply(this.argA.evaluate(), this.argB.evaluate());
+      }
 
-    public FuncDoubleDoubleToLong create(INodeDouble argA, INodeDouble argB) {
-        return new FuncDoubleDoubleToLong(argA, argB);
-    }
-
-    public class FuncDoubleDoubleToLong implements INodeLong, IDependantNode, IFunctionNode {
-        public final INodeDouble argA;
-        public final INodeDouble argB;
-
-        public FuncDoubleDoubleToLong(INodeDouble argA, INodeDouble argB) {
-            this.argA = argA;
-            this.argB = argB;
-
-        }
-
-        @Override
-        public long evaluate() {
-            return function.apply(argA.evaluate(), argB.evaluate());
-        }
-
-        @Override
-        public INodeLong inline() {
-            if (!canInline) {
-
-                return NodeInliningHelper.tryInline(this, argA, argB,
-                    (a, b) -> new FuncDoubleDoubleToLong(a, b),
-                    (a, b) -> new FuncDoubleDoubleToLong(a, b)
-                );
-            }
-            return NodeInliningHelper.tryInline(this, argA, argB,
-                (a, b) -> new FuncDoubleDoubleToLong(a, b),
-                (a, b) -> NodeConstantLong.of(function.apply(a.evaluate(), b.evaluate()))
+      @Override
+      public IExpressionNode.INodeLong inline() {
+         return !NodeFuncDoubleDoubleToLong.this.canInline
+            ? NodeInliningHelper.tryInline(
+               this,
+               this.argA,
+               this.argB,
+               (a, b) -> NodeFuncDoubleDoubleToLong.this.new FuncDoubleDoubleToLong(a, b),
+               (a, b) -> NodeFuncDoubleDoubleToLong.this.new FuncDoubleDoubleToLong(a, b)
+            )
+            : NodeInliningHelper.tryInline(
+               this,
+               this.argA,
+               this.argB,
+               (a, b) -> NodeFuncDoubleDoubleToLong.this.new FuncDoubleDoubleToLong(a, b),
+               (a, b) -> NodeConstantLong.of(NodeFuncDoubleDoubleToLong.this.function.apply(a.evaluate(), b.evaluate()))
             );
-        }
+      }
 
-        @Override
-        public void visitDependants(IDependancyVisitor visitor) {
-            if (!canInline) {
-                if (function instanceof IDependantNode) {
-                    visitor.dependOn((IDependantNode) function);
-                } else {
-                    visitor.dependOnExplictly(this);
-                }
+      @Override
+      public void visitDependants(IDependancyVisitor visitor) {
+         if (!NodeFuncDoubleDoubleToLong.this.canInline) {
+            if (NodeFuncDoubleDoubleToLong.this.function instanceof IDependantNode) {
+               visitor.dependOn((IDependantNode)NodeFuncDoubleDoubleToLong.this.function);
+            } else {
+               visitor.dependOnExplictly(this);
             }
-            visitor.dependOn(argA, argB);
-        }
+         }
 
-        @Override
-        public String toString() {
-            return stringFunction.apply(argA.toString(), argB.toString());
-        }
+         visitor.dependOn(this.argA, this.argB);
+      }
 
-        @Override
-        public NodeFuncBase getFunction() {
-            return NodeFuncDoubleDoubleToLong.this;
-        }
+      @Override
+      public String toString() {
+         return NodeFuncDoubleDoubleToLong.this.stringFunction.apply(this.argA.toString(), this.argB.toString());
+      }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(argA, argB);
-        }
+      @Override
+      public NodeFuncBase getFunction() {
+         return NodeFuncDoubleDoubleToLong.this;
+      }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            FuncDoubleDoubleToLong other = (FuncDoubleDoubleToLong) obj;
-            return Objects.equals(argA, other.argA)
-            &&Objects.equals(argB, other.argB);
-        }
-    }
+      @Override
+      public int hashCode() {
+         return Objects.hash(this.argA, this.argB);
+      }
 
-    @FunctionalInterface
-    public interface IFuncDoubleDoubleToLong {
-        long apply(double a, double b);
-    }
+      @Override
+      public boolean equals(Object obj) {
+         if (obj == this) {
+            return true;
+         } else if (obj != null && this.getClass() == obj.getClass()) {
+            NodeFuncDoubleDoubleToLong.FuncDoubleDoubleToLong other = (NodeFuncDoubleDoubleToLong.FuncDoubleDoubleToLong)obj;
+            return Objects.equals(this.argA, other.argA) && Objects.equals(this.argB, other.argB);
+         } else {
+            return false;
+         }
+      }
+   }
+
+   @FunctionalInterface
+   public interface IFuncDoubleDoubleToLong {
+      long apply(double var1, double var3);
+   }
 }

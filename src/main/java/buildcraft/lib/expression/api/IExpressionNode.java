@@ -1,9 +1,3 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.api;
 
 import java.util.function.BooleanSupplier;
@@ -13,123 +7,118 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 public interface IExpressionNode {
-    default IExpressionNode inline() {
-        return this;
-    }
+   default IExpressionNode inline() {
+      return this;
+   }
 
-    String evaluateAsString();
+   String evaluateAsString();
 
-    @FunctionalInterface
-    public interface INodeDouble extends IExpressionNode, DoubleSupplier {
-        double evaluate();
+   @FunctionalInterface
+   interface INodeBoolean extends IExpressionNode, BooleanSupplier {
+      boolean evaluate();
 
-        @Override
-        default INodeDouble inline() {
-            return this;
-        }
+      default IExpressionNode.INodeBoolean inline() {
+         return this;
+      }
 
-        @Override
-        default String evaluateAsString() {
-            return Double.toString(evaluate());
-        }
+      @Override
+      default String evaluateAsString() {
+         return Boolean.toString(this.evaluate());
+      }
 
-        @Override
-        @Deprecated
-    default double getAsDouble() {
-            return evaluate();
-        }
-    }
+      @Deprecated
+      @Override
+      default boolean getAsBoolean() {
+         return this.evaluate();
+      }
+   }
 
-    @FunctionalInterface
-    public interface INodeLong extends IExpressionNode, LongSupplier, IntSupplier {
-        long evaluate();
+   @FunctionalInterface
+   interface INodeDouble extends IExpressionNode, DoubleSupplier {
+      double evaluate();
 
-        @Override
-        default INodeLong inline() {
-            return this;
-        }
+      default IExpressionNode.INodeDouble inline() {
+         return this;
+      }
 
-        @Override
-        default String evaluateAsString() {
-            return Long.toString(evaluate());
-        }
+      @Override
+      default String evaluateAsString() {
+         return Double.toString(this.evaluate());
+      }
 
-        @Override
-        @Deprecated
-    default long getAsLong() {
-            return evaluate();
-        }
+      @Deprecated
+      @Override
+      default double getAsDouble() {
+         return this.evaluate();
+      }
+   }
 
-        @Override
-        @Deprecated
-    default int getAsInt() {
-            return (int) evaluate();
-        }
-    }
+   @FunctionalInterface
+   interface INodeLong extends IExpressionNode, LongSupplier, IntSupplier {
+      long evaluate();
 
-    @FunctionalInterface
-    public interface INodeBoolean extends IExpressionNode, BooleanSupplier {
-        boolean evaluate();
+      default IExpressionNode.INodeLong inline() {
+         return this;
+      }
 
-        @Override
-        default INodeBoolean inline() {
-            return this;
-        }
+      @Override
+      default String evaluateAsString() {
+         return Long.toString(this.evaluate());
+      }
 
-        @Override
-        default String evaluateAsString() {
-            return Boolean.toString(evaluate());
-        }
+      @Deprecated
+      @Override
+      default long getAsLong() {
+         return this.evaluate();
+      }
 
-        @Override
-        @Deprecated
-    default boolean getAsBoolean() {
-            return evaluate();
-        }
+      @Deprecated
+      @Override
+      default int getAsInt() {
+         return (int)this.evaluate();
+      }
+   }
 
-    }
+   interface INodeObject<T> extends IExpressionNode, Supplier<T> {
+      T evaluate();
 
-    public interface INodeObject<T> extends IExpressionNode, Supplier<T> {
-        T evaluate();
+      Class<T> getType();
 
-        Class<T> getType();
+      default IExpressionNode.INodeObject<T> inline() {
+         return this;
+      }
 
-        @Override
-        default INodeObject<T> inline() {
-            return this;
-        }
+      @Override
+      default String evaluateAsString() {
+         return this.evaluate().toString();
+      }
 
-        @Override
-        default String evaluateAsString() {
-            return evaluate().toString();
-        }
+      @Deprecated
+      @Override
+      default T get() {
+         return this.evaluate();
+      }
 
-        @Override
-        @Deprecated
-    default T get() {
-            return evaluate();
-        }
+      static <T> IExpressionNode.INodeObject<T> create(final Class<T> clazz, final Supplier<T> supplier) {
+         return new IExpressionNode.INodeObject<T>() {
+            @Override
+            public T evaluate() {
+               return supplier.get();
+            }
 
-        public static <T> INodeObject<T> create(Class<T> clazz, Supplier<T> supplier) {
-            return new INodeObject<T>() {
-                @Override
-                public T evaluate() {
-                    return supplier.get();
-                }
+            @Override
+            public Class<T> getType() {
+               return clazz;
+            }
+         };
+      }
+   }
 
-                @Override
-                public Class<T> getType() {
-                    return clazz;
-                }
-            };
-        }
-    }
-
-    @FunctionalInterface
-    public interface INodeString extends INodeObject<String> {
-        @Override
-        default Class<String> getType() {
-            return String.class;
-        }
-    }
+   @FunctionalInterface
+   interface INodeString extends IExpressionNode.INodeObject<String> {
+      @Override
+      default Class<String> getType() {
+         return String.class;
+      }
+   }
 }

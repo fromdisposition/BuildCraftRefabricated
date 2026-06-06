@@ -1,6 +1,7 @@
 package buildcraft.builders.client.render;
 
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import buildcraft.builders.tile.TileQuarry;
+import buildcraft.lib.client.render.tile.BcBerState;
 
-public class QuarryRenderState extends BlockEntityRenderState {
+public class QuarryRenderState extends BcBerState<TileQuarry> {
 }

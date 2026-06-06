@@ -43,8 +43,10 @@ block_auto "builder"                 "buildcraftbuilders:builder"
 block_auto "chute"                   "buildcraftfactory:chute"
 block_auto "filler"                  "buildcraftbuilders:filler"
 block_auto "filtered_buffer"         "buildcrafttransport:filtered_buffer"
+block_auto "integration_table"       "buildcraftsilicon:integration_table"
 block_auto "library"                 "buildcraftbuilders:library"
 block_auto "replacer"                "buildcraftbuilders:replacer"
+block_auto "zone_planner"            "buildcraftrobotics:zone_planner"
 
 // ---- Blocks / Engines ----------------------------------------------------
 block_engine "engine_redstone" "buildcraftcore:engine_redstone"
@@ -284,6 +286,10 @@ trigger "item" "inventory_below_75"  "buildcraft:inventorylevel.below75"
 
 // ---- Triggers / Item Transport (pipe_item) -------------------------------
 trigger "pipe_item" "items_traversing"  "buildcraft:pipe_contains_items"
+trigger "pipe_item" "pipe_empty"        "buildcraft:pipe_empty"
+
+// ---- Triggers / Fluid Transport (pipe_fluid) -----------------------------
+trigger "pipe_fluid" "pipe_empty"       "buildcraft:pipe_empty"
 
 // ---- Triggers / Pluggables (pipe_plug) -----------------------------------
 // Light Sensor's Bright/Dark triggers — registering them here gives them a tag_subtype

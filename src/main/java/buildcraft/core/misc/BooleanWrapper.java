@@ -1,17 +1,17 @@
 package buildcraft.core.misc;
 
 public class BooleanWrapper {
-    private boolean value;
+   private boolean value;
 
-    public BooleanWrapper(boolean defaultValue) {
-        this.value = defaultValue;
-    }
+   public BooleanWrapper(boolean defaultValue) {
+      this.value = defaultValue;
+   }
 
-    public boolean evaluate() {
-        return value;
-    }
+   public boolean evaluate() {
+      return this.value;
+   }
 
-    public void set(boolean newValue) {
-        this.value = newValue;
-    }
+   public void set(boolean newValue) {
+      this.value = newValue;
+   }
 }

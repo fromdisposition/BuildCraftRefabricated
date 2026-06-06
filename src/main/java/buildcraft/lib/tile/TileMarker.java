@@ -1,89 +1,80 @@
 package buildcraft.lib.tile;
 
-import java.util.List;
-
-import net.minecraft.core.Direction;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.BlockState;
-
-import org.jetbrains.annotations.Nullable;
-
 import buildcraft.api.tiles.IDebuggable;
-
 import buildcraft.lib.marker.MarkerCache;
 import buildcraft.lib.marker.MarkerConnection;
 import buildcraft.lib.marker.MarkerSubCache;
+import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class TileMarker<C extends MarkerConnection<C>> extends BlockEntity implements IDebuggable {
+   private boolean chunkUnloading = false;
 
-    private boolean chunkUnloading = false;
+   public TileMarker(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+      super(type, pos, state);
+   }
 
-    public TileMarker(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
-    }
+   public abstract MarkerCache<? extends MarkerSubCache<C>> getCache();
 
-    public abstract MarkerCache<? extends MarkerSubCache<C>> getCache();
+   public MarkerSubCache<C> getLocalCache() {
+      return (MarkerSubCache<C>)this.getCache().getSubCache(this.level);
+   }
 
-    public MarkerSubCache<C> getLocalCache() {
-        return getCache().getSubCache(level);
-    }
+   public abstract boolean isActiveForRender();
 
-    public abstract boolean isActiveForRender();
+   public void onPlacedBy(@Nullable LivingEntity placer, ItemStack stack) {
+   }
 
-    public void onPlacedBy(@Nullable LivingEntity placer, ItemStack stack) {
-    }
+   public C getCurrentConnection() {
+      return this.level == null ? null : this.getLocalCache().getConnection(this.getBlockPos());
+   }
 
-    public C getCurrentConnection() {
-        if (level == null)
-            return null;
-        return getLocalCache().getConnection(getBlockPos());
-    }
+   public void buildcraft$onAttachedToLevel() {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.getLocalCache().loadMarker(this.getBlockPos(), this);
+      }
+   }
 
-    public void buildcraft$onAttachedToLevel() {
-        if (level != null && !level.isClientSide()) {
-            getLocalCache().loadMarker(getBlockPos(), this);
-        }
-    }
+   public void buildcraft$onChunkUnloading() {
+      this.chunkUnloading = true;
+      if (this.level != null && !this.level.isClientSide()) {
+         this.getLocalCache().unloadMarker(this.getBlockPos());
+      }
+   }
 
-    public void buildcraft$onChunkUnloading() {
-        chunkUnloading = true;
-        if (level != null && !level.isClientSide()) {
-            getLocalCache().unloadMarker(getBlockPos());
-        }
-    }
+   public void setRemoved() {
+      super.setRemoved();
+      if (this.level != null && !this.level.isClientSide() && !this.chunkUnloading) {
+         this.getLocalCache().removeMarker(this.getBlockPos());
+      }
+   }
 
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
-        if (level != null && !level.isClientSide() && !chunkUnloading) {
+   protected void disconnectFromOthers() {
+      C currentConnection = this.getCurrentConnection();
+      if (currentConnection != null) {
+         currentConnection.removeMarker(this.getBlockPos());
+      }
+   }
 
-            getLocalCache().removeMarker(getBlockPos());
-        }
-    }
-
-    protected void disconnectFromOthers() {
-        C currentConnection = getCurrentConnection();
-        if (currentConnection != null) {
-            currentConnection.removeMarker(getBlockPos());
-        }
-    }
-
-    @Override
-    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
-        if (level == null)
-            return;
-        C current = getCurrentConnection();
-        MarkerSubCache<C> cache = getLocalCache();
-        left.add("Exists = " + (cache.getMarker(getBlockPos()) == this));
-        if (current == null) {
+   @Override
+   public void getDebugInfo(List<String> left, List<String> right, Direction side) {
+      if (this.level != null) {
+         C current = this.getCurrentConnection();
+         MarkerSubCache<C> cache = this.getLocalCache();
+         left.add("Exists = " + (cache.getMarker(this.getBlockPos()) == this));
+         if (current == null) {
             left.add("Connection = null");
-        } else {
+         } else {
             left.add("Connection:");
-            current.getDebugInfo(getBlockPos(), left);
-        }
-    }
+            current.getDebugInfo(this.getBlockPos(), left);
+         }
+      }
+   }
 }

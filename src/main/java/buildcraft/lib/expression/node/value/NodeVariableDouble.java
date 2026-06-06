@@ -1,58 +1,52 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.node.value;
 
 import buildcraft.lib.expression.api.IDependancyVisitor;
 import buildcraft.lib.expression.api.IDependantNode;
 import buildcraft.lib.expression.api.IExpressionNode;
-import buildcraft.lib.expression.api.IVariableNode.IVariableNodeDouble;
+import buildcraft.lib.expression.api.IVariableNode;
 
-public class NodeVariableDouble extends NodeVariable implements IVariableNodeDouble, IDependantNode {
-    public double value;
-    private INodeDouble src;
+public class NodeVariableDouble extends NodeVariable implements IVariableNode.IVariableNodeDouble, IDependantNode {
+   public double value;
+   private IExpressionNode.INodeDouble src;
 
-    public NodeVariableDouble(String name) {
-        super(name);
-    }
+   public NodeVariableDouble(String name) {
+      super(name);
+   }
 
-    @Override
-    public double evaluate() {
-        return src != null ? src.evaluate() : value;
-    }
+   @Override
+   public double evaluate() {
+      return this.src != null ? this.src.evaluate() : this.value;
+   }
 
-    @Override
-    public INodeDouble inline() {
-        if (isConst) {
-            return new NodeConstantDouble(value);
-        } else if (src != null) {
-            return src.inline();
-        }
-        return this;
-    }
+   @Override
+   public IExpressionNode.INodeDouble inline() {
+      if (this.isConst) {
+         return new NodeConstantDouble(this.value);
+      } else {
+         return this.src != null ? this.src.inline() : this;
+      }
+   }
 
-    @Override
-    public void set(double value) {
-        this.value = value;
-    }
+   @Override
+   public void set(double value) {
+      this.value = value;
+   }
 
-    @Override
-    public void setConstantSource(IExpressionNode source) {
-        if (src != null) {
-            throw new IllegalStateException("Already have a constant source");
-        }
-        src = (INodeDouble) source;
-    }
+   @Override
+   public void setConstantSource(IExpressionNode source) {
+      if (this.src != null) {
+         throw new IllegalStateException("Already have a constant source");
+      }
 
-    @Override
-    public void visitDependants(IDependancyVisitor visitor) {
-        if (src != null) {
-            visitor.dependOn(src);
-        } else {
-            visitor.dependOnExplictly(this);
-        }
-    }
+      this.src = (IExpressionNode.INodeDouble)source;
+   }
+
+   @Override
+   public void visitDependants(IDependancyVisitor visitor) {
+      if (this.src != null) {
+         visitor.dependOn(this.src);
+      } else {
+         visitor.dependOnExplictly(this);
+      }
+   }
 }

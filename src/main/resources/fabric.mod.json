@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "buildcraftrefabricated",
-  "version": "${mod_version}",
+  "version": "26.1.2-1",
   "name": "BuildCraft Refabricated",
   "description": "Unofficial Fabric port of BuildCraft for Minecraft 26.1.2 — pipes, engines, quarries, oil processing, gates, and automation.",
   "authors": [
@@ -31,10 +31,11 @@
     "buildcraft.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=${loader_version}",
-    "minecraft": "${mc_dep_range}",
-    "java": ">=25",
-    "fabric-api": ">=${fabric_api_version}"
+    "fabricloader": "\u003e\u003d0.19.2",
+    "minecraft": "\u003e\u003d26.1 \u003c26.2",
+    "java": "\u003e\u003d25",
+    "fabric-api": "\u003e\u003d0.150.0+26.1.2",
+    "team_reborn_energy": "\u003e\u003d5.0.0"
   },
   "suggests": {
     "jei": "*"

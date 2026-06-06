@@ -1,11 +1,10 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.info;
 
+import buildcraft.lib.expression.api.IVariableNode;
+import buildcraft.lib.expression.node.value.NodeVariableBoolean;
+import buildcraft.lib.expression.node.value.NodeVariableDouble;
+import buildcraft.lib.expression.node.value.NodeVariableLong;
+import buildcraft.lib.expression.node.value.NodeVariableObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -14,209 +13,198 @@ import java.util.function.DoublePredicate;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
 
-import buildcraft.lib.expression.api.IVariableNode;
-import buildcraft.lib.expression.node.value.NodeVariableBoolean;
-import buildcraft.lib.expression.node.value.NodeVariableDouble;
-import buildcraft.lib.expression.node.value.NodeVariableLong;
-import buildcraft.lib.expression.node.value.NodeVariableObject;
-
 public abstract class VariableInfo<N extends IVariableNode> {
-    public final N node;
+   public final N node;
+   public VariableInfo.CacheType cacheType = VariableInfo.CacheType.NEVER;
+   public boolean setIsComplete = false;
 
-    public CacheType cacheType = CacheType.NEVER;
+   public VariableInfo(N node) {
+      this.node = node;
+   }
 
-    public boolean setIsComplete = false;
+   @Override
+   public String toString() {
+      return this.node.toString();
+   }
 
-    public VariableInfo(N node) {
-        this.node = node;
-    }
+   public abstract Collection<?> getPossibleValues();
 
-    @Override
-    public String toString() {
-        return node.toString();
-    }
+   public abstract boolean shouldCacheCurrentValue();
 
-    public abstract Collection<?> getPossibleValues();
+   public abstract int getCurrentOrdinal();
 
-    public abstract boolean shouldCacheCurrentValue();
+   public enum CacheType {
+      NEVER,
+      MATCHES_EXP,
+      IN_SET,
+      ALWAYS;
+   }
 
-    public abstract int getCurrentOrdinal();
+   public static class VariableInfoBoolean extends VariableInfo<NodeVariableBoolean> {
+      public VariableInfo.VariableInfoBoolean.BooleanPossibilities possibleValues = VariableInfo.VariableInfoBoolean.BooleanPossibilities.FALSE_TRUE;
 
-    public enum CacheType {
-        NEVER,
-        MATCHES_EXP,
-        IN_SET,
-        ALWAYS
-    }
+      public VariableInfoBoolean(NodeVariableBoolean node) {
+         super(node);
+         this.cacheType = VariableInfo.CacheType.ALWAYS;
+         this.setIsComplete = true;
+      }
 
-    public static class VariableInfoObject<T> extends VariableInfo<NodeVariableObject<T>> {
-        public final List<T> possibleValues = new ArrayList<>();
-        public Predicate<T> shouldCacheFunc = possibleValues::contains;
+      @Override
+      public Collection<Boolean> getPossibleValues() {
+         return this.possibleValues.possible;
+      }
 
-        public VariableInfoObject(NodeVariableObject<T> node) {
-            super(node);
-        }
+      @Override
+      public boolean shouldCacheCurrentValue() {
+         switch (this.cacheType) {
+            case NEVER:
+               return false;
+            case MATCHES_EXP:
+            case IN_SET:
+               switch (this.possibleValues) {
+                  case FALSE:
+                     return !this.node.value;
+                  case TRUE:
+                     return this.node.value;
+                  default:
+                     return true;
+               }
+            case ALWAYS:
+               return true;
+            default:
+               throw new IllegalStateException("Unknown CacheType " + this.cacheType);
+         }
+      }
 
-        @Override
-        public Collection<?> getPossibleValues() {
-            return possibleValues;
-        }
+      @Override
+      public int getCurrentOrdinal() {
+         boolean current = this.node.value;
+         switch (this.possibleValues) {
+            case FALSE:
+               return current ? -1 : 0;
+            case TRUE:
+               return current ? 0 : -1;
+            case FALSE_TRUE:
+            default:
+               return current ? 1 : 0;
+         }
+      }
 
-        @Override
-        public boolean shouldCacheCurrentValue() {
-            switch (cacheType) {
-                case NEVER:
-                    return false;
-                case MATCHES_EXP:
-                    return shouldCacheFunc.test(node.value);
-                case IN_SET:
-                    return possibleValues.contains(node.value);
-                case ALWAYS:
-                    return true;
-                default:
-                    throw new IllegalStateException("Unknown CacheType " + cacheType);
-            }
-        }
+      public enum BooleanPossibilities {
+         FALSE(Boolean.FALSE),
+         TRUE(Boolean.TRUE),
+         FALSE_TRUE(Boolean.FALSE, Boolean.TRUE);
 
-        @Override
-        public int getCurrentOrdinal() {
-            return possibleValues.indexOf(node.value);
-        }
-    }
+         public final Collection<Boolean> possible;
 
-    public static class VariableInfoLong extends VariableInfo<NodeVariableLong> {
-        public final List<Long> possibleValues = new ArrayList<>();
-        public LongPredicate shouldCacheFunc = possibleValues::contains;
+         BooleanPossibilities(Boolean... possible) {
+            this.possible = Arrays.asList(possible);
+         }
+      }
+   }
 
-        public VariableInfoLong(NodeVariableLong node) {
-            super(node);
-        }
+   public static class VariableInfoDouble extends VariableInfo<NodeVariableDouble> {
+      public final List<Double> possibleValues = new ArrayList<>();
+      public DoublePredicate shouldCacheFunc = this.possibleValues::contains;
 
-        @Override
-        public Collection<Long> getPossibleValues() {
-            return possibleValues;
-        }
+      public VariableInfoDouble(NodeVariableDouble node) {
+         super(node);
+      }
 
-        @Override
-        public boolean shouldCacheCurrentValue() {
-            switch (cacheType) {
-                case NEVER:
-                    return false;
-                case MATCHES_EXP:
-                    return shouldCacheFunc.test(node.value);
-                case IN_SET:
-                    return possibleValues.contains(node.value);
-                case ALWAYS:
-                    return true;
-                default:
-                    throw new IllegalStateException("Unknown CacheType " + cacheType);
-            }
-        }
+      @Override
+      public Collection<Double> getPossibleValues() {
+         return this.possibleValues;
+      }
 
-        @Override
-        public int getCurrentOrdinal() {
-            return possibleValues.indexOf(node.value);
-        }
-    }
+      @Override
+      public boolean shouldCacheCurrentValue() {
+         switch (this.cacheType) {
+            case NEVER:
+               return false;
+            case MATCHES_EXP:
+               return this.shouldCacheFunc.test(this.node.value);
+            case IN_SET:
+               return this.possibleValues.contains(this.node.value);
+            case ALWAYS:
+               return true;
+            default:
+               throw new IllegalStateException("Unknown CacheType " + this.cacheType);
+         }
+      }
 
-    public static class VariableInfoDouble extends VariableInfo<NodeVariableDouble> {
-        public final List<Double> possibleValues = new ArrayList<>();
-        public DoublePredicate shouldCacheFunc = possibleValues::contains;
+      @Override
+      public int getCurrentOrdinal() {
+         return this.possibleValues.indexOf(this.node.value);
+      }
+   }
 
-        public VariableInfoDouble(NodeVariableDouble node) {
-            super(node);
-        }
+   public static class VariableInfoLong extends VariableInfo<NodeVariableLong> {
+      public final List<Long> possibleValues = new ArrayList<>();
+      public LongPredicate shouldCacheFunc = this.possibleValues::contains;
 
-        @Override
-        public Collection<Double> getPossibleValues() {
-            return possibleValues;
-        }
+      public VariableInfoLong(NodeVariableLong node) {
+         super(node);
+      }
 
-        @Override
-        public boolean shouldCacheCurrentValue() {
-            switch (cacheType) {
-                case NEVER:
-                    return false;
-                case MATCHES_EXP:
-                    return shouldCacheFunc.test(node.value);
-                case IN_SET:
-                    return possibleValues.contains(node.value);
-                case ALWAYS:
-                    return true;
-                default:
-                    throw new IllegalStateException("Unknown CacheType " + cacheType);
-            }
-        }
+      @Override
+      public Collection<Long> getPossibleValues() {
+         return this.possibleValues;
+      }
 
-        @Override
-        public int getCurrentOrdinal() {
-            return possibleValues.indexOf(node.value);
-        }
-    }
+      @Override
+      public boolean shouldCacheCurrentValue() {
+         switch (this.cacheType) {
+            case NEVER:
+               return false;
+            case MATCHES_EXP:
+               return this.shouldCacheFunc.test(this.node.value);
+            case IN_SET:
+               return this.possibleValues.contains(this.node.value);
+            case ALWAYS:
+               return true;
+            default:
+               throw new IllegalStateException("Unknown CacheType " + this.cacheType);
+         }
+      }
 
-    public static class VariableInfoBoolean extends VariableInfo<NodeVariableBoolean> {
-        public enum BooleanPossibilities {
-            FALSE(Boolean.FALSE),
-            TRUE(Boolean.TRUE),
-            FALSE_TRUE(Boolean.FALSE, Boolean.TRUE);
+      @Override
+      public int getCurrentOrdinal() {
+         return this.possibleValues.indexOf(this.node.value);
+      }
+   }
 
-            public final Collection<Boolean> possible;
+   public static class VariableInfoObject<T> extends VariableInfo<NodeVariableObject<T>> {
+      public final List<T> possibleValues = new ArrayList<>();
+      public Predicate<T> shouldCacheFunc = this.possibleValues::contains;
 
-            BooleanPossibilities(Boolean... possible) {
-                this.possible = Arrays.asList(possible);
-            }
-        }
+      public VariableInfoObject(NodeVariableObject<T> node) {
+         super(node);
+      }
 
-        public BooleanPossibilities possibleValues = BooleanPossibilities.FALSE_TRUE;
+      @Override
+      public Collection<?> getPossibleValues() {
+         return this.possibleValues;
+      }
 
-        public VariableInfoBoolean(NodeVariableBoolean node) {
-            super(node);
-            cacheType = CacheType.ALWAYS;
-            setIsComplete = true;
-        }
+      @Override
+      public boolean shouldCacheCurrentValue() {
+         switch (this.cacheType) {
+            case NEVER:
+               return false;
+            case MATCHES_EXP:
+               return this.shouldCacheFunc.test(this.node.value);
+            case IN_SET:
+               return this.possibleValues.contains(this.node.value);
+            case ALWAYS:
+               return true;
+            default:
+               throw new IllegalStateException("Unknown CacheType " + this.cacheType);
+         }
+      }
 
-        @Override
-        public Collection<Boolean> getPossibleValues() {
-            return possibleValues.possible;
-        }
-
-        @Override
-        public boolean shouldCacheCurrentValue() {
-            switch (cacheType) {
-                case NEVER:
-                    return false;
-                case MATCHES_EXP:
-                case IN_SET:
-                    switch (possibleValues) {
-                        case FALSE:
-                            return !node.value;
-                        case TRUE:
-                            return node.value;
-                        default:
-                            return true;
-                    }
-                case ALWAYS:
-                    return true;
-                default:
-                    throw new IllegalStateException("Unknown CacheType " + cacheType);
-            }
-        }
-
-        @Override
-        public int getCurrentOrdinal() {
-            boolean current = node.value;
-            switch (possibleValues) {
-                case FALSE: {
-                    return current ? -1 : 0;
-                }
-                case TRUE: {
-                    return current ? 0 : -1;
-                }
-                default:
-                case FALSE_TRUE: {
-                    return current ? 1 : 0;
-                }
-            }
-        }
-    }
+      @Override
+      public int getCurrentOrdinal() {
+         return this.possibleValues.indexOf(this.node.value);
+      }
+   }
 }

@@ -1,6 +1,7 @@
 package buildcraft.api.transport.pipe;
 
 public interface IFlowPowerLike {
+   void reconfigure();
 
-    void reconfigure();
+   long getPowerRequested();
 }

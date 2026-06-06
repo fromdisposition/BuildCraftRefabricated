@@ -1,17 +1,17 @@
 package buildcraft.lib.recipe;
 
 public interface IRecipeViewable {
-    ChangingItemStack[] getRecipeInputs();
+   ChangingItemStack[] getRecipeInputs();
 
-    ChangingItemStack getRecipeOutputs();
+   ChangingItemStack getRecipeOutputs();
 
-    public interface IViewableGrid extends IRecipeViewable {
-        int getRecipeWidth();
+   interface IRecipePowered extends IRecipeViewable {
+      ChangingObject<Long> getMjCost();
+   }
 
-        int getRecipeHeight();
-    }
+   interface IViewableGrid extends IRecipeViewable {
+      int getRecipeWidth();
 
-    public interface IRecipePowered extends IRecipeViewable {
-        ChangingObject<Long> getMjCost();
-    }
+      int getRecipeHeight();
+   }
 }

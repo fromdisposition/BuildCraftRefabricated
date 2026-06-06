@@ -1,114 +1,117 @@
 package buildcraft.lib.expression.node.func;
 
-import java.util.EnumMap;
-import java.util.Map;
-
 import buildcraft.lib.expression.NodeInliningHelper;
 import buildcraft.lib.expression.api.IConstantNode;
 import buildcraft.lib.expression.api.IDependancyVisitor;
 import buildcraft.lib.expression.api.IDependantNode;
 import buildcraft.lib.expression.api.IExpressionNode;
-import buildcraft.lib.expression.api.IExpressionNode.INodeObject;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncObject;
+import buildcraft.lib.expression.api.INodeFunc;
 import buildcraft.lib.expression.api.INodeStack;
-import buildcraft.lib.expression.api.IVariableNode.IVariableNodeObject;
+import buildcraft.lib.expression.api.IVariableNode;
 import buildcraft.lib.expression.api.InvalidExpressionException;
 import buildcraft.lib.expression.node.value.NodeVariableObject;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
-public class NodeFuncMap<K extends Enum<K>, V> implements INodeFuncObject<V> {
-    private final Class<K> keyClass;
-    private final Class<V> valueClass;
-    private final Map<K, NodeVariableObject<V>> variableMap;
-    private final NodeVariableObject<V> nullEntry;
+public class NodeFuncMap<K extends Enum<K>, V> implements INodeFunc.INodeFuncObject<V> {
+   private final Class<K> keyClass;
+   private final Class<V> valueClass;
+   private final Map<K, NodeVariableObject<V>> variableMap;
+   private final NodeVariableObject<V> nullEntry;
 
-    public NodeFuncMap(Class<K> keyClass, Class<V> valueClass) {
-        this.keyClass = keyClass;
-        this.valueClass = valueClass;
-        this.variableMap = new EnumMap<>(keyClass);
-        for (K enumKey : keyClass.getEnumConstants()) {
-            variableMap.put(enumKey, new NodeVariableObject<>("entry_" + enumKey.name(), valueClass));
-        }
-        nullEntry = new NodeVariableObject<>("null_entry", valueClass);
-    }
+   public NodeFuncMap(Class<K> keyClass, Class<V> valueClass) {
+      this.keyClass = keyClass;
+      this.valueClass = valueClass;
+      this.variableMap = new EnumMap<>(keyClass);
 
-    public void putAll(Map<K, V> map) {
-        for (Map.Entry<K, V> entry : map.entrySet()) {
-            put(entry.getKey(), entry.getValue());
-        }
-    }
+      for (K enumKey : keyClass.getEnumConstants()) {
+         this.variableMap.put(enumKey, new NodeVariableObject<>("entry_" + enumKey.name(), valueClass));
+      }
 
-    public void putAll(V value) {
-        nullEntry.set(value);
-        for (K key : keyClass.getEnumConstants()) {
-            put(key, value);
-        }
-    }
+      this.nullEntry = new NodeVariableObject<>("null_entry", valueClass);
+   }
 
-    public void put(K key, V value) {
-        if (key == null) {
-            nullEntry.set(value);
-        } else {
-            IVariableNodeObject<V> node = variableMap.get(key);
-            if (node == null) {
-                throw new IllegalArgumentException("Unknown enum key " + key + " for " + key.getClass());
-            }
-            node.set(value);
-        }
-    }
+   public void putAll(Map<K, V> map) {
+      for (Entry<K, V> entry : map.entrySet()) {
+         this.put(entry.getKey(), entry.getValue());
+      }
+   }
 
-    public NodeVariableObject<V> get(K key) {
-        if (key == null) {
-            return nullEntry;
-        } else {
-            NodeVariableObject<V> node = variableMap.get(key);
-            if (node == null) {
-                throw new IllegalArgumentException("Unknown enum key " + key + " for " + key.getClass());
-            }
+   public void putAll(V value) {
+      this.nullEntry.set(value);
+
+      for (K key : this.keyClass.getEnumConstants()) {
+         this.put(key, value);
+      }
+   }
+
+   public void put(K key, V value) {
+      if (key == null) {
+         this.nullEntry.set(value);
+      } else {
+         IVariableNode.IVariableNodeObject<V> node = this.variableMap.get(key);
+         if (node == null) {
+            throw new IllegalArgumentException("Unknown enum key " + key + " for " + key.getClass());
+         }
+
+         node.set(value);
+      }
+   }
+
+   public NodeVariableObject<V> get(K key) {
+      if (key == null) {
+         return this.nullEntry;
+      } else {
+         NodeVariableObject<V> node = this.variableMap.get(key);
+         if (node == null) {
+            throw new IllegalArgumentException("Unknown enum key " + key + " for " + key.getClass());
+         } else {
             return node;
-        }
-    }
+         }
+      }
+   }
 
-    @Override
-    public INodeObject<V> getNode(INodeStack stack) throws InvalidExpressionException {
-        return new Node(stack.popObject(keyClass));
-    }
+   @Override
+   public IExpressionNode.INodeObject<V> getNode(INodeStack stack) throws InvalidExpressionException {
+      return new NodeFuncMap.Node(stack.popObject(this.keyClass));
+   }
 
-    @Override
-    public Class<V> getType() {
-        return valueClass;
-    }
+   @Override
+   public Class<V> getType() {
+      return this.valueClass;
+   }
 
-    private class Node implements INodeObject<V>, IDependantNode {
+   private class Node implements IExpressionNode.INodeObject<V>, IDependantNode {
+      private final IExpressionNode.INodeObject<K> input;
 
-        private final INodeObject<K> input;
+      public Node(IExpressionNode.INodeObject<K> input) {
+         this.input = input;
+      }
 
-        public Node(INodeObject<K> input) {
-            this.input = input;
-        }
+      @Override
+      public void visitDependants(IDependancyVisitor visitor) {
+         visitor.dependOn((IExpressionNode)NodeFuncMap.this.nullEntry);
+         visitor.dependOnNodes(NodeFuncMap.this.variableMap.values());
+      }
 
-        @Override
-        public void visitDependants(IDependancyVisitor visitor) {
-            visitor.dependOn((IExpressionNode) nullEntry);
-            visitor.dependOnNodes(variableMap.values());
-        }
+      @Override
+      public V evaluate() {
+         return NodeFuncMap.this.get(this.input.evaluate()).evaluate();
+      }
 
-        @Override
-        public V evaluate() {
-            return NodeFuncMap.this.get(input.evaluate()).evaluate();
-        }
+      @Override
+      public Class<V> getType() {
+         return NodeFuncMap.this.valueClass;
+      }
 
-        @Override
-        public Class<V> getType() {
-            return valueClass;
-        }
-
-        @Override
-        public INodeObject<V> inline() {
-            return NodeInliningHelper.tryInline(this, input, Node::new, i -> {
-                assert i instanceof IConstantNode;
-                K key = i.evaluate();
-                return NodeFuncMap.this.get(key).inline();
-            });
-        }
-    }
+      @Override
+      public IExpressionNode.INodeObject<V> inline() {
+         return NodeInliningHelper.tryInline(this, this.input, x$0 -> NodeFuncMap.this.new Node(x$0), i -> {
+            assert i instanceof IConstantNode;
+            K key = i.evaluate();
+            return NodeFuncMap.this.get(key).inline();
+         });
+      }
+   }
 }

@@ -1,21 +1,27 @@
 package buildcraft.lib.client.guide.parts.contents;
 
-import java.util.Set;
-
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.parts.GuidePart;
+import java.util.Set;
 
 public interface IContentsNode {
-    String getSearchName();
+   String getSearchName();
 
-    int getSortIndex();
+   int getSortIndex();
 
-    boolean isVisible();
-    void calcVisibility();
-    void resetVisibility();
-    void setVisible(Set<PageLink> matches);
-    void sort();
-    IContentsNode[] getVisibleChildren();
-    void addChild(IContentsNode node);
-    GuidePart createGuidePart(GuiGuide gui);
+   boolean isVisible();
+
+   void calcVisibility();
+
+   void resetVisibility();
+
+   void setVisible(Set<PageLink> var1);
+
+   void sort();
+
+   IContentsNode[] getVisibleChildren();
+
+   void addChild(IContentsNode var1);
+
+   GuidePart createGuidePart(GuiGuide var1);
 }

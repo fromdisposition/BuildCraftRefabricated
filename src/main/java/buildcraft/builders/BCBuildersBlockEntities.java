@@ -1,31 +1,31 @@
 package buildcraft.builders;
 
-import net.minecraft.world.level.block.entity.BlockEntityType;
-
-import buildcraft.fabric.BCRegistries;
 import buildcraft.builders.tile.TileArchitectTable;
 import buildcraft.builders.tile.TileBuilder;
 import buildcraft.builders.tile.TileElectronicLibrary;
 import buildcraft.builders.tile.TileFiller;
 import buildcraft.builders.tile.TileQuarry;
 import buildcraft.builders.tile.TileReplacer;
+import buildcraft.fabric.BCRegistries;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public final class BCBuildersBlockEntities {
-    public static BlockEntityType<TileFiller> FILLER;
-    public static BlockEntityType<TileBuilder> BUILDER;
-    public static BlockEntityType<TileArchitectTable> ARCHITECT;
-    public static BlockEntityType<TileElectronicLibrary> LIBRARY;
-    public static BlockEntityType<TileReplacer> REPLACER;
-    public static BlockEntityType<TileQuarry> QUARRY;
+   public static BlockEntityType<TileFiller> FILLER;
+   public static BlockEntityType<TileBuilder> BUILDER;
+   public static BlockEntityType<TileArchitectTable> ARCHITECT;
+   public static BlockEntityType<TileElectronicLibrary> LIBRARY;
+   public static BlockEntityType<TileReplacer> REPLACER;
+   public static BlockEntityType<TileQuarry> QUARRY;
 
-    private BCBuildersBlockEntities() {}
+   private BCBuildersBlockEntities() {
+   }
 
-    public static void register() {
-        FILLER = BCRegistries.registerBlockEntity(BCBuilders.MODID, "filler", TileFiller::new, BCBuildersBlocks.FILLER.get());
-        BUILDER = BCRegistries.registerBlockEntity(BCBuilders.MODID, "builder", TileBuilder::new, BCBuildersBlocks.BUILDER.get());
-        ARCHITECT = BCRegistries.registerBlockEntity(BCBuilders.MODID, "architect", TileArchitectTable::new, BCBuildersBlocks.ARCHITECT.get());
-        LIBRARY = BCRegistries.registerBlockEntity(BCBuilders.MODID, "library", TileElectronicLibrary::new, BCBuildersBlocks.LIBRARY.get());
-        REPLACER = BCRegistries.registerBlockEntity(BCBuilders.MODID, "replacer", TileReplacer::new, BCBuildersBlocks.REPLACER.get());
-        QUARRY = BCRegistries.registerBlockEntity(BCBuilders.MODID, "quarry", TileQuarry::new, BCBuildersBlocks.QUARRY.get());
-    }
+   public static void register() {
+      FILLER = BCRegistries.registerBlockEntity("buildcraftbuilders", "filler", TileFiller::new, BCBuildersBlocks.FILLER);
+      BUILDER = BCRegistries.registerBlockEntity("buildcraftbuilders", "builder", TileBuilder::new, BCBuildersBlocks.BUILDER);
+      ARCHITECT = BCRegistries.registerBlockEntity("buildcraftbuilders", "architect", TileArchitectTable::new, BCBuildersBlocks.ARCHITECT);
+      LIBRARY = BCRegistries.registerBlockEntity("buildcraftbuilders", "library", TileElectronicLibrary::new, BCBuildersBlocks.LIBRARY);
+      REPLACER = BCRegistries.registerBlockEntity("buildcraftbuilders", "replacer", TileReplacer::new, BCBuildersBlocks.REPLACER);
+      QUARRY = BCRegistries.registerBlockEntity("buildcraftbuilders", "quarry", TileQuarry::new, BCBuildersBlocks.QUARRY);
+   }
 }

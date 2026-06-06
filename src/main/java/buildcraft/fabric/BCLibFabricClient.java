@@ -1,65 +1,56 @@
 package buildcraft.fabric;
 
+import buildcraft.lib.client.fluid.BcFluidTintUtil;
+import buildcraft.lib.client.guide.GuideManager;
+import buildcraft.lib.client.model.ModelHolderRegistry;
+import buildcraft.lib.debug.AdvDebugRenderer;
+import buildcraft.lib.gui.config.GuiConfigManager;
+import buildcraft.lib.misc.data.ModelVariableData;
+import java.util.HashSet;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
-import buildcraft.lib.client.fluid.BcFluidTintUtil;
-import buildcraft.lib.client.model.ModelHolderRegistry;
-import buildcraft.lib.misc.data.ModelVariableData;
+import net.minecraft.server.packs.resources.ResourceManager;
 
 public final class BCLibFabricClient {
-    private BCLibFabricClient() {}
+   private BCLibFabricClient() {
+   }
 
-    public static void init() {
-        BCReloadFabric.initClient();
-        buildcraft.lib.debug.AdvDebugRenderer.register();
+   public static void init() {
+      BCReloadFabric.initClient();
+      AdvDebugRenderer.register();
+      GuiConfigManager.init(FabricLoader.getInstance().getConfigDir().resolve("buildcraft").resolve("gui_state.json"));
+      ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+         public Identifier getFabricId() {
+            return Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_heat_templates");
+         }
 
-        buildcraft.lib.gui.config.GuiConfigManager.init(
-                net.fabricmc.loader.api.FabricLoader.getInstance()
-                        .getConfigDir()
-                        .resolve("buildcraft")
-                        .resolve("gui_state.json"));
+         public void onResourceManagerReload(ResourceManager manager) {
+            BcFluidTintUtil.reloadTemplates(manager);
+         }
+      });
+      ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+         public Identifier getFabricId() {
+            return Identifier.fromNamespaceAndPath("buildcraftlib", "models");
+         }
 
-        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(
-                new net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener() {
-                    @Override
-                    public Identifier getFabricId() {
-                        return Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_heat_templates");
-                    }
+         public void onResourceManagerReload(ResourceManager manager) {
+            HashSet<Identifier> sprites = new HashSet<>();
+            ModelHolderRegistry.onTextureStitchPre(sprites);
+            ModelHolderRegistry.onModelBake();
+            ModelVariableData.onModelBake();
+         }
+      });
+      ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+         public Identifier getFabricId() {
+            return Identifier.fromNamespaceAndPath("buildcraftlib", "guide");
+         }
 
-                    @Override
-                    public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager manager) {
-                        BcFluidTintUtil.reloadTemplates(manager);
-                    }
-                });
-
-        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(
-                new net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener() {
-                    @Override
-                    public Identifier getFabricId() {
-                        return Identifier.fromNamespaceAndPath("buildcraftlib", "models");
-                    }
-
-                    @Override
-                    public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager manager) {
-                        java.util.HashSet<Identifier> sprites = new java.util.HashSet<>();
-                        ModelHolderRegistry.onTextureStitchPre(sprites);
-                        ModelHolderRegistry.onModelBake();
-                        ModelVariableData.onModelBake();
-                    }
-                });
-
-        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES).registerReloadListener(
-                new net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener() {
-                    @Override
-                    public Identifier getFabricId() {
-                        return Identifier.fromNamespaceAndPath("buildcraftlib", "guide");
-                    }
-
-                    @Override
-                    public void onResourceManagerReload(net.minecraft.server.packs.resources.ResourceManager manager) {
-                        buildcraft.lib.client.guide.GuideManager.INSTANCE.onResourceManagerReload(manager);
-                    }
-                });
-    }
+         public void onResourceManagerReload(ResourceManager manager) {
+            GuideManager.INSTANCE.onResourceManagerReload(manager);
+         }
+      });
+   }
 }

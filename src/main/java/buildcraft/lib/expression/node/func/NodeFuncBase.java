@@ -1,54 +1,48 @@
 package buildcraft.lib.expression.node.func;
 
+import buildcraft.lib.expression.api.INodeFunc;
 import javax.annotation.Nullable;
 
-import buildcraft.lib.expression.api.IConstantNode;
-import buildcraft.lib.expression.api.IExpressionNode;
-import buildcraft.lib.expression.api.INodeFunc;
-import buildcraft.lib.expression.api.INodeStack;
-
 public abstract class NodeFuncBase implements INodeFunc {
+   protected boolean canInline = true;
+   @Nullable
+   private String deprecationMessage;
+   private INodeFunc deprecationRecomendation;
 
-    protected boolean canInline = true;
+   public NodeFuncBase setNeverInline() {
+      this.canInline = false;
+      return this;
+   }
 
-    @Nullable
-    private String deprecationMessage;
-    private INodeFunc deprecationRecomendation;
+   public NodeFuncBase deprecate(String msg) {
+      return this.deprecate(msg, null);
+   }
 
-    public NodeFuncBase setNeverInline() {
-        canInline = false;
-        return this;
-    }
+   public NodeFuncBase deprecate(INodeFunc useInstead) {
+      return this.deprecate(null, useInstead);
+   }
 
-    public NodeFuncBase deprecate(String msg) {
-        return deprecate(msg, null);
-    }
+   public NodeFuncBase deprecate(String msg, INodeFunc useInstead) {
+      this.deprecationMessage = msg;
+      this.deprecationRecomendation = useInstead;
+      return this;
+   }
 
-    public NodeFuncBase deprecate(INodeFunc useInstead) {
-        return deprecate(null, useInstead);
-    }
+   public boolean isDeprecated() {
+      return this.deprecationMessage != null || this.deprecationRecomendation != null;
+   }
 
-    public NodeFuncBase deprecate(String msg, INodeFunc useInstead) {
-        deprecationMessage = msg;
-        deprecationRecomendation = useInstead;
-        return this;
-    }
+   @Nullable
+   public String getDeprecationMessage() {
+      return this.deprecationMessage;
+   }
 
-    public boolean isDeprecated() {
-        return deprecationMessage != null || deprecationRecomendation != null;
-    }
+   @Nullable
+   public INodeFunc getDeprecationRecomendation() {
+      return this.deprecationRecomendation;
+   }
 
-    @Nullable
-    public String getDeprecationMessage() {
-        return deprecationMessage;
-    }
-
-    @Nullable
-    public INodeFunc getDeprecationRecomendation() {
-        return deprecationRecomendation;
-    }
-
-    public interface IFunctionNode {
-        NodeFuncBase getFunction();
-    }
+   public interface IFunctionNode {
+      NodeFuncBase getFunction();
+   }
 }

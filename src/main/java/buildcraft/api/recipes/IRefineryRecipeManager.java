@@ -1,74 +1,73 @@
 package buildcraft.api.recipes;
 
+import buildcraft.lib.fluids.FluidStack;
 import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
 
-import buildcraft.lib.fluids.FluidStack;
-
 public interface IRefineryRecipeManager {
-    IHeatableRecipe createHeatingRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo);
+   IRefineryRecipeManager.IHeatableRecipe createHeatingRecipe(FluidStack var1, FluidStack var2, int var3, int var4);
 
-    default IHeatableRecipe addHeatableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo) {
-        return getHeatableRegistry().addRecipe(createHeatingRecipe(in, out, heatFrom, heatTo));
-    }
+   default IRefineryRecipeManager.IHeatableRecipe addHeatableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo) {
+      return this.getHeatableRegistry().addRecipe(this.createHeatingRecipe(in, out, heatFrom, heatTo));
+   }
 
-    ICoolableRecipe createCoolableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo);
+   IRefineryRecipeManager.ICoolableRecipe createCoolableRecipe(FluidStack var1, FluidStack var2, int var3, int var4);
 
-    default ICoolableRecipe addCoolableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo) {
-        return getCoolableRegistry().addRecipe(createCoolableRecipe(in, out, heatFrom, heatTo));
-    }
+   default IRefineryRecipeManager.ICoolableRecipe addCoolableRecipe(FluidStack in, FluidStack out, int heatFrom, int heatTo) {
+      return this.getCoolableRegistry().addRecipe(this.createCoolableRecipe(in, out, heatFrom, heatTo));
+   }
 
-    IDistillationRecipe createDistillationRecipe(FluidStack in, FluidStack outGas, FluidStack outLiquid, long powerRequired);
+   IRefineryRecipeManager.IDistillationRecipe createDistillationRecipe(FluidStack var1, FluidStack var2, FluidStack var3, long var4);
 
-    default IDistillationRecipe addDistillationRecipe(FluidStack in, FluidStack outGas, FluidStack outLiquid, long powerRequired) {
-        return getDistillationRegistry().addRecipe(createDistillationRecipe(in, outGas, outLiquid, powerRequired));
-    }
+   default IRefineryRecipeManager.IDistillationRecipe addDistillationRecipe(FluidStack in, FluidStack outGas, FluidStack outLiquid, long powerRequired) {
+      return this.getDistillationRegistry().addRecipe(this.createDistillationRecipe(in, outGas, outLiquid, powerRequired));
+   }
 
-    IRefineryRegistry<IHeatableRecipe> getHeatableRegistry();
+   IRefineryRecipeManager.IRefineryRegistry<IRefineryRecipeManager.IHeatableRecipe> getHeatableRegistry();
 
-    IRefineryRegistry<ICoolableRecipe> getCoolableRegistry();
+   IRefineryRecipeManager.IRefineryRegistry<IRefineryRecipeManager.ICoolableRecipe> getCoolableRegistry();
 
-    IRefineryRegistry<IDistillationRecipe> getDistillationRegistry();
+   IRefineryRecipeManager.IRefineryRegistry<IRefineryRecipeManager.IDistillationRecipe> getDistillationRegistry();
 
-    interface IRefineryRegistry<R extends IRefineryRecipe> {
+   interface ICoolableRecipe extends IRefineryRecipeManager.IHeatExchangerRecipe {
+   }
 
-        Stream<R> getRecipes(Predicate<R> toReturn);
+   interface IDistillationRecipe extends IRefineryRecipeManager.IRefineryRecipe {
+      long powerRequired();
 
-        Collection<R> getAllRecipes();
+      FluidStack outGas();
 
-        @Nullable
-        R getRecipeForInput(@Nullable FluidStack fluid);
+      FluidStack outLiquid();
+   }
 
-        Collection<R> removeRecipes(Predicate<R> toRemove);
+   interface IHeatExchangerRecipe extends IRefineryRecipeManager.IRefineryRecipe {
+      @Nullable
+      FluidStack out();
 
-        R addRecipe(R recipe);
-    }
+      int heatFrom();
 
-    interface IRefineryRecipe {
-        FluidStack in();
-    }
+      int heatTo();
+   }
 
-    interface IHeatExchangerRecipe extends IRefineryRecipe {
-        @Nullable
-        FluidStack out();
+   interface IHeatableRecipe extends IRefineryRecipeManager.IHeatExchangerRecipe {
+   }
 
-        int heatFrom();
+   interface IRefineryRecipe {
+      FluidStack in();
+   }
 
-        int heatTo();
-    }
+   interface IRefineryRegistry<R extends IRefineryRecipeManager.IRefineryRecipe> {
+      Stream<R> getRecipes(Predicate<R> var1);
 
-    interface IHeatableRecipe extends IHeatExchangerRecipe {}
+      Collection<R> getAllRecipes();
 
-    interface ICoolableRecipe extends IHeatExchangerRecipe {}
+      @Nullable
+      R getRecipeForInput(@Nullable FluidStack var1);
 
-    interface IDistillationRecipe extends IRefineryRecipe {
-        long powerRequired();
+      Collection<R> removeRecipes(Predicate<R> var1);
 
-        FluidStack outGas();
-
-        FluidStack outLiquid();
-    }
+      R addRecipe(R var1);
+   }
 }

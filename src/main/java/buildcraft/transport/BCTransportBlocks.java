@@ -1,29 +1,23 @@
 package buildcraft.transport;
 
-import buildcraft.fabric.registry.DeferredRegister;
-import buildcraft.fabric.registry.DeferredBlock;
-import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
+import buildcraft.fabric.BCRegistries;
 import buildcraft.transport.block.BlockFilteredBuffer;
 import buildcraft.transport.block.BlockPipeHolder;
+import net.minecraft.world.level.block.SoundType;
 
-public class BCTransportBlocks {
-    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(BCTransport.MODID);
+public final class BCTransportBlocks {
+   public static BlockFilteredBuffer FILTERED_BUFFER;
+   public static BlockPipeHolder PIPE_HOLDER;
 
-    public static final DeferredBlock<BlockFilteredBuffer> FILTERED_BUFFER = BLOCKS.registerBlock(
-            "filtered_buffer",
-            BlockFilteredBuffer::new, () -> BlockBehaviour.Properties.of().strength(5.0f, 10.0f).sound(SoundType.METAL).requiresCorrectToolForDrops());
+   private BCTransportBlocks() {
+   }
 
-    public static final DeferredBlock<BlockPipeHolder> PIPE_HOLDER = BLOCKS.registerBlock(
-            "pipe_holder",
-            BlockPipeHolder::new, () -> BlockBehaviour.Properties.of()
-                .strength(0.25f, 3.0f)
-                .noOcclusion()
-                .dynamicShape()
-                .sound(SoundType.METAL));
-
-    public static void register() {
-        BLOCKS.register();
-    }
+   public static void register() {
+      FILTERED_BUFFER = BCRegistries.registerBlock(
+         "buildcrafttransport", "filtered_buffer", BlockFilteredBuffer::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+      );
+      PIPE_HOLDER = BCRegistries.registerBlock(
+         "buildcrafttransport", "pipe_holder", BlockPipeHolder::new, p -> p.strength(0.25F, 3.0F).noOcclusion().dynamicShape().sound(SoundType.METAL)
+      );
+   }
 }
-

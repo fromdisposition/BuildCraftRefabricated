@@ -3,6 +3,5 @@ package buildcraft.api.mj;
 import javax.annotation.Nonnull;
 
 public interface IMjConnector {
-
-    boolean canConnect(@Nonnull IMjConnector other);
+   boolean canConnect(@Nonnull IMjConnector var1);
 }

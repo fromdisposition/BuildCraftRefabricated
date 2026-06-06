@@ -1,18 +1,23 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.core.list;
 
-import net.minecraft.client.Minecraft;
+import buildcraft.core.item.ItemList_BC8;
 import buildcraft.lib.gui.BCGraphics;
+import buildcraft.lib.gui.BcScreen;
+import buildcraft.lib.gui.GuiIcon;
 import buildcraft.lib.gui.button.BCButton;
-import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.client.gui.components.Button;
+import buildcraft.lib.gui.help.DummyHelpElement;
+import buildcraft.lib.gui.help.ElementHelpInfo;
+import buildcraft.lib.gui.pos.GuiRectangle;
+import buildcraft.lib.list.ListHandler;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -20,272 +25,277 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
-import buildcraft.core.item.ItemList_BC8;
-import buildcraft.lib.gui.GuiBC8;
-import buildcraft.lib.gui.GuiIcon;
-import buildcraft.lib.gui.help.DummyHelpElement;
-import buildcraft.lib.gui.help.ElementHelpInfo;
-import buildcraft.lib.gui.pos.GuiRectangle;
+public class GuiList extends BcScreen<ContainerList> {
+   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftcore:textures/gui/list_new.png");
+   private static final int SIZE_X = 176;
+   private static final int SIZE_Y = 191;
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 191.0);
+   private static final GuiIcon ICON_ONE_STACK = new GuiIcon(TEXTURE_BASE, 0.0, 191.0, 20.0, 20.0);
+   private static final GuiIcon ICON_HIGHLIGHT = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 16.0, 16.0);
+   private static final int BTN_W = 14;
+   private static final int BTN_H = 14;
+   private static final int BUTTON_COUNT = 3;
+   private GuiList.ToggleButton[][] toggleButtons;
+   private EditBox labelField;
+   private final Map<Integer, GuiList.GhostCache> ghostCache = new HashMap<>();
 
-public class GuiList extends GuiBC8<ContainerList> {
-    private static final Identifier TEXTURE_BASE =
-        Identifier.parse("buildcraftcore:textures/gui/list_new.png");
-    private static final int SIZE_X = 176, SIZE_Y = 191;
-    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0, 0, SIZE_X, SIZE_Y);
-    private static final GuiIcon ICON_ONE_STACK = new GuiIcon(TEXTURE_BASE, 0, 191, 20, 20);
+   public GuiList(ContainerList menu, Inventory playerInv, Component title) {
+      super(menu, playerInv, title, 176, 191);
+   }
 
-    private static final GuiIcon ICON_HIGHLIGHT = new GuiIcon(TEXTURE_BASE, 176, 0, 16, 16);
+   @Override
+   protected void initGuiElements() {
+      this.mainGui.shownElements.add(new LedgerListMatch(this.mainGui, (ContainerList)this.menu));
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(10.0, 10.0, 156.0, 12.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.list.label.title", -1980113, "buildcraft.help.list.label.desc")
+            )
+         );
 
-    private static final int BTN_W = 14, BTN_H = 14;
-    private static final int BUTTON_COUNT = 3;
+      for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
+         int rowY = 32 + line * 34;
+         this.mainGui
+            .shownElements
+            .add(
+               new DummyHelpElement(
+                  new GuiRectangle(8.0, rowY, 162.0, 16.0).offset(this.mainGui.rootElement),
+                  new ElementHelpInfo("buildcraft.help.list.slots.title", -7811960, "buildcraft.help.list.slots.desc1", "buildcraft.help.list.slots.desc2")
+               )
+            );
+         int btnRowY = rowY + 18;
+         int bOffX = 127;
+         this.mainGui
+            .shownElements
+            .add(
+               new DummyHelpElement(
+                  new GuiRectangle(bOffX, btnRowY, 14.0, 14.0).offset(this.mainGui.rootElement),
+                  new ElementHelpInfo("buildcraft.help.list.button.precise.title", -7820545, "buildcraft.help.list.button.precise.desc")
+               )
+            );
+         this.mainGui
+            .shownElements
+            .add(
+               new DummyHelpElement(
+                  new GuiRectangle(bOffX + 14, btnRowY, 14.0, 14.0).offset(this.mainGui.rootElement),
+                  new ElementHelpInfo(
+                     "buildcraft.help.list.button.by_type.title",
+                     -17579,
+                     "buildcraft.help.list.button.by_type.desc1",
+                     "buildcraft.help.list.button.by_type.desc2"
+                  )
+               )
+            );
+         this.mainGui
+            .shownElements
+            .add(
+               new DummyHelpElement(
+                  new GuiRectangle(bOffX + 28, btnRowY, 14.0, 14.0).offset(this.mainGui.rootElement),
+                  new ElementHelpInfo(
+                     "buildcraft.help.list.button.by_material.title",
+                     -3372801,
+                     "buildcraft.help.list.button.by_material.desc1",
+                     "buildcraft.help.list.button.by_material.desc2"
+                  )
+               )
+            );
+      }
 
-    private ToggleButton[][] toggleButtons;
+      this.labelField = new EditBox(this.font, this.leftPos + 10, this.topPos + 10, 156, 12, Component.empty());
+      this.labelField.setMaxLength(32);
+      this.labelField.setBordered(true);
+      if (((ContainerList)this.menu).getListItemStack().getItem() instanceof ItemList_BC8 listItem) {
+         String name = listItem.getLocationName(((ContainerList)this.menu).getListItemStack());
+         if (name != null && !name.isEmpty()) {
+            this.labelField.setValue(name);
+         }
+      }
 
-    private EditBox labelField;
+      this.labelField.setFocused(false);
+      this.labelField.setResponder(newText -> ((ContainerList)this.menu).setLabel(newText));
+      this.addRenderableWidget(this.labelField);
+      this.toggleButtons = new GuiList.ToggleButton[((ContainerList)this.menu).lines.length][3];
 
-    private final java.util.Map<Integer, GhostCache> ghostCache = new java.util.HashMap<>();
+      for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
+         int bOffX = this.leftPos + 8 + 162 - 42 - 1;
+         int bOffY = this.topPos + 32 + line * 34 + 18;
 
-    private static final class GhostCache {
-        final long signature;
-        final java.util.List<net.minecraft.world.item.ItemStack> shuffled;
+         for (int btn = 0; btn < 3; btn++) {
+            int lineIdx = line;
+            int btnIdx = btn;
+            String letter = btn == 0 ? "P" : (btn == 1 ? "T" : "M");
+            String tooltipKey = btn == 0 ? "gui.list.nbt" : (btn == 1 ? "gui.list.metadata" : "gui.list.oredict");
+            GuiList.ToggleButton button = new GuiList.ToggleButton(bOffX + btn * 14, bOffY, 14, 14, Component.literal(letter), () -> {
+               ((ContainerList)this.menu).switchButton(lineIdx, btnIdx);
 
-        GhostCache(long signature, java.util.List<net.minecraft.world.item.ItemStack> shuffled) {
-            this.signature = signature;
-            this.shuffled = shuffled;
-        }
-    }
+               for (int i = 0; i < 3; i++) {
+                  this.toggleButtons[lineIdx][i].setToggled(((ContainerList)this.menu).lines[lineIdx].getOption(i));
+               }
+            });
+            button.setToggled(((ContainerList)this.menu).lines[lineIdx].getOption(btnIdx));
+            button.setTooltip(Tooltip.create(Component.translatable(tooltipKey)));
+            this.toggleButtons[line][btn] = button;
+            this.addRenderableWidget(button);
+         }
+      }
+   }
 
-    public GuiList(ContainerList menu, Inventory playerInv, Component title) {
-        super(menu, playerInv, title, SIZE_X, SIZE_Y);
-    }
+   @Override
+   protected void drawBackgroundTexture(BCGraphics graphics) {
+      ICON_GUI.drawAt(this.mainGui.rootElement);
 
-    @Override
-    protected void initGuiElements() {
+      for (int i = 0; i < ((ContainerList)this.menu).lines.length; i++) {
+         ListHandler.Line line = ((ContainerList)this.menu).lines[i];
+         if (line.isOneStackMode()) {
+            ICON_ONE_STACK.drawAt(this.leftPos + 6, this.topPos + 30 + i * 34);
+            List<ItemStack> examples = this.ghostExamplesFor(i);
 
-        mainGui.shownElements.add(new LedgerListMatch(mainGui, menu));
-
-        mainGui.shownElements.add(new DummyHelpElement(
-                new GuiRectangle(10, 10, 156, 12).offset(mainGui.rootElement),
-                new ElementHelpInfo("buildcraft.help.list.label.title", 0xFF_E1_C9_2F,
-                        "buildcraft.help.list.label.desc")));
-
-        for (int line = 0; line < menu.lines.length; line++) {
-            int rowY = 32 + line * 34;
-            mainGui.shownElements.add(new DummyHelpElement(
-                    new GuiRectangle(8, rowY, 9 * 18, 16).offset(mainGui.rootElement),
-                    new ElementHelpInfo("buildcraft.help.list.slots.title", 0xFF_88_CC_88,
-                            "buildcraft.help.list.slots.desc1",
-                            "buildcraft.help.list.slots.desc2")));
-
-            int btnRowY = rowY + 18;
-            int bOffX = 8 + 9 * 18 - BUTTON_COUNT * BTN_W - 1;
-            mainGui.shownElements.add(new DummyHelpElement(
-                    new GuiRectangle(bOffX, btnRowY, BTN_W, BTN_H).offset(mainGui.rootElement),
-                    new ElementHelpInfo("buildcraft.help.list.button.precise.title", 0xFF_88_AA_FF,
-                            "buildcraft.help.list.button.precise.desc")));
-            mainGui.shownElements.add(new DummyHelpElement(
-                    new GuiRectangle(bOffX + BTN_W, btnRowY, BTN_W, BTN_H).offset(mainGui.rootElement),
-                    new ElementHelpInfo("buildcraft.help.list.button.by_type.title", 0xFF_FF_BB_55,
-                            "buildcraft.help.list.button.by_type.desc1",
-                            "buildcraft.help.list.button.by_type.desc2")));
-            mainGui.shownElements.add(new DummyHelpElement(
-                    new GuiRectangle(bOffX + 2 * BTN_W, btnRowY, BTN_W, BTN_H).offset(mainGui.rootElement),
-                    new ElementHelpInfo("buildcraft.help.list.button.by_material.title", 0xFF_CC_88_FF,
-                            "buildcraft.help.list.button.by_material.desc1",
-                            "buildcraft.help.list.button.by_material.desc2")));
-        }
-
-        labelField = new EditBox(this.font, leftPos + 10, topPos + 10, 156, 12, Component.empty());
-        labelField.setMaxLength(32);
-        labelField.setBordered(true);
-
-        if (menu.getListItemStack().getItem() instanceof ItemList_BC8 listItem) {
-            String name = listItem.getLocationName(menu.getListItemStack());
-            if (name != null && !name.isEmpty()) {
-                labelField.setValue(name);
+            for (int slot = 1; slot < 9; slot++) {
+               int x = this.leftPos + 8 + slot * 18;
+               int y = this.topPos + 32 + i * 34;
+               ICON_HIGHLIGHT.drawAt(x, y);
+               int exampleIdx = slot - 1;
+               if (exampleIdx < examples.size()) {
+                  ItemStack ex = examples.get(exampleIdx);
+                  if (!ex.isEmpty()) {
+                     graphics.fakeItem(ex, x, y);
+                  }
+               }
             }
-        }
+         }
+      }
+   }
 
-        labelField.setFocused(false);
-        labelField.setResponder(newText -> menu.setLabel(newText));
-        addRenderableWidget(labelField);
+   @Override
+   protected void drawTooltipLayer(int mouseX, int mouseY, float partialTick) {
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
 
-        toggleButtons = new ToggleButton[menu.lines.length][BUTTON_COUNT];
-        for (int line = 0; line < menu.lines.length; line++) {
-            int bOffX = this.leftPos + 8 + 9 * 18 - BUTTON_COUNT * BTN_W - 1;
-            int bOffY = this.topPos + 32 + line * 34 + 18;
+      for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
+         if (((ContainerList)this.menu).lines[line].isOneStackMode()) {
+            List<ItemStack> examples = this.ghostExamplesFor(line);
 
-            for (int btn = 0; btn < BUTTON_COUNT; btn++) {
-                final int lineIdx = line;
-                final int btnIdx = btn;
-                String letter = btn == 0 ? "P" : (btn == 1 ? "T" : "M");
-                String tooltipKey = btn == 0 ? "gui.list.nbt" : (btn == 1 ? "gui.list.metadata" : "gui.list.oredict");
+            for (int slot = 1; slot < 9; slot++) {
+               int idx = slot - 1;
+               if (idx >= examples.size()) {
+                  break;
+               }
 
-                ToggleButton button = new ToggleButton(
-                        bOffX + btn * BTN_W, bOffY, BTN_W, BTN_H,
-                        Component.literal(letter),
-                        () -> {
-                            menu.switchButton(lineIdx, btnIdx);
-
-                            for (int i = 0; i < BUTTON_COUNT; i++) {
-                                toggleButtons[lineIdx][i].setToggled(menu.lines[lineIdx].getOption(i));
-                            }
-                        });
-                button.setToggled(menu.lines[lineIdx].getOption(btnIdx));
-                button.setTooltip(Tooltip.create(Component.translatable(tooltipKey)));
-                toggleButtons[line][btn] = button;
-                addRenderableWidget(button);
+               ItemStack ex = examples.get(idx);
+               if (!ex.isEmpty()) {
+                  int x = this.leftPos + 8 + slot * 18;
+                  int y = this.topPos + 32 + line * 34;
+                  if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
+                     graphics.setTooltipForNextFrame(this.font, ex, mouseX, mouseY);
+                     return;
+                  }
+               }
             }
-        }
-    }
+         }
+      }
+   }
 
-    private static class ToggleButton extends BCButton {
-        private static final Identifier SPRITE_NORMAL = Identifier.withDefaultNamespace("widget/button");
-        private static final Identifier SPRITE_DISABLED = Identifier.withDefaultNamespace("widget/button_disabled");
-        private static final Identifier SPRITE_HIGHLIGHTED = Identifier.withDefaultNamespace("widget/button_highlighted");
+   private List<ItemStack> ghostExamplesFor(int lineIdx) {
+      ListHandler.Line line = ((ContainerList)this.menu).lines[lineIdx];
+      long sig = ghostSignature(line);
+      GuiList.GhostCache cached = this.ghostCache.get(lineIdx);
+      if (cached != null && cached.signature == sig) {
+         return cached.shuffled;
+      }
 
-        private final Runnable onPressAction;
-        private boolean toggled;
+      List<ItemStack> all = new ArrayList<>(line.getExamples());
+      Collections.shuffle(all);
+      this.ghostCache.put(lineIdx, new GuiList.GhostCache(sig, all));
+      return all;
+   }
 
-        ToggleButton(int x, int y, int width, int height, Component message, Runnable onPressAction) {
-            super(x, y, width, height, message);
-            this.onPressAction = onPressAction;
-        }
+   private static long ghostSignature(ListHandler.Line line) {
+      ItemStack source = line.getStack(0);
+      int itemHash = source.isEmpty() ? 0 : System.identityHashCode(source.getItem());
+      int flags = (line.byType ? 1 : 0) | (line.byMaterial ? 2 : 0) | (line.precise ? 4 : 0);
+      return (long)itemHash << 8 | flags;
+   }
 
-        @Override
-        public void onPress(InputWithModifiers modifiers) {
-            onPressAction.run();
-        }
-
-        void setToggled(boolean toggled) {
-            this.toggled = toggled;
-        }
-
-        @Override
-        protected void drawButtonContent(BCGraphics graphics, int mouseX, int mouseY, float partialTick) {
-
-            Identifier sprite;
-            if (toggled) {
-                sprite = SPRITE_DISABLED;
-            } else if (this.isHoveredOrFocused()) {
-                sprite = SPRITE_HIGHLIGHTED;
-            } else {
-                sprite = SPRITE_NORMAL;
-            }
-            graphics.raw.blitSprite(RenderPipelines.GUI_TEXTURED, sprite,
-                    getX(), getY(), getWidth(), getHeight(),
-                    ARGB.white(this.alpha));
-
-            drawDefaultButtonLabel(graphics);
-        }
-
-        @Override
-        public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-
-            if (this.visible
-                    && this.isValidClickButton(event.buttonInfo())
-                    && this.isMouseOver(event.x(), event.y())) {
-                playDownSound(Minecraft.getInstance().getSoundManager());
-                this.onClick(event, doubleClick);
-                return true;
-            }
-            return false;
-        }
-    }
-
-    @Override
-    protected void drawBackgroundTexture(BCGraphics graphics) {
-        ICON_GUI.drawAt(mainGui.rootElement);
-
-        for (int i = 0; i < menu.lines.length; i++) {
-            buildcraft.lib.list.ListHandler.Line line = menu.lines[i];
-            if (!line.isOneStackMode()) continue;
-
-            ICON_ONE_STACK.drawAt(leftPos + 6, topPos + 30 + i * 34);
-
-            java.util.List<net.minecraft.world.item.ItemStack> examples = ghostExamplesFor(i);
-            for (int slot = 1; slot < buildcraft.lib.list.ListHandler.WIDTH; slot++) {
-                int x = leftPos + 8 + slot * 18;
-                int y = topPos + 32 + i * 34;
-                ICON_HIGHLIGHT.drawAt(x, y);
-                int exampleIdx = slot - 1;
-                if (exampleIdx < examples.size()) {
-                    net.minecraft.world.item.ItemStack ex = examples.get(exampleIdx);
-                    if (!ex.isEmpty()) {
-                        graphics.fakeItem(ex, x, y);
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    protected void drawTooltipLayer(int mouseX, int mouseY, float partialTick) {
-        BCGraphics graphics = GuiIcon.getGuiGraphics();
-
-        for (int line = 0; line < menu.lines.length; line++) {
-            if (!menu.lines[line].isOneStackMode()) continue;
-            java.util.List<net.minecraft.world.item.ItemStack> examples = ghostExamplesFor(line);
-            for (int slot = 1; slot < buildcraft.lib.list.ListHandler.WIDTH; slot++) {
-                int idx = slot - 1;
-                if (idx >= examples.size()) break;
-                net.minecraft.world.item.ItemStack ex = examples.get(idx);
-                if (ex.isEmpty()) continue;
-                int x = leftPos + 8 + slot * 18;
-                int y = topPos + 32 + line * 34;
-                if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
-                    graphics.setTooltipForNextFrame(font, ex, mouseX, mouseY);
-                    return;
-                }
-            }
-        }
-    }
-
-    private java.util.List<net.minecraft.world.item.ItemStack> ghostExamplesFor(int lineIdx) {
-        buildcraft.lib.list.ListHandler.Line line = menu.lines[lineIdx];
-        long sig = ghostSignature(line);
-        GhostCache cached = ghostCache.get(lineIdx);
-        if (cached != null && cached.signature == sig) {
-            return cached.shuffled;
-        }
-        java.util.List<net.minecraft.world.item.ItemStack> all = new java.util.ArrayList<>(line.getExamples());
-        java.util.Collections.shuffle(all);
-        ghostCache.put(lineIdx, new GhostCache(sig, all));
-        return all;
-    }
-
-    private static long ghostSignature(buildcraft.lib.list.ListHandler.Line line) {
-        net.minecraft.world.item.ItemStack source = line.getStack(0);
-        int itemHash = source.isEmpty() ? 0 : System.identityHashCode(source.getItem());
-        int flags = (line.byType ? 1 : 0) | (line.byMaterial ? 2 : 0) | (line.precise ? 4 : 0);
-        return ((long) itemHash << 8) | flags;
-    }
-
-    @Override
-    public boolean keyPressed(KeyEvent event) {
-        if (labelField != null && labelField.isFocused()) {
-
-            if (event.key() == 257 || event.key() == 335) {
-                this.setFocused(null);
-                return true;
-            }
-
-            if (this.minecraft.options.keyInventory.matches(event)) {
-                return true;
-            }
-        }
-        return super.keyPressed(event);
-    }
-
-    @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean entered) {
-
-        if (labelField != null && labelField.isFocused()
-                && !labelField.isMouseOver(event.x(), event.y())) {
+   public boolean keyPressed(KeyEvent event) {
+      if (this.labelField != null && this.labelField.isFocused()) {
+         if (event.key() == 257 || event.key() == 335) {
             this.setFocused(null);
-        }
-        return super.mouseClicked(event, entered);
-    }
+            return true;
+         }
 
+         if (this.minecraft.options.keyInventory.matches(event)) {
+            return true;
+         }
+      }
+
+      return super.keyPressed(event);
+   }
+
+   @Override
+   public boolean mouseClicked(MouseButtonEvent event, boolean entered) {
+      if (this.labelField != null && this.labelField.isFocused() && !this.labelField.isMouseOver(event.x(), event.y())) {
+         this.setFocused(null);
+      }
+
+      return super.mouseClicked(event, entered);
+   }
+
+   private static final class GhostCache {
+      final long signature;
+      final List<ItemStack> shuffled;
+
+      GhostCache(long signature, List<ItemStack> shuffled) {
+         this.signature = signature;
+         this.shuffled = shuffled;
+      }
+   }
+
+   private static class ToggleButton extends BCButton {
+      private static final Identifier SPRITE_NORMAL = Identifier.withDefaultNamespace("widget/button");
+      private static final Identifier SPRITE_DISABLED = Identifier.withDefaultNamespace("widget/button_disabled");
+      private static final Identifier SPRITE_HIGHLIGHTED = Identifier.withDefaultNamespace("widget/button_highlighted");
+      private final Runnable onPressAction;
+      private boolean toggled;
+
+      ToggleButton(int x, int y, int width, int height, Component message, Runnable onPressAction) {
+         super(x, y, width, height, message);
+         this.onPressAction = onPressAction;
+      }
+
+      public void onPress(InputWithModifiers modifiers) {
+         this.onPressAction.run();
+      }
+
+      void setToggled(boolean toggled) {
+         this.toggled = toggled;
+      }
+
+      @Override
+      protected void drawButtonContent(BCGraphics graphics, int mouseX, int mouseY, float partialTick) {
+         Identifier sprite;
+         if (this.toggled) {
+            sprite = SPRITE_DISABLED;
+         } else if (this.isHoveredOrFocused()) {
+            sprite = SPRITE_HIGHLIGHTED;
+         } else {
+            sprite = SPRITE_NORMAL;
+         }
+
+         graphics.raw.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
+         this.drawDefaultButtonLabel(graphics);
+      }
+
+      public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+         if (this.visible && this.isValidClickButton(event.buttonInfo()) && this.isMouseOver(event.x(), event.y())) {
+            this.playDownSound(Minecraft.getInstance().getSoundManager());
+            this.onClick(event, doubleClick);
+            return true;
+         } else {
+            return false;
+         }
+      }
+   }
 }

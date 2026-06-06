@@ -1,269 +1,254 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.silicon.container;
 
-import java.io.IOException;
+import buildcraft.api.core.BCLog;
+import buildcraft.api.core.EnumPipePart;
+import buildcraft.api.statements.IStatement;
+import buildcraft.api.statements.StatementManager;
+import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.fabric.network.BCPayloadContext;
+import buildcraft.lib.fabric.menu.GateMenuKey;
+import buildcraft.lib.gui.BcMenu;
+import buildcraft.lib.net.PacketBufferBC;
+import buildcraft.lib.statement.ActionWrapper;
+import buildcraft.lib.statement.StatementWrapper;
+import buildcraft.lib.statement.TriggerWrapper;
+import buildcraft.silicon.BCSiliconMenuTypes;
+import buildcraft.silicon.gate.GateContext;
+import buildcraft.silicon.gate.GateLogic;
+import buildcraft.silicon.plug.PluggableGate;
+import buildcraft.transport.tile.TilePipeHolder;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.network.FriendlyByteBuf;
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
-import buildcraft.fabric.network.BCPayloadContext;
+public class ContainerGate extends BcMenu {
+   public static final int ID_CONNECTION = 1;
+   public static final int ID_VALID_STATEMENTS = 2;
+   public static final int ID_STATEMENT_CHANGE = 3;
+   @Nullable
+   public final GateLogic gate;
+   @Nullable
+   public final IPipeHolder pipeHolder;
+   public final int slotHeight;
+   public final SortedSet<TriggerWrapper> possibleTriggers;
+   public final SortedSet<ActionWrapper> possibleActions;
+   public final GateContext<TriggerWrapper> possibleTriggersContext;
+   public final GateContext<ActionWrapper> possibleActionsContext;
 
-import buildcraft.api.core.BCLog;
-import buildcraft.api.core.EnumPipePart;
-import buildcraft.api.statements.StatementManager;
-import buildcraft.api.transport.pipe.IPipeHolder;
+   public ContainerGate(int containerId, Inventory playerInv, GateMenuKey key) {
+      this(containerId, playerInv, getPluggableGate(playerInv, key));
+   }
 
-import buildcraft.lib.gui.ContainerBC_Neptune;
-import buildcraft.lib.misc.data.IdAllocator;
-import buildcraft.lib.net.PacketBufferBC;
-import buildcraft.lib.statement.ActionWrapper;
-import buildcraft.lib.statement.StatementWrapper;
-import buildcraft.lib.statement.TriggerWrapper;
+   private static PluggableGate getPluggableGate(Inventory inv, GateMenuKey key) {
+      BlockPos pos = key.pos();
+      Direction side = key.side();
+      if (inv.player.level() != null
+         && inv.player.level().getBlockEntity(pos) instanceof TilePipeHolder holder
+         && holder.getPluggable(side) instanceof PluggableGate gatePlug) {
+         return gatePlug;
+      }
 
-import buildcraft.silicon.gate.GateContext;
-import buildcraft.silicon.gate.GateContext.GateGroup;
-import buildcraft.silicon.gate.GateLogic;
-import buildcraft.silicon.plug.PluggableGate;
-import buildcraft.lib.fabric.menu.GateMenuKey;
-import buildcraft.silicon.BCSiliconMenuTypes;
+      BCLog.logger.warn("[silicon.gui] No gate pluggable at {} side {}", pos, side);
+      return null;
+   }
 
-@SuppressWarnings("this-escape")
-public class ContainerGate extends ContainerBC_Neptune {
-    public static final int ID_CONNECTION = 1;
-    public static final int ID_VALID_STATEMENTS = 2;
-    public static final int ID_STATEMENT_CHANGE = 3;
+   public ContainerGate(int containerId, Inventory playerInv, PluggableGate pluggable) {
+      super(BCSiliconMenuTypes.GATE, containerId, playerInv.player);
+      if (pluggable == null) {
+         this.gate = null;
+         this.pipeHolder = null;
+         this.slotHeight = 0;
+         this.possibleTriggers = new TreeSet<>();
+         this.possibleActions = new TreeSet<>();
+         this.possibleTriggersContext = new GateContext<>(new ArrayList<>());
+         this.possibleActionsContext = new GateContext<>(new ArrayList<>());
+      } else {
+         this.gate = pluggable.logic;
+         this.pipeHolder = pluggable.holder;
+         this.pipeHolder.onPlayerOpen(this.player);
+         boolean split = this.gate.isSplitInTwo();
+         int s = this.gate.variant.numSlots;
+         if (split) {
+            s = (int)Math.ceil(s / 2.0);
+         }
 
-    @javax.annotation.Nullable
-    public final GateLogic gate;
-    @javax.annotation.Nullable
-    public final IPipeHolder pipeHolder;
-
-    public final int slotHeight;
-
-    public final SortedSet<TriggerWrapper> possibleTriggers;
-    public final SortedSet<ActionWrapper> possibleActions;
-
-    public final GateContext<TriggerWrapper> possibleTriggersContext;
-    public final GateContext<ActionWrapper> possibleActionsContext;
-
-    public ContainerGate(int containerId, Inventory playerInv, GateMenuKey key) {
-        this(containerId, playerInv, getPluggableGate(playerInv, key));
-    }
-
-    private static PluggableGate getPluggableGate(Inventory inv, GateMenuKey key) {
-        BlockPos pos = key.pos();
-        Direction side = key.side();
-        if (inv.player.level() != null) {
-            var be = inv.player.level().getBlockEntity(pos);
-            if (be instanceof buildcraft.transport.tile.TilePipeHolder holder) {
-                var plug = holder.getPluggable(side);
-                if (plug instanceof PluggableGate gatePlug) {
-                    return gatePlug;
-                }
-            }
-        }
-        BCLog.logger.warn("[silicon.gui] No gate pluggable at {} side {}", pos, side);
-        return null;
-    }
-
-    public ContainerGate(int containerId, Inventory playerInv, PluggableGate pluggable) {
-        super(BCSiliconMenuTypes.GATE, containerId, playerInv.player);
-        if (pluggable == null) {
-            this.gate = null;
-            this.pipeHolder = null;
-            this.slotHeight = 0;
+         this.slotHeight = s;
+         if (this.pipeHolder.getPipeWorld().isClientSide()) {
             this.possibleTriggers = new TreeSet<>();
             this.possibleActions = new TreeSet<>();
-            this.possibleTriggersContext = new GateContext<>(new ArrayList<>());
-            this.possibleActionsContext = new GateContext<>(new ArrayList<>());
-            return;
-        }
-        this.gate = pluggable.logic;
-        this.pipeHolder = pluggable.holder;
+            this.gate.guiMessageOverride = writer -> this.sendMessage(3, writer);
+         } else {
+            this.possibleTriggers = this.gate.getAllValidTriggers();
+            this.possibleActions = this.gate.getAllValidActions();
+         }
 
-        this.pipeHolder.onPlayerOpen(player);
+         this.possibleTriggersContext = new GateContext<>(new ArrayList<>());
+         this.possibleActionsContext = new GateContext<>(new ArrayList<>());
+         this.refreshPossibleGroups();
+         if (!this.pipeHolder.getPipeWorld().isClientSide()) {
+            this.gate.sendResolveData();
+         }
 
-        boolean split = gate.isSplitInTwo();
-        int s = gate.variant.numSlots;
-        if (split) {
-            s = (int) Math.ceil(s / 2.0);
-        }
-        slotHeight = s;
+         this.addFullPlayerInventory(8, 33 + this.slotHeight * 18);
+      }
+   }
 
-        if (this.pipeHolder.getPipeWorld().isClientSide()) {
-            possibleTriggers = new TreeSet<>();
-            possibleActions = new TreeSet<>();
-            gate.guiMessageOverride = writer -> sendMessage(ID_STATEMENT_CHANGE, writer);
-        } else {
-            possibleTriggers = gate.getAllValidTriggers();
-            possibleActions = gate.getAllValidActions();
-        }
+   @Override
+   public boolean stillValid(Player player) {
+      return this.pipeHolder != null && this.pipeHolder.canPlayerInteract(player);
+   }
 
-        possibleTriggersContext = new GateContext<>(new ArrayList<>());
-        possibleActionsContext = new GateContext<>(new ArrayList<>());
+   public void removed(Player player) {
+      super.removed(player);
+      if (this.pipeHolder != null) {
+         this.pipeHolder.onPlayerClose(player);
+      }
+   }
 
-        refreshPossibleGroups();
+   private void refreshPossibleGroups() {
+      refresh(this.possibleActions, this.possibleActionsContext);
+      refresh(this.possibleTriggers, this.possibleTriggersContext);
+   }
 
-        addFullPlayerInventory(8, 33 + slotHeight * 18);
-    }
+   private static <T extends StatementWrapper> void refresh(SortedSet<T> from, GateContext<T> to) {
+      to.groups.clear();
+      Map<EnumPipePart, List<T>> parts = new EnumMap<>(EnumPipePart.class);
 
-    @Override
-    public boolean stillValid(Player player) {
-        return pipeHolder != null && pipeHolder.canPlayerInteract(player);
-    }
+      for (T val : from) {
+         parts.computeIfAbsent(val.sourcePart, p -> new ArrayList<>()).add(val);
+      }
 
-    @Override
-    public void removed(Player player) {
-        super.removed(player);
-        if (pipeHolder != null) {
-            pipeHolder.onPlayerClose(player);
-        }
-    }
+      List<T> list = parts.get(EnumPipePart.CENTER);
+      if (list == null) {
+         list = new ArrayList<>(1);
+         list.add(null);
+      } else {
+         list.add(0, null);
+      }
 
-    private void refreshPossibleGroups() {
-        refresh(possibleActions, possibleActionsContext);
-        refresh(possibleTriggers, possibleTriggersContext);
-    }
+      to.groups.add(new GateContext.GateGroup<>(EnumPipePart.CENTER, list));
 
-    private static <T extends StatementWrapper> void refresh(SortedSet<T> from, GateContext<T> to) {
-        to.groups.clear();
-        Map<EnumPipePart, List<T>> parts = new EnumMap<>(EnumPipePart.class);
-        for (T val : from) {
-            parts.computeIfAbsent(val.sourcePart, p -> new ArrayList<>()).add(val);
-        }
-        List<T> list = parts.get(EnumPipePart.CENTER);
-        if (list == null) {
-            list = new ArrayList<>(1);
-            list.add(null);
-        } else {
-            list.add(0, null);
-        }
-        to.groups.add(new GateGroup<>(EnumPipePart.CENTER, list));
-        for (EnumPipePart part : EnumPipePart.FACES) {
-            list = parts.get(part);
-            if (list != null) {
-                to.groups.add(new GateGroup<>(part, list));
+      for (EnumPipePart part : EnumPipePart.FACES) {
+         list = parts.get(part);
+         if (list != null) {
+            to.groups.add(new GateContext.GateGroup<>(part, list));
+         }
+      }
+   }
+
+   @Override
+   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+      super.readMessage(id, buffer, isClient, ctx);
+      if (this.gate != null && this.pipeHolder != null) {
+         if (!isClient) {
+            if (id == 1) {
+               int index = buffer.readUnsignedByte();
+               boolean to = buffer.readBoolean();
+               if (index < this.gate.connections.length) {
+                  this.gate.connections[index] = to;
+                  if (this.pipeHolder instanceof BlockEntity be) {
+                     be.setChanged();
+                     this.pipeHolder.scheduleRenderUpdate();
+                  }
+
+                  this.gate.sendResolveData();
+               }
+            } else if (id == 2) {
+               this.sendStatementsToClient();
+            } else if (id == 3) {
+               try {
+                  this.gate.readPayload(buffer, false);
+                  if (this.pipeHolder instanceof BlockEntity be) {
+                     be.setChanged();
+                     this.pipeHolder.scheduleRenderUpdate();
+                  }
+
+                  this.gate.sendResolveData();
+               } catch (Exception e) {
+                  BCLog.logger.error("[gate.sync] Error handling statement change", e);
+               }
             }
-        }
-    }
+         } else if (id == 2) {
+            this.possibleTriggers.clear();
+            this.possibleActions.clear();
+            int numTriggers = buffer.readInt();
+            int numActions = buffer.readInt();
 
-    @Override
-    public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
-        super.readMessage(id, buffer, isClient, ctx);
-        if (gate == null || pipeHolder == null) {
-            return;
-        }
-        if (!isClient) {
-            if (id == ID_CONNECTION) {
-                int index = buffer.readUnsignedByte();
-                boolean to = buffer.readBoolean();
-                if (index < gate.connections.length) {
-                    gate.connections[index] = to;
-                    if (pipeHolder instanceof net.minecraft.world.level.block.entity.BlockEntity be) {
-                        be.setChanged();
-                        pipeHolder.scheduleRenderUpdate();
-                    }
-                    gate.sendResolveData();
-                }
-            } else if (id == ID_VALID_STATEMENTS) {
-
-                sendStatementsToClient();
-            } else if (id == ID_STATEMENT_CHANGE) {
-                try {
-                    gate.readPayload(buffer, false);
-                    if (pipeHolder instanceof net.minecraft.world.level.block.entity.BlockEntity be) {
-                        be.setChanged();
-                        pipeHolder.scheduleRenderUpdate();
-                    }
-                    gate.sendResolveData();
-                } catch (Exception e) {
-                    BCLog.logger.error("[gate.sync] Error handling statement change", e);
-                }
-            }
-        } else {
-            if (id == ID_VALID_STATEMENTS) {
-                possibleTriggers.clear();
-                possibleActions.clear();
-                int numTriggers = buffer.readInt();
-                int numActions = buffer.readInt();
-                for (int i = 0; i < numTriggers; i++) {
-                    String tag = buffer.readUtf();
-                    EnumPipePart part = buffer.readEnum(EnumPipePart.class);
-                    var state = StatementManager.statements.get(tag);
-                    if (state == null) {
-                        BCLog.logger.warn("Gate received invalid trigger tag from server: " + tag);
-                        continue;
-                    }
-                    TriggerWrapper wrapper = TriggerWrapper.wrap(state, part.face);
-                    if (gate.isValidTrigger(wrapper)) {
-                        possibleTriggers.add(wrapper);
-                    }
-                }
-                for (int i = 0; i < numActions; i++) {
-                    String tag = buffer.readUtf();
-                    EnumPipePart part = buffer.readEnum(EnumPipePart.class);
-                    var state = StatementManager.statements.get(tag);
-                    if (state == null) {
-                        BCLog.logger.warn("Gate received invalid action tag: " + tag);
-                        continue;
-                    }
-                    ActionWrapper wrapper = ActionWrapper.wrap(state, part.face);
-                    if (gate.isValidAction(wrapper)) {
-                        possibleActions.add(wrapper);
-                    }
-                }
-                refreshPossibleGroups();
-
-                for (int i = 0; i < gate.connections.length; i++) {
-                    gate.connections[i] = buffer.readBoolean();
-                }
-            }
-        }
-    }
-
-    private void sendStatementsToClient() {
-        sendMessage(ID_VALID_STATEMENTS, (buffer) -> {
-            buffer.writeInt(possibleTriggers.size());
-            buffer.writeInt(possibleActions.size());
-            for (TriggerWrapper wrapper : possibleTriggers) {
-                buffer.writeUtf(wrapper.getUniqueTag());
-                buffer.writeEnum(wrapper.sourcePart);
+            for (int i = 0; i < numTriggers; i++) {
+               String tag = buffer.readUtf();
+               EnumPipePart part = (EnumPipePart)buffer.readEnum(EnumPipePart.class);
+               IStatement state = StatementManager.statements.get(tag);
+               if (state == null) {
+                  BCLog.logger.warn("Gate received invalid trigger tag from server: " + tag);
+               } else {
+                  TriggerWrapper wrapper = TriggerWrapper.wrap(state, part.face);
+                  if (this.gate.isValidTrigger(wrapper)) {
+                     this.possibleTriggers.add(wrapper);
+                  }
+               }
             }
 
-            for (ActionWrapper wrapper : possibleActions) {
-                buffer.writeUtf(wrapper.getUniqueTag());
-                buffer.writeEnum(wrapper.sourcePart);
+            for (int i = 0; i < numActions; i++) {
+               String tag = buffer.readUtf();
+               EnumPipePart part = (EnumPipePart)buffer.readEnum(EnumPipePart.class);
+               IStatement state = StatementManager.statements.get(tag);
+               if (state == null) {
+                  BCLog.logger.warn("Gate received invalid action tag: " + tag);
+               } else {
+                  ActionWrapper wrapper = ActionWrapper.wrap(state, part.face);
+                  if (this.gate.isValidAction(wrapper)) {
+                     this.possibleActions.add(wrapper);
+                  }
+               }
             }
 
-            for (int i = 0; i < gate.connections.length; i++) {
-                buffer.writeBoolean(gate.connections[i]);
+            this.refreshPossibleGroups();
+
+            for (int i = 0; i < this.gate.connections.length; i++) {
+               this.gate.connections[i] = buffer.readBoolean();
             }
-        });
-    }
+         }
+      }
+   }
 
-    public void requestValidStatements() {
-        sendMessage(ID_VALID_STATEMENTS, buffer -> {});
-    }
+   private void sendStatementsToClient() {
+      this.sendMessage(2, buffer -> {
+         buffer.writeInt(this.possibleTriggers.size());
+         buffer.writeInt(this.possibleActions.size());
 
-    public void setConnected(int index, boolean to) {
-        sendMessage(ID_CONNECTION, (buffer) -> {
-            buffer.writeByte(index);
-            buffer.writeBoolean(to);
-        });
-    }
+         for (TriggerWrapper wrapper : this.possibleTriggers) {
+            buffer.writeUtf(wrapper.getUniqueTag());
+            buffer.writeEnum(wrapper.sourcePart);
+         }
+
+         for (ActionWrapper wrapper : this.possibleActions) {
+            buffer.writeUtf(wrapper.getUniqueTag());
+            buffer.writeEnum(wrapper.sourcePart);
+         }
+
+         for (int i = 0; i < this.gate.connections.length; i++) {
+            buffer.writeBoolean(this.gate.connections[i]);
+         }
+      });
+   }
+
+   public void requestValidStatements() {
+      this.sendMessage(2, buffer -> {});
+   }
+
+   public void setConnected(int index, boolean to) {
+      this.sendMessage(1, buffer -> {
+         buffer.writeByte(index);
+         buffer.writeBoolean(to);
+      });
+   }
 }

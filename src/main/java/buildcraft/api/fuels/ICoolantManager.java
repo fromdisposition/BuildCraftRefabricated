@@ -1,36 +1,30 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * The BuildCraft API is distributed under the terms of the MIT License. Please check the contents of the license, which
- * should be located as "LICENSE.API" in the BuildCraft source code distribution. */
 package buildcraft.api.fuels;
 
-import java.util.Collection;
-
-import net.minecraft.world.item.ItemStack;
-
-import net.minecraft.world.level.material.Fluid;
 import buildcraft.lib.fluids.FluidStack;
+import java.util.Collection;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluid;
 
 public interface ICoolantManager {
-    ICoolant addCoolant(ICoolant coolant);
+   ICoolant addCoolant(ICoolant var1);
 
-    ICoolant addCoolant(FluidStack fluid, float degreesCoolingPerMb);
+   ICoolant addCoolant(FluidStack var1, float var2);
 
-    default ICoolant addCoolant(Fluid fluid, float degreesCoolingPerMb) {
-        return addCoolant(new FluidStack(fluid, 1), degreesCoolingPerMb);
-    }
+   default ICoolant addCoolant(Fluid fluid, float degreesCoolingPerMb) {
+      return this.addCoolant(new FluidStack(fluid, 1), degreesCoolingPerMb);
+   }
 
-    ISolidCoolant addSolidCoolant(ISolidCoolant solidCoolant);
+   ISolidCoolant addSolidCoolant(ISolidCoolant var1);
 
-    ISolidCoolant addSolidCoolant(ItemStack solid, FluidStack fluid, float multiplier);
+   ISolidCoolant addSolidCoolant(ItemStack var1, FluidStack var2, float var3);
 
-    Collection<ICoolant> getCoolants();
+   Collection<ICoolant> getCoolants();
 
-    Collection<ISolidCoolant> getSolidCoolants();
+   Collection<ISolidCoolant> getSolidCoolants();
 
-    ICoolant getCoolant(FluidStack fluid);
+   ICoolant getCoolant(FluidStack var1);
 
-    float getDegreesPerMb(FluidStack fluid, float heat);
+   float getDegreesPerMb(FluidStack var1, float var2);
 
-    ISolidCoolant getSolidCoolant(ItemStack solid);
+   ISolidCoolant getSolidCoolant(ItemStack var1);
 }

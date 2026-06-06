@@ -1,6 +1,7 @@
 package buildcraft.factory.client.render;
 
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import buildcraft.factory.tile.TileDistiller_BC8;
+import buildcraft.lib.client.render.tile.BcBerState;
 
-public class DistillerRenderState extends BlockEntityRenderState {
+public class DistillerRenderState extends BcBerState<TileDistiller_BC8> {
 }

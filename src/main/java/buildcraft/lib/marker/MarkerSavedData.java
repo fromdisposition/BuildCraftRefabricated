@@ -1,2 +1,4 @@
 package buildcraft.lib.marker;
-public abstract class MarkerSavedData {}
+
+public abstract class MarkerSavedData {
+}

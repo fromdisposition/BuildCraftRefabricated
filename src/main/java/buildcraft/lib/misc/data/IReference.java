@@ -1,46 +1,31 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.misc.data;
 
-import net.minecraft.resources.Identifier;
-
+import buildcraft.api.core.IConvertable;
 import javax.annotation.Nullable;
 
-import buildcraft.api.core.IConvertable;
-
 public interface IReference<T> {
-    T get();
+   T get();
 
-    void set(T to);
+   void set(T var1);
 
-    boolean canSet(@Nullable T value);
+   boolean canSet(@Nullable T var1);
 
-    Class<T> getHeldType();
+   Class<T> getHeldType();
 
-    default void setIfCan(Object value) {
+   default void setIfCan(Object value) {
+      T obj = this.convertToType(value);
+      if (obj != null || value == null) {
+         if (this.canSet(obj)) {
+            this.set(obj);
+         }
+      }
+   }
 
-        T obj = convertToType(value);
-
-        if (obj == null && value != null) {
-            return;
-        }
-
-        if (canSet(obj)) {
-            set(obj);
-        }
-    }
-
-    default T convertToType(Object value) {
-        if (getHeldType().isInstance(value)) {
-            return getHeldType().cast(value);
-        }
-        if (value instanceof IConvertable) {
-            return ((IConvertable) value).convertTo(getHeldType());
-        }
-        return null;
-    }
+   default T convertToType(Object value) {
+      if (this.getHeldType().isInstance(value)) {
+         return this.getHeldType().cast(value);
+      } else {
+         return value instanceof IConvertable ? ((IConvertable)value).convertTo(this.getHeldType()) : null;
+      }
+   }
 }

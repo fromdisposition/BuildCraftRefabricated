@@ -1,25 +1,17 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * The BuildCraft API is distributed under the terms of the MIT License. Please check the contents of the license, which
- * should be located as "LICENSE.API" in the BuildCraft source code distribution.
- */
-
 package buildcraft.api.template;
 
+import buildcraft.api.core.EnumHandlerPriority;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
-import buildcraft.api.core.EnumHandlerPriority;
-
 public interface ITemplateRegistry {
+   default void addHandler(ITemplateHandler handler) {
+      this.addHandler(handler, EnumHandlerPriority.NORMAL);
+   }
 
-    default void addHandler(ITemplateHandler handler) {
-        addHandler(handler, EnumHandlerPriority.NORMAL);
-    }
+   void addHandler(ITemplateHandler var1, EnumHandlerPriority var2);
 
-    void addHandler(ITemplateHandler handler, EnumHandlerPriority priority);
-
-    boolean handle(Level world, BlockPos pos, Player player, ItemStack stack);
+   boolean handle(Level var1, BlockPos var2, Player var3, ItemStack var4);
 }

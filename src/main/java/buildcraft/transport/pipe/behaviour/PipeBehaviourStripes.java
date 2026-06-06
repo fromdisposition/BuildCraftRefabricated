@@ -1,18 +1,5 @@
 package buildcraft.transport.pipe.behaviour;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
-
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjRedstoneReceiver;
@@ -22,7 +9,6 @@ import buildcraft.api.transport.IStripesActivator;
 import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
-import buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
@@ -31,231 +17,246 @@ import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.api.transport.pluggable.PipePluggable;
-
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.InventoryUtil;
 import buildcraft.lib.misc.NBTUtilBC;
-
 import buildcraft.transport.BCTransportStatements;
+import java.io.IOException;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
-@SuppressWarnings("deprecation")
 public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActivator, IMjRedstoneReceiver {
-    private final MjBattery battery = new MjBattery(256 * MjAPI.MJ);
+   private final MjBattery battery = new MjBattery(256L * MjAPI.MJ);
+   @Nullable
+   public Direction direction = null;
+   private long progress;
 
-    @Nullable
-    public Direction direction = null;
-    private long progress;
+   public PipeBehaviourStripes(IPipe pipe) {
+      super(pipe);
+   }
 
-    public PipeBehaviourStripes(IPipe pipe) {
-        super(pipe);
-    }
+   public PipeBehaviourStripes(IPipe pipe, CompoundTag nbt) {
+      super(pipe, nbt);
+      this.battery.deserializeNBT(nbt.getCompoundOrEmpty("battery"));
+      this.direction = NBTUtilBC.readEnum(nbt.get("direction"), Direction.class);
+   }
 
-    public PipeBehaviourStripes(IPipe pipe, CompoundTag nbt) {
-        super(pipe, nbt);
-        battery.deserializeNBT(nbt.getCompoundOrEmpty("battery"));
-        direction = NBTUtilBC.readEnum(nbt.get("direction"), Direction.class);
-    }
+   @Override
+   public CompoundTag writeToNbt() {
+      CompoundTag nbt = super.writeToNbt();
+      nbt.put("battery", this.battery.serializeNBT());
+      if (this.direction != null) {
+         nbt.put("direction", NBTUtilBC.writeEnum(this.direction));
+      }
 
-    @Override
-    public CompoundTag writeToNbt() {
-        CompoundTag nbt = super.writeToNbt();
-        nbt.put("battery", battery.serializeNBT());
-        if (direction != null) {
-            nbt.put("direction", NBTUtilBC.writeEnum(direction));
-        }
-        return nbt;
-    }
+      return nbt;
+   }
 
-    @Override
-    public void readFromNbt(CompoundTag nbt) {
-        super.readFromNbt(nbt);
-        battery.deserializeNBT(nbt.getCompoundOrEmpty("battery"));
-        direction = NBTUtilBC.readEnum(nbt.get("direction"), Direction.class);
-    }
+   @Override
+   public void readFromNbt(CompoundTag nbt) {
+      super.readFromNbt(nbt);
+      this.battery.deserializeNBT(nbt.getCompoundOrEmpty("battery"));
+      this.direction = NBTUtilBC.readEnum(nbt.get("direction"), Direction.class);
+   }
 
-    @Override
-    public void readPayload(FriendlyByteBuf buffer, Object ctx) throws java.io.IOException {
-        super.readPayload(buffer, ctx);
-        int dirOrd = buffer.readByte();
-        direction = (dirOrd >= 0 && dirOrd < 6) ? Direction.values()[dirOrd] : null;
-    }
+   @Override
+   public void readPayload(FriendlyByteBuf buffer, Object ctx) throws IOException {
+      super.readPayload(buffer, ctx);
+      int dirOrd = buffer.readByte();
+      this.direction = dirOrd >= 0 && dirOrd < 6 ? Direction.values()[dirOrd] : null;
+   }
 
-    @Override
-    public void writePayload(FriendlyByteBuf buffer) {
-        super.writePayload(buffer);
-        buffer.writeByte(direction == null ? -1 : direction.ordinal());
-    }
+   @Override
+   public void writePayload(FriendlyByteBuf buffer) {
+      super.writePayload(buffer);
+      buffer.writeByte(this.direction == null ? -1 : this.direction.ordinal());
+   }
 
-    private void setDirection(@Nullable Direction newValue) {
-        if (direction != newValue) {
-            direction = newValue;
-            if (!pipe.getHolder().getPipeWorld().isClientSide()) {
-                pipe.getHolder().scheduleNetworkUpdate(PipeMessageReceiver.BEHAVIOUR);
+   private void setDirection(@Nullable Direction newValue) {
+      if (this.direction != newValue) {
+         this.direction = newValue;
+         if (!this.pipe.getHolder().getPipeWorld().isClientSide()) {
+            this.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
+            this.pipe.getHolder().scheduleRenderUpdate();
+         }
+      }
+   }
+
+   @PipeEventHandler
+   public void addInternalActions(PipeEventStatement.AddActionInternal event) {
+      for (Direction face : Direction.values()) {
+         if (!this.pipe.isConnected(face)) {
+            PipePluggable plug = this.pipe.getHolder().getPluggable(face);
+            if (plug == null || !plug.isBlocking()) {
+               event.actions.add(BCTransportStatements.ACTION_PIPE_DIRECTION[face.ordinal()]);
             }
-        }
-    }
+         }
+      }
+   }
 
-    @PipeEventHandler
-    public void addInternalActions(PipeEventStatement.AddActionInternal event) {
-        for (Direction face : Direction.values()) {
-            if (!pipe.isConnected(face)) {
-                PipePluggable plug = pipe.getHolder().getPluggable(face);
-                if (plug == null || !plug.isBlocking()) {
-                    event.actions.add(BCTransportStatements.ACTION_PIPE_DIRECTION[face.ordinal()]);
-                }
-            }
-        }
-    }
+   @PipeEventHandler
+   public void onActionActivate(PipeEventActionActivate event) {
+      for (Direction face : Direction.values()) {
+         if (event.action == BCTransportStatements.ACTION_PIPE_DIRECTION[face.ordinal()]) {
+            this.setDirection(face);
+         }
+      }
+   }
 
-    @PipeEventHandler
-    public void onActionActivate(PipeEventActionActivate event) {
-        for (Direction face : Direction.values()) {
-            if (event.action == BCTransportStatements.ACTION_PIPE_DIRECTION[face.ordinal()]) {
-                setDirection(face);
-            }
-        }
-    }
+   @Override
+   public boolean canConnect(@Nonnull IMjConnector other) {
+      return true;
+   }
 
-    @Override
-    public boolean canConnect(@Nonnull IMjConnector other) {
-        return true;
-    }
+   @Override
+   public long getPowerRequested() {
+      return this.battery.getCapacity() - this.battery.getStored();
+   }
 
-    @Override
-    public long getPowerRequested() {
-        return battery.getCapacity() - battery.getStored();
-    }
+   @Override
+   public long receivePower(long microJoules, boolean simulate) {
+      return this.battery.addPowerChecking(microJoules, simulate);
+   }
 
-    @Override
-    public long receivePower(long microJoules, boolean simulate) {
-        return battery.addPowerChecking(microJoules, simulate);
-    }
+   @Override
+   public boolean canConnect(Direction face, PipeBehaviour other) {
+      return !(other instanceof PipeBehaviourStripes);
+   }
 
-    @Override
-    public boolean canConnect(Direction face, PipeBehaviour other) {
-        return !(other instanceof PipeBehaviourStripes);
-    }
+   @Override
+   public boolean hasSimulationWork() {
+      if (this.pipe.getHolder().getPipeWorld().isClientSide()) {
+         return false;
+      }
 
-    @Override
-    public void onTick() {
-        Level world = pipe.getHolder().getPipeWorld();
-        BlockPos pos = pipe.getHolder().getPipePos();
-        if (world.isClientSide()) {
-            return;
-        }
-        if (direction == null || pipe.isConnected(direction)) {
+      if (this.progress > 0L) {
+         return true;
+      }
+
+      if (this.direction == null) {
+         return false;
+      }
+
+      Level world = this.pipe.getHolder().getPipeWorld();
+      BlockPos offset = this.pipe.getHolder().getPipePos().relative(this.direction);
+      return BlockUtil.computeBlockBreakPower(world, offset) > 0L;
+   }
+
+   @Override
+   public void onTick() {
+      Level world = this.pipe.getHolder().getPipeWorld();
+      BlockPos pos = this.pipe.getHolder().getPipePos();
+      if (!world.isClientSide()) {
+         if (this.direction == null || this.pipe.isConnected(this.direction)) {
             int sides = 0;
             Direction dir = null;
+
             for (Direction face : Direction.values()) {
-                if (pipe.isConnected(face)) {
-                    sides++;
-                    dir = face;
-                }
+               if (this.pipe.isConnected(face)) {
+                  sides++;
+                  dir = face;
+               }
             }
+
             if (sides == 1) {
-                setDirection(dir.getOpposite());
+               this.setDirection(dir.getOpposite());
             } else {
-                setDirection(null);
+               this.setDirection(null);
             }
-        }
-        battery.tick(world, pipe.getHolder().getPipePos());
-        if (direction != null) {
-            BlockPos offset = pos.relative(direction);
+         }
+
+         this.battery.tick(world, this.pipe.getHolder().getPipePos());
+         if (this.direction != null) {
+            BlockPos offset = pos.relative(this.direction);
             long target = BlockUtil.computeBlockBreakPower(world, offset);
-            if (target > 0) {
-                int offsetHash = offset.hashCode();
-                if (progress < target) {
-                    progress += battery.extractPower(0, Math.min(target - progress, MjAPI.MJ * 10));
-                    if (progress > 0) {
-                        world.destroyBlockProgress(offsetHash, offset, (int) (progress * 9 / target));
-                    }
-                } else {
-                    BlockUtil.breakBlockAndGetDropsWithXp(
-                        (ServerLevel) world,
-                        offset,
-                        new ItemStack(Items.DIAMOND_PICKAXE),
-                        pipe.getHolder().getOwner()
-                    ).ifPresent(result -> {
-                        result.drops().forEach(stack -> sendItem(stack, direction));
+            if (target > 0L) {
+               if (world instanceof ServerLevel serverLevel && !BlockUtil.canMachineBreak(serverLevel, offset, this.pipe.getHolder().getOwner())) {
+                  this.progress = 0L;
+                  return;
+               }
 
+               int offsetHash = offset.hashCode();
+               if (this.progress < target) {
+                  this.progress = this.progress + this.battery.extractPower(0L, Math.min(target - this.progress, MjAPI.MJ * 10L));
+                  if (this.progress > 0L) {
+                     world.destroyBlockProgress(offsetHash, offset, (int)(this.progress * 9L / target));
+                  }
+               } else {
+                  BlockUtil.breakBlockAndGetDropsWithXp((ServerLevel)world, offset, new ItemStack(Items.DIAMOND_PICKAXE), this.pipe.getHolder().getOwner())
+                     .ifPresent(result -> {
+                        result.drops().forEach(stack -> this.sendItem(stack, this.direction));
                         if (result.xp() > 0) {
-                            net.minecraft.world.entity.ExperienceOrb.award(
-                                    (ServerLevel) world,
-                                    net.minecraft.world.phys.Vec3.atCenterOf(offset),
-                                    result.xp());
+                           ExperienceOrb.award((ServerLevel)world, Vec3.atCenterOf(offset), result.xp());
                         }
-                    });
-                    progress = 0;
-                }
+                     });
+                  this.progress = 0L;
+               }
             }
-        } else {
-            progress = 0;
-        }
-    }
+         } else {
+            this.progress = 0L;
+         }
+      }
+   }
 
-    @PipeEventHandler
-    public void onDrop(PipeEventItem.Drop event) {
-        if (direction == null) {
-            return;
-        }
-        IPipeHolder holder = pipe.getHolder();
-        Level world = holder.getPipeWorld();
-        BlockPos pos = holder.getPipePos();
-        if (world.isClientSide() || !(world instanceof ServerLevel serverLevel)) {
-            return;
-        }
-        com.mojang.authlib.GameProfile owner = holder.getOwner();
-        ServerPlayer player;
-        if (owner != null) {
-            player = BuildCraftAPI.fakePlayerProvider.getFakePlayer(
-                serverLevel, owner, pos
-            );
-        } else {
-            player = BuildCraftAPI.fakePlayerProvider.getBuildCraftPlayer(serverLevel);
-            player.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
-        }
-        player.getInventory().clearContent();
-        player.getInventory().setItem(player.getInventory().getSelectedSlot(), event.getStack());
-        if (PipeApi.stripeRegistry != null &&
-            PipeApi.stripeRegistry.handleItem(world, pos, direction, event.getStack(), player, this)) {
-            event.setStack(ItemStack.EMPTY);
-            for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-                ItemStack stack = player.getInventory().removeItemNoUpdate(i);
-                if (!stack.isEmpty()) {
-                    sendItem(stack, direction);
-                }
+   @PipeEventHandler
+   public void onDrop(PipeEventItem.Drop event) {
+      if (this.direction != null) {
+         IPipeHolder holder = this.pipe.getHolder();
+         Level world = holder.getPipeWorld();
+         BlockPos pos = holder.getPipePos();
+         if (!world.isClientSide() && world instanceof ServerLevel serverLevel) {
+            ServerPlayer player = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, holder.getOwner(), pos);
+            player.getInventory().clearContent();
+            player.getInventory().setItem(player.getInventory().getSelectedSlot(), event.getStack());
+            if (PipeApi.stripeRegistry != null && PipeApi.stripeRegistry.handleItem(world, pos, this.direction, event.getStack(), player, this)) {
+               event.setStack(ItemStack.EMPTY);
+
+               for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+                  ItemStack stack = player.getInventory().removeItemNoUpdate(i);
+                  if (!stack.isEmpty()) {
+                     this.sendItem(stack, this.direction);
+                  }
+               }
             }
-        }
-    }
+         }
+      }
+   }
 
-    @Override
-    public void dropItem(@Nonnull ItemStack stack, Direction direction) {
-        InventoryUtil.drop(pipe.getHolder().getPipeWorld(), pipe.getHolder().getPipePos(), stack);
-    }
+   @Override
+   public void dropItem(@Nonnull ItemStack stack, Direction direction) {
+      InventoryUtil.drop(this.pipe.getHolder().getPipeWorld(), this.pipe.getHolder().getPipePos(), stack);
+   }
 
-    @Override
-    public boolean sendItem(@Nonnull ItemStack stack, Direction from) {
-        PipeFlow flow = pipe.getFlow();
-        if (flow instanceof IFlowItems) {
-            ((IFlowItems) flow).insertItemsForce(stack, from, null, 0.02);
-            return true;
-        } else {
-            return false;
-        }
-    }
+   @Override
+   public boolean sendItem(@Nonnull ItemStack stack, Direction from) {
+      PipeFlow flow = this.pipe.getFlow();
+      if (flow instanceof IFlowItems) {
+         ((IFlowItems)flow).insertItemsForce(stack, from, null, 0.02);
+         return true;
+      } else {
+         return false;
+      }
+   }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T getCapability(@Nonnull Object capability, Direction facing) {
-        if (capability == MjAPI.CAP_REDSTONE_RECEIVER) {
-            return (T) this;
-        }
-        if (capability == MjAPI.CAP_RECEIVER) {
-            return (T) this;
-        }
-        if (capability == MjAPI.CAP_CONNECTOR) {
-            return (T) this;
-        }
-        return super.getCapability(capability, facing);
-    }
+   @Override
+   public <T> T getCapability(@Nonnull Object capability, Direction facing) {
+      if (capability == MjAPI.CAP_REDSTONE_RECEIVER) {
+         return (T)this;
+      } else if (capability == MjAPI.CAP_RECEIVER) {
+         return (T)this;
+      } else {
+         return (T)(capability == MjAPI.CAP_CONNECTOR ? this : super.getCapability(capability, facing));
+      }
+   }
 }

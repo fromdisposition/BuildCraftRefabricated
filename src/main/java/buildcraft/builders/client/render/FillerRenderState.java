@@ -1,6 +1,7 @@
 package buildcraft.builders.client.render;
 
-import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import buildcraft.builders.tile.TileFiller;
+import buildcraft.lib.client.render.tile.BcBerState;
 
-public class FillerRenderState extends BlockEntityRenderState {
+public class FillerRenderState extends BcBerState<TileFiller> {
 }

@@ -1,96 +1,87 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.inventory.filter;
-
-import java.util.Arrays;
-
-import javax.annotation.Nonnull;
-
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.NonNullList;
 
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.recipes.StackDefinition;
-
 import buildcraft.lib.misc.StackUtil;
+import java.util.Arrays;
+import javax.annotation.Nonnull;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 
-@SuppressWarnings("deprecation")
 public class ArrayStackFilter implements IStackFilter {
+   protected NonNullList<ItemStack> stacks;
 
-    protected NonNullList<ItemStack> stacks;
+   public ArrayStackFilter(ItemStack... stacks) {
+      this.stacks = StackUtil.listOf(stacks);
+   }
 
-    public ArrayStackFilter(ItemStack... stacks) {
-        this.stacks = StackUtil.listOf(stacks);
-    }
-
-    @Override
-    public boolean matches(@Nonnull ItemStack stack) {
-        if (stacks.size() == 0 || !hasFilter()) {
-            return true;
-        }
-        for (ItemStack s : stacks) {
+   @Override
+   public boolean matches(@Nonnull ItemStack stack) {
+      if (this.stacks.size() != 0 && this.hasFilter()) {
+         for (ItemStack s : this.stacks) {
             if (StackUtil.isMatchingItem(s, stack)) {
-                return true;
+               return true;
             }
-        }
-        return false;
-    }
+         }
 
-    public boolean matches(IStackFilter filter2) {
-        for (ItemStack s : stacks) {
-            if (filter2.matches(s)) {
-                return true;
-            }
-        }
+         return false;
+      } else {
+         return true;
+      }
+   }
 
-        return false;
-    }
+   public boolean matches(IStackFilter filter2) {
+      for (ItemStack s : this.stacks) {
+         if (filter2.matches(s)) {
+            return true;
+         }
+      }
 
-    public NonNullList<ItemStack> getStacks() {
-        return stacks;
-    }
+      return false;
+   }
 
-    public boolean hasFilter() {
-        for (ItemStack filter : stacks) {
-            if (!filter.isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
+   public NonNullList<ItemStack> getStacks() {
+      return this.stacks;
+   }
 
-    @Override
-    public NonNullList<ItemStack> getExamples() {
-        return stacks;
-    }
+   public boolean hasFilter() {
+      for (ItemStack filter : this.stacks) {
+         if (!filter.isEmpty()) {
+            return true;
+         }
+      }
 
-    public static StackDefinition definition(int count, ItemStack... stacks) {
-        return new StackDefinition(new ArrayStackFilter(stacks), count);
-    }
+      return false;
+   }
 
-    public static StackDefinition definition(ItemStack... stacks) {
-        return definition(1, stacks);
-    }
+   @Override
+   public NonNullList<ItemStack> getExamples() {
+      return this.stacks;
+   }
 
-    public static StackDefinition definition(int count, Block... blocks) {
-        return definition(count, Arrays.stream(blocks).map(ItemStack::new).toArray(ItemStack[]::new));
-    }
+   public static StackDefinition definition(int count, ItemStack... stacks) {
+      return new StackDefinition(new ArrayStackFilter(stacks), count);
+   }
 
-    public static StackDefinition definition(Block... blocks) {
-        return definition(1, blocks);
-    }
+   public static StackDefinition definition(ItemStack... stacks) {
+      return definition(1, stacks);
+   }
 
-    public static StackDefinition definition(int count, Item... items) {
-        return definition(count, Arrays.stream(items).map(ItemStack::new).toArray(ItemStack[]::new));
-    }
+   public static StackDefinition definition(int count, Block... blocks) {
+      return definition(count, Arrays.stream(blocks).map(ItemStack::new).toArray(ItemStack[]::new));
+   }
 
-    public static StackDefinition definition(Item... items) {
-        return definition(1, items);
-    }
+   public static StackDefinition definition(Block... blocks) {
+      return definition(1, blocks);
+   }
+
+   public static StackDefinition definition(int count, Item... items) {
+      return definition(count, Arrays.stream(items).map(ItemStack::new).toArray(ItemStack[]::new));
+   }
+
+   public static StackDefinition definition(Item... items) {
+      return definition(1, items);
+   }
 }

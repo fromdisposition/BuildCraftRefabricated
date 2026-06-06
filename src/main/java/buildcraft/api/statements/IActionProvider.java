@@ -1,20 +1,14 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * The BuildCraft API is distributed under the terms of the MIT License. Please check the contents of the license, which
- * should be located as "LICENSE.API" in the BuildCraft source code distribution. */
 package buildcraft.api.statements;
 
 import java.util.Collection;
-
 import javax.annotation.Nonnull;
-
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 public interface IActionProvider {
-    void addInternalActions(Collection<IActionInternal> actions, IStatementContainer container);
+   void addInternalActions(Collection<IActionInternal> var1, IStatementContainer var2);
 
-    void addInternalSidedActions(Collection<IActionInternalSided> actions, IStatementContainer container, @Nonnull Direction side);
+   void addInternalSidedActions(Collection<IActionInternalSided> var1, IStatementContainer var2, @Nonnull Direction var3);
 
-    void addExternalActions(Collection<IActionExternal> actions, @Nonnull Direction side, BlockEntity tile);
+   void addExternalActions(Collection<IActionExternal> var1, @Nonnull Direction var2, BlockEntity var3);
 }

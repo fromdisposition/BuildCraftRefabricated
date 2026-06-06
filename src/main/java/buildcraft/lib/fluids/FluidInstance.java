@@ -1,10 +1,6 @@
-/*
- * Copyright (c) NeoForged and contributors
- * SPDX-License-Identifier: LGPL-2.1-only
- */
-
 package buildcraft.lib.fluids;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.core.Holder;
@@ -15,33 +11,29 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
 
 public interface FluidInstance extends TypedInstance<Fluid>, DataComponentGetter {
-    String FIELD_ID = ItemInstance.FIELD_ID;
-    String FIELD_AMOUNT = "amount";
-    String FIELD_COMPONENTS = ItemInstance.FIELD_COMPONENTS;
+   String FIELD_ID = "id";
+   String FIELD_AMOUNT = "amount";
+   String FIELD_COMPONENTS = "components";
+   Codec<Holder<Fluid>> FLUID_HOLDER_CODEC = BuiltInRegistries.FLUID
+      .holderByNameCodec()
+      .validate(fluid -> Mc26Compat.isEmptyFluid(fluid) ? DataResult.error(() -> "Fluid must not be minecraft:empty") : DataResult.success(fluid));
+   StreamCodec<RegistryFriendlyByteBuf, Holder<Fluid>> FLUID_HOLDER_STREAM_CODEC = ByteBufCodecs.holderRegistry(Registries.FLUID);
+   Codec<Holder<Fluid>> FLUID_HOLDER_CODEC_WITH_BOUND_COMPONENTS = FLUID_HOLDER_CODEC.validate(
+      fluid -> !fluid.areComponentsBound()
+         ? DataResult.error(() -> "Fluid " + fluid.getRegisteredName() + " does not have components yet")
+         : DataResult.success(fluid)
+   );
 
-    Codec<Holder<Fluid>> FLUID_HOLDER_CODEC = BuiltInRegistries.FLUID
-            .holderByNameCodec()
-            .validate(fluid -> fluid.is(Fluids.EMPTY.builtInRegistryHolder()) ? DataResult.error(() -> "Fluid must not be minecraft:empty") : DataResult.success(fluid));
+   int amount();
 
-    StreamCodec<RegistryFriendlyByteBuf, Holder<Fluid>> FLUID_HOLDER_STREAM_CODEC = ByteBufCodecs.holderRegistry(Registries.FLUID);
+   default FluidType getFluidType() {
+      return FluidTypes.of(this.typeHolder());
+   }
 
-    Codec<Holder<Fluid>> FLUID_HOLDER_CODEC_WITH_BOUND_COMPONENTS = FLUID_HOLDER_CODEC.validate(
-            fluid -> !fluid.areComponentsBound()
-                    ? DataResult.error(() -> "Fluid " + fluid.getRegisteredName() + " does not have components yet")
-                    : DataResult.success(fluid));
-
-    int amount();
-
-    default FluidType getFluidType() {
-        return FluidTypes.of(typeHolder());
-    }
-
-    default boolean is(FluidType fluidType) {
-        return getFluidType() == fluidType;
-    }
+   default boolean is(FluidType fluidType) {
+      return this.getFluidType() == fluidType;
+   }
 }

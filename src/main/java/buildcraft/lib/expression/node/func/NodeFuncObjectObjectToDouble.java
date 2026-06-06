@@ -1,144 +1,137 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.node.func;
 
-import java.util.Objects;
-
 import buildcraft.lib.expression.NodeInliningHelper;
-import buildcraft.lib.expression.api.IDependantNode;
 import buildcraft.lib.expression.api.IDependancyVisitor;
-import buildcraft.lib.expression.api.IExpressionNode.INodeBoolean;
-import buildcraft.lib.expression.api.IExpressionNode.INodeDouble;
-import buildcraft.lib.expression.api.IExpressionNode.INodeLong;
-import buildcraft.lib.expression.api.IExpressionNode.INodeObject;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncDouble;
+import buildcraft.lib.expression.api.IDependantNode;
+import buildcraft.lib.expression.api.IExpressionNode;
+import buildcraft.lib.expression.api.INodeFunc;
 import buildcraft.lib.expression.api.INodeStack;
 import buildcraft.lib.expression.api.InvalidExpressionException;
 import buildcraft.lib.expression.api.NodeTypes;
-import buildcraft.lib.expression.node.func.StringFunctionTri;
-import buildcraft.lib.expression.node.func.NodeFuncBase;
-import buildcraft.lib.expression.node.func.NodeFuncBase.IFunctionNode;
 import buildcraft.lib.expression.node.value.NodeConstantDouble;
+import java.util.Objects;
 
-@SuppressWarnings("unchecked")
-public class NodeFuncObjectObjectToDouble<A, B> extends NodeFuncBase implements INodeFuncDouble {
+public class NodeFuncObjectObjectToDouble<A, B> extends NodeFuncBase implements INodeFunc.INodeFuncDouble {
+   public final NodeFuncObjectObjectToDouble.IFuncObjectObjectToDouble<A, B> function;
+   private final StringFunctionTri stringFunction;
+   private final Class<A> argTypeA;
+   private final Class<B> argTypeB;
 
-    public final IFuncObjectObjectToDouble<A, B> function;
-    private final StringFunctionTri stringFunction;
-    private final Class<A> argTypeA;
-    private final Class<B> argTypeB;
+   public NodeFuncObjectObjectToDouble(String name, Class<A> argTypeA, Class<B> argTypeB, NodeFuncObjectObjectToDouble.IFuncObjectObjectToDouble<A, B> function) {
+      this(
+         argTypeA,
+         argTypeB,
+         function,
+         (a, b) -> "[ " + NodeTypes.getName(argTypeA) + ", " + NodeTypes.getName(argTypeB) + " -> double ] " + name + "(" + a + ", " + b + ")"
+      );
+   }
 
-    public NodeFuncObjectObjectToDouble(String name, Class<A> argTypeA, Class<B> argTypeB, IFuncObjectObjectToDouble<A, B> function) {
-        this(argTypeA, argTypeB, function, (a, b) -> "[ " + NodeTypes.getName(argTypeA) + ", " + NodeTypes.getName(argTypeB) + " -> double ] " + name + "(" + a + ", " + b +  ")");
-    }
+   public NodeFuncObjectObjectToDouble(
+      Class<A> argTypeA, Class<B> argTypeB, NodeFuncObjectObjectToDouble.IFuncObjectObjectToDouble<A, B> function, StringFunctionTri stringFunction
+   ) {
+      this.argTypeA = argTypeA;
+      this.argTypeB = argTypeB;
+      this.function = function;
+      this.stringFunction = stringFunction;
+   }
 
-    public NodeFuncObjectObjectToDouble(Class<A> argTypeA, Class<B> argTypeB, IFuncObjectObjectToDouble<A, B> function, StringFunctionTri stringFunction) {
-        this.argTypeA = argTypeA;
-        this.argTypeB = argTypeB;
+   @Override
+   public String toString() {
+      return this.stringFunction.apply("{A}", "{B}");
+   }
 
-        this.function = function;
-        this.stringFunction = stringFunction;
-    }
+   public NodeFuncObjectObjectToDouble<A, B> setNeverInline() {
+      super.setNeverInline();
+      return this;
+   }
 
-    @Override
-    public String toString() {
-        return stringFunction.apply("{A}", "{B}");
-    }
+   @Override
+   public IExpressionNode.INodeDouble getNode(INodeStack stack) throws InvalidExpressionException {
+      IExpressionNode.INodeObject<B> b = stack.popObject(this.argTypeB);
+      IExpressionNode.INodeObject<A> a = stack.popObject(this.argTypeA);
+      return this.create(a, b);
+   }
 
-    @Override
-    public NodeFuncObjectObjectToDouble<A, B> setNeverInline() {
-        super.setNeverInline();
-        return this;
-    }
+   public NodeFuncObjectObjectToDouble<A, B>.FuncObjectObjectToDouble create(IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeObject<B> argB) {
+      return new NodeFuncObjectObjectToDouble.FuncObjectObjectToDouble(argA, argB);
+   }
 
-    @Override
-    public INodeDouble getNode(INodeStack stack) throws InvalidExpressionException {
+   public class FuncObjectObjectToDouble implements IExpressionNode.INodeDouble, IDependantNode, NodeFuncBase.IFunctionNode {
+      public final IExpressionNode.INodeObject<A> argA;
+      public final IExpressionNode.INodeObject<B> argB;
 
-        INodeObject<B> b = stack.popObject(argTypeB);
-        INodeObject<A> a = stack.popObject(argTypeA);
+      public FuncObjectObjectToDouble(IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeObject<B> argB) {
+         this.argA = argA;
+         this.argB = argB;
+      }
 
-        return create(a, b);
-    }
+      @Override
+      public double evaluate() {
+         return NodeFuncObjectObjectToDouble.this.function.apply(this.argA.evaluate(), this.argB.evaluate());
+      }
 
-    public FuncObjectObjectToDouble create(INodeObject<A> argA, INodeObject<B> argB) {
-        return new FuncObjectObjectToDouble(argA, argB);
-    }
-
-    public class FuncObjectObjectToDouble implements INodeDouble, IDependantNode, IFunctionNode {
-        public final INodeObject<A> argA;
-        public final INodeObject<B> argB;
-
-        public FuncObjectObjectToDouble(INodeObject<A> argA, INodeObject<B> argB) {
-            this.argA = argA;
-            this.argB = argB;
-
-        }
-
-        @Override
-        public double evaluate() {
-            return function.apply(argA.evaluate(), argB.evaluate());
-        }
-
-        @Override
-        public INodeDouble inline() {
-            if (!canInline) {
-
-                return NodeInliningHelper.tryInline(this, argA, argB,
-                    (a, b) -> new FuncObjectObjectToDouble(a, b),
-                    (a, b) -> new FuncObjectObjectToDouble(a, b)
-                );
-            }
-            return NodeInliningHelper.tryInline(this, argA, argB,
-                (a, b) -> new FuncObjectObjectToDouble(a, b),
-                (a, b) -> NodeConstantDouble.of(function.apply(a.evaluate(), b.evaluate()))
+      @Override
+      public IExpressionNode.INodeDouble inline() {
+         return !NodeFuncObjectObjectToDouble.this.canInline
+            ? NodeInliningHelper.tryInline(
+               this,
+               this.argA,
+               this.argB,
+               (a, b) -> NodeFuncObjectObjectToDouble.this.new FuncObjectObjectToDouble(a, b),
+               (a, b) -> NodeFuncObjectObjectToDouble.this.new FuncObjectObjectToDouble(a, b)
+            )
+            : NodeInliningHelper.tryInline(
+               this,
+               this.argA,
+               this.argB,
+               (a, b) -> NodeFuncObjectObjectToDouble.this.new FuncObjectObjectToDouble(a, b),
+               (a, b) -> NodeConstantDouble.of(NodeFuncObjectObjectToDouble.this.function.apply(a.evaluate(), b.evaluate()))
             );
-        }
+      }
 
-        @Override
-        public void visitDependants(IDependancyVisitor visitor) {
-            if (!canInline) {
-                if (function instanceof IDependantNode) {
-                    visitor.dependOn((IDependantNode) function);
-                } else {
-                    visitor.dependOnExplictly(this);
-                }
+      @Override
+      public void visitDependants(IDependancyVisitor visitor) {
+         if (!NodeFuncObjectObjectToDouble.this.canInline) {
+            if (NodeFuncObjectObjectToDouble.this.function instanceof IDependantNode) {
+               visitor.dependOn((IDependantNode)NodeFuncObjectObjectToDouble.this.function);
+            } else {
+               visitor.dependOnExplictly(this);
             }
-            visitor.dependOn(argA, argB);
-        }
+         }
 
-        @Override
-        public String toString() {
-            return stringFunction.apply(argA.toString(), argB.toString());
-        }
+         visitor.dependOn(this.argA, this.argB);
+      }
 
-        @Override
-        public NodeFuncBase getFunction() {
-            return NodeFuncObjectObjectToDouble.this;
-        }
+      @Override
+      public String toString() {
+         return NodeFuncObjectObjectToDouble.this.stringFunction.apply(this.argA.toString(), this.argB.toString());
+      }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(argA, argB);
-        }
+      @Override
+      public NodeFuncBase getFunction() {
+         return NodeFuncObjectObjectToDouble.this;
+      }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            FuncObjectObjectToDouble other = (FuncObjectObjectToDouble) obj;
-            return Objects.equals(argA, other.argA)
-            &&Objects.equals(argB, other.argB);
-        }
-    }
+      @Override
+      public int hashCode() {
+         return Objects.hash(this.argA, this.argB);
+      }
 
-    @FunctionalInterface
-    public interface IFuncObjectObjectToDouble<A, B> {
-        double apply(A a, B b);
-    }
+      @Override
+      public boolean equals(Object obj) {
+         if (obj == this) {
+            return true;
+         } else if (obj != null && this.getClass() == obj.getClass()) {
+            NodeFuncObjectObjectToDouble<A, B>.FuncObjectObjectToDouble other = (NodeFuncObjectObjectToDouble.FuncObjectObjectToDouble)obj;
+            return Objects.equals(this.argA, other.argA) && Objects.equals(this.argB, other.argB);
+         } else {
+            return false;
+         }
+      }
+   }
+
+   @FunctionalInterface
+   public interface IFuncObjectObjectToDouble<A, B> {
+      double apply(A var1, B var2);
+   }
 }

@@ -1,23 +1,19 @@
 package buildcraft.lib.cache;
 
-import net.minecraft.resources.Identifier;
-
 import javax.annotation.Nullable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 public interface IChunkCache {
+   void invalidate();
 
-    void invalidate();
+   @Nullable
+   LevelChunk getChunk(BlockPos var1);
 
-    @Nullable
-    LevelChunk getChunk(BlockPos pos);
-
-    public enum ChunkCacheState {
-        CACHED,
-        NOT_CACHED,
-        LOADED,
-        NOT_LOADED;
-    }
+   enum ChunkCacheState {
+      CACHED,
+      NOT_CACHED,
+      LOADED,
+      NOT_LOADED;
+   }
 }

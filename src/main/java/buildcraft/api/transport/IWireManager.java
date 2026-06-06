@@ -1,24 +1,22 @@
 package buildcraft.api.transport;
 
+import buildcraft.api.transport.pipe.IPipeHolder;
 import net.minecraft.world.item.DyeColor;
 
-import buildcraft.api.transport.pipe.IPipeHolder;
-
 public interface IWireManager {
+   IPipeHolder getHolder();
 
-    IPipeHolder getHolder();
+   void updateBetweens(boolean var1);
 
-    void updateBetweens(boolean recursive);
+   DyeColor getColorOfPart(EnumWirePart var1);
 
-    DyeColor getColorOfPart(EnumWirePart part);
+   DyeColor removePart(EnumWirePart var1);
 
-    DyeColor removePart(EnumWirePart part);
+   boolean addPart(EnumWirePart var1, DyeColor var2);
 
-    boolean addPart(EnumWirePart part, DyeColor colour);
+   boolean hasPartOfColor(DyeColor var1);
 
-    boolean hasPartOfColor(DyeColor color);
+   boolean isPowered(EnumWirePart var1);
 
-    boolean isPowered(EnumWirePart part);
-
-    boolean isAnyPowered(DyeColor color);
+   boolean isAnyPowered(DyeColor var1);
 }

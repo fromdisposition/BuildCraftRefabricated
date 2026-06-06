@@ -1,34 +1,34 @@
 package buildcraft.api.transport.pipe;
 
+import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.core.Direction;
 
 public interface IPipe {
-    IPipeHolder getHolder();
+   IPipeHolder getHolder();
 
-    PipeDefinition getDefinition();
+   PipeDefinition getDefinition();
 
-    PipeBehaviour getBehaviour();
+   PipeBehaviour getBehaviour();
 
-    PipeFlow getFlow();
+   PipeFlow getFlow();
 
-    DyeColor getColour();
+   DyeColor getColour();
 
-    void setColour(DyeColor colour);
+   void setColour(DyeColor var1);
 
-    void markForUpdate();
+   void markForUpdate();
 
-    BlockEntity getConnectedTile(Direction side);
+   BlockEntity getConnectedTile(Direction var1);
 
-    IPipe getConnectedPipe(Direction side);
+   IPipe getConnectedPipe(Direction var1);
 
-    boolean isConnected(Direction side);
+   boolean isConnected(Direction var1);
 
-    ConnectedType getConnectedType(Direction side);
+   IPipe.ConnectedType getConnectedType(Direction var1);
 
-    enum ConnectedType {
-        TILE,
-        PIPE
-    }
+   enum ConnectedType {
+      TILE,
+      PIPE;
+   }
 }

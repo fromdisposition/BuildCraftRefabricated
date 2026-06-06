@@ -1,214 +1,186 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * The BuildCraft API is distributed under the terms of the MIT License. Please check the contents of the license, which
- * should be located as "LICENSE.API" in the BuildCraft source code distribution. */
 package buildcraft.api.robots;
-
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
 
 import buildcraft.api.core.BCLog;
 import buildcraft.api.mj.MjAPI;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 
 public class AIRobot {
-    public EntityRobotBase robot;
+   public EntityRobotBase robot;
+   private AIRobot delegateAI;
+   private AIRobot parentAI;
+   private boolean success;
 
-    private AIRobot delegateAI;
-    private AIRobot parentAI;
+   public AIRobot(EntityRobotBase iRobot) {
+      this.robot = iRobot;
+      this.success = true;
+   }
 
-    private boolean success;
+   public void start() {
+   }
 
-    public AIRobot(EntityRobotBase iRobot) {
-        robot = iRobot;
-        success = true;
-    }
+   public void preempt(AIRobot ai) {
+   }
 
-    public void start() {
+   public void update() {
+      this.terminate();
+   }
 
-    }
+   public void end() {
+   }
 
-    public void preempt(AIRobot ai) {
+   public void delegateAIEnded(AIRobot ai) {
+   }
 
-    }
+   public void delegateAIAborted(AIRobot ai) {
+   }
 
-    public void update() {
+   public void writeSelfToNBT(CompoundTag nbt) {
+   }
 
-        terminate();
-    }
+   public void loadSelfFromNBT(CompoundTag nbt) {
+   }
 
-    public void end() {
+   public boolean success() {
+      return this.success;
+   }
 
-    }
+   protected void setSuccess(boolean iSuccess) {
+      this.success = iSuccess;
+   }
 
-    public void delegateAIEnded(AIRobot ai) {
+   public long getPowerCost() {
+      return MjAPI.MJ / 10L;
+   }
 
-    }
+   public boolean canLoadFromNBT() {
+      return false;
+   }
 
-    public void delegateAIAborted(AIRobot ai) {
+   public ItemStack receiveItem(ItemStack stack) {
+      return stack;
+   }
 
-    }
+   public final void terminate() {
+      this.abortDelegateAI();
+      this.end();
+      if (this.parentAI != null) {
+         this.parentAI.delegateAI = null;
+         this.parentAI.delegateAIEnded(this);
+      }
+   }
 
-    public void writeSelfToNBT(CompoundTag nbt) {
+   public final void abort() {
+      this.abortDelegateAI();
 
-    }
+      try {
+         this.end();
+         if (this.parentAI != null) {
+            this.parentAI.delegateAI = null;
+            this.parentAI.delegateAIAborted(this);
+         }
+      } catch (Throwable e) {
+         BCLog.logger.warn("[robots] Robot delegate AI threw; aborting it", e);
+         this.delegateAI = null;
+         if (this.parentAI != null) {
+            this.parentAI.delegateAI = null;
+         }
+      }
+   }
 
-    public void loadSelfFromNBT(CompoundTag nbt) {
+   public final void cycle() {
+      try {
+         this.preempt(this.delegateAI);
+         if (this.delegateAI != null) {
+            this.delegateAI.cycle();
+         } else {
+            this.robot.getBattery().extractPower(1L, this.getPowerCost());
+            this.update();
+         }
+      } catch (Throwable e) {
+         BCLog.logger.warn("[robots] Robot AI update threw; aborting", e);
+         this.abort();
+      }
+   }
 
-    }
+   public final void startDelegateAI(AIRobot ai) {
+      this.abortDelegateAI();
+      this.delegateAI = ai;
+      ai.parentAI = this;
+      this.delegateAI.start();
+   }
 
-    public boolean success() {
-        return success;
-    }
+   public final void abortDelegateAI() {
+      if (this.delegateAI != null) {
+         this.delegateAI.abort();
+      }
+   }
 
-    protected void setSuccess(boolean iSuccess) {
-        success = iSuccess;
-    }
+   public final AIRobot getActiveAI() {
+      return this.delegateAI != null ? this.delegateAI.getActiveAI() : this;
+   }
 
-    public long getPowerCost() {
-        return MjAPI.MJ / 10;
-    }
+   public final AIRobot getDelegateAI() {
+      return this.delegateAI;
+   }
 
-    public boolean canLoadFromNBT() {
-        return false;
-    }
+   public final void writeToNBT(CompoundTag nbt) {
+      nbt.putString("aiName", RobotManager.getAIRobotName((Class<? extends AIRobot>)this.getClass()));
+      CompoundTag data = new CompoundTag();
+      this.writeSelfToNBT(data);
+      nbt.put("data", data);
+      if (this.delegateAI != null && this.delegateAI.canLoadFromNBT()) {
+         CompoundTag sub = new CompoundTag();
+         this.delegateAI.writeToNBT(sub);
+         nbt.put("delegateAI", sub);
+      }
+   }
 
-    public ItemStack receiveItem(ItemStack stack) {
-        return stack;
-    }
+   public final void loadFromNBT(CompoundTag nbt) {
+      this.loadSelfFromNBT(nbt.getCompound("data").orElse(new CompoundTag()));
+      if (nbt.contains("delegateAI")) {
+         CompoundTag sub = nbt.getCompound("delegateAI").orElse(new CompoundTag());
 
-    public final void terminate() {
-        abortDelegateAI();
-        end();
-
-        if (parentAI != null) {
-            parentAI.delegateAI = null;
-            parentAI.delegateAIEnded(this);
-        }
-    }
-
-    public final void abort() {
-        abortDelegateAI();
-
-        try {
-            end();
-
-            if (parentAI != null) {
-                parentAI.delegateAI = null;
-                parentAI.delegateAIAborted(this);
-            }
-        } catch (Throwable e) {
-            BCLog.logger.warn("[robots] Robot delegate AI threw; aborting it", e);
-            delegateAI = null;
-
-            if (parentAI != null) {
-                parentAI.delegateAI = null;
-            }
-        }
-    }
-
-    public final void cycle() {
-        try {
-            preempt(delegateAI);
-
-            if (delegateAI != null) {
-                delegateAI.cycle();
-            } else {
-                robot.getBattery().extractPower(1, getPowerCost());
-                update();
-            }
-        } catch (Throwable e) {
-            BCLog.logger.warn("[robots] Robot AI update threw; aborting", e);
-            abort();
-        }
-    }
-
-    public final void startDelegateAI(AIRobot ai) {
-        abortDelegateAI();
-        delegateAI = ai;
-        ai.parentAI = this;
-        delegateAI.start();
-    }
-
-    public final void abortDelegateAI() {
-        if (delegateAI != null) {
-            delegateAI.abort();
-        }
-    }
-
-    public final AIRobot getActiveAI() {
-        if (delegateAI != null) {
-            return delegateAI.getActiveAI();
-        } else {
-            return this;
-        }
-    }
-
-    public final AIRobot getDelegateAI() {
-        return delegateAI;
-    }
-
-    public final void writeToNBT(CompoundTag nbt) {
-        nbt.putString("aiName", RobotManager.getAIRobotName(getClass()));
-
-        CompoundTag data = new CompoundTag();
-        writeSelfToNBT(data);
-        nbt.put("data", data);
-
-        if (delegateAI != null && delegateAI.canLoadFromNBT()) {
-            CompoundTag sub = new CompoundTag();
-
-            delegateAI.writeToNBT(sub);
-            nbt.put("delegateAI", sub);
-        }
-    }
-
-    public final void loadFromNBT(CompoundTag nbt) {
-        loadSelfFromNBT(nbt.getCompound("data").orElse(new net.minecraft.nbt.CompoundTag()));
-
-        if (nbt.contains("delegateAI")) {
-            CompoundTag sub = nbt.getCompound("delegateAI").orElse(new net.minecraft.nbt.CompoundTag());
-
-            try {
-                Class<?> aiRobotClass;
-                if (sub.contains("class")) {
-
-                    aiRobotClass = RobotManager.getAIRobotByLegacyClassName(sub.getString("class").orElse(""));
-                } else {
-                    aiRobotClass = RobotManager.getAIRobotByName(sub.getString("aiName").orElse(""));
-                }
-                if (aiRobotClass != null) {
-                    delegateAI = (AIRobot) aiRobotClass.getConstructor(EntityRobotBase.class).newInstance(robot);
-                    delegateAI.parentAI = this;
-
-                    if (delegateAI.canLoadFromNBT()) {
-                        delegateAI.loadFromNBT(sub);
-                    }
-                }
-            } catch (Throwable e) {
-                BCLog.logger.warn("[robots] Failed to load robot delegate AI from NBT", e);
-            }
-        }
-    }
-
-    public static AIRobot loadAI(CompoundTag nbt, EntityRobotBase robot) {
-        AIRobot ai = null;
-
-        try {
+         try {
             Class<?> aiRobotClass;
-            if (nbt.contains("class")) {
-
-                aiRobotClass = RobotManager.getAIRobotByLegacyClassName(nbt.getString("class").orElse(""));
+            if (sub.contains("class")) {
+               aiRobotClass = RobotManager.getAIRobotByLegacyClassName(sub.getString("class").orElse(""));
             } else {
-                aiRobotClass = RobotManager.getAIRobotByName(nbt.getString("aiName").orElse(""));
+               aiRobotClass = RobotManager.getAIRobotByName(sub.getString("aiName").orElse(""));
             }
-            if (aiRobotClass != null) {
-                ai = (AIRobot) aiRobotClass.getConstructor(EntityRobotBase.class).newInstance(robot);
-                ai.loadFromNBT(nbt);
-            }
-        } catch (Throwable e) {
-            BCLog.logger.warn("[robots] Failed to instantiate robot AI from NBT", e);
-        }
 
-        return ai;
-    }
+            if (aiRobotClass != null) {
+               this.delegateAI = (AIRobot)aiRobotClass.getConstructor(EntityRobotBase.class).newInstance(this.robot);
+               this.delegateAI.parentAI = this;
+               if (this.delegateAI.canLoadFromNBT()) {
+                  this.delegateAI.loadFromNBT(sub);
+               }
+            }
+         } catch (Throwable e) {
+            BCLog.logger.warn("[robots] Failed to load robot delegate AI from NBT", e);
+         }
+      }
+   }
+
+   public static AIRobot loadAI(CompoundTag nbt, EntityRobotBase robot) {
+      AIRobot ai = null;
+
+      try {
+         Class<?> aiRobotClass;
+         if (nbt.contains("class")) {
+            aiRobotClass = RobotManager.getAIRobotByLegacyClassName(nbt.getString("class").orElse(""));
+         } else {
+            aiRobotClass = RobotManager.getAIRobotByName(nbt.getString("aiName").orElse(""));
+         }
+
+         if (aiRobotClass != null) {
+            ai = (AIRobot)aiRobotClass.getConstructor(EntityRobotBase.class).newInstance(robot);
+            ai.loadFromNBT(nbt);
+         }
+      } catch (Throwable e) {
+         BCLog.logger.warn("[robots] Failed to instantiate robot AI from NBT", e);
+      }
+
+      return ai;
+   }
 }

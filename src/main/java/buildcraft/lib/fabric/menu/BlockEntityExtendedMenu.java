@@ -6,12 +6,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public interface BlockEntityExtendedMenu extends ExtendedMenuProvider<BlockPos> {
-    default BlockEntity asBlockEntity() {
-        return (BlockEntity) this;
-    }
+   default BlockEntity asBlockEntity() {
+      return (BlockEntity)this;
+   }
 
-    @Override
-    default BlockPos getScreenOpeningData(ServerPlayer player) {
-        return asBlockEntity().getBlockPos();
-    }
+   default BlockPos getScreenOpeningData(ServerPlayer player) {
+      return this.asBlockEntity().getBlockPos();
+   }
 }

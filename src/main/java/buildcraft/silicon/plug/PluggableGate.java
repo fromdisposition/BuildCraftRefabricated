@@ -1,279 +1,263 @@
 package buildcraft.silicon.plug;
 
-import java.io.IOException;
-
-import javax.annotation.Nullable;
-
-import net.minecraft.core.BlockPos;
-import buildcraft.silicon.item.ItemGateCopier;
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.network.chat.Component;
-
 import buildcraft.api.transport.IWireEmitter;
 import buildcraft.api.transport.pipe.IPipeHolder;
-import buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
 import buildcraft.api.transport.pluggable.PluggableModelKey;
-import buildcraft.silicon.client.model.key.KeyPlugGate;
-
+import buildcraft.lib.fabric.menu.GateMenuKey;
 import buildcraft.lib.misc.AdvancementUtil;
+import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.data.ModelVariableData;
 import buildcraft.lib.net.IPayloadWriter;
 import buildcraft.lib.net.PacketBufferBC;
-
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.client.model.key.KeyPlugGate;
+import buildcraft.silicon.container.ContainerGate;
 import buildcraft.silicon.gate.GateLogic;
 import buildcraft.silicon.gate.GateVariant;
+import buildcraft.silicon.item.ItemGateCopier;
+import buildcraft.transport.BCTransportAttachments;
+import java.io.IOException;
+import javax.annotation.Nullable;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.HitResult;
 
-@SuppressWarnings("this-escape")
 public class PluggableGate extends PipePluggable implements IWireEmitter {
+   private static final byte ID_UPDATE_PLUG = 1;
+   private static final AABB[] BOXES = new AABB[6];
+   private static final Identifier ADVANCEMENT_PLACE_GATE = Identifier.parse("buildcrafttransport:pipe_logic");
+   private static final Identifier ADVANCEMENT_PLACE_ADV_GATE = Identifier.parse("buildcrafttransport:extended_logic");
+   public final GateLogic logic;
+   public final ModelVariableData clientModelData = new ModelVariableData();
 
-    private static final byte ID_UPDATE_PLUG = 1;
+   public PluggableGate(PluggableDefinition def, IPipeHolder holder, Direction side, GateVariant variant) {
+      super(def, holder, side);
+      this.logic = new GateLogic(this, variant);
+   }
 
-    private static final AABB[] BOXES = new AABB[6];
+   public PluggableGate(PluggableDefinition def, IPipeHolder holder, Direction side, CompoundTag nbt) {
+      super(def, holder, side);
+      this.logic = new GateLogic(this, nbt.getCompound("data").orElse(new CompoundTag()));
+   }
 
-    private static final Identifier ADVANCEMENT_PLACE_GATE
-        = Identifier.parse("buildcrafttransport:pipe_logic");
+   @Override
+   public CompoundTag writeToNbt() {
+      CompoundTag nbt = super.writeToNbt();
+      nbt.put("data", this.logic.writeToNbt());
+      return nbt;
+   }
 
-    private static final Identifier ADVANCEMENT_PLACE_ADV_GATE
-        = Identifier.parse("buildcrafttransport:extended_logic");
+   @Override
+   public boolean readFromNbt(CompoundTag nbt) {
+      CompoundTag data = nbt.getCompound("data").orElse(new CompoundTag());
+      this.logic.readConfigData(data);
+      return true;
+   }
 
-    public final GateLogic logic;
+   @Override
+   public CompoundTag writeClientUpdateData() {
+      return this.logic.writeClientState();
+   }
 
-    public final ModelVariableData clientModelData = new ModelVariableData();
+   @Override
+   public void readClientUpdateData(CompoundTag nbt) {
+      this.logic.readClientState(nbt);
+   }
 
-    static {
-        double ll = 2 / 16.0;
-        double lu = 4 / 16.0;
-        double ul = 12 / 16.0;
-        double uu = 14 / 16.0;
+   public PluggableGate(PluggableDefinition def, IPipeHolder holder, Direction side, FriendlyByteBuf buffer) {
+      super(def, holder, side);
+      PacketBufferBC packetBuffer = new PacketBufferBC(buffer);
+      this.logic = new GateLogic(this, packetBuffer);
+   }
 
-        double min = 5 / 16.0;
-        double max = 11 / 16.0;
+   @Override
+   public void writeCreationPayload(FriendlyByteBuf buffer) {
+      super.writeCreationPayload(buffer);
+      PacketBufferBC packetBuffer = new PacketBufferBC(buffer);
+      this.logic.writeCreationToBuf(packetBuffer);
+   }
 
-        BOXES[Direction.DOWN.get3DDataValue()] = new AABB(min, ll, min, max, lu, max);
-        BOXES[Direction.UP.get3DDataValue()] = new AABB(min, ul, min, max, uu, max);
-        BOXES[Direction.NORTH.get3DDataValue()] = new AABB(min, min, ll, max, max, lu);
-        BOXES[Direction.SOUTH.get3DDataValue()] = new AABB(min, min, ul, max, max, uu);
-        BOXES[Direction.WEST.get3DDataValue()] = new AABB(ll, min, min, lu, max, max);
-        BOXES[Direction.EAST.get3DDataValue()] = new AABB(ul, min, min, uu, max, max);
-    }
+   public void sendMessage(IPayloadWriter writer) {
+      IPipeHolder.PipeMessageReceiver to = IPipeHolder.PipeMessageReceiver.PLUGGABLES[this.side.ordinal()];
+      this.holder.sendMessage(to, buffer -> {
+         buffer.writeByte(1);
+         writer.write(buffer);
+      });
+   }
 
-    public PluggableGate(PluggableDefinition def, IPipeHolder holder, Direction side, GateVariant variant) {
-        super(def, holder, side);
-        logic = new GateLogic(this, variant);
-    }
+   public void sendGuiMessage(IPayloadWriter writer) {
+      IPipeHolder.PipeMessageReceiver to = IPipeHolder.PipeMessageReceiver.PLUGGABLES[this.side.ordinal()];
+      this.holder.sendGuiMessage(to, buffer -> {
+         buffer.writeByte(1);
+         writer.write(buffer);
+      });
+   }
 
-    public PluggableGate(PluggableDefinition def, IPipeHolder holder, Direction side, CompoundTag nbt) {
-        super(def, holder, side);
-        logic = new GateLogic(this, nbt.getCompound("data").orElse(new CompoundTag()));
-    }
+   @Override
+   public void writePayload(FriendlyByteBuf buffer, Object side) {
+      throw new Error("All messages must have an ID, and we can't just write a payload directly!");
+   }
 
-    @Override
-    public CompoundTag writeToNbt() {
-        CompoundTag nbt = super.writeToNbt();
-        nbt.put("data", logic.writeToNbt());
-        return nbt;
-    }
+   @Override
+   public void readPayload(FriendlyByteBuf b, Object side, Object ctx) throws IOException {
+      PacketBufferBC packetBuffer = new PacketBufferBC(b);
+      byte id = packetBuffer.readByte();
+      if (id == 1) {
+         this.logic.readPayload(packetBuffer, (Boolean)ctx);
+      }
+   }
 
-    @Override
-    public boolean readFromNbt(CompoundTag nbt) {
-        CompoundTag data = nbt.getCompound("data").orElse(new CompoundTag());
-        logic.readConfigData(data);
-        return true;
-    }
+   @Override
+   public AABB getBoundingBox() {
+      return BOXES[this.side.get3DDataValue()];
+   }
 
-    @Override
-    public CompoundTag writeClientUpdateData() {
-        return logic.writeClientState();
-    }
+   @Override
+   public boolean isBlocking() {
+      return true;
+   }
 
-    @Override
-    public void readClientUpdateData(CompoundTag nbt) {
-        logic.readClientState(nbt);
-    }
+   @Override
+   public ItemStack getPickStack() {
+      return BCSiliconItems.PLUG_GATE.getStack(this.logic.variant);
+   }
 
-    public PluggableGate(PluggableDefinition def, IPipeHolder holder, Direction side, net.minecraft.network.FriendlyByteBuf buffer) {
-        super(def, holder, side);
-        PacketBufferBC packetBuffer = new PacketBufferBC(buffer);
-        logic = new GateLogic(this, packetBuffer);
-    }
+   @Override
+   public PluggableModelKey getModelRenderKey(Object layer) {
+      return "cutout".equals(layer) ? new KeyPlugGate(this.side, this.logic.variant, this.logic.isOn) : null;
+   }
 
-    @Override
-    public void writeCreationPayload(net.minecraft.network.FriendlyByteBuf buffer) {
-        super.writeCreationPayload(buffer);
-        PacketBufferBC packetBuffer = new PacketBufferBC(buffer);
-        logic.writeCreationToBuf(packetBuffer);
-    }
+   @Override
+   public void onPlacedBy(Player player) {
+      super.onPlacedBy(player);
+      if (!this.holder.getPipeWorld().isClientSide()) {
+         AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_PLACE_GATE);
+         if (this.logic.variant.numActionArgs >= 1) {
+            AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_PLACE_ADV_GATE);
+         }
+      }
 
-    public void sendMessage(IPayloadWriter writer) {
-        PipeMessageReceiver to = PipeMessageReceiver.PLUGGABLES[side.ordinal()];
-        holder.sendMessage(to, (buffer) -> {
+      BCTransportAttachments.recordPluggablePlacement(player, BCTransportAttachments.PluggablesPlaced.Kind.GATE);
+   }
 
-            buffer.writeByte(ID_UPDATE_PLUG);
-            writer.write(buffer);
-        });
-    }
+   @Override
+   public boolean onPluggableActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ) {
+      if (!player.level().isClientSide()) {
+         if (this.interactWithCopier(player, player.getMainHandItem())) {
+            return true;
+         }
 
-    public void sendGuiMessage(IPayloadWriter writer) {
-        PipeMessageReceiver to = PipeMessageReceiver.PLUGGABLES[side.ordinal()];
-        holder.sendGuiMessage(to, (buffer) -> {
+         if (this.interactWithCopier(player, player.getOffhandItem())) {
+            return true;
+         }
 
-            buffer.writeByte(ID_UPDATE_PLUG);
-            writer.write(buffer);
-        });
-    }
+         BlockPos pos = this.holder.getPipePos();
+         if (player instanceof ServerPlayer serverPlayer) {
+            final GateMenuKey key = new GateMenuKey(pos, this.side);
+            serverPlayer.openMenu(new ExtendedMenuProvider<Object>() {
+               public GateMenuKey getScreenOpeningData(ServerPlayer sp) {
+                  return key;
+               }
 
-    @Override
-    public void writePayload(FriendlyByteBuf buffer, Object side) {
-        throw new Error("All messages must have an ID, and we can't just write a payload directly!");
-    }
+               public Component getDisplayName() {
+                  return PluggableGate.this.logic.variant.getLocalizedName();
+               }
 
-    @Override
-    public void readPayload(FriendlyByteBuf b, Object side, Object ctx) throws IOException {
-        PacketBufferBC packetBuffer = new PacketBufferBC(b);
-        byte id = packetBuffer.readByte();
+               public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
+                  return new ContainerGate(id, inv, PluggableGate.this);
+               }
+            });
+         }
+      }
 
-        if (id == ID_UPDATE_PLUG) {
-            logic.readPayload(packetBuffer, ((Boolean) ctx).booleanValue());
-        }
-    }
+      return true;
+   }
 
-    @Override
-    public AABB getBoundingBox() {
-        return BOXES[side.get3DDataValue()];
-    }
+   private boolean interactWithCopier(Player player, ItemStack stack) {
+      if (!(stack.getItem() instanceof ItemGateCopier)) {
+         return false;
+      }
 
-    @Override
-    public boolean isBlocking() {
-        return true;
-    }
+      CompoundTag stored = ItemGateCopier.getCopiedGateData(stack);
+      if (stored != null) {
+         this.logic.readConfigData(stored);
+         if (this.holder instanceof BlockEntity be) {
+            be.setChanged();
+         }
 
-    @Override
-    public ItemStack getPickStack() {
-        return buildcraft.silicon.BCSiliconItems.PLUG_GATE.get().getStack(logic.variant);
-    }
-
-    @Override
-    public PluggableModelKey getModelRenderKey(Object layer) {
-        if ("cutout".equals(layer)) {
-            return new KeyPlugGate(side, logic.variant, logic.isOn);
-        }
-        return null;
-    }
-
-    @Override
-    public void onPlacedBy(Player player) {
-        super.onPlacedBy(player);
-        if (!holder.getPipeWorld().isClientSide()) {
-            AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_PLACE_GATE);
-            if (logic.variant.numActionArgs >= 1) {
-                AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_PLACE_ADV_GATE);
-            }
-        }
-        buildcraft.transport.BCTransportAttachments.recordPluggablePlacement(
-            player, buildcraft.transport.BCTransportAttachments.PluggablesPlaced.Kind.GATE);
-    }
-
-    @Override
-    public boolean onPluggableActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ) {
-        if (!player.level().isClientSide()) {
-            if (interactWithCopier(player, player.getMainHandItem())) {
-                return true;
-            }
-            if (interactWithCopier(player, player.getOffhandItem())) {
-                return true;
-            }
-
-            BlockPos pos = holder.getPipePos();
-            if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
-                buildcraft.lib.fabric.menu.GateMenuKey key =
-                        new buildcraft.lib.fabric.menu.GateMenuKey(pos, side);
-                serverPlayer.openMenu(new net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider<>() {
-                    @Override
-                    public buildcraft.lib.fabric.menu.GateMenuKey getScreenOpeningData(
-                            net.minecraft.server.level.ServerPlayer sp) {
-                        return key;
-                    }
-
-                    @Override
-                    public Component getDisplayName() {
-                        return logic.variant.getLocalizedName();
-                    }
-
-                    @Override
-                    public net.minecraft.world.inventory.AbstractContainerMenu createMenu(
-                            int id, net.minecraft.world.entity.player.Inventory inv, Player p) {
-                        return new buildcraft.silicon.container.ContainerGate(id, inv, PluggableGate.this);
-                    }
-                });
-            }
-        }
-        return true;
-    }
-
-    private boolean interactWithCopier(Player player, ItemStack stack) {
-        if (!(stack.getItem() instanceof ItemGateCopier)) {
+         this.holder.scheduleRenderUpdate();
+         this.logic.sendResolveData();
+         MessageUtil.sendOverlayMessage(player, Component.translatable("chat.gateCopier.gatePasted"));
+      } else {
+         if (!this.logic.hasConfiguration()) {
+            MessageUtil.sendOverlayMessage(player, Component.translatable("chat.gateCopier.noInformation"));
             return false;
-        }
+         }
 
-        CompoundTag stored = ItemGateCopier.getCopiedGateData(stack);
-        if (stored != null) {
+         CompoundTag data = this.logic.writeToNbt();
+         data.remove("wireBroadcasts");
+         ItemGateCopier.setCopiedGateData(stack, data);
+         MessageUtil.sendOverlayMessage(player, Component.translatable("chat.gateCopier.gateCopied"));
+      }
 
-            logic.readConfigData(stored);
-            if (holder instanceof net.minecraft.world.level.block.entity.BlockEntity be) {
-                be.setChanged();
-            }
-            holder.scheduleRenderUpdate();
+      return true;
+   }
 
-            logic.sendResolveData();
-            buildcraft.lib.misc.MessageUtil.sendOverlayMessage(player,Component.translatable("chat.gateCopier.gatePasted"));
-        } else {
+   @Override
+   public boolean isEmitting(DyeColor colour) {
+      return this.logic.isEmitting(colour);
+   }
 
-            if (!logic.hasConfiguration()) {
-                buildcraft.lib.misc.MessageUtil.sendOverlayMessage(player,Component.translatable("chat.gateCopier.noInformation"));
-                return false;
-            }
-            CompoundTag data = logic.writeToNbt();
+   @Override
+   public void emitWire(DyeColor colour) {
+      this.logic.emitWire(colour);
+   }
 
-            data.remove("wireBroadcasts");
-            ItemGateCopier.setCopiedGateData(stack, data);
-            buildcraft.lib.misc.MessageUtil.sendOverlayMessage(player,Component.translatable("chat.gateCopier.gateCopied"));
-        }
-        return true;
-    }
+   @Override
+   public boolean needsTick() {
+      return this.logic.needsPeriodicTick();
+   }
 
-    @Override
-    public boolean isEmitting(DyeColor colour) {
-        return logic.isEmitting(colour);
-    }
+   @Override
+   public void onTick() {
+      this.logic.onTick();
+      if (this.holder.getPipeWorld().isClientSide()) {
+         this.clientModelData.tick();
+      }
+   }
 
-    @Override
-    public void emitWire(DyeColor colour) {
-        logic.emitWire(colour);
-    }
+   @Override
+   public boolean canConnectToRedstone(@Nullable Direction to) {
+      return true;
+   }
 
-    @Override
-    public void onTick() {
-        logic.onTick();
-        if (holder.getPipeWorld().isClientSide()) {
-            clientModelData.tick();
-        }
-    }
-
-    @Override
-    public boolean canConnectToRedstone(@Nullable Direction to) {
-        return true;
-    }
+   static {
+      double ll = 0.125;
+      double lu = 0.25;
+      double ul = 0.75;
+      double uu = 0.875;
+      double min = 0.3125;
+      double max = 0.6875;
+      BOXES[Direction.DOWN.get3DDataValue()] = new AABB(min, ll, min, max, lu, max);
+      BOXES[Direction.UP.get3DDataValue()] = new AABB(min, ul, min, max, uu, max);
+      BOXES[Direction.NORTH.get3DDataValue()] = new AABB(min, min, ll, max, max, lu);
+      BOXES[Direction.SOUTH.get3DDataValue()] = new AABB(min, min, ul, max, max, uu);
+      BOXES[Direction.WEST.get3DDataValue()] = new AABB(ll, min, min, lu, max, max);
+      BOXES[Direction.EAST.get3DDataValue()] = new AABB(ul, min, min, uu, max, max);
+   }
 }

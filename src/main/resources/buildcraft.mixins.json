@@ -4,11 +4,7 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "LevelMixin",
-    "EntityMixin",
-    "ItemStackMixin",
-    "ServerLevelMixin",
     "BlockEntityMixin",
-    "BlockDestroyParticlesMixin",
     "ShapelessRecipeAccessor"
   ],
   "client": [

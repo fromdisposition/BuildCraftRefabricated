@@ -1,2 +1,4 @@
 package buildcraft.lib;
-public abstract class BCLibProxy {}
+
+public abstract class BCLibProxy {
+}

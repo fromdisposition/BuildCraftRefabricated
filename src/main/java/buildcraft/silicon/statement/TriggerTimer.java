@@ -1,71 +1,62 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.silicon.statement;
-
-import java.util.Locale;
-
-import net.minecraft.world.level.Level;
 
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.ITriggerInternal;
-
-import buildcraft.lib.client.sprite.SpriteHolderRegistry.SpriteHolder;
-import buildcraft.lib.misc.LocaleUtil;
-
 import buildcraft.core.statements.BCStatement;
+import buildcraft.lib.client.sprite.SpriteHolderRegistry;
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.silicon.BCSiliconSprites;
 import buildcraft.silicon.BCSiliconStatements;
+import java.util.Locale;
+import net.minecraft.world.level.Level;
 
 public class TriggerTimer extends BCStatement implements ITriggerInternal {
+   private final TriggerTimer.Duration duration;
 
-    public enum Duration {
-        SHORT(5),
-        MEDIUM(10),
-        LONG(15);
+   public TriggerTimer(TriggerTimer.Duration duration) {
+      super("buildcraft:timer_" + duration.name().toLowerCase(Locale.ROOT));
+      this.duration = duration;
+   }
 
-        public final int duration;
+   @Override
+   public String getDescription() {
+      return String.format(LocaleUtil.localize("gate.trigger.timer"), this.duration.duration);
+   }
 
-        Duration(int duration) {
-            this.duration = duration;
-        }
-    }
+   @Override
+   public boolean isTriggerActive(IStatementContainer source, IStatementParameter[] parameters) {
+      if (source.getTile() != null && source.getTile().getLevel() != null) {
+         Level level = source.getTile().getLevel();
+         return level.getGameTime() % (20L * this.duration.duration) == 0L;
+      } else {
+         return false;
+      }
+   }
 
-    private final Duration duration;
+   @Override
+   public IStatement[] getPossible() {
+      return BCSiliconStatements.TRIGGER_TIMER;
+   }
 
-    public TriggerTimer(Duration duration) {
-        super("buildcraft:timer_" + duration.name().toLowerCase(Locale.ROOT));
-        this.duration = duration;
-    }
+   public SpriteHolderRegistry.SpriteHolder getSprite() {
+      return switch (this.duration) {
+         case SHORT -> BCSiliconSprites.TRIGGER_TIMER_SHORT;
+         case MEDIUM -> BCSiliconSprites.TRIGGER_TIMER_MEDIUM;
+         case LONG -> BCSiliconSprites.TRIGGER_TIMER_LONG;
+      };
+   }
 
-    @Override
-    public String getDescription() {
-        return String.format(LocaleUtil.localize("gate.trigger.timer"), duration.duration);
-    }
+   public enum Duration {
+      SHORT(5),
+      MEDIUM(10),
+      LONG(15);
 
-    @Override
-    public boolean isTriggerActive(IStatementContainer source, IStatementParameter[] parameters) {
-        if (source.getTile() == null || source.getTile().getLevel() == null) return false;
-        Level level = source.getTile().getLevel();
-        return level.getGameTime() % (20L * duration.duration) == 0;
-    }
+      public final int duration;
 
-    @Override
-    public IStatement[] getPossible() {
-        return BCSiliconStatements.TRIGGER_TIMER;
-    }
-
-    @Override
-    public SpriteHolder getSprite() {
-        return switch (duration) {
-            case SHORT -> BCSiliconSprites.TRIGGER_TIMER_SHORT;
-            case MEDIUM -> BCSiliconSprites.TRIGGER_TIMER_MEDIUM;
-            case LONG -> BCSiliconSprites.TRIGGER_TIMER_LONG;
-        };
-    }
+      Duration(int duration) {
+         this.duration = duration;
+      }
+   }
 }

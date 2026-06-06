@@ -1,228 +1,213 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * BuildCraft is distributed under the terms of the Minecraft Mod Public License 1.0, or MMPL. Please check the contents
- * of the license located in http://www.mod-buildcraft.com/MMPL-1.0.txt */
 package buildcraft.api.robots;
 
-import java.util.Arrays;
-
-import net.minecraft.world.Container;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
-
-import buildcraft.lib.transfer.ResourceHandler;
-import buildcraft.lib.transfer.fluid.FluidResource;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.statements.StatementSlot;
 import buildcraft.api.transport.IInjectable;
+import java.util.Arrays;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.Container;
+import net.minecraft.world.level.Level;
 
 public abstract class DockingStation {
-    public Direction side;
-    public Level world;
+   public Direction side;
+   public Level world;
+   private long robotTakingId = Long.MAX_VALUE;
+   private EntityRobotBase robotTaking;
+   private boolean linkIsMain = false;
+   private BlockPos pos;
 
-    private long robotTakingId = EntityRobotBase.NULL_ROBOT_ID;
-    private EntityRobotBase robotTaking;
+   public DockingStation(BlockPos iIndex, Direction iSide) {
+      this.pos = iIndex;
+      this.side = iSide;
+   }
 
-    private boolean linkIsMain = false;
+   public DockingStation() {
+   }
 
-    private BlockPos pos;
+   public boolean isMainStation() {
+      return this.linkIsMain;
+   }
 
-    public DockingStation(BlockPos iIndex, Direction iSide) {
-        pos = iIndex;
-        side = iSide;
-    }
+   public BlockPos getPos() {
+      return this.pos;
+   }
 
-    public DockingStation() {
-    }
+   public Direction side() {
+      return this.side;
+   }
 
-    public boolean isMainStation() {
-        return linkIsMain;
-    }
+   public EntityRobotBase robotTaking() {
+      if (this.robotTakingId == Long.MAX_VALUE) {
+         return null;
+      }
 
-    public BlockPos getPos() {
-        return pos;
-    }
+      if (this.robotTaking == null) {
+         this.robotTaking = RobotManager.registryProvider.getRegistry(this.world).getLoadedRobot(this.robotTakingId);
+      }
 
-    public Direction side() {
-        return side;
-    }
+      return this.robotTaking;
+   }
 
-    public EntityRobotBase robotTaking() {
-        if (robotTakingId == EntityRobotBase.NULL_ROBOT_ID) {
-            return null;
-        } else if (robotTaking == null) {
-            robotTaking = RobotManager.registryProvider.getRegistry(world).getLoadedRobot(robotTakingId);
-        }
+   public void invalidateRobotTakingEntity() {
+      this.robotTaking = null;
+   }
 
-        return robotTaking;
-    }
+   public long linkedId() {
+      return this.robotTakingId;
+   }
 
-    public void invalidateRobotTakingEntity() {
-        robotTaking = null;
-    }
+   public boolean takeAsMain(EntityRobotBase robot) {
+      if (this.robotTakingId == Long.MAX_VALUE) {
+         IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
+         this.linkIsMain = true;
+         this.robotTaking = robot;
+         this.robotTakingId = robot.getRobotId();
+         registry.registryMarkDirty();
+         robot.setMainStation(this);
+         registry.take(this, robot.getRobotId());
+         return true;
+      } else {
+         return this.robotTakingId == robot.getRobotId();
+      }
+   }
 
-    public long linkedId() {
-        return robotTakingId;
-    }
+   public boolean take(EntityRobotBase robot) {
+      if (this.robotTaking == null) {
+         IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
+         this.linkIsMain = false;
+         this.robotTaking = robot;
+         this.robotTakingId = robot.getRobotId();
+         registry.registryMarkDirty();
+         registry.take(this, robot.getRobotId());
+         return true;
+      } else {
+         return robot.getRobotId() == this.robotTakingId;
+      }
+   }
 
-    public boolean takeAsMain(EntityRobotBase robot) {
-        if (robotTakingId == EntityRobotBase.NULL_ROBOT_ID) {
-            IRobotRegistry registry = RobotManager.registryProvider.getRegistry(world);
-            linkIsMain = true;
-            robotTaking = robot;
-            robotTakingId = robot.getRobotId();
-            registry.registryMarkDirty();
-            robot.setMainStation(this);
-            registry.take(this, robot.getRobotId());
+   public void release(EntityRobotBase robot) {
+      if (this.robotTaking == robot && !this.linkIsMain) {
+         IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
+         this.unsafeRelease(robot);
+         registry.registryMarkDirty();
+         registry.release(this, robot.getRobotId());
+      }
+   }
 
-            return true;
-        } else {
-            return robotTakingId == robot.getRobotId();
-        }
-    }
+   public void unsafeRelease(EntityRobotBase robot) {
+      if (this.robotTaking == robot) {
+         this.linkIsMain = false;
+         this.robotTaking = null;
+         this.robotTakingId = Long.MAX_VALUE;
+      }
+   }
 
-    public boolean take(EntityRobotBase robot) {
-        if (robotTaking == null) {
-            IRobotRegistry registry = RobotManager.registryProvider.getRegistry(world);
-            linkIsMain = false;
-            robotTaking = robot;
-            robotTakingId = robot.getRobotId();
-            registry.registryMarkDirty();
-            registry.take(this, robot.getRobotId());
+   public void writeToNBT(CompoundTag nbt) {
+      nbt.putIntArray("pos", new int[]{this.getPos().getX(), this.getPos().getY(), this.getPos().getZ()});
+      nbt.putByte("side", (byte)this.side.ordinal());
+      nbt.putBoolean("isMain", this.linkIsMain);
+      nbt.putLong("robotId", this.robotTakingId);
+   }
 
-            return true;
-        } else {
-            return robot.getRobotId() == robotTakingId;
-        }
-    }
+   public void readFromNBT(CompoundTag nbt) {
+      if (nbt.contains("index")) {
+         CompoundTag indexNBT = nbt.getCompound("index").orElse(new CompoundTag());
+         int x = indexNBT.getInt("i").orElse(0);
+         int y = indexNBT.getInt("j").orElse(0);
+         int z = indexNBT.getInt("k").orElse(0);
+         this.pos = new BlockPos(x, y, z);
+      } else {
+         int[] array = nbt.getIntArray("pos").orElse(new int[0]);
+         if (array.length == 3) {
+            this.pos = new BlockPos(array[0], array[1], array[2]);
+         } else if (array.length != 0) {
+            BCLog.logger.warn("Found an integer array that was not the right length! (" + Arrays.toString(array) + ")");
+         } else {
+            BCLog.logger.warn("Did not find any integer positions! This is a bug!");
+         }
+      }
 
-    public void release(EntityRobotBase robot) {
-        if (robotTaking == robot && !linkIsMain) {
-            IRobotRegistry registry = RobotManager.registryProvider.getRegistry(world);
-            unsafeRelease(robot);
-            registry.registryMarkDirty();
-            registry.release(this, robot.getRobotId());
-        }
-    }
+      this.side = Direction.values()[nbt.getByte("side").orElse((byte)0)];
+      this.linkIsMain = nbt.getBoolean("isMain").orElse(false);
+      this.robotTakingId = nbt.getLong("robotId").orElse(0L);
+   }
 
-    public void unsafeRelease(EntityRobotBase robot) {
-        if (robotTaking == robot) {
-            linkIsMain = false;
-            robotTaking = null;
-            robotTakingId = EntityRobotBase.NULL_ROBOT_ID;
-        }
-    }
+   public boolean isTaken() {
+      return this.robotTakingId != Long.MAX_VALUE;
+   }
 
-    public void writeToNBT(CompoundTag nbt) {
-        nbt.putIntArray("pos", new int[] { getPos().getX(), getPos().getY(), getPos().getZ() });
-        nbt.putByte("side", (byte) side.ordinal());
-        nbt.putBoolean("isMain", linkIsMain);
-        nbt.putLong("robotId", robotTakingId);
-    }
+   public long robotIdTaking() {
+      return this.robotTakingId;
+   }
 
-    public void readFromNBT(CompoundTag nbt) {
-        if (nbt.contains("index")) {
+   public BlockPos index() {
+      return this.pos;
+   }
 
-            CompoundTag indexNBT = nbt.getCompound("index").orElse(new net.minecraft.nbt.CompoundTag());
-            int x = indexNBT.getInt("i").orElse(0);
-            int y = indexNBT.getInt("j").orElse(0);
-            int z = indexNBT.getInt("k").orElse(0);
-            pos = new BlockPos(x, y, z);
-        } else {
-            int[] array = nbt.getIntArray("pos").orElse(new int[0]);
-            if (array.length == 3) {
-                pos = new BlockPos(array[0], array[1], array[2]);
-            } else if (array.length != 0) {
-                BCLog.logger
-                        .warn("Found an integer array that was not the right length! (" + Arrays.toString(array) + ")");
-            } else {
-                BCLog.logger.warn("Did not find any integer positions! This is a bug!");
-            }
-        }
-        side = Direction.values()[nbt.getByte("side").orElse((byte) 0)];
-        linkIsMain = nbt.getBoolean("isMain").orElse(false);
-        robotTakingId = nbt.getLong("robotId").orElse(0L);
-    }
+   @Override
+   public String toString() {
+      return "{" + this.pos + ", " + this.side + " :" + this.robotTakingId + "}";
+   }
 
-    public boolean isTaken() {
-        return robotTakingId != EntityRobotBase.NULL_ROBOT_ID;
-    }
+   public boolean linkIsDocked() {
+      return this.robotTaking() != null ? this.robotTaking().getDockingStation() == this : false;
+   }
 
-    public long robotIdTaking() {
-        return robotTakingId;
-    }
+   public boolean canRelease() {
+      return !this.isMainStation() && !this.linkIsDocked();
+   }
 
-    public BlockPos index() {
-        return pos;
-    }
+   public boolean isInitialized() {
+      return true;
+   }
 
-    @Override
-    public String toString() {
-        return "{" + pos + ", " + side + " :" + robotTakingId + "}";
-    }
+   public abstract Iterable<StatementSlot> getActiveActions();
 
-    public boolean linkIsDocked() {
-        if (robotTaking() != null) {
-            return robotTaking().getDockingStation() == this;
-        } else {
-            return false;
-        }
-    }
+   public IInjectable getItemOutput() {
+      return null;
+   }
 
-    public boolean canRelease() {
-        return !isMainStation() && !linkIsDocked();
-    }
+   public EnumPipePart getItemOutputSide() {
+      return EnumPipePart.CENTER;
+   }
 
-    public boolean isInitialized() {
-        return true;
-    }
+   public Container getItemInput() {
+      return null;
+   }
 
-    public abstract Iterable<StatementSlot> getActiveActions();
+   public EnumPipePart getItemInputSide() {
+      return EnumPipePart.CENTER;
+   }
 
-    public IInjectable getItemOutput() {
-        return null;
-    }
+   public Storage<FluidVariant> getFluidOutput() {
+      return null;
+   }
 
-    public EnumPipePart getItemOutputSide() {
-        return EnumPipePart.CENTER;
-    }
+   public EnumPipePart getFluidOutputSide() {
+      return EnumPipePart.CENTER;
+   }
 
-    public Container getItemInput() {
-        return null;
-    }
+   public Storage<FluidVariant> getFluidInput() {
+      return null;
+   }
 
-    public EnumPipePart getItemInputSide() {
-        return EnumPipePart.CENTER;
-    }
+   public EnumPipePart getFluidInputSide() {
+      return EnumPipePart.CENTER;
+   }
 
-    public ResourceHandler<FluidResource> getFluidOutput() {
-        return null;
-    }
+   public boolean providesPower() {
+      return false;
+   }
 
-    public EnumPipePart getFluidOutputSide() {
-        return EnumPipePart.CENTER;
-    }
+   public IRequestProvider getRequestProvider() {
+      return null;
+   }
 
-    public ResourceHandler<FluidResource> getFluidInput() {
-        return null;
-    }
-
-    public EnumPipePart getFluidInputSide() {
-        return EnumPipePart.CENTER;
-    }
-
-    public boolean providesPower() {
-        return false;
-    }
-
-    public IRequestProvider getRequestProvider() {
-        return null;
-    }
-
-    public void onChunkUnload() {
-
-    }
+   public void onChunkUnload() {
+   }
 }

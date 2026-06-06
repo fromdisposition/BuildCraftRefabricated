@@ -1,12 +1,24 @@
 package buildcraft.energy.tile;
 
+import buildcraft.api.mj.IMjConnector;
+import buildcraft.api.mj.IMjReceiver;
+import buildcraft.api.mj.MjAPI;
+import buildcraft.api.mj.MjBattery;
+import buildcraft.api.mj.MjRfConversion;
+import buildcraft.core.BCCoreItems;
+import buildcraft.energy.BCEnergyBlockEntities;
+import buildcraft.energy.container.ContainerDynamoMJ;
+import buildcraft.lib.BCLibConfig;
+import buildcraft.lib.engine.TileEngineBase_BC8;
+import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
+import buildcraft.lib.fabric.transfer.EnergyStorageOps;
+import buildcraft.lib.fabric.transfer.FeEnergyStorage;
+import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.mj.MjBatteryReceiver;
+import buildcraft.lib.tile.ItemHandlerSimple;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.annotation.Nonnull;
-
-import org.jetbrains.annotations.Nullable;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -21,298 +33,281 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import org.jetbrains.annotations.Nullable;
+import team.reborn.energy.api.EnergyStorage;
 
-import buildcraft.api.mj.MjRfConversion;
-
-import buildcraft.api.enums.EnumPowerStage;
-import buildcraft.api.mj.IMjConnector;
-import buildcraft.api.mj.IMjReceiver;
-import buildcraft.api.mj.MjAPI;
-import buildcraft.api.mj.MjBattery;
-import buildcraft.core.BCCoreItems;
-import buildcraft.energy.BCEnergyBlockEntities;
-import buildcraft.lib.BCLibConfig;
-import buildcraft.lib.attachments.Attachments;
-import buildcraft.lib.attachments.AttachmentQueries;
-import buildcraft.lib.engine.TileEngineBase_BC8;
-import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import buildcraft.lib.mj.MjBatteryReceiver;
-import buildcraft.lib.transfer.energy.EnergyHandler;
-import buildcraft.lib.transfer.energy.SimpleEnergyHandler;
-import buildcraft.lib.transfer.transaction.Transaction;
-
-@SuppressWarnings("this-escape")
 public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu {
-    public static final int MAX_FE = 10_000;
-    public static final long MAX_MJ = 1000 * MjAPI.MJ;
+   public static final int MAX_FE = 10000;
+   public static final long MAX_MJ = 1000L * MjAPI.MJ;
+   public static final float HEAT_RATE = 0.06F;
+   public static final float COOLDOWN_RATE = 0.01F;
+   public static final Map<Item, Long> UPGRADE_VALUES = new LinkedHashMap<>();
+   private final MjBattery mjBattery;
+   private final MjBatteryReceiver mjConnector;
+   public final ItemHandlerSimple upgrades = new ItemHandlerSimple(4, (handler, slot, bef, aft) -> this.setChanged());
+   public final FeEnergyStorage energyStorage;
 
-    public static final float HEAT_RATE = 0.06f;
-    public static final float COOLDOWN_RATE = 0.01f;
+   public static void initUpgrades() {
+      if (UPGRADE_VALUES.isEmpty()) {
+         UPGRADE_VALUES.put(BCCoreItems.GEAR_IRON, MjAPI.MJ * 2L);
+         UPGRADE_VALUES.put(BCCoreItems.GEAR_GOLD, MjAPI.MJ * 3L);
+      }
+   }
 
-    public static final Map<Item, Long> UPGRADE_VALUES = new LinkedHashMap<>();
+   public TileDynamoMJ(BlockPos pos, BlockState state) {
+      super(BCEnergyBlockEntities.DYNAMO_MJ, pos, state);
+      this.upgrades.setChecker((slot, stack) -> {
+         initUpgrades();
+         return UPGRADE_VALUES.containsKey(stack.getItem());
+      });
+      this.upgrades.setLimitedInsertor(1);
+      this.energyStorage = new FeEnergyStorage(10000, 0, 10000) {
+         @Override
+         protected void onEnergyChanged(int previousAmount) {
+            TileDynamoMJ.this.setChanged();
+         }
+      };
+      this.mjBattery = new MjBattery(MAX_MJ);
+      this.mjConnector = new MjBatteryReceiver(this.mjBattery);
+   }
 
-    public static void initUpgrades() {
-        if (UPGRADE_VALUES.isEmpty()) {
-            UPGRADE_VALUES.put(BCCoreItems.GEAR_IRON, MjAPI.MJ * 2);
-            UPGRADE_VALUES.put(BCCoreItems.GEAR_GOLD, MjAPI.MJ * 3);
-        }
-    }
+   @Nullable
+   public EnergyStorage getSidedEnergyStorage(@Nullable Direction direction) {
+      return direction != null && direction == this.getOrientation() ? this.energyStorage : null;
+   }
 
-    private final MjBattery mjBattery;
-    private final MjBatteryReceiver mjConnector;
+   public int getCurrentFe() {
+      return (int)this.energyStorage.getAmount();
+   }
 
-    public final buildcraft.lib.tile.item.ItemHandlerSimple upgrades =
-        new buildcraft.lib.tile.item.ItemHandlerSimple(4, (handler, slot, bef, aft) -> setChanged());
+   public void setCurrentFe(int fe) {
+      this.energyStorage.set(Math.max(0, Math.min(10000, fe)));
+   }
 
-    {
-        upgrades.setChecker((slot, stack) -> {
-            initUpgrades();
-            return UPGRADE_VALUES.containsKey(stack.getItem());
-        });
-        upgrades.setLimitedInsertor(1);
-    }
+   @Nonnull
+   @Override
+   protected IMjConnector createConnector() {
+      return this.mjConnector;
+   }
 
-    public final SimpleEnergyHandler energyStorage = new SimpleEnergyHandler(MAX_FE, 0, MAX_FE) {
-        @Override
-        protected void onEnergyChanged(int previousAmount) {
-            setChanged();
-        }
-    };
+   public MjBattery getMjBattery() {
+      return this.mjBattery;
+   }
 
-    public TileDynamoMJ(BlockPos pos, BlockState state) {
-        super(BCEnergyBlockEntities.DYNAMO_MJ, pos, state);
-        mjBattery = new MjBattery(MAX_MJ);
-        mjConnector = new MjBatteryReceiver(mjBattery);
-    }
+   public MjBatteryReceiver getMjReceiver() {
+      return this.mjConnector;
+   }
 
-    public int getCurrentFe() {
-        return (int) energyStorage.getAmountAsLong();
-    }
+   @Override
+   public boolean isBurning() {
+      return this.mjBattery.getStored() > 0L && this.isRedstonePowered;
+   }
 
-    public void setCurrentFe(int fe) {
-        energyStorage.set(Math.max(0, Math.min(MAX_FE, fe)));
-    }
+   public long getMjPerTick() {
+      initUpgrades();
+      long value = MjAPI.MJ * 4L;
 
-    @Nonnull
-    @Override
-    protected IMjConnector createConnector() {
-        return mjConnector;
-    }
-
-    public MjBattery getMjBattery() {
-        return mjBattery;
-    }
-
-    public MjBatteryReceiver getMjReceiver() {
-        return mjConnector;
-    }
-
-    @Override
-    public boolean isBurning() {
-        return mjBattery.getStored() > 0 && isRedstonePowered;
-    }
-
-    public long getMjPerTick() {
-        initUpgrades();
-        long value = MjAPI.MJ * 4;
-        for (int slot = 0; slot < upgrades.getSlots(); slot++) {
-            ItemStack stack = upgrades.getStackInSlot(slot);
-            if (stack.isEmpty()) continue;
+      for (int slot = 0; slot < this.upgrades.getSlots(); slot++) {
+         ItemStack stack = this.upgrades.getStackInSlot(slot);
+         if (!stack.isEmpty()) {
             Long add = UPGRADE_VALUES.get(stack.getItem());
             if (add != null) {
-                value += add;
+               value += add;
             }
-        }
-        return value;
-    }
+         }
+      }
 
-    public int getFeProductionRate(long mjInput) {
-        long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
-        if (mjPerRf == 0) return 0;
-        return (int) (mjInput / mjPerRf);
-    }
+      return value;
+   }
 
-    @Override
-    protected void engineUpdate() {
+   public int getFeProductionRate(long mjInput) {
+      long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
+      return mjPerRf == 0L ? 0 : (int)(mjInput / mjPerRf);
+   }
 
-        sendFeToReceiver();
-
-        currentOutput = 0;
-
-        long mjStored = mjBattery.getStored();
-        if (mjStored <= 0) return;
-
-        if (isRedstonePowered) {
+   @Override
+   protected void engineUpdate() {
+      this.sendFeToReceiver();
+      this.currentOutput = 0L;
+      long mjStored = this.mjBattery.getStored();
+      if (mjStored > 0L) {
+         if (this.isRedstonePowered) {
             long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
-            if (mjPerRf == 0) return;
-
-            int genFe = getFeProductionRate(getMjPerTick());
-            int maxFe = (int) Math.min(genFe, mjStored / mjPerRf);
-
-            int currentFe = getCurrentFe();
-            maxFe = Math.min(maxFe, MAX_FE - currentFe);
-
-            if (maxFe <= 0) return;
-
-            if (mjBattery.extractPower(maxFe * mjPerRf)) {
-                currentOutput = maxFe;
-                energyStorage.set(currentFe + maxFe);
-                heat += HEAT_RATE;
-                if (heat >= 200) {
-                    heat = 200;
-                }
+            if (mjPerRf == 0L) {
+               return;
             }
-        } else {
-            currentOutput = 0;
-        }
-    }
 
-    private void sendFeToReceiver() {
-        int currentFe = getCurrentFe();
-        if (level == null || currentFe <= 0) return;
-        EnergyHandler receiver = getFeReceiver(orientation);
-        if (receiver == null) return;
-        try (Transaction transaction = Transaction.openRoot()) {
-            int accepted = receiver.insert(currentFe, transaction);
+            int genFe = this.getFeProductionRate(this.getMjPerTick());
+            int maxFe = (int)Math.min(genFe, mjStored / mjPerRf);
+            int currentFe = this.getCurrentFe();
+            maxFe = Math.min(maxFe, 10000 - currentFe);
+            if (maxFe <= 0) {
+               return;
+            }
+
+            if (this.mjBattery.extractPower(maxFe * mjPerRf)) {
+               this.currentOutput = maxFe;
+               this.energyStorage.set(currentFe + maxFe);
+               this.heat += 0.06F;
+               if (this.heat >= 200.0F) {
+                  this.heat = 200.0F;
+               }
+            }
+         } else {
+            this.currentOutput = 0L;
+         }
+      }
+   }
+
+   private void sendFeToReceiver() {
+      int currentFe = this.getCurrentFe();
+      if (this.level != null && currentFe > 0) {
+         EnergyStorage receiver = this.getFeReceiver(this.orientation);
+         if (receiver != null) {
+            int accepted = EnergyStorageOps.insert(receiver, currentFe, true);
             if (accepted > 0) {
-                transaction.commit();
-                energyStorage.set(currentFe - accepted);
+               this.energyStorage.set(currentFe - accepted);
             }
-        }
-    }
+         }
+      }
+   }
 
-    @Nullable
-    public EnergyHandler getFeReceiver(Direction side) {
-        if (level == null) return null;
+   @Nullable
+   public EnergyStorage getFeReceiver(Direction side) {
+      if (this.level == null) {
+         return null;
+      }
 
-        BlockPos pos = getBlockPos();
-        for (int len = 0; len <= getMaxChainLength(); len++) {
-            BlockPos targetPos = pos.relative(side);
-            BlockEntity tile = level.getBlockEntity(targetPos);
-            if (tile == null) {
-                return null;
-            }
-            if (tile.getClass() == getClass()) {
+      BlockPos pos = this.getBlockPos();
 
-                if (((TileDynamoMJ) tile).orientation != side) {
-                    return null;
-                }
-                pos = targetPos;
-                continue;
-            }
+      for (int len = 0; len <= this.getMaxChainLength(); len++) {
+         BlockPos targetPos = pos.relative(side);
+         BlockEntity tile = this.level.getBlockEntity(targetPos);
+         if (tile == null) {
+            return null;
+         }
 
-            return AttachmentQueries.getBlock(level, Attachments.Energy.BLOCK, targetPos, side.getOpposite());
-        }
-        return null;
-    }
+         if (tile.getClass() != this.getClass()) {
+            return TriggerTransferAccess.blockEnergyStorage(this.level, targetPos, side.getOpposite());
+         }
 
-    @Nullable
-    @Override
-    public IMjReceiver getReceiverToPower(Direction side) {
-        if (getFeReceiver(side) != null) {
-            return new IMjReceiver() {
-                @Override public long getPowerRequested() { return 1; }
-                @Override public long receivePower(long microJoules, boolean simulate) { return 0; }
-                @Override public boolean canConnect(IMjConnector other) { return true; }
-            };
-        }
-        return null;
-    }
+         if (((TileDynamoMJ)tile).orientation != side) {
+            return null;
+         }
 
-    @Override
-    public void updateHeatLevel() {
-        if (heat > MIN_HEAT) {
-            heat -= COOLDOWN_RATE;
-        }
-        if (heat <= MIN_HEAT) {
-            heat = MIN_HEAT;
-        }
-        getPowerStage();
-    }
+         pos = targetPos;
+      }
 
-    @Override
-    public long getMaxPower() {
-        return MAX_MJ;
-    }
+      return null;
+   }
 
-    @Override
-    public long minPowerReceived() {
-        return 0;
-    }
+   @Nullable
+   @Override
+   public IMjReceiver getReceiverToPower(Direction side) {
+      return this.getFeReceiver(side) != null ? new IMjReceiver() {
+         @Override
+         public long getPowerRequested() {
+            return 1L;
+         }
 
-    @Override
-    public long maxPowerReceived() {
-        return 0;
-    }
+         @Override
+         public long receivePower(long microJoules, boolean simulate) {
+            return 0L;
+         }
 
-    @Override
-    public long maxPowerExtracted() {
-        return 0;
-    }
+         @Override
+         public boolean canConnect(IMjConnector other) {
+            return true;
+         }
+      } : null;
+   }
 
-    @Override
-    public long extractPower(long min, long max, boolean doExtract) {
-        if (!doExtract && currentOutput > 0) {
-            return Math.max(min, 1);
-        }
-        return 0;
-    }
+   @Override
+   public void updateHeatLevel() {
+      if (this.heat > 20.0F) {
+         this.heat -= 0.01F;
+      }
 
-    @Override
-    protected void sendPower(@Nullable IMjReceiver receiver) {
+      if (this.heat <= 20.0F) {
+         this.heat = 20.0F;
+      }
 
-    }
+      this.getPowerStage();
+   }
 
-    @Override
-    public long getCurrentOutput() {
-        long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
-        if (mjPerRf <= 0) {
-            return 0;
-        }
-        return currentOutput * mjPerRf;
-    }
+   @Override
+   public long getMaxPower() {
+      return MAX_MJ;
+   }
 
-    @Override
-    public float explosionRange() {
-        return 4;
-    }
+   @Override
+   public long minPowerReceived() {
+      return 0L;
+   }
 
-    @Override
-    protected int getMaxChainLength() {
-        return 3;
-    }
+   @Override
+   public long maxPowerReceived() {
+      return 0L;
+   }
 
-    @Override
-    protected void saveAdditional(ValueOutput output) {
-        super.saveAdditional(output);
-        output.putInt("currentFe", getCurrentFe());
-        output.store("upgrades", net.minecraft.nbt.CompoundTag.CODEC, upgrades.serializeNBT());
-        output.putLong("mjStored", mjBattery.getStored());
-    }
+   @Override
+   public long maxPowerExtracted() {
+      return 0L;
+   }
 
-    @Override
-    public void loadAdditional(ValueInput input) {
-        super.loadAdditional(input);
-        setCurrentFe(input.getIntOr("currentFe", 0));
-        upgrades.deserializeNBT(input.read("upgrades", net.minecraft.nbt.CompoundTag.CODEC).orElseGet(net.minecraft.nbt.CompoundTag::new));
+   @Override
+   public long extractPower(long min, long max, boolean doExtract) {
+      return !doExtract && this.currentOutput > 0L ? Math.max(min, 1L) : 0L;
+   }
 
-        CompoundTag mjTag = new CompoundTag();
-        mjTag.putLong("stored", input.getLongOr("mjStored", 0L));
-        mjBattery.deserializeNBT(mjTag);
-    }
+   @Override
+   protected void sendPower(@Nullable IMjReceiver receiver) {
+   }
 
-    @Override
-    public Component getDisplayName() {
-        return Component.translatable("block.buildcraftenergy.mj_dynamo");
-    }
+   @Override
+   public long getCurrentOutput() {
+      long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
+      return mjPerRf <= 0L ? 0L : this.currentOutput * mjPerRf;
+   }
 
-    @Override
-    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
-        return new buildcraft.energy.container.ContainerDynamoMJ(containerId, playerInv, this);
-    }
+   @Override
+   public float explosionRange() {
+      return 4.0F;
+   }
 
-    @Override
-    public BlockEntity asBlockEntity() {
-        return this;
-    }
+   @Override
+   protected int getMaxChainLength() {
+      return 3;
+   }
+
+   @Override
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      output.putInt("currentFe", this.getCurrentFe());
+      output.store("upgrades", CompoundTag.CODEC, this.upgrades.serializeNBT());
+      output.putLong("mjStored", this.mjBattery.getStored());
+   }
+
+   @Override
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.setCurrentFe(input.getIntOr("currentFe", 0));
+      this.upgrades.deserializeNBT((CompoundTag)input.read("upgrades", CompoundTag.CODEC).orElseGet(CompoundTag::new));
+      CompoundTag mjTag = new CompoundTag();
+      mjTag.putLong("stored", input.getLongOr("mjStored", 0L));
+      this.mjBattery.deserializeNBT(mjTag);
+   }
+
+   public Component getDisplayName() {
+      return Component.translatable("block.buildcraftenergy.mj_dynamo");
+   }
+
+   public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
+      return new ContainerDynamoMJ(containerId, playerInv, this);
+   }
+
+   @Override
+   public BlockEntity asBlockEntity() {
+      return this;
+   }
 }

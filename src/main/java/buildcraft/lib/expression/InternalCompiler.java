@@ -1,37 +1,7 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import buildcraft.lib.expression.Tokenizer.ITokenizingContext;
-import buildcraft.lib.expression.Tokenizer.ResultConsume;
-import buildcraft.lib.expression.Tokenizer.TokenResult;
 import buildcraft.lib.expression.api.IExpressionNode;
-import buildcraft.lib.expression.api.IExpressionNode.INodeBoolean;
-import buildcraft.lib.expression.api.IExpressionNode.INodeDouble;
-import buildcraft.lib.expression.api.IExpressionNode.INodeLong;
-import buildcraft.lib.expression.api.IExpressionNode.INodeObject;
 import buildcraft.lib.expression.api.INodeFunc;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncBoolean;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncDouble;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncLong;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncObject;
 import buildcraft.lib.expression.api.INodeStack;
 import buildcraft.lib.expression.api.IVariableNode;
 import buildcraft.lib.expression.api.InvalidExpressionException;
@@ -51,663 +21,700 @@ import buildcraft.lib.expression.node.value.NodeConstantBoolean;
 import buildcraft.lib.expression.node.value.NodeConstantDouble;
 import buildcraft.lib.expression.node.value.NodeConstantLong;
 import buildcraft.lib.expression.node.value.NodeConstantObject;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-@SuppressWarnings({"deprecation", "unchecked", "rawtypes"})
 public class InternalCompiler {
-    private static final String UNARY_NEGATION = "¬";
-    private static final String FUNCTION_START = "@";
-    private static final String FUNCTION_ARGS = "#";
-    private static final String OPERATORS = "+-*/^%~:?& << >> >>> == <= >= && || !=¬";
-    private static final String leftAssociative = "+-^*/%||&&==!=<=>=<<>>?&";
-    private static final String rightAssociative = "";
-    private static final String[] precedence =
-        { "(),", "?", "&& ||", "!= == <= >=", "<< >>", "+-", "%", "*/", "^", "~¬" };
-    private static final String OPERATORS_SINGLE = "!~¬";
+   private static final String UNARY_NEGATION = "¬";
+   private static final String FUNCTION_START = "@";
+   private static final String FUNCTION_ARGS = "#";
+   private static final String OPERATORS = "+-*/^%~:?& << >> >>> == <= >= && || !=¬";
+   private static final String leftAssociative = "+-^*/%||&&==!=<=>=<<>>?&";
+   private static final String rightAssociative = "";
+   private static final String[] precedence = new String[]{"(),", "?", "&& ||", "!= == <= >=", "<< >>", "+-", "%", "*/", "^", "~¬"};
+   private static final String OPERATORS_SINGLE = "!~¬";
+   private static final String LONG_REGEX = "[-+]?(0x[0-9a-fA-F_]+|[0-9]+)";
+   private static final String DOUBLE_REGEX = "[-+]?[0-9]+(\\.[0-9]+)?";
+   private static final String BOOLEAN_REGEX = "true|false";
+   private static final String STRING_REGEX = "'.*'";
+   private static final Pattern LONG_MATCHER = Pattern.compile("[-+]?(0x[0-9a-fA-F_]+|[0-9]+)");
+   private static final Pattern DOUBLE_MATCHER = Pattern.compile("[-+]?[0-9]+(\\.[0-9]+)?");
+   private static final Pattern BOOLEAN_MATCHER = Pattern.compile("true|false");
+   private static final Pattern STRING_MATCHER = Pattern.compile("'.*'");
 
-    private static final String LONG_REGEX = "[-+]?(0x[0-9a-fA-F_]+|[0-9]+)";
-    private static final String DOUBLE_REGEX = "[-+]?[0-9]+(\\.[0-9]+)?";
-    private static final String BOOLEAN_REGEX = "true|false";
-    private static final String STRING_REGEX = "'.*'";
+   public static IExpressionNode compileExpression(String expression, FunctionContext context) throws InvalidExpressionException {
+      if (context == null) {
+         context = new FunctionContext("default");
+      }
 
-    private static final Pattern LONG_MATCHER = Pattern.compile(LONG_REGEX);
-    private static final Pattern DOUBLE_MATCHER = Pattern.compile(DOUBLE_REGEX);
-    private static final Pattern BOOLEAN_MATCHER = Pattern.compile(BOOLEAN_REGEX);
-    private static final Pattern STRING_MATCHER = Pattern.compile(STRING_REGEX);
+      try {
+         ExpressionDebugManager.debugPrintln("Compiling " + expression);
+         String[] infix = tokenize(expression, context);
+         String[] postfix = convertToPostfix(infix);
+         ExpressionDebugManager.debugPrintln(Arrays.toString(postfix));
+         return makeExpression(postfix, context);
+      } catch (InvalidExpressionException iee) {
+         throw new InvalidExpressionException("Failed to compile expression " + expression, iee);
+      }
+   }
 
-    public static IExpressionNode compileExpression(String expression, FunctionContext context)
-        throws InvalidExpressionException {
-        if (context == null) {
-            context = new FunctionContext("default");
-        }
-        try {
-            ExpressionDebugManager.debugPrintln("Compiling " + expression);
-            String[] infix = tokenize(expression, context);
-            String[] postfix = convertToPostfix(infix);
-            ExpressionDebugManager.debugPrintln(Arrays.toString(postfix));
-            return makeExpression(postfix, context);
-        } catch (InvalidExpressionException iee) {
-            throw new InvalidExpressionException("Failed to compile expression " + expression, iee);
-        }
-    }
+   public static INodeFunc compileFunction(String expression, FunctionContext context, Argument... args) throws InvalidExpressionException {
+      FunctionContext ctxReal = new FunctionContext(context);
+      IVariableNode[] nodes = new IVariableNode[args.length];
+      Class<?>[] types = new Class[args.length];
 
-    public static INodeFunc compileFunction(String expression, FunctionContext context, Argument... args)
-        throws InvalidExpressionException {
-        FunctionContext ctxReal = new FunctionContext(context);
+      for (int i = 0; i < nodes.length; i++) {
+         types[i] = args[i].type;
+         nodes[i] = ctxReal.putVariable(args[i].name, args[i].type);
+      }
 
-        IVariableNode[] nodes = new IVariableNode[args.length];
-        @SuppressWarnings("rawtypes")
-        Class<?>[] types = new Class[args.length];
-        for (int i = 0; i < nodes.length; i++) {
-            types[i] = args[i].type;
-            nodes[i] = ctxReal.putVariable(args[i].name, args[i].type);
-        }
+      IExpressionNode node = compileExpression(expression, ctxReal);
+      if (node instanceof IExpressionNode.INodeLong) {
+         return new NodeFuncGenericToLong((IExpressionNode.INodeLong)node, types, nodes);
+      }
 
-        IExpressionNode node = compileExpression(expression, ctxReal);
-        if (node instanceof INodeLong) {
-            return new NodeFuncGenericToLong((INodeLong) node, types, nodes);
-        } else if (node instanceof INodeDouble) {
-            return new NodeFuncGenericToDouble((INodeDouble) node, types, nodes);
-        } else if (node instanceof INodeBoolean) {
-            return new NodeFuncGenericToBoolean((INodeBoolean) node, types, nodes);
-        } else if (node instanceof INodeObject<?>) {
-            return new NodeFuncGenericToObject<>((INodeObject<?>) node, types, nodes);
-        } else {
-            ExpressionDebugManager.debugNodeClass(node.getClass());
-            throw new IllegalStateException("Unknown node " + node.getClass());
-        }
-    }
+      if (node instanceof IExpressionNode.INodeDouble) {
+         return new NodeFuncGenericToDouble((IExpressionNode.INodeDouble)node, types, nodes);
+      }
 
-    private static String[] tokenize(String function, FunctionContext context) throws InvalidExpressionException {
-        String[] tokens = TokenizerDefaults.createTokenizer().tokenize(function);
-        List<String> actual = new ArrayList<>();
-        boolean changed = false;
-        ExpressionDebugManager.debugPrintln("Incoming = " + Arrays.toString(tokens));
+      if (node instanceof IExpressionNode.INodeBoolean) {
+         return new NodeFuncGenericToBoolean((IExpressionNode.INodeBoolean)node, types, nodes);
+      }
 
-        for (int i = 0; i < tokens.length; i++) {
-            String before = "";
-            String token = tokens[i];
-            int start = i;
-            while (true) {
-                token = tokens[i];
-                ExpressionDebugManager.debugPrintln("  + " + token);
-                ITokenizingContext ctx = ITokenizingContext.createFromString(token);
-                TokenResult result = TokenizerDefaults.GOBBLER_WORD.tokenizePart(ctx);
-                if (!(result instanceof ResultConsume)) {
-                    i = start;
-                    token = tokens[start];
-                    ExpressionDebugManager.debugPrintln("  - not a word!");
-                    break;
-                }
-                if (((ResultConsume) result).length != token.length()) {
-                    i = start;
-                    token = tokens[start];
-                    ExpressionDebugManager.debugPrintln("  - different length!");
-                    break;
-                }
-                String whole = before + token;
-                String lookup = whole;
-                if (whole.startsWith(".")) {
-                    lookup = whole.substring(1);
-                }
-                int index = lookup.indexOf('.');
-                if (index != -1) {
-                    String type = lookup.substring(0, index);
-                    String after = lookup.substring(index + 1);
-                    FunctionContext ctx2 = NodeTypes.getContext(NodeTypes.getType(type));
-                    if (ctx2 != null) {
-                        if (ctx2.getVariable(after) != null || !ctx2.getFunctions(after).isEmpty()) {
-                            token = whole;
-                            break;
-                        }
-                    }
-                }
+      if (node instanceof IExpressionNode.INodeObject) {
+         return new NodeFuncGenericToObject((IExpressionNode.INodeObject)node, types, nodes);
+      }
 
-                if (context.getVariable(lookup) != null || !context.getFunctions(lookup).isEmpty()) {
-                    token = whole;
-                    break;
-                }
+      ExpressionDebugManager.debugNodeClass(node.getClass());
+      throw new IllegalStateException("Unknown node " + node.getClass());
+   }
 
-                before += token;
-                i++;
-                changed = true;
-                if (i >= tokens.length) {
-                    token = before;
-                    ExpressionDebugManager.debugPrintln("  - too long!");
-                    break;
-                }
+   private static String[] tokenize(String function, FunctionContext context) throws InvalidExpressionException {
+      String[] tokens = TokenizerDefaults.createTokenizer().tokenize(function);
+      List<String> actual = new ArrayList<>();
+      boolean changed = false;
+      ExpressionDebugManager.debugPrintln("Incoming = " + Arrays.toString(tokens));
+
+      for (int i = 0; i < tokens.length; i++) {
+         String before = "";
+         String token = tokens[i];
+         int start = i;
+
+         while (true) {
+            token = tokens[i];
+            ExpressionDebugManager.debugPrintln("  + " + token);
+            Tokenizer.ITokenizingContext ctx = Tokenizer.ITokenizingContext.createFromString(token);
+            Tokenizer.TokenResult result = TokenizerDefaults.GOBBLER_WORD.tokenizePart(ctx);
+            if (!(result instanceof Tokenizer.ResultConsume)) {
+               i = start;
+               token = tokens[start];
+               ExpressionDebugManager.debugPrintln("  - not a word!");
+               break;
             }
-            ExpressionDebugManager.debugPrintln("  -> " + token);
-            actual.add(token);
-        }
-        return changed ? actual.toArray(new String[0]) : tokens;
 
-    }
-
-    private static int getPrecedence(String token) {
-        int p = 0;
-        if (token.startsWith(FUNCTION_START)) {
-            return 0;
-        }
-        for (String pre : precedence) {
-            if (pre.contains(token)) {
-                return p;
+            if (((Tokenizer.ResultConsume)result).length != token.length()) {
+               i = start;
+               token = tokens[start];
+               ExpressionDebugManager.debugPrintln("  - different length!");
+               break;
             }
-            p++;
-        }
-        return p;
-    }
 
-    private static String[] convertToPostfix(String[] infix) throws InvalidExpressionException {
-
-        Deque<String> stack = new ArrayDeque<>();
-        List<String> postfix = new ArrayList<>();
-        int index = 0;
-        ExpressionDebugManager.debugPrintln("Converting " + Arrays.toString(infix));
-        ExpressionDebugManager.debugPrintln("         Stack=" + stack + ", postfix=" + postfix);
-        boolean justPushedFunc = false;
-        for (index = 0; index < infix.length; index++) {
-            String token = infix[index];
-            ExpressionDebugManager.debugPrintln("  - Token \"" + token + "\"");
-
-            if (justPushedFunc && !")".equals(token)) {
-                if (stack.peek() != null && stack.peek().startsWith(FUNCTION_START)) {
-                    stack.push(",");
-                }
+            String whole = before + token;
+            String lookup = whole;
+            if (whole.startsWith(".")) {
+               lookup = whole.substring(1);
             }
-            justPushedFunc = false;
 
-            if (",".equals(token)) {
-                int commas = 1;
-                boolean found = false;
-                while (!stack.isEmpty()) {
-                    String fromStack = stack.pop();
-                    if ("(".equals(fromStack) || fromStack.startsWith(FUNCTION_START)) {
-                        found = true;
-                        stack.push(fromStack);
-                        break;
-                    } else if (",".equals(fromStack)) {
-                        commas++;
-                    } else {
-                        postfix.add(fromStack);
-                    }
-                }
-                for (int i = 0; i < commas; i++) {
-                    stack.push(",");
-                }
-                if (!found) {
-                    throw new InvalidExpressionException("Did not find an opening parenthesis for the comma!");
-                }
-            } else if ("(".equals(token)) {
-                stack.push(token);
-            } else if (")".equals(token)) {
-                int commas = 0;
-                boolean found = false;
-                while (!stack.isEmpty()) {
-                    String fromStack = stack.pop();
-                    if ("(".equals(fromStack)) {
-                        found = true;
-                        break;
-                    } else if (fromStack.startsWith(FUNCTION_START)) {
-                        found = true;
+            int index = lookup.indexOf(46);
+            if (index != -1) {
+               String type = lookup.substring(0, index);
+               String after = lookup.substring(index + 1);
+               FunctionContext ctx2 = NodeTypes.getContext(NodeTypes.getType(type));
+               if (ctx2 != null && (ctx2.getVariable(after) != null || !ctx2.getFunctions(after).isEmpty())) {
+                  token = whole;
+                  break;
+               }
+            }
 
-                        fromStack = fromStack + FUNCTION_ARGS + commas;
-                        postfix.add(fromStack);
-                        break;
-                    } else if (",".equals(fromStack)) {
-                        commas++;
-                    } else {
-                        postfix.add(fromStack);
-                    }
-                }
-                if (!found) {
-                    throw new InvalidExpressionException("Too many closing parenthesis!");
-                }
-            } else if (":".equals(token)) {
-                String s;
-                while ((s = stack.peek()) != null) {
-                    if ("?".equals(s)) {
-                        break;
-                    } else {
-                        postfix.add(stack.pop());
-                    }
-                }
-            } else if (OPERATORS.contains(token)) {
+            if (context.getVariable(lookup) != null || !context.getFunctions(lookup).isEmpty()) {
+               token = whole;
+               break;
+            }
 
-                if ("-".equals(token) && (index == 0 || (OPERATORS + "(,").contains(infix[index - 1]))) {
-                    token = UNARY_NEGATION;
-                }
+            before = before + token;
+            i++;
+            changed = true;
+            if (i >= tokens.length) {
+               token = before;
+               ExpressionDebugManager.debugPrintln("  - too long!");
+               break;
+            }
+         }
 
-                String s;
-                while ((s = stack.peek()) != null) {
-                    int tokenPrec = getPrecedence(token);
-                    int stackPrec = getPrecedence(s);
-                    boolean continueIfEqual = !"?".contains(token);
+         ExpressionDebugManager.debugPrintln("  -> " + token);
+         actual.add(token);
+      }
 
-                    boolean shouldContinue = leftAssociative.contains(token)
-                        && (continueIfEqual ? tokenPrec <= stackPrec : tokenPrec < stackPrec);
-                    if (!shouldContinue && rightAssociative.contains(token)) {
-                        if (tokenPrec > stackPrec) shouldContinue = true;
-                    }
+      return changed ? actual.toArray(new String[0]) : tokens;
+   }
 
-                    if (shouldContinue) {
-                        postfix.add(stack.pop());
-                    } else {
-                        break;
-                    }
-                }
-                stack.push(token);
-            } else if (index + 1 < infix.length && "(".equals(infix[index + 1])) {
-                justPushedFunc = true;
+   private static int getPrecedence(String token) {
+      int p = 0;
+      if (token.startsWith("@")) {
+         return 0;
+      }
 
-                stack.push(FUNCTION_START + token);
+      for (String pre : precedence) {
+         if (pre.contains(token)) {
+            return p;
+         }
 
-                index++;
+         p++;
+      }
+
+      return p;
+   }
+
+   private static String[] convertToPostfix(String[] infix) throws InvalidExpressionException {
+      Deque<String> stack = new ArrayDeque<>();
+      List<String> postfix = new ArrayList<>();
+      int index = 0;
+      ExpressionDebugManager.debugPrintln("Converting " + Arrays.toString(infix));
+      ExpressionDebugManager.debugPrintln("         Stack=" + stack + ", postfix=" + postfix);
+      boolean justPushedFunc = false;
+
+      for (int var11 = 0; var11 < infix.length; var11++) {
+         String token = infix[var11];
+         ExpressionDebugManager.debugPrintln("  - Token \"" + token + "\"");
+         if (justPushedFunc && !")".equals(token) && stack.peek() != null && stack.peek().startsWith("@")) {
+            stack.push(",");
+         }
+
+         justPushedFunc = false;
+         if (",".equals(token)) {
+            int commas = 1;
+            boolean found = false;
+
+            while (!stack.isEmpty()) {
+               String fromStack = stack.pop();
+               if ("(".equals(fromStack) || fromStack.startsWith("@")) {
+                  found = true;
+                  stack.push(fromStack);
+                  break;
+               }
+
+               if (",".equals(fromStack)) {
+                  commas++;
+               } else {
+                  postfix.add(fromStack);
+               }
+            }
+
+            for (int i = 0; i < commas; i++) {
+               stack.push(",");
+            }
+
+            if (!found) {
+               throw new InvalidExpressionException("Did not find an opening parenthesis for the comma!");
+            }
+         } else if ("(".equals(token)) {
+            stack.push(token);
+         } else if (")".equals(token)) {
+            int commas = 0;
+            boolean found = false;
+
+            while (!stack.isEmpty()) {
+               String fromStack = stack.pop();
+               if ("(".equals(fromStack)) {
+                  found = true;
+                  break;
+               }
+
+               if (fromStack.startsWith("@")) {
+                  found = true;
+                  fromStack = fromStack + "#" + commas;
+                  postfix.add(fromStack);
+                  break;
+               }
+
+               if (",".equals(fromStack)) {
+                  commas++;
+               } else {
+                  postfix.add(fromStack);
+               }
+            }
+
+            if (!found) {
+               throw new InvalidExpressionException("Too many closing parenthesis!");
+            }
+         } else {
+            String s;
+            if (":".equals(token)) {
+               while ((s = stack.peek()) != null && !"?".equals(s)) {
+                  postfix.add(stack.pop());
+               }
+            } else if (!"+-*/^%~:?& << >> >>> == <= >= && || !=¬".contains(token)) {
+               if (var11 + 1 < infix.length && "(".equals(infix[var11 + 1])) {
+                  justPushedFunc = true;
+                  stack.push("@" + token);
+                  var11++;
+               } else {
+                  postfix.add(token);
+               }
             } else {
+               if ("-".equals(token) && (var11 == 0 || "+-*/^%~:?& << >> >>> == <= >= && || !=¬(,".contains(infix[var11 - 1]))) {
+                  token = "¬";
+               }
 
-                postfix.add(token);
+               while ((s = stack.peek()) != null) {
+                  int tokenPrec = getPrecedence(token);
+                  int stackPrec = getPrecedence(s);
+                  boolean continueIfEqual = !"?".contains(token);
+                  boolean shouldContinue = "+-^*/%||&&==!=<=>=<<>>?&".contains(token) && (continueIfEqual ? tokenPrec <= stackPrec : tokenPrec < stackPrec);
+                  if (!shouldContinue && "".contains(token) && tokenPrec > stackPrec) {
+                     shouldContinue = true;
+                  }
+
+                  if (!shouldContinue) {
+                     break;
+                  }
+
+                  postfix.add(stack.pop());
+               }
+
+               stack.push(token);
             }
-            ExpressionDebugManager.debugPrintln("         Stack=" + stack + ", postfix=" + postfix);
-        }
+         }
 
-        while (!stack.isEmpty()) {
-            String operator = stack.pop();
-            ExpressionDebugManager.debugPrintln("  - Operator \"" + operator + "\"");
-            if ("(".equals(operator)) {
-                throw new InvalidExpressionException("Too many opening parenthesis!");
-            } else if (")".equals(operator)) {
-                throw new InvalidExpressionException("Too many closing parenthesis!");
-            } else {
-                postfix.add(operator);
+         ExpressionDebugManager.debugPrintln("         Stack=" + stack + ", postfix=" + postfix);
+      }
+
+      while (!stack.isEmpty()) {
+         String operator = stack.pop();
+         ExpressionDebugManager.debugPrintln("  - Operator \"" + operator + "\"");
+         if ("(".equals(operator)) {
+            throw new InvalidExpressionException("Too many opening parenthesis!");
+         }
+
+         if (")".equals(operator)) {
+            throw new InvalidExpressionException("Too many closing parenthesis!");
+         }
+
+         postfix.add(operator);
+         ExpressionDebugManager.debugPrintln("         Stack=" + stack + ", postfix=" + postfix);
+      }
+
+      return postfix.toArray(new String[postfix.size()]);
+   }
+
+   private static IExpressionNode makeExpression(String[] postfix, FunctionContext context) throws InvalidExpressionException {
+      NodeStack stack = new NodeStack();
+
+      for (int i = 0; i < postfix.length; i++) {
+         String op = postfix[i];
+         if ("+-*/^%~:?& << >> >>> == <= >= && || !=¬".contains(op) && !"?".equals(op) && !":".equals(op)) {
+            boolean isNegation = "¬".equals(op);
+            int count = 2;
+            if (isNegation || "!~¬".contains(op)) {
+               op = isNegation ? "-" : op;
+               count = 1;
             }
-            ExpressionDebugManager.debugPrintln("         Stack=" + stack + ", postfix=" + postfix);
-        }
 
-        return postfix.toArray(new String[postfix.size()]);
-    }
-
-    private static IExpressionNode makeExpression(String[] postfix, FunctionContext context)
-        throws InvalidExpressionException {
-        NodeStack stack = new NodeStack();
-        for (int i = 0; i < postfix.length; i++) {
-            String op = postfix[i];
-            if (OPERATORS.contains(op) && !"?".equals(op) && !":".equals(op)) {
-                boolean isNegation = UNARY_NEGATION.equals(op);
-                int count = 2;
-                if (isNegation || OPERATORS_SINGLE.contains(op)) {
-                    op = isNegation ? "-" : op;
-                    count = 1;
-                }
-                String function = op + FUNCTION_ARGS + count;
-                pushFunctionNode(stack, function, context);
-            } else if (":".equals(op)) continue;
-            else if ("?".equals(op)) pushConditional(stack);
-            else if (isValidLong(op)) {
-                long val = parseValidLong(op);
-                stack.push(new NodeConstantLong(val));
+            String function = op + "#" + count;
+            pushFunctionNode(stack, function, context);
+         } else if (!":".equals(op)) {
+            if ("?".equals(op)) {
+               pushConditional(stack);
+            } else if (isValidLong(op)) {
+               long val = parseValidLong(op);
+               stack.push(new NodeConstantLong(val));
             } else if (isValidDouble(op)) {
-                stack.push(new NodeConstantDouble(Double.parseDouble(op)));
+               stack.push(new NodeConstantDouble(Double.parseDouble(op)));
             } else if (BOOLEAN_MATCHER.matcher(op).matches()) {
-                stack.push(NodeConstantBoolean.of(Boolean.parseBoolean(op)));
+               stack.push(NodeConstantBoolean.of(Boolean.parseBoolean(op)));
             } else if (STRING_MATCHER.matcher(op).matches()) {
-                stack.push(new NodeConstantObject<>(String.class, op.substring(1, op.length() - 1)));
-            } else if (op.startsWith(FUNCTION_START)) {
-
-                String function = op.substring(1);
-                pushFunctionNode(stack, function, context);
+               stack.push(new NodeConstantObject<>(String.class, op.substring(1, op.length() - 1)));
+            } else if (op.startsWith("@")) {
+               String function = op.substring(1);
+               pushFunctionNode(stack, function, context);
             } else {
-                IExpressionNode node = context == null ? null : context.getVariable(op);
-                if (node == null && op.contains(".")) {
-                    int index = op.indexOf('.');
-                    String type = op.substring(0, index);
-                    FunctionContext ctx = getContext(type);
-                    if (ctx != null) {
-                        node = ctx.getVariable(op);
-                        if (node == null) {
-                            node = ctx.getVariable(op.substring(index + 1));
-                        }
-                    }
-                }
-                if (node != null) {
-                    stack.push(node);
-                } else {
-                    String vars = getValidVariablesErrorString(context);
-                    throw new InvalidExpressionException("Unknown variable '" + op + "'" + vars);
-                }
+               IExpressionNode node = context == null ? null : context.getVariable(op);
+               if (node == null && op.contains(".")) {
+                  int index = op.indexOf(46);
+                  String type = op.substring(0, index);
+                  FunctionContext ctx = getContext(type);
+                  if (ctx != null) {
+                     node = ctx.getVariable(op);
+                     if (node == null) {
+                        node = ctx.getVariable(op.substring(index + 1));
+                     }
+                  }
+               }
+
+               if (node == null) {
+                  String vars = getValidVariablesErrorString(context);
+                  throw new InvalidExpressionException("Unknown variable '" + op + "'" + vars);
+               }
+
+               stack.push(node);
             }
-        }
+         }
+      }
 
-        IExpressionNode node = stack.pop().inline();
-        if (!stack.isEmpty()) {
-            throw new InvalidExpressionException("Tried to make an expression with too many nodes! (" + stack + ")");
-        }
-        return node;
-    }
+      IExpressionNode node = stack.pop().inline();
+      if (!stack.isEmpty()) {
+         throw new InvalidExpressionException("Tried to make an expression with too many nodes! (" + stack + ")");
+      } else {
+         return node;
+      }
+   }
 
-    private static String getValidVariablesErrorString(FunctionContext context) {
-        if (context == null) {
-            return " (No context to get variables from)";
-        }
-        String vars = "\nList of valid variables:";
-        vars += addParentVariables(context);
-        return vars + "\n";
-    }
+   private static String getValidVariablesErrorString(FunctionContext context) {
+      if (context == null) {
+         return " (No context to get variables from)";
+      }
 
-    private static String addParentVariables(FunctionContext context) {
-        String vars = "";
-        List<String> allVariables = new ArrayList<>();
-        allVariables.addAll(context.getAllVariables());
-        allVariables.sort(Comparator.naturalOrder());
-        if (!allVariables.isEmpty()) {
-            if (!context.name.isEmpty()) {
-                vars += "\n" + context.name + ":";
-            }
-            vars += "\n  " + allVariables.toString().replace("[", "").replace("]", "");
-        }
-        for (FunctionContext parent : context.getParents()) {
-            vars += addParentVariables(parent);
-        }
-        return vars;
-    }
+      String vars = "\nList of valid variables:";
+      vars = vars + addParentVariables(context);
+      return vars + "\n";
+   }
 
-    public static boolean isValidDouble(String op) {
-        return DOUBLE_MATCHER.matcher(op).matches();
-    }
+   private static String addParentVariables(FunctionContext context) {
+      String vars = "";
+      List<String> allVariables = new ArrayList<>();
+      allVariables.addAll(context.getAllVariables());
+      allVariables.sort(Comparator.naturalOrder());
+      if (!allVariables.isEmpty()) {
+         if (!context.name.isEmpty()) {
+            vars = vars + "\n" + context.name + ":";
+         }
 
-    public static boolean isValidLong(String value) {
-        return LONG_MATCHER.matcher(value).matches();
-    }
+         vars = vars + "\n  " + allVariables.toString().replace("[", "").replace("]", "");
+      }
 
-    public static long parseValidLong(String value) {
-        long val;
-        if (value.startsWith("0x")) {
+      for (FunctionContext parent : context.getParents()) {
+         vars = vars + addParentVariables(parent);
+      }
 
-            String v = value.substring(2).replace("_", "");
-            val = Long.parseLong(v, 16);
-        } else {
-            val = Long.parseLong(value);
-        }
-        return val;
-    }
+      return vars;
+   }
 
-    public static IExpressionNode convertBinary(IExpressionNode convert, IExpressionNode compare)
-        throws InvalidExpressionException {
-        Class<?> convertClass = NodeTypes.getType(convert);
-        Class<?> compareClass = NodeTypes.getType(compare);
-        if (convertClass == compareClass) {
+   public static boolean isValidDouble(String op) {
+      return DOUBLE_MATCHER.matcher(op).matches();
+   }
+
+   public static boolean isValidLong(String value) {
+      return LONG_MATCHER.matcher(value).matches();
+   }
+
+   public static long parseValidLong(String value) {
+      long val;
+      if (value.startsWith("0x")) {
+         String v = value.substring(2).replace("_", "");
+         val = Long.parseLong(v, 16);
+      } else {
+         val = Long.parseLong(value);
+      }
+
+      return val;
+   }
+
+   public static IExpressionNode convertBinary(IExpressionNode convert, IExpressionNode compare) throws InvalidExpressionException {
+      Class<?> convertClass = NodeTypes.getType(convert);
+      Class<?> compareClass = NodeTypes.getType(compare);
+      if (convertClass == compareClass) {
+         return convert;
+      }
+
+      try {
+         return NodeCasting.castToType(convert, compareClass);
+      } catch (InvalidExpressionException iee) {
+         try {
+            NodeCasting.castToType(compare, convertClass);
             return convert;
-        }
-        try {
-            return NodeCasting.castToType(convert, compareClass);
-        } catch (InvalidExpressionException iee) {
-            try {
-                NodeCasting.castToType(compare, convertClass);
-                return convert;
-            } catch (InvalidExpressionException iee2) {
-                throw iee2;
-            }
-        }
-    }
+         } catch (InvalidExpressionException iee2) {
+            throw iee2;
+         }
+      }
+   }
 
-    private static void pushConditional(NodeStack stack) throws InvalidExpressionException {
-        IExpressionNode right = stack.pop();
-        IExpressionNode left = stack.pop();
-        IExpressionNode conditional = stack.pop();
-
-        right = convertBinary(right, left);
-        left = convertBinary(left, right);
-
-        if (conditional instanceof INodeBoolean) {
-            INodeBoolean condition = (INodeBoolean) conditional;
-            if (right instanceof INodeBoolean) {
-                stack.push(new NodeConditionalBoolean(condition, (INodeBoolean) left, (INodeBoolean) right));
-            } else if (right instanceof INodeDouble) {
-                stack.push(new NodeConditionalDouble(condition, (INodeDouble) left, (INodeDouble) right));
-            } else if (right instanceof INodeObject) {
-                @SuppressWarnings({"unchecked", "rawtypes"})
-                NodeConditionalObject<?> conditionalObject = new NodeConditionalObject(condition, (INodeObject) left, (INodeObject) right);
-                stack.push(conditionalObject);
-            } else if (right instanceof INodeLong) {
-                stack.push(new NodeConditionalLong(condition, (INodeLong) left, (INodeLong) right));
-            } else {
-                throw new InvalidExpressionException("Unknown node " + left);
+   private static void pushConditional(NodeStack stack) throws InvalidExpressionException {
+      IExpressionNode right = stack.pop();
+      IExpressionNode left = stack.pop();
+      IExpressionNode conditional = stack.pop();
+      right = convertBinary(right, left);
+      left = convertBinary(left, right);
+      if (conditional instanceof IExpressionNode.INodeBoolean condition) {
+         if (right instanceof IExpressionNode.INodeBoolean) {
+            stack.push(new NodeConditionalBoolean(condition, (IExpressionNode.INodeBoolean)left, (IExpressionNode.INodeBoolean)right));
+         } else if (right instanceof IExpressionNode.INodeDouble) {
+            stack.push(new NodeConditionalDouble(condition, (IExpressionNode.INodeDouble)left, (IExpressionNode.INodeDouble)right));
+         } else if (right instanceof IExpressionNode.INodeObject) {
+            NodeConditionalObject<?> conditionalObject = new NodeConditionalObject(
+               condition, (IExpressionNode.INodeObject)left, (IExpressionNode.INodeObject)right
+            );
+            stack.push(conditionalObject);
+         } else {
+            if (!(right instanceof IExpressionNode.INodeLong)) {
+               throw new InvalidExpressionException("Unknown node " + left);
             }
 
-        } else {
-            throw new InvalidExpressionException(
-                "Required a boolean node, but got '" + conditional + "' of " + conditional.getClass());
-        }
-    }
+            stack.push(new NodeConditionalLong(condition, (IExpressionNode.INodeLong)left, (IExpressionNode.INodeLong)right));
+         }
+      } else {
+         throw new InvalidExpressionException("Required a boolean node, but got '" + conditional + "' of " + conditional.getClass());
+      }
+   }
 
-    private static void pushFunctionNode(NodeStack stack, String function, FunctionContext context)
-        throws InvalidExpressionException {
-        String name = function.substring(0, function.indexOf(FUNCTION_ARGS));
-        String argCount = function.substring(function.indexOf(FUNCTION_ARGS) + 1);
-        int count = Integer.parseInt(argCount);
+   private static void pushFunctionNode(NodeStack stack, String function, FunctionContext context) throws InvalidExpressionException {
+      String name = function.substring(0, function.indexOf("#"));
+      String argCount = function.substring(function.indexOf("#") + 1);
+      int count = Integer.parseInt(argCount);
+      if (name.startsWith(".")) {
+         name = name.substring(1);
+         count++;
+      }
 
-        if (name.startsWith(".")) {
+      List<IExpressionNode> popOrder = stack.peek(count);
+      List<Class<?>> functionOrder = new ArrayList<>(popOrder.size());
+      Map<List<Class<?>>, INodeFunc> functions = new HashMap<>();
+      if (name.contains(".")) {
+         int index = name.indexOf(46);
+         String type = name.substring(0, index);
+         FunctionContext ctx = getContext(type);
+         if (ctx != null) {
+            functions.putAll(ctx.getFunctions(name.substring(index + 1)));
+         }
+      }
 
-            name = name.substring(1);
-            count++;
-        }
+      FunctionContext[] ctxs = new FunctionContext[count + 1];
+      ctxs[0] = context;
+      int n = 1;
 
-        List<IExpressionNode> popOrder = stack.peek(count);
-        List<Class<?>> functionOrder = new ArrayList<>(popOrder.size());
-        Map<List<Class<?>>, INodeFunc> functions = new HashMap<>();
-        if (name.contains(".")) {
-            int index = name.indexOf('.');
-            String type = name.substring(0, index);
-            FunctionContext ctx = getContext(type);
-            if (ctx != null) {
-                functions.putAll(ctx.getFunctions(name.substring(index + 1)));
-            }
-        }
-        FunctionContext[] ctxs = new FunctionContext[count + 1];
-        ctxs[0] = context;
-        int n = 1;
-        for (IExpressionNode node : popOrder) {
-            Class<?> nodeType = NodeTypes.getType(node);
-            functionOrder.add(0, nodeType);
-            ctxs[n++] = NodeTypes.getContext(nodeType);
-        }
-        FunctionContext typeAwareContext = new FunctionContext(ctxs);
-        functions.putAll(typeAwareContext.getFunctions(name));
+      for (IExpressionNode node : popOrder) {
+         Class<?> nodeType = NodeTypes.getType(node);
+         functionOrder.add(0, nodeType);
+         ctxs[n++] = NodeTypes.getContext(nodeType);
+      }
 
-        INodeFunc bestFunction = null;
-        int bestCastCount = Integer.MAX_VALUE;
-        List<INodeFunc> bestCasters = null;
-        List<Class<?>> bestClassesTo = null;
-        List<String> fnOrderNames = functionOrder.stream().map(NodeTypes::getName).collect(Collectors.toList());
-        ExpressionDebugManager.debugStart("Finding best function called '" + name + "' for " + fnOrderNames);
-        for (Map.Entry<List<Class<?>>, INodeFunc> func : functions.entrySet()) {
-            List<Class<?>> functionClasses = func.getKey();
-            List<String> fnClassNames = functionClasses.stream().map(NodeTypes::getName).collect(Collectors.toList());
-            ExpressionDebugManager.debugPrintln("Found " + fnClassNames);
-            if (functionClasses.size() != functionOrder.size()) {
-                continue;
-            }
+      FunctionContext typeAwareContext = new FunctionContext(ctxs);
+      functions.putAll(typeAwareContext.getFunctions(name));
+      INodeFunc bestFunction = null;
+      int bestCastCount = Integer.MAX_VALUE;
+      List<INodeFunc> bestCasters = null;
+      List<Class<?>> bestClassesTo = null;
+      List<String> fnOrderNames = functionOrder.stream().map(NodeTypes::getName).collect(Collectors.toList());
+      ExpressionDebugManager.debugStart("Finding best function called '" + name + "' for " + fnOrderNames);
+
+      for (Entry<List<Class<?>>, INodeFunc> func : functions.entrySet()) {
+         List<Class<?>> functionClasses = func.getKey();
+         List<String> fnClassNames = functionClasses.stream().map(NodeTypes::getName).collect(Collectors.toList());
+         ExpressionDebugManager.debugPrintln("Found " + fnClassNames);
+         if (functionClasses.size() == functionOrder.size()) {
             int casts = 0;
             boolean canCast = true;
             List<INodeFunc> casters = new ArrayList<>();
             ExpressionDebugManager.debugStart("Finding casters...");
+
             for (int i = 0; i < functionClasses.size(); i++) {
-                Class<?> from = functionOrder.get(i);
-                Class<?> to = functionClasses.get(i);
-                ExpressionDebugManager.debugPrintln("  - " + NodeTypes.getName(from) + " -> " + NodeTypes.getName(to));
-                if (from == to) {
-                    casters.add(a -> a.pop(from));
-                    ExpressionDebugManager.debugPrintln("    - Equal types, no cast needed.");
-                    continue;
-                }
-                INodeFunc caster;
-                if (from == long.class && to == INodeLong.class) {
-                    caster = new NodeFuncWrapper() {
+               Class<?> from = functionOrder.get(i);
+               Class<?> to = functionClasses.get(i);
+               ExpressionDebugManager.debugPrintln("  - " + NodeTypes.getName(from) + " -> " + NodeTypes.getName(to));
+               if (from == to) {
+                  casters.add(a -> a.pop(from));
+                  ExpressionDebugManager.debugPrintln("    - Equal types, no cast needed.");
+               } else {
+                  INodeFunc caster;
+                  if (from == long.class && to == IExpressionNode.INodeLong.class) {
+                     caster = new InternalCompiler.NodeFuncWrapper() {
                         @Override
                         public IExpressionNode getNode(INodeStack s) throws InvalidExpressionException {
-                            return new NodeConstantObject<>(INodeLong.class, s.popLong());
+                           return new NodeConstantObject<>(IExpressionNode.INodeLong.class, s.popLong());
                         }
-                    };
-                } else if (from == double.class && to == INodeDouble.class) {
-                    caster = new NodeFuncWrapper() {
+                     };
+                  } else if (from == double.class && to == IExpressionNode.INodeDouble.class) {
+                     caster = new InternalCompiler.NodeFuncWrapper() {
                         @Override
                         public IExpressionNode getNode(INodeStack s) throws InvalidExpressionException {
-                            return new NodeConstantObject<>(INodeDouble.class, s.popDouble());
+                           return new NodeConstantObject<>(IExpressionNode.INodeDouble.class, s.popDouble());
                         }
-                    };
-                } else if (from == long.class && to == INodeDouble.class) {
-                    caster = new NodeFuncWrapper() {
+                     };
+                  } else if (from == long.class && to == IExpressionNode.INodeDouble.class) {
+                     caster = new InternalCompiler.NodeFuncWrapper() {
                         @Override
                         public IExpressionNode getNode(INodeStack s) throws InvalidExpressionException {
-                            INodeLong node = s.popLong();
-                            INodeDouble nodeD = new NodeCastLongToDouble(node);
-                            return new NodeConstantObject<>(INodeDouble.class, nodeD.inline());
+                           IExpressionNode.INodeLong node = s.popLong();
+                           IExpressionNode.INodeDouble nodeD = new NodeCastLongToDouble(node);
+                           return new NodeConstantObject<>(IExpressionNode.INodeDouble.class, nodeD.inline());
                         }
-                    };
-                } else if (from == boolean.class && to == INodeBoolean.class) {
-                    caster = new NodeFuncWrapper() {
+                     };
+                  } else if (from == boolean.class && to == IExpressionNode.INodeBoolean.class) {
+                     caster = new InternalCompiler.NodeFuncWrapper() {
                         @Override
                         public IExpressionNode getNode(INodeStack s) throws InvalidExpressionException {
-                            return new NodeConstantObject<>(INodeBoolean.class, s.popBoolean());
+                           return new NodeConstantObject<>(IExpressionNode.INodeBoolean.class, s.popBoolean());
                         }
-                    };
-                } else {
-                    FunctionContext castingCtx =
-                        new FunctionContext(NodeTypes.getContext(from), NodeTypes.getContext(to));
-                    caster = castingCtx.getFunction("(" + NodeTypes.getName(to) + ")", Collections.singletonList(from));
-                    if (caster == null) {
+                     };
+                  } else {
+                     FunctionContext castingCtx = new FunctionContext(NodeTypes.getContext(from), NodeTypes.getContext(to));
+                     caster = castingCtx.getFunction("(" + NodeTypes.getName(to) + ")", Collections.singletonList(from));
+                     if (caster == null) {
                         ExpressionDebugManager.debugPrintln("    - No cast found!");
                         canCast = false;
                         break;
-                    }
-                }
-                casts++;
-                casters.add(caster);
-                ExpressionDebugManager.debugPrintln("    - Caster = " + caster);
+                     }
+                  }
+
+                  casts++;
+                  casters.add(caster);
+                  ExpressionDebugManager.debugPrintln("    - Caster = " + caster);
+               }
             }
+
             ExpressionDebugManager.debugEnd("");
-            if (!canCast) {
-                continue;
+            if (canCast && casts < bestCastCount) {
+               bestCastCount = casts;
+               bestFunction = func.getValue();
+               bestCasters = casters;
+               bestClassesTo = functionClasses;
             }
-            if (casts < bestCastCount) {
-                bestCastCount = casts;
-                bestFunction = func.getValue();
-                bestCasters = casters;
-                bestClassesTo = functionClasses;
+         }
+      }
+
+      ExpressionDebugManager.debugEnd("Best = " + bestFunction);
+      if (bestFunction == null || bestCasters == null) {
+         boolean isEq = "==".equals(name);
+         boolean isNE = "!=".equals(name);
+         if (count != 2 || !(isEq | isNE) || functionOrder.get(0) != functionOrder.get(1)) {
+            throw new InvalidExpressionException(
+               "No viable function called '" + name + "' found for " + fnOrderNames + getValidFunctionsErrorString(typeAwareContext)
+            );
+         }
+
+         Class<?> cls = functionOrder.get(0);
+         NodeFuncObjectObjectToBoolean.IFuncObjectObjectToBoolean<?, ?> func = isEq ? Objects::equals : (a, b) -> !Objects.equals(a, b);
+         NodeFuncObjectObjectToBoolean<Object, Object> funcNode = new NodeFuncObjectObjectToBoolean<>(
+            name, (Class<Object>)cls, (Class<Object>)cls, (NodeFuncObjectObjectToBoolean.IFuncObjectObjectToBoolean<Object, Object>)func
+         );
+         bestFunction = funcNode;
+         bestCastCount = 0;
+         bestCasters = Collections.emptyList();
+         bestClassesTo = new ArrayList<>(functionOrder);
+         ExpressionDebugManager.debugPrintln("Using implicit object equality comparison.");
+      }
+
+      NodeStack realStack;
+      if (bestCastCount == 0) {
+         realStack = stack;
+      } else {
+         IExpressionNode[] nodes = new IExpressionNode[count];
+
+         for (int i = count - 1; i >= 0; i--) {
+            INodeFunc caster = bestCasters.get(i);
+            Class<?> from = functionOrder.get(i);
+            Class<?> to = bestClassesTo.get(i);
+            stack.setRecorder(Collections.singletonList(from), caster);
+            IExpressionNode node = caster.getNode(stack);
+            stack.checkAndRemoveRecorder();
+            Class<?> actual = NodeTypes.getType(node);
+            if (actual != to) {
+               throw new IllegalStateException("The caster " + caster + " didn't produce the correct result! (Expected " + to + ", but got " + actual + ")");
             }
-        }
-        ExpressionDebugManager.debugEnd("Best = " + bestFunction);
 
-        if (bestFunction == null || bestCasters == null) {
+            nodes[i] = node;
+         }
 
-            boolean isEq = "==".equals(name);
-            boolean isNE = "!=".equals(name);
-            if (count == 2 && (isEq | isNE) && functionOrder.get(0) == functionOrder.get(1)) {
-                Class<?> cls = functionOrder.get(0);
-                NodeFuncObjectObjectToBoolean.IFuncObjectObjectToBoolean<?, ?> func =
-                    isEq ? Objects::equals : (a, b) -> !Objects.equals(a, b);
-                @SuppressWarnings({"unchecked", "rawtypes"})
-                NodeFuncObjectObjectToBoolean<?, ?> funcNode = new NodeFuncObjectObjectToBoolean(name, cls, cls, func);
-                bestFunction = funcNode;
-                bestCastCount = 0;
-                bestCasters = Collections.emptyList();
-                bestClassesTo = new ArrayList<>(functionOrder);
-                ExpressionDebugManager.debugPrintln("Using implicit object equality comparison.");
-            } else {
-                throw new InvalidExpressionException("No viable function called '" + name + "' found for "
-                    + fnOrderNames + getValidFunctionsErrorString(typeAwareContext));
+         ExpressionDebugManager.debugPrintln("Nodes = " + nodes);
+         realStack = new NodeStack(nodes);
+      }
+
+      INodeFunc func = bestFunction;
+      bestClassesTo = new ArrayList<>(bestClassesTo);
+      Collections.reverse(bestClassesTo);
+      realStack.setRecorder(bestClassesTo, func);
+      IExpressionNode node = func.getNode(realStack);
+      realStack.checkAndRemoveRecorder();
+      stack.push(node);
+   }
+
+   private static String getValidFunctionsErrorString(FunctionContext context) {
+      if (context == null) {
+         return " (No context to get functions from)";
+      }
+
+      String vars = "\nList of valid functions:";
+      vars = vars + addParentFunctions(context);
+      return vars + "\n";
+   }
+
+   private static String addParentFunctions(FunctionContext context) {
+      String vars = "";
+      List<String> allFunctions = new ArrayList<>();
+      allFunctions.addAll(context.getAllFunctions().keySet());
+      allFunctions.sort(Comparator.naturalOrder());
+      if (!allFunctions.isEmpty()) {
+         if (!context.name.isEmpty()) {
+            vars = vars + "\n" + context.name + ":";
+         }
+
+         for (String fnName : allFunctions) {
+            Map<List<Class<?>>, INodeFunc> functions = context.getFunctions(fnName);
+
+            for (Entry<List<Class<?>>, INodeFunc> entry : functions.entrySet()) {
+               String args = "";
+
+               for (Class<?> arg : entry.getKey()) {
+                  if (args.length() > 0) {
+                     args = args + ", ";
+                  }
+
+                  args = args + NodeTypes.getName(arg);
+               }
+
+               INodeFunc function = entry.getValue();
+               String ret;
+               if (function instanceof INodeFunc.INodeFuncBoolean) {
+                  ret = NodeTypes.getName(boolean.class);
+               } else if (function instanceof INodeFunc.INodeFuncDouble) {
+                  ret = NodeTypes.getName(double.class);
+               } else if (function instanceof INodeFunc.INodeFuncLong) {
+                  ret = NodeTypes.getName(long.class);
+               } else {
+                  ret = NodeTypes.getName(((INodeFunc.INodeFuncObject)function).getType());
+               }
+
+               vars = vars + "\n  " + fnName + "(" + args + ") -> " + ret;
             }
-        }
+         }
+      }
 
-        NodeStack realStack;
-        if (bestCastCount == 0) {
-            realStack = stack;
-        } else {
-            IExpressionNode[] nodes = new IExpressionNode[count];
-            for (int i = count - 1; i >= 0; i--) {
-                INodeFunc caster = bestCasters.get(i);
-                Class<?> from = functionOrder.get(i);
-                Class<?> to = bestClassesTo.get(i);
-                stack.setRecorder(Collections.singletonList(from), caster);
-                IExpressionNode node = caster.getNode(stack);
-                stack.checkAndRemoveRecorder();
-                Class<?> actual = NodeTypes.getType(node);
-                if (actual != to) {
-                    throw new IllegalStateException("The caster " + caster
-                        + " didn't produce the correct result! (Expected " + to + ", but got " + actual + ")");
-                }
-                nodes[i] = node;
-            }
-            ExpressionDebugManager.debugPrintln("Nodes = " + nodes);
-            realStack = new NodeStack(nodes);
-        }
-        INodeFunc func = bestFunction;
+      for (FunctionContext parent : context.getParents()) {
+         vars = vars + addParentFunctions(parent);
+      }
 
-        bestClassesTo = new ArrayList<>(bestClassesTo);
-        Collections.reverse(bestClassesTo);
-        realStack.setRecorder(bestClassesTo, func);
-        IExpressionNode node = func.getNode(realStack);
-        realStack.checkAndRemoveRecorder();
+      return vars;
+   }
 
-        stack.push(node);
-    }
+   private static FunctionContext getContext(String type) throws InvalidExpressionException {
+      Class<?> clazz = NodeTypes.getType(type);
+      return NodeTypes.getType(clazz);
+   }
 
-    private static String getValidFunctionsErrorString(FunctionContext context) {
-        if (context == null) {
-            return " (No context to get functions from)";
-        }
-        String vars = "\nList of valid functions:";
-        vars += addParentFunctions(context);
-        return vars + "\n";
-    }
-
-    private static String addParentFunctions(FunctionContext context) {
-        String vars = "";
-        List<String> allFunctions = new ArrayList<>();
-        allFunctions.addAll(context.getAllFunctions().keySet());
-        allFunctions.sort(Comparator.naturalOrder());
-        if (!allFunctions.isEmpty()) {
-            if (!context.name.isEmpty()) {
-                vars += "\n" + context.name + ":";
-            }
-            for (String fnName : allFunctions) {
-                Map<List<Class<?>>, INodeFunc> functions = context.getFunctions(fnName);
-                for (Map.Entry<List<Class<?>>, INodeFunc> entry : functions.entrySet()) {
-                    String args = "";
-                    for (Class<?> arg : entry.getKey()) {
-                        if (args.length() > 0) {
-                            args += ", ";
-                        }
-                        args += NodeTypes.getName(arg);
-                    }
-                    INodeFunc function = entry.getValue();
-                    String ret;
-                    if (function instanceof INodeFuncBoolean) {
-                        ret = NodeTypes.getName(boolean.class);
-                    } else if (function instanceof INodeFuncDouble) {
-                        ret = NodeTypes.getName(double.class);
-                    } else if (function instanceof INodeFuncLong) {
-                        ret = NodeTypes.getName(long.class);
-                    } else {
-                        ret = NodeTypes.getName(((INodeFuncObject<?>) function).getType());
-                    }
-                    vars += "\n  " + fnName + "(" + args + ") -> " + ret;
-                }
-            }
-        }
-        for (FunctionContext parent : context.getParents()) {
-            vars += addParentFunctions(parent);
-        }
-        return vars;
-    }
-
-    private static FunctionContext getContext(String type) throws InvalidExpressionException {
-        Class<?> clazz = NodeTypes.getType(type);
-        return NodeTypes.getType(clazz);
-    }
-
-    private static abstract class NodeFuncWrapper implements INodeFunc {
-        @Override
-        public String toString() {
-            return "[Internal Type Wrapper]";
-        }
-    }
+   private abstract static class NodeFuncWrapper implements INodeFunc {
+      @Override
+      public String toString() {
+         return "[Internal Type Wrapper]";
+      }
+   }
 }

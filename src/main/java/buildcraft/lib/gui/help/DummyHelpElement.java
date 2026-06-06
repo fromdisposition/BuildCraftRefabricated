@@ -1,50 +1,40 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.gui.help;
 
-import net.minecraft.resources.Identifier;
-
+import buildcraft.lib.gui.IGuiElement;
+import buildcraft.lib.gui.pos.IGuiArea;
 import java.util.List;
 
-import buildcraft.lib.gui.IGuiElement;
-import buildcraft.lib.gui.help.ElementHelpInfo.HelpPosition;
-import buildcraft.lib.gui.pos.IGuiArea;
-
 public class DummyHelpElement implements IGuiElement {
-    public final IGuiArea area;
-    public final ElementHelpInfo help;
+   public final IGuiArea area;
+   public final ElementHelpInfo help;
 
-    public DummyHelpElement(IGuiArea area, ElementHelpInfo help) {
-        this.area = area;
-        this.help = help;
-    }
+   public DummyHelpElement(IGuiArea area, ElementHelpInfo help) {
+      this.area = area;
+      this.help = help;
+   }
 
-    @Override
-    public double getX() {
-        return area.getX();
-    }
+   @Override
+   public double getX() {
+      return this.area.getX();
+   }
 
-    @Override
-    public double getY() {
-        return area.getY();
-    }
+   @Override
+   public double getY() {
+      return this.area.getY();
+   }
 
-    @Override
-    public double getWidth() {
-        return area.getWidth();
-    }
+   @Override
+   public double getWidth() {
+      return this.area.getWidth();
+   }
 
-    @Override
-    public double getHeight() {
-        return area.getHeight();
-    }
+   @Override
+   public double getHeight() {
+      return this.area.getHeight();
+   }
 
-    @Override
-    public void addHelpElements(List<HelpPosition> elements) {
-        elements.add(help.target(area));
-    }
+   @Override
+   public void addHelpElements(List<ElementHelpInfo.HelpPosition> elements) {
+      elements.add(this.help.target(this.area));
+   }
 }

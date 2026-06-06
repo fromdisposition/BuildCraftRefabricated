@@ -1,11 +1,10 @@
 package buildcraft.lib.tile.craft;
 
+import buildcraft.lib.tile.ItemHandlerSimple;
 import net.minecraft.world.item.ItemStack;
 
-import buildcraft.lib.tile.item.ItemHandlerSimple;
-
 public interface IAutoCraft {
-    ItemStack getCurrentRecipeOutput();
+   ItemStack getCurrentRecipeOutput();
 
-    ItemHandlerSimple getInvBlueprint();
+   ItemHandlerSimple getInvBlueprint();
 }

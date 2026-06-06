@@ -1,15 +1,15 @@
 package buildcraft.lib.registry;
 
 public final class MigrationRegistry {
-    private static boolean initialized;
+   private static boolean initialized;
 
-    private MigrationRegistry() {}
+   private MigrationRegistry() {
+   }
 
-    public static void init() {
-        if (initialized) {
-            return;
-        }
-        initialized = true;
-        LegacyAliases.init();
-    }
+   public static void init() {
+      if (!initialized) {
+         initialized = true;
+         LegacyAliases.init();
+      }
+   }
 }

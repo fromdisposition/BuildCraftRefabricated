@@ -1,428 +1,475 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.transport.pipe;
-
-import java.io.IOException;
-import java.util.EnumMap;
-import java.util.List;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.profiling.Profiler;
-import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.api.transport.pipe.ICustomPipeConnection;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
-import buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver;
-import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeConnectionAPI;
 import buildcraft.api.transport.pipe.PipeDefinition;
 import buildcraft.api.transport.pipe.PipeEventConnectionChange;
 import buildcraft.api.transport.pipe.PipeFaceTex;
 import buildcraft.api.transport.pipe.PipeFlow;
-
+import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.misc.NBTUtilBC;
+import buildcraft.transport.client.model.PipeModelCacheBase;
+import buildcraft.transport.client.model.key.PipeModelKey;
+import java.io.IOException;
+import java.util.EnumMap;
+import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.profiling.Profiler;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 public final class Pipe implements IPipe, IDebuggable {
-    private static final float DEFAULT_CONNECTION_DISTANCE = 0.25f;
+   private static final float DEFAULT_CONNECTION_DISTANCE = 0.25F;
+   public final IPipeHolder holder;
+   public final PipeDefinition definition;
+   public final PipeBehaviour behaviour;
+   public final PipeFlow flow;
+   private DyeColor colour = null;
+   private boolean updateMarked = true;
+   private PipeModelKey cachedModelKey;
+   private PipeModelCacheBase.PipeBaseCutoutKey cachedCutoutKey;
+   private final EnumMap<Direction, Float> connected = new EnumMap<>(Direction.class);
+   private final EnumMap<Direction, IPipe.ConnectedType> types = new EnumMap<>(Direction.class);
 
-    public final IPipeHolder holder;
-    public final PipeDefinition definition;
-    public final PipeBehaviour behaviour;
-    public final PipeFlow flow;
-    private DyeColor colour = null;
-    private boolean updateMarked = true;
-    private final EnumMap<Direction, Float> connected = new EnumMap<>(Direction.class);
-    private final EnumMap<Direction, ConnectedType> types = new EnumMap<>(Direction.class);
+   public Pipe(IPipeHolder holder, PipeDefinition definition) {
+      this.holder = holder;
+      this.definition = definition;
+      this.behaviour = definition.logicConstructor.createBehaviour(this);
+      this.flow = definition.flowType.creator.createFlow(this);
+   }
 
-    public Pipe(IPipeHolder holder, PipeDefinition definition) {
-        this.holder = holder;
-        this.definition = definition;
-        this.behaviour = definition.logicConstructor.createBehaviour(this);
-        this.flow = definition.flowType.creator.createFlow(this);
-    }
+   public Pipe(IPipeHolder holder, CompoundTag nbt) throws InvalidInputDataException {
+      this.holder = holder;
+      String colStr = nbt.getStringOr("col", "");
+      if (!colStr.isEmpty()) {
+         this.colour = NBTUtilBC.readEnum(nbt.get("col"), DyeColor.class);
+      }
 
-    public Pipe(IPipeHolder holder, CompoundTag nbt) throws InvalidInputDataException {
-        this.holder = holder;
-        String colStr = nbt.getStringOr("col", "");
-        if (!colStr.isEmpty()) {
-            this.colour = NBTUtilBC.readEnum(nbt.get("col"), DyeColor.class);
-        }
-        this.definition = PipeRegistry.INSTANCE.loadDefinition(nbt.getStringOr("def", ""));
-        if (!definition.canBeColoured) {
-            colour = null;
-        }
-        this.behaviour = definition.logicLoader.loadBehaviour(this, nbt.getCompoundOrEmpty("beh"));
-        this.flow = definition.flowType.loader.loadFlow(this, nbt.getCompoundOrEmpty("flow"));
+      this.definition = PipeRegistry.INSTANCE.loadDefinition(nbt.getStringOr("def", ""));
+      if (!this.definition.canBeColoured) {
+         this.colour = null;
+      }
 
-        int connectionData = nbt.getIntOr("con", 0);
-        for (Direction face : Direction.values()) {
-            int data = (connectionData >>> (face.ordinal() * 2)) & 0b11;
-            if (data == 0b01) {
-                connected.put(face, DEFAULT_CONNECTION_DISTANCE);
-                types.put(face, ConnectedType.PIPE);
-            } else if (data == 0b10) {
-                connected.put(face, DEFAULT_CONNECTION_DISTANCE);
-                types.put(face, ConnectedType.TILE);
+      this.behaviour = this.definition.logicLoader.loadBehaviour(this, nbt.getCompoundOrEmpty("beh"));
+      this.flow = this.definition.flowType.loader.loadFlow(this, nbt.getCompoundOrEmpty("flow"));
+      int connectionData = nbt.getIntOr("con", 0);
+
+      for (Direction face : Direction.values()) {
+         int data = connectionData >>> face.ordinal() * 2 & 3;
+         if (data == 1) {
+            this.connected.put(face, 0.25F);
+            this.types.put(face, IPipe.ConnectedType.PIPE);
+         } else if (data == 2) {
+            this.connected.put(face, 0.25F);
+            this.types.put(face, IPipe.ConnectedType.TILE);
+         }
+      }
+   }
+
+   public CompoundTag writeToNbt() {
+      CompoundTag nbt = new CompoundTag();
+      if (this.colour != null) {
+         nbt.put("col", NBTUtilBC.writeEnum(this.colour));
+      }
+
+      nbt.putString("def", this.definition.identifier);
+      nbt.put("beh", this.behaviour.writeToNbt());
+      nbt.put("flow", this.flow.writeToNbt());
+      int connectionData = 0;
+
+      for (Direction face : Direction.values()) {
+         IPipe.ConnectedType type = this.types.get(face);
+         if (type != null) {
+            int data = type == IPipe.ConnectedType.PIPE ? 1 : 2;
+            connectionData |= data << face.ordinal() * 2;
+         }
+      }
+
+      nbt.putInt("con", connectionData);
+      return nbt;
+   }
+
+   public void readFromNbt(CompoundTag nbt) {
+      String colStr = nbt.getStringOr("col", "");
+      if (!colStr.isEmpty()) {
+         this.colour = NBTUtilBC.readEnum(nbt.get("col"), DyeColor.class);
+      } else {
+         this.colour = null;
+      }
+
+      if (!this.definition.canBeColoured) {
+         this.colour = null;
+      }
+
+      this.connected.clear();
+      this.types.clear();
+      int connectionData = nbt.getIntOr("con", 0);
+
+      for (Direction face : Direction.values()) {
+         int data = connectionData >>> face.ordinal() * 2 & 3;
+         if (data == 1) {
+            this.connected.put(face, 0.25F);
+            this.types.put(face, IPipe.ConnectedType.PIPE);
+         } else if (data == 2) {
+            this.connected.put(face, 0.25F);
+            this.types.put(face, IPipe.ConnectedType.TILE);
+         }
+      }
+
+      if (nbt.contains("beh")) {
+         this.behaviour.readFromNbt(nbt.getCompoundOrEmpty("beh"));
+      }
+
+      if (nbt.contains("flow")) {
+         this.flow.readFromNbt(nbt.getCompoundOrEmpty("flow"));
+      }
+
+      this.invalidateModelKey();
+   }
+
+   public void writePayload(FriendlyByteBuf buffer) {
+      buffer.writeByte(this.colour == null ? 0 : this.colour.getId() + 1);
+
+      for (Direction face : Direction.values()) {
+         Float con = this.connected.get(face);
+         if (con != null) {
+            buffer.writeBoolean(true);
+            buffer.writeFloat(con);
+            IPipe.ConnectedType type = this.types.get(face);
+            buffer.writeByte(type == null ? -1 : type.ordinal());
+         } else {
+            buffer.writeBoolean(false);
+         }
+      }
+
+      this.behaviour.writePayload(buffer);
+   }
+
+   public void readPayload(FriendlyByteBuf buffer) throws IOException {
+      this.connected.clear();
+      this.types.clear();
+      int nColour = buffer.readUnsignedByte();
+      this.colour = nColour == 0 ? null : DyeColor.byId(nColour - 1);
+
+      for (Direction face : Direction.values()) {
+         if (buffer.readBoolean()) {
+            float dist = buffer.readFloat();
+            this.connected.put(face, dist);
+            int typeOrd = buffer.readByte();
+            if (typeOrd >= 0 && typeOrd < IPipe.ConnectedType.values().length) {
+               this.types.put(face, IPipe.ConnectedType.values()[typeOrd]);
             }
-        }
-    }
+         }
+      }
 
-    public CompoundTag writeToNbt() {
-        CompoundTag nbt = new CompoundTag();
-        if (colour != null) {
-            nbt.put("col", NBTUtilBC.writeEnum(colour));
-        }
-        nbt.putString("def", definition.identifier);
-        nbt.put("beh", behaviour.writeToNbt());
-        nbt.put("flow", flow.writeToNbt());
+      this.behaviour.readPayload(buffer, null);
+      this.invalidateModelKey();
+   }
 
-        int connectionData = 0;
-        for (Direction face : Direction.values()) {
-            ConnectedType type = types.get(face);
-            if (type != null) {
-                int data = type == ConnectedType.PIPE ? 0b01 : 0b10;
-                connectionData |= data << (face.ordinal() * 2);
-            }
-        }
-        nbt.putInt("con", connectionData);
-        return nbt;
-    }
+   @Override
+   public IPipeHolder getHolder() {
+      return this.holder;
+   }
 
-    public void readFromNbt(CompoundTag nbt) {
+   @Override
+   public PipeDefinition getDefinition() {
+      return this.definition;
+   }
 
-        String colStr = nbt.getStringOr("col", "");
-        if (!colStr.isEmpty()) {
-            this.colour = NBTUtilBC.readEnum(nbt.get("col"), DyeColor.class);
-        } else {
-            this.colour = null;
-        }
-        if (!definition.canBeColoured) {
-            colour = null;
-        }
+   @Override
+   public PipeBehaviour getBehaviour() {
+      return this.behaviour;
+   }
 
-        connected.clear();
-        types.clear();
-        int connectionData = nbt.getIntOr("con", 0);
-        for (Direction face : Direction.values()) {
-            int data = (connectionData >>> (face.ordinal() * 2)) & 0b11;
-            if (data == 0b01) {
-                connected.put(face, DEFAULT_CONNECTION_DISTANCE);
-                types.put(face, ConnectedType.PIPE);
-            } else if (data == 0b10) {
-                connected.put(face, DEFAULT_CONNECTION_DISTANCE);
-                types.put(face, ConnectedType.TILE);
-            }
-        }
+   @Override
+   public PipeFlow getFlow() {
+      return this.flow;
+   }
 
-        if (nbt.contains("beh")) {
-            behaviour.readFromNbt(nbt.getCompoundOrEmpty("beh"));
-        }
+   @Override
+   public DyeColor getColour() {
+      return this.colour;
+   }
 
-        if (nbt.contains("flow")) {
-            flow.readFromNbt(nbt.getCompoundOrEmpty("flow"));
-        }
-    }
+   @Override
+   public void setColour(DyeColor colour) {
+      if (this.definition.canBeColoured) {
+         this.colour = colour;
+         this.invalidateModelKey();
+         this.markForUpdate();
+         this.holder.scheduleRenderUpdate();
+      }
+   }
 
-    public void writePayload(FriendlyByteBuf buffer) {
-        buffer.writeByte(colour == null ? 0 : colour.getId() + 1);
-        for (Direction face : Direction.values()) {
-            Float con = connected.get(face);
-            if (con != null) {
-                buffer.writeBoolean(true);
-                buffer.writeFloat(con);
-                ConnectedType type = types.get(face);
-                buffer.writeByte(type == null ? -1 : type.ordinal());
-            } else {
-                buffer.writeBoolean(false);
-            }
-        }
-        behaviour.writePayload(buffer);
-    }
+   public void onLoad() {
+      this.markForUpdate();
+   }
 
-    public void readPayload(FriendlyByteBuf buffer) throws IOException {
-        connected.clear();
-        types.clear();
+   public boolean hasSimulationWork() {
+      return this.updateMarked ? true : this.behaviour.hasSimulationWork() || this.flow.hasSimulationWork();
+   }
 
-        int nColour = buffer.readUnsignedByte();
-        colour = nColour == 0 ? null : DyeColor.byId(nColour - 1);
+   public void onTick() {
+      ProfilerFiller _profiler = Profiler.get();
+      if (this.updateMarked) {
+         this.updateConnections();
+      }
 
-        for (Direction face : Direction.values()) {
-            if (buffer.readBoolean()) {
-                float dist = buffer.readFloat();
-                connected.put(face, dist);
-                int typeOrd = buffer.readByte();
-                if (typeOrd >= 0 && typeOrd < ConnectedType.values().length) {
-                    types.put(face, ConnectedType.values()[typeOrd]);
-                }
-            }
-        }
+      _profiler.push("buildcraft:pipe_behaviour");
 
-        behaviour.readPayload(buffer, null);
-    }
+      try {
+         this.behaviour.onTick();
+      } finally {
+         _profiler.pop();
+      }
 
-    @Override
-    public IPipeHolder getHolder() {
-        return holder;
-    }
+      _profiler.push("buildcraft:pipe_flow");
 
-    @Override
-    public PipeDefinition getDefinition() {
-        return definition;
-    }
+      try {
+         this.flow.onTick();
+      } finally {
+         _profiler.pop();
+      }
 
-    @Override
-    public PipeBehaviour getBehaviour() {
-        return behaviour;
-    }
+      if (this.updateMarked) {
+         this.updateConnections();
+      }
+   }
 
-    @Override
-    public PipeFlow getFlow() {
-        return flow;
-    }
+   public void postPluggableTick() {
+      this.flow.postPluggableTick();
+   }
 
-    @Override
-    public DyeColor getColour() {
-        return this.colour;
-    }
+   private void updateConnections() {
+      ProfilerFiller _profiler = Profiler.get();
+      _profiler.push("buildcraft:pipe_connections");
 
-    @Override
-    public void setColour(DyeColor colour) {
-        if (definition.canBeColoured) {
-            this.colour = colour;
-            markForUpdate();
+      try {
+         if (!this.holder.getPipeWorld().isClientSide()) {
+            this.updateMarked = false;
+            EnumMap<Direction, Float> old = this.connected.clone();
+            this.connected.clear();
+            this.types.clear();
 
-            holder.scheduleRenderUpdate();
-        }
-    }
+            for (Direction facing : Direction.values()) {
+               PipePluggable plug = this.getHolder().getPluggable(facing);
+               if (plug == null || !plug.isBlocking()) {
+                  BlockEntity oTile = this.getHolder().getNeighbourTile(facing);
+                  if (oTile != null) {
+                     IPipe oPipe = this.getHolder().getNeighbourPipe(facing);
+                     if (oPipe != null) {
+                        PipeBehaviour oBehaviour = oPipe.getBehaviour();
+                        if (oBehaviour == null) {
+                           continue;
+                        }
 
-    public void onLoad() {
-        markForUpdate();
-    }
+                        PipePluggable oPlug = oPipe.getHolder().getPluggable(facing.getOpposite());
+                        if (oPlug == null || !oPlug.isBlocking()) {
+                           if (canPipesConnect(facing, this, oPipe)) {
+                              this.connected.put(facing, 0.25F);
+                              this.types.put(facing, IPipe.ConnectedType.PIPE);
+                           }
+                           continue;
+                        }
+                     }
 
-    public void onTick() {
-        ProfilerFiller _profiler = Profiler.get();
-        if (updateMarked) {
-            updateConnections();
-        }
-        _profiler.push("buildcraft:pipe_behaviour");
-        try {
-            behaviour.onTick();
-        } finally {
-            _profiler.pop();
-        }
-        _profiler.push("buildcraft:pipe_flow");
-        try {
-            flow.onTick();
-        } finally {
-            _profiler.pop();
-        }
-        if (updateMarked) {
-            updateConnections();
-        }
-    }
+                     BlockPos nPos = this.holder.getPipePos().relative(facing);
+                     BlockState neighbour = this.holder.getPipeWorld().getBlockState(nPos);
+                     ICustomPipeConnection cust = PipeConnectionAPI.getCustomConnection(neighbour.getBlock());
+                     if (cust == null) {
+                        cust = DefaultPipeConnection.INSTANCE;
+                     }
 
-    public void postPluggableTick() {
-        flow.postPluggableTick();
-    }
-
-    private void updateConnections() {
-        ProfilerFiller _profiler = Profiler.get();
-        _profiler.push("buildcraft:pipe_connections");
-        try {
-        if (holder.getPipeWorld().isClientSide()) {
-            return;
-        }
-        updateMarked = false;
-
-        EnumMap<Direction, Float> old = connected.clone();
-
-        connected.clear();
-        types.clear();
-
-        for (Direction facing : Direction.values()) {
-
-            var plug = getHolder().getPluggable(facing);
-            if (plug != null && plug.isBlocking()) {
-                continue;
-            }
-            BlockEntity oTile = getHolder().getNeighbourTile(facing);
-            if (oTile == null) {
-                continue;
-            }
-            IPipe oPipe = getHolder().getNeighbourPipe(facing);
-            if (oPipe != null) {
-                PipeBehaviour oBehaviour = oPipe.getBehaviour();
-                if (oBehaviour == null) {
-                    continue;
-                }
-
-                var oPlug = oPipe.getHolder().getPluggable(facing.getOpposite());
-                if (oPlug == null || !oPlug.isBlocking()) {
-                    if (canPipesConnect(facing, this, oPipe)) {
-                        connected.put(facing, DEFAULT_CONNECTION_DISTANCE);
-                        types.put(facing, ConnectedType.PIPE);
-                    }
-                    continue;
-                }
+                     float ext = 0.25F + cust.getExtension(this.holder.getPipeWorld(), nPos, facing.getOpposite(), neighbour);
+                     if (this.behaviour.shouldForceConnection(facing, oTile)
+                        || this.flow.shouldForceConnection(facing, oTile)
+                        || this.behaviour.canConnect(facing, oTile) && this.flow.canConnect(facing, oTile)) {
+                        this.connected.put(facing, ext);
+                        this.types.put(facing, IPipe.ConnectedType.TILE);
+                     }
+                  }
+               }
             }
 
-            BlockPos nPos = holder.getPipePos().relative(facing);
-            var neighbour = holder.getPipeWorld().getBlockState(nPos);
-
-            ICustomPipeConnection cust = PipeConnectionAPI.getCustomConnection(neighbour.getBlock());
-            if (cust == null) {
-                cust = DefaultPipeConnection.INSTANCE;
+            if (old.equals(this.connected)) {
+               return;
             }
-            float ext = DEFAULT_CONNECTION_DISTANCE
-                + cust.getExtension(holder.getPipeWorld(), nPos, facing.getOpposite(), neighbour);
 
-            if (behaviour.shouldForceConnection(facing, oTile) || flow.shouldForceConnection(facing, oTile)
-                || (behaviour.canConnect(facing, oTile) && flow.canConnect(facing, oTile))) {
-                connected.put(facing, ext);
-                types.put(facing, ConnectedType.TILE);
-            }
-        }
-        if (!old.equals(connected)) {
+            this.invalidateModelKey();
+            boolean connectionsChanged = false;
+
             for (Direction face : Direction.values()) {
-                boolean o = old.containsKey(face);
-                boolean n = connected.containsKey(face);
-                if (o != n) {
-                    IPipe oPipe = getHolder().getNeighbourPipe(face);
-                    if (oPipe != null) {
-                        oPipe.markForUpdate();
-                    }
-                    holder.fireEvent(new PipeEventConnectionChange(holder, face));
-                }
+               boolean o = old.containsKey(face);
+               boolean n = this.connected.containsKey(face);
+               if (o != n) {
+                  connectionsChanged = true;
+                  IPipe oPipe = this.getHolder().getNeighbourPipe(face);
+                  if (oPipe != null) {
+                     oPipe.markForUpdate();
+                  }
+
+                  this.holder.fireEvent(new PipeEventConnectionChange(this.holder, face));
+               }
             }
 
-            getHolder().scheduleNetworkUpdate(PipeMessageReceiver.BEHAVIOUR);
-        }
-        } finally {
-            _profiler.pop();
-        }
-    }
-
-    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
-
-        flow.addDrops(toDrop, fortune);
-        behaviour.addDrops(toDrop, fortune);
-    }
-
-    public static boolean canPipesConnect(Direction to, IPipe one, IPipe two) {
-        return canColoursConnect(one.getColour(), two.getColour())
-        && canBehavioursConnect(to, one.getBehaviour(), two.getBehaviour())
-        && canFlowsConnect(to, one.getFlow(), two.getFlow());
-    }
-
-    public static boolean canColoursConnect(DyeColor one, DyeColor two) {
-        return one == null || two == null || one == two;
-    }
-
-    public static boolean canBehavioursConnect(Direction to, PipeBehaviour one, PipeBehaviour two) {
-        return one.canConnect(to, two) && two.canConnect(to.getOpposite(), one);
-    }
-
-    public static boolean canFlowsConnect(Direction to, PipeFlow one, PipeFlow two) {
-        return one.canConnect(to, two) && two.canConnect(to.getOpposite(), one);
-    }
-
-    @Override
-    public void markForUpdate() {
-        updateMarked = true;
-    }
-
-    @Override
-    public BlockEntity getConnectedTile(Direction side) {
-        if (connected.containsKey(side)) {
-            BlockEntity offset = getHolder().getNeighbourTile(side);
-            if (offset == null && !getHolder().getPipeWorld().isClientSide()) {
-                markForUpdate();
-            } else {
-                return offset;
+            if (connectionsChanged) {
+               this.holder.wakePipe();
+               this.holder.scheduleRenderUpdate();
             }
-        }
-        return null;
-    }
 
-    @Override
-    public IPipe getConnectedPipe(Direction side) {
-        if (connected.containsKey(side) && getConnectedType(side) == ConnectedType.PIPE) {
-            IPipe offset = getHolder().getNeighbourPipe(side);
-            if (offset == null && !getHolder().getPipeWorld().isClientSide()) {
-                markForUpdate();
-            } else {
-                return offset;
-            }
-        }
-        return null;
-    }
+            this.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
+            return;
+         }
+      } finally {
+         _profiler.pop();
+      }
+   }
 
-    @Override
-    public ConnectedType getConnectedType(Direction side) {
-        return types.get(side);
-    }
+   public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
+      this.flow.addDrops(toDrop, fortune);
+      this.behaviour.addDrops(toDrop, fortune);
+   }
 
-    @Override
-    public boolean isConnected(Direction side) {
-        return connected.containsKey(side);
-    }
+   public static boolean canPipesConnect(Direction to, IPipe one, IPipe two) {
+      return canColoursConnect(one.getColour(), two.getColour())
+         && canBehavioursConnect(to, one.getBehaviour(), two.getBehaviour())
+         && canFlowsConnect(to, one.getFlow(), two.getFlow());
+   }
 
-    public float getConnectedDist(Direction face) {
-        Float custom = connected.get(face);
-        return custom == null ? 0 : custom;
-    }
+   public static boolean canColoursConnect(DyeColor one, DyeColor two) {
+      return one == null || two == null || one == two;
+   }
 
-    @Override
-    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
-        left.add("Colour = " + colour);
-        left.add("Definition = " + definition.identifier);
-        if (behaviour instanceof IDebuggable) {
-            left.add("Behaviour:");
-            ((IDebuggable) behaviour).getDebugInfo(left, right, side);
-            left.add("");
-        } else {
-            left.add("Behaviour = " + behaviour.getClass());
-        }
+   public static boolean canBehavioursConnect(Direction to, PipeBehaviour one, PipeBehaviour two) {
+      return one.canConnect(to, two) && two.canConnect(to.getOpposite(), one);
+   }
 
-        if (flow instanceof IDebuggable) {
-            left.add("Flow:");
-            ((IDebuggable) flow).getDebugInfo(left, right, side);
-            left.add("");
-        } else {
-            left.add("Flow = " + flow.getClass());
-        }
-        for (Direction face : Direction.values()) {
-            right.add(face + " = " + types.get(face) + ", " + getConnectedDist(face));
-        }
-    }
+   public static boolean canFlowsConnect(Direction to, PipeFlow one, PipeFlow two) {
+      return one.canConnect(to, two) && two.canConnect(to.getOpposite(), one);
+   }
 
-    public buildcraft.transport.client.model.key.PipeModelKey getModel() {
-        PipeFaceTex[] sides = new PipeFaceTex[6];
-        float[] mc = new float[6];
-        for (Direction face : Direction.values()) {
+   public void scheduleConnectionRecheck() {
+      this.updateMarked = true;
+   }
+
+   @Override
+   public void markForUpdate() {
+      this.updateMarked = true;
+      this.invalidateModelKey();
+   }
+
+   public void invalidateModelKey() {
+      this.cachedModelKey = null;
+      this.cachedCutoutKey = null;
+   }
+
+   public PipeModelCacheBase.PipeBaseCutoutKey getCutoutKey() {
+      if (this.cachedCutoutKey == null) {
+         PipeModelKey model = this.getModel();
+         if (model == null) {
+            return null;
+         }
+
+         this.cachedCutoutKey = new PipeModelCacheBase.PipeBaseCutoutKey(model);
+      }
+
+      return this.cachedCutoutKey;
+   }
+
+   @Override
+   public BlockEntity getConnectedTile(Direction side) {
+      if (this.connected.containsKey(side)) {
+         BlockEntity offset = this.getHolder().getNeighbourTile(side);
+         if (offset != null || this.getHolder().getPipeWorld().isClientSide()) {
+            return offset;
+         }
+
+         this.markForUpdate();
+      }
+
+      return null;
+   }
+
+   @Override
+   public IPipe getConnectedPipe(Direction side) {
+      if (this.connected.containsKey(side) && this.getConnectedType(side) == IPipe.ConnectedType.PIPE) {
+         IPipe offset = this.getHolder().getNeighbourPipe(side);
+         if (offset != null || this.getHolder().getPipeWorld().isClientSide()) {
+            return offset;
+         }
+
+         this.markForUpdate();
+      }
+
+      return null;
+   }
+
+   @Override
+   public IPipe.ConnectedType getConnectedType(Direction side) {
+      return this.types.get(side);
+   }
+
+   @Override
+   public boolean isConnected(Direction side) {
+      return this.connected.containsKey(side);
+   }
+
+   public float getConnectedDist(Direction face) {
+      Float custom = this.connected.get(face);
+      return custom == null ? 0.0F : custom;
+   }
+
+   @Override
+   public void getDebugInfo(List<String> left, List<String> right, Direction side) {
+      left.add("Colour = " + this.colour);
+      left.add("Definition = " + this.definition.identifier);
+      if (this.behaviour instanceof IDebuggable) {
+         left.add("Behaviour:");
+         ((IDebuggable)this.behaviour).getDebugInfo(left, right, side);
+         left.add("");
+      } else {
+         left.add("Behaviour = " + this.behaviour.getClass());
+      }
+
+      if (this.flow instanceof IDebuggable) {
+         left.add("Flow:");
+         ((IDebuggable)this.flow).getDebugInfo(left, right, side);
+         left.add("");
+      } else {
+         left.add("Flow = " + this.flow.getClass());
+      }
+
+      for (Direction face : Direction.values()) {
+         right.add(face + " = " + this.types.get(face) + ", " + this.getConnectedDist(face));
+      }
+   }
+
+   public PipeModelKey getModel() {
+      if (this.cachedModelKey == null) {
+         PipeFaceTex[] sides = new PipeFaceTex[6];
+         float[] mc = new float[6];
+
+         for (Direction face : Direction.values()) {
             int i = face.ordinal();
-            sides[i] = behaviour.getTextureData(face);
-            mc[i] = getConnectedDist(face);
-        }
-        return new buildcraft.transport.client.model.key.PipeModelKey(definition, behaviour.getTextureData(null), sides, mc, colour);
-    }
+            sides[i] = this.behaviour.getTextureData(face);
+            mc[i] = this.getConnectedDist(face);
+         }
+
+         this.cachedModelKey = new PipeModelKey(this.definition, this.behaviour.getTextureData(null), sides, mc, this.colour);
+      }
+
+      return this.cachedModelKey;
+   }
 }

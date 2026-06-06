@@ -7,134 +7,131 @@ import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.transport.pipe.PipeApi;
-import buildcraft.api.transport.pipe.PipeApi.PowerTransferInfo;
-import buildcraft.api.transport.pipe.PipeApi.RedstoneFluxTransferInfo;
 import buildcraft.api.transport.pipe.PipeDefinition;
-
-import buildcraft.lib.client.sprite.SpriteHolderRegistry.SpriteHolder;
-import buildcraft.lib.misc.LocaleUtil;
-
 import buildcraft.core.statements.BCStatement;
+import buildcraft.lib.client.sprite.SpriteHolderRegistry;
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.transport.BCTransportPipes;
 import buildcraft.transport.BCTransportSprites;
 import buildcraft.transport.BCTransportStatements;
-import buildcraft.transport.pipe.behaviour.PipeBehaviourLimiter;
+import java.util.function.Supplier;
 
 public abstract class ActionPowerLimit extends BCStatement implements IActionInternal {
+   private final Supplier<PipeDefinition> pipeSupplier;
+   public final int limitShift;
 
-    public final PipeDefinition pipe;
+   public ActionPowerLimit(Supplier<PipeDefinition> pipeSupplier, int limitShift, String... uniqueTags) {
+      super(uniqueTags);
+      this.pipeSupplier = pipeSupplier;
+      this.limitShift = limitShift;
+   }
 
-    public final int limitShift;
+   public ActionPowerLimit(String suffix, Supplier<PipeDefinition> pipeSupplier, int limitShift) {
+      this(pipeSupplier, limitShift, "buildcraft:pipe.power_limit." + suffix + "_s" + limitShift);
+   }
 
-    public ActionPowerLimit(PipeDefinition pipe, int limitShift, String... uniqueTags) {
-        super(uniqueTags);
-        this.pipe = pipe;
-        this.limitShift = limitShift;
-    }
+   protected PipeDefinition resolvePipe() {
+      return this.pipeSupplier.get();
+   }
 
-    public ActionPowerLimit(String suffix, PipeDefinition pipe, int limitShift) {
-        this(pipe, limitShift, "buildcraft:pipe.power_limit." + suffix + "_s" + limitShift);
-    }
+   protected boolean isRf() {
+      return false;
+   }
 
-    protected boolean isRf() {
-        return false;
-    }
-
-    @Override
-    public String getDescription() {
-        if (isRf()) {
-            RedstoneFluxTransferInfo pipeInfo = PipeApi.rfTransferData.get(pipe);
-            final Object max;
-            if (limitShift == PipeBehaviourLimiter.MAX_SHIFT) {
-                max = 0;
-            } else if (pipeInfo == null) {
-                max = "??[INVALID_PIPE]??";
-            } else {
-                max = pipeInfo.transferPerTick >> limitShift;
-            }
-            return String.format(LocaleUtil.localize("gate.action.pipe.rf_limit"), max);
-        }
-        PowerTransferInfo pipeInfo = PipeApi.powerTransferData.get(pipe);
-        final Object max;
-        if (limitShift == PipeBehaviourLimiter.MAX_SHIFT) {
+   @Override
+   public String getDescription() {
+      PipeDefinition pipe = this.resolvePipe();
+      if (this.isRf()) {
+         PipeApi.RedstoneFluxTransferInfo pipeInfo = PipeApi.rfTransferData.get(pipe);
+         Object max;
+         if (this.limitShift == 6) {
             max = 0;
-        } else if (pipeInfo == null) {
+         } else if (pipeInfo == null) {
             max = "??[INVALID_PIPE]??";
-        } else {
-            max = (int) ((pipeInfo.transferPerTick >> limitShift) / MjAPI.MJ);
-        }
-        return String.format(LocaleUtil.localize("gate.action.pipe.power_limit"), max);
-    }
+         } else {
+            max = pipeInfo.transferPerTick >> this.limitShift;
+         }
 
-    @Override
-    public ISprite getSprite() {
-        SpriteHolder[] sprites = isRf() ? BCTransportSprites.POWER_LIMIT_RF : BCTransportSprites.POWER_LIMIT;
-        return sprites[limitShift];
-    }
+         return String.format(LocaleUtil.localize("gate.action.pipe.rf_limit"), max);
+      } else {
+         PipeApi.PowerTransferInfo pipeInfo = PipeApi.powerTransferData.get(pipe);
+         Object max;
+         if (this.limitShift == 6) {
+            max = 0;
+         } else if (pipeInfo == null) {
+            max = "??[INVALID_PIPE]??";
+         } else {
+            max = (int)((pipeInfo.transferPerTick >> this.limitShift) / MjAPI.MJ);
+         }
 
-    @Override
-    public void actionActivate(IStatementContainer source, IStatementParameter[] parameters) {
+         return String.format(LocaleUtil.localize("gate.action.pipe.power_limit"), max);
+      }
+   }
 
-    }
+   @Override
+   public ISprite getSprite() {
+      SpriteHolderRegistry.SpriteHolder[] sprites = this.isRf() ? BCTransportSprites.POWER_LIMIT_RF : BCTransportSprites.POWER_LIMIT;
+      return sprites[this.limitShift];
+   }
 
-    @Override
-    public abstract IStatement[] getPossible();
+   @Override
+   public void actionActivate(IStatementContainer source, IStatementParameter[] parameters) {
+   }
 
-    public static class ActionIronPowerLimit extends ActionPowerLimit {
+   @Override
+   public abstract IStatement[] getPossible();
 
-        public ActionIronPowerLimit(int limitShift) {
-            super("iron", BCTransportPipes.ironPower, limitShift);
-        }
+   public static class ActionDiamondPowerLimit extends ActionPowerLimit {
+      public ActionDiamondPowerLimit(int limitShift) {
+         super("diamond", () -> BCTransportPipes.diamondPower, limitShift);
+      }
 
-        @Override
-        public IStatement[] getPossible() {
-            return BCTransportStatements.ACTION_IRON_POWER_LIMIT;
-        }
-    }
+      @Override
+      public IStatement[] getPossible() {
+         return BCTransportStatements.ACTION_DIAMOND_POWER_LIMIT;
+      }
+   }
 
-    public static class ActionDiamondPowerLimit extends ActionPowerLimit {
+   public static class ActionDiamondRfLimit extends ActionPowerLimit {
+      public ActionDiamondRfLimit(int limitShift) {
+         super("diamond_rf", () -> BCTransportPipes.diamondRf, limitShift);
+      }
 
-        public ActionDiamondPowerLimit(int limitShift) {
-            super("diamond", BCTransportPipes.diamondPower, limitShift);
-        }
+      @Override
+      public IStatement[] getPossible() {
+         return BCTransportStatements.ACTION_DIAMOND_RF_LIMIT;
+      }
 
-        @Override
-        public IStatement[] getPossible() {
-            return BCTransportStatements.ACTION_DIAMOND_POWER_LIMIT;
-        }
-    }
+      @Override
+      protected boolean isRf() {
+         return true;
+      }
+   }
 
-    public static class ActionIronRfLimit extends ActionPowerLimit {
+   public static class ActionIronPowerLimit extends ActionPowerLimit {
+      public ActionIronPowerLimit(int limitShift) {
+         super("iron", () -> BCTransportPipes.ironPower, limitShift);
+      }
 
-        public ActionIronRfLimit(int limitShift) {
-            super("iron_rf", BCTransportPipes.ironRf, limitShift);
-        }
+      @Override
+      public IStatement[] getPossible() {
+         return BCTransportStatements.ACTION_IRON_POWER_LIMIT;
+      }
+   }
 
-        @Override
-        public IStatement[] getPossible() {
-            return BCTransportStatements.ACTION_IRON_RF_LIMIT;
-        }
+   public static class ActionIronRfLimit extends ActionPowerLimit {
+      public ActionIronRfLimit(int limitShift) {
+         super("iron_rf", () -> BCTransportPipes.ironRf, limitShift);
+      }
 
-        @Override
-        protected boolean isRf() {
-            return true;
-        }
-    }
+      @Override
+      public IStatement[] getPossible() {
+         return BCTransportStatements.ACTION_IRON_RF_LIMIT;
+      }
 
-    public static class ActionDiamondRfLimit extends ActionPowerLimit {
-
-        public ActionDiamondRfLimit(int limitShift) {
-            super("diamond_rf", BCTransportPipes.diamondRf, limitShift);
-        }
-
-        @Override
-        public IStatement[] getPossible() {
-            return BCTransportStatements.ACTION_DIAMOND_RF_LIMIT;
-        }
-
-        @Override
-        protected boolean isRf() {
-            return true;
-        }
-    }
+      @Override
+      protected boolean isRf() {
+         return true;
+      }
+   }
 }

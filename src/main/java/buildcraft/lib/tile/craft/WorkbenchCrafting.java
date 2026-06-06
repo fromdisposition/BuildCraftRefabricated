@@ -1,18 +1,17 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.tile.craft;
 
+import buildcraft.lib.inventory.filter.ArrayStackFilter;
+import buildcraft.lib.misc.CraftingUtil;
+import buildcraft.lib.misc.InventoryUtil;
+import buildcraft.lib.misc.ItemStackKey;
+import buildcraft.lib.tile.BcBlockEntity;
+import buildcraft.lib.tile.ItemHandlerSimple;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Map.Entry;
 import javax.annotation.Nullable;
-
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -20,194 +19,193 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import buildcraft.lib.inventory.filter.ArrayStackFilter;
-import buildcraft.lib.misc.CraftingUtil;
-import buildcraft.lib.misc.InventoryUtil;
-import buildcraft.lib.misc.ItemStackKey;
-import buildcraft.lib.tile.TileBC_Neptune;
-import buildcraft.lib.tile.item.ItemHandlerSimple;
-
 public class WorkbenchCrafting {
+   private final BlockEntity tile;
+   private final int width;
+   private final int height;
+   private final ItemHandlerSimple invBlueprint;
+   private final ItemHandlerSimple invMaterials;
+   private final ItemHandlerSimple invResult;
+   private boolean isBlueprintDirty = true;
+   private boolean areMaterialsDirty = true;
+   private boolean cachedHasRequirements = false;
+   @Nullable
+   private RecipeHolder<CraftingRecipe> currentRecipe;
+   private ItemStack assumedResult = ItemStack.EMPTY;
 
-    private final BlockEntity tile;
-    private final int width;
-    private final int height;
-    private final ItemHandlerSimple invBlueprint;
-    private final ItemHandlerSimple invMaterials;
-    private final ItemHandlerSimple invResult;
-    private boolean isBlueprintDirty = true;
-    private boolean areMaterialsDirty = true;
-    private boolean cachedHasRequirements = false;
+   public WorkbenchCrafting(
+      int width, int height, BcBlockEntity tile, ItemHandlerSimple invBlueprint, ItemHandlerSimple invMaterials, ItemHandlerSimple invResult
+   ) {
+      this.width = width;
+      this.height = height;
+      this.tile = tile;
+      this.invBlueprint = invBlueprint;
+      if (invBlueprint.getSlots() < width * height) {
+         throw new IllegalArgumentException(
+            "Passed blueprint has a smaller size than width * height! ( expected " + width * height + ", got " + invBlueprint.getSlots() + ")"
+         );
+      }
 
-    @Nullable
-    private RecipeHolder<CraftingRecipe> currentRecipe;
-    private ItemStack assumedResult = ItemStack.EMPTY;
+      this.invMaterials = invMaterials;
+      this.invResult = invResult;
+   }
 
-    public WorkbenchCrafting(int width, int height, TileBC_Neptune tile, ItemHandlerSimple invBlueprint,
-        ItemHandlerSimple invMaterials, ItemHandlerSimple invResult) {
-        this.width = width;
-        this.height = height;
-        this.tile = tile;
-        this.invBlueprint = invBlueprint;
-        if (invBlueprint.getSlots() < width * height) {
-            throw new IllegalArgumentException("Passed blueprint has a smaller size than width * height! ( expected "
-                + (width * height) + ", got " + invBlueprint.getSlots() + ")");
-        }
-        this.invMaterials = invMaterials;
-        this.invResult = invResult;
-    }
+   public int getSize() {
+      return this.width * this.height;
+   }
 
-    public int getSize() {
-        return width * height;
-    }
+   public ItemStack getAssumedResult() {
+      return this.assumedResult;
+   }
 
-    public ItemStack getAssumedResult() {
-        return assumedResult;
-    }
+   public void onInventoryChange(ItemHandlerSimple inv) {
+      if (inv == this.invBlueprint) {
+         this.isBlueprintDirty = true;
+      } else if (inv == this.invMaterials) {
+         this.areMaterialsDirty = true;
+      }
+   }
 
-    public void onInventoryChange(ItemHandlerSimple inv) {
-        if (inv == invBlueprint) {
-            isBlueprintDirty = true;
-        } else if (inv == invMaterials) {
-            areMaterialsDirty = true;
-        }
-    }
+   private CraftingInput createBlueprintInput() {
+      List<ItemStack> items = new ArrayList<>(this.getSize());
 
-    private CraftingInput createBlueprintInput() {
-        List<ItemStack> items = new ArrayList<>(getSize());
-        for (int s = 0; s < getSize(); s++) {
-            items.add(invBlueprint.getStackInSlot(s));
-        }
-        return CraftingInput.of(width, height, items);
-    }
+      for (int s = 0; s < this.getSize(); s++) {
+         items.add(this.invBlueprint.getStackInSlot(s));
+      }
 
-    public boolean tick() {
-        if (tile.getLevel().isClientSide()) {
-            throw new IllegalStateException("Never call this on the client side!");
-        }
-        if (isBlueprintDirty) {
-            CraftingInput input = createBlueprintInput();
-            currentRecipe = CraftingUtil.findMatchingRecipe(input, tile.getLevel());
-            if (currentRecipe == null) {
-                assumedResult = ItemStack.EMPTY;
-            } else {
+      return CraftingInput.of(this.width, this.height, items);
+   }
 
-                assumedResult = currentRecipe.value().assemble(input);
+   public boolean tick() {
+      if (this.tile.getLevel().isClientSide()) {
+         throw new IllegalStateException("Never call this on the client side!");
+      }
 
+      if (this.isBlueprintDirty) {
+         CraftingInput input = this.createBlueprintInput();
+         this.currentRecipe = CraftingUtil.findMatchingRecipe(input, this.tile.getLevel());
+         if (this.currentRecipe == null) {
+            this.assumedResult = ItemStack.EMPTY;
+         } else {
+            this.assumedResult = ((CraftingRecipe)this.currentRecipe.value()).assemble(input);
+         }
+
+         this.isBlueprintDirty = false;
+         this.areMaterialsDirty = true;
+         return true;
+      } else {
+         return false;
+      }
+   }
+
+   public boolean canCraft() {
+      if (this.currentRecipe == null || this.isBlueprintDirty) {
+         return false;
+      }
+
+      if (!this.invResult.canFullyAccept(this.assumedResult)) {
+         return false;
+      }
+
+      if (this.areMaterialsDirty) {
+         this.areMaterialsDirty = false;
+         this.cachedHasRequirements = this.hasExactStacks();
+      }
+
+      return this.cachedHasRequirements;
+   }
+
+   public boolean craft() {
+      return this.isBlueprintDirty ? false : this.craftExact();
+   }
+
+   private boolean hasExactStacks() {
+      Map<ItemStackKey, Integer> required = new HashMap<>();
+
+      for (int s = 0; s < this.getSize(); s++) {
+         ItemStack req = this.invBlueprint.getStackInSlot(s);
+         if (!req.isEmpty()) {
+            ItemStack singleReq = req.copyWithCount(1);
+            ItemStackKey key = new ItemStackKey(singleReq);
+            required.merge(key, req.getCount(), Integer::sum);
+         }
+      }
+
+      for (Entry<ItemStackKey, Integer> entry : required.entrySet()) {
+         ArrayStackFilter filter = new ArrayStackFilter(entry.getKey().baseStack);
+         int count = entry.getValue();
+         ItemStack inInventory = this.invMaterials.extract(filter, count, count, true);
+         if (inInventory.isEmpty() || inInventory.getCount() < count) {
+            return false;
+         }
+      }
+
+      return true;
+   }
+
+   private boolean craftExact() {
+      NonNullList<ItemStack> gridContents = NonNullList.withSize(this.getSize(), ItemStack.EMPTY);
+
+      for (int s = 0; s < this.getSize(); s++) {
+         ItemStack bpt = this.invBlueprint.getStackInSlot(s);
+         if (!bpt.isEmpty()) {
+            ItemStack stack = this.invMaterials.extract(new ArrayStackFilter(bpt), 1, 1, false);
+            if (stack.isEmpty()) {
+               this.returnItemsToMaterials(gridContents);
+               return false;
             }
-            isBlueprintDirty = false;
-            areMaterialsDirty = true;
-            return true;
-        }
-        return false;
-    }
 
-    public boolean canCraft() {
-        if (currentRecipe == null || isBlueprintDirty) {
-            return false;
-        }
-        if (!invResult.canFullyAccept(assumedResult)) {
-            return false;
-        }
-        if (areMaterialsDirty) {
-            areMaterialsDirty = false;
-            cachedHasRequirements = hasExactStacks();
-        }
-        return cachedHasRequirements;
-    }
+            gridContents.set(s, stack);
+         }
+      }
 
-    public boolean craft() {
-        if (isBlueprintDirty) {
-            return false;
-        }
-        return craftExact();
-    }
+      CraftingInput craftInput = CraftingInput.of(this.width, this.height, gridContents);
+      if (!((CraftingRecipe)this.currentRecipe.value()).matches(craftInput, this.tile.getLevel())) {
+         this.returnItemsToMaterials(gridContents);
+         return false;
+      }
 
-    private boolean hasExactStacks() {
-        Map<ItemStackKey, Integer> required = new HashMap<>();
-        for (int s = 0; s < getSize(); s++) {
-            ItemStack req = invBlueprint.getStackInSlot(s);
-            if (!req.isEmpty()) {
-                ItemStack singleReq = req.copyWithCount(1);
-                ItemStackKey key = new ItemStackKey(singleReq);
-                required.merge(key, req.getCount(), Integer::sum);
+      ItemStack result = ((CraftingRecipe)this.currentRecipe.value()).assemble(craftInput);
+      if (result.isEmpty()) {
+         this.returnItemsToMaterials(gridContents);
+         return false;
+      }
+
+      ItemStack leftover = this.invResult.insert(result, false, false);
+      if (!leftover.isEmpty()) {
+         InventoryUtil.addToBestAcceptor(this.tile.getLevel(), this.tile.getBlockPos(), null, leftover);
+      }
+
+      NonNullList<ItemStack> remainingStacks = ((CraftingRecipe)this.currentRecipe.value()).getRemainingItems(craftInput);
+
+      for (int s = 0; s < gridContents.size(); s++) {
+         gridContents.set(s, ItemStack.EMPTY);
+      }
+
+      for (int s = 0; s < remainingStacks.size(); s++) {
+         ItemStack remaining = (ItemStack)remainingStacks.get(s);
+         if (!remaining.isEmpty()) {
+            leftover = this.invMaterials.insert(remaining, false, false);
+            if (!leftover.isEmpty()) {
+               InventoryUtil.addToBestAcceptor(this.tile.getLevel(), this.tile.getBlockPos(), null, leftover);
             }
-        }
-        for (Map.Entry<ItemStackKey, Integer> entry : required.entrySet()) {
-            ArrayStackFilter filter = new ArrayStackFilter(entry.getKey().baseStack);
-            int count = entry.getValue();
-            ItemStack inInventory = invMaterials.extract(filter, count, count, true);
-            if (inInventory.isEmpty() || inInventory.getCount() < count) {
-                return false;
+         }
+      }
+
+      return true;
+   }
+
+   private void returnItemsToMaterials(NonNullList<ItemStack> gridContents) {
+      for (int s = 0; s < gridContents.size(); s++) {
+         ItemStack inSlot = (ItemStack)gridContents.get(s);
+         if (!inSlot.isEmpty()) {
+            ItemStack leftover = this.invMaterials.insert(inSlot, false, false);
+            if (!leftover.isEmpty()) {
+               InventoryUtil.addToBestAcceptor(this.tile.getLevel(), this.tile.getBlockPos(), null, leftover);
             }
-        }
-        return true;
-    }
 
-    private boolean craftExact() {
-
-        NonNullList<ItemStack> gridContents = NonNullList.withSize(getSize(), ItemStack.EMPTY);
-
-        for (int s = 0; s < getSize(); s++) {
-            ItemStack bpt = invBlueprint.getStackInSlot(s);
-            if (!bpt.isEmpty()) {
-                ItemStack stack = invMaterials.extract(new ArrayStackFilter(bpt), 1, 1, false);
-                if (stack.isEmpty()) {
-
-                    returnItemsToMaterials(gridContents);
-                    return false;
-                }
-                gridContents.set(s, stack);
-            }
-        }
-
-        CraftingInput craftInput = CraftingInput.of(width, height, gridContents);
-        if (!currentRecipe.value().matches(craftInput, tile.getLevel())) {
-            returnItemsToMaterials(gridContents);
-            return false;
-        }
-
-        ItemStack result = currentRecipe.value().assemble(craftInput);
-
-        if (result.isEmpty()) {
-            returnItemsToMaterials(gridContents);
-            return false;
-        }
-
-        ItemStack leftover = invResult.insert(result, false, false);
-        if (!leftover.isEmpty()) {
-            InventoryUtil.addToBestAcceptor(tile.getLevel(), tile.getBlockPos(), null, leftover);
-        }
-
-        NonNullList<ItemStack> remainingStacks = currentRecipe.value().getRemainingItems(craftInput);
-
-        for (int s = 0; s < gridContents.size(); s++) {
             gridContents.set(s, ItemStack.EMPTY);
-        }
-
-        for (int s = 0; s < remainingStacks.size(); s++) {
-            ItemStack remaining = remainingStacks.get(s);
-            if (!remaining.isEmpty()) {
-                leftover = invMaterials.insert(remaining, false, false);
-                if (!leftover.isEmpty()) {
-                    InventoryUtil.addToBestAcceptor(tile.getLevel(), tile.getBlockPos(), null, leftover);
-                }
-            }
-        }
-
-        return true;
-    }
-
-    private void returnItemsToMaterials(NonNullList<ItemStack> gridContents) {
-        for (int s = 0; s < gridContents.size(); s++) {
-            ItemStack inSlot = gridContents.get(s);
-            if (!inSlot.isEmpty()) {
-                ItemStack leftover = invMaterials.insert(inSlot, false, false);
-                if (!leftover.isEmpty()) {
-                    InventoryUtil.addToBestAcceptor(tile.getLevel(), tile.getBlockPos(), null, leftover);
-                }
-                gridContents.set(s, ItemStack.EMPTY);
-            }
-        }
-    }
+         }
+      }
+   }
 }

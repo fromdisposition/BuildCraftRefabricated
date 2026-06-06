@@ -1,9 +1,23 @@
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.api.core.EnumPipePart;
+import buildcraft.api.core.IStackFilter;
+import buildcraft.api.transport.pipe.IFlowItems;
+import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.api.transport.pipe.PipeEventActionActivate;
+import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.PipeEventStatement;
+import buildcraft.lib.misc.NBTUtilBC;
+import buildcraft.lib.misc.StackUtil;
+import buildcraft.lib.tile.ItemHandlerSimple;
+import buildcraft.transport.BCTransportStatements;
+import buildcraft.transport.container.ContainerEmzuliPipe_BC8;
+import buildcraft.transport.statements.ActionExtractionPreset;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
-
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -18,250 +32,268 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.HitResult;
 
-import buildcraft.api.core.EnumPipePart;
-import buildcraft.api.core.IStackFilter;
-import buildcraft.api.transport.pipe.IFlowItems;
-import buildcraft.api.transport.pipe.IPipe;
-import buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver;
-import buildcraft.api.transport.pipe.PipeEventActionActivate;
-import buildcraft.api.transport.pipe.PipeEventHandler;
-import buildcraft.api.transport.pipe.PipeEventStatement;
-
-import buildcraft.lib.misc.NBTUtilBC;
-import buildcraft.lib.misc.StackUtil;
-import buildcraft.lib.tile.item.ItemHandlerSimple;
-
-import buildcraft.transport.BCTransportStatements;
-import buildcraft.transport.container.ContainerEmzuliPipe_BC8;
-import buildcraft.transport.statements.ActionExtractionPreset;
-
 public class PipeBehaviourEmzuli extends PipeBehaviourWood {
+   public final EnumMap<PipeBehaviourEmzuli.SlotIndex, DyeColor> slotColours = new EnumMap<>(PipeBehaviourEmzuli.SlotIndex.class);
+   public final ItemHandlerSimple invFilters = new ItemHandlerSimple(4);
+   private final EnumSet<PipeBehaviourEmzuli.SlotIndex> activeSlots;
+   private final byte[] activatedTtl = new byte[PipeBehaviourEmzuli.SlotIndex.VALUES.length];
+   private PipeBehaviourEmzuli.SlotIndex currentSlot = null;
+   private final IStackFilter filter = this::filterMatches;
 
-    public enum SlotIndex {
-        SQUARE(DyeColor.RED),
-        CIRCLE(DyeColor.GREEN),
-        TRIANGLE(DyeColor.BLUE),
-        CROSS(DyeColor.YELLOW);
+   public PipeBehaviourEmzuli(IPipe pipe) {
+      super(pipe);
+      this.activeSlots = EnumSet.noneOf(PipeBehaviourEmzuli.SlotIndex.class);
+   }
 
-        public static final SlotIndex[] VALUES = values();
+   public PipeBehaviourEmzuli(IPipe pipe, CompoundTag nbt) {
+      super(pipe, nbt);
+      CompoundTag filtersTag = nbt.getCompoundOrEmpty("Filters");
+      if (!filtersTag.isEmpty()) {
+         this.invFilters.deserializeNBT(filtersTag);
+      }
 
-        public final DyeColor colour;
+      this.activeSlots = EnumSet.noneOf(PipeBehaviourEmzuli.SlotIndex.class);
+      this.currentSlot = NBTUtilBC.readEnum(nbt.get("currentSlot"), PipeBehaviourEmzuli.SlotIndex.class);
 
-        SlotIndex(DyeColor colour) {
-            this.colour = colour;
-        }
+      for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
+         byte c = nbt.getByteOr("slotColors[" + index.ordinal() + "]", (byte)0);
+         if (c > 0 && c <= 16) {
+            this.slotColours.put(index, DyeColor.byId(c - 1));
+         }
+      }
+   }
 
-        public SlotIndex next() {
-            switch (this) {
-                case SQUARE: return CIRCLE;
-                case CIRCLE: return TRIANGLE;
-                case TRIANGLE: return CROSS;
-                case CROSS: return SQUARE;
-                default: throw new IllegalStateException("Unknown SlotIndex - " + this);
-            }
-        }
-    }
+   @Override
+   public CompoundTag writeToNbt() {
+      CompoundTag nbt = super.writeToNbt();
+      nbt.put("Filters", this.invFilters.serializeNBT());
+      if (this.currentSlot != null) {
+         nbt.put("currentSlot", NBTUtilBC.writeEnum(this.currentSlot));
+      }
 
-    public final EnumMap<SlotIndex, DyeColor> slotColours = new EnumMap<>(SlotIndex.class);
-    public final ItemHandlerSimple invFilters = new ItemHandlerSimple(4);
-    private final EnumSet<SlotIndex> activeSlots;
-    private final byte[] activatedTtl = new byte[SlotIndex.VALUES.length];
-    private SlotIndex currentSlot = null;
+      for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
+         DyeColor c = this.slotColours.get(index);
+         nbt.putByte("slotColors[" + index.ordinal() + "]", (byte)(c == null ? 0 : c.getId() + 1));
+      }
 
-    private final IStackFilter filter = this::filterMatches;
+      return nbt;
+   }
 
-    public PipeBehaviourEmzuli(IPipe pipe) {
-        super(pipe);
-        activeSlots = EnumSet.noneOf(SlotIndex.class);
-    }
+   @Override
+   public void readFromNbt(CompoundTag nbt) {
+      super.readFromNbt(nbt);
+      this.invFilters.deserializeNBT(nbt.getCompoundOrEmpty("Filters"));
+      this.currentSlot = NBTUtilBC.readEnum(nbt.get("currentSlot"), PipeBehaviourEmzuli.SlotIndex.class);
 
-    public PipeBehaviourEmzuli(IPipe pipe, CompoundTag nbt) {
-        super(pipe, nbt);
-        CompoundTag filtersTag = nbt.getCompoundOrEmpty("Filters");
-        if (!filtersTag.isEmpty()) {
-            invFilters.deserializeNBT(filtersTag);
-        }
-        activeSlots = EnumSet.noneOf(SlotIndex.class);
-        currentSlot = NBTUtilBC.readEnum(nbt.get("currentSlot"), SlotIndex.class);
-        for (SlotIndex index : SlotIndex.VALUES) {
-            byte c = nbt.getByteOr("slotColors[" + index.ordinal() + "]", (byte) 0);
-            if (c > 0 && c <= 16) {
-                slotColours.put(index, DyeColor.byId(c - 1));
-            }
-        }
-    }
+      for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
+         byte c = nbt.getByteOr("slotColors[" + index.ordinal() + "]", (byte)0);
+         if (c > 0 && c <= 16) {
+            this.slotColours.put(index, DyeColor.byId(c - 1));
+         } else {
+            this.slotColours.remove(index);
+         }
+      }
+   }
 
-    @Override
-    public CompoundTag writeToNbt() {
-        CompoundTag nbt = super.writeToNbt();
-        nbt.put("Filters", invFilters.serializeNBT());
-        if (currentSlot != null) {
-            nbt.put("currentSlot", NBTUtilBC.writeEnum(currentSlot));
-        }
-        for (SlotIndex index : SlotIndex.VALUES) {
-            DyeColor c = slotColours.get(index);
-            nbt.putByte("slotColors[" + index.ordinal() + "]", (byte) (c == null ? 0 : c.getId() + 1));
-        }
-        return nbt;
-    }
+   @Override
+   public void writePayload(FriendlyByteBuf buffer) {
+      super.writePayload(buffer);
 
-    @Override
-    public void readFromNbt(CompoundTag nbt) {
-        super.readFromNbt(nbt);
-        invFilters.deserializeNBT(nbt.getCompoundOrEmpty("Filters"));
-        currentSlot = NBTUtilBC.readEnum(nbt.get("currentSlot"), SlotIndex.class);
-        for (SlotIndex index : SlotIndex.VALUES) {
-            byte c = nbt.getByteOr("slotColors[" + index.ordinal() + "]", (byte) 0);
-            if (c > 0 && c <= 16) {
-                slotColours.put(index, DyeColor.byId(c - 1));
-            } else {
-                slotColours.remove(index);
-            }
-        }
-    }
+      for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
+         DyeColor c = this.slotColours.get(index);
+         buffer.writeByte(c == null ? -1 : c.getId());
+      }
 
-    @Override
-    public void writePayload(FriendlyByteBuf buffer) {
-        super.writePayload(buffer);
-        for (SlotIndex index : SlotIndex.VALUES) {
-            DyeColor c = slotColours.get(index);
-            buffer.writeByte(c == null ? -1 : c.getId());
-        }
+      int mask = 0;
 
-        int mask = 0;
-        for (SlotIndex index : activeSlots) {
-            mask |= (1 << index.ordinal());
-        }
-        buffer.writeByte(mask);
-        buffer.writeByte(currentSlot == null ? -1 : currentSlot.ordinal());
-    }
+      for (PipeBehaviourEmzuli.SlotIndex index : this.activeSlots) {
+         mask |= 1 << index.ordinal();
+      }
 
-    @Override
-    public void readPayload(FriendlyByteBuf buffer, Object ctx) throws java.io.IOException {
-        super.readPayload(buffer, ctx);
-        for (SlotIndex index : SlotIndex.VALUES) {
-            int c = buffer.readByte();
-            if (c >= 0 && c < 16) {
-                slotColours.put(index, DyeColor.byId(c));
-            } else {
-                slotColours.remove(index);
-            }
-        }
+      buffer.writeByte(mask);
+      buffer.writeByte(this.currentSlot == null ? -1 : this.currentSlot.ordinal());
+   }
 
-        int mask = buffer.readUnsignedByte();
-        activeSlots.clear();
-        for (SlotIndex index : SlotIndex.VALUES) {
-            if ((mask & (1 << index.ordinal())) != 0) {
-                activeSlots.add(index);
-            }
-        }
-        int slotOrd = buffer.readByte();
-        currentSlot = (slotOrd >= 0 && slotOrd < SlotIndex.VALUES.length) ? SlotIndex.VALUES[slotOrd] : null;
-    }
+   @Override
+   public void readPayload(FriendlyByteBuf buffer, Object ctx) throws IOException {
+      super.readPayload(buffer, ctx);
 
-    @Override
-    protected int extractItems(IFlowItems flow, Direction dir, int count, boolean simulate) {
-        if (currentSlot == null && activeSlots.size() > 0) {
-            currentSlot = getNextSlot();
-        }
-        if (currentSlot == null) return 0;
-        int extracted = flow.tryExtractItems(count, dir, slotColours.get(currentSlot), filter, simulate);
-        if (extracted > 0 && !simulate) {
-            currentSlot = getNextSlot();
-            pipe.getHolder().scheduleNetworkUpdate(PipeMessageReceiver.BEHAVIOUR);
-        }
-        return extracted;
-    }
+      for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
+         int c = buffer.readByte();
+         if (c >= 0 && c < 16) {
+            this.slotColours.put(index, DyeColor.byId(c));
+         } else {
+            this.slotColours.remove(index);
+         }
+      }
 
-    private boolean filterMatches(ItemStack stack) {
-        if (currentSlot == null) return false;
-        ItemStack current = invFilters.getStackInSlot(currentSlot.ordinal());
-        return StackUtil.isMatchingItemOrList(current, stack);
-    }
+      int mask = buffer.readUnsignedByte();
+      this.activeSlots.clear();
 
-    @Override
-    public void onTick() {
-        super.onTick();
-        if (pipe.getHolder().getPipeWorld().isClientSide()) {
-            return;
-        }
-        for (SlotIndex index : SlotIndex.VALUES) {
-            byte val = activatedTtl[index.ordinal()];
+      for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
+         if ((mask & 1 << index.ordinal()) != 0) {
+            this.activeSlots.add(index);
+         }
+      }
+
+      int slotOrd = buffer.readByte();
+      this.currentSlot = slotOrd >= 0 && slotOrd < PipeBehaviourEmzuli.SlotIndex.VALUES.length ? PipeBehaviourEmzuli.SlotIndex.VALUES[slotOrd] : null;
+   }
+
+   @Override
+   protected int extractItems(IFlowItems flow, Direction dir, int count, boolean simulate) {
+      if (this.currentSlot == null && this.activeSlots.size() > 0) {
+         this.currentSlot = this.getNextSlot();
+      }
+
+      if (this.currentSlot == null) {
+         return 0;
+      }
+
+      int extracted = flow.tryExtractItems(count, dir, this.slotColours.get(this.currentSlot), this.filter, simulate);
+      if (extracted > 0 && !simulate) {
+         this.currentSlot = this.getNextSlot();
+         this.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
+      }
+
+      return extracted;
+   }
+
+   private boolean filterMatches(ItemStack stack) {
+      if (this.currentSlot == null) {
+         return false;
+      }
+
+      ItemStack current = this.invFilters.getStackInSlot(this.currentSlot.ordinal());
+      return StackUtil.isMatchingItemOrList(current, stack);
+   }
+
+   @Override
+   public boolean hasSimulationWork() {
+      if (this.pipe.getHolder().getPipeWorld().isClientSide()) {
+         return false;
+      }
+
+      for (byte ttl : this.activatedTtl) {
+         if (ttl > 0) {
+            return true;
+         }
+      }
+
+      return !this.activeSlots.isEmpty();
+   }
+
+   @Override
+   public void onTick() {
+      super.onTick();
+      if (!this.pipe.getHolder().getPipeWorld().isClientSide()) {
+         for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
+            byte val = this.activatedTtl[index.ordinal()];
             if (val > 0) {
-                val--;
-                activatedTtl[index.ordinal()] = val;
+               this.activatedTtl[index.ordinal()] = --val;
             }
+
             if (val == 0) {
-                activeSlots.remove(index);
-                if (currentSlot == index) {
-                    currentSlot = getNextSlot();
-                    pipe.getHolder().scheduleNetworkUpdate(PipeMessageReceiver.BEHAVIOUR);
-                }
+               this.activeSlots.remove(index);
+               if (this.currentSlot == index) {
+                  this.currentSlot = this.getNextSlot();
+                  this.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
+               }
             }
-        }
-    }
+         }
+      }
+   }
 
-    private SlotIndex getNextSlot() {
-        SlotIndex current = currentSlot == null ? SlotIndex.CROSS : currentSlot;
-        int i = SlotIndex.VALUES.length;
-        while (i-- > 0) {
-            current = current.next();
-            if (activeSlots.contains(current) && !invFilters.getStackInSlot(current.ordinal()).isEmpty()) {
-                return current;
+   private PipeBehaviourEmzuli.SlotIndex getNextSlot() {
+      PipeBehaviourEmzuli.SlotIndex current = this.currentSlot == null ? PipeBehaviourEmzuli.SlotIndex.CROSS : this.currentSlot;
+      int i = PipeBehaviourEmzuli.SlotIndex.VALUES.length;
+
+      while (i-- > 0) {
+         current = current.next();
+         if (this.activeSlots.contains(current) && !this.invFilters.getStackInSlot(current.ordinal()).isEmpty()) {
+            return current;
+         }
+      }
+
+      return null;
+   }
+
+   public PipeBehaviourEmzuli.SlotIndex getCurrentSlot() {
+      return this.currentSlot;
+   }
+
+   public EnumSet<PipeBehaviourEmzuli.SlotIndex> getActiveSlots() {
+      return this.activeSlots;
+   }
+
+   @Override
+   public boolean onPipeActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ, EnumPipePart part) {
+      if (!player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
+         final PipeBehaviourEmzuli self = this;
+         serverPlayer.openMenu(new MenuProvider() {
+            public Component getDisplayName() {
+               return Component.translatable("gui.pipes.emzuli.title");
             }
-        }
-        return null;
-    }
 
-    public SlotIndex getCurrentSlot() {
-        return this.currentSlot;
-    }
-
-    public EnumSet<SlotIndex> getActiveSlots() {
-        return this.activeSlots;
-    }
-
-    @Override
-    public boolean onPipeActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ,
-        EnumPipePart part) {
-        if (!player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
-            final PipeBehaviourEmzuli self = this;
-            serverPlayer.openMenu(new MenuProvider() {
-                @Override
-                public Component getDisplayName() {
-                    return Component.translatable("gui.pipes.emzuli.title");
-                }
-
-                @Override
-                public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player p) {
-                    return new ContainerEmzuliPipe_BC8(containerId, playerInv, self);
-                }
-            });
-        }
-        return true;
-    }
-
-    @Override
-    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
-        for (int i = 0; i < invFilters.getSlots(); i++) {
-            ItemStack stack = invFilters.getStackInSlot(i);
-            if (!stack.isEmpty()) {
-                toDrop.add(stack);
+            public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player p) {
+               return new ContainerEmzuliPipe_BC8(containerId, playerInv, self);
             }
-        }
-    }
+         });
+      }
 
-    @PipeEventHandler
-    public void addActions(PipeEventStatement.AddActionInternal event) {
-        Collections.addAll(event.actions, BCTransportStatements.ACTION_EXTRACTION_PRESET);
-    }
+      return true;
+   }
 
-    @PipeEventHandler
-    public void onActionActivate(PipeEventActionActivate event) {
-        if (event.action instanceof ActionExtractionPreset) {
-            ActionExtractionPreset preset = (ActionExtractionPreset) event.action;
-            activeSlots.add(preset.index);
-            activatedTtl[preset.index.ordinal()] = 2;
-        }
-    }
+   @Override
+   public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
+      for (int i = 0; i < this.invFilters.getSlots(); i++) {
+         ItemStack stack = this.invFilters.getStackInSlot(i);
+         if (!stack.isEmpty()) {
+            toDrop.add(stack);
+         }
+      }
+   }
+
+   @PipeEventHandler
+   public void addActions(PipeEventStatement.AddActionInternal event) {
+      Collections.addAll(event.actions, BCTransportStatements.ACTION_EXTRACTION_PRESET);
+   }
+
+   @PipeEventHandler
+   @Override
+   public void onActionActivate(PipeEventActionActivate event) {
+      if (event.action instanceof ActionExtractionPreset preset) {
+         this.activeSlots.add(preset.index);
+         this.activatedTtl[preset.index.ordinal()] = 2;
+      }
+   }
+
+   public enum SlotIndex {
+      SQUARE(DyeColor.RED),
+      CIRCLE(DyeColor.GREEN),
+      TRIANGLE(DyeColor.BLUE),
+      CROSS(DyeColor.YELLOW);
+
+      public static final PipeBehaviourEmzuli.SlotIndex[] VALUES = values();
+      public final DyeColor colour;
+
+      SlotIndex(DyeColor colour) {
+         this.colour = colour;
+      }
+
+      public PipeBehaviourEmzuli.SlotIndex next() {
+         switch (this) {
+            case SQUARE:
+               return CIRCLE;
+            case CIRCLE:
+               return TRIANGLE;
+            case TRIANGLE:
+               return CROSS;
+            case CROSS:
+               return SQUARE;
+            default:
+               throw new IllegalStateException("Unknown SlotIndex - " + this);
+         }
+      }
+   }
 }

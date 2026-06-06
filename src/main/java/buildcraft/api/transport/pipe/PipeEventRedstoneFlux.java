@@ -3,66 +3,66 @@ package buildcraft.api.transport.pipe;
 import net.minecraft.core.Direction;
 
 public abstract class PipeEventRedstoneFlux extends PipeEvent {
-    public final IFlowRedstoneFlux flow;
+   public final IFlowRedstoneFlux flow;
 
-    protected PipeEventRedstoneFlux(IPipeHolder holder, IFlowRedstoneFlux flow) {
-        super(holder);
-        this.flow = flow;
-    }
+   protected PipeEventRedstoneFlux(IPipeHolder holder, IFlowRedstoneFlux flow) {
+      super(holder);
+      this.flow = flow;
+   }
 
-    protected PipeEventRedstoneFlux(boolean canBeCancelled, IPipeHolder holder, IFlowRedstoneFlux flow) {
-        super(canBeCancelled, holder);
-        this.flow = flow;
-    }
+   protected PipeEventRedstoneFlux(boolean canBeCancelled, IPipeHolder holder, IFlowRedstoneFlux flow) {
+      super(canBeCancelled, holder);
+      this.flow = flow;
+   }
 
-    public static class Configure extends PipeEventRedstoneFlux {
-        private int maxPower = 100;
-        private boolean receiver = false;
-        private boolean disabled = false;
+   public static class Configure extends PipeEventRedstoneFlux {
+      private int maxPower = 100;
+      private boolean receiver = false;
+      private boolean disabled = false;
 
-        public Configure(IPipeHolder holder, IFlowRedstoneFlux flow) {
-            super(holder, flow);
-        }
+      public Configure(IPipeHolder holder, IFlowRedstoneFlux flow) {
+         super(holder, flow);
+      }
 
-        public int getMaxPower() {
-            return this.maxPower;
-        }
+      public int getMaxPower() {
+         return this.maxPower;
+      }
 
-        public void setMaxPower(int maxPower) {
-            this.maxPower = maxPower;
-        }
+      public void setMaxPower(int maxPower) {
+         this.maxPower = maxPower;
+      }
 
-        public boolean isReceiver() {
-            return this.receiver;
-        }
+      public boolean isReceiver() {
+         return this.receiver;
+      }
 
-        public void setReceiver(boolean receiver) {
-            this.receiver = receiver;
-        }
+      public void setReceiver(boolean receiver) {
+         this.receiver = receiver;
+      }
 
-        public void disableTransfer() {
-            disabled = true;
-        }
+      public void disableTransfer() {
+         this.disabled = true;
+      }
 
-        public boolean isTransferDisabled() {
-            return disabled;
-        }
-    }
+      public boolean isTransferDisabled() {
+         return this.disabled;
+      }
+   }
 
-    public static class PrimaryDirection extends PipeEventRedstoneFlux {
-        private Direction facing;
+   public static class PrimaryDirection extends PipeEventRedstoneFlux {
+      private Direction facing;
 
-        public PrimaryDirection(IPipeHolder holder, IFlowRedstoneFlux flow, Direction facing) {
-            super(holder, flow);
-            this.facing = facing;
-        }
+      public PrimaryDirection(IPipeHolder holder, IFlowRedstoneFlux flow, Direction facing) {
+         super(holder, flow);
+         this.facing = facing;
+      }
 
-        public Direction getFacing() {
-            return facing;
-        }
+      public Direction getFacing() {
+         return this.facing;
+      }
 
-        public void setFacing(Direction facing) {
-            this.facing = facing;
-        }
-    }
+      public void setFacing(Direction facing) {
+         this.facing = facing;
+      }
+   }
 }

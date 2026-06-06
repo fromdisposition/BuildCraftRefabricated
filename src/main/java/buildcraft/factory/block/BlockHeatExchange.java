@@ -1,22 +1,18 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.factory.block;
 
-import java.util.Locale;
-
+import buildcraft.api.blocks.ICustomRotationHandler;
+import buildcraft.api.items.FluidItemDrops;
+import buildcraft.api.tools.IToolWrench;
+import buildcraft.factory.BCFactoryBlockEntities;
+import buildcraft.factory.tile.TileHeatExchange;
+import buildcraft.lib.misc.FluidUtilBC;
 import com.mojang.serialization.MapCodec;
-
-import org.jetbrains.annotations.Nullable;
-
+import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.util.StringRepresentable;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -32,223 +28,189 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.Nullable;
 
-import buildcraft.api.blocks.ICustomRotationHandler;
-import buildcraft.api.items.FluidItemDrops;
-import buildcraft.api.tools.IToolWrench;
-import buildcraft.factory.BCFactoryBlockEntities;
-import buildcraft.factory.BCFactoryBlocks;
-import buildcraft.factory.tile.TileHeatExchange;
-import buildcraft.lib.misc.FluidUtilBC;
-
-@SuppressWarnings("this-escape")
 public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotationHandler {
-    public static final MapCodec<BlockHeatExchange> CODEC = simpleCodec(BlockHeatExchange::new);
+   public static final MapCodec<BlockHeatExchange> CODEC = simpleCodec(BlockHeatExchange::new);
+   public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+   public static final EnumProperty<BlockHeatExchange.EnumExchangePart> PART = EnumProperty.create("part", BlockHeatExchange.EnumExchangePart.class);
+   public static final BooleanProperty CONNECTED_LEFT = BooleanProperty.create("connected_left");
+   public static final BooleanProperty CONNECTED_RIGHT = BooleanProperty.create("connected_right");
 
-    public enum EnumExchangePart implements StringRepresentable {
-        START,
-        MIDDLE,
-        END;
+   public BlockHeatExchange(Properties properties) {
+      super(properties);
+      this.registerDefaultState(
+         (BlockState)((BlockState)((BlockState)((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.NORTH))
+                  .setValue(PART, BlockHeatExchange.EnumExchangePart.MIDDLE))
+               .setValue(CONNECTED_LEFT, false))
+            .setValue(CONNECTED_RIGHT, false)
+      );
+   }
 
-        private final String lowerCaseName = name().toLowerCase(Locale.ROOT);
+   protected MapCodec<? extends BaseEntityBlock> codec() {
+      return CODEC;
+   }
 
-        @Override
-        public String getSerializedName() {
-            return lowerCaseName;
-        }
-    }
+   protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
+      builder.add(new Property[]{FACING, PART, CONNECTED_LEFT, CONNECTED_RIGHT});
+   }
 
-    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
-    public static final EnumProperty<EnumExchangePart> PART = EnumProperty.create("part", EnumExchangePart.class);
-    public static final BooleanProperty CONNECTED_LEFT = BooleanProperty.create("connected_left");
-    public static final BooleanProperty CONNECTED_RIGHT = BooleanProperty.create("connected_right");
+   public BlockState getStateForPlacement(BlockPlaceContext context) {
+      Direction facing = context.getHorizontalDirection().getOpposite();
+      BlockState state = (BlockState)this.defaultBlockState().setValue(FACING, facing);
+      return this.updateConnections(state, context.getLevel(), context.getClickedPos(), facing);
+   }
 
-    public BlockHeatExchange(Properties properties) {
-        super(properties);
-        this.registerDefaultState(this.stateDefinition.any()
-                .setValue(FACING, Direction.NORTH)
-                .setValue(PART, EnumExchangePart.MIDDLE)
-                .setValue(CONNECTED_LEFT, false)
-                .setValue(CONNECTED_RIGHT, false));
-    }
+   protected BlockState updateShape(
+      BlockState state,
+      LevelReader level,
+      ScheduledTickAccess scheduledTickAccess,
+      BlockPos pos,
+      Direction direction,
+      BlockPos neighborPos,
+      BlockState neighborState,
+      RandomSource randomSource
+   ) {
+      if (direction.getAxis().isVertical()) {
+         return state;
+      }
 
-    @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
+      Direction facing = (Direction)state.getValue(FACING);
+      return this.updateConnections(state, level, pos, facing);
+   }
 
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, PART, CONNECTED_LEFT, CONNECTED_RIGHT);
-    }
+   private BlockState updateConnections(BlockState state, LevelReader level, BlockPos pos, Direction facing) {
+      boolean connectLeft = doesNeighbourConnect(level, pos, facing, facing.getCounterClockWise());
+      boolean connectRight = doesNeighbourConnect(level, pos, facing, facing.getClockWise());
+      return (BlockState)((BlockState)state.setValue(CONNECTED_LEFT, connectLeft)).setValue(CONNECTED_RIGHT, connectRight);
+   }
 
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction facing = context.getHorizontalDirection().getOpposite();
-        BlockState state = this.defaultBlockState().setValue(FACING, facing);
-        return updateConnections(state, context.getLevel(), context.getClickedPos(), facing);
-    }
+   private static boolean doesNeighbourConnect(LevelReader level, BlockPos pos, Direction thisFacing, Direction dir) {
+      BlockState neighbour = level.getBlockState(pos.relative(dir));
+      return neighbour.getBlock() instanceof BlockHeatExchange ? neighbour.getValue(FACING) == thisFacing : false;
+   }
 
-    @Override
-    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess,
-            BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource randomSource) {
+   @Nullable
+   public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+      return new TileHeatExchange(pos, state);
+   }
 
-        if (direction.getAxis().isVertical()) {
-            return state;
-        }
-        Direction facing = state.getValue(FACING);
-        return updateConnections(state, level, pos, facing);
-    }
+   @Nullable
+   public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+      return level.isClientSide()
+         ? createTickerHelper(type, BCFactoryBlockEntities.HEAT_EXCHANGE, (lvl, pos, st, tile) -> tile.clientTick())
+         : createTickerHelper(type, BCFactoryBlockEntities.HEAT_EXCHANGE, (lvl, pos, st, tile) -> tile.serverTick());
+   }
 
-    private BlockState updateConnections(BlockState state, LevelReader level, BlockPos pos, Direction facing) {
+   protected RenderShape getRenderShape(BlockState state) {
+      return RenderShape.MODEL;
+   }
 
-        boolean connectLeft = doesNeighbourConnect(level, pos, facing, facing.getCounterClockWise());
-        boolean connectRight = doesNeighbourConnect(level, pos, facing, facing.getClockWise());
-        return state
-                .setValue(CONNECTED_LEFT, connectLeft)
-                .setValue(CONNECTED_RIGHT, connectRight);
-    }
-
-    private static boolean doesNeighbourConnect(LevelReader level, BlockPos pos, Direction thisFacing,
-            Direction dir) {
-        BlockState neighbour = level.getBlockState(pos.relative(dir));
-        if (neighbour.getBlock() instanceof BlockHeatExchange) {
-            return neighbour.getValue(FACING) == thisFacing;
-        }
-        return false;
-    }
-
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new TileHeatExchange(pos, state);
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state,
-            BlockEntityType<T> type) {
-        if (level.isClientSide()) {
-            return createTickerHelper(type, BCFactoryBlockEntities.HEAT_EXCHANGE,
-                    (lvl, pos, st, tile) -> tile.clientTick());
-        }
-        return createTickerHelper(type, BCFactoryBlockEntities.HEAT_EXCHANGE,
-                (lvl, pos, st, tile) -> tile.serverTick());
-    }
-
-    @Override
-    protected RenderShape getRenderShape(BlockState state) {
-        return RenderShape.MODEL;
-    }
-
-    @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
-            Player player, InteractionHand hand, BlockHitResult hitResult) {
-
-        if (stack.getItem() instanceof IToolWrench) {
-            if (player.isShiftKeyDown()) {
-                BlockEntity be = level.getBlockEntity(pos);
-                if (be instanceof TileHeatExchange exchange) {
-                    return openExchangeMenu(level, exchange, player);
-                }
-                return InteractionResult.PASS;
-            }
+   protected InteractionResult useItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
+      if (stack.getItem() instanceof IToolWrench) {
+         if (player.isShiftKeyDown()) {
+            return (InteractionResult)(level.getBlockEntity(pos) instanceof TileHeatExchange exchange
+               ? openExchangeMenu(level, exchange, player)
+               : InteractionResult.PASS);
+         } else {
             return InteractionResult.PASS;
-        }
-        BlockEntity be = level.getBlockEntity(pos);
-        if (!(be instanceof TileHeatExchange exchange)) {
-            return InteractionResult.PASS;
-        }
-        TileHeatExchange.ExchangeSection section = exchange.getSection();
-        if (section != null) {
-
-            @SuppressWarnings("removal")
+         }
+      } else if (level.getBlockEntity(pos) instanceof TileHeatExchange exchange) {
+         TileHeatExchange.ExchangeSection section = exchange.getSection();
+         if (section != null) {
             boolean didChange = FluidUtilBC.onTankActivated(player, pos, hand, section.tankInput);
             if (!didChange) {
-                @SuppressWarnings("removal")
-                boolean didChangeOutput = FluidUtilBC.onTankActivated(player, pos, hand, section.tankOutput);
-                didChange = didChangeOutput;
+               boolean didChangeOutput = FluidUtilBC.onTankActivated(player, pos, hand, section.tankOutput);
+               didChange = didChangeOutput;
             }
+
             if (didChange) {
-                return InteractionResult.SUCCESS;
+               return InteractionResult.SUCCESS;
             }
-        }
-        if (FluidUtilBC.isFluidContainerInHand(player, hand)) {
-            return InteractionResult.SUCCESS;
-        }
-        return openExchangeMenu(level, exchange, player);
-    }
+         }
 
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
-            Player player, BlockHitResult hitResult) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (!(be instanceof TileHeatExchange exchange)) {
-            return InteractionResult.PASS;
-        }
-        return openExchangeMenu(level, exchange, player);
-    }
+         return (InteractionResult)(FluidUtilBC.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : openExchangeMenu(level, exchange, player));
+      } else {
+         return InteractionResult.PASS;
+      }
+   }
 
-    @Override
-    public InteractionResult attemptRotation(Level level, BlockPos pos, BlockState state, Direction sideWrenched) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof TileHeatExchange exchange && exchange.rotate()) {
-            return InteractionResult.SUCCESS;
-        }
-        return InteractionResult.PASS;
-    }
+   protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+      return (InteractionResult)(level.getBlockEntity(pos) instanceof TileHeatExchange exchange
+         ? openExchangeMenu(level, exchange, player)
+         : InteractionResult.PASS);
+   }
 
-    private static InteractionResult openExchangeMenu(Level level, TileHeatExchange exchange, Player player) {
-        TileHeatExchange start = exchange.findStart();
-        if (start == null) {
-            return InteractionResult.PASS;
-        }
-        if (!level.isClientSide()) {
-            player.openMenu(start);
-        }
-        return InteractionResult.SUCCESS;
-    }
+   @Override
+   public InteractionResult attemptRotation(Level level, BlockPos pos, BlockState state, Direction sideWrenched) {
+      return (InteractionResult)(level.getBlockEntity(pos) instanceof TileHeatExchange exchange && exchange.rotate()
+         ? InteractionResult.SUCCESS
+         : InteractionResult.PASS);
+   }
 
-    @Override
-    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (!level.isClientSide()) {
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof TileHeatExchange exchange) {
-                TileHeatExchange.ExchangeSection section = exchange.getSection();
-                if (section != null) {
-                    NonNullList<ItemStack> toDrop = NonNullList.create();
-                    FluidItemDrops.addFluidDrops(toDrop, section.tankInput);
-                    FluidItemDrops.addFluidDrops(toDrop, section.tankOutput);
-                    for (ItemStack drop : toDrop) {
-                        Block.popResource(level, pos, drop);
-                    }
-                }
+   private static InteractionResult openExchangeMenu(Level level, TileHeatExchange exchange, Player player) {
+      TileHeatExchange start = exchange.findStart();
+      if (start == null) {
+         return InteractionResult.PASS;
+      }
 
-                for (int i = 0; i < exchange.containerSlots.size(); i++) {
-                    ItemStack slotStack = exchange.containerSlots.getResource(i)
-                            .toStack(exchange.containerSlots.getAmountAsInt(i));
-                    if (!slotStack.isEmpty()) {
-                        Block.popResource(level, pos, slotStack);
-                    }
-                }
+      if (!level.isClientSide()) {
+         player.openMenu(start);
+      }
+
+      return InteractionResult.SUCCESS;
+   }
+
+   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileHeatExchange exchange) {
+         TileHeatExchange.ExchangeSection section = exchange.getSection();
+         if (section != null) {
+            NonNullList<ItemStack> toDrop = NonNullList.create();
+            FluidItemDrops.addFluidDrops(toDrop, section.tankInput);
+            FluidItemDrops.addFluidDrops(toDrop, section.tankOutput);
+
+            for (ItemStack drop : toDrop) {
+               Block.popResource(level, pos, drop);
             }
-        }
-        return super.playerWillDestroy(level, pos, state, player);
-    }
+         }
 
-    @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
-            @Nullable Orientation orientation, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof TileHeatExchange exchange) {
-            exchange.markCheckNeighbours();
-        }
-    }
+         for (int i = 0; i < exchange.containerSlots.getSlots(); i++) {
+            ItemStack slotStack = exchange.containerSlots.getStackInSlot(i);
+            if (!slotStack.isEmpty()) {
+               Block.popResource(level, pos, slotStack);
+            }
+         }
+      }
+
+      return super.playerWillDestroy(level, pos, state, player);
+   }
+
+   protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
+      super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
+      if (level.getBlockEntity(pos) instanceof TileHeatExchange exchange) {
+         exchange.markCheckNeighbours();
+      }
+   }
+
+   public enum EnumExchangePart implements StringRepresentable {
+      START,
+      MIDDLE,
+      END;
+
+      private final String lowerCaseName = this.name().toLowerCase(Locale.ROOT);
+
+      public String getSerializedName() {
+         return this.lowerCaseName;
+      }
+   }
 }

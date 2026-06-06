@@ -1,58 +1,56 @@
 package buildcraft.lib.expression;
 
 import buildcraft.lib.expression.api.IExpressionNode;
-import buildcraft.lib.expression.api.IExpressionNode.INodeDouble;
 import buildcraft.lib.expression.api.NodeTypes;
 import buildcraft.lib.expression.node.func.NodeFuncBase;
-import buildcraft.lib.expression.node.func.NodeFuncBase.IFunctionNode;
-import buildcraft.lib.expression.node.func.NodeFuncDoubleDoubleToDouble.FuncDoubleDoubleToDouble;
+import buildcraft.lib.expression.node.func.NodeFuncDoubleDoubleToDouble;
 import buildcraft.lib.expression.node.value.NodeConstantDouble;
 
 public class OptimizingInliningHelper {
-    public static IExpressionNode tryOptimizedInline(IExpressionNode node) {
-        if (isDoubleMultiply(node)) {
-            FuncDoubleDoubleToDouble n = (FuncDoubleDoubleToDouble) node;
-            INodeDouble n1 = n.argA.inline();
-            INodeDouble n2 = n.argB.inline();
-            boolean hasConst = false;
-            if (n1 instanceof NodeConstantDouble) {
-                if (n2 instanceof NodeConstantDouble) {
-
-                    return new NodeConstantDouble(n1.evaluate() * n2.evaluate());
-                }
-                hasConst = true;
-            } else {
-                if (n2 instanceof NodeConstantDouble) {
-                    INodeDouble t = n1;
-                    n1 = n2;
-                    n2 = t;
-                    hasConst = true;
-                }
+   public static IExpressionNode tryOptimizedInline(IExpressionNode node) {
+      if (isDoubleMultiply(node)) {
+         NodeFuncDoubleDoubleToDouble.FuncDoubleDoubleToDouble n = (NodeFuncDoubleDoubleToDouble.FuncDoubleDoubleToDouble)node;
+         IExpressionNode.INodeDouble n1 = n.argA.inline();
+         IExpressionNode.INodeDouble n2 = n.argB.inline();
+         boolean hasConst = false;
+         if (n1 instanceof NodeConstantDouble) {
+            if (n2 instanceof NodeConstantDouble) {
+               return new NodeConstantDouble(n1.evaluate() * n2.evaluate());
             }
 
-            if (hasConst) {
-                if (isDoubleMultiply(n2)) {
-                    FuncDoubleDoubleToDouble mul2 = (FuncDoubleDoubleToDouble) n2;
-                    if (mul2.argA instanceof NodeConstantDouble) {
-                        double c1 = n1.evaluate();
-                        double c2 = mul2.argA.evaluate();
-                        return NodeTypes.DoubleFunctions.MUL.create(new NodeConstantDouble(c1 * c2), mul2.argB);
-                    }
-                } else {
-                    return NodeTypes.DoubleFunctions.MUL.create(n1, n2);
-                }
-            }
-        }
-        return null;
-    }
+            hasConst = true;
+         } else if (n2 instanceof NodeConstantDouble) {
+            IExpressionNode.INodeDouble t = n1;
+            n1 = n2;
+            n2 = t;
+            hasConst = true;
+         }
 
-    public static boolean isDoubleMultiply(IExpressionNode node) {
-        if (node instanceof IFunctionNode) {
-            NodeFuncBase base = ((IFunctionNode) node).getFunction();
-            if (base == NodeTypes.DoubleFunctions.MUL) {
-                return true;
+         if (hasConst) {
+            if (!isDoubleMultiply(n2)) {
+               return NodeTypes.DoubleFunctions.MUL.create(n1, n2);
             }
-        }
-        return false;
-    }
+
+            NodeFuncDoubleDoubleToDouble.FuncDoubleDoubleToDouble mul2 = (NodeFuncDoubleDoubleToDouble.FuncDoubleDoubleToDouble)n2;
+            if (mul2.argA instanceof NodeConstantDouble) {
+               double c1 = n1.evaluate();
+               double c2 = mul2.argA.evaluate();
+               return NodeTypes.DoubleFunctions.MUL.create(new NodeConstantDouble(c1 * c2), mul2.argB);
+            }
+         }
+      }
+
+      return null;
+   }
+
+   public static boolean isDoubleMultiply(IExpressionNode node) {
+      if (node instanceof NodeFuncBase.IFunctionNode) {
+         NodeFuncBase base = ((NodeFuncBase.IFunctionNode)node).getFunction();
+         if (base == NodeTypes.DoubleFunctions.MUL) {
+            return true;
+         }
+      }
+
+      return false;
+   }
 }

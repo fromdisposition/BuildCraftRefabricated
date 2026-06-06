@@ -1,34 +1,25 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.core.marker.volume;
-
-import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import net.minecraft.world.InteractionResult;
+import net.minecraft.resources.Identifier;
 
 public enum AddonsRegistry {
-    INSTANCE;
+   INSTANCE;
 
-    private final Map<Identifier, Class<? extends Addon>> addonClasses = new HashMap<>();
+   private final Map<Identifier, Class<? extends Addon>> addonClasses = new HashMap<>();
 
-    public void register(Identifier name, Class<? extends Addon> clazz) {
-        if (!addonClasses.containsKey(name)) {
-            addonClasses.put(name, clazz);
-        }
-    }
+   public void register(Identifier name, Class<? extends Addon> clazz) {
+      if (!this.addonClasses.containsKey(name)) {
+         this.addonClasses.put(name, clazz);
+      }
+   }
 
-    public Class<? extends Addon> getClassByName(Identifier name) {
-        return addonClasses.get(name);
-    }
+   public Class<? extends Addon> getClassByName(Identifier name) {
+      return this.addonClasses.get(name);
+   }
 
-    public Identifier getNameByClass(Class<? extends Addon> clazz) {
-        return addonClasses.entrySet().stream().filter(nameClass -> nameClass.getValue().equals(clazz)).findFirst().orElse(null).getKey();
-    }
+   public Identifier getNameByClass(Class<? extends Addon> clazz) {
+      return this.addonClasses.entrySet().stream().filter(nameClass -> nameClass.getValue().equals(clazz)).findFirst().orElse(null).getKey();
+   }
 }

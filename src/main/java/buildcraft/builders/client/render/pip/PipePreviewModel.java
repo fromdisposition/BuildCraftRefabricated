@@ -1,14 +1,15 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
 package buildcraft.builders.client.render.pip;
 
-import javax.annotation.Nullable;
-
+import buildcraft.api.transport.IWireManager;
+import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.api.transport.pipe.PipeEvent;
+import buildcraft.api.transport.pluggable.PipePluggable;
+import buildcraft.transport.block.BlockPipeHolder;
+import buildcraft.transport.client.model.key.PipeModelKey;
+import buildcraft.transport.pipe.Pipe;
 import com.mojang.authlib.GameProfile;
-
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -17,132 +18,125 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import buildcraft.api.transport.IWireManager;
-import buildcraft.api.transport.pipe.IPipe;
-import buildcraft.api.transport.pipe.IPipeHolder;
-import buildcraft.api.transport.pipe.PipeEvent;
-import buildcraft.api.transport.pluggable.PipePluggable;
-
-import buildcraft.transport.block.BlockPipeHolder;
-import buildcraft.transport.client.model.key.PipeModelKey;
-import buildcraft.transport.pipe.Pipe;
-
 public final class PipePreviewModel {
+   private static final IPipeHolder STUB_HOLDER = new IPipeHolder() {
+      @Override
+      public Level getPipeWorld() {
+         return null;
+      }
 
-    private PipePreviewModel() {}
+      @Override
+      public BlockPos getPipePos() {
+         return BlockPos.ZERO;
+      }
 
-    public static boolean isPipe(BlockState state) {
-        return state != null && state.getBlock() instanceof BlockPipeHolder;
-    }
+      @Override
+      public BlockEntity getPipeTile() {
+         return null;
+      }
 
-    @Nullable
-    public static PipeModelKey modelKey(@Nullable CompoundTag tileNbt) {
-        if (tileNbt == null) {
-            return null;
-        }
-        CompoundTag pipeNbt = tileNbt.getCompoundOrEmpty("pipe");
-        if (pipeNbt.isEmpty()) {
-            return null;
-        }
-        try {
-            Pipe pipe = new Pipe(STUB_HOLDER, pipeNbt);
-            return pipe.getModel();
-        } catch (Throwable t) {
+      @Override
+      public IPipe getPipe() {
+         return null;
+      }
 
-            return null;
-        }
-    }
+      @Override
+      public boolean canPlayerInteract(Player player) {
+         return false;
+      }
 
-    private static final IPipeHolder STUB_HOLDER = new IPipeHolder() {
-        @Override
-        public Level getPipeWorld() {
-            return null;
-        }
+      @Override
+      public PipePluggable getPluggable(Direction side) {
+         return null;
+      }
 
-        @Override
-        public BlockPos getPipePos() {
-            return BlockPos.ZERO;
-        }
+      @Override
+      public BlockEntity getNeighbourTile(Direction side) {
+         return null;
+      }
 
-        @Override
-        public BlockEntity getPipeTile() {
-            return null;
-        }
+      @Override
+      public IPipe getNeighbourPipe(Direction side) {
+         return null;
+      }
 
-        @Override
-        public IPipe getPipe() {
-            return null;
-        }
+      @Override
+      public IWireManager getWireManager() {
+         return null;
+      }
 
-        @Override
-        public boolean canPlayerInteract(Player player) {
-            return false;
-        }
+      @Override
+      public GameProfile getOwner() {
+         return null;
+      }
 
-        @Override
-        public PipePluggable getPluggable(Direction side) {
-            return null;
-        }
+      @Override
+      public boolean fireEvent(PipeEvent event) {
+         return false;
+      }
 
-        @Override
-        public BlockEntity getNeighbourTile(Direction side) {
-            return null;
-        }
+      @Override
+      public void scheduleRenderUpdate() {
+      }
 
-        @Override
-        public IPipe getNeighbourPipe(Direction side) {
-            return null;
-        }
+      @Override
+      public void scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver... parts) {
+      }
 
-        @Override
-        public <T> T getCapabilityFromPipe(Direction side, Object capability) {
-            return null;
-        }
+      @Override
+      public void scheduleNetworkGuiUpdate(IPipeHolder.PipeMessageReceiver... parts) {
+      }
 
-        @Override
-        public IWireManager getWireManager() {
-            return null;
-        }
+      @Override
+      public void sendMessage(IPipeHolder.PipeMessageReceiver to, IPipeHolder.IWriter writer) {
+      }
 
-        @Override
-        public GameProfile getOwner() {
-            return null;
-        }
+      @Override
+      public void sendGuiMessage(IPipeHolder.PipeMessageReceiver to, IPipeHolder.IWriter writer) {
+      }
 
-        @Override
-        public boolean fireEvent(PipeEvent event) {
-            return false;
-        }
+      @Override
+      public void onPlayerOpen(Player player) {
+      }
 
-        @Override
-        public void scheduleRenderUpdate() {}
+      @Override
+      public void onPlayerClose(Player player) {
+      }
 
-        @Override
-        public void scheduleNetworkUpdate(PipeMessageReceiver... parts) {}
+      @Override
+      public int getRedstoneInput(Direction side) {
+         return 0;
+      }
 
-        @Override
-        public void scheduleNetworkGuiUpdate(PipeMessageReceiver... parts) {}
+      @Override
+      public boolean setRedstoneOutput(Direction side, int value) {
+         return false;
+      }
+   };
 
-        @Override
-        public void sendMessage(PipeMessageReceiver to, IWriter writer) {}
+   private PipePreviewModel() {
+   }
 
-        @Override
-        public void sendGuiMessage(PipeMessageReceiver to, IWriter writer) {}
+   public static boolean isPipe(BlockState state) {
+      return state != null && state.getBlock() instanceof BlockPipeHolder;
+   }
 
-        @Override
-        public void onPlayerOpen(Player player) {}
+   @Nullable
+   public static PipeModelKey modelKey(@Nullable CompoundTag tileNbt) {
+      if (tileNbt == null) {
+         return null;
+      }
 
-        @Override
-        public void onPlayerClose(Player player) {}
+      CompoundTag pipeNbt = tileNbt.getCompoundOrEmpty("pipe");
+      if (pipeNbt.isEmpty()) {
+         return null;
+      }
 
-        @Override
-        public int getRedstoneInput(Direction side) {
-            return 0;
-        }
-
-        @Override
-        public boolean setRedstoneOutput(Direction side, int value) {
-            return false;
-        }
-    };
+      try {
+         Pipe pipe = new Pipe(STUB_HOLDER, pipeNbt);
+         return pipe.getModel();
+      } catch (Throwable t) {
+         return null;
+      }
+   }
 }

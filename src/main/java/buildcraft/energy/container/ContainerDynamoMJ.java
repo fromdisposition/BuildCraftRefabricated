@@ -1,133 +1,125 @@
 package buildcraft.energy.container;
 
+import buildcraft.api.enums.EnumPowerStage;
+import buildcraft.energy.BCEnergyMenuTypes;
+import buildcraft.energy.tile.TileDynamoMJ;
+import buildcraft.lib.fabric.menu.MenuBlockEntityLookup;
+import buildcraft.lib.gui.BcMenu;
+import buildcraft.lib.gui.slot.SlotBase;
+import buildcraft.lib.tile.ItemHandlerSimple;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
+import net.minecraft.world.item.ItemStack;
 
-import buildcraft.energy.BCEnergyMenuTypes;
-import buildcraft.energy.tile.TileDynamoMJ;
-import buildcraft.lib.engine.TileEngineBase_BC8;
-import buildcraft.lib.fabric.menu.MenuBlockEntityLookup;
-import buildcraft.lib.gui.ContainerBC_Neptune;
-import buildcraft.lib.gui.slot.SlotBase;
-import buildcraft.lib.tile.item.ItemHandlerSimple;
+public class ContainerDynamoMJ extends BcMenu {
+   private static final ItemHandlerSimple FALLBACK_UPGRADES = createFallbackUpgrades();
+   public final TileDynamoMJ dynamo;
+   private final ContainerData data;
+   private static final int DATA_POWER_HI = 0;
+   private static final int DATA_POWER_LO = 1;
+   private static final int DATA_HEAT = 2;
+   private static final int DATA_OUTPUT_HI = 3;
+   private static final int DATA_OUTPUT_LO = 4;
+   private static final int DATA_POWER_STAGE = 5;
+   private static final int DATA_IS_BURNING_ENGINE = 6;
+   private static final int DATA_FE_STORED = 7;
+   private static final int DATA_COUNT = 8;
 
-@SuppressWarnings("this-escape")
-public class ContainerDynamoMJ extends ContainerBC_Neptune {
-    private static final ItemHandlerSimple FALLBACK_UPGRADES = createFallbackUpgrades();
+   public ContainerDynamoMJ(int containerId, Inventory playerInv, BlockPos pos) {
+      this(containerId, playerInv, MenuBlockEntityLookup.get(playerInv, pos, TileDynamoMJ.class));
+   }
 
-    public final TileDynamoMJ dynamo;
-    private final ContainerData data;
+   public ContainerDynamoMJ(int containerId, Inventory playerInv, final TileDynamoMJ dynamo) {
+      super(BCEnergyMenuTypes.DYNAMO_MJ, containerId, playerInv.player);
+      this.dynamo = dynamo;
+      if (dynamo != null && dynamo.getLevel() != null && !dynamo.getLevel().isClientSide()) {
+         this.data = new ContainerData() {
+            public int get(int index) {
+               return switch (index) {
+                  case 0 -> (int)(dynamo.getMjBattery().getStored() >>> 32);
+                  case 1 -> (int)(dynamo.getMjBattery().getStored() & 4294967295L);
+                  case 2 -> Float.floatToIntBits(dynamo.getHeat());
+                  case 3 -> (int)(dynamo.getCurrentOutput() >>> 32);
+                  case 4 -> (int)(dynamo.getCurrentOutput() & 4294967295L);
+                  case 5 -> dynamo.getPowerStage().ordinal();
+                  case 6 -> dynamo.isBurning() ? 1 : 0;
+                  case 7 -> dynamo.getCurrentFe();
+                  default -> 0;
+               };
+            }
 
-    private static final int DATA_POWER_HI = 0;
-    private static final int DATA_POWER_LO = 1;
-    private static final int DATA_HEAT = 2;
-    private static final int DATA_OUTPUT_HI = 3;
-    private static final int DATA_OUTPUT_LO = 4;
-    private static final int DATA_POWER_STAGE = 5;
-    private static final int DATA_IS_BURNING_ENGINE = 6;
-    private static final int DATA_FE_STORED = 7;
-    private static final int DATA_COUNT = 8;
+            public void set(int index, int value) {
+            }
 
-    public ContainerDynamoMJ(int containerId, Inventory playerInv, BlockPos pos) {
-        this(containerId, playerInv, MenuBlockEntityLookup.get(playerInv, pos, TileDynamoMJ.class));
-    }
+            public int getCount() {
+               return 8;
+            }
+         };
+      } else {
+         SimpleContainerData clientData = new SimpleContainerData(8);
+         clientData.set(2, Float.floatToIntBits(20.0F));
+         this.data = clientData;
+      }
 
-    public ContainerDynamoMJ(int containerId, Inventory playerInv, TileDynamoMJ dynamo) {
-        super(BCEnergyMenuTypes.DYNAMO_MJ, containerId, playerInv.player);
-        this.dynamo = dynamo;
+      this.addDataSlots(this.data);
+      ItemHandlerSimple upgrades = dynamo != null ? dynamo.upgrades : FALLBACK_UPGRADES;
 
-        if (dynamo != null && dynamo.getLevel() != null && !dynamo.getLevel().isClientSide()) {
-            this.data = new ContainerData() {
-                @Override
-                public int get(int index) {
-                    return switch (index) {
-                        case DATA_POWER_HI -> (int) (dynamo.getMjBattery().getStored() >>> 32);
-                        case DATA_POWER_LO -> (int) (dynamo.getMjBattery().getStored() & 0xFFFFFFFFL);
-                        case DATA_HEAT -> Float.floatToIntBits(dynamo.getHeat());
-                        case DATA_OUTPUT_HI -> (int) (dynamo.getCurrentOutput() >>> 32);
-                        case DATA_OUTPUT_LO -> (int) (dynamo.getCurrentOutput() & 0xFFFFFFFFL);
-                        case DATA_POWER_STAGE -> dynamo.getPowerStage().ordinal();
-                        case DATA_IS_BURNING_ENGINE -> dynamo.isBurning() ? 1 : 0;
-                        case DATA_FE_STORED -> dynamo.getCurrentFe();
-                        default -> 0;
-                    };
-                }
+      for (int slot = 0; slot < 4; slot++) {
+         this.addSlot(new SlotBase(upgrades, slot, 44 + 18 * slot, 44) {
+            @Override
+            public int getMaxStackSize() {
+               return 1;
+            }
 
-                @Override
-                public void set(int index, int value) { }
+            @Override
+            public int getMaxStackSize(ItemStack stack) {
+               return 1;
+            }
+         });
+      }
 
-                @Override
-                public int getCount() { return DATA_COUNT; }
-            };
-        } else {
-            SimpleContainerData clientData = new SimpleContainerData(DATA_COUNT);
-            clientData.set(DATA_HEAT, Float.floatToIntBits(TileEngineBase_BC8.MIN_HEAT));
-            this.data = clientData;
-        }
+      this.addFullPlayerInventory(8, 95, playerInv);
+   }
 
-        addDataSlots(this.data);
+   public long getSyncedPower() {
+      return (long)this.data.get(0) << 32 | this.data.get(1) & 4294967295L;
+   }
 
-        ItemHandlerSimple upgrades = dynamo != null ? dynamo.upgrades : FALLBACK_UPGRADES;
-        for (int slot = 0; slot < 4; slot++) {
-            addSlot(new SlotBase(upgrades, slot, 44 + 18 * slot, 44) {
-                @Override
-                public int getMaxStackSize() {
-                    return 1;
-                }
+   public float getSyncedHeat() {
+      return Float.intBitsToFloat(this.data.get(2));
+   }
 
-                @Override
-                public int getMaxStackSize(net.minecraft.world.item.ItemStack stack) {
-                    return 1;
-                }
-            });
-        }
+   public EnumPowerStage getSyncedPowerStage() {
+      int ordinal = this.data.get(5);
+      EnumPowerStage[] values = EnumPowerStage.values();
+      return ordinal >= 0 && ordinal < values.length ? values[ordinal] : EnumPowerStage.BLUE;
+   }
 
-        addFullPlayerInventory(8, 95, playerInv);
-    }
+   public boolean isSyncedBurningEngine() {
+      return this.data.get(6) != 0;
+   }
 
-    public long getSyncedPower() {
-        return ((long) data.get(DATA_POWER_HI) << 32) | (data.get(DATA_POWER_LO) & 0xFFFFFFFFL);
-    }
+   public long getSyncedCurrentOutput() {
+      return (long)this.data.get(3) << 32 | this.data.get(4) & 4294967295L;
+   }
 
-    public float getSyncedHeat() {
-        return Float.intBitsToFloat(data.get(DATA_HEAT));
-    }
+   public int getSyncedFeStored() {
+      return this.data.get(7);
+   }
 
-    public buildcraft.api.enums.EnumPowerStage getSyncedPowerStage() {
-        int ordinal = data.get(DATA_POWER_STAGE);
-        buildcraft.api.enums.EnumPowerStage[] values = buildcraft.api.enums.EnumPowerStage.values();
-        if (ordinal >= 0 && ordinal < values.length) return values[ordinal];
-        return buildcraft.api.enums.EnumPowerStage.BLUE;
-    }
+   @Override
+   public boolean stillValid(Player player) {
+      return this.dynamo != null && !this.dynamo.isRemoved()
+         ? player.distanceToSqr(this.dynamo.getBlockPos().getX() + 0.5, this.dynamo.getBlockPos().getY() + 0.5, this.dynamo.getBlockPos().getZ() + 0.5) <= 64.0
+         : false;
+   }
 
-    public boolean isSyncedBurningEngine() {
-        return data.get(DATA_IS_BURNING_ENGINE) != 0;
-    }
-
-    public long getSyncedCurrentOutput() {
-        return ((long) data.get(DATA_OUTPUT_HI) << 32) | (data.get(DATA_OUTPUT_LO) & 0xFFFFFFFFL);
-    }
-
-    public int getSyncedFeStored() {
-        return data.get(DATA_FE_STORED);
-    }
-
-    @Override
-    public boolean stillValid(Player player) {
-        if (dynamo == null || dynamo.isRemoved()) return false;
-        return player.distanceToSqr(
-            dynamo.getBlockPos().getX() + 0.5,
-            dynamo.getBlockPos().getY() + 0.5,
-            dynamo.getBlockPos().getZ() + 0.5
-        ) <= 64.0;
-    }
-
-    private static ItemHandlerSimple createFallbackUpgrades() {
-        ItemHandlerSimple upgrades = new ItemHandlerSimple(4, 1);
-        upgrades.setChecker((slot, stack) -> false);
-        return upgrades;
-    }
+   private static ItemHandlerSimple createFallbackUpgrades() {
+      ItemHandlerSimple upgrades = new ItemHandlerSimple(4, 1);
+      upgrades.setChecker((slot, stack) -> false);
+      return upgrades;
+   }
 }

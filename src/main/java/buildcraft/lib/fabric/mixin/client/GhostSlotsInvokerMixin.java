@@ -9,9 +9,9 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(GhostSlots.class)
 public interface GhostSlotsInvokerMixin {
-    @Invoker("setInput")
-    void buildcraft$setInput(Slot slot, ContextMap context, SlotDisplay display);
+   @Invoker("setInput")
+   void buildcraft$setInput(Slot var1, ContextMap var2, SlotDisplay var3);
 
-    @Invoker("setResult")
-    void buildcraft$setResult(Slot slot, ContextMap context, SlotDisplay display);
+   @Invoker("setResult")
+   void buildcraft$setResult(Slot var1, ContextMap var2, SlotDisplay var3);
 }

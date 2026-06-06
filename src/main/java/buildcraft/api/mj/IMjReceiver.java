@@ -1,12 +1,11 @@
 package buildcraft.api.mj;
 
 public interface IMjReceiver extends IMjConnector {
+   long getPowerRequested();
 
-    long getPowerRequested();
+   long receivePower(long var1, boolean var3);
 
-    long receivePower(long microJoules, boolean simulate);
-
-    default boolean canReceive() {
-        return true;
-    }
+   default boolean canReceive() {
+      return true;
+   }
 }

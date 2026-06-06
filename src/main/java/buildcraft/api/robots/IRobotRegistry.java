@@ -1,56 +1,50 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * The BuildCraft API is distributed under the terms of the MIT License. Please check the contents of the license, which
- * should be located as "LICENSE.API" in the BuildCraft source code distribution. */
 package buildcraft.api.robots;
 
 import java.util.Collection;
-
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.core.Direction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 
 public interface IRobotRegistry {
+   long getNextRobotId();
 
-    long getNextRobotId();
+   void registerRobot(EntityRobotBase var1);
 
-    void registerRobot(EntityRobotBase robot);
+   void killRobot(EntityRobotBase var1);
 
-    void killRobot(EntityRobotBase robot);
+   void unloadRobot(EntityRobotBase var1);
 
-    void unloadRobot(EntityRobotBase robot);
+   EntityRobotBase getLoadedRobot(long var1);
 
-    EntityRobotBase getLoadedRobot(long id);
+   boolean isTaken(ResourceId var1);
 
-    boolean isTaken(ResourceId resourceId);
+   long robotIdTaking(ResourceId var1);
 
-    long robotIdTaking(ResourceId resourceId);
+   EntityRobotBase robotTaking(ResourceId var1);
 
-    EntityRobotBase robotTaking(ResourceId resourceId);
+   boolean take(ResourceId var1, EntityRobotBase var2);
 
-    boolean take(ResourceId resourceId, EntityRobotBase robot);
+   boolean take(ResourceId var1, long var2);
 
-    boolean take(ResourceId resourceId, long robotId);
+   void release(ResourceId var1);
 
-    void release(ResourceId resourceId);
+   void releaseResources(EntityRobotBase var1);
 
-    void releaseResources(EntityRobotBase robot);
+   DockingStation getStation(BlockPos var1, Direction var2);
 
-    DockingStation getStation(BlockPos pos, Direction side);
+   Collection<DockingStation> getStations();
 
-    Collection<DockingStation> getStations();
+   void registerStation(DockingStation var1);
 
-    void registerStation(DockingStation station);
+   void removeStation(DockingStation var1);
 
-    void removeStation(DockingStation station);
+   void take(DockingStation var1, long var2);
 
-    void take(DockingStation station, long robotId);
+   void release(DockingStation var1, long var2);
 
-    void release(DockingStation station, long robotId);
+   void writeToNBT(CompoundTag var1);
 
-    void writeToNBT(CompoundTag nbt);
+   void readFromNBT(CompoundTag var1);
 
-    void readFromNBT(CompoundTag nbt);
-
-    void registryMarkDirty();
+   void registryMarkDirty();
 }

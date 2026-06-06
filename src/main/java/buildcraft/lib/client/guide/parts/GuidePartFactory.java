@@ -4,5 +4,5 @@ import buildcraft.lib.client.guide.GuiGuide;
 
 @FunctionalInterface
 public interface GuidePartFactory {
-    GuidePart createNew(GuiGuide gui);
+   GuidePart createNew(GuiGuide var1);
 }

@@ -1,78 +1,65 @@
 package buildcraft.builders.gui;
 
-import net.minecraft.client.Minecraft;
-import buildcraft.lib.gui.BCGraphics;
-import net.minecraft.client.gui.Font;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.ItemStack;
-
 import buildcraft.builders.container.ContainerFiller;
+import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BuildCraftGui;
 import buildcraft.lib.gui.GuiIcon;
 import buildcraft.lib.gui.ledger.Ledger_Neptune;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class LedgerFillerProgress extends Ledger_Neptune {
-    private final ContainerFiller container;
+   private final ContainerFiller container;
 
-    public LedgerFillerProgress(BuildCraftGui gui, ContainerFiller container) {
-        super(gui, 0x6CD41F, true);
-        this.title = "gui.progress";
-        this.container = container;
-    }
+   public LedgerFillerProgress(BuildCraftGui gui, ContainerFiller container) {
+      super(gui, 7132191, true);
+      this.title = "gui.progress";
+      this.container = container;
+   }
 
-    @Override
-    protected void calculateMaxSize() {
-        Font font = Minecraft.getInstance().font;
-        int overhead = 2 + 16 + LEDGER_GAP + LEDGER_GAP + 2;
+   @Override
+   protected void calculateMaxSize() {
+      Font font = Minecraft.getInstance().font;
+      int overhead = 28;
+      int row1 = 20 + font.width(String.valueOf(this.container.getSyncedToBreak()));
+      int row2 = 20 + font.width(String.valueOf(this.container.getSyncedToPlace()));
+      int titleW = font.width(this.getTitle());
+      int contentW = Math.max(Math.max(row1, row2), titleW);
+      this.maxWidth = Math.max(22, overhead + contentW);
+      this.maxHeight = Math.max(24, 4 + 9 + 3 + 36 + 4);
+   }
 
-        int row1 = 16 + LEDGER_GAP + font.width(String.valueOf(container.getSyncedToBreak()));
-        int row2 = 16 + LEDGER_GAP + font.width(String.valueOf(container.getSyncedToPlace()));
-        int titleW = font.width(getTitle());
-        int contentW = Math.max(Math.max(row1, row2), titleW);
+   @Override
+   protected void drawIcon(double x, double y, BCGraphics graphics) {
+      graphics.fakeItem(new ItemStack(Items.IRON_INGOT), (int)x, (int)y);
+   }
 
-        maxWidth = Math.max(CLOSED_WIDTH, overhead + contentW);
-
-        maxHeight = Math.max(CLOSED_HEIGHT, LEDGER_GAP + (font.lineHeight + 3) + 2 * 18 + LEDGER_GAP);
-    }
-
-    @Override
-    protected void drawIcon(double x, double y, BCGraphics graphics) {
-        graphics.fakeItem(new ItemStack(Items.IRON_INGOT), (int) x, (int) y);
-    }
-
-    @Override
-    public void drawBackground(float partialTicks) {
-        super.drawBackground(partialTicks);
-
-        BCGraphics graphics = GuiIcon.getGuiGraphics();
-        if (graphics == null) return;
-
-        if (interpWidth > CLOSED_WIDTH + 10) {
-            int scissorX = (int) getX() + 2;
-            int scissorY = (int) getY() + 4;
-            int scissorW = (int) (interpWidth - LEDGER_GAP);
-            int scissorH = (int) (interpHeight - LEDGER_GAP * 2);
+   @Override
+   public void drawBackground(float partialTicks) {
+      super.drawBackground(partialTicks);
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
+      if (graphics != null) {
+         if (this.interpWidth > 32.0) {
+            int scissorX = (int)this.getX() + 2;
+            int scissorY = (int)this.getY() + 4;
+            int scissorW = (int)(this.interpWidth - 4.0);
+            int scissorH = (int)(this.interpHeight - 8.0);
             graphics.enableScissor(scissorX, scissorY, scissorX + scissorW, scissorY + scissorH);
-
-            double iconX = getX() + 2;
-            double iconY = getY() + 4;
-
-            int textX = (int) iconX + 16 + LEDGER_GAP;
-            int textY = (int) iconY + 1;
-
+            double iconX = this.getX() + 2.0;
+            double iconY = this.getY() + 4.0;
+            int textX = (int)iconX + 16 + 4;
+            int textY = (int)iconY + 1;
             Font font = Minecraft.getInstance().font;
-            textY += font.lineHeight + 3;
-
+            textY += 9 + 3;
             graphics.fakeItem(new ItemStack(Items.IRON_PICKAXE), textX, textY);
-            graphics.text(font, String.valueOf(container.getSyncedToBreak()), textX + 20, textY + 4, 0xFF333333 | 0xFF000000, false);
-
+            graphics.text(font, String.valueOf(this.container.getSyncedToBreak()), textX + 20, textY + 4, -13421773, false);
             textY += 18;
-
             graphics.fakeItem(new ItemStack(Items.BRICKS), textX, textY);
-            graphics.text(font, String.valueOf(container.getSyncedToPlace()), textX + 20, textY + 4, 0xFF333333 | 0xFF000000, false);
-
+            graphics.text(font, String.valueOf(this.container.getSyncedToPlace()), textX + 20, textY + 4, -13421773, false);
             graphics.disableScissor();
-        }
-    }
+         }
+      }
+   }
 }

@@ -1,54 +1,48 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.gui.button;
 
 import net.minecraft.resources.Identifier;
 
-import net.minecraft.world.InteractionResult;
-
-@SuppressWarnings("deprecation")
 public class ButtonTextureSet implements IButtonTextureSet {
-    private final Identifier texture;
-    private final int x, y, height, width;
+   private final Identifier texture;
+   private final int x;
+   private final int y;
+   private final int height;
+   private final int width;
 
-    public ButtonTextureSet(int x, int y, int height, int width) {
-        this(x, y, height, width, StandardButtonTextureSets.BUTTON_TEXTURES);
-    }
+   public ButtonTextureSet(int x, int y, int height, int width) {
+      this(x, y, height, width, StandardButtonTextureSets.BUTTON_TEXTURES);
+   }
 
-    public ButtonTextureSet(int x, int y, int height, int width, Identifier texture) {
-        this.x = x;
-        this.y = y;
-        this.height = height;
-        this.width = width;
-        this.texture = texture;
-    }
+   public ButtonTextureSet(int x, int y, int height, int width, Identifier texture) {
+      this.x = x;
+      this.y = y;
+      this.height = height;
+      this.width = width;
+      this.texture = texture;
+   }
 
-    @Override
-    public int getX() {
-        return x;
-    }
+   @Override
+   public int getX() {
+      return this.x;
+   }
 
-    @Override
-    public int getY() {
-        return y;
-    }
+   @Override
+   public int getY() {
+      return this.y;
+   }
 
-    @Override
-    public int getHeight() {
-        return height;
-    }
+   @Override
+   public int getHeight() {
+      return this.height;
+   }
 
-    @Override
-    public int getWidth() {
-        return width;
-    }
+   @Override
+   public int getWidth() {
+      return this.width;
+   }
 
-    @Override
-    public Identifier getTexture() {
-        return texture;
-    }
+   @Override
+   public Identifier getTexture() {
+      return this.texture;
+   }
 }

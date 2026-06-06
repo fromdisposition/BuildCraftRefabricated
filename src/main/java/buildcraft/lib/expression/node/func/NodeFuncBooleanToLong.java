@@ -1,135 +1,117 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.expression.node.func;
 
-import java.util.Objects;
-
 import buildcraft.lib.expression.NodeInliningHelper;
-import buildcraft.lib.expression.api.IDependantNode;
 import buildcraft.lib.expression.api.IDependancyVisitor;
-import buildcraft.lib.expression.api.IExpressionNode.INodeBoolean;
-import buildcraft.lib.expression.api.IExpressionNode.INodeDouble;
-import buildcraft.lib.expression.api.IExpressionNode.INodeLong;
-import buildcraft.lib.expression.api.IExpressionNode.INodeObject;
-import buildcraft.lib.expression.api.INodeFunc.INodeFuncLong;
+import buildcraft.lib.expression.api.IDependantNode;
+import buildcraft.lib.expression.api.IExpressionNode;
+import buildcraft.lib.expression.api.INodeFunc;
 import buildcraft.lib.expression.api.INodeStack;
 import buildcraft.lib.expression.api.InvalidExpressionException;
-import buildcraft.lib.expression.api.NodeTypes;
-import buildcraft.lib.expression.node.func.StringFunctionBi;
-import buildcraft.lib.expression.node.func.NodeFuncBase;
-import buildcraft.lib.expression.node.func.NodeFuncBase.IFunctionNode;
 import buildcraft.lib.expression.node.value.NodeConstantLong;
+import java.util.Objects;
 
-public class NodeFuncBooleanToLong extends NodeFuncBase implements INodeFuncLong {
+public class NodeFuncBooleanToLong extends NodeFuncBase implements INodeFunc.INodeFuncLong {
+   public final NodeFuncBooleanToLong.IFuncBooleanToLong function;
+   private final StringFunctionBi stringFunction;
 
-    public final IFuncBooleanToLong function;
-    private final StringFunctionBi stringFunction;
+   public NodeFuncBooleanToLong(String name, NodeFuncBooleanToLong.IFuncBooleanToLong function) {
+      this(function, a -> "[ boolean -> long ] " + name + "(" + a + ")");
+   }
 
-    public NodeFuncBooleanToLong(String name, IFuncBooleanToLong function) {
-        this(function, (a) -> "[ boolean -> long ] " + name + "(" + a +  ")");
-    }
+   public NodeFuncBooleanToLong(NodeFuncBooleanToLong.IFuncBooleanToLong function, StringFunctionBi stringFunction) {
+      this.function = function;
+      this.stringFunction = stringFunction;
+   }
 
-    public NodeFuncBooleanToLong(IFuncBooleanToLong function, StringFunctionBi stringFunction) {
+   @Override
+   public String toString() {
+      return this.stringFunction.apply("{A}");
+   }
 
-        this.function = function;
-        this.stringFunction = stringFunction;
-    }
+   public NodeFuncBooleanToLong setNeverInline() {
+      super.setNeverInline();
+      return this;
+   }
 
-    @Override
-    public String toString() {
-        return stringFunction.apply("{A}");
-    }
+   @Override
+   public IExpressionNode.INodeLong getNode(INodeStack stack) throws InvalidExpressionException {
+      IExpressionNode.INodeBoolean a = stack.popBoolean();
+      return this.create(a);
+   }
 
-    @Override
-    public NodeFuncBooleanToLong setNeverInline() {
-        super.setNeverInline();
-        return this;
-    }
+   public NodeFuncBooleanToLong.FuncBooleanToLong create(IExpressionNode.INodeBoolean argA) {
+      return new NodeFuncBooleanToLong.FuncBooleanToLong(argA);
+   }
 
-    @Override
-    public INodeLong getNode(INodeStack stack) throws InvalidExpressionException {
+   public class FuncBooleanToLong implements IExpressionNode.INodeLong, IDependantNode, NodeFuncBase.IFunctionNode {
+      public final IExpressionNode.INodeBoolean argA;
 
-        INodeBoolean a = stack.popBoolean();
+      public FuncBooleanToLong(IExpressionNode.INodeBoolean argA) {
+         this.argA = argA;
+      }
 
-        return create(a);
-    }
+      @Override
+      public long evaluate() {
+         return NodeFuncBooleanToLong.this.function.apply(this.argA.evaluate());
+      }
 
-    public FuncBooleanToLong create(INodeBoolean argA) {
-        return new FuncBooleanToLong(argA);
-    }
-
-    public class FuncBooleanToLong implements INodeLong, IDependantNode, IFunctionNode {
-        public final INodeBoolean argA;
-
-        public FuncBooleanToLong(INodeBoolean argA) {
-            this.argA = argA;
-
-        }
-
-        @Override
-        public long evaluate() {
-            return function.apply(argA.evaluate());
-        }
-
-        @Override
-        public INodeLong inline() {
-            if (!canInline) {
-
-                return NodeInliningHelper.tryInline(this, argA,
-                    (a) -> new FuncBooleanToLong(a),
-                    (a) -> new FuncBooleanToLong(a)
-                );
-            }
-            return NodeInliningHelper.tryInline(this, argA,
-                (a) -> new FuncBooleanToLong(a),
-                (a) -> NodeConstantLong.of(function.apply(a.evaluate()))
+      @Override
+      public IExpressionNode.INodeLong inline() {
+         return !NodeFuncBooleanToLong.this.canInline
+            ? NodeInliningHelper.tryInline(
+               this, this.argA, a -> NodeFuncBooleanToLong.this.new FuncBooleanToLong(a), a -> NodeFuncBooleanToLong.this.new FuncBooleanToLong(a)
+            )
+            : NodeInliningHelper.tryInline(
+               this,
+               this.argA,
+               a -> NodeFuncBooleanToLong.this.new FuncBooleanToLong(a),
+               a -> NodeConstantLong.of(NodeFuncBooleanToLong.this.function.apply(a.evaluate()))
             );
-        }
+      }
 
-        @Override
-        public void visitDependants(IDependancyVisitor visitor) {
-            if (!canInline) {
-                if (function instanceof IDependantNode) {
-                    visitor.dependOn((IDependantNode) function);
-                } else {
-                    visitor.dependOnExplictly(this);
-                }
+      @Override
+      public void visitDependants(IDependancyVisitor visitor) {
+         if (!NodeFuncBooleanToLong.this.canInline) {
+            if (NodeFuncBooleanToLong.this.function instanceof IDependantNode) {
+               visitor.dependOn((IDependantNode)NodeFuncBooleanToLong.this.function);
+            } else {
+               visitor.dependOnExplictly(this);
             }
-            visitor.dependOn(argA);
-        }
+         }
 
-        @Override
-        public String toString() {
-            return stringFunction.apply(argA.toString());
-        }
+         visitor.dependOn(this.argA);
+      }
 
-        @Override
-        public NodeFuncBase getFunction() {
-            return NodeFuncBooleanToLong.this;
-        }
+      @Override
+      public String toString() {
+         return NodeFuncBooleanToLong.this.stringFunction.apply(this.argA.toString());
+      }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(argA);
-        }
+      @Override
+      public NodeFuncBase getFunction() {
+         return NodeFuncBooleanToLong.this;
+      }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) return true;
-            if (obj == null || getClass() != obj.getClass()) {
-                return false;
-            }
-            FuncBooleanToLong other = (FuncBooleanToLong) obj;
-            return Objects.equals(argA, other.argA);
-        }
-    }
+      @Override
+      public int hashCode() {
+         return Objects.hash(this.argA);
+      }
 
-    @FunctionalInterface
-    public interface IFuncBooleanToLong {
-        long apply(boolean a);
-    }
+      @Override
+      public boolean equals(Object obj) {
+         if (obj == this) {
+            return true;
+         } else if (obj != null && this.getClass() == obj.getClass()) {
+            NodeFuncBooleanToLong.FuncBooleanToLong other = (NodeFuncBooleanToLong.FuncBooleanToLong)obj;
+            return Objects.equals(this.argA, other.argA);
+         } else {
+            return false;
+         }
+      }
+   }
+
+   @FunctionalInterface
+   public interface IFuncBooleanToLong {
+      long apply(boolean var1);
+   }
 }

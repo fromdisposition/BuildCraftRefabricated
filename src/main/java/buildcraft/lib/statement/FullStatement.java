@@ -1,207 +1,193 @@
 package buildcraft.lib.statement;
 
-import java.io.IOException;
-import java.util.Arrays;
-
-import net.minecraft.nbt.CompoundTag;
-
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementParameter;
-
 import buildcraft.lib.misc.data.IReference;
 import buildcraft.lib.net.PacketBufferBC;
+import java.io.IOException;
+import java.util.Arrays;
+import net.minecraft.nbt.CompoundTag;
 
 public class FullStatement<S extends IStatement> implements IReference<S> {
-    public final StatementType<S> type;
-    public final int maxParams;
-    public boolean canInteract = true;
-    private final IStatementChangeListener listener;
-    private final IStatementParameter[] params;
-    private final ParamRef[] paramRefs;
-    private S statement;
+   public final StatementType<S> type;
+   public final int maxParams;
+   public boolean canInteract = true;
+   private final FullStatement.IStatementChangeListener listener;
+   private final IStatementParameter[] params;
+   private final FullStatement.ParamRef[] paramRefs;
+   private S statement;
 
-    public FullStatement(StatementType<S> type, int maxParams, IStatementChangeListener listener) {
-        this.type = type;
-        this.statement = type.defaultStatement;
-        this.listener = listener;
-        this.maxParams = maxParams;
-        this.params = new IStatementParameter[maxParams];
-        this.paramRefs = new FullStatement.ParamRef[maxParams];
-        for (int i = 0; i < maxParams; i++) {
-            paramRefs[i] = new ParamRef(this, i);
-        }
-    }
+   public FullStatement(StatementType<S> type, int maxParams, FullStatement.IStatementChangeListener listener) {
+      this.type = type;
+      this.statement = type.defaultStatement;
+      this.listener = listener;
+      this.maxParams = maxParams;
+      this.params = new IStatementParameter[maxParams];
+      this.paramRefs = new FullStatement.ParamRef[maxParams];
 
-    public void readFromNbt(CompoundTag nbt) {
-        statement = type.readFromNbt(nbt.getCompound("s").orElse(new CompoundTag()));
-        if (statement == null) {
-            Arrays.fill(params, null);
-        } else {
-            for (int p = 0; p < params.length; p++) {
-                CompoundTag pNbt = nbt.getCompound(Integer.toString(p)).orElse(new CompoundTag());
-                params[p] = StatementTypeParam.INSTANCE.readFromNbt(pNbt);
+      for (int i = 0; i < maxParams; i++) {
+         this.paramRefs[i] = new FullStatement.ParamRef(this, i);
+      }
+   }
+
+   public void readFromNbt(CompoundTag nbt) {
+      this.statement = this.type.readFromNbt(nbt.getCompound("s").orElse(new CompoundTag()));
+      if (this.statement == null) {
+         Arrays.fill(this.params, null);
+      } else {
+         for (int p = 0; p < this.params.length; p++) {
+            CompoundTag pNbt = nbt.getCompound(Integer.toString(p)).orElse(new CompoundTag());
+            this.params[p] = StatementTypeParam.INSTANCE.readFromNbt(pNbt);
+         }
+      }
+   }
+
+   public CompoundTag writeToNbt() {
+      CompoundTag nbt = new CompoundTag();
+      if (this.statement != null) {
+         nbt.put("s", this.type.writeToNbt(this.statement));
+
+         for (int p = 0; p < this.params.length; p++) {
+            IStatementParameter param = this.params[p];
+            if (param != null) {
+               nbt.put(Integer.toString(p), StatementTypeParam.INSTANCE.writeToNbt(param));
             }
-        }
-    }
+         }
+      }
 
-    public CompoundTag writeToNbt() {
-        CompoundTag nbt = new CompoundTag();
-        if (statement != null) {
-            nbt.put("s", type.writeToNbt(statement));
-            for (int p = 0; p < params.length; p++) {
-                IStatementParameter param = params[p];
-                if (param != null) {
-                    nbt.put(Integer.toString(p), StatementTypeParam.INSTANCE.writeToNbt(param));
-                }
-            }
-        }
-        return nbt;
-    }
+      return nbt;
+   }
 
-    public void readFromBuffer(PacketBufferBC buffer) throws IOException {
-        if (buffer.readBoolean()) {
-            statement = type.readFromBuffer(buffer);
-            for (int p = 0; p < params.length; p++) {
-                params[p] = StatementTypeParam.INSTANCE.readFromBuffer(buffer);
-            }
-        } else {
-            statement = type.defaultStatement;
-            Arrays.fill(params, null);
-        }
-    }
+   public void readFromBuffer(PacketBufferBC buffer) throws IOException {
+      if (buffer.readBoolean()) {
+         this.statement = this.type.readFromBuffer(buffer);
 
-    public void writeToBuffer(PacketBufferBC buffer) {
-        if (statement == null) {
-            buffer.writeBoolean(false);
-        } else {
-            buffer.writeBoolean(true);
-            type.writeToBuffer(buffer, statement);
-            for (int p = 0; p < params.length; p++) {
-                IStatementParameter param = params[p];
-                StatementTypeParam.INSTANCE.writeToBuffer(buffer, param);
-            }
-        }
-    }
+         for (int p = 0; p < this.params.length; p++) {
+            this.params[p] = StatementTypeParam.INSTANCE.readFromBuffer(buffer);
+         }
+      } else {
+         this.statement = this.type.defaultStatement;
+         Arrays.fill(this.params, null);
+      }
+   }
 
-    @Override
-    public S get() {
-        return statement;
-    }
+   public void writeToBuffer(PacketBufferBC buffer) {
+      if (this.statement == null) {
+         buffer.writeBoolean(false);
+      } else {
+         buffer.writeBoolean(true);
+         this.type.writeToBuffer(buffer, this.statement);
 
-    @Override
-    public void set(S to) {
-        statement = to;
-        if (statement == null) {
-            Arrays.fill(params, null);
-            return;
-        }
-        for (int i = 0; i < params.length; i++) {
-            if (i > statement.maxParameters()) {
-                params[i] = null;
+         for (int p = 0; p < this.params.length; p++) {
+            IStatementParameter param = this.params[p];
+            StatementTypeParam.INSTANCE.writeToBuffer(buffer, param);
+         }
+      }
+   }
+
+   public S get() {
+      return this.statement;
+   }
+
+   public void set(S to) {
+      this.statement = to;
+      if (this.statement == null) {
+         Arrays.fill(this.params, null);
+      } else {
+         for (int i = 0; i < this.params.length; i++) {
+            if (i > this.statement.maxParameters()) {
+               this.params[i] = null;
             } else {
-                params[i] = statement.createParameter(params[i], i);
+               this.params[i] = this.statement.createParameter(this.params[i], i);
             }
-        }
-    }
+         }
+      }
+   }
 
-    @Override
-    public boolean canSet(S value) {
-        if (value == null) {
-            return true;
-        }
-        return value.minParameters() <= params.length;
-    }
+   public boolean canSet(S value) {
+      return value == null ? true : value.minParameters() <= this.params.length;
+   }
 
-    @Override
-    public S convertToType(Object value) {
-        S val = IReference.super.convertToType(value);
-        if (value != null && val == null) {
-            return type.convertToType(value);
-        }
-        return val;
-    }
+   public S convertToType(Object value) {
+      S val = (S)IReference.super.convertToType(value);
+      return value != null && val == null ? this.type.convertToType(value) : val;
+   }
 
-    @Override
-    public Class<S> getHeldType() {
-        return type.clazz;
-    }
+   @Override
+   public Class<S> getHeldType() {
+      return this.type.clazz;
+   }
 
-    static class ParamRef implements IReference<IStatementParameter> {
-        public final IReference<? extends IStatement> statementRef;
-        public final IStatementParameter[] array;
-        public final int index;
+   public IReference<IStatementParameter> getParamRef(int i) {
+      return this.paramRefs[i];
+   }
 
-        public ParamRef(FullStatement<?> full, int index) {
-            statementRef = full;
-            this.array = full.params;
-            this.index = index;
-        }
+   public IStatementParameter get(int index) {
+      return this.getParamRef(index).get();
+   }
 
-        @Override
-        public IStatementParameter get() {
-            return array[index];
-        }
+   public void set(int index, IStatementParameter param) {
+      this.getParamRef(index).set(param);
+   }
 
-        @Override
-        public void set(IStatementParameter to) {
-            array[index] = to;
-        }
+   public void set(S statement, IStatementParameter[] params) {
+      this.set(statement);
 
-        @Override
-        public boolean canSet(IStatementParameter value) {
-            IStatement statement = statementRef.get();
-            if (statement == null) {
-                return false;
-            }
-            return statement.createParameter(value, index) == value;
-        }
+      for (int i = Math.min(this.getParamCount(), params.length) - 1; i > 0; i--) {
+         this.set(i, params[i]);
+      }
+   }
 
-        @Override
-        public Class<IStatementParameter> getHeldType() {
-            return IStatementParameter.class;
-        }
-    }
+   public boolean canSet(int index, IStatementParameter param) {
+      return this.getParamRef(index).canSet(param);
+   }
 
-    public IReference<IStatementParameter> getParamRef(int i) {
-        return paramRefs[i];
-    }
+   public int getParamCount() {
+      return this.params.length;
+   }
 
-    public IStatementParameter get(int index) {
-        return getParamRef(index).get();
-    }
+   public IStatementParameter[] getParameters() {
+      return this.params;
+   }
 
-    public void set(int index, IStatementParameter param) {
-        getParamRef(index).set(param);
-    }
+   public void postSetFromGui(int paramIndex) {
+      if (this.listener != null) {
+         this.listener.onChange(this, paramIndex);
+      }
+   }
 
-    public void set(S statement, IStatementParameter[] params) {
-        set(statement);
-        for (int i = Math.min(getParamCount(), params.length) - 1; i > 0; i--) {
-            set(i, params[i]);
-        }
-    }
+   @FunctionalInterface
+   public interface IStatementChangeListener {
+      void onChange(FullStatement<?> var1, int var2);
+   }
 
-    public boolean canSet(int index, IStatementParameter param) {
-        return getParamRef(index).canSet(param);
-    }
+   static class ParamRef implements IReference<IStatementParameter> {
+      public final IReference<? extends IStatement> statementRef;
+      public final IStatementParameter[] array;
+      public final int index;
 
-    public int getParamCount() {
-        return params.length;
-    }
+      public ParamRef(FullStatement<?> full, int index) {
+         this.statementRef = (IReference<? extends IStatement>)full;
+         this.array = full.params;
+         this.index = index;
+      }
 
-    public IStatementParameter[] getParameters() {
-        return params;
-    }
+      public IStatementParameter get() {
+         return this.array[this.index];
+      }
 
-    public void postSetFromGui(int paramIndex) {
-        if (listener != null) {
-            listener.onChange(this, paramIndex);
-        }
-    }
+      public void set(IStatementParameter to) {
+         this.array[this.index] = to;
+      }
 
-    @FunctionalInterface
-    public interface IStatementChangeListener {
+      public boolean canSet(IStatementParameter value) {
+         IStatement statement = this.statementRef.get();
+         return statement == null ? false : statement.createParameter(value, this.index) == value;
+      }
 
-        void onChange(FullStatement<?> statement, int paramIndex);
-    }
+      @Override
+      public Class<IStatementParameter> getHeldType() {
+         return IStatementParameter.class;
+      }
+   }
 }

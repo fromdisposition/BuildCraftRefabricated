@@ -1,35 +1,24 @@
-/*
- * Copyright (c) 2017 SpaceToad and the BuildCraft team
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
- */
-
 package buildcraft.lib.inventory.filter;
 
-import net.minecraft.resources.Identifier;
-
+import buildcraft.api.core.IStackFilter;
 import javax.annotation.Nonnull;
-
 import net.minecraft.world.item.ItemStack;
 
-import buildcraft.api.core.IStackFilter;
-
 public class AggregateFilter implements IStackFilter {
+   private final IStackFilter[] filters;
 
-    private final IStackFilter[] filters;
+   public AggregateFilter(IStackFilter... iFilters) {
+      this.filters = iFilters;
+   }
 
-    public AggregateFilter(IStackFilter... iFilters) {
-        filters = iFilters;
-    }
+   @Override
+   public boolean matches(@Nonnull ItemStack stack) {
+      for (IStackFilter f : this.filters) {
+         if (!f.matches(stack)) {
+            return false;
+         }
+      }
 
-    @Override
-    public boolean matches(@Nonnull ItemStack stack) {
-        for (IStackFilter f : filters) {
-            if (!f.matches(stack)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
+      return true;
+   }
 }

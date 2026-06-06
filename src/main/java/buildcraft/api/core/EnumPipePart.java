@@ -1,129 +1,112 @@
 package buildcraft.api.core;
 
+import com.google.common.collect.Maps;
 import java.util.Locale;
 import java.util.Map;
-
-import com.google.common.collect.Maps;
-
-import net.minecraft.nbt.Tag;
-import net.minecraft.nbt.NumericTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.util.StringRepresentable;
 
 public enum EnumPipePart implements StringRepresentable {
-    DOWN(Direction.DOWN),
-    UP(Direction.UP),
-    NORTH(Direction.NORTH),
-    SOUTH(Direction.SOUTH),
-    WEST(Direction.WEST),
-    EAST(Direction.EAST),
+   DOWN(Direction.DOWN),
+   UP(Direction.UP),
+   NORTH(Direction.NORTH),
+   SOUTH(Direction.SOUTH),
+   WEST(Direction.WEST),
+   EAST(Direction.EAST),
+   CENTER(null);
 
-    CENTER(null);
+   public static final EnumPipePart[] VALUES = values();
+   public static final EnumPipePart[] FACES;
+   public static final EnumPipePart[] HORIZONTALS;
+   private static final Map<Direction, EnumPipePart> facingMap = Maps.newEnumMap(Direction.class);
+   private static final Map<String, EnumPipePart> nameMap = Maps.newHashMap();
+   private static final int MAX_VALUES = values().length;
+   public final Direction face;
 
-    public static final EnumPipePart[] VALUES = values();
-    public static final EnumPipePart[] FACES;
-    public static final EnumPipePart[] HORIZONTALS;
+   private static EnumPipePart[] fromFacingArray(Direction... faces) {
+      EnumPipePart[] arr = new EnumPipePart[faces.length];
 
-    private static final Map<Direction, EnumPipePart> facingMap = Maps.newEnumMap(Direction.class);
-    private static final Map<String, EnumPipePart> nameMap = Maps.newHashMap();
-    private static final int MAX_VALUES = values().length;
+      for (int i = 0; i < faces.length; i++) {
+         arr[i] = fromFacing(faces[i]);
+      }
 
-    public final Direction face;
+      return arr;
+   }
 
-    static {
-        for (EnumPipePart part : values()) {
-            nameMap.put(part.name(), part);
-            if (part.face != null)
-                facingMap.put(part.face, part);
-        }
-        FACES = fromFacingArray(Direction.values());
-        HORIZONTALS = fromFacingArray(new Direction[0]);
-    }
+   public static int ordinal(Direction face) {
+      return face == null ? 6 : face.ordinal();
+   }
 
-    private static EnumPipePart[] fromFacingArray(Direction... faces) {
-        EnumPipePart[] arr = new EnumPipePart[faces.length];
-        for (int i = 0; i < faces.length; i++) {
-            arr[i] = fromFacing(faces[i]);
-        }
-        return arr;
-    }
+   public static EnumPipePart fromFacing(Direction face) {
+      return face == null ? CENTER : facingMap.get(face);
+   }
 
-    public static int ordinal(Direction face) {
-        return face == null ? 6 : face.ordinal();
-    }
+   public static EnumPipePart[] validFaces() {
+      return FACES;
+   }
 
-    public static EnumPipePart fromFacing(Direction face) {
-        if (face == null) {
-            return EnumPipePart.CENTER;
-        }
-        return facingMap.get(face);
-    }
+   public static EnumPipePart fromMeta(int meta) {
+      return meta >= 0 && meta < MAX_VALUES ? VALUES[meta] : CENTER;
+   }
 
-    public static EnumPipePart[] validFaces() {
-        return FACES;
-    }
+   EnumPipePart(Direction face) {
+      this.face = face;
+   }
 
-    public static EnumPipePart fromMeta(int meta) {
-        if (meta < 0 || meta >= MAX_VALUES) {
-            return EnumPipePart.CENTER;
-        }
-        return VALUES[meta];
-    }
+   public int getIndex() {
+      return this.face == null ? 6 : this.face.get3DDataValue();
+   }
 
-    EnumPipePart(Direction face) {
-        this.face = face;
-    }
+   public String getSerializedName() {
+      return this.name().toLowerCase(Locale.ROOT);
+   }
 
-    public int getIndex() {
-        if (face == null)
-            return 6;
-        return face.get3DDataValue();
-    }
+   public EnumPipePart next() {
+      switch (this) {
+         case DOWN:
+            return EAST;
+         case UP:
+            return WEST;
+         case NORTH:
+            return SOUTH;
+         case SOUTH:
+            return UP;
+         case WEST:
+            return DOWN;
+         case EAST:
+            return NORTH;
+         default:
+            return DOWN;
+      }
+   }
 
-    @Override
-    public String getSerializedName() {
-        return name().toLowerCase(Locale.ROOT);
-    }
+   public EnumPipePart opposite() {
+      return this == CENTER ? CENTER : fromFacing(this.face.getOpposite());
+   }
 
-    public EnumPipePart next() {
-        switch (this) {
-            case DOWN:
-                return EAST;
-            case EAST:
-                return NORTH;
-            case NORTH:
-                return SOUTH;
-            case SOUTH:
-                return UP;
-            case UP:
-                return WEST;
-            case WEST:
-                return DOWN;
-            default:
-                return DOWN;
-        }
-    }
+   public static EnumPipePart readFromNBT(Tag base) {
+      if (base == null) {
+         return CENTER;
+      } else {
+         return base instanceof StringTag ? CENTER : CENTER;
+      }
+   }
 
-    public EnumPipePart opposite() {
-        if (this == CENTER) {
-            return CENTER;
-        }
-        return fromFacing(face.getOpposite());
-    }
+   public Tag writeToNBT() {
+      return StringTag.valueOf(this.name());
+   }
 
-    public static EnumPipePart readFromNBT(Tag base) {
-        if (base == null) {
-            return CENTER;
-        }
-        if (base instanceof StringTag) {
-            return CENTER;
-        } else {
-            return CENTER;
-        }
-    }
+   static {
+      for (EnumPipePart part : values()) {
+         nameMap.put(part.name(), part);
+         if (part.face != null) {
+            facingMap.put(part.face, part);
+         }
+      }
 
-    public Tag writeToNBT() {
-        return net.minecraft.nbt.StringTag.valueOf(name());
-    }
+      FACES = fromFacingArray(Direction.values());
+      HORIZONTALS = fromFacingArray();
+   }
 }

@@ -3,32 +3,24 @@ package buildcraft.lib.client.guide.parts;
 import buildcraft.lib.client.guide.GuiGuide;
 
 public class GuidePartNewPage extends GuidePart {
+   private final int minPixelThreshold;
 
-    private final int minPixelThreshold;
+   public GuidePartNewPage(GuiGuide gui) {
+      this(gui, 0);
+   }
 
-    public GuidePartNewPage(GuiGuide gui) {
-        this(gui, 0);
-    }
+   public GuidePartNewPage(GuiGuide gui, int minPixelThreshold) {
+      super(gui);
+      this.minPixelThreshold = minPixelThreshold;
+   }
 
-    public GuidePartNewPage(GuiGuide gui, int minPixelThreshold) {
-        super(gui);
-        this.minPixelThreshold = minPixelThreshold;
-    }
+   @Override
+   public GuidePart.PagePosition renderIntoArea(int x, int y, int width, int height, GuidePart.PagePosition current, int index) {
+      return current.pixel < this.minPixelThreshold ? current : current.newPage();
+   }
 
-    @Override
-    public PagePosition renderIntoArea(int x, int y, int width, int height, PagePosition current, int index) {
-        if (current.pixel < minPixelThreshold) {
-            return current;
-        }
-        return current.newPage();
-    }
-
-    @Override
-    public PagePosition handleMouseClick(int x, int y, int width, int height, PagePosition current, int index,
-        int mouseX, int mouseY) {
-        if (current.pixel < minPixelThreshold) {
-            return current;
-        }
-        return current.newPage();
-    }
+   @Override
+   public GuidePart.PagePosition handleMouseClick(int x, int y, int width, int height, GuidePart.PagePosition current, int index, int mouseX, int mouseY) {
+      return current.pixel < this.minPixelThreshold ? current : current.newPage();
+   }
 }

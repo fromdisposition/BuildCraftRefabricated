@@ -1,69 +1,56 @@
 package buildcraft.silicon;
 
-import buildcraft.fabric.registry.DeferredRegister;
-import buildcraft.fabric.registry.DeferredItem;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
-
+import buildcraft.fabric.BCRegistries;
 import buildcraft.silicon.item.ItemGateCopier;
 import buildcraft.silicon.item.ItemPluggableFacade;
 import buildcraft.silicon.item.ItemPluggableGate;
 import buildcraft.silicon.item.ItemPluggableLens;
+import buildcraft.silicon.item.ItemPluggableLightSensor;
 import buildcraft.silicon.item.ItemPluggablePulsar;
+import buildcraft.silicon.item.ItemPluggableTimer;
+import java.util.Objects;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 
-public class BCSiliconItems {
-    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(BCSilicon.MODID);
+public final class BCSiliconItems {
+   public static BlockItem LASER;
+   public static BlockItem ASSEMBLY_TABLE;
+   public static BlockItem ADVANCED_CRAFTING_TABLE;
+   public static BlockItem INTEGRATION_TABLE;
+   public static Item CHIPSET_REDSTONE;
+   public static Item CHIPSET_IRON;
+   public static Item CHIPSET_GOLD;
+   public static Item CHIPSET_QUARTZ;
+   public static Item CHIPSET_DIAMOND;
+   public static ItemGateCopier GATE_COPIER;
+   public static ItemPluggableFacade PLUG_FACADE;
+   public static ItemPluggableGate PLUG_GATE;
+   public static ItemPluggablePulsar PLUG_PULSAR;
+   public static ItemPluggableLens PLUG_LENS;
+   public static ItemPluggableLightSensor PLUG_LIGHT_SENSOR;
+   public static ItemPluggableTimer PLUG_TIMER;
 
-    public static final DeferredItem<BlockItem> LASER =
-            ITEMS.registerSimpleBlockItem(BCSiliconBlocks.LASER);
+   private BCSiliconItems() {
+   }
 
-    public static final DeferredItem<BlockItem> ASSEMBLY_TABLE =
-            ITEMS.registerSimpleBlockItem(BCSiliconBlocks.ASSEMBLY_TABLE);
-
-    public static final DeferredItem<BlockItem> ADVANCED_CRAFTING_TABLE =
-            ITEMS.registerSimpleBlockItem(BCSiliconBlocks.ADVANCED_CRAFTING_TABLE);
-
-    public static final DeferredItem<BlockItem> INTEGRATION_TABLE =
-            ITEMS.registerSimpleBlockItem(BCSiliconBlocks.INTEGRATION_TABLE);
-
-    public static final DeferredItem<Item> CHIPSET_REDSTONE =
-            ITEMS.registerSimpleItem("chipset_redstone");
-
-    public static final DeferredItem<Item> CHIPSET_IRON =
-            ITEMS.registerSimpleItem("chipset_iron");
-
-    public static final DeferredItem<Item> CHIPSET_GOLD =
-            ITEMS.registerSimpleItem("chipset_gold");
-
-    public static final DeferredItem<Item> CHIPSET_QUARTZ =
-            ITEMS.registerSimpleItem("chipset_quartz");
-
-    public static final DeferredItem<Item> CHIPSET_DIAMOND =
-            ITEMS.registerSimpleItem("chipset_diamond");
-
-    public static final DeferredItem<ItemGateCopier> GATE_COPIER =
-            ITEMS.registerItem("gate_copier", ItemGateCopier::new);
-
-    public static final DeferredItem<ItemPluggableFacade> PLUG_FACADE =
-            ITEMS.registerItem("plug_facade", ItemPluggableFacade::new);
-
-    public static final DeferredItem<ItemPluggableGate> PLUG_GATE =
-            ITEMS.registerItem("plug_gate", ItemPluggableGate::new);
-
-    public static final DeferredItem<ItemPluggablePulsar> PLUG_PULSAR =
-            ITEMS.registerItem("plug_pulsar", ItemPluggablePulsar::new);
-
-    public static final DeferredItem<ItemPluggableLens> PLUG_LENS =
-            ITEMS.registerItem("plug_lens", ItemPluggableLens::new);
-
-    public static final DeferredItem<Item> PLUG_LIGHT_SENSOR =
-            ITEMS.registerItem("plug_light_sensor", props -> new buildcraft.lib.item.ItemPluggableSimple(props, buildcraft.silicon.BCSiliconPlugs.lightSensor, null));
-
-    public static final DeferredItem<Item> PLUG_TIMER =
-            ITEMS.registerItem("plug_timer", props -> new buildcraft.lib.item.ItemPluggableSimple(props, buildcraft.silicon.BCSiliconPlugs.timer, null));
-
-    public static void register() {
-        ITEMS.register();
-    }
+   public static void register() {
+      Objects.requireNonNull(BCSiliconPlugs.lightSensor, "BCSiliconPlugs.preInit() must run before BCSiliconItems.register()");
+      Objects.requireNonNull(BCSiliconPlugs.timer, "BCSiliconPlugs.preInit() must run before BCSiliconItems.register()");
+      LASER = BCRegistries.registerBlockItem("buildcraftsilicon", "laser", BCSiliconBlocks.LASER);
+      ASSEMBLY_TABLE = BCRegistries.registerBlockItem("buildcraftsilicon", "assembly_table", BCSiliconBlocks.ASSEMBLY_TABLE);
+      ADVANCED_CRAFTING_TABLE = BCRegistries.registerBlockItem("buildcraftsilicon", "advanced_crafting_table", BCSiliconBlocks.ADVANCED_CRAFTING_TABLE);
+      INTEGRATION_TABLE = BCRegistries.registerBlockItem("buildcraftsilicon", "integration_table", BCSiliconBlocks.INTEGRATION_TABLE);
+      CHIPSET_REDSTONE = BCRegistries.registerItem("buildcraftsilicon", "chipset_redstone", Item::new);
+      CHIPSET_IRON = BCRegistries.registerItem("buildcraftsilicon", "chipset_iron", Item::new);
+      CHIPSET_GOLD = BCRegistries.registerItem("buildcraftsilicon", "chipset_gold", Item::new);
+      CHIPSET_QUARTZ = BCRegistries.registerItem("buildcraftsilicon", "chipset_quartz", Item::new);
+      CHIPSET_DIAMOND = BCRegistries.registerItem("buildcraftsilicon", "chipset_diamond", Item::new);
+      GATE_COPIER = BCRegistries.registerItem("buildcraftsilicon", "gate_copier", ItemGateCopier::new);
+      PLUG_FACADE = BCRegistries.registerItem("buildcraftsilicon", "plug_facade", ItemPluggableFacade::new);
+      PLUG_GATE = BCRegistries.registerItem("buildcraftsilicon", "plug_gate", ItemPluggableGate::new);
+      PLUG_PULSAR = BCRegistries.registerItem("buildcraftsilicon", "plug_pulsar", ItemPluggablePulsar::new);
+      PLUG_LENS = BCRegistries.registerItem("buildcraftsilicon", "plug_lens", ItemPluggableLens::new);
+      PLUG_LIGHT_SENSOR = BCRegistries.registerItem("buildcraftsilicon", "plug_light_sensor", ItemPluggableLightSensor::new);
+      PLUG_TIMER = BCRegistries.registerItem("buildcraftsilicon", "plug_timer", ItemPluggableTimer::new);
+   }
 }
-

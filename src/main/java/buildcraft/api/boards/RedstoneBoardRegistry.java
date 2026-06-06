@@ -1,28 +1,22 @@
-/* Copyright (c) 2011-2015, SpaceToad and the BuildCraft Team http://www.mod-buildcraft.com
- *
- * The BuildCraft API is distributed under the terms of the MIT License. Please check the contents of the license, which
- * should be located as "LICENSE.API" in the BuildCraft source code distribution. */
 package buildcraft.api.boards;
 
 import java.util.Collection;
-
 import net.minecraft.nbt.CompoundTag;
 
 public abstract class RedstoneBoardRegistry {
+   public static RedstoneBoardRegistry instance;
 
-    public static RedstoneBoardRegistry instance;
+   public abstract void registerBoardType(RedstoneBoardNBT<?> var1, long var2);
 
-    public abstract void registerBoardType(RedstoneBoardNBT<?> redstoneBoardNBT, long microJoules);
+   public abstract void setEmptyRobotBoard(RedstoneBoardRobotNBT var1);
 
-    public abstract void setEmptyRobotBoard(RedstoneBoardRobotNBT redstoneBoardNBT);
+   public abstract RedstoneBoardRobotNBT getEmptyRobotBoard();
 
-    public abstract RedstoneBoardRobotNBT getEmptyRobotBoard();
+   public abstract RedstoneBoardNBT<?> getRedstoneBoard(CompoundTag var1);
 
-    public abstract RedstoneBoardNBT<?> getRedstoneBoard(CompoundTag nbt);
+   public abstract RedstoneBoardNBT<?> getRedstoneBoard(String var1);
 
-    public abstract RedstoneBoardNBT<?> getRedstoneBoard(String id);
+   public abstract Collection<RedstoneBoardNBT<?>> getAllBoardNBTs();
 
-    public abstract Collection<RedstoneBoardNBT<?>> getAllBoardNBTs();
-
-    public abstract long getPowerCost(RedstoneBoardNBT<?> board);
+   public abstract long getPowerCost(RedstoneBoardNBT<?> var1);
 }

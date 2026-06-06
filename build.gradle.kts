@@ -13,6 +13,7 @@ base {
 
 repositories {
     maven("https://maven.blamejared.com")
+    maven("https://maven.teamreborn.org")
 }
 
 loom {
@@ -36,6 +37,9 @@ dependencies {
     implementation("com.google.code.findbugs:jsr305:3.0.2")
 
     compileOnly("mezz.jei:jei-$mc-fabric-api:${providers.gradleProperty("jei_version").get()}")
+
+    val energyVersion = providers.gradleProperty("energy_version").get()
+    implementation(include("teamreborn:energy:$energyVersion")!!)
 }
 
 // Full Fabric compile target — gameplay modules in progress; guide/script still reference excluded APIs.

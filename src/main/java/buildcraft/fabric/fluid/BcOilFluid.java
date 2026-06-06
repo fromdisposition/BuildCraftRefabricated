@@ -2,220 +2,245 @@ package buildcraft.fabric.fluid;
 
 import java.util.EnumMap;
 import java.util.Map;
-
+import java.util.Objects;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.FluidTags;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
-public abstract class BcOilFluid extends FlowingFluid {
-    protected final Holder holder;
+public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsHost {
+   protected final BcOilFluid.Holder holder;
+   private Map<Direction, FluidState> spreadCache;
 
-    protected BcOilFluid(Holder holder) {
-        this.holder = holder;
-    }
+   protected BcOilFluid(BcOilFluid.Holder holder) {
+      this.holder = holder;
+   }
 
-    @Override
-    public Fluid getFlowing() {
-        return holder.flowing;
-    }
+   @Override
+   public BcOilFluid.Holder holder() {
+      return this.holder;
+   }
 
-    @Override
-    public Fluid getSource() {
-        return holder.still;
-    }
+   @Override
+   public FlowingFluid self() {
+      return this;
+   }
 
-    @Override
-    public Item getBucket() {
-        return holder.bucket;
-    }
+   int spreadDelay(ServerLevel level, BlockPos pos, FluidState oldState, FluidState newState) {
+      return super.getSpreadDelay(level, pos, oldState, newState);
+   }
 
-    @Override
-    protected boolean canConvertToSource(ServerLevel level) {
-        return false;
-    }
+   private void clearSpreadCache() {
+      this.spreadCache = null;
+   }
 
-    @Override
-    protected void beforeDestroyingBlock(LevelAccessor level, BlockPos pos, BlockState state) {
-        BlockPos below = pos.below();
-        BlockState belowState = level.getBlockState(below);
-        if (belowState.liquid()) {
-            level.destroyBlock(below, true);
-        }
-    }
+   public Fluid getFlowing() {
+      return this.holder.flowing;
+   }
 
-    @Override
-    public int getSlopeFindDistance(LevelReader level) {
-        return holder.slopeFindDistance;
-    }
+   public Fluid getSource() {
+      return this.holder.still;
+   }
 
-    @Override
-    public int getDropOff(LevelReader level) {
-        return holder.dropOff;
-    }
+   public Item getBucket() {
+      return this.holder.bucket;
+   }
 
-    @Override
-    public int getTickDelay(LevelReader level) {
-        return holder.tickDelay;
-    }
+   protected boolean canConvertToSource(ServerLevel level) {
+      return false;
+   }
 
-    @Override
-    public BlockState createLegacyBlock(FluidState state) {
-        return holder.block.defaultBlockState()
-                .setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
-    }
+   protected void beforeDestroyingBlock(LevelAccessor level, BlockPos pos, BlockState state) {
+      BlockPos adjacent = this.holder.props.gaseous() ? pos.above() : pos.below();
+      FluidState adjacentFluid = level.getFluidState(adjacent);
+      if (!adjacentFluid.isEmpty() && adjacentFluid.getType().isSame(this)) {
+         level.destroyBlock(adjacent, false);
+      }
+   }
 
-    @Override
-    public boolean isSame(Fluid fluid) {
-        return fluid == holder.still || fluid == holder.flowing;
-    }
+   public int getSlopeFindDistance(LevelReader level) {
+      return this.holder.props.slopeFindDistance();
+   }
 
-    @Override
-    protected float getExplosionResistance() {
-        return 100.0F;
-    }
+   @Override
+   public int getDropOff(LevelReader level) {
+      return this.holder.props.dropOff();
+   }
 
-    @Override
-    public boolean canBeReplacedWith(
-            FluidState state,
-            BlockGetter level,
-            BlockPos pos,
-            Fluid fluid,
-            Direction direction) {
-        if (fluid.is(FluidTags.WATER)) {
-            return false;
-        }
-        return fluid == holder.still || fluid == holder.flowing;
-    }
+   public int getTickDelay(LevelReader level) {
+      return this.holder.props.tickDelay();
+   }
 
-    @Override
-    public java.util.Optional<net.minecraft.sounds.SoundEvent> getPickupSound() {
-        return java.util.Optional.of(SoundEvents.BUCKET_FILL);
-    }
+   public BlockState createLegacyBlock(FluidState state) {
+      return (BlockState)this.holder.block.defaultBlockState().setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
+   }
 
-    @Override
-    public void tick(ServerLevel level, BlockPos pos, BlockState state, FluidState fluidState) {
-        if (holder.denseFluid) {
-            BlockPos below = pos.below();
-            if (level.getFluidState(below).is(FluidTags.WATER)) {
-                level.setBlockAndUpdate(below, Blocks.AIR.defaultBlockState());
-            }
-        }
-        super.tick(level, pos, state, fluidState);
+   public boolean isSame(Fluid fluid) {
+      return fluid == this.holder.still || fluid == this.holder.flowing;
+   }
 
-        if (!holder.denseFluid && !fluidState.isSource()) {
-            FluidState belowFluid = level.getFluidState(pos.below());
-            if (belowFluid.is(FluidTags.WATER) && !belowFluid.getType().isSame(this)) {
-                FluidState currentFluid = state.getFluidState();
-                if (!currentFluid.isEmpty() && currentFluid.getType().isSame(this)) {
-                    int neighborAmount = currentFluid.getAmount() - getDropOff(level);
-                    if (currentFluid.getValue(FALLING)) {
-                        neighborAmount = 7;
-                    }
-                    if (neighborAmount > 0) {
-                        for (Map.Entry<Direction, FluidState> entry : getSpread(level, pos, state).entrySet()) {
-                            Direction dir = entry.getKey();
-                            spreadTo(level, pos.relative(dir), level.getBlockState(pos.relative(dir)), dir, entry.getValue());
-                        }
-                    }
-                }
-            }
-        }
-    }
+   protected float getExplosionResistance() {
+      return 100.0F;
+   }
 
-    @Override
-    protected Map<Direction, FluidState> getSpread(ServerLevel level, BlockPos pos, BlockState state) {
-        Map<Direction, FluidState> map = new EnumMap<>(super.getSpread(level, pos, state));
-        if (!holder.denseFluid && level.getFluidState(pos.below()).is(FluidTags.WATER)) {
-            for (Direction dir : Direction.Plane.HORIZONTAL) {
-                if (!map.containsKey(dir)) {
-                    BlockPos targetPos = pos.relative(dir);
-                    BlockState targetState = level.getBlockState(targetPos);
-                    if (targetState.isAir() || targetState.canBeReplaced()) {
-                        FluidState targetFluidState = targetState.getFluidState();
-                        if (targetFluidState.getType().isSame(this)) {
-                            continue;
-                        }
-                        FluidState newFluid = getNewLiquid(level, targetPos, targetState);
-                        if (!newFluid.isEmpty()
-                                && targetFluidState.canBeReplacedWith(level, targetPos, newFluid.getType(), dir)) {
-                            map.put(dir, newFluid);
-                        }
-                    }
-                }
-            }
-        }
-        return map;
-    }
+   public boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluid, Direction direction) {
+      return !state.isEmpty() && !this.isSame(state.getType()) ? false : this.isSame(fluid);
+   }
 
-    public static final class Holder {
-        public String baseName = "";
-        public boolean denseFluid;
-        public boolean gaseous;
+   public Optional<SoundEvent> getPickupSound() {
+      return Optional.of(SoundEvents.BUCKET_FILL);
+   }
 
-        public boolean sticky;
+   protected void entityInside(Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier) {
+      BcFluidEntityEffects.apply(this.holder, entity);
+   }
 
-        public boolean flammable;
-        public int viscosity = 1000;
-        public int density = 1000;
-        public Fluid still;
-        public Fluid flowing;
-        public Block block;
-        public Item bucket;
-        public int tickDelay = 20;
-        public int slopeFindDistance = 4;
-        public int dropOff = 1;
-    }
+   public void tick(ServerLevel level, BlockPos pos, BlockState state, FluidState fluidState) {
+      this.clearSpreadCache();
+      if (this.holder.props.gaseous()) {
+         BcGaseousFluidPhysics.tick(this, level, pos, state, fluidState);
+      } else {
+         BcLiquidFluidPhysics.tickBeforeVanilla(this, level, pos);
+         super.tick(level, pos, state, fluidState);
+         BcLiquidFluidPhysics.tickAfterVanilla(this, level, pos, state, fluidState);
+      }
+   }
 
-    public static final class Source extends BcOilFluid {
-        public Source(Holder holder) {
-            super(holder);
-        }
+   protected void spread(ServerLevel level, BlockPos pos, BlockState state, FluidState fluidState) {
+      if (this.holder.props.gaseous()) {
+         BcGaseousFluidPhysics.spread(this, level, pos, state, fluidState);
+      } else {
+         super.spread(level, pos, state, fluidState);
+      }
+   }
 
-        @Override
-        public int getAmount(FluidState state) {
-            return 8;
-        }
+   @Override
+   public void spreadTo(LevelAccessor level, BlockPos pos, BlockState state, Direction direction, FluidState target) {
+      if (!BcLiquidFluidPhysics.displacesWaterAt(this, state, level, pos, target)) {
+         super.spreadTo(level, pos, state, direction, target);
+      }
+   }
 
-        @Override
-        public boolean isSource(FluidState state) {
-            return true;
-        }
-    }
+   @Override
+   public Map<Direction, FluidState> getSpread(ServerLevel level, BlockPos pos, BlockState state) {
+      if (this.spreadCache != null) {
+         return this.spreadCache;
+      }
 
-    public static final class Flowing extends BcOilFluid {
-        public Flowing(Holder holder) {
-            super(holder);
-        }
+      Map<Direction, FluidState> result;
+      if (this.holder.props.gaseous()) {
+         result = BcGaseousFluidPhysics.getSpread(this, level, pos, state);
+      } else {
+         Map<Direction, FluidState> map = new EnumMap<>(super.getSpread(level, pos, state));
+         result = BcLiquidFluidPhysics.enhanceSpread(this, level, pos, state, map);
+      }
 
-        @Override
-        protected void createFluidStateDefinition(
-                net.minecraft.world.level.block.state.StateDefinition.Builder<Fluid, FluidState> builder) {
-            super.createFluidStateDefinition(builder);
-            builder.add(LEVEL);
-        }
+      this.spreadCache = result;
+      return result;
+   }
 
-        @Override
-        public int getAmount(FluidState state) {
-            return state.getValue(LEVEL);
-        }
+   @Override
+   public FluidState getNewLiquid(ServerLevel level, BlockPos pos, BlockState state) {
+      return this.holder.props.gaseous() ? BcGaseousFluidPhysics.getNewLiquid(this, level, pos, state) : super.getNewLiquid(level, pos, state);
+   }
 
-        @Override
-        public boolean isSource(FluidState state) {
-            return false;
-        }
-    }
+   public float getHeight(FluidState fluidState, BlockGetter level, BlockPos pos) {
+      return this.holder.props.gaseous() ? BcGaseousFluidPhysics.getHeight(fluidState, level, pos) : super.getHeight(fluidState, level, pos);
+   }
+
+   public VoxelShape getShape(FluidState state, BlockGetter level, BlockPos pos) {
+      return this.holder.props.gaseous() ? BcGaseousFluidPhysics.getShape(state, level, pos, this) : super.getShape(state, level, pos);
+   }
+
+   public Vec3 getFlow(BlockGetter level, BlockPos pos, FluidState fluidState) {
+      if (this.holder.props.gaseous()) {
+         return BcGaseousFluidPhysics.getFlow(level, pos, fluidState);
+      }
+
+      Vec3 flow = super.getFlow(level, pos, fluidState);
+      if (this.holder.props.viscosity() > 1000) {
+         flow = flow.scale(1000.0 / this.holder.props.viscosity());
+      }
+
+      return flow;
+   }
+
+   public static final class Flowing extends BcOilFluid {
+      public Flowing(BcOilFluid.Holder holder) {
+         super(holder);
+      }
+
+      protected void createFluidStateDefinition(Builder<Fluid, FluidState> builder) {
+         super.createFluidStateDefinition(builder);
+         builder.add(new Property[]{LEVEL});
+      }
+
+      public int getAmount(FluidState state) {
+         return (Integer)state.getValue(LEVEL);
+      }
+
+      public boolean isSource(FluidState state) {
+         return false;
+      }
+   }
+
+   public static final class Holder {
+      public final BcFluidWorldProperties props;
+      public final String regName;
+      public Fluid still;
+      public Fluid flowing;
+      public Block block;
+      public Item bucket;
+      private boolean sealed;
+
+      public Holder(BcFluidWorldProperties props) {
+         this.props = props;
+         this.regName = BcFluidWorldProperties.regName(props.baseName(), props.heat());
+      }
+
+      public void seal() {
+         if (this.sealed) {
+            throw new IllegalStateException("Holder already sealed: " + this.regName);
+         }
+
+         Objects.requireNonNull(this.still, "still");
+         Objects.requireNonNull(this.flowing, "flowing");
+         Objects.requireNonNull(this.block, "block");
+         Objects.requireNonNull(this.bucket, "bucket");
+         this.sealed = true;
+      }
+   }
+
+   public static final class Source extends BcOilFluid {
+      public Source(BcOilFluid.Holder holder) {
+         super(holder);
+      }
+
+      public int getAmount(FluidState state) {
+         return 8;
+      }
+
+      public boolean isSource(FluidState state) {
+         return true;
+      }
+   }
 }
