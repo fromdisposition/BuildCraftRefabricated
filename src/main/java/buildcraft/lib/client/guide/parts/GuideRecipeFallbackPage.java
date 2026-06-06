@@ -10,9 +10,9 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import net.minecraft.world.item.ItemStack;
 
-@Deprecated
-public class GuidePageStandInRecipes extends GuidePage {
-   public GuidePageStandInRecipes(GuiGuide gui, List<GuidePart> parts, ItemStack stack) {
+/** On-demand recipe/usage page for items without a registered guide entry. */
+public class GuideRecipeFallbackPage extends GuidePage {
+   public GuideRecipeFallbackPage(GuiGuide gui, List<GuidePart> parts, ItemStack stack) {
       super(gui, parts, new PageValue<>(PageEntryItemStack.INSTANCE, new ItemStackValueFilter(stack)));
    }
 
@@ -48,7 +48,7 @@ public class GuidePageStandInRecipes extends GuidePage {
             parts.add(new GuideText(gui, "No recipes found."));
          }
 
-         return new GuidePageStandInRecipes(gui, parts, stack);
+         return new GuideRecipeFallbackPage(gui, parts, stack);
       };
    }
 

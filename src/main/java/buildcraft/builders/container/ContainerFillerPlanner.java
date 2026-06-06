@@ -1,5 +1,7 @@
 package buildcraft.builders.container;
 
+import buildcraft.lib.net.BcPayloadBuffers;
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.builders.BCBuildersMenuTypes;
@@ -144,7 +146,7 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
    public void onStatementChange() {
       if (this.player != null && this.player.level() != null && this.player.level().isClientSide()) {
          this.sendMessage(11, buf -> {
-            PacketBufferBC buffer = new PacketBufferBC(buf.unwrap());
+            PacketBufferBC buffer = BcPayloadBuffers.ensure(buf.unwrap());
             this.patternStatementClient.writeToBuffer(buffer);
          });
       }
@@ -188,7 +190,7 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 11) {
          try {
             if (isClient) {
@@ -215,7 +217,7 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
       super.broadcastChanges();
       if (this.addon != null && this.player != null && this.player.level() != null && !this.player.level().isClientSide()) {
          ByteBuf temp = Unpooled.buffer();
-         PacketBufferBC bcBuf = new PacketBufferBC(temp);
+         PacketBufferBC bcBuf = BcPayloadBuffers.ensure(temp);
          this.addon.patternStatement.writeToBuffer(bcBuf);
          byte[] current = new byte[temp.readableBytes()];
          temp.readBytes(current);

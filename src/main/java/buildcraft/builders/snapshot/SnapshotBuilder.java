@@ -1,5 +1,6 @@
 package buildcraft.builders.snapshot;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.NBTUtilBC;
@@ -573,7 +574,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    protected void afterChecks() {
    }
 
-   public void writeToByteBuf(PacketBufferBC buffer) {
+   public void writeToByteBuf(FriendlyByteBuf buffer) {
       buffer.writeInt(this.breakTasks.size());
       this.breakTasks.forEach(breakTask -> breakTask.writePayload(buffer));
       buffer.writeInt(this.placeTasks.size());
@@ -582,7 +583,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       buffer.writeInt(this.leftToPlace);
    }
 
-   public void readFromByteBuf(PacketBufferBC buffer) {
+   public void readFromByteBuf(FriendlyByteBuf buffer) {
       this.breakTasks.clear();
       IntStream.range(0, buffer.readInt()).mapToObj(i -> new BreakTask(buffer)).forEach(this.breakTasks::add);
       this.placeTasks.clear();
@@ -649,7 +650,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          this.power = power;
       }
 
-      public BreakTask(PacketBufferBC buffer) {
+      public BreakTask(FriendlyByteBuf buffer) {
          this.pos = buffer.readBlockPos();
          this.power = buffer.readLong();
       }
@@ -670,7 +671,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          return BlockUtil.computeBlockBreakPower(SnapshotBuilder.this.tile.getWorldBC(), this.pos);
       }
 
-      public void writePayload(PacketBufferBC buffer) {
+      public void writePayload(FriendlyByteBuf buffer) {
          buffer.writeBlockPos(this.pos);
          buffer.writeLong(this.power);
       }
@@ -696,7 +697,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          this.power = power;
       }
 
-      public PlaceTask(PacketBufferBC buffer) {
+      public PlaceTask(FriendlyByteBuf buffer) {
          this.pos = buffer.readBlockPos();
          this.items = IntStream.range(0, buffer.readInt())
             .mapToObj(
@@ -737,7 +738,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          return (long)(Math.sqrt(this.pos.distSqr(SnapshotBuilder.this.tile.getBuilderPos())) * 10.0 * MjAPI.MJ);
       }
 
-      public void writePayload(PacketBufferBC buffer) {
+      public void writePayload(FriendlyByteBuf buffer) {
          buffer.writeBlockPos(this.pos);
          buffer.writeInt(this.items.size());
          this.items

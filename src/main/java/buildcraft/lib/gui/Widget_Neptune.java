@@ -2,7 +2,7 @@ package buildcraft.lib.gui;
 
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.net.IPayloadWriter;
-import buildcraft.lib.net.PacketBufferBC;
+import net.minecraft.network.FriendlyByteBuf;
 
 public abstract class Widget_Neptune<C extends BcMenu> {
    public final C container;
@@ -19,9 +19,9 @@ public abstract class Widget_Neptune<C extends BcMenu> {
       this.container.sendWidgetData(this, writer);
    }
 
-   public void handleWidgetDataServer(BCPayloadContext ctx, PacketBufferBC buffer) {
+   public void handleWidgetDataServer(BCPayloadContext ctx, FriendlyByteBuf buffer) {
    }
 
-   public void handleWidgetDataClient(BCPayloadContext ctx, PacketBufferBC buffer) {
+   public void handleWidgetDataClient(BCPayloadContext ctx, FriendlyByteBuf buffer) {
    }
 }

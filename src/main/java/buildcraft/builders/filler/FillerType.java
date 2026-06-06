@@ -1,5 +1,6 @@
 package buildcraft.builders.filler;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.filler.FillerManager;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.builders.BCBuildersStatements;
@@ -30,13 +31,13 @@ public class FillerType extends StatementType<IFillerPattern> {
       return nbt;
    }
 
-   public IFillerPattern readFromBuffer(PacketBufferBC buffer) {
+   public IFillerPattern readFromBuffer(FriendlyByteBuf buffer) {
       String kind = buffer.readUtf();
       IFillerPattern pattern = FillerManager.registry.getPattern(kind);
       return pattern == null ? this.defaultStatement : pattern;
    }
 
-   public void writeToBuffer(PacketBufferBC buffer, IFillerPattern slot) {
+   public void writeToBuffer(FriendlyByteBuf buffer, IFillerPattern slot) {
       buffer.writeUtf(slot.getUniqueTag());
    }
 }

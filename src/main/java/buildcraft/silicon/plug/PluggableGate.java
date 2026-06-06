@@ -10,6 +10,7 @@ import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.data.ModelVariableData;
 import buildcraft.lib.net.IPayloadWriter;
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.client.model.key.KeyPlugGate;
@@ -81,14 +82,14 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
 
    public PluggableGate(PluggableDefinition def, IPipeHolder holder, Direction side, FriendlyByteBuf buffer) {
       super(def, holder, side);
-      PacketBufferBC packetBuffer = new PacketBufferBC(buffer);
+      PacketBufferBC packetBuffer = BcPayloadBuffers.ensure(buffer);
       this.logic = new GateLogic(this, packetBuffer);
    }
 
    @Override
    public void writeCreationPayload(FriendlyByteBuf buffer) {
       super.writeCreationPayload(buffer);
-      PacketBufferBC packetBuffer = new PacketBufferBC(buffer);
+      PacketBufferBC packetBuffer = BcPayloadBuffers.ensure(buffer);
       this.logic.writeCreationToBuf(packetBuffer);
    }
 
@@ -115,7 +116,7 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
 
    @Override
    public void readPayload(FriendlyByteBuf b, Object side, Object ctx) throws IOException {
-      PacketBufferBC packetBuffer = new PacketBufferBC(b);
+      PacketBufferBC packetBuffer = BcPayloadBuffers.ensure(b);
       byte id = packetBuffer.readByte();
       if (id == 1) {
          this.logic.readPayload(packetBuffer, (Boolean)ctx);

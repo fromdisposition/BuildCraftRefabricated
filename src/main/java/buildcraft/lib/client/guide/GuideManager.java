@@ -18,7 +18,7 @@ import buildcraft.lib.client.guide.loader.MarkdownPageLoader;
 import buildcraft.lib.client.guide.loader.XmlPageLoader;
 import buildcraft.lib.client.guide.parts.GuidePage;
 import buildcraft.lib.client.guide.parts.GuidePageFactory;
-import buildcraft.lib.client.guide.parts.GuidePageStandInRecipes;
+import buildcraft.lib.client.guide.parts.GuideRecipeFallbackPage;
 import buildcraft.lib.client.guide.parts.GuidePart;
 import buildcraft.lib.client.guide.parts.GuidePartFactory;
 import buildcraft.lib.client.guide.parts.GuidePartGroup;
@@ -737,7 +737,6 @@ public enum GuideManager {
    }
 
    @Nonnull
-   @SuppressWarnings("deprecation")
    public GuidePageFactory getPageFor(@Nonnull ItemStack stack) {
       Identifier entry = getEntryFor(stack);
       if (entry != null) {
@@ -747,7 +746,7 @@ public enum GuideManager {
          }
       }
 
-      return this.generatedPages.computeIfAbsent(stack, GuidePageStandInRecipes::createFactory);
+      return this.generatedPages.computeIfAbsent(stack, GuideRecipeFallbackPage::createFactory);
    }
 
    public ContentsNodeGui getGuiContents(GuiGuide gui, GuidePageContents guidePageContents, TypeOrder sortingOrder) {

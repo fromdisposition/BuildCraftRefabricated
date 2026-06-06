@@ -1,5 +1,6 @@
 package buildcraft.silicon.gate;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.core.InvalidInputDataException;
@@ -7,6 +8,7 @@ import buildcraft.api.statements.IAction;
 import buildcraft.api.statements.IActionInternal;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.StatementManager;
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.statement.ActionWrapper;
 import buildcraft.lib.statement.StatementType;
@@ -55,10 +57,11 @@ public class ActionType extends StatementType<ActionWrapper> {
       return nbt;
    }
 
-   public ActionWrapper readFromBuffer(PacketBufferBC buffer) throws IOException {
-      if (buffer.readBoolean()) {
-         String name = buffer.readUtf();
-         EnumPipePart part = buffer.readEnumValue(EnumPipePart.class);
+   public ActionWrapper readFromBuffer(FriendlyByteBuf buffer) throws IOException {
+      PacketBufferBC bc = BcPayloadBuffers.ensure(buffer);
+      if (bc.readBoolean()) {
+         String name = bc.readUtf();
+         EnumPipePart part = bc.readEnumValue(EnumPipePart.class);
          IStatement statement = StatementManager.statements.get(name);
          if (statement instanceof IAction) {
             return ActionWrapper.wrap(statement, part.face);
@@ -70,13 +73,14 @@ public class ActionType extends StatementType<ActionWrapper> {
       }
    }
 
-   public void writeToBuffer(PacketBufferBC buffer, ActionWrapper slot) {
+   public void writeToBuffer(FriendlyByteBuf buffer, ActionWrapper slot) {
+      PacketBufferBC bc = BcPayloadBuffers.ensure(buffer);
       if (slot == null) {
-         buffer.writeBoolean(false);
+         bc.writeBoolean(false);
       } else {
-         buffer.writeBoolean(true);
-         buffer.writeUtf(slot.getUniqueTag());
-         buffer.writeEnumValue(slot.sourcePart);
+         bc.writeBoolean(true);
+         bc.writeUtf(slot.getUniqueTag());
+         bc.writeEnumValue(slot.sourcePart);
       }
    }
 }

@@ -8,6 +8,7 @@ import buildcraft.api.facades.IFacadePhasedState;
 import buildcraft.api.facades.IFacadeRegistry;
 import buildcraft.api.facades.IFacadeState;
 import buildcraft.lib.misc.ItemStackKey;
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.UnmodifiableIterator;
@@ -209,7 +210,7 @@ public enum FacadeStateManager implements IFacadeRegistry {
          }
 
          varyingProperties.forEach((key, varsx) -> varsx.values().removeIf(Objects::nonNull));
-         PacketBufferBC testingBufferx = PacketBufferBC.asPacketBufferBc(Unpooled.buffer());
+         PacketBufferBC testingBufferx = BcPayloadBuffers.create();
 
          for (Entry<BlockState, ItemStack> entry : usedStates.entrySet()) {
             BlockState state = entry.getKey();

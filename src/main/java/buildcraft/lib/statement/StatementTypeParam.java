@@ -1,5 +1,6 @@
 package buildcraft.lib.statement;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.StatementManager;
@@ -34,7 +35,7 @@ public class StatementTypeParam extends StatementType<IStatementParameter> {
       return nbt;
    }
 
-   public IStatementParameter readFromBuffer(PacketBufferBC buffer) throws IOException {
+   public IStatementParameter readFromBuffer(FriendlyByteBuf buffer) throws IOException {
       if (buffer.readBoolean()) {
          String tag = buffer.readUtf();
          StatementManager.IParamReaderBuf reader = StatementManager.paramsBuf.get(tag);
@@ -48,7 +49,7 @@ public class StatementTypeParam extends StatementType<IStatementParameter> {
       }
    }
 
-   public void writeToBuffer(PacketBufferBC buffer, IStatementParameter slot) {
+   public void writeToBuffer(FriendlyByteBuf buffer, IStatementParameter slot) {
       if (slot == null) {
          buffer.writeBoolean(false);
       } else {

@@ -11,14 +11,12 @@ import buildcraft.transport.block.BlockPipeHolder;
 import buildcraft.transport.client.model.PipeModelCachePluggable;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.tile.TilePipeHolder;
-import java.lang.reflect.Method;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SingleQuadParticle.Layer;
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -63,36 +61,11 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
          if (states != null && states.length > 0) {
             BlockState state = states[0].getState().getBlockState();
             if (state != null) {
-               Minecraft mc = Minecraft.getInstance();
-               BlockStateModel model = mc.getModelManager().getBlockStateModelSet().get(state);
-               if (model != null) {
-                  for (Method m : model.getClass().getMethods()) {
-                     String name = m.getName().toLowerCase();
-                     if ((name.contains("particle") || name.contains("icon") || name.contains("sprite"))
-                        && m.getParameterCount() == 0
-                        && m.getReturnType() == TextureAtlasSprite.class) {
-                        try {
-                           m.setAccessible(true);
-                           TextureAtlasSprite sprite = (TextureAtlasSprite)m.invoke(model);
-                           if (sprite != null) {
-                              return sprite;
-                           }
-                        } catch (Exception var14) {
-                        }
-                     }
-                  }
-
-                  for (Method m : model.getClass().getMethods()) {
-                     if (m.getParameterCount() == 3 && m.getReturnType() == TextureAtlasSprite.class) {
-                        try {
-                           m.setAccessible(true);
-                           TextureAtlasSprite sprite = (TextureAtlasSprite)m.invoke(model, mc.level, BlockPos.ZERO, state);
-                           if (sprite != null) {
-                              return sprite;
-                           }
-                        } catch (Exception var13) {
-                        }
-                     }
+               Baked particleMaterial = Minecraft.getInstance().getModelManager().getBlockStateModelSet().getParticleMaterial(state);
+               if (particleMaterial != null) {
+                  TextureAtlasSprite sprite = particleMaterial.sprite();
+                  if (sprite != null && sprite != SpriteUtil.missingSprite()) {
+                     return sprite;
                   }
                }
             }

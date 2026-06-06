@@ -17,11 +17,8 @@ import buildcraft.api.transport.pipe.PipeDefinition;
 import buildcraft.api.transport.pipe.PipeEvent;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
-import buildcraft.lib.model.data.ModelData;
-import buildcraft.lib.model.data.ModelProperty;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.net.BcEnvelopeCodec;
-import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
 import buildcraft.silicon.plug.PluggableGate;
 import buildcraft.transport.BCTransportBlockEntities;
@@ -80,8 +77,6 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    private static final Identifier ADVANCEMENT_PIPE_DIVERSIFICATION = Identifier.parse("buildcrafttransport:pipe_diversification");
    private static final Identifier ADVANCEMENT_PIPE_FANATIC = Identifier.parse("buildcrafttransport:pipe_fanatic");
    private static final Identifier ADVANCEMENT_CATEGORIZING_WITH_COLORS = Identifier.parse("buildcrafttransport:categorizing_with_colors");
-   @Deprecated
-   public static final ModelProperty<TilePipeHolder> PIPE_MODEL_DATA = ModelProperty.create();
    public final PipeEventBus eventBus = new PipeEventBus();
    private Pipe pipe;
    private GameProfile owner;
@@ -489,7 +484,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    private void sendGuiPayload(IPipeHolder.PipeMessageReceiver to, IPipeHolder.IWriter writer) {
       if (this.level != null && !this.level.isClientSide() && !this.guiViewers.isEmpty()) {
          try {
-            byte[] data = BcEnvelopeCodec.encode(buffer -> writer.write(PacketBufferBC.asPacketBufferBc(buffer)));
+            byte[] data = BcEnvelopeCodec.encode(writer::write);
             if (data == null) {
                return;
             }
@@ -791,7 +786,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    public void sendMessage(IPipeHolder.PipeMessageReceiver to, IPipeHolder.IWriter writer) {
       if (this.level != null && !this.level.isClientSide()) {
          try {
-            byte[] data = BcEnvelopeCodec.encode(buffer -> writer.write(PacketBufferBC.asPacketBufferBc(buffer)));
+            byte[] data = BcEnvelopeCodec.encode(writer::write);
             if (data == null) {
                return;
             }
@@ -869,7 +864,4 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       }
    }
 
-   public ModelData getModelData() {
-      return ModelData.builder().with(PIPE_MODEL_DATA, this).build();
-   }
 }

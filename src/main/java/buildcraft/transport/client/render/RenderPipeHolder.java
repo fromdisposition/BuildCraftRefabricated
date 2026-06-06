@@ -23,7 +23,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import com.mojang.math.Axis;
 import java.util.Random;
-import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
@@ -116,7 +115,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                );
             }
 
-            BcBerRenderUtil.submit(poseStack, collector, Sheets.cutoutBlockSheet(), (pose, buffer) -> {
+            BcBerRenderUtil.submit(poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (pose, buffer) -> {
                PipeWireRenderer.renderWires(pipe, pose, light, buffer);
             });
             submitItems(renderState, poseStack, collector, light);
@@ -159,7 +158,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                if (entry.colour != null) {
                   poseStack.pushPose();
                   poseStack.translate(entry.posX, entry.posY, entry.posZ);
-                  BcBerRenderUtil.submit(poseStack, collector, Sheets.cutoutBlockSheet(), (pose, buffer) -> {
+                  BcBerRenderUtil.submit(poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (pose, buffer) -> {
                      renderColourOverlayQuads(pose, buffer, entry, light);
                   });
                   poseStack.popPose();
@@ -219,7 +218,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       if (p != null) {
          PipeRenderContext.setPackedLight(light);
          if (p.behaviour != null) {
-            BcBerRenderUtil.submit(poseStack, collector, Sheets.cutoutBlockSheet(), (pose, buffer) -> {
+            BcBerRenderUtil.submit(poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (pose, buffer) -> {
                renderBehaviour(p.behaviour, x, y, z, partialTicks, buffer, pose);
             });
          }
@@ -227,14 +226,14 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
          for (Direction facing : Direction.values()) {
             PipePluggable plug = pipe.getPluggable(facing);
             if (plug != null) {
-               BcBerRenderUtil.submitWithPoseStack(poseStack, collector, Sheets.cutoutBlockSheet(), (stack, buffer) -> {
+               BcBerRenderUtil.submitWithPoseStack(poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (stack, buffer) -> {
                   renderPluggable(plug, x, y, z, partialTicks, buffer, stack);
                });
             }
          }
 
          if (p.flow != null && !(p.flow instanceof PipeFlowItems)) {
-            RenderType flowType = Sheets.cutoutBlockSheet();
+            RenderType flowType = BCLibRenderTypes.cutoutBlockSheet();
             if (p.flow instanceof PipeFlowFluids fluids) {
                PipeFlowRendererFluids.prepareRenderCache(fluids);
                flowType = fluids.renderCacheTranslucent

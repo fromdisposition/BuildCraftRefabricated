@@ -67,9 +67,7 @@ public interface IPipeHolder extends IRedstoneStatementContainer {
       PLUGGABLE_NORTH(Direction.NORTH),
       PLUGGABLE_SOUTH(Direction.SOUTH),
       PLUGGABLE_WEST(Direction.WEST),
-      PLUGGABLE_EAST(Direction.EAST),
-      @Deprecated
-      WIRES(null);
+      PLUGGABLE_EAST(Direction.EAST);
 
       public static final IPipeHolder.PipeMessageReceiver[] VALUES = values();
       public static final IPipeHolder.PipeMessageReceiver[] PLUGGABLES = new IPipeHolder.PipeMessageReceiver[6];

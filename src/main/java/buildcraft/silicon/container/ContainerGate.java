@@ -1,5 +1,6 @@
 package buildcraft.silicon.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.statements.IStatement;
@@ -146,7 +147,7 @@ public class ContainerGate extends BcMenu {
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       super.readMessage(id, buffer, isClient, ctx);
       if (this.gate != null && this.pipeHolder != null) {
          if (!isClient) {

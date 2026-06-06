@@ -1,5 +1,6 @@
 package buildcraft.builders.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.builders.BCBuildersMenuTypes;
 import buildcraft.builders.item.ItemSnapshot;
 import buildcraft.builders.snapshot.Snapshot;
@@ -49,7 +50,7 @@ public class ContainerReplacer extends ContainerBCTile<TileReplacer> {
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 10 && !isClient) {
          String newName = buffer.readUtf();
          if (this.tile != null) {

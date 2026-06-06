@@ -16,12 +16,14 @@ public class PacketBufferBC extends FriendlyByteBuf {
       super(wrapped);
    }
 
+   /** @deprecated Use {@link BcPayloadBuffers#ensure(ByteBuf)} */
+   @Deprecated
    public static PacketBufferBC asPacketBufferBc(ByteBuf buf) {
-      return buf instanceof PacketBufferBC ? (PacketBufferBC)buf : new PacketBufferBC(buf);
+      return BcPayloadBuffers.ensure(buf);
    }
 
    public static PacketBufferBC write(IPayloadWriter writer) {
-      PacketBufferBC buffer = new PacketBufferBC(Unpooled.buffer());
+      PacketBufferBC buffer = BcPayloadBuffers.create();
       writer.write(buffer);
       return buffer;
    }

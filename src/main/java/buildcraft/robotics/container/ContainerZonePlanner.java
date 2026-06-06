@@ -1,5 +1,6 @@
 package buildcraft.robotics.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.ContainerBCTile;
 import buildcraft.lib.gui.slot.SlotBase;
@@ -57,7 +58,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 200 && !isClient) {
          int layer = buffer.readByte() & 255;
          int x = buffer.readVarInt();

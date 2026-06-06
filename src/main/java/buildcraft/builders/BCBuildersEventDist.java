@@ -1,5 +1,6 @@
 package buildcraft.builders;
 
+import buildcraft.builders.client.render.BuilderRobotVisualRenderer;
 import buildcraft.builders.snapshot.ClientArchitectScans;
 import buildcraft.builders.snapshot.ITileForSnapshotBuilder;
 import buildcraft.builders.snapshot.SnapshotBuilder;
@@ -449,49 +450,7 @@ public enum BCBuildersEventDist {
                               robotPos = active.visualPrevRobotPos.add(robotPos.subtract(active.visualPrevRobotPos).scale(partialTicks));
                            }
 
-                           if (!active.clientBreakTasks.isEmpty()) {
-                              BufferSource bufferSource = mc.renderBuffers().bufferSource();
-                              VertexConsumer buffer = bufferSource.getBuffer(RenderTypes.entityTranslucent(BCBuildersSprites.ROBOT.getAtlasLocation()));
-                              poseStack.pushPose();
-                              poseStack.translate(robotPos.x - cameraPos.x, robotPos.y - cameraPos.y, robotPos.z - cameraPos.z);
-                              int worldLight = BcLaserRenderer.computeLightmap(robotPos.x, robotPos.y, robotPos.z, 0);
-                              int i = 0;
-
-                              for (Direction face : Direction.values()) {
-                                 ModelUtil.createFace(
-                                       face,
-                                       new Vector3f(0.0F, 0.0F, 0.0F),
-                                       new Vector3f(0.25F, 0.25F, 0.25F),
-                                       new ModelUtil.UvFaceData(
-                                          BCBuildersSprites.ROBOT.getInterpU(i * 8 / 64.0),
-                                          BCBuildersSprites.ROBOT.getInterpV(0.0),
-                                          BCBuildersSprites.ROBOT.getInterpU((i + 1) * 8 / 64.0),
-                                          BCBuildersSprites.ROBOT.getInterpV(0.125)
-                                       )
-                                    )
-                                    .lighti(worldLight)
-                                    .render(poseStack.last(), buffer);
-                                 i++;
-                              }
-
-                              poseStack.popPose();
-                              bufferSource.endBatch();
-                           }
-
-                           for (SnapshotBuilder.BreakTask breakTask : active.clientBreakTasks) {
-                              double progress = Math.max(0.0, Math.min(1.0, breakTask.power * 1.0 / breakTask.getTarget()));
-                              int powerIdx = (int)Math.round(progress * (BuildCraftLaserManager.POWERS.length - 1));
-                              BcLaserRenderer.renderLaserStatic(
-                                 poseStack,
-                                 new LaserData_BC8(
-                                    BuildCraftLaserManager.POWERS[powerIdx],
-                                    robotPos.subtract(new Vec3(0.0, 0.27, 0.0)),
-                                    Vec3.atCenterOf(breakTask.pos),
-                                    0.0625
-                                 ),
-                                 cameraPos
-                              );
-                           }
+                           BuilderRobotVisualRenderer.renderRobotAndBreakTasks(mc, poseStack, cameraPos, robotPos, active);
                         }
                      }
                   } else {
@@ -577,49 +536,7 @@ public enum BCBuildersEventDist {
                               robotPos = filler.builder.visualPrevRobotPos.add(robotPos.subtract(filler.builder.visualPrevRobotPos).scale(partialTicks));
                            }
 
-                           if (!filler.builder.clientBreakTasks.isEmpty()) {
-                              BufferSource bufferSource = mc.renderBuffers().bufferSource();
-                              VertexConsumer buffer = bufferSource.getBuffer(RenderTypes.entityTranslucent(BCBuildersSprites.ROBOT.getAtlasLocation()));
-                              poseStack.pushPose();
-                              poseStack.translate(robotPos.x - cameraPos.x, robotPos.y - cameraPos.y, robotPos.z - cameraPos.z);
-                              int worldLight = BcLaserRenderer.computeLightmap(robotPos.x, robotPos.y, robotPos.z, 0);
-                              int i = 0;
-
-                              for (Direction face : Direction.values()) {
-                                 ModelUtil.createFace(
-                                       face,
-                                       new Vector3f(0.0F, 0.0F, 0.0F),
-                                       new Vector3f(0.25F, 0.25F, 0.25F),
-                                       new ModelUtil.UvFaceData(
-                                          BCBuildersSprites.ROBOT.getInterpU(i * 8 / 64.0),
-                                          BCBuildersSprites.ROBOT.getInterpV(0.0),
-                                          BCBuildersSprites.ROBOT.getInterpU((i + 1) * 8 / 64.0),
-                                          BCBuildersSprites.ROBOT.getInterpV(0.125)
-                                       )
-                                    )
-                                    .lighti(worldLight)
-                                    .render(poseStack.last(), buffer);
-                                 i++;
-                              }
-
-                              poseStack.popPose();
-                              bufferSource.endBatch();
-                           }
-
-                           for (SnapshotBuilder.BreakTask breakTask : filler.builder.clientBreakTasks) {
-                              double progress = Math.max(0.0, Math.min(1.0, breakTask.power * 1.0 / breakTask.getTarget()));
-                              int powerIdx = (int)Math.round(progress * (BuildCraftLaserManager.POWERS.length - 1));
-                              BcLaserRenderer.renderLaserStatic(
-                                 poseStack,
-                                 new LaserData_BC8(
-                                    BuildCraftLaserManager.POWERS[powerIdx],
-                                    robotPos.subtract(new Vec3(0.0, 0.27, 0.0)),
-                                    Vec3.atCenterOf(breakTask.pos),
-                                    0.0625
-                                 ),
-                                 cameraPos
-                              );
-                           }
+                           BuilderRobotVisualRenderer.renderRobotAndBreakTasks(mc, poseStack, cameraPos, robotPos, filler.builder);
                         }
                      }
                   } else {

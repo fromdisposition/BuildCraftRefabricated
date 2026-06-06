@@ -1,5 +1,6 @@
 package buildcraft.factory.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.tile.TileHeatExchange;
@@ -51,7 +52,7 @@ public class ContainerHeatExchange extends BcMenu {
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 103 && !isClient && this.tile != null) {
          int count = buffer.readVarInt();
 

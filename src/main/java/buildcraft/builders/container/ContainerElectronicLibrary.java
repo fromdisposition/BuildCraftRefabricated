@@ -1,5 +1,6 @@
 package buildcraft.builders.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.builders.BCBuildersMenuTypes;
 import buildcraft.builders.snapshot.GlobalSavedDataSnapshots;
@@ -118,7 +119,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       super.readMessage(id, buffer, isClient, ctx);
       if (id == 1 && !isClient) {
          this.tile.selected = buffer.readByte() != 0 ? new Snapshot.Key(buffer) : null;
@@ -144,7 +145,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
       }
    }
 
-   private static byte[] readBoundedChunk(PacketBufferBC buffer) {
+   private static byte[] readBoundedChunk(FriendlyByteBuf buffer) {
       byte[] chunk = buffer.readByteArray();
       BCPacketLimits.validateChunkSize(chunk.length);
       return chunk;

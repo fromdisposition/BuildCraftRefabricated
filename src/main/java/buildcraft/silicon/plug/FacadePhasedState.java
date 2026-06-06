@@ -1,8 +1,10 @@
 package buildcraft.silicon.plug;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.facades.IFacadePhasedState;
 import buildcraft.api.facades.IFacadeState;
 import buildcraft.lib.misc.NBTUtilBC;
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
@@ -65,11 +67,12 @@ public class FacadePhasedState implements IFacadePhasedState {
       return nbt;
    }
 
-   public static FacadePhasedState readFromBuffer(PacketBufferBC buf) {
-      int stateId = buf.readVarInt();
+   public static FacadePhasedState readFromBuffer(FriendlyByteBuf buf) {
+      PacketBufferBC bc = BcPayloadBuffers.ensure(buf);
+      int stateId = bc.readVarInt();
       BlockState state = (BlockState)Block.BLOCK_STATE_REGISTRY.byId(stateId);
-      boolean hasColour = buf.readBoolean();
-      DyeColor colour = hasColour ? buf.readEnumValue(DyeColor.class) : null;
+      boolean hasColour = bc.readBoolean();
+      DyeColor colour = hasColour ? bc.readEnumValue(DyeColor.class) : null;
       FacadeBlockStateInfo info = FacadeStateManager.validFacadeStates.get(state);
       if (info == null) {
          info = FacadeStateManager.defaultState;
@@ -78,16 +81,17 @@ public class FacadePhasedState implements IFacadePhasedState {
       return new FacadePhasedState(info, colour);
    }
 
-   public void writeToBuffer(PacketBufferBC buf) {
+   public void writeToBuffer(FriendlyByteBuf buf) {
+      PacketBufferBC bc = BcPayloadBuffers.ensure(buf);
       try {
-         buf.writeVarInt(Block.BLOCK_STATE_REGISTRY.getId(this.stateInfo.state));
+         bc.writeVarInt(Block.BLOCK_STATE_REGISTRY.getId(this.stateInfo.state));
       } catch (Throwable t) {
          throw new IllegalStateException("Writing facade block state\n\tState = " + this.stateInfo.state, t);
       }
 
-      buf.writeBoolean(this.activeColour != null);
+      bc.writeBoolean(this.activeColour != null);
       if (this.activeColour != null) {
-         buf.writeEnumValue(this.activeColour);
+         bc.writeEnumValue(this.activeColour);
       }
    }
 

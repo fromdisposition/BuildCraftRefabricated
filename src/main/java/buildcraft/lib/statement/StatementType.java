@@ -1,5 +1,6 @@
 package buildcraft.lib.statement;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.statements.IGuiSlot;
 import buildcraft.lib.net.PacketBufferBC;
 import java.io.IOException;
@@ -19,9 +20,9 @@ public abstract class StatementType<S extends IGuiSlot> {
 
    public abstract CompoundTag writeToNbt(S var1);
 
-   public abstract S readFromBuffer(PacketBufferBC var1) throws IOException;
+   public abstract S readFromBuffer(FriendlyByteBuf var1) throws IOException;
 
-   public abstract void writeToBuffer(PacketBufferBC var1, S var2);
+   public abstract void writeToBuffer(FriendlyByteBuf var1, S var2);
 
    @Nullable
    public abstract S convertToType(Object var1);

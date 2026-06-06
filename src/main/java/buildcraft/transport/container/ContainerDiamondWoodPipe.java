@@ -1,5 +1,6 @@
 package buildcraft.transport.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.fabric.network.BCPayloadContext;
@@ -68,7 +69,7 @@ public class ContainerDiamondWoodPipe extends BcMenu {
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       super.readMessage(id, buffer, isClient, ctx);
       if (id == 1 && !isClient && this.behaviour != null) {
          this.behaviour.filterMode = (PipeBehaviourWoodDiamond.FilterMode)buffer.readEnum(PipeBehaviourWoodDiamond.FilterMode.class);

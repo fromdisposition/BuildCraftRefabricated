@@ -1,5 +1,6 @@
 package buildcraft.builders.snapshot;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.ISchematicEntity;
 import buildcraft.api.schematics.SchematicEntityContext;
@@ -445,7 +446,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
    }
 
    @Override
-   public void writeToByteBuf(PacketBufferBC buffer) {
+   public void writeToByteBuf(FriendlyByteBuf buffer) {
       super.writeToByteBuf(buffer);
       buffer.writeInt(this.remainingDisplayRequired.size());
       this.remainingDisplayRequired.forEach(stack -> {
@@ -460,7 +461,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
    }
 
    @Override
-   public void readFromByteBuf(PacketBufferBC buffer) {
+   public void readFromByteBuf(FriendlyByteBuf buffer) {
       super.readFromByteBuf(buffer);
       this.remainingDisplayRequired.clear();
       IntStream.range(0, buffer.readInt())

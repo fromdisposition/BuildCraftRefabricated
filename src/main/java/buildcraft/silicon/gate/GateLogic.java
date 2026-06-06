@@ -18,6 +18,8 @@ import buildcraft.api.transport.IWireEmitter;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.lib.misc.data.IdAllocator;
 import buildcraft.lib.net.IPayloadWriter;
+import net.minecraft.network.FriendlyByteBuf;
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.statement.ActionWrapper;
 import buildcraft.lib.statement.FullStatement;
@@ -220,16 +222,17 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
       this.isOn = nbt.getBoolean("isOn").orElse(false);
    }
 
-   public GateLogic(PluggableGate pluggable, PacketBufferBC buffer) {
-      this(pluggable, new GateVariant(buffer));
-      readBoolArray(buffer, this.triggerOn);
-      readBoolArray(buffer, this.actionOn);
-      readBoolArray(buffer, this.connections);
+   public GateLogic(PluggableGate pluggable, FriendlyByteBuf buffer) {
+      PacketBufferBC bc = BcPayloadBuffers.ensure(buffer);
+      this(pluggable, new GateVariant(bc));
+      readBoolArray(bc, this.triggerOn);
+      readBoolArray(bc, this.actionOn);
+      readBoolArray(bc, this.connections);
 
       try {
          for (GateLogic.StatementPair pair : this.statements) {
-            pair.trigger.readFromBuffer(buffer);
-            pair.action.readFromBuffer(buffer);
+            pair.trigger.readFromBuffer(bc);
+            pair.action.readFromBuffer(bc);
          }
       } catch (IOException io) {
          throw new Error(io);
@@ -245,35 +248,37 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
       this.isOn = on;
    }
 
-   public void writeCreationToBuf(PacketBufferBC buffer) {
-      this.variant.writeToBuffer(buffer);
-      writeBoolArray(buffer, this.triggerOn);
-      writeBoolArray(buffer, this.actionOn);
-      writeBoolArray(buffer, this.connections);
+   public void writeCreationToBuf(FriendlyByteBuf buffer) {
+      PacketBufferBC bc = BcPayloadBuffers.ensure(buffer);
+      this.variant.writeToBuffer(bc);
+      writeBoolArray(bc, this.triggerOn);
+      writeBoolArray(bc, this.actionOn);
+      writeBoolArray(bc, this.connections);
 
       for (GateLogic.StatementPair pair : this.statements) {
-         pair.trigger.writeToBuffer(buffer);
-         pair.action.writeToBuffer(buffer);
+         pair.trigger.writeToBuffer(bc);
+         pair.action.writeToBuffer(bc);
       }
    }
 
-   public void readPayload(PacketBufferBC buffer, boolean isClientSide) throws IOException {
-      int id = buffer.readUnsignedByte();
+   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) throws IOException {
+      PacketBufferBC bc = BcPayloadBuffers.ensure(buffer);
+      int id = bc.readUnsignedByte();
       if (id == NET_ID_CHANGE) {
-         boolean isAction = buffer.readBoolean();
-         int slot = buffer.readUnsignedByte();
+         boolean isAction = bc.readBoolean();
+         int slot = bc.readUnsignedByte();
          if (slot >= 0 && slot < this.statements.length) {
             GateLogic.StatementPair s = this.statements[slot];
-            (isAction ? s.action : s.trigger).readFromBuffer(buffer);
+            (isAction ? s.action : s.trigger).readFromBuffer(bc);
          } else {
             throw new InvalidInputDataException("Slot index out of range! (" + slot + ", must be within " + this.statements.length + ")");
          }
       } else {
          if (isClientSide) {
             if (id == NET_ID_RESOLVE) {
-               readBoolArray(buffer, this.triggerOn);
-               readBoolArray(buffer, this.actionOn);
-               readBoolArray(buffer, this.connections);
+               readBoolArray(bc, this.triggerOn);
+               readBoolArray(bc, this.actionOn);
+               readBoolArray(bc, this.connections);
             } else if (id == NET_ID_GLOWING) {
                this.isOn = true;
             } else if (id == NET_ID_DARK) {
@@ -289,7 +294,7 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
 
    public void sendStatementUpdate(boolean isAction, int slot) {
       IPayloadWriter writer = buffer -> {
-         PacketBufferBC buf = PacketBufferBC.asPacketBufferBc(buffer);
+         PacketBufferBC buf = BcPayloadBuffers.ensure(buffer);
          buf.writeByte(NET_ID_CHANGE);
          buf.writeBoolean(isAction);
          buf.writeByte(slot);
@@ -305,7 +310,7 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
 
    public void sendResolveData() {
       this.pluggable.sendGuiMessage(buffer -> {
-         PacketBufferBC buf = PacketBufferBC.asPacketBufferBc(buffer);
+         PacketBufferBC buf = BcPayloadBuffers.ensure(buffer);
          buf.writeByte(NET_ID_RESOLVE);
          writeBoolArray(buf, this.triggerOn);
          writeBoolArray(buf, this.actionOn);

@@ -1,5 +1,6 @@
 package buildcraft.builders.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.builders.BCBuildersMenuTypes;
 import buildcraft.builders.item.ItemSnapshot;
@@ -198,7 +199,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 12 && !isClient) {
          if (this.tile != null) {
             this.tile.cycleFluidMode();

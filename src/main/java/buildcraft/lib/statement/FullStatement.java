@@ -1,5 +1,6 @@
 package buildcraft.lib.statement;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.lib.misc.data.IReference;
@@ -58,7 +59,7 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
       return nbt;
    }
 
-   public void readFromBuffer(PacketBufferBC buffer) throws IOException {
+   public void readFromBuffer(FriendlyByteBuf buffer) throws IOException {
       if (buffer.readBoolean()) {
          this.statement = this.type.readFromBuffer(buffer);
 
@@ -71,7 +72,7 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
       }
    }
 
-   public void writeToBuffer(PacketBufferBC buffer) {
+   public void writeToBuffer(FriendlyByteBuf buffer) {
       if (this.statement == null) {
          buffer.writeBoolean(false);
       } else {

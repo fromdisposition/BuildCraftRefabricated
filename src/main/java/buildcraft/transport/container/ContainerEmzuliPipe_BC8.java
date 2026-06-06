@@ -1,5 +1,6 @@
 package buildcraft.transport.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.fabric.network.BCPayloadContext;
@@ -95,7 +96,7 @@ public class ContainerEmzuliPipe_BC8 extends BcMenu {
       }
 
       @Override
-      public void handleWidgetDataServer(BCPayloadContext ctx, PacketBufferBC buffer) {
+      public void handleWidgetDataServer(BCPayloadContext ctx, FriendlyByteBuf buffer) {
          int c = buffer.readByte();
          DyeColor colour = c >= 0 && c < 16 ? DyeColor.byId(c) : null;
          if (colour == null) {

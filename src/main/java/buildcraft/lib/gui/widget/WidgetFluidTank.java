@@ -1,5 +1,6 @@
 package buildcraft.lib.gui.widget;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.fuels.BuildcraftFuelRegistry;
 import buildcraft.api.fuels.ISolidCoolant;
 import buildcraft.fabric.network.BCPayloadContext;
@@ -42,7 +43,7 @@ public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
    }
 
    @Override
-   public void handleWidgetDataServer(BCPayloadContext ctx, PacketBufferBC buffer) {
+   public void handleWidgetDataServer(BCPayloadContext ctx, FriendlyByteBuf buffer) {
       byte id = buffer.readByte();
       if (id == 0) {
          this.onGuiClicked();

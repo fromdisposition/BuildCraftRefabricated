@@ -1,5 +1,6 @@
 package buildcraft.core.list;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.core.BCCoreMenuTypes;
 import buildcraft.core.PaperAdvancement;
 import buildcraft.core.item.ItemList_BC8;
@@ -94,7 +95,7 @@ public class ContainerList extends BcMenu {
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       super.readMessage(id, buffer, isClient, ctx);
       if (!isClient) {
          if (id == 2) {

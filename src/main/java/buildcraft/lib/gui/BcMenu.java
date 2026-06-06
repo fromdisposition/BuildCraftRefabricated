@@ -7,7 +7,7 @@ import buildcraft.lib.net.BcEnvelopeCodec;
 import buildcraft.lib.net.BcPacketDistributor;
 import buildcraft.lib.net.IPayloadWriter;
 import buildcraft.lib.net.MessageContainerPayload;
-import buildcraft.lib.net.PacketBufferBC;
+import net.minecraft.network.FriendlyByteBuf;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
@@ -102,7 +102,7 @@ public abstract class BcMenu extends RecipeBookMenu {
       }
    }
 
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 0) {
          int widgetId = buffer.readUnsignedShort();
          if (widgetId < 0 || widgetId >= this.widgets.size()) {

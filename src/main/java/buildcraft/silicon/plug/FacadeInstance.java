@@ -1,8 +1,10 @@
 package buildcraft.silicon.plug;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.facades.FacadeType;
 import buildcraft.api.facades.IFacade;
 import buildcraft.api.facades.IFacadePhasedState;
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import java.util.Arrays;
 import javax.annotation.Nullable;
@@ -73,9 +75,10 @@ public class FacadeInstance implements IFacade {
       return nbt;
    }
 
-   public static FacadeInstance readFromBuffer(PacketBufferBC buf) {
-      boolean isHollow = buf.readBoolean();
-      int count = buf.readFixedBits(5);
+   public static FacadeInstance readFromBuffer(FriendlyByteBuf buf) {
+      PacketBufferBC bc = BcPayloadBuffers.ensure(buf);
+      boolean isHollow = bc.readBoolean();
+      int count = bc.readFixedBits(5);
       FacadePhasedState[] states = new FacadePhasedState[count];
 
       for (int i = 0; i < count; i++) {
@@ -85,9 +88,10 @@ public class FacadeInstance implements IFacade {
       return new FacadeInstance(states, isHollow);
    }
 
-   public void writeToBuffer(PacketBufferBC buf) {
-      buf.writeBoolean(this.isHollow);
-      buf.writeFixedBits(this.phasedStates.length, 5);
+   public void writeToBuffer(FriendlyByteBuf buf) {
+      PacketBufferBC bc = BcPayloadBuffers.ensure(buf);
+      bc.writeBoolean(this.isHollow);
+      bc.writeFixedBits(this.phasedStates.length, 5);
 
       for (FacadePhasedState phasedState : this.phasedStates) {
          phasedState.writeToBuffer(buf);

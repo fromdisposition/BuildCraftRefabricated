@@ -17,7 +17,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 public record MessagePipePayload(BlockPos pos, int receiverOrdinal, byte[] payload) implements CustomPacketPayload {
-   public static final int MULTI_RECEIVER_ORDINAL = IPipeHolder.PipeMessageReceiver.VALUES.length;
+   public static final int LEGACY_WIRES_RECEIVER_ORDINAL = 8;
+   public static final int MULTI_RECEIVER_ORDINAL = 9;
    public static final Type<MessagePipePayload> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:pipe_payload"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessagePipePayload> STREAM_CODEC = StreamCodec.of(
       MessagePipePayload::encode, MessagePipePayload::decode
@@ -57,7 +58,9 @@ public record MessagePipePayload(BlockPos pos, int receiverOrdinal, byte[] paylo
                try {
                   BcEnvelopeCodec.decode(message.payload, buffer -> {
                      try {
-                        if (message.receiverOrdinal == MULTI_RECEIVER_ORDINAL) {
+                        if (message.receiverOrdinal == LEGACY_WIRES_RECEIVER_ORDINAL) {
+                           PipeReceiverPayloadCodec.ignoreLegacyWiresPayload(holder, buffer);
+                        } else if (message.receiverOrdinal == MULTI_RECEIVER_ORDINAL) {
                            PipeReceiverPayloadCodec.readMulti(holder, pipe, buffer);
                         } else {
                            IPipeHolder.PipeMessageReceiver[] receivers = IPipeHolder.PipeMessageReceiver.VALUES;

@@ -1,5 +1,6 @@
 package buildcraft.silicon.container;
 
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.ContainerBCTile;
 import buildcraft.lib.gui.slot.SlotBase;
@@ -66,7 +67,7 @@ public class ContainerAssemblyTable extends ContainerBCTile<TileAssemblyTable> {
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 102 && !isClient && this.tile != null) {
          boolean maxTransfer = buffer.readBoolean();
          int count = buffer.readVarInt();

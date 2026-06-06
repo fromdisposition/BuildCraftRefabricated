@@ -1,9 +1,9 @@
 package buildcraft.lib.net;
 
 import buildcraft.api.core.BCLog;
-import io.netty.buffer.Unpooled;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
+import net.minecraft.network.FriendlyByteBuf;
 
 public final class BcEnvelopeCodec {
    private BcEnvelopeCodec() {
@@ -11,7 +11,7 @@ public final class BcEnvelopeCodec {
 
    @Nullable
    public static byte[] encode(IPayloadWriter writer) {
-      PacketBufferBC buffer = new PacketBufferBC(Unpooled.buffer());
+      PacketBufferBC buffer = BcPayloadBuffers.create();
 
       try {
          writer.write(buffer);
@@ -29,9 +29,9 @@ public final class BcEnvelopeCodec {
       }
    }
 
-   public static void decode(@Nullable byte[] payload, Consumer<PacketBufferBC> consumer) {
+   public static void decode(@Nullable byte[] payload, Consumer<FriendlyByteBuf> consumer) {
       if (payload != null) {
-         PacketBufferBC buffer = new PacketBufferBC(Unpooled.wrappedBuffer(payload));
+         PacketBufferBC buffer = BcPayloadBuffers.wrap(payload);
 
          try {
             consumer.accept(buffer);

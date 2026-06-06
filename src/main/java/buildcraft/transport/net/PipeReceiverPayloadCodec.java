@@ -4,7 +4,6 @@ import buildcraft.api.core.BCLog;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.api.transport.pluggable.PipePluggable;
-import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.tile.TilePipeHolder;
 import java.io.IOException;
@@ -12,12 +11,7 @@ import java.util.Set;
 import net.minecraft.network.FriendlyByteBuf;
 
 public final class PipeReceiverPayloadCodec {
-   private static final int WIRES_RECEIVER_ORDINAL = IPipeHolder.PipeMessageReceiver.VALUES.length - 1;
    private PipeReceiverPayloadCodec() {
-   }
-
-   public static boolean isActiveReceiver(IPipeHolder.PipeMessageReceiver receiver) {
-      return receiver.ordinal() != WIRES_RECEIVER_ORDINAL;
    }
 
    public static void write(IPipeHolder.PipeMessageReceiver receiver, TilePipeHolder holder, FriendlyByteBuf buffer) {
@@ -51,7 +45,7 @@ public final class PipeReceiverPayloadCodec {
       }
    }
 
-   public static void read(IPipeHolder.PipeMessageReceiver receiver, TilePipeHolder holder, Pipe pipe, PacketBufferBC buffer) throws IOException {
+   public static void read(IPipeHolder.PipeMessageReceiver receiver, TilePipeHolder holder, Pipe pipe, FriendlyByteBuf buffer) throws IOException {
       switch (receiver) {
          case BEHAVIOUR:
             if (buffer.readBoolean()) {
@@ -70,11 +64,6 @@ public final class PipeReceiverPayloadCodec {
             }
             break;
          default:
-            if (receiver.ordinal() == WIRES_RECEIVER_ORDINAL) {
-               BCLog.logger.warn("[transport.net] Ignoring deprecated WIRES pipe payload at {}", holder.getPipePos());
-               return;
-            }
-
             if (receiver.face != null) {
                PipePluggable plug = holder.getPluggable(receiver.face);
                if (plug != null) {
@@ -88,9 +77,7 @@ public final class PipeReceiverPayloadCodec {
       int mask = 0;
 
       for (IPipeHolder.PipeMessageReceiver part : parts) {
-         if (isActiveReceiver(part)) {
-            mask |= 1 << part.ordinal();
-         }
+         mask |= 1 << part.ordinal();
       }
 
       return mask;
@@ -101,19 +88,23 @@ public final class PipeReceiverPayloadCodec {
       buffer.writeShort(mask);
 
       for (IPipeHolder.PipeMessageReceiver receiver : IPipeHolder.PipeMessageReceiver.VALUES) {
-         if (isActiveReceiver(receiver) && (mask & 1 << receiver.ordinal()) != 0) {
+         if ((mask & 1 << receiver.ordinal()) != 0) {
             write(receiver, holder, buffer);
          }
       }
    }
 
-   public static void readMulti(TilePipeHolder holder, Pipe pipe, PacketBufferBC buffer) throws IOException {
+   public static void readMulti(TilePipeHolder holder, Pipe pipe, FriendlyByteBuf buffer) throws IOException {
       int mask = buffer.readUnsignedShort();
 
       for (IPipeHolder.PipeMessageReceiver receiver : IPipeHolder.PipeMessageReceiver.VALUES) {
-         if (isActiveReceiver(receiver) && (mask & 1 << receiver.ordinal()) != 0) {
+         if ((mask & 1 << receiver.ordinal()) != 0) {
             read(receiver, holder, pipe, buffer);
          }
       }
+   }
+
+   public static void ignoreLegacyWiresPayload(TilePipeHolder holder, FriendlyByteBuf buffer) {
+      BCLog.logger.warn("[transport.net] Ignoring deprecated WIRES pipe payload at {}", holder.getPipePos());
    }
 }

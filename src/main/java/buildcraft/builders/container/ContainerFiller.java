@@ -1,5 +1,7 @@
 package buildcraft.builders.container;
 
+import buildcraft.lib.net.BcPayloadBuffers;
+import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.api.tiles.IControllable;
@@ -121,7 +123,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
    public void onStatementChange() {
       if (this.player != null && this.player.level() != null && this.player.level().isClientSide()) {
          this.sendMessage(11, buf -> {
-            PacketBufferBC buffer = new PacketBufferBC(buf.unwrap());
+            PacketBufferBC buffer = BcPayloadBuffers.ensure(buf.unwrap());
             this.patternStatementClient.writeToBuffer(buffer);
          });
       }
@@ -205,7 +207,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
    }
 
    @Override
-   public void readMessage(int id, PacketBufferBC buffer, boolean isClient, BCPayloadContext ctx) {
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 11) {
          try {
             if (isClient) {
@@ -266,7 +268,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
          FullStatement<IFillerPattern> stat = this.getPatternStatement();
          if (stat != null) {
             ByteBuf temp = Unpooled.buffer();
-            PacketBufferBC bcBuf = new PacketBufferBC(temp);
+            PacketBufferBC bcBuf = BcPayloadBuffers.ensure(temp);
             stat.writeToBuffer(bcBuf);
             byte[] current = new byte[temp.readableBytes()];
             temp.readBytes(current);
