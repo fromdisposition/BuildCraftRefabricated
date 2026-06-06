@@ -175,32 +175,33 @@ the current port status in this build.
 |                              | BC 8.0.x       | Fabric 26.1.2  | Notes |
 | ---------------------------- | -------------- | -------------- | ----- |
 | **Core** (`buildcraft.core`) |                |                |       |
-| Landmark / path markers      | ✅             | 🚧             | Modern marker/volume APIs |
-| Volume box system            | ✅             | 🚧             | Saved data + client sync ported |
-| List mod (filler/builder)    | ✅             | 🚧             | Functional |
-| Engine tester, creative eng.  | ✅             | 🚧             | MJ connectors registered |
-| Oil springs                  | ✅             | 🚧             | `BCEnergyFluidsFabric` fluid blocks |
+| Landmark / path markers      | ✅             | ✅             | DONE — path/volume markers, connector, client render |
+| Volume box system            | ✅             | ✅             | DONE — saved data, client sync, filler/architect integration |
+| List mod (filler/builder)    | ✅             | ✅             | DONE — GUI, NBT lists, filler/builder handlers |
+| Creative engine              | ✅             | ✅             | DONE  |
+| Engine tester (dev)          | ✅             | 🚧             | `BlockPowerConsumerTester` registered only with `-Dbuildcraft.dev=true` |
+| Oil springs                  | ✅             | ✅             | DONE — `BlockSpring` + `TileSpringOil` liquid generation |
 | Paintbrush (pipes & blocks)  | ✅             | ✅             | DONE — colours pipes and vanilla paintable blocks |
 | **Transport** (`buildcraft.transport`) |      |                |       |
 | Item pipes                   | ✅             | ✅             | DONE — smooth client item interpolation |
 | Fluid pipes                  | ✅             | ✅             | DONE — dyed waterproofing band via runtime mask tint (no atlas `dye_replace`) |
 | MJ power pipes               | ✅             | ✅             | DONE  |
-| RF / Redstone Flux pipes     | ✅             | 🚧             | Team Reborn `EnergyStorage` neighbour transfer; MJ↔RF conversion gated by config |
+| RF / Redstone Flux pipes     | ✅             | ✅             | DONE — `PipeFlowRedstoneFlux`, Team Reborn `EnergyStorage` neighbour transfer |
 | Pipe behaviours              | ✅             | ✅             | DONE  |
 | Pipe pluggables              | ✅             | ✅             | DONE  |
-| Silicon pipe pluggables      | ✅             | 🚧             | Facade, lens, gate, pulsar, timer, light sensor |
-| Wire systems                 | ✅             | 🚧             | `MessagePipePayload`, `SavedDataWireSystems` |
+| Silicon pipe pluggables      | ✅             | ✅             | DONE — facade, lens, gate, pulsar, timer, light sensor |
+| Wire systems                 | ✅             | ✅             | DONE — `WireManager`, `SavedDataWireSystems`, gate/pipe payload sync |
 | Filtered buffer              | ✅             | ✅             | DONE  |
 | Passive fluid pull (non-wood)| ➖             | ➖             | By BC design — wood pipe + MJ only |
 | **Energy** (`buildcraft.energy`) |            |                |       |
 | Stone engine (solid fuel)    | ✅             | ✅             | DONE  |
 | Iron engine (liquid fuel)    | ✅             | ✅             | DONE  |
 | Redstone / creative engines  | ✅             | ✅             | DONE  |
-| FE engine + Dynamo MJ        | ✅             | 🚧             | RF autoconversion off by default (`MJ_ONLY` in config) |
+| FE engine + Dynamo MJ        | ✅             | ✅             | DONE — `TileEngineRF`, `TileDynamoMJ`; `MJ_ONLY` gates MJ-machine RF bridge only |
 | Oil / fuel / residue fluids  | ✅             | ✅             | DONE  |
 | BC fluid buckets             | ✅             | ✅             | DONE  |
 | Oil spring worldgen          | ✅             | ✅             | DONE  |
-| Engine iron GUI              | ✅             | 🚧             | Fuel/coolant/residue tanks (BC 8.0.1+) |
+| Engine iron GUI              | ✅             | ✅             | DONE — fuel/coolant/residue tanks (BC 8.0.1+) |
 | **Factory** (`buildcraft.factory`) |          |                |       |
 | Tank (multi-column)          | ✅             | ✅             | DONE  |
 | Pump                         | ✅             | ✅             | DONE  |
@@ -209,27 +210,27 @@ the current port status in this build.
 | Heat exchange                | ✅             | ✅             | DONE  |
 | Chute                        | ✅             | ✅             | DONE  |
 | Auto workbench               | ✅             | ✅             | DONE  |
-| Mining well                  | ✅             | 🚧             | `EmptyResourceHandler` on item attachment by design |
+| Mining well                  | ✅             | ✅             | DONE — MJ vertical mining, tube extension, drop routing |
 | **Builders** (`buildcraft.builders`) |        |                |       |
 | Quarry                       | ✅             | ✅             | DONE — frame build, strip-mine to bedrock, MJ, chunkloading, item output |
-| Filler (+ planner addon)     | ✅             | 🚧             | Filler registry + template system |
-| Architect table              | ✅             | 🚧             | Blueprint/schematic support |
-| Builder                      | ✅             | 🚧             | Fluid tanks + MJ |
-| Electronic library, replacer | ✅             | 🚧             | Containers and tiles ported |
+| Filler (+ planner addon)     | ✅             | ✅             | DONE — `TileFiller`, pattern registry, planner addon GUI |
+| Architect table              | ✅             | ✅             | DONE — blueprint/schematic scan and output |
+| Builder                      | ✅             | ✅             | DONE — blueprint/template build, fluid tanks, MJ |
+| Electronic library, replacer | ✅             | ✅             | DONE — snapshot download/upload, schematic replace |
 | **Silicon** (`buildcraft.silicon`) |          |                |       |
-| Assembly table               | ✅             | 🚧             | JEI plugin included |
-| Integration table            | ✅             | 🚧             |       |
-| Advanced crafting table      | ✅             | 🚧             |       |
-| Laser(s)                     | ✅             | 🚧             |       |
-| Gates (pipe pluggable)       | ✅             | 🚧             | Triggers/actions via `GateLogic` |
-| Facades, lenses, pulsar, etc.| ✅             | 🚧             | Renderers and bakers ported |
+| Assembly table               | ✅             | ✅             | DONE — laser-powered assembly, JEI plugin |
+| Integration table            | ✅             | ✅             | DONE — integration recipes, laser target |
+| Advanced crafting table      | ✅             | ✅             | DONE — blueprint crafting, laser target |
+| Laser(s)                     | ✅             | ✅             | DONE — cone scan, MJ delivery to laser tables |
+| Gates (pipe pluggable)       | ✅             | ✅             | DONE — triggers/actions via `GateLogic`, wire emit |
+| Facades, lenses, pulsar, etc.| ✅             | ✅             | DONE — pluggables, item models, bakers |
 | **Robotics** (`buildcraft.robotics`) |        |                |       |
-| Zone planner                 | ✅             | 🚧             | Block, tile, GUI present |
+| Zone planner                 | ✅             | 🚧             | Tile/GUI complete; block registered only with `-Dbuildcraft.dev=true` |
 | Deployable robots            | ✅             | ❌             | API stubs only; no in-world robot entities |
 | Robot docking stations       | ✅             | ❌             | API only |
 | **Lib / shared** (`buildcraft.lib`) |         |                |       |
-| Guide book                   | ✅             | 🚧             | Guide under `assets/buildcraft/compat/`; builder rules under `assets/buildcraftbuilders/compat/`; in-game book UI still incomplete |
-| Statements / triggers        | ✅             | 🚧             | Transport and builders statements registered |
+| Guide book                   | ✅             | 🚧             | `GuiGuide` works; ~164 pages under `assets/buildcraft/compat/`; missing entries auto-stub as WIP placeholders |
+| Statements / triggers        | ✅             | ✅             | DONE — core, transport, builders, silicon statements + gate resolution |
 | MJ API (`MjAPI`)             | ✅             | ✅             | DONE  |
 | Forge fluid/item caps        | ✅             | ➖             | Replaced by attachments + Fabric Transfer API |
 | Fabric fluid/item interop    | ➖             | ✅             | DONE  |
@@ -420,11 +421,12 @@ Honest list of current gaps and design constraints:
 5. **Item pipe Fabric bridge is insert-only** — Cannot pull travelling items out via `ItemStorage.SIDED`.
 6. **Wood pipe required for extraction** — Cobble/gold/iron fluid and item pipes do not passively drain neighbours; wood + MJ is by BC design.
 7. **Multi-tank fluid extract** — `tryExtractFluidAdv` probes slot 0 only; multi-tank external handlers may not expose the expected fluid first.
-8. **Robotics incomplete** — Zone planner works; deployable robot entities are not implemented.
-9. **Guide book incomplete** — Reload infrastructure exists; in-game book shows "not yet available."
-10. **Legacy capability tokens** — `CapabilitiesHelper` still returns `null` for `CAP_INJECTABLE` / `CAP_PIPE`; item inject relies on `instanceof IFlowItems` checks.
-11. **RF autoconversion off by default** — Config `MJ_ONLY`; enabling RF↔MJ conversion exposes `EnergyStorage` on BC machines and is required for cross-mod RF tank/engine interop beyond RF pipes.
-12. **Pipe flow transactions** — Pipe internals mutate immediately; nested transaction rollback does not fully undo travelling items (especially `PipeItemInjectHandler`).
+8. **Robotics incomplete** — Deployable robot entities and docking stations are not implemented; zone planner is DEV-gated.
+9. **Guide book content incomplete** — `GuiGuide` opens and ~164 pages load; entries without writeups auto-generate WIP placeholder stubs.
+10. **Dev-only blocks** — Engine power tester and zone planner register only with `-Dbuildcraft.dev=true`; creative engine is always available.
+11. **Legacy capability tokens** — `CapabilitiesHelper` still returns `null` for `CAP_INJECTABLE` / `CAP_PIPE`; item inject relies on `instanceof IFlowItems` checks.
+12. **RF autoconversion off by default** — Config `MJ_ONLY`; enabling RF↔MJ conversion exposes `EnergyStorage` on BC machines and is required for cross-mod RF tank/engine interop beyond RF pipes.
+13. **Pipe flow transactions** — Pipe internals mutate immediately; nested transaction rollback does not fully undo travelling items (especially `PipeItemInjectHandler`).
 
 ---
 
