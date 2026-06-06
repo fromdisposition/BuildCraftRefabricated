@@ -32,7 +32,6 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
 
    private static final Map<Long, TextureAtlasSprite[]> SPRITES = new HashMap<>();
    private static final Map<Long, TextureAtlasSprite[]> MASK_SPRITES = new HashMap<>();
-   private static final Map<Long, TextureAtlasSprite[]> DYED_SPRITES = new HashMap<>();
    private static final Map<String, String> MASK_MAP = new HashMap<>();
    private static final MutableQuad[][][] QUADS;
    private static final MutableQuad[][][] QUADS_COLOURED;
@@ -43,10 +42,6 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
 
    static long defKey(PipeDefinition def, boolean cb) {
       return (long)System.identityHashCode(def) << 32 | (cb ? 1L : 0L);
-   }
-
-   static long dyedKey(PipeDefinition def, DyeColor colour, boolean cb) {
-      return (long)System.identityHashCode(def) << 32 | (long)colour.ordinal() << 1 | (cb ? 1L : 0L);
    }
 
    private static String maybeCbName(String texName, boolean cb) {
@@ -128,36 +123,6 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
       return array;
    }
 
-   static TextureAtlasSprite[] ensureDyedSprites(PipeDefinition def, DyeColor colour) {
-      boolean cb = isCb();
-      long cacheKey = dyedKey(def, colour, cb);
-      TextureAtlasSprite[] cached = DYED_SPRITES.get(cacheKey);
-      if (cached != null) {
-         return cached;
-      }
-
-      TextureAtlasSprite missing = SpriteUtil.missingSprite();
-      TextureAtlasSprite[] array = new TextureAtlasSprite[def.textures.length];
-      String dyeSuffix = "_dyed_" + colour.getName();
-
-      for (int i = 0; i < array.length; i++) {
-         String dyedTex = maybeCbName(def.textures[i], cb) + dyeSuffix;
-         array[i] = SpriteUtil.getSprite(Identifier.parse(dyedTex));
-         if (array[i] == null || array[i] == missing) {
-            throw new IllegalStateException(
-               "Dyed sprite missing from blocks atlas: "
-                  + dyedTex
-                  + " — DyeReplaceSpriteSource didn't emit it. Check that assets/minecraft/atlases/blocks.json has a buildcraftlib:dye_replace entry whose source matches "
-                  + def.textures[i]
-                  + " and that the source/mask PNGs exist and have matching dimensions."
-            );
-         }
-      }
-
-      DYED_SPRITES.put(cacheKey, array);
-      return array;
-   }
-
    public static void onColorBlindToggle() {
       Minecraft mc = Minecraft.getInstance();
       if (mc != null && mc.levelRenderer != null) {
@@ -168,7 +133,6 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
    public static void clearSpriteCaches() {
       SPRITES.clear();
       MASK_SPRITES.clear();
-      DYED_SPRITES.clear();
    }
 
    private static void dupDarker(MutableQuad[] quads) {
@@ -202,13 +166,7 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
    @Override
    public List<MutableQuad> generateCutoutMutable(PipeModelCacheBase.PipeBaseCutoutKey key) {
       List<MutableQuad> quads = new ArrayList<>();
-      TextureAtlasSprite[] spriteArray;
-      if (key.definition != null && key.colour != null && key.definition.flowType == PipeApi.flowFluids) {
-         spriteArray = ensureDyedSprites(key.definition, key.colour);
-      } else {
-         spriteArray = key.definition != null ? ensureSprites(key.definition) : null;
-      }
-
+      TextureAtlasSprite[] spriteArray = key.definition != null ? ensureSprites(key.definition) : null;
       TextureAtlasSprite borderSprite = getBorderSprite(key);
       int colour = borderSprite == null ? -1 : getPipeModelColour(key.colour);
       int border_r = colour >> 0 & 0xFF;

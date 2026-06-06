@@ -40,7 +40,6 @@ public class PipeItemModel implements ItemModel {
    private final @Nullable QuadCollection vanillaQuads;
    private final @Nullable ModelRenderProperties renderProperties;
    private final Supplier<Vector3fc[]> extents;
-   private static final double OVERLAY_OFFSET = 0.01;
 
    public PipeItemModel(ItemModel vanillaDelegate, PipeDefinition definition) {
       this.vanillaDelegate = vanillaDelegate;
@@ -77,88 +76,32 @@ public class PipeItemModel implements ItemModel {
       } else {
          renderState.appendModelIdentityElement(this);
          renderState.appendModelIdentityElement(colour);
-         if (this.definition.flowType == PipeApi.flowFluids) {
-            TextureAtlasSprite[] dyedSprites = PipeBaseModelGenStandard.ensureDyedSprites(this.definition, colour);
-            int itemTexIndex = this.definition.itemTextureTop;
-            TextureAtlasSprite dyedSprite = itemTexIndex < dyedSprites.length ? dyedSprites[itemTexIndex] : dyedSprites[0];
-            LayerRenderState layer = renderState.newLayer();
-            layer.prepareQuadList().addAll(generatePipeQuads(dyedSprite));
-            if (this.extents != null) {
-               layer.setExtents(this.extents);
-            }
+         LayerRenderState baseLayer = renderState.newLayer();
+         baseLayer.prepareQuadList().addAll(this.vanillaQuads.getAll());
+         if (this.extents != null) {
+            baseLayer.setExtents(this.extents);
+         }
 
-            this.renderProperties.applyToLayer(layer, displayContext);
-         } else {
-            LayerRenderState baseLayer = renderState.newLayer();
-            baseLayer.prepareQuadList().addAll(this.vanillaQuads.getAll());
-            if (this.extents != null) {
-               baseLayer.setExtents(this.extents);
-            }
-
-            this.renderProperties.applyToLayer(baseLayer, displayContext);
-            TextureAtlasSprite[] maskArray = PipeBaseModelGenStandard.ensureMaskSprites(this.definition);
-            TextureAtlasSprite maskSprite = maskArray != null && maskArray.length > 0 ? maskArray[0] : null;
-            if (maskSprite != null && maskSprite != SpriteUtil.missingSprite()) {
-               List<BakedQuad> overlayQuads = generateOverlayQuads(maskSprite);
-               if (!overlayQuads.isEmpty()) {
-                  LayerRenderState overlayLayer = renderState.newLayer();
-                  overlayLayer.prepareQuadList().addAll(overlayQuads);
-                  if (this.extents != null) {
-                     overlayLayer.setExtents(this.extents);
-                  }
-
-                  this.renderProperties.applyToLayer(overlayLayer, displayContext);
-                  int tintColour = 1275068416 | ColourUtil.getLightHex(colour);
-                  overlayLayer.tintLayers().add(tintColour);
+         this.renderProperties.applyToLayer(baseLayer, displayContext);
+         TextureAtlasSprite[] maskArray = PipeBaseModelGenStandard.ensureMaskSprites(this.definition);
+         TextureAtlasSprite maskSprite = maskArray != null && maskArray.length > 0 ? maskArray[0] : null;
+         if (maskSprite != null && maskSprite != SpriteUtil.missingSprite()) {
+            List<BakedQuad> overlayQuads = generateOverlayQuads(maskSprite);
+            if (!overlayQuads.isEmpty()) {
+               LayerRenderState overlayLayer = renderState.newLayer();
+               overlayLayer.prepareQuadList().addAll(overlayQuads);
+               if (this.extents != null) {
+                  overlayLayer.setExtents(this.extents);
                }
+
+               this.renderProperties.applyToLayer(overlayLayer, displayContext);
+               // Fluid pipes paint the waterproofing band opaquely (alpha 0xFF), matching the old
+               // baked dyed sprite; other colourable pipes keep the translucent tint film (alpha 0x4C).
+               int alpha = this.definition.flowType == PipeApi.flowFluids ? 0xFF000000 : 0x4C000000;
+               int tintColour = alpha | ColourUtil.getLightHex(colour);
+               overlayLayer.tintLayers().add(tintColour);
             }
          }
-      }
-   }
-
-   private static List<BakedQuad> generatePipeQuads(TextureAtlasSprite sprite) {
-      List<BakedQuad> quads = new ArrayList<>();
-      ModelUtil.UvFaceData bottomSideUvs = ModelUtil.UvFaceData.from16(4, 12, 12, 16);
-      ModelUtil.UvFaceData centerUvs = ModelUtil.UvFaceData.from16(4, 4, 12, 12);
-      ModelUtil.UvFaceData topSideUvs = ModelUtil.UvFaceData.from16(4, 0, 12, 4);
-      ModelUtil.UvFaceData capFaceUvs = ModelUtil.UvFaceData.from16(4, 4, 12, 12);
-      addPipeFaces(quads, sprite, new Vector3f(0.5F, 0.125F, 0.5F), new Vector3f(0.25F, 0.125F, 0.25F), new Direction[]{Direction.DOWN}, capFaceUvs);
-      addPipeFaces(
-         quads,
-         sprite,
-         new Vector3f(0.5F, 0.125F, 0.5F),
-         new Vector3f(0.25F, 0.125F, 0.25F),
-         new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST},
-         bottomSideUvs
-      );
-      addPipeFaces(
-         quads,
-         sprite,
-         new Vector3f(0.5F, 0.5F, 0.5F),
-         new Vector3f(0.25F, 0.25F, 0.25F),
-         new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST},
-         centerUvs
-      );
-      addPipeFaces(quads, sprite, new Vector3f(0.5F, 0.875F, 0.5F), new Vector3f(0.25F, 0.125F, 0.25F), new Direction[]{Direction.UP}, capFaceUvs);
-      addPipeFaces(
-         quads,
-         sprite,
-         new Vector3f(0.5F, 0.875F, 0.5F),
-         new Vector3f(0.25F, 0.125F, 0.25F),
-         new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST},
-         topSideUvs
-      );
-      return quads;
-   }
-
-   private static void addPipeFaces(
-      List<BakedQuad> quads, TextureAtlasSprite sprite, Vector3f center, Vector3f radius, Direction[] faces, ModelUtil.UvFaceData uvs
-   ) {
-      for (Direction face : faces) {
-         MutableQuad quad = ModelUtil.createFace(face, center, radius, uvs);
-         quad.setSprite(sprite);
-         quad.texFromSprite(sprite);
-         quads.add(quad.toBakedBlock());
       }
    }
 

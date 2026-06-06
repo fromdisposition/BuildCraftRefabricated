@@ -2,7 +2,6 @@ package buildcraft.fabric;
 
 import buildcraft.lib.client.sprite.BcFluidBakeSpriteSource;
 import buildcraft.lib.client.sprite.BcHeatWhiteSpriteSource;
-import buildcraft.lib.client.sprite.DyeReplaceSpriteSource;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.client.renderer.texture.atlas.SpriteSource;
@@ -29,7 +28,6 @@ public final class BCSpriteSourcesFabric {
    public static void registerInto(LateBoundIdMapper<Identifier, MapCodec<? extends SpriteSource>> mapper) {
       if (!registered) {
          try {
-            mapper.put(DyeReplaceSpriteSource.ID, DyeReplaceSpriteSource.MAP_CODEC);
             mapper.put(BcHeatWhiteSpriteSource.ID, BcHeatWhiteSpriteSource.MAP_CODEC);
             mapper.put(BcFluidBakeSpriteSource.ID, BcFluidBakeSpriteSource.MAP_CODEC);
             registered = true;

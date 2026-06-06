@@ -51,14 +51,14 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                }
 
                if (!(amount <= 0.0)) {
-                  double centerShift = 0.245 + size / 2.0;
+                  double centerShift = 0.24 + size / 2.0;
                   double cx = 0.5 + face.getStepX() * centerShift;
                   double cy = 0.5 + face.getStepY() * centerShift;
                   double cz = 0.5 + face.getStepZ() * centerShift;
                   double rx = 0.24;
                   double ry = 0.24;
                   double rz = 0.24;
-                  double faceAxisRadius = 0.005 + size / 2.0;
+                  double faceAxisRadius = size / 2.0;
                   switch (face.getAxis()) {
                      case X:
                         rx = faceAxisRadius;

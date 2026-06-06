@@ -228,7 +228,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
    @Override
    public boolean hasClientSimulationWork() {
-      return !this.pipe.getHolder().getPipeWorld().isClientSide() && this.doesContainItems();
+      return this.doesContainItems();
    }
 
    @Override

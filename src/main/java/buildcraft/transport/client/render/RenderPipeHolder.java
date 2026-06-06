@@ -2,6 +2,7 @@ package buildcraft.transport.client.render;
 
 import buildcraft.api.transport.pipe.IPipeBehaviourRenderer;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
+import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.api.transport.pluggable.IPlugDynamicRenderer;
@@ -106,9 +107,10 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
             );
             Pipe bodyPipe = pipe.getPipe();
             if (bodyPipe != null && bodyPipe.getColour() != null) {
+               int paintAlpha = bodyPipe.definition.flowType == PipeApi.flowFluids ? 255 : ModelPipe.PIPE_PAINT_ALPHA;
                BcBerRenderUtil.submit(
                   poseStack, collector, BCLibRenderTypes.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS), (pose, buffer) -> {
-                     ModelPipe.renderMaskOverlay(pipe, pose, buffer, light, 76);
+                     ModelPipe.renderMaskOverlay(pipe, pose, buffer, light, paintAlpha);
                   }
                );
             }
