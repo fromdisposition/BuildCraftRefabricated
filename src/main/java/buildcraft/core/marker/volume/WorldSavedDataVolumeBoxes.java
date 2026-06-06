@@ -69,7 +69,13 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
    }
 
    public VolumeBox getVolumeBoxAt(BlockPos pos) {
-      return this.volumeBoxes.stream().filter(volumeBox -> volumeBox.box.contains(pos)).findFirst().orElse(null);
+      for (VolumeBox volumeBox : this.volumeBoxes) {
+         if (volumeBox.box.contains(pos)) {
+            return volumeBox;
+         }
+      }
+
+      return null;
    }
 
    public void addVolumeBox(BlockPos pos) {
@@ -153,16 +159,32 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
    }
 
    public VolumeBox getVolumeBoxFromId(UUID id) {
-      return this.volumeBoxes.stream().filter(volumeBox -> volumeBox.id.equals(id)).findFirst().orElse(null);
+      for (VolumeBox volumeBox : this.volumeBoxes) {
+         if (volumeBox.id.equals(id)) {
+            return volumeBox;
+         }
+      }
+
+      return null;
    }
 
    public VolumeBox getCurrentEditing(Player player) {
-      return this.volumeBoxes.stream().filter(volumeBox -> volumeBox.isEditingBy(player)).findFirst().orElse(null);
+      for (VolumeBox volumeBox : this.volumeBoxes) {
+         if (volumeBox.isEditingBy(player)) {
+            return volumeBox;
+         }
+      }
+
+      return null;
    }
 
    public void tick() {
+      if (this.volumeBoxes.isEmpty()) {
+         return;
+      }
+
       boolean dirty = false;
-      Set<UUID> tickUpdated = new HashSet<>();
+      Set<UUID> tickUpdated = null;
 
       for (VolumeBox volumeBox : this.volumeBoxes) {
          if (volumeBox.isEditing() || !volumeBox.locks.isEmpty()) {
@@ -171,6 +193,10 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
                if (player == null) {
                   volumeBox.pauseEditing();
                   dirty = true;
+                  if (tickUpdated == null) {
+                     tickUpdated = new HashSet<>();
+                  }
+
                   tickUpdated.add(volumeBox.id);
                } else {
                   AABB oldAabb = volumeBox.box.getBoundingBox();
@@ -182,6 +208,10 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
                   volumeBox.box.extendToEncompass(lookingAt);
                   if (!volumeBox.box.getBoundingBox().equals(oldAabb)) {
                      dirty = true;
+                     if (tickUpdated == null) {
+                        tickUpdated = new HashSet<>();
+                     }
+
                      tickUpdated.add(volumeBox.id);
                   }
                }
@@ -191,13 +221,17 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
                boolean removed = volumeBox.locks.removeIf(lock -> !lock.cause.stillWorks(this.world));
                if (removed) {
                   dirty = true;
+                  if (tickUpdated == null) {
+                     tickUpdated = new HashSet<>();
+                  }
+
                   tickUpdated.add(volumeBox.id);
                }
             }
          }
       }
 
-      if (dirty) {
+      if (dirty && tickUpdated != null) {
          this.setDirty();
          this.broadcastDelta(tickUpdated, Set.of());
       }

@@ -6,6 +6,7 @@ import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.net.PacketBufferBC;
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -271,7 +272,12 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       }
 
       if (this.tile.canExcavate()) {
-         Set<Integer> breakTasksIndexes = this.breakTasks.stream().map(breakTask -> this.posToIndex(breakTask.pos)).collect(Collectors.toSet());
+         IntOpenHashSet breakTasksIndexes = new IntOpenHashSet(this.breakTasks.size());
+
+         for (SnapshotBuilder<T>.BreakTask breakTask : this.breakTasks) {
+            breakTasksIndexes.add(this.posToIndex(breakTask.pos));
+         }
+
          int[] blocks = Arrays.stream(this.breakOrder).filter(i -> this.checkResults[i] == 2 && !breakTasksIndexes.contains(i)).toArray();
          this.leftToBreak = blocks.length;
          if (blocks.length != 0) {
@@ -289,7 +295,12 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          this.leftToBreak = 0;
       }
 
-      Set<Integer> placeTasksIndexes = this.placeTasks.stream().map(placeTaskx -> this.posToIndex(placeTaskx.pos)).collect(Collectors.toSet());
+      IntOpenHashSet placeTasksIndexes = new IntOpenHashSet(this.placeTasks.size());
+
+      for (SnapshotBuilder<T>.PlaceTask placeTaskx : this.placeTasks) {
+         placeTasksIndexes.add(this.posToIndex(placeTaskx.pos));
+      }
+
       int[] blocks = Arrays.stream(this.placeOrder).filter(i -> this.checkResults[i] == 3 && !placeTasksIndexes.contains(i)).toArray();
       this.leftToPlace = blocks.length;
       boolean areaHasFluid = (this.getFluidMode() == EnumFluidHandlingMode.CLEAR || this.getFluidMode() == EnumFluidHandlingMode.REPLACE)

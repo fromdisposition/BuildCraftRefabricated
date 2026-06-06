@@ -7,7 +7,10 @@ import buildcraft.fabric.fluid.BcOilFluid;
 import buildcraft.lib.fluids.FluidTypes;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
 import net.minecraft.core.Registry;
@@ -31,6 +34,8 @@ import net.minecraft.world.level.material.PushReaction;
 public final class BCEnergyFluidsFabric {
    public static final List<String> BASE_NAMES = List.of(BcFluidWorldProperties.FLUID_NAMES);
    private static final List<BCEnergyFluidsFabric.FluidEntry> ENTRIES = new ArrayList<>();
+   private static final Map<Fluid, BCEnergyFluidsFabric.FluidEntry> BY_FLUID = new IdentityHashMap<>();
+   private static final Map<String, Fluid> BY_NAME = new HashMap<>();
    public static BCEnergyFluidsFabric.FluidEntry OIL_COOL;
    public static final List<BCEnergyFluidsFabric.FluidEntry> ALL = Collections.unmodifiableList(ENTRIES);
 
@@ -39,6 +44,8 @@ public final class BCEnergyFluidsFabric {
 
    public static void register() {
       ENTRIES.clear();
+      BY_FLUID.clear();
+      BY_NAME.clear();
 
       for (int i = 0; i < BcFluidWorldProperties.FLUID_DATA.length; i++) {
          int[] data = BcFluidWorldProperties.FLUID_DATA[i];
@@ -47,6 +54,9 @@ public final class BCEnergyFluidsFabric {
          for (int heat = 0; heat < 3; heat++) {
             BCEnergyFluidsFabric.FluidEntry entry = registerVariant(baseName, heat, data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]);
             ENTRIES.add(entry);
+            BY_FLUID.put(entry.still(), entry);
+            BY_FLUID.put(entry.flowing(), entry);
+            BY_NAME.put(entry.name(), entry.still());
             if (i == 0 && heat == 0) {
                OIL_COOL = entry;
             }
@@ -120,29 +130,12 @@ public final class BCEnergyFluidsFabric {
 
    @Nullable
    public static BCEnergyFluidsFabric.FluidEntry findEntry(Fluid fluid) {
-      if (fluid == null) {
-         return null;
-      }
-
-      for (BCEnergyFluidsFabric.FluidEntry entry : ENTRIES) {
-         if (entry.still() == fluid || entry.flowing() == fluid) {
-            return entry;
-         }
-      }
-
-      return null;
+      return fluid == null ? null : BY_FLUID.get(fluid);
    }
 
    public static Fluid findFluid(String baseName, int heat) {
       String regName = baseName + (heat == 0 ? "" : "_heat_" + heat);
-
-      for (BCEnergyFluidsFabric.FluidEntry entry : ENTRIES) {
-         if (entry.name().equals(regName)) {
-            return entry.still();
-         }
-      }
-
-      return null;
+      return BY_NAME.get(regName);
    }
 
    public static int getHeat(Fluid fluid) {
@@ -150,13 +143,8 @@ public final class BCEnergyFluidsFabric {
          return -1;
       }
 
-      for (BCEnergyFluidsFabric.FluidEntry entry : ENTRIES) {
-         if (entry.still() == fluid || entry.flowing() == fluid) {
-            return entry.heat();
-         }
-      }
-
-      return -1;
+      BCEnergyFluidsFabric.FluidEntry entry = BY_FLUID.get(fluid);
+      return entry == null ? -1 : entry.heat();
    }
 
    public static BlockState sourceBlockState(BCEnergyFluidsFabric.FluidEntry entry) {
@@ -179,13 +167,8 @@ public final class BCEnergyFluidsFabric {
          return null;
       }
 
-      for (BCEnergyFluidsFabric.FluidEntry entry : ENTRIES) {
-         if (entry.still() == fluid || entry.flowing() == fluid) {
-            return entry.baseName();
-         }
-      }
-
-      return null;
+      BCEnergyFluidsFabric.FluidEntry entry = BY_FLUID.get(fluid);
+      return entry == null ? null : entry.baseName();
    }
 
    public record FluidEntry(

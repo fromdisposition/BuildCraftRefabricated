@@ -112,15 +112,9 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
          }
 
          if (quads != null && !quads.isEmpty()) {
-            BakedQuad quad = quads.get(0);
-
-            for (Method m : quad.getClass().getMethods()) {
-               if (m.getReturnType() == TextureAtlasSprite.class && m.getParameterCount() == 0) {
-                  try {
-                     return (TextureAtlasSprite)m.invoke(quad);
-                  } catch (Exception var15) {
-                  }
-               }
+            TextureAtlasSprite quadSprite = quads.get(0).materialInfo().sprite();
+            if (quadSprite != null) {
+               return quadSprite;
             }
          }
 

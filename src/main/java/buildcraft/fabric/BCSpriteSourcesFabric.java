@@ -5,9 +5,7 @@ import buildcraft.lib.client.sprite.BcHeatWhiteSpriteSource;
 import buildcraft.lib.client.sprite.DyeReplaceSpriteSource;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
-import java.lang.reflect.Field;
 import net.minecraft.client.renderer.texture.atlas.SpriteSource;
-import net.minecraft.client.renderer.texture.atlas.SpriteSources;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs.LateBoundIdMapper;
 import org.slf4j.Logger;
@@ -19,17 +17,13 @@ public final class BCSpriteSourcesFabric {
    private BCSpriteSourcesFabric() {
    }
 
+   /**
+    * Registration happens natively via {@code SpriteSourcesBootstrapMixin}, which calls
+    * {@link #registerInto} with the accessor-exposed {@code ID_MAPPER} at the end of
+    * {@code SpriteSources.bootstrap}. This method is kept as a no-op entry point so client
+    * init order stays explicit; it no longer reflects into vanilla internals.
+    */
    public static void register() {
-      try {
-         Field field = SpriteSources.class.getDeclaredField("ID_MAPPER");
-         field.setAccessible(true);
-         LateBoundIdMapper<Identifier, MapCodec<? extends SpriteSource>> mapper = (LateBoundIdMapper<Identifier, MapCodec<? extends SpriteSource>>)field.get(
-            null
-         );
-         registerInto(mapper);
-      } catch (ReflectiveOperationException e) {
-         LOGGER.error("Failed to register BuildCraft sprite source types", e);
-      }
    }
 
    public static void registerInto(LateBoundIdMapper<Identifier, MapCodec<? extends SpriteSource>> mapper) {

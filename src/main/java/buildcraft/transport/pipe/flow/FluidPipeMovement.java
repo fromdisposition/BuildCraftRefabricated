@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.Direction;
@@ -21,6 +22,17 @@ public final class FluidPipeMovement {
    public static final int COOLDOWN_INPUT_TICKS = -60;
 
    private FluidPipeMovement() {
+   }
+
+   private static void shuffleFaces(EnumPipePart[] faces) {
+      ThreadLocalRandom rng = ThreadLocalRandom.current();
+
+      for (int i = faces.length - 1; i > 0; i--) {
+         int j = rng.nextInt(i + 1);
+         EnumPipePart tmp = faces[i];
+         faces[i] = faces[j];
+         faces[j] = tmp;
+      }
    }
 
    public static void moveFromPipe(FluidPipeMovement.Host host) {
@@ -65,7 +77,7 @@ public final class FluidPipeMovement {
             sideCheck.disallowAllExcept(realDirections);
             host.fireEvent(sideCheck);
             List<Direction> random = new ArrayList<>(sideCheck.getOrder());
-            Collections.shuffle(random);
+            Collections.shuffle(random, ThreadLocalRandom.current());
             float min = (float)Math.min(flowRate * realDirections.size(), totalAvailable) / flowRate / realDirections.size();
 
             for (Direction direction : random) {
@@ -94,9 +106,8 @@ public final class FluidPipeMovement {
       int spaceAvailable = host.capacity() - host.centerAmount();
       if (spaceAvailable > 0 && host.centerMaxFill() > 0) {
          int flowRate = host.transferPerTick();
-         List<EnumPipePart> faces = new ArrayList<>();
-         Collections.addAll(faces, EnumPipePart.FACES);
-         Collections.shuffle(faces);
+         EnumPipePart[] faces = EnumPipePart.FACES.clone();
+         shuffleFaces(faces);
          int[] inputPerTick = new int[6];
 
          for (EnumPipePart part : faces) {

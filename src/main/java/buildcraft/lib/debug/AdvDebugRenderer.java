@@ -1,6 +1,8 @@
 package buildcraft.lib.debug;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
 import net.minecraft.client.Minecraft;
@@ -10,7 +12,40 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 
 public final class AdvDebugRenderer {
+   private static boolean lookupsResolved;
+   private static Class<?> quarryClass;
+   private static Class<?> laserClass;
+   private static MethodHandle quarryRender;
+   private static MethodHandle laserRender;
+
    private AdvDebugRenderer() {
+   }
+
+   private static void resolveLookups() {
+      if (lookupsResolved) {
+         return;
+      }
+
+      lookupsResolved = true;
+      MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+
+      try {
+         quarryClass = Class.forName("buildcraft.builders.tile.TileQuarry");
+         Class<?> renderer = Class.forName("buildcraft.builders.client.render.AdvDebuggerQuarry");
+         quarryRender = lookup.unreflect(renderer.getMethod("render", quarryClass, PoseStack.class, BufferSource.class, Vec3.class));
+      } catch (ReflectiveOperationException ignored) {
+         quarryClass = null;
+         quarryRender = null;
+      }
+
+      try {
+         laserClass = Class.forName("buildcraft.silicon.tile.TileLaser");
+         Class<?> renderer = Class.forName("buildcraft.silicon.client.render.AdvDebuggerLaser");
+         laserRender = lookup.unreflect(renderer.getMethod("render", laserClass, PoseStack.class, BufferSource.class, Vec3.class));
+      } catch (ReflectiveOperationException ignored) {
+         laserClass = null;
+         laserRender = null;
+      }
    }
 
    public static void register() {
@@ -31,19 +66,16 @@ public final class AdvDebugRenderer {
    }
 
    private static void renderOptionalOverlay(BlockEntity be, PoseStack poseStack, Vec3 cameraPos) {
+      resolveLookups();
+      BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
+
       try {
-         Class<?> quarryClass = Class.forName("buildcraft.builders.tile.TileQuarry");
-         Class<?> laserClass = Class.forName("buildcraft.silicon.tile.TileLaser");
-         if (quarryClass.isInstance(be)) {
-            Class<?> renderer = Class.forName("buildcraft.builders.client.render.AdvDebuggerQuarry");
-            renderer.getMethod("render", quarryClass, poseStack.getClass(), BufferSource.class, Vec3.class)
-               .invoke(null, be, poseStack, Minecraft.getInstance().renderBuffers().bufferSource(), cameraPos);
-         } else if (laserClass.isInstance(be)) {
-            Class<?> renderer = Class.forName("buildcraft.silicon.client.render.AdvDebuggerLaser");
-            renderer.getMethod("render", laserClass, poseStack.getClass(), BufferSource.class, Vec3.class)
-               .invoke(null, be, poseStack, Minecraft.getInstance().renderBuffers().bufferSource(), cameraPos);
+         if (quarryRender != null && quarryClass != null && quarryClass.isInstance(be)) {
+            quarryRender.invoke(be, poseStack, buffers, cameraPos);
+         } else if (laserRender != null && laserClass != null && laserClass.isInstance(be)) {
+            laserRender.invoke(be, poseStack, buffers, cameraPos);
          }
-      } catch (ReflectiveOperationException var6) {
+      } catch (Throwable ignored) {
       }
    }
 }

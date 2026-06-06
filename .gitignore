@@ -1,16 +1,34 @@
+# Whitelist: only src/, gradle/, and root project files are tracked.
+/*
+
+!/src/
+!/src/**
+!/gradle/
+!/gradle/**
+
+!/.gitignore
+!/.gitattributes
+!/build.gradle.kts
+!/settings.gradle.kts
+!/gradle.properties
+!/gradlew
+!/gradlew.bat
+!/LICENSE
+!/README.md
+
+# Local / generated (also covered by whitelist above)
 .gradle/
 build/
 run/
 run_server/
 
+# IDE / OS
 .idea/
 *.iml
 .vscode/
-
-/misc/
-scripts/
-.github/
-BuildCraftVersions.json
-
 .DS_Store
 Thumbs.db
+
+# Decompiler junk at repo root
+/com/
+/net/

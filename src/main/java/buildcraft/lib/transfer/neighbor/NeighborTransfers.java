@@ -102,15 +102,16 @@ public final class NeighborTransfers {
    }
 
    public static void pushFluidToNeighbors(Level level, BlockPos pos, Storage<FluidVariant> from, int maxPerNeighbor) {
-      if (from != null && !FluidStorageSnapshot.of(from).isEmpty()) {
-         for (Direction dir : Direction.values()) {
-            if (FluidStorageSnapshot.of(from).isEmpty()) {
-               break;
-            }
+      if (from == null || FluidStorageSnapshot.of(from).isEmpty()) {
+         return;
+      }
 
-            Storage<FluidVariant> neighbor = TriggerTransferAccess.blockFluidStorage(level, pos.relative(dir), dir.getOpposite());
-            if (neighbor != null) {
-               moveFluidCommitted(from, neighbor, maxPerNeighbor);
+      for (Direction dir : Direction.values()) {
+         Storage<FluidVariant> neighbor = TriggerTransferAccess.blockFluidStorage(level, pos.relative(dir), dir.getOpposite());
+         if (neighbor != null) {
+            int moved = moveFluidCommitted(from, neighbor, maxPerNeighbor);
+            if (moved > 0 && FluidStorageSnapshot.of(from).isEmpty()) {
+               break;
             }
          }
       }

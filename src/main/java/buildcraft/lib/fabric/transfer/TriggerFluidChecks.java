@@ -59,7 +59,16 @@ public final class TriggerFluidChecks {
       }
 
       if (!searchedFluid.isEmpty()) {
-         return FluidStorageOps.canInsert(storage, TransferConvert.toVariant(searchedFluid), TransferConvert.mbToDroplets(1L));
+         FluidVariant searched = TransferConvert.toVariant(searchedFluid);
+         long oneMb = TransferConvert.mbToDroplets(1L);
+
+         for (StorageView<FluidVariant> view : storage) {
+            if (FluidStorageOps.canInsert(view, searched, oneMb)) {
+               return true;
+            }
+         }
+
+         return false;
       }
 
       for (StorageView<FluidVariant> view : storage) {
@@ -77,7 +86,16 @@ public final class TriggerFluidChecks {
       }
 
       if (!searchedFluid.isEmpty()) {
-         return !FluidStorageOps.canInsert(storage, TransferConvert.toVariant(searchedFluid), TransferConvert.mbToDroplets(1L));
+         FluidVariant searched = TransferConvert.toVariant(searchedFluid);
+         long oneMb = TransferConvert.mbToDroplets(1L);
+
+         for (StorageView<FluidVariant> view : storage) {
+            if (FluidStorageOps.canInsert(view, searched, oneMb)) {
+               return false;
+            }
+         }
+
+         return true;
       }
 
       boolean sawView = false;

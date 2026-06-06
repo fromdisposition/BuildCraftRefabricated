@@ -37,7 +37,7 @@ public abstract class LevelRendererMixin {
    @Inject(method = "extractBlockOutline", at = @At("RETURN"))
    private void buildcraft$afterExtractBlockOutline(Camera camera, LevelRenderState levelRenderState, CallbackInfo ci) {
       BlockOutlineRenderState outline = levelRenderState.blockOutlineRenderState;
-      if (outline != null) {
+      if (outline != null && ExtractBlockOutlineRenderStateEvent.hasListeners()) {
          if (this.minecraft.hitResult instanceof BlockHitResult blockHit) {
             BlockPos pos = blockHit.getBlockPos();
             BlockState state = this.level.getBlockState(pos);

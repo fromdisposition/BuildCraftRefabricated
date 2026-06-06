@@ -10,7 +10,6 @@ import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup.Provider;
@@ -104,8 +103,16 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
    }
 
    protected boolean extract(ItemHandlerSimple inv, Collection<IngredientStack> items, boolean simulate, boolean precise) {
-      AtomicLong remainingStacks = new AtomicLong(inv.stacks.stream().filter(stack -> !stack.isEmpty()).count());
-      boolean allItemsConsumed = items.stream().allMatch(definition -> {
+      long remainingStacks = 0L;
+      if (precise) {
+         for (ItemStack stack : inv.stacks) {
+            if (!stack.isEmpty()) {
+               remainingStacks++;
+            }
+         }
+      }
+
+      for (IngredientStack definition : items) {
          int remaining = definition.count;
 
          for (int i = 0; i < inv.getSlots() && remaining > 0; i++) {
@@ -121,13 +128,13 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
             }
          }
 
-         if (remaining == 0) {
-            remainingStacks.decrementAndGet();
-            return true;
-         } else {
+         if (remaining != 0) {
             return false;
          }
-      });
-      return allItemsConsumed && (!precise || remainingStacks.get() == 0L);
+
+         remainingStacks--;
+      }
+
+      return !precise || remainingStacks == 0L;
    }
 }

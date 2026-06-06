@@ -29,11 +29,25 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 public class TileAssemblyTable extends TileLaserTableBase {
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftsilicon:precision_crafting");
+   private static final int RESCAN_INTERVAL = 100;
    public final ItemHandlerSimple inv = this.itemManager.addInvHandler("inv", 12, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
    public SortedMap<TileAssemblyTable.AssemblyInstruction, EnumAssemblyRecipeState> recipesStates = new TreeMap<>();
+   private long lastInvSignature = Long.MIN_VALUE;
+   private int rescanCooldown;
 
    public TileAssemblyTable(BlockPos pos, BlockState state) {
       super(BCSiliconBlockEntities.ASSEMBLY_TABLE, pos, state);
+   }
+
+   private long inventorySignature() {
+      long sig = 1L;
+
+      for (int i = 0; i < this.inv.getSlots(); i++) {
+         ItemStack stack = this.inv.getStackInSlot(i);
+         sig = sig * 31L + (stack.isEmpty() ? 0L : ItemStack.hashItemAndComponents(stack) * 31L + stack.getCount());
+      }
+
+      return sig;
    }
 
    private void updateRecipes() {
@@ -161,13 +175,18 @@ public class TileAssemblyTable extends TileLaserTableBase {
    @Override
    public void serverTick() {
       super.serverTick();
-      int prevSize = this.recipesStates.size();
-      int prevHash = this.recipesStates.hashCode();
-      this.updateRecipes();
-      if (this.recipesStates.size() != prevSize || this.recipesStates.hashCode() != prevHash) {
-         this.setChanged();
-         if (this.getLevel() != null) {
-            this.getLevel().sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
+      long signature = this.inventorySignature();
+      if (signature != this.lastInvSignature || --this.rescanCooldown <= 0) {
+         this.lastInvSignature = signature;
+         this.rescanCooldown = RESCAN_INTERVAL;
+         int prevSize = this.recipesStates.size();
+         int prevHash = this.recipesStates.hashCode();
+         this.updateRecipes();
+         if (this.recipesStates.size() != prevSize || this.recipesStates.hashCode() != prevHash) {
+            this.setChanged();
+            if (this.getLevel() != null) {
+               this.getLevel().sendBlockUpdated(this.getBlockPos(), this.getBlockState(), this.getBlockState(), 3);
+            }
          }
       }
 

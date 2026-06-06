@@ -31,6 +31,10 @@ public final class ExtractBlockOutlineRenderStateEvent {
       LISTENERS.add(listener);
    }
 
+   public static boolean hasListeners() {
+      return !LISTENERS.isEmpty();
+   }
+
    public static void fire(ExtractBlockOutlineRenderStateEvent event) {
       for (Consumer<ExtractBlockOutlineRenderStateEvent> listener : LISTENERS) {
          listener.accept(event);
