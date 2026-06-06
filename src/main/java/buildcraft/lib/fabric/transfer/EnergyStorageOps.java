@@ -11,33 +11,14 @@ public final class EnergyStorageOps {
 
    public static int extract(@Nullable EnergyStorage storage, int maxAmount, boolean commit) {
       if (storage != null && maxAmount > 0 && storage.supportsExtraction()) {
-         Transaction tx = Transaction.openOuter();
-
-         int var5;
-         try {
-            int extracted = extract(storage, maxAmount, tx);
+         try (Transaction transaction = Transaction.openOuter()) {
+            int extracted = extract(storage, maxAmount, transaction);
             if (commit && extracted > 0) {
-               tx.commit();
+               transaction.commit();
             }
 
-            var5 = extracted;
-         } catch (Throwable var7) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var6) {
-                  var7.addSuppressed(var6);
-               }
-            }
-
-            throw var7;
+            return extracted;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var5;
       } else {
          return 0;
       }
@@ -49,33 +30,14 @@ public final class EnergyStorageOps {
 
    public static int insert(@Nullable EnergyStorage storage, int amount, boolean commit) {
       if (storage != null && amount > 0 && storage.supportsInsertion()) {
-         Transaction tx = Transaction.openOuter();
-
-         int var5;
-         try {
-            int inserted = insert(storage, amount, tx);
+         try (Transaction transaction = Transaction.openOuter()) {
+            int inserted = insert(storage, amount, transaction);
             if (commit && inserted > 0) {
-               tx.commit();
+               transaction.commit();
             }
 
-            var5 = inserted;
-         } catch (Throwable var7) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var6) {
-                  var7.addSuppressed(var6);
-               }
-            }
-
-            throw var7;
+            return inserted;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var5;
       } else {
          return 0;
       }

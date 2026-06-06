@@ -17,56 +17,18 @@ public final class FluidStorageOps {
    }
 
    public static long move(Storage<FluidVariant> from, Storage<FluidVariant> to, long maxDroplets) {
-      Transaction tx = Transaction.openOuter();
-
-      long var7;
-      try {
-         long moved = move(from, to, maxDroplets, tx);
-         tx.commit();
-         var7 = moved;
-      } catch (Throwable var10) {
-         if (tx != null) {
-            try {
-               tx.close();
-            } catch (Throwable var9) {
-               var10.addSuppressed(var9);
-            }
-         }
-
-         throw var10;
+      try (Transaction transaction = Transaction.openOuter()) {
+         long moved = move(from, to, maxDroplets, transaction);
+         transaction.commit();
+         return moved;
       }
-
-      if (tx != null) {
-         tx.close();
-      }
-
-      return var7;
    }
 
    public static boolean canInsert(@Nullable Storage<FluidVariant> storage, FluidVariant resource, long maxDroplets) {
       if (storage != null && !resource.isBlank() && maxDroplets > 0L) {
-         Transaction tx = Transaction.openOuter();
-
-         boolean var5;
-         try {
-            var5 = storage.insert(resource, maxDroplets, tx) > 0L;
-         } catch (Throwable var8) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var7) {
-                  var8.addSuppressed(var7);
-               }
-            }
-
-            throw var8;
+         try (Transaction transaction = Transaction.openOuter()) {
+            return storage.insert(resource, maxDroplets, transaction) > 0L;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var5;
       } else {
          return false;
       }

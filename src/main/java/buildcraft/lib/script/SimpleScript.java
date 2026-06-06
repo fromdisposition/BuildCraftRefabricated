@@ -270,7 +270,6 @@ public class SimpleScript {
          String path = from.substring(colonIndex + 1);
          String fullPath = libDomain + "/compat/" + registry.getEntryType() + "/" + path + ".txt";
 
-         label106:
          for (Path root : roots) {
             Path full = root.resolve(fullPath);
             if (Files.exists(full)) {
@@ -287,7 +286,7 @@ public class SimpleScript {
                            do {
                               if (++i >= list.size()) {
                                  this.log("Found endless comment in " + root);
-                                 break label106;
+                                 return null;
                               }
 
                               next = list.get(i).trim();
@@ -320,18 +319,18 @@ public class SimpleScript {
 
                         if (argValues != null) {
                            for (int a = 0; a < argValues.length; a++) {
-                              for (int var20 = 0; var20 < list.size(); var20++) {
-                                 String str = list.get(var20);
+                              for (int lineIndex = 0; lineIndex < list.size(); lineIndex++) {
+                                 String str = list.get(lineIndex);
                                  str = str.replace("${" + a + "}", argValues[a]);
-                                 list.set(var20, str);
+                                 list.set(lineIndex, str);
                               }
                            }
                         }
 
-                        for (int var21 = 0; var21 < list.size(); var21++) {
-                           String str = list.get(var21);
+                        for (int lineIndex = 0; lineIndex < list.size(); lineIndex++) {
+                           String str = list.get(lineIndex);
                            str = str.replace("${domain}", this.domain);
-                           list.set(var21, str);
+                           list.set(lineIndex, str);
                         }
 
                         return list;
@@ -687,7 +686,6 @@ public class SimpleScript {
 
          LineData data;
          String line;
-         label96:
          do {
             foundNextLineSymbol = false;
             if (!this.lineIterator.hasNext()) {
@@ -700,69 +698,77 @@ public class SimpleScript {
             int i = Math.max(0, this.currentIndexInLine);
 
             while (i < line.length()) {
-               label112: {
-                  char c = line.charAt(i);
-                  switch (c) {
-                     case ' ':
+               char c = line.charAt(i);
+               boolean tokenStartFound = false;
+               switch (c) {
+                  case ' ':
+                     break;
+                  case '"':
+                     end = '"';
+                     start = i + 1;
+                     tokenStartFound = true;
+                     break;
+                  case '/':
+                     if (i + 1 == line.length()) {
+                        return new SimpleScript.LineToken(line.substring(i), data, SimpleScript.TokenType.COMMENT, false, i, line.length());
+                     }
+
+                     isComment = true;
+                     if (!line.startsWith("/**", i)) {
+                        this.currentIndexInLine = -1;
+                        return new SimpleScript.LineToken(
+                           line.substring(i), data, SimpleScript.TokenType.COMMENT, line.startsWith("//", i), i, line.length()
+                        );
+                     }
+
+                     start = i + 3;
+                     tokenStartFound = true;
+                     break;
+                  case '`':
+                     end = '`';
+                     isMultiLine = true;
+                     start = i + 1;
+                     tokenStartFound = true;
+                     break;
+                  case '¬':
+                     boolean isLast = true;
+
+                     for (int j = i; j < line.length(); j++) {
+                        if (!Character.isWhitespace(line.charAt(j))) {
+                           if (!line.startsWith("//", j)) {
+                              isLast = false;
+                           }
+                           break;
+                        }
+                     }
+
+                     if (isLast) {
+                        foundNextLineSymbol = true;
+                        this.currentIndexInLine = -1;
                         break;
-                     case '"':
-                        end = '"';
-                        start = i + 1;
-                        break label112;
-                     case '/':
-                        if (i + 1 == line.length()) {
-                           return new SimpleScript.LineToken(line.substring(i), data, SimpleScript.TokenType.COMMENT, false, i, line.length());
-                        }
-
-                        isComment = true;
-                        if (!line.startsWith("/**", i)) {
-                           this.currentIndexInLine = -1;
-                           return new SimpleScript.LineToken(
-                              line.substring(i), data, SimpleScript.TokenType.COMMENT, line.startsWith("//", i), i, line.length()
-                           );
-                        }
-
-                        start = i + 3;
-                        break label112;
-                     case '`':
-                        end = '`';
-                        isMultiLine = true;
-                        start = i + 1;
-                        break label112;
-                     case '¬':
-                        boolean isLast = true;
-
+                     }
+                  default:
+                     if (!Character.isWhitespace(c)) {
                         for (int j = i; j < line.length(); j++) {
-                           if (!Character.isWhitespace(line.charAt(j))) {
-                              if (!line.startsWith("//", j)) {
-                                 isLast = false;
-                              }
-                              break;
+                           char d = line.charAt(j);
+                           if (Character.isWhitespace(d)) {
+                              this.currentIndexInLine = j + 1;
+                              this.lineIterator.previous();
+                              return new SimpleScript.LineToken(line.substring(i, j), data, SimpleScript.TokenType.SEPARATE, true, i, j);
                            }
                         }
 
-                        if (isLast) {
-                           foundNextLineSymbol = true;
-                           this.currentIndexInLine = -1;
-                           continue label96;
-                        }
-                     default:
-                        if (!Character.isWhitespace(c)) {
-                           for (int j = i; j < line.length(); j++) {
-                              char d = line.charAt(j);
-                              if (Character.isWhitespace(d)) {
-                                 this.currentIndexInLine = j + 1;
-                                 this.lineIterator.previous();
-                                 return new SimpleScript.LineToken(line.substring(i, j), data, SimpleScript.TokenType.SEPARATE, true, i, j);
-                              }
-                           }
+                        this.currentIndexInLine = line.length();
+                        this.lineIterator.previous();
+                        return new SimpleScript.LineToken(line.substring(i), data, SimpleScript.TokenType.SEPARATE, true, i, line.length());
+                     }
+               }
 
-                           this.currentIndexInLine = line.length();
-                           this.lineIterator.previous();
-                           return new SimpleScript.LineToken(line.substring(i), data, SimpleScript.TokenType.SEPARATE, true, i, line.length());
-                        }
-                  }
+               if (foundNextLineSymbol) {
+                  break;
+               }
 
+               if (!tokenStartFound) {
                   i++;
                   continue;
                }
@@ -777,7 +783,10 @@ public class SimpleScript {
                }
 
                this.currentIndexInLine = -1;
-               continue label96;
+               break;
+            }
+            if (foundNextLineSymbol) {
+               continue;
             }
             break;
          } while (jumpToNextLine || foundNextLineSymbol);
@@ -952,7 +961,7 @@ public class SimpleScript {
    }
 
    public interface ScriptActionLoader {
-      List<SimpleScript.ScriptAction> load(SimpleScript var1);
+      List<SimpleScript.ScriptAction> load(SimpleScript script);
    }
 
    public static class ScriptActionRemove extends SimpleScript.ScriptAction {

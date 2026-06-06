@@ -11,7 +11,6 @@ import buildcraft.lib.misc.FluidUtilBC;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import com.google.common.base.Preconditions;
 import com.mojang.logging.LogUtils;
-import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -105,46 +104,17 @@ public final class FluidUtil {
       }
 
       if (!movedVariant.isBlank() && maxDroplets > 0L) {
-         Transaction tx = Transaction.openOuter();
-
-         FluidStack movedStack;
-         label73: {
-            FluidStack var13;
-            try {
-               long moved = FluidStorageOps.move(from, to, maxDroplets, tx);
-               if (moved <= 0L) {
-                  movedStack = null;
-                  break label73;
-               }
-
-               tx.commit();
-               movedStack = TransferConvert.toFluidStack(movedVariant, moved);
-               playSoundAndGameEvent(movedStack, level, pos, player, pickup);
-               var13 = movedStack;
-            } catch (Throwable var15) {
-               if (tx != null) {
-                  try {
-                     tx.close();
-                  } catch (Throwable var14) {
-                     var15.addSuppressed(var14);
-                  }
-               }
-
-               throw var15;
+         try (Transaction transaction = Transaction.openOuter()) {
+            long moved = FluidStorageOps.move(from, to, maxDroplets, transaction);
+            if (moved <= 0L) {
+               return null;
             }
 
-            if (tx != null) {
-               tx.close();
-            }
-
-            return var13;
+            transaction.commit();
+            FluidStack movedStack = TransferConvert.toFluidStack(movedVariant, moved);
+            playSoundAndGameEvent(movedStack, level, pos, player, pickup);
+            return movedStack;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return movedStack;
       } else {
          return null;
       }
@@ -166,47 +136,19 @@ public final class FluidUtil {
          }
       }
 
-      Transaction tx = Transaction.openOuter();
-
-      boolean var15;
-      label67: {
-         try {
-            long moved = FluidStorageOps.move(from, to, Long.MAX_VALUE, tx);
-            if (moved <= 0L) {
-               var15 = false;
-               break label67;
-            }
-
-            tx.commit();
-            if (!soundVariant.isBlank()) {
-               playSoundAndGameEvent(TransferConvert.toFluidStack(soundVariant), level, pos, player, pickup);
-            }
-
-            var15 = true;
-         } catch (Throwable var12) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var11) {
-                  var12.addSuppressed(var11);
-               }
-            }
-
-            throw var12;
+      try (Transaction transaction = Transaction.openOuter()) {
+         long moved = FluidStorageOps.move(from, to, Long.MAX_VALUE, transaction);
+         if (moved <= 0L) {
+            return false;
          }
 
-         if (tx != null) {
-            tx.close();
+         transaction.commit();
+         if (!soundVariant.isBlank()) {
+            playSoundAndGameEvent(TransferConvert.toFluidStack(soundVariant), level, pos, player, pickup);
          }
 
-         return var15;
+         return true;
       }
-
-      if (tx != null) {
-         tx.close();
-      }
-
-      return var15;
    }
 
    private static int saturateMb(long millibuckets) {
@@ -257,101 +199,38 @@ public final class FluidUtil {
          FluidStack resource = FluidUtilBC.canonicalFluidStack(new FluidStack(fluid, 1));
          FluidVariant variant = TransferConvert.toVariant(resource);
          long bucketDroplets = TransferConvert.mbToDroplets(1000L);
-         Transaction tx = Transaction.openOuter();
-
-         FluidStack var26;
-         label107: {
-            label108: {
-               FluidStack var29;
-               label109: {
-                  label110: {
-                     FluidStack var27;
-                     try {
-                        long inserted = destination.insert(variant, bucketDroplets, tx);
-                        if (inserted != bucketDroplets) {
-                           var26 = FluidStack.EMPTY;
-                           break label107;
-                        }
-
-                        if (level.getFluidState(pos).getType() != fluid) {
-                           var26 = FluidStack.EMPTY;
-                           break label108;
-                        }
-
-                        ItemStack pickedUpStack = bucketPickup.pickupBlock(player, level, pos, level.getBlockState(pos));
-                        if (pickedUpStack.getItem() instanceof BucketItem bucket) {
-                           Fluid bucketFluid = Mc26Compat.bucketFluid(bucket);
-                           FluidStack extracted = new FluidStack(bucketFluid, 1000);
-                           if (!FluidUtilBC.areEquivalentFluidStacks(resource, extracted.copyWithAmount(1))) {
-                              LOGGER.warn(
-                                 "Fluid removed without successfully being picked up. Fluid {} at {} in {} matched requested type, but after performing pickup was {}.",
-                                 new Object[]{
-                                    BuiltInRegistries.FLUID.getKey(fluid), pos, level.dimension().identifier(), BuiltInRegistries.FLUID.getKey(bucketFluid)
-                                 }
-                              );
-                              var29 = FluidStack.EMPTY;
-                              break label109;
-                           }
-
-                           tx.commit();
-                           playSoundAndGameEvent(resource, level, pos, player, true);
-                           var29 = extracted;
-                           break label110;
-                        }
-
-                        if (!pickedUpStack.isEmpty()) {
-                           LOGGER.warn(
-                              "Picked up stack is not a bucket. Fluid {} at {} in {} picked up as {}.",
-                              new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, level.dimension().identifier(), pickedUpStack}
-                           );
-                        }
-
-                        var27 = FluidStack.EMPTY;
-                     } catch (Throwable var22) {
-                        if (tx != null) {
-                           try {
-                              tx.close();
-                           } catch (Throwable var21) {
-                              var22.addSuppressed(var21);
-                           }
-                        }
-
-                        throw var22;
-                     }
-
-                     if (tx != null) {
-                        tx.close();
-                     }
-
-                     return var27;
-                  }
-
-                  if (tx != null) {
-                     tx.close();
-                  }
-
-                  return var29;
-               }
-
-               if (tx != null) {
-                  tx.close();
-               }
-
-               return var29;
+         try (Transaction transaction = Transaction.openOuter()) {
+            long inserted = destination.insert(variant, bucketDroplets, transaction);
+            if (inserted != bucketDroplets || level.getFluidState(pos).getType() != fluid) {
+               return FluidStack.EMPTY;
             }
 
-            if (tx != null) {
-               tx.close();
+            ItemStack pickedUpStack = bucketPickup.pickupBlock(player, level, pos, level.getBlockState(pos));
+            if (pickedUpStack.getItem() instanceof BucketItem bucket) {
+               Fluid bucketFluid = Mc26Compat.bucketFluid(bucket);
+               FluidStack extracted = new FluidStack(bucketFluid, 1000);
+               if (!FluidUtilBC.areEquivalentFluidStacks(resource, extracted.copyWithAmount(1))) {
+                  LOGGER.warn(
+                     "Fluid removed without successfully being picked up. Fluid {} at {} in {} matched requested type, but after performing pickup was {}.",
+                     new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, level.dimension().identifier(), BuiltInRegistries.FLUID.getKey(bucketFluid)}
+                  );
+                  return FluidStack.EMPTY;
+               }
+
+               transaction.commit();
+               playSoundAndGameEvent(resource, level, pos, player, true);
+               return extracted;
             }
 
-            return var26;
-         }
+            if (!pickedUpStack.isEmpty()) {
+               LOGGER.warn(
+                  "Picked up stack is not a bucket. Fluid {} at {} in {} picked up as {}.",
+                  new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, level.dimension().identifier(), pickedUpStack}
+               );
+            }
 
-         if (tx != null) {
-            tx.close();
+            return FluidStack.EMPTY;
          }
-
-         return var26;
       }
    }
 
@@ -361,61 +240,20 @@ public final class FluidUtil {
       }
 
       long bucketDroplets = TransferConvert.mbToDroplets(1000L);
-      Iterator var7 = source.iterator();
-
-      Transaction tx;
-      FluidStack var13;
-      while (true) {
-         if (!var7.hasNext()) {
-            return FluidStack.EMPTY;
-         }
-
-         StorageView<FluidVariant> view = (StorageView<FluidVariant>)var7.next();
+      for (StorageView<FluidVariant> view : source) {
          if (!view.isResourceBlank()) {
             FluidStack resource = TransferConvert.toFluidStack((FluidVariant)view.getResource());
-            tx = Transaction.openOuter();
-
-            label58: {
-               try {
-                  long extracted = view.extract((FluidVariant)view.getResource(), bucketDroplets, tx);
-                  if (extracted == bucketDroplets) {
-                     if (!tryPlaceFluid(resource, player, level, hand, pos)) {
-                        break label58;
-                     }
-
-                     tx.commit();
-                     var13 = resource.copyWithAmount(1000);
-                     break;
-                  }
-               } catch (Throwable var15) {
-                  if (tx != null) {
-                     try {
-                        tx.close();
-                     } catch (Throwable var14) {
-                        var15.addSuppressed(var14);
-                     }
-                  }
-
-                  throw var15;
+            try (Transaction transaction = Transaction.openOuter()) {
+               long extracted = view.extract((FluidVariant)view.getResource(), bucketDroplets, transaction);
+               if (extracted == bucketDroplets && tryPlaceFluid(resource, player, level, hand, pos)) {
+                  transaction.commit();
+                  return resource.copyWithAmount(1000);
                }
-
-               if (tx != null) {
-                  tx.close();
-               }
-               continue;
-            }
-
-            if (tx != null) {
-               tx.close();
             }
          }
       }
 
-      if (tx != null) {
-         tx.close();
-      }
-
-      return var13;
+      return FluidStack.EMPTY;
    }
 
    public static boolean tryPlaceFluid(FluidStack resource, @Nullable Player player, Level level, InteractionHand hand, BlockPos pos) {

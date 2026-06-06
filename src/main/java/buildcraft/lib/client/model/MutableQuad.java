@@ -568,36 +568,33 @@ public class MutableQuad {
       }
 
       this.translatef(-ox, -oy, -oz);
-      label29:
       switch (from.getAxis()) {
          case X:
             int mult = from.getStepX();
             switch (to.getAxis()) {
                case X:
                   this.rotateY_180();
-                  break label29;
+                  break;
                case Y:
                   this.rotateZ_90(mult * to.getStepY());
-                  break label29;
+                  break;
                case Z:
                   this.rotateY_90(mult * to.getStepZ());
-               default:
-                  break label29;
             }
+            break;
          case Y:
             int multY = from.getStepY();
             switch (to.getAxis()) {
                case X:
                   this.rotateZ_90(-multY * to.getStepX());
-                  break label29;
+                  break;
                case Y:
                   this.rotateZ_180();
-                  break label29;
+                  break;
                case Z:
                   this.rotateX_90(multY * to.getStepZ());
-               default:
-                  break label29;
             }
+            break;
          case Z:
             int multZ = -from.getStepZ();
             switch (to.getAxis()) {

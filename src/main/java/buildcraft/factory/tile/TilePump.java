@@ -226,8 +226,8 @@ public class TilePump extends TileMiner implements IDebuggable {
       this.isInfiniteWaterSource = targetPosIsInfinite;
       int maxLengthSquared = BCCoreConfig.pumpMaxDistance.get() * BCCoreConfig.pumpMaxDistance.get();
 
-      label80:
-      while (!nextPosesToCheck.isEmpty()) {
+      boolean stopSearching = false;
+      while (!nextPosesToCheck.isEmpty() && !stopSearching) {
          List<BlockPos> nextPosesToCheckCopy = new ArrayList<>(nextPosesToCheck);
          nextPosesToCheck.clear();
 
@@ -254,7 +254,8 @@ public class TilePump extends TileMiner implements IDebuggable {
             }
 
             if (targetPosIsInfinite) {
-               break label80;
+               stopSearching = true;
+               break;
             }
          }
       }
@@ -365,29 +366,14 @@ public class TilePump extends TileMiner implements IDebuggable {
                if (invalid == null && this.canDrain(this.currentPos)) {
                   FluidStack drainedResource = FluidUtilBC.canonicalFluidStack(drain.copyWithAmount(1));
                   FluidVariant variant = TransferConvert.toVariant(drainedResource);
-                  Transaction tx = Transaction.openOuter();
 
                   int inserted;
-                  try {
-                     long insertedDroplets = this.fluidTank.insert(variant, TransferConvert.mbToDroplets(drain.getAmount()), tx);
+                  try (Transaction drainTransaction = Transaction.openOuter()) {
+                     long insertedDroplets = this.fluidTank.insert(variant, TransferConvert.mbToDroplets(drain.getAmount()), drainTransaction);
                      inserted = (int)TransferConvert.dropletsToMb(insertedDroplets);
                      if (inserted > 0) {
-                        tx.commit();
+                        drainTransaction.commit();
                      }
-                  } catch (Throwable var12) {
-                     if (tx != null) {
-                        try {
-                           tx.close();
-                        } catch (Throwable var11) {
-                           var12.addSuppressed(var11);
-                        }
-                     }
-
-                     throw var12;
-                  }
-
-                  if (tx != null) {
-                     tx.close();
                   }
 
                   if (inserted > 0) {

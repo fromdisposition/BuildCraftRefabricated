@@ -292,48 +292,15 @@ public class FluidUtilBC {
          }
 
          long maxDroplets = TransferConvert.mbToDroplets(maxMb);
-         Transaction tx = Transaction.openOuter();
-
-         FluidStack var12;
-         label72: {
-            try {
-               long moved = FluidStorageOps.move(from, to, maxDroplets, tx);
-               if (moved > 0L) {
-                  tx.commit();
-                  long movedMb = TransferConvert.dropletsToMb(moved);
-                  if (movedMb > 2147483647L) {
-                     int amountMb = Integer.MAX_VALUE;
-                  } else {
-                     int amountMb = (int)movedMb;
-                  }
-
-                  var12 = TransferConvert.toFluidStack(firstVariant, moved);
-                  break label72;
-               }
-            } catch (Throwable var14) {
-               if (tx != null) {
-                  try {
-                     tx.close();
-                  } catch (Throwable var13) {
-                     var14.addSuppressed(var13);
-                  }
-               }
-
-               throw var14;
+         try (Transaction transaction = Transaction.openOuter()) {
+            long moved = FluidStorageOps.move(from, to, maxDroplets, transaction);
+            if (moved <= 0L) {
+               return null;
             }
 
-            if (tx != null) {
-               tx.close();
-            }
-
-            return null;
+            transaction.commit();
+            return TransferConvert.toFluidStack(firstVariant, moved);
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var12;
       } else {
          return null;
       }

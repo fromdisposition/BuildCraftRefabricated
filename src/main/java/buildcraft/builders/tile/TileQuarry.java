@@ -233,10 +233,10 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
             min = null;
             max = null;
             VolumeSubCache cache = VolumeCache.INSTANCE.getSubCache(this.getLevel());
-            UnmodifiableIterator var18 = cache.getAllMarkers().iterator();
+            UnmodifiableIterator<BlockPos> markerIterator = cache.getAllMarkers().iterator();
 
-            while (var18.hasNext()) {
-               BlockPos markerPos = (BlockPos)var18.next();
+            while (markerIterator.hasNext()) {
+               BlockPos markerPos = markerIterator.next();
                TileMarkerVolume marker = (TileMarkerVolume)cache.getMarker(markerPos);
                if (marker != null) {
                   VolumeConnection connection = marker.getCurrentConnection();
@@ -524,16 +524,15 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
                   int maxTasks = Math.max(1, (int)(max * BCBuildersConfig.quarryMaxTasksPerTick.get() / MAX_POWER_PER_TICK));
                   boolean sendUpdate = false;
 
-                  label193:
                   for (int i = 0; i < maxTasks; i++) {
                      if (this.currentTask != null) {
                         long needed = this.currentTask.getRequiredPowerThisTick();
                         int mult = BCBuildersConfig.quarryTaskPowerDivisor.get();
                         long added;
                         if (mult > 0) {
-                           long nNeeded = needed * (mult + i) / mult;
+                           long scaledNeeded = needed * (mult + i) / mult;
                            long leftover = needed * (mult + i) % mult;
-                           long power = this.battery.extractPower(0L, Math.min(max, nNeeded));
+                           long power = this.battery.extractPower(0L, Math.min(max, scaledNeeded));
                            max -= power;
                            added = power * mult / (mult + i);
                            if (leftover > 0L) {
@@ -563,6 +562,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
                         this.check(blockPos);
                      } else {
                         if (!this.framePlaceFramePoses.isEmpty()) {
+                           boolean queuedFrameTask = false;
                            for (BlockPos blockPos : this.framePoses) {
                               if (this.framePlaceFramePoses.contains(blockPos)) {
                                  this.check(blockPos);
@@ -570,9 +570,14 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
                                     this.drillPos = null;
                                     this.currentTask = new TileQuarry.TaskAddFrame(blockPos);
                                     sendUpdate = true;
-                                    continue label193;
+                                    queuedFrameTask = true;
+                                    break;
                                  }
                               }
+                           }
+
+                           if (queuedFrameTask) {
+                              continue;
                            }
                         }
 
@@ -961,9 +966,9 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
          return Math.max(0L, this.getTarget() - this.power);
       }
 
-      protected abstract boolean onReceivePower(long var1, long var3);
+      protected abstract boolean onReceivePower(long microJoules, long target);
 
-      protected abstract boolean finish(long var1, long var3);
+      protected abstract boolean finish(long microJoules, long target);
 
       final boolean addPower(long microJoules) {
          this.power += microJoules;

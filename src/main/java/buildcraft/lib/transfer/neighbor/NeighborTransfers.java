@@ -121,64 +121,26 @@ public final class NeighborTransfers {
          return 0;
       }
 
-      Transaction tx = Transaction.openOuter();
-
-      int var6;
-      try {
-         long moved = FluidStorageOps.move(from, to, TransferConvert.mbToDroplets(maxAmountMb), tx);
+      try (Transaction transaction = Transaction.openOuter()) {
+         long moved = FluidStorageOps.move(from, to, TransferConvert.mbToDroplets(maxAmountMb), transaction);
          if (moved > 0L) {
-            tx.commit();
+            transaction.commit();
          }
 
-         var6 = saturateMb(TransferConvert.dropletsToMb(moved));
-      } catch (Throwable var8) {
-         if (tx != null) {
-            try {
-               tx.close();
-            } catch (Throwable var7) {
-               var8.addSuppressed(var7);
-            }
-         }
-
-         throw var8;
+         return saturateMb(TransferConvert.dropletsToMb(moved));
       }
-
-      if (tx != null) {
-         tx.close();
-      }
-
-      return var6;
    }
 
    private static int insertCommitted(Storage<ItemVariant> storage, ItemStack template, int amount) {
       ItemVariant variant = ItemVariant.of(template);
-      Transaction tx = Transaction.openOuter();
-
-      int var7;
-      try {
-         long inserted = storage.insert(variant, amount, tx);
+      try (Transaction transaction = Transaction.openOuter()) {
+         long inserted = storage.insert(variant, amount, transaction);
          if (inserted > 0L) {
-            tx.commit();
+            transaction.commit();
          }
 
-         var7 = saturateCount(inserted);
-      } catch (Throwable var9) {
-         if (tx != null) {
-            try {
-               tx.close();
-            } catch (Throwable var8) {
-               var9.addSuppressed(var8);
-            }
-         }
-
-         throw var9;
+         return saturateCount(inserted);
       }
-
-      if (tx != null) {
-         tx.close();
-      }
-
-      return var7;
    }
 
    private static int saturateMb(long millibuckets) {

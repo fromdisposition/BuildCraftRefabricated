@@ -1,7 +1,6 @@
 package buildcraft.lib.fabric.transfer;
 
 import buildcraft.api.items.IList;
-import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -16,13 +15,11 @@ public final class TriggerItemChecks {
       if (storage == null) {
          return false;
       } else {
-         Iterator var1 = storage.iterator();
-         if (var1.hasNext()) {
-            StorageView<ItemVariant> ignored = (StorageView<ItemVariant>)var1.next();
+         for (StorageView<ItemVariant> ignored : storage) {
             return true;
-         } else {
-            return false;
          }
+
+         return false;
       }
    }
 

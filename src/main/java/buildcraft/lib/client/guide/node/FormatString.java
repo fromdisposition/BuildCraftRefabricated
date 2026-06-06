@@ -99,9 +99,9 @@ public class FormatString {
             String text = segment.toFormatString();
             int allowedLength = 1;
             boolean words = onWords;
+            boolean foundSplit = false;
 
-            label62:
-            while (true) {
+            while (!foundSplit) {
                for (int i = text.length(); i > 1; i--) {
                   String c = text.substring(i - 1, i);
                   if (!words || " \n\t".contains(c)) {
@@ -109,12 +109,13 @@ public class FormatString {
                      int w = font.getStringWidth(subText);
                      if (w + widthUsed <= maxWidth) {
                         allowedLength = i;
-                        break label62;
+                        foundSplit = true;
+                        break;
                      }
                   }
                }
 
-               if (!words || segmentIndex != 0) {
+               if (foundSplit || !words || segmentIndex != 0) {
                   break;
                }
 

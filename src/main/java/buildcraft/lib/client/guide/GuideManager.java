@@ -222,11 +222,11 @@ public enum GuideManager {
    }
 
    private void loadLangInternal(ResourceManager resourceManager, String lang) {
-      label126:
       for (Entry<Object, PageEntry<?>> mapEntry : GuidePageRegistry.INSTANCE.getReloadableEntryMap().entrySet()) {
          Identifier entryKey = (Identifier)mapEntry.getKey();
          String domain = entryKey.getNamespace();
          String path = "compat/buildcraft/guide/" + lang + "/" + entryKey.getPath();
+         boolean loadedPage = false;
 
          for (Entry<String, IPageLoader> entry : PAGE_LOADERS.entrySet()) {
             Identifier fLoc = Identifier.fromNamespaceAndPath(domain, path + "." + entry.getKey());
@@ -246,7 +246,8 @@ public enum GuideManager {
                         if (DEBUG) {
                            BCLog.logger.info("[lib.guide.loader] Loaded page '" + entryKey + "'.");
                         }
-                        continue label126;
+                        loadedPage = true;
+                        break;
                      }
                   }
 
@@ -258,6 +259,10 @@ public enum GuideManager {
             } catch (IOException io) {
                BCLog.logger.warn("[lib.guide.loader] Failed to load guide page '" + entryKey + "'", io);
             }
+         }
+
+         if (loadedPage) {
+            continue;
          }
 
          if (!this.pages.containsKey(entryKey)) {

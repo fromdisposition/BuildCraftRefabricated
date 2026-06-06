@@ -77,14 +77,11 @@ public class ACTRecipeBookComponent extends RecipeBookComponent<ContainerAdvance
             break;
          }
          case ShapelessCraftingRecipeDisplay shapeless: {
-            label15: {
-               List<Slot> slots = ((ContainerAdvancedCraftingTable)this.menu).getInputGridSlots();
-               int count = Math.min(shapeless.ingredients().size(), slots.size());
+            List<Slot> slots = ((ContainerAdvancedCraftingTable)this.menu).getInputGridSlots();
+            int count = Math.min(shapeless.ingredients().size(), slots.size());
 
-               for (int i = 0; i < count; i++) {
-                  GhostSlotsAccess.setInput(ghostSlots, slots.get(i), context, (SlotDisplay)shapeless.ingredients().get(i));
-               }
-               break label15;
+            for (int i = 0; i < count; i++) {
+               GhostSlotsAccess.setInput(ghostSlots, slots.get(i), context, (SlotDisplay)shapeless.ingredients().get(i));
             }
          }
          default:

@@ -2,7 +2,6 @@ package buildcraft.lib.fabric.transfer;
 
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.transfer.fabric.TransferConvert;
-import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -16,13 +15,11 @@ public final class TriggerFluidChecks {
       if (storage == null) {
          return false;
       } else {
-         Iterator var1 = storage.iterator();
-         if (var1.hasNext()) {
-            StorageView<FluidVariant> ignored = (StorageView<FluidVariant>)var1.next();
+         for (StorageView<FluidVariant> ignored : storage) {
             return true;
-         } else {
-            return false;
          }
+
+         return false;
       }
    }
 

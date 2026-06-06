@@ -152,18 +152,16 @@ public class GuideGroupManager {
 
       PageValueType<?> type = null;
       if (!clazz.isArray()) {
-         label33: {
-            Class<?> superClazz = clazz.getSuperclass();
-            if (superClazz != null) {
-               type = getEntryType(superClazz);
-               if (type != null) {
-                  break label33;
-               }
-            }
+         Class<?> superClazz = clazz.getSuperclass();
+         if (superClazz != null) {
+            type = getEntryType(superClazz);
+         }
 
+         if (type == null) {
             for (Class<?> cls : clazz.getInterfaces()) {
-               type = getEntryType(cls);
-               if (type != null) {
+               PageValueType<?> interfaceType = getEntryType(cls);
+               if (interfaceType != null) {
+                  type = interfaceType;
                   break;
                }
             }
@@ -182,18 +180,16 @@ public class GuideGroupManager {
       }
 
       if (!clazz.isArray()) {
-         label33: {
-            Class<?> superClazz = clazz.getSuperclass();
-            if (superClazz != null) {
-               func = getTransform((Class<? extends Object>)superClazz);
-               if (func != null) {
-                  break label33;
-               }
-            }
+         Class<?> superClazz = clazz.getSuperclass();
+         if (superClazz != null) {
+            func = getTransform((Class<? extends Object>)superClazz);
+         }
 
+         if (func == null) {
             for (Class<?> cls : clazz.getInterfaces()) {
-               func = getTransform((Class<? extends Object>)cls);
-               if (func != null) {
+               Function<Object, PageValue<?>> interfaceFunc = getTransform((Class<? extends Object>)cls);
+               if (interfaceFunc != null) {
+                  func = interfaceFunc;
                   break;
                }
             }

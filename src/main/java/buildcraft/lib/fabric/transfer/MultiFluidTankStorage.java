@@ -36,10 +36,7 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
 
    public int insertMillibuckets(FluidStack fluid, int maxMb, boolean commit) {
       if (!fluid.isEmpty() && maxMb > 0) {
-         Transaction tx = Transaction.openOuter();
-
-         int var18;
-         try {
+         try (Transaction transaction = Transaction.openOuter()) {
             FluidVariant variant = TransferConvert.toVariant(fluid);
             long remaining = TransferConvert.mbToDroplets(maxMb);
             int insertedMb = 0;
@@ -49,34 +46,18 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
                   break;
                }
 
-               long moved = tank.insert(variant, remaining, tx);
+               long moved = tank.insert(variant, remaining, transaction);
                int movedMb = (int)Math.min(TransferConvert.dropletsToMb(moved), 2147483647L);
                insertedMb += movedMb;
                remaining -= moved;
             }
 
             if (commit) {
-               tx.commit();
+               transaction.commit();
             }
 
-            var18 = insertedMb;
-         } catch (Throwable var17) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var16) {
-                  var17.addSuppressed(var16);
-               }
-            }
-
-            throw var17;
+            return insertedMb;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var18;
       } else {
          return 0;
       }
@@ -84,10 +65,7 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
 
    public int extractMillibuckets(FluidStack fluid, int maxMb, boolean commit) {
       if (!fluid.isEmpty() && maxMb > 0) {
-         Transaction tx = Transaction.openOuter();
-
-         int var18;
-         try {
+         try (Transaction transaction = Transaction.openOuter()) {
             FluidVariant variant = TransferConvert.toVariant(fluid);
             long remaining = TransferConvert.mbToDroplets(maxMb);
             int extractedMb = 0;
@@ -97,34 +75,18 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
                   break;
                }
 
-               long moved = tank.extract(variant, remaining, tx);
+               long moved = tank.extract(variant, remaining, transaction);
                int movedMb = (int)Math.min(TransferConvert.dropletsToMb(moved), 2147483647L);
                extractedMb += movedMb;
                remaining -= moved;
             }
 
             if (commit) {
-               tx.commit();
+               transaction.commit();
             }
 
-            var18 = extractedMb;
-         } catch (Throwable var17) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var16) {
-                  var17.addSuppressed(var16);
-               }
-            }
-
-            throw var17;
+            return extractedMb;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var18;
       } else {
          return 0;
       }
@@ -174,11 +136,9 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
 
    public Iterator<StorageView<FluidVariant>> iterator() {
       List<StorageView<FluidVariant>> views = new ArrayList<>();
-      SingleFluidTank[] var2 = this.tanks;
-      int var3 = var2.length;
 
-      for (int var4 = 0; var4 < var3; var4++) {
-         for (StorageView<FluidVariant> view : var2[var4]) {
+      for (SingleFluidTank tank : this.tanks) {
+         for (StorageView<FluidVariant> view : tank) {
             if (!view.isResourceBlank()) {
                views.add(view);
             }

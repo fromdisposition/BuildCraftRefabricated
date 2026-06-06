@@ -291,83 +291,36 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
                && this.tankIn.getAmountMb() >= reqIn.getAmount();
             long outLiquidDroplets = TransferConvert.mbToDroplets(outLiquid.getAmount());
             long outGasDroplets = TransferConvert.mbToDroplets(outGas.getAmount());
-            Transaction tx = Transaction.openOuter();
 
             boolean canFillLiquid;
             boolean canFillGas;
-            try {
-               canFillLiquid = this.tankLiquidOut.insertInternal(TransferConvert.toVariant(outLiquid), outLiquidDroplets, tx) >= outLiquidDroplets;
-            } catch (Throwable var27) {
-               if (tx != null) {
-                  try {
-                     tx.close();
-                  } catch (Throwable var24) {
-                     var27.addSuppressed(var24);
-                  }
-               }
-
-               throw var27;
+            try (Transaction liquidCheckTransaction = Transaction.openOuter()) {
+               canFillLiquid = this.tankLiquidOut.insertInternal(TransferConvert.toVariant(outLiquid), outLiquidDroplets, liquidCheckTransaction)
+                  >= outLiquidDroplets;
             }
 
-            if (tx != null) {
-               tx.close();
-            }
-
-            Transaction txx = Transaction.openOuter();
-
-            try {
-               canFillGas = this.tankGasOut.insertInternal(TransferConvert.toVariant(outGas), outGasDroplets, txx) >= outGasDroplets;
-            } catch (Throwable var26) {
-               if (txx != null) {
-                  try {
-                     txx.close();
-                  } catch (Throwable var23) {
-                     var26.addSuppressed(var23);
-                  }
-               }
-
-               throw var26;
-            }
-
-            if (txx != null) {
-               txx.close();
+            try (Transaction gasCheckTransaction = Transaction.openOuter()) {
+               canFillGas = this.tankGasOut.insertInternal(TransferConvert.toVariant(outGas), outGasDroplets, gasCheckTransaction) >= outGasDroplets;
             }
 
             this.isStuck = !canFillLiquid || !canFillGas;
             if (canExtract && canFillLiquid && canFillGas) {
-               long max = MAX_MJ_PER_TICK;
-               long var39 = max * (this.mjBattery.getStored() + max);
-               long var40 = var39 / (this.mjBattery.getCapacity() / 2L);
-               long var41 = Math.min(var40, MAX_MJ_PER_TICK);
-               long power = this.mjBattery.extractPower(0L, var41);
-               this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((var41 - this.powerAvgSmoothed) * 0.05);
+               long maxPower = MAX_MJ_PER_TICK;
+               long scaledPower = maxPower * (this.mjBattery.getStored() + maxPower) / (this.mjBattery.getCapacity() / 2L);
+               long powerLimit = Math.min(scaledPower, MAX_MJ_PER_TICK);
+               long power = this.mjBattery.extractPower(0L, powerLimit);
+               this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((powerLimit - this.powerAvgSmoothed) * 0.05);
                this.distillPower += power;
                this.isActive = power > 0L;
                long powerReq = this.currentRecipe.powerRequired();
                if (this.distillPower >= powerReq) {
                   this.isActive = true;
                   this.distillPower -= powerReq;
-                  Transaction txxx = Transaction.openOuter();
-
-                  try {
-                     this.tankIn.extractInternal(TransferConvert.toVariant(resIn), TransferConvert.mbToDroplets(reqIn.getAmount()), txxx);
-                     this.tankGasOut.insertInternal(TransferConvert.toVariant(outGas), outGasDroplets, txxx);
-                     this.tankLiquidOut.insertInternal(TransferConvert.toVariant(outLiquid), outLiquidDroplets, txxx);
-                     txxx.commit();
-                  } catch (Throwable var25) {
-                     if (txxx != null) {
-                        try {
-                           txxx.close();
-                        } catch (Throwable var22) {
-                           var25.addSuppressed(var22);
-                        }
-                     }
-
-                     throw var25;
-                  }
-
-                  if (txxx != null) {
-                     txxx.close();
+                  try (Transaction craftTransaction = Transaction.openOuter()) {
+                     this.tankIn.extractInternal(TransferConvert.toVariant(resIn), TransferConvert.mbToDroplets(reqIn.getAmount()), craftTransaction);
+                     this.tankGasOut.insertInternal(TransferConvert.toVariant(outGas), outGasDroplets, craftTransaction);
+                     this.tankLiquidOut.insertInternal(TransferConvert.toVariant(outLiquid), outLiquidDroplets, craftTransaction);
+                     craftTransaction.commit();
                   }
 
                   this.creditRefineAndRedefine(outGas, outLiquid);

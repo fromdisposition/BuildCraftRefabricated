@@ -33,33 +33,14 @@ public final class PipeNeighborTransfers {
    public static int extractFluidMb(Storage<FluidVariant> storage, FluidStack fluid, int maxMillibuckets, boolean commit) {
       if (storage != null && fluid != null && !fluid.isEmpty() && maxMillibuckets > 0) {
          FluidVariant variant = TransferConvert.toVariant(fluid);
-         Transaction tx = Transaction.openOuter();
-
-         int var7;
-         try {
-            int extracted = extractFluidMb(storage, variant, maxMillibuckets, tx);
+         try (Transaction transaction = Transaction.openOuter()) {
+            int extracted = extractFluidMb(storage, variant, maxMillibuckets, transaction);
             if (commit && extracted > 0) {
-               tx.commit();
+               transaction.commit();
             }
 
-            var7 = extracted;
-         } catch (Throwable var9) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var8) {
-                  var9.addSuppressed(var8);
-               }
-            }
-
-            throw var9;
+            return extracted;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var7;
       } else {
          return 0;
       }
@@ -77,33 +58,14 @@ public final class PipeNeighborTransfers {
    public static int insertFluidMb(Storage<FluidVariant> storage, FluidStack fluid, int millibuckets, boolean commit) {
       if (storage != null && fluid != null && !fluid.isEmpty() && millibuckets > 0) {
          FluidVariant variant = TransferConvert.toVariant(fluid);
-         Transaction tx = Transaction.openOuter();
-
-         int var7;
-         try {
-            int inserted = insertFluidMb(storage, variant, millibuckets, tx);
+         try (Transaction transaction = Transaction.openOuter()) {
+            int inserted = insertFluidMb(storage, variant, millibuckets, transaction);
             if (commit && inserted > 0) {
-               tx.commit();
+               transaction.commit();
             }
 
-            var7 = inserted;
-         } catch (Throwable var9) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var8) {
-                  var9.addSuppressed(var8);
-               }
-            }
-
-            throw var9;
+            return inserted;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var7;
       } else {
          return 0;
       }
@@ -138,34 +100,15 @@ public final class PipeNeighborTransfers {
 
    public static int extractFromView(StorageView<ItemVariant> view, ItemVariant variant, int amount, boolean commit) {
       if (view != null && !variant.isBlank() && amount > 0) {
-         Transaction tx = Transaction.openOuter();
-
-         int var8;
-         try {
-            long extracted = view.extract(variant, amount, tx);
+         try (Transaction transaction = Transaction.openOuter()) {
+            long extracted = view.extract(variant, amount, transaction);
             int moved = saturate(extracted);
             if (commit && moved > 0) {
-               tx.commit();
+               transaction.commit();
             }
 
-            var8 = moved;
-         } catch (Throwable var10) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var9) {
-                  var10.addSuppressed(var9);
-               }
-            }
-
-            throw var10;
+            return moved;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var8;
       } else {
          return 0;
       }
@@ -174,34 +117,15 @@ public final class PipeNeighborTransfers {
    public static int insertItems(Storage<ItemVariant> storage, ItemStack stack, boolean commit) {
       if (storage != null && !stack.isEmpty()) {
          ItemVariant variant = ItemVariant.of(stack);
-         Transaction tx = Transaction.openOuter();
-
-         int var8;
-         try {
-            long inserted = storage.insert(variant, stack.getCount(), tx);
+         try (Transaction transaction = Transaction.openOuter()) {
+            long inserted = storage.insert(variant, stack.getCount(), transaction);
             int moved = saturate(inserted);
             if (commit && moved > 0) {
-               tx.commit();
+               transaction.commit();
             }
 
-            var8 = moved;
-         } catch (Throwable var10) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var9) {
-                  var10.addSuppressed(var9);
-               }
-            }
-
-            throw var10;
+            return moved;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var8;
       } else {
          return 0;
       }
