@@ -93,7 +93,7 @@ git commit -m "describe your change"
 git push -u origin 26.1.2
 ```
 
-Default branch for this repository is **`26.1.2`**.
+Default branch for this repository is **`26.1.2`**. Active fixes may land on **`fixed`** first and merge into `26.1.2`.
 
 ---
 
@@ -145,6 +145,7 @@ Some files under `buildcraft.lib.attachments` and related packages carry **NeoFo
 | Minecraft | **26.1.2** |
 | Fabric Loader | **≥ 0.19.2** |
 | Fabric API | Required (`fabric-api` 0.150.0+26.1.2 or compatible) |
+| Team Reborn Energy API | Bundled with the mod JAR (`teamreborn:energy` ≥ 5.0.0) |
 | Java | **25+** |
 
 ### Optional
@@ -163,9 +164,6 @@ Pre-built JARs are produced by `./gradlew build` (see [Building from source](#bu
 
 ## BC 8.0.x compatibility matrix
 
-BC 8.0.x compatibility (Fabric 26.1.2)
-======================================
-
 This table lists gameplay features from **BuildCraft 8.0.x** on **Forge 1.12.2** and
 their status in **BuildCraft Refabricated** on **Fabric 26.1.2** (this repository).
 The **BC 8.0.x** column is the historical baseline. The **Fabric 26.1.2** column is
@@ -182,11 +180,12 @@ the current port status in this build.
 | List mod (filler/builder)    | ✅             | 🚧             | Functional |
 | Engine tester, creative eng.  | ✅             | 🚧             | MJ connectors registered |
 | Oil springs                  | ✅             | 🚧             | `BCEnergyFluidsFabric` fluid blocks |
+| Paintbrush (pipes & blocks)  | ✅             | ✅             | DONE — colours pipes and vanilla paintable blocks |
 | **Transport** (`buildcraft.transport`) |      |                |       |
-| Item pipes                   | ✅             | ✅             | DONE  |
-| Fluid pipes                  | ✅             | ✅             | DONE  |
+| Item pipes                   | ✅             | ✅             | DONE — smooth client item interpolation |
+| Fluid pipes                  | ✅             | ✅             | DONE — dyed waterproofing band via runtime mask tint (no atlas `dye_replace`) |
 | MJ power pipes               | ✅             | ✅             | DONE  |
-| RF / Redstone Flux pipes     | ✅             | 🚧             | Internal `EnergyHandler`; no external Fabric energy mod bridge |
+| RF / Redstone Flux pipes     | ✅             | 🚧             | Team Reborn `EnergyStorage` neighbour transfer; MJ↔RF conversion gated by config |
 | Pipe behaviours              | ✅             | ✅             | DONE  |
 | Pipe pluggables              | ✅             | ✅             | DONE  |
 | Silicon pipe pluggables      | ✅             | 🚧             | Facade, lens, gate, pulsar, timer, light sensor |
@@ -212,7 +211,7 @@ the current port status in this build.
 | Auto workbench               | ✅             | ✅             | DONE  |
 | Mining well                  | ✅             | 🚧             | `EmptyResourceHandler` on item attachment by design |
 | **Builders** (`buildcraft.builders`) |        |                |       |
-| Quarry                       | ✅             | 🚧             | `TileQuarry` present; validate large-world edge cases |
+| Quarry                       | ✅             | ✅             | DONE — frame build, strip-mine to bedrock, MJ, chunkloading, item output |
 | Filler (+ planner addon)     | ✅             | 🚧             | Filler registry + template system |
 | Architect table              | ✅             | 🚧             | Blueprint/schematic support |
 | Builder                      | ✅             | 🚧             | Fluid tanks + MJ |
@@ -359,12 +358,26 @@ BC8 used `AtlasSpriteFluid` on 1.12.2. The Fabric port reimplements that look on
 
 **Pipe fluid UV fix:** face-grid `(u,v)` converted to sprite `normalizedU/V(tu,tv)` so heat gradients align correctly on pipe faces.
 
+### Pipe dye bands and blocks atlas
+
+BC8 baked ~350 dyed fluid-pipe sprites via `dye_replace` into the blocks atlas. The Fabric port replaces that with **runtime vertex tint**:
+
+| Area | Change | Key files |
+|------|--------|-----------|
+| Atlas | Removed `buildcraftlib:dye_replace` entries and `DyeReplaceSpriteSource` (~350 fewer stitched sprites) | `blocks.json`, `BCSpriteSourcesFabric.java` |
+| World pipes | BER mask overlay tints the waterproofing band; fluid pipes use alpha 255 (opaque dye), other colourable pipes keep alpha 76 | `RenderPipeHolder.java`, `PipeBaseModelGenStandard.generateMaskMutable` |
+| Item pipes | Overlay quads coplanar with base model; fluid item tint alpha `0xFF` | `PipeItemModel.java` |
+| Item travel | Client-side simulation when items are in transit (no choppy BER animation) | `PipeFlowItems.hasClientSimulationWork()` |
+
 ### Code hygiene (recent cleanup)
 
+- Removed `DyeReplaceSpriteSource` and all `dye_replace` atlas sources; pipe dye bands use mask + vertex colour instead.
+- Fixed item pipe client interpolation (`hasClientSimulationWork` no longer skips the client).
 - Removed empty `PipeFlowRendererItems` stub; colour overlay quads moved to `PipeItemColourQuads`.
 - Removed unused `IFluidHandlerAdv` imports from `PipeFlowFluids`, `FluidUtilBC`, `IFlowFluid`.
 - Removed dead method `getFirstNonEmptySet()` from `PipeFlowItems`.
 - Bucket attachment dedup: `AttachmentHooks` skips `buildcraftenergy` namespace buckets already registered in `BCEnergyFabric`.
+- AUDIT hot-path performance and nativeness fixes (caching, Fabric-native APIs on pipe/transfer/render paths).
 
 ---
 
@@ -377,8 +390,9 @@ Reference for mod developers connecting to BuildCraft on Fabric.
 | Block fluids | `Attachments.Fluid.BLOCK` | `FluidStorage.SIDED` | **Both ways** |
 | Block items | `Attachments.Item.BLOCK` | `ItemStorage.SIDED` | **Both ways** |
 | Item fluids (buckets, cells) | `Attachments.Fluid.ITEM` | `FluidStorage.ITEM` | **Both ways** |
-| Block energy (RF) | `Attachments.Energy.BLOCK` | — | BC internal only |
+| Block energy (RF) | `Attachments.Energy.BLOCK` | `EnergyStorage.SIDED` (Team Reborn) | **BC → Fabric** when RF autoconversion enabled |
 | MJ power | `MjAPI.CAP_RECEIVER` / `CAP_CONNECTOR` / `CAP_PASSIVE_PROVIDER` | — | BC internal only |
+| RF pipes | `PipeFlowRedstoneFlux` | `EnergyStorage.SIDED` on `PIPE_HOLDER` | **Both ways** with Team Reborn API mods |
 
 ### What works without custom compat code
 
@@ -389,8 +403,8 @@ Reference for mod developers connecting to BuildCraft on Fabric.
 
 ### What does not bridge
 
-- External Fabric **energy** mods (Team REborn, etc.) — no `EnergyStorage` bridge; use BC FE engine/dynamo surfaces.
 - External **MJ** mods — BC MJ API only.
+- **MJ↔RF conversion** on BC machines — requires disabling `MJ_ONLY` and enabling RF autoconversion in config; off by default.
 - Item pipe **extract** via Fabric `ItemStorage` — insert-only (`PipeItemInjectHandler.extract` returns 0).
 
 ---
@@ -401,7 +415,7 @@ Honest list of current gaps and design constraints:
 
 1. **Maintenance scope** — Focus is bugfixes and port stability, not major new features.
 2. **Not Minecraft 1.12.2** — Recipes, components, redstone, entities, and the mod ecosystem differ from BC8.
-3. **No Fabric Energy API bridge** — RF pipes and `Attachments.Energy.BLOCK` are BC-internal; generic Fabric power mods cannot push/pull through pipes.
+3. **RF/MJ energy interop gated by config** — Team Reborn `EnergyStorage` is bundled and wired for RF pipes and several machines; external mods using the same API can interact when RF autoconversion is enabled. MJ pipes remain BC-internal; `MJ_ONLY` is the default.
 4. **Fluid bridge granularity** — Cross-mod fluid moves truncate to whole millibuckets (81 Fabric droplets = 1 mB).
 5. **Item pipe Fabric bridge is insert-only** — Cannot pull travelling items out via `ItemStorage.SIDED`.
 6. **Wood pipe required for extraction** — Cobble/gold/iron fluid and item pipes do not passively drain neighbours; wood + MJ is by BC design.
@@ -409,7 +423,7 @@ Honest list of current gaps and design constraints:
 8. **Robotics incomplete** — Zone planner works; deployable robot entities are not implemented.
 9. **Guide book incomplete** — Reload infrastructure exists; in-game book shows "not yet available."
 10. **Legacy capability tokens** — `CapabilitiesHelper` still returns `null` for `CAP_INJECTABLE` / `CAP_PIPE`; item inject relies on `instanceof IFlowItems` checks.
-11. **RF autoconversion off by default** — Config `MJ_ONLY`; FE naming and RF↔MJ conversion require explicit config change.
+11. **RF autoconversion off by default** — Config `MJ_ONLY`; enabling RF↔MJ conversion exposes `EnergyStorage` on BC machines and is required for cross-mod RF tank/engine interop beyond RF pipes.
 12. **Pipe flow transactions** — Pipe internals mutate immediately; nested transaction rollback does not fully undo travelling items (especially `PipeItemInjectHandler`).
 
 ---
