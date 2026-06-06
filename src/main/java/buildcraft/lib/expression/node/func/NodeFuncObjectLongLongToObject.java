@@ -75,7 +75,7 @@ public class NodeFuncObjectLongLongToObject<A, R> extends NodeFuncBase implement
    public NodeFuncObjectLongLongToObject<A, R>.FuncObjectLongLongToObject create(
       IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeLong argB, IExpressionNode.INodeLong argC
    ) {
-      return new NodeFuncObjectLongLongToObject.FuncObjectLongLongToObject(argA, argB, argC);
+      return new FuncObjectLongLongToObject(argA, argB, argC);
    }
 
    public class FuncObjectLongLongToObject implements IExpressionNode.INodeObject<R>, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -151,6 +151,7 @@ public class NodeFuncObjectLongLongToObject<A, R> extends NodeFuncBase implement
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

@@ -17,7 +17,7 @@ public class NodeFuncGenericToBoolean extends NodeFuncGeneric implements INodeFu
 
    @Override
    public IExpressionNode.INodeBoolean getNode(INodeStack stack) throws InvalidExpressionException {
-      return new NodeFuncGenericToBoolean.FuncBoolean(this.popArgs(stack));
+      return new FuncBoolean(this.popArgs(stack));
    }
 
    protected class FuncBoolean extends NodeFuncGeneric.Func implements IExpressionNode.INodeBoolean {

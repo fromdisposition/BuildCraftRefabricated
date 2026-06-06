@@ -11,7 +11,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
 import net.minecraft.resources.Identifier;
 
 public record MessageDebugResponse(List<String> left, List<String> right) implements CustomPacketPayload {
-   public static final Type<MessageDebugResponse> TYPE = new Type(Identifier.parse("buildcraftrefabricated:debug_response"));
+   public static final Type<MessageDebugResponse> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:debug_response"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessageDebugResponse> STREAM_CODEC = StreamCodec.of(
       MessageDebugResponse::encode, MessageDebugResponse::decode
    );

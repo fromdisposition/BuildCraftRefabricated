@@ -48,7 +48,7 @@ public class NodeFuncBooleanToObject<R> extends NodeFuncBase implements INodeFun
    }
 
    public NodeFuncBooleanToObject<R>.FuncBooleanToObject create(IExpressionNode.INodeBoolean argA) {
-      return new NodeFuncBooleanToObject.FuncBooleanToObject(argA);
+      return new FuncBooleanToObject(argA);
    }
 
    public class FuncBooleanToObject implements IExpressionNode.INodeObject<R>, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -111,6 +111,7 @@ public class NodeFuncBooleanToObject<R> extends NodeFuncBase implements INodeFun
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

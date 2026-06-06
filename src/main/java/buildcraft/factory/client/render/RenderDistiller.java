@@ -1,5 +1,6 @@
 package buildcraft.factory.client.render;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.factory.tile.TileDistiller_BC8;
 import buildcraft.lib.client.fluid.BcFluidBerHelper;
 import buildcraft.lib.client.render.tile.BcBerRenderUtil;
@@ -86,7 +87,7 @@ public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller_BC8, Di
          texIndex = Math.max(1, Math.min(texIndex, 6));
       }
 
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
       TextureAtlasSprite sprite = atlas.getSprite(POWER_TEXTURES[texIndex]);
       boolean topHalf = POWER_TOP_HALF[texIndex];
       float r = 1.0F;
@@ -94,7 +95,7 @@ public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller_BC8, Di
       float b = 1.0F;
       float a = 1.0F;
       int overlay = OverlayTexture.NO_OVERLAY;
-      BcBerRenderUtil.submit(poseStack, collector, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (pose, buffer) -> {
+      BcBerRenderUtil.submit(poseStack, collector, RenderTypes.entityCutout(BcTextureAtlases.BLOCKS_TEXTURE), (pose, buffer) -> {
          renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerRight, y1, r, g, b, a, light, overlay);
          renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerLeft, y2, r, g, b, a, light, overlay);
       });

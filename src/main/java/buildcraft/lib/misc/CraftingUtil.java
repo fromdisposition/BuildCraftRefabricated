@@ -24,7 +24,7 @@ public final class CraftingUtil {
    @Nullable
    public static RecipeHolder<CraftingRecipe> findMatchingRecipe(CraftingInput input, Level level) {
       return level instanceof ServerLevel serverLevel
-         ? (RecipeHolder)serverLevel.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, serverLevel).orElse(null)
+         ? serverLevel.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, serverLevel).orElse(null)
          : null;
    }
 

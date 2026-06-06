@@ -45,10 +45,11 @@ public abstract class BCStatement implements IStatement {
       return null;
    }
 
+   @SuppressWarnings("unchecked")
    protected static <P extends IStatementParameter> P getParam(int index, IStatementParameter[] params, P _default) {
       if (params != null && params.length > index) {
          IStatementParameter atIndex = params[index];
-         return (P)(atIndex != null && atIndex.getClass() == _default.getClass() ? atIndex : _default);
+         return atIndex != null && _default.getClass().isInstance(atIndex) ? (P)atIndex : _default;
       } else {
          return _default;
       }

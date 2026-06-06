@@ -1,5 +1,6 @@
 package buildcraft.lib.client.render.laser;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.client.render.BCLibRenderTypes;
 import buildcraft.lib.client.render.LightUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -58,7 +59,7 @@ public final class BcLaserRenderer {
    public static void renderLasersBatched(PoseStack poseStack, List<LaserData_BC8> lasers, Vec3 cameraPos) {
       if (!lasers.isEmpty()) {
          BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-         VertexConsumer consumer = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(TextureAtlas.LOCATION_BLOCKS));
+         VertexConsumer consumer = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE));
 
          for (LaserData_BC8 data : lasers) {
             renderLaser(poseStack, consumer, data, cameraPos);

@@ -25,6 +25,7 @@ public class PipeModelCachePluggable {
       PipeModelCachePluggable.PluggableKey::getKeys, PipeModelCachePluggable.cacheTranslucentSingle
    );
 
+   @SuppressWarnings("unchecked")
    private static <K extends PluggableModelKey> List<BakedQuad> generate(K key) {
       if (key == null) {
          return ImmutableList.of();

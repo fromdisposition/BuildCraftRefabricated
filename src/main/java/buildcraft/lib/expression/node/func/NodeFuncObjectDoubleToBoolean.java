@@ -46,7 +46,7 @@ public class NodeFuncObjectDoubleToBoolean<A> extends NodeFuncBase implements IN
    }
 
    public NodeFuncObjectDoubleToBoolean<A>.FuncObjectDoubleToBoolean create(IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeDouble argB) {
-      return new NodeFuncObjectDoubleToBoolean.FuncObjectDoubleToBoolean(argA, argB);
+      return new FuncObjectDoubleToBoolean(argA, argB);
    }
 
    public class FuncObjectDoubleToBoolean implements IExpressionNode.INodeBoolean, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -111,6 +111,7 @@ public class NodeFuncObjectDoubleToBoolean<A> extends NodeFuncBase implements IN
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

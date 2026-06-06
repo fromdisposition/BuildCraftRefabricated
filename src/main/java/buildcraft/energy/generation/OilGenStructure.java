@@ -351,7 +351,7 @@ public abstract class OilGenStructure {
          for (int y = maxY; y >= this.start.getY(); y--) {
             worldTop = new BlockPos(this.start.getX(), y, this.start.getZ());
             BlockState state = level.getBlockState(worldTop);
-            if (!state.isAir() && (BlockUtil.getFluidWithFlowing(state.getBlock()) != null || state.blocksMotion())) {
+            if (!state.isAir() && (BlockUtil.getFluidWithFlowing(state.getBlock()) != null || BlockUtil.blocksMotion(state))) {
                break;
             }
          }

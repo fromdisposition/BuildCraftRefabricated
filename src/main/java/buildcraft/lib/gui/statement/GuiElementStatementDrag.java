@@ -50,6 +50,7 @@ public class GuiElementStatementDrag implements IMenuElement {
    }
 
    @Override
+   @SuppressWarnings("unchecked")
    public void drawForeground(float partialTicks) {
       if (this.isDragging) {
          boolean canPlace = false;

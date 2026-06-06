@@ -40,7 +40,7 @@ public class NodeFuncLongToDouble extends NodeFuncBase implements INodeFunc.INod
    }
 
    public NodeFuncLongToDouble.FuncLongToDouble create(IExpressionNode.INodeLong argA) {
-      return new NodeFuncLongToDouble.FuncLongToDouble(argA);
+      return new FuncLongToDouble(argA);
    }
 
    public class FuncLongToDouble implements IExpressionNode.INodeDouble, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -98,6 +98,7 @@ public class NodeFuncLongToDouble extends NodeFuncBase implements INodeFunc.INod
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

@@ -8,6 +8,7 @@ import buildcraft.lib.expression.node.cast.NodeCasting;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unchecked")
 public class NodeStack implements INodeStack {
    private final List<IExpressionNode> stack = new ArrayList<>();
    private INodeFunc currentlyPopping;

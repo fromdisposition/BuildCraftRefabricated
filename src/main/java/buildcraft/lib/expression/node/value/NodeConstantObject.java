@@ -40,6 +40,7 @@ public final class NodeConstantObject<T> implements IExpressionNode.INodeObject<
    }
 
    @Override
+      @SuppressWarnings("unchecked")
    public boolean equals(Object obj) {
       if (obj == this) {
          return true;

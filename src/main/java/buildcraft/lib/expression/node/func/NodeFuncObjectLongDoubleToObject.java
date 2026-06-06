@@ -75,7 +75,7 @@ public class NodeFuncObjectLongDoubleToObject<A, R> extends NodeFuncBase impleme
    public NodeFuncObjectLongDoubleToObject<A, R>.FuncObjectLongDoubleToObject create(
       IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeLong argB, IExpressionNode.INodeDouble argC
    ) {
-      return new NodeFuncObjectLongDoubleToObject.FuncObjectLongDoubleToObject(argA, argB, argC);
+      return new FuncObjectLongDoubleToObject(argA, argB, argC);
    }
 
    public class FuncObjectLongDoubleToObject implements IExpressionNode.INodeObject<R>, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -152,6 +152,7 @@ public class NodeFuncObjectLongDoubleToObject<A, R> extends NodeFuncBase impleme
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

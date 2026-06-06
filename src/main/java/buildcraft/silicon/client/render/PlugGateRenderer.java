@@ -1,5 +1,6 @@
 package buildcraft.silicon.client.render;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.transport.pluggable.IPlugDynamicRenderer;
 import buildcraft.lib.client.model.ModelUtil;
 import buildcraft.lib.client.model.MutableQuad;
@@ -93,7 +94,7 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
    }
 
    private static TextureAtlasSprite getMcSprite(String path) {
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
       TextureAtlasSprite sprite = atlas.getSprite(Identifier.parse(path));
       return sprite != null ? sprite : SpriteUtil.missingSprite();
    }

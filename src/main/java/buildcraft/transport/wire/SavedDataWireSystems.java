@@ -31,7 +31,7 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jspecify.annotations.Nullable;
 
 public class SavedDataWireSystems extends SavedData {
-   public static final SavedDataType<SavedDataWireSystems> TYPE = new SavedDataType(
+   public static final SavedDataType<SavedDataWireSystems> TYPE = new SavedDataType<>(
       Identifier.withDefaultNamespace("buildcraft_wire_systems"), () -> new SavedDataWireSystems(null), makeCodec(null), DataFixTypes.SAVED_DATA_MAP_DATA
    );
    public Level world;
@@ -98,15 +98,15 @@ public class SavedDataWireSystems extends SavedData {
 
    public void sendTo(ServerPlayer player) {
       if (this.world instanceof ServerLevel serverLevel) {
-         HashSet var6 = new HashSet();
+         Set<WireSystem> watchedSystems = new HashSet<>();
 
          for (WireSystem wireSystem : this.wireSystems.keySet()) {
             if (wireSystem.isPlayerWatching(player)) {
-               var6.add(wireSystem);
+               watchedSystems.add(wireSystem);
             }
          }
 
-         PayloadWireSync payload = this.buildSyncPayload(var6, true, this.wireSystems.keySet(), null);
+         PayloadWireSync payload = this.buildSyncPayload(watchedSystems, true, this.wireSystems.keySet(), null);
          sendWireSync(player, payload);
       }
    }

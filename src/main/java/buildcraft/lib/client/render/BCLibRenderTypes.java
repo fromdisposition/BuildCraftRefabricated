@@ -77,6 +77,14 @@ public final class BCLibRenderTypes {
       return Sheets.translucentBlockItemSheet();
    }
 
+   public static RenderType cutoutBlockSheet() {
+      return Sheets.cutoutBlockSheet();
+   }
+
+   public static RenderType translucentBlockSheet() {
+      return Sheets.translucentBlockSheet();
+   }
+
    private BCLibRenderTypes() {
    }
 }

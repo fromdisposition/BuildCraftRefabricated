@@ -329,8 +329,8 @@ public class VanillaRotationHandlers {
       Direction d = Direction.DOWN;
       Direction n = Direction.NORTH;
       Direction s = Direction.SOUTH;
-      ROTATE_HORIZONTAL = new OrderedEnumMap(Direction.class, e, s, w, n);
-      ROTATE_FACING = new OrderedEnumMap(Direction.class, e, s, d, w, n, u);
-      ROTATE_HOPPER = new OrderedEnumMap(Direction.class, e, s, w, n, d);
+      ROTATE_HORIZONTAL = new OrderedEnumMap<>(Direction.class, e, s, w, n);
+      ROTATE_FACING = new OrderedEnumMap<>(Direction.class, e, s, d, w, n, u);
+      ROTATE_HOPPER = new OrderedEnumMap<>(Direction.class, e, s, w, n, d);
    }
 }

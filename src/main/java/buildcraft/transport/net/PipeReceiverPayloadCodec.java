@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Set;
 import net.minecraft.network.FriendlyByteBuf;
 
+@SuppressWarnings("deprecation")
 public final class PipeReceiverPayloadCodec {
    private PipeReceiverPayloadCodec() {
    }

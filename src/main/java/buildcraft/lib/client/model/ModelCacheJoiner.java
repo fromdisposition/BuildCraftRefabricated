@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 
+@SuppressWarnings("unchecked")
 public class ModelCacheJoiner<K> implements IModelCache<K> {
    private final IModelCache<K> mainCache;
    private final ImmutableList<ModelCacheJoiner.ModelKeyWrapper<K, ?>> modelKeyWrappers;

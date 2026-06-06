@@ -213,6 +213,7 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
    }
 
    @Override
+   @SuppressWarnings("unchecked")
    public <T> T getCapability(@Nonnull Object capability, Direction facing) {
       return (T)(capability != MjAPI.CAP_RECEIVER && capability != MjAPI.CAP_CONNECTOR && capability != MjAPI.CAP_REDSTONE_RECEIVER
          ? super.getCapability(capability, facing)

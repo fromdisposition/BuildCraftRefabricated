@@ -96,8 +96,9 @@ public class ItemMapLocation extends Item implements IMapLocation {
       return new BlockPos(tag.getInt("X").orElse(0), tag.getInt("Y").orElse(0), tag.getInt("Z").orElse(0));
    }
 
+   @Override
+   @SuppressWarnings("deprecation")
    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-      super.appendHoverText(stack, context, display, tooltip, flag);
       CompoundTag cpt = getCustomTag(stack);
       if (cpt.contains("name")) {
          String name = cpt.getString("name").orElse("");

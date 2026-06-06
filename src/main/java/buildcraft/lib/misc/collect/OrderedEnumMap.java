@@ -6,6 +6,7 @@ public class OrderedEnumMap<E extends Enum<E>> {
    private final byte[] indexes;
    private final E[] order;
 
+   @SafeVarargs
    public OrderedEnumMap(Class<E> clazz, E... order) {
       this.order = order;
       E[] values = clazz.getEnumConstants();

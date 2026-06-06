@@ -29,6 +29,21 @@ import net.minecraft.world.level.material.Fluids;
 public class BlockUtil {
    public static double miningMultiplier = 1.0;
 
+   @SuppressWarnings("deprecation")
+   public static boolean blocksMotion(BlockState state) {
+      return state.blocksMotion();
+   }
+
+   @SuppressWarnings("deprecation")
+   public static boolean isSolid(BlockState state) {
+      return state.isSolid();
+   }
+
+   @SuppressWarnings("deprecation")
+   public static boolean isLiquid(BlockState state) {
+      return state.liquid();
+   }
+
    public static boolean canMachineBreak(ServerLevel level, BlockPos pos, GameProfile owner) {
       if (BCCoreConfig.minePlayerProtected.get()) {
          return true;

@@ -14,6 +14,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 
+@SuppressWarnings("deprecation")
 public final class BCLibFabricClient {
    private BCLibFabricClient() {
    }

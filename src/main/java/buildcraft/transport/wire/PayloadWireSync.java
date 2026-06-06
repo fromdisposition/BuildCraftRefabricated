@@ -25,7 +25,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
    private static final byte FLAG_TOPOLOGY = 1;
    private static final byte FLAG_POWERED = 2;
    private static final byte FLAG_REMOVED = 4;
-   public static final Type<PayloadWireSync> TYPE = new Type(Identifier.parse("buildcraftrefabricated:wire_sync"));
+   public static final Type<PayloadWireSync> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:wire_sync"));
    public static final StreamCodec<FriendlyByteBuf, PayloadWireSync> STREAM_CODEC = StreamCodec.of(PayloadWireSync::encode, PayloadWireSync::decode);
 
    public PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Nullable Map<Integer, Boolean> powered) {

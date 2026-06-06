@@ -1,5 +1,6 @@
 package buildcraft.lib.client.model.json;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.core.BCLog;
 import buildcraft.lib.client.model.ModelHolderRegistry;
 import buildcraft.lib.client.model.ModelUtil;
@@ -218,7 +219,7 @@ public class JsonVariableModel extends JsonVariableObject {
       }
 
       lookup = texture.location;
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
       TextureAtlasSprite sprite = atlas.getSprite(Identifier.parse(lookup));
       ModelUtil.TexturedFace face = new ModelUtil.TexturedFace();
       face.sprite = sprite;

@@ -77,6 +77,7 @@ public class NodeTypes {
       }
    }
 
+   @SuppressWarnings("unchecked")
    public static <T> NodeType<T> getType(Class<T> clazz) {
       return (NodeType<T>)typesByClass.get(clazz);
    }

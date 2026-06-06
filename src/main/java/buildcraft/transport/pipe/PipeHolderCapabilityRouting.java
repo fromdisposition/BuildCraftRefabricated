@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 
+@SuppressWarnings("unchecked")
 public final class PipeHolderCapabilityRouting {
    private PipeHolderCapabilityRouting() {
    }

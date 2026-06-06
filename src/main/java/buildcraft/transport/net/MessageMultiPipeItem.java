@@ -27,7 +27,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public class MessageMultiPipeItem implements CustomPacketPayload {
-   public static final Type<MessageMultiPipeItem> TYPE = new Type(Identifier.parse("buildcraftrefabricated:multi_pipe_item"));
+   public static final Type<MessageMultiPipeItem> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:multi_pipe_item"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessageMultiPipeItem> STREAM_CODEC = StreamCodec.of(
       MessageMultiPipeItem::encode, MessageMultiPipeItem::decode
    );

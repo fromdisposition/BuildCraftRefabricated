@@ -37,6 +37,7 @@ public interface IVariableNode extends IExpressionNode {
    interface IVariableNodeObject<T> extends IVariableNode, IExpressionNode.INodeObject<T> {
       void set(T var1);
 
+      @SuppressWarnings("unchecked")
       default void setUnchecked(Object to) {
          if (to.getClass() != this.getType()) {
             throw new ClassCastException(to.getClass() + " cannot be cast to " + this.getType());

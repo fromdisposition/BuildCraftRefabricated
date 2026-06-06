@@ -98,9 +98,10 @@ public enum GuideCraftingRecipes implements IStackRecipes {
       return false;
    }
 
+   @SuppressWarnings("unchecked")
    private static Iterable<RecipeHolder<?>> getAllRecipes() {
       RecipeManager manager = getRecipeManager();
-      return (Iterable<RecipeHolder<?>>)(manager == null ? ImmutableList.of() : manager.getRecipes());
+      return manager == null ? ImmutableList.of() : (Iterable<RecipeHolder<?>>)manager.getRecipes();
    }
 
    @Nullable

@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.jspecify.annotations.Nullable;
 
+@SuppressWarnings("unchecked")
 public final class MjBlockCapabilities {
    private static final Map<BlockEntityType<?>, MjBlockCapabilities.SidedProvider<?, IMjReceiver>> RECEIVERS = new IdentityHashMap<>();
    private static final Map<BlockEntityType<?>, MjBlockCapabilities.SidedProvider<?, IMjConnector>> CONNECTORS = new IdentityHashMap<>();

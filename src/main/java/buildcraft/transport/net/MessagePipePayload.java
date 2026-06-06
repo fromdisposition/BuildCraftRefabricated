@@ -18,7 +18,7 @@ import net.minecraft.world.level.Level;
 
 public record MessagePipePayload(BlockPos pos, int receiverOrdinal, byte[] payload) implements CustomPacketPayload {
    public static final int MULTI_RECEIVER_ORDINAL = IPipeHolder.PipeMessageReceiver.VALUES.length;
-   public static final Type<MessagePipePayload> TYPE = new Type(Identifier.parse("buildcraftrefabricated:pipe_payload"));
+   public static final Type<MessagePipePayload> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:pipe_payload"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessagePipePayload> STREAM_CODEC = StreamCodec.of(
       MessagePipePayload::encode, MessagePipePayload::decode
    );

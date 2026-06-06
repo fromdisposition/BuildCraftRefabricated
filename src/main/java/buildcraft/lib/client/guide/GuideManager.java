@@ -737,6 +737,7 @@ public enum GuideManager {
    }
 
    @Nonnull
+   @SuppressWarnings("deprecation")
    public GuidePageFactory getPageFor(@Nonnull ItemStack stack) {
       Identifier entry = getEntryFor(stack);
       if (entry != null) {

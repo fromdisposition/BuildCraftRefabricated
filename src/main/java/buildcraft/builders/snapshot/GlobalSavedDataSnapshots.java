@@ -179,7 +179,7 @@ public class GlobalSavedDataSnapshots {
 
    @Nullable
    public Snapshot getSnapshot(@Nullable Snapshot.Key key) {
-      return key == null ? null : (Snapshot)((Optional)this.snapshotsCache.getUnchecked(key)).orElse(null);
+      return key == null ? null : this.snapshotsCache.getUnchecked(key).orElse(null);
    }
 
    public List<Snapshot.Key> getList() {

@@ -34,6 +34,7 @@ public final class PipeNeighborMjAccess {
    }
 
    @Nullable
+   @SuppressWarnings("unchecked")
    private static <T> T lookup(IPipeHolder holder, Direction from, Object capability) {
       if (holder != null && from != null && capability != null && holder.getPipeWorld() != null) {
          if (holder.getPipeTile() instanceof TilePipeHolder tile) {

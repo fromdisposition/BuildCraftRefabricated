@@ -29,6 +29,8 @@ public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
          : Component.translatable(this.getDescriptionId() + ".name", new Object[]{fluid.getHoverName().getString()});
    }
 
+   @Override
+   @SuppressWarnings("deprecation")
    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flagIn) {
       super.appendHoverText(stack, context, display, tooltip, flagIn);
       FluidStack fluid = getFluid(stack);

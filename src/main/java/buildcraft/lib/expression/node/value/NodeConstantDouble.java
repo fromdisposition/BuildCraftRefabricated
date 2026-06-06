@@ -37,6 +37,7 @@ public final class NodeConstantDouble implements IExpressionNode.INodeDouble, IC
    }
 
    @Override
+      @SuppressWarnings("unchecked")
    public boolean equals(Object obj) {
       if (this == obj) {
          return true;

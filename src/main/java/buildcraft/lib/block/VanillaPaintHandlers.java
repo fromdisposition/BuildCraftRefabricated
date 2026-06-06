@@ -251,6 +251,7 @@ public class VanillaPaintHandlers {
       return target;
    }
 
+   @SuppressWarnings("unchecked")
    private static <T extends Comparable<T>> BlockState copyProperty(BlockState source, BlockState target, Property<?> rawProperty) {
       Property<T> property = (Property<T>)rawProperty;
       return (BlockState)target.setValue(property, source.getValue(property));

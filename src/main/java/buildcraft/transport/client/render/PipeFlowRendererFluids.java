@@ -1,5 +1,6 @@
 package buildcraft.transport.client.render;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
 import buildcraft.fabric.BCEnergyFluidsFabric;
@@ -29,7 +30,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
          ensureRenderCache(flow, forRender);
          Identifier flowTexture = flow.renderCacheSpriteId;
          if (flowTexture != null) {
-            TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+            TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
             TextureAtlasSprite sprite = atlas.getSprite(flowTexture);
             float r = flow.renderCacheTintR / 255.0F;
             float g = flow.renderCacheTintG / 255.0F;

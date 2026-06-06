@@ -200,6 +200,7 @@ public class Blueprint extends Snapshot {
       }
    }
 
+   @SuppressWarnings("unchecked")
    public class BuildingInfo extends Snapshot.BuildingInfo {
       public final List<ItemStack>[] toPlaceRequiredItems = new List[Blueprint.this.getDataSize()];
       public final List<FluidStack>[] toPlaceRequiredFluids = new List[Blueprint.this.getDataSize()];

@@ -1,5 +1,6 @@
 package buildcraft.lib.client.sprite;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.core.render.ISprite;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Sheets;
@@ -18,7 +19,7 @@ public class SpriteHolderRegistry {
    }
 
    private static final class AtlasLookup {
-      static final Identifier[] ORDER = new Identifier[]{TextureAtlas.LOCATION_BLOCKS, TextureAtlas.LOCATION_ITEMS, Sheets.GUI_SHEET};
+      static final Identifier[] ORDER = new Identifier[]{BcTextureAtlases.BLOCKS_TEXTURE, BcTextureAtlases.ITEMS_TEXTURE, Sheets.GUI_SHEET};
    }
 
    public static class SpriteHolder implements ISprite {
@@ -53,7 +54,7 @@ public class SpriteHolderRegistry {
 
       public Identifier getAtlasLocation() {
          TextureAtlasSprite sprite = this.getSprite();
-         return sprite != null ? sprite.atlasLocation() : TextureAtlas.LOCATION_BLOCKS;
+         return sprite != null ? sprite.atlasLocation() : BcTextureAtlases.BLOCKS_TEXTURE;
       }
 
       private TextureAtlasSprite resolveSprite() {

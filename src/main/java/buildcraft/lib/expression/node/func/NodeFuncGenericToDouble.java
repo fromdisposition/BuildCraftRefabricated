@@ -17,7 +17,7 @@ public class NodeFuncGenericToDouble extends NodeFuncGeneric implements INodeFun
 
    @Override
    public IExpressionNode.INodeDouble getNode(INodeStack stack) throws InvalidExpressionException {
-      return new NodeFuncGenericToDouble.FuncDouble(this.popArgs(stack));
+      return new FuncDouble(this.popArgs(stack));
    }
 
    protected class FuncDouble extends NodeFuncGeneric.Func implements IExpressionNode.INodeDouble {

@@ -273,6 +273,7 @@ public class JsonUtil {
       return result;
    }
 
+   @SuppressWarnings("unchecked")
    public static <T extends Map<?, ?>> T getSubAsImmutableMap(JsonObject obj, String member, TypeToken<T> token) {
       return (T)(!obj.has(member) ? Collections.emptyMap() : new Gson().fromJson(obj.get(member), token.getType()));
    }

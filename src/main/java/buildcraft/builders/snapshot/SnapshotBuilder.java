@@ -288,7 +288,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             .mapToObj(this::indexToPos)
             .filter(this::shouldBreakQueueAcceptFluid)
             .sorted(Comparator.comparingInt(this::breakPriorityTier))
-            .map(blockPos -> new SnapshotBuilder.BreakTask(blockPos, 0L))
+            .map(blockPos -> new BreakTask(blockPos, 0L))
             .limit(16 - this.breakTasks.size())
             .forEach(this.breakTasks::add);
       } else {
@@ -327,7 +327,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             .filter(this::isReadyToPlace)
             .limit(16 - this.placeTasks.size())
             .filter(this::canPlace)
-            .map(blockPos -> new SnapshotBuilder.PlaceTask(blockPos, this.getToPlaceItems(blockPos), 0L))
+            .map(blockPos -> new PlaceTask(blockPos, this.getToPlaceItems(blockPos), 0L))
             .filter(placeTaskx -> placeTaskx.items != null)
             .forEach(this.placeTasks::add);
       }
@@ -411,7 +411,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       this.prevClientBreakTasks.clear();
 
       for (SnapshotBuilder<T>.BreakTask task : this.clientBreakTasks) {
-         this.prevClientBreakTasks.add(new SnapshotBuilder.BreakTask(task.pos, task.power));
+         this.prevClientBreakTasks.add(new BreakTask(task.pos, task.power));
          long target = task.getTarget();
          if (stored > 0L && task.power < target) {
             long increment = Math.min(target - task.power, max / Math.max(1, this.clientBreakTasks.size()));
@@ -422,7 +422,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       this.prevClientPlaceTasks.clear();
 
       for (SnapshotBuilder<T>.PlaceTask task : this.clientPlaceTasks) {
-         this.prevClientPlaceTasks.add(new SnapshotBuilder.PlaceTask(task.pos, task.items, task.power));
+         this.prevClientPlaceTasks.add(new PlaceTask(task.pos, task.items, task.power));
          long target = task.getTarget();
          if (stored > 0L && this.clientBreakTasks.isEmpty() && task.power < target) {
             long increment = Math.min(target - task.power, max / Math.max(1, this.clientPlaceTasks.size()));
@@ -502,7 +502,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             }
          }
 
-         mergedBreak.add(new SnapshotBuilder.BreakTask(serverTask.pos, mergedPower));
+         mergedBreak.add(new BreakTask(serverTask.pos, mergedPower));
       }
 
       this.clientBreakTasks.clear();
@@ -519,7 +519,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             }
          }
 
-         mergedPlace.add(new SnapshotBuilder.PlaceTask(serverTask.pos, serverTask.items, mergedPower));
+         mergedPlace.add(new PlaceTask(serverTask.pos, serverTask.items, mergedPower));
       }
 
       this.clientPlaceTasks.clear();
@@ -584,9 +584,9 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
    public void readFromByteBuf(PacketBufferBC buffer) {
       this.breakTasks.clear();
-      IntStream.range(0, buffer.readInt()).mapToObj(i -> new SnapshotBuilder.BreakTask(buffer)).forEach(this.breakTasks::add);
+      IntStream.range(0, buffer.readInt()).mapToObj(i -> new BreakTask(buffer)).forEach(this.breakTasks::add);
       this.placeTasks.clear();
-      IntStream.range(0, buffer.readInt()).mapToObj(i -> new SnapshotBuilder.PlaceTask(buffer)).forEach(this.placeTasks::add);
+      IntStream.range(0, buffer.readInt()).mapToObj(i -> new PlaceTask(buffer)).forEach(this.placeTasks::add);
       this.leftToBreak = buffer.readInt();
       this.leftToPlace = buffer.readInt();
    }
@@ -625,9 +625,9 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          }
 
          this.breakTasks.clear();
-         NBTUtilBC.readCompoundList(nbt.get("breakTasks")).map(x$0 -> new SnapshotBuilder.BreakTask(x$0)).forEach(this.breakTasks::add);
+         NBTUtilBC.readCompoundList(nbt.get("breakTasks")).map(x$0 -> new BreakTask(x$0)).forEach(this.breakTasks::add);
          this.placeTasks.clear();
-         NBTUtilBC.readCompoundList(nbt.get("placeTasks")).map(x$0 -> new SnapshotBuilder.PlaceTask(x$0)).forEach(this.placeTasks::add);
+         NBTUtilBC.readCompoundList(nbt.get("placeTasks")).map(x$0 -> new PlaceTask(x$0)).forEach(this.placeTasks::add);
          this.currentCheckIndex = nbt.getIntOr("currentCheckIndex", 0);
       }
    }
@@ -635,8 +635,8 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    public void loadClientNBT(CompoundTag tag, Iterable<SnapshotBuilder<T>.BreakTask> savedClientBreak, Iterable<SnapshotBuilder<T>.PlaceTask> savedClientPlace) {
       Queue<SnapshotBuilder<T>.BreakTask> serverBreak = new ArrayDeque<>();
       Queue<SnapshotBuilder<T>.PlaceTask> serverPlace = new ArrayDeque<>();
-      NBTUtilBC.readCompoundList(tag.get("breakTasks")).map(x$0 -> new SnapshotBuilder.BreakTask(x$0)).forEach(serverBreak::add);
-      NBTUtilBC.readCompoundList(tag.get("placeTasks")).map(x$0 -> new SnapshotBuilder.PlaceTask(x$0)).forEach(serverPlace::add);
+      NBTUtilBC.readCompoundList(tag.get("breakTasks")).map(x$0 -> new BreakTask(x$0)).forEach(serverBreak::add);
+      NBTUtilBC.readCompoundList(tag.get("placeTasks")).map(x$0 -> new PlaceTask(x$0)).forEach(serverPlace::add);
       this.receiveServerTaskData(serverBreak, serverPlace, savedClientBreak, savedClientPlace);
    }
 

@@ -36,6 +36,7 @@ public final class NodeConstantLong implements IExpressionNode.INodeLong, IConst
    }
 
    @Override
+      @SuppressWarnings("unchecked")
    public boolean equals(Object obj) {
       if (obj == this) {
          return true;

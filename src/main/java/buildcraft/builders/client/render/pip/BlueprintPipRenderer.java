@@ -1,5 +1,6 @@
 package buildcraft.builders.client.render.pip;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.builders.snapshot.Blueprint;
 import buildcraft.builders.snapshot.Snapshot;
@@ -345,9 +346,9 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       poseStack.pushPose();
       poseStack.translate(entry.x, entry.y, entry.z);
       Pose pipePose = poseStack.last();
-      ModelPipe.renderDirect(entry.pipeKey, pipePose, this.bufferSource.getBuffer(BCLibRenderTypes.entityCutoutCull(TextureAtlas.LOCATION_BLOCKS)), 15728880);
+      ModelPipe.renderDirect(entry.pipeKey, pipePose, this.bufferSource.getBuffer(BCLibRenderTypes.cutoutBlockSheet()), 15728880);
       ModelPipe.renderMaskOverlay(
-         entry.pipeKey, pipePose, this.bufferSource.getBuffer(BCLibRenderTypes.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS)), 15728880, 76
+         entry.pipeKey, pipePose, this.bufferSource.getBuffer(BCLibRenderTypes.translucentBlockSheet()), 15728880, 76
       );
       poseStack.popPose();
    }

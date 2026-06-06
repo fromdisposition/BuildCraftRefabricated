@@ -13,7 +13,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 public record MessageContainerPayload(int containerId, int messageId, byte[] payload) implements CustomPacketPayload {
-   public static final Type<MessageContainerPayload> TYPE = new Type(Identifier.parse("buildcraftrefabricated:container"));
+   public static final Type<MessageContainerPayload> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:container"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessageContainerPayload> STREAM_CODEC = StreamCodec.of(
       MessageContainerPayload::encode, MessageContainerPayload::decode
    );

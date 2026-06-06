@@ -1,7 +1,6 @@
 package buildcraft.api.recipes;
 
 import com.google.common.collect.ImmutableSet;
-import java.util.Collections;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import net.minecraft.core.NonNullList;
@@ -25,13 +24,12 @@ public class AssemblyRecipeBasic extends AssemblyRecipe {
 
    @Override
    public Set<ItemStack> getOutputs(NonNullList<ItemStack> inputs) {
-      return (Set<ItemStack>)(this.requiredStacks
-            .stream()
-            .allMatch(
-               definition -> inputs.stream().anyMatch(stack -> !stack.isEmpty() && definition.ingredient.test(stack) && stack.getCount() >= definition.count)
-            )
-         ? this.output
-         : Collections.emptySet());
+      boolean matches = this.requiredStacks
+         .stream()
+         .allMatch(
+            definition -> inputs.stream().anyMatch(stack -> !stack.isEmpty() && definition.ingredient.test(stack) && stack.getCount() >= definition.count)
+         );
+      return matches ? this.output : Set.of();
    }
 
    @Override

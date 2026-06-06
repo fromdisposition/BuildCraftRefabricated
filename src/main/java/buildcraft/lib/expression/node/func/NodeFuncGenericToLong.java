@@ -17,7 +17,7 @@ public class NodeFuncGenericToLong extends NodeFuncGeneric implements INodeFunc.
 
    @Override
    public IExpressionNode.INodeLong getNode(INodeStack stack) throws InvalidExpressionException {
-      return new NodeFuncGenericToLong.FuncLong(this.popArgs(stack));
+      return new FuncLong(this.popArgs(stack));
    }
 
    private class FuncLong extends NodeFuncGeneric.Func implements IExpressionNode.INodeLong {

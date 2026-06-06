@@ -35,7 +35,7 @@ public class PathSavedData extends SavedData {
             return data;
          })
    );
-   public static final SavedDataType<PathSavedData> TYPE = new SavedDataType(
+   public static final SavedDataType<PathSavedData> TYPE = new SavedDataType<>(
       Identifier.withDefaultNamespace("buildcraft_marker_path"), PathSavedData::new, CODEC, DataFixTypes.LEVEL
    );
 

@@ -250,6 +250,7 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
    }
 
    @Override
+   @SuppressWarnings("unchecked")
    public <T> T getCapability(@Nonnull Object capability, Direction facing) {
       if (capability == MjAPI.CAP_REDSTONE_RECEIVER) {
          return (T)this;

@@ -2,6 +2,7 @@ package buildcraft.lib.gui.button;
 
 import net.minecraft.resources.Identifier;
 
+@SuppressWarnings("deprecation")
 public class ButtonTextureSet implements IButtonTextureSet {
    private final Identifier texture;
    private final int x;

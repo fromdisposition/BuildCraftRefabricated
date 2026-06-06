@@ -1,5 +1,6 @@
 package buildcraft.transport.client.render;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.transport.pipe.IPipeBehaviourRenderer;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
 import buildcraft.api.transport.pipe.PipeApi;
@@ -100,7 +101,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
             int light = renderState.lightCoords;
             poseStack.pushPose();
             BcBerRenderUtil.submit(
-               poseStack, collector, BCLibRenderTypes.entityCutoutCull(TextureAtlas.LOCATION_BLOCKS), (pose, buffer) -> {
+               poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (pose, buffer) -> {
                   ModelPipe.renderDirect(pipe, pose, buffer, light);
                   ModelPipe.renderCutoutPluggables(pipe, pose, buffer, light);
                }
@@ -109,7 +110,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
             if (bodyPipe != null && bodyPipe.getColour() != null) {
                int paintAlpha = bodyPipe.definition.flowType == PipeApi.flowFluids ? 255 : ModelPipe.PIPE_PAINT_ALPHA;
                BcBerRenderUtil.submit(
-                  poseStack, collector, BCLibRenderTypes.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS), (pose, buffer) -> {
+                  poseStack, collector, BCLibRenderTypes.translucentBlockSheet(), (pose, buffer) -> {
                      ModelPipe.renderMaskOverlay(pipe, pose, buffer, light, paintAlpha);
                   }
                );
@@ -237,8 +238,8 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
             if (p.flow instanceof PipeFlowFluids fluids) {
                PipeFlowRendererFluids.prepareRenderCache(fluids);
                flowType = fluids.renderCacheTranslucent
-                  ? BCLibRenderTypes.entityTranslucent(TextureAtlas.LOCATION_BLOCKS)
-                  : BCLibRenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS);
+                  ? BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE)
+                  : BCLibRenderTypes.entityCutout(BcTextureAtlases.BLOCKS_TEXTURE);
             }
 
             BcBerRenderUtil.submitWithPoseStack(poseStack, collector, flowType, (stack, buffer) -> {

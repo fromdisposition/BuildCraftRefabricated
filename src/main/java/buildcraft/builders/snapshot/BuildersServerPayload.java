@@ -21,7 +21,7 @@ import net.minecraft.resources.Identifier;
 public record BuildersServerPayload(
    BuildersServerPayload.Kind kind, @Nullable byte[] snapshotData, BlockPos architectPos, @Nullable byte[] previewData, List<BlockPos> scanPositions
 ) implements CustomPacketPayload {
-   public static final Type<BuildersServerPayload> TYPE = new Type(Identifier.parse("buildcraftrefabricated:builders_server"));
+   public static final Type<BuildersServerPayload> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:builders_server"));
    public static final StreamCodec<FriendlyByteBuf, BuildersServerPayload> STREAM_CODEC = StreamCodec.of(
       BuildersServerPayload::encode, BuildersServerPayload::decode
    );

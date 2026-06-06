@@ -1,5 +1,6 @@
 package buildcraft.lib.client.model.json;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.expression.FunctionContext;
 import com.google.gson.JsonObject;
 import net.minecraft.client.Minecraft;
@@ -17,7 +18,7 @@ public class VariablePartLed extends VariablePartCuboidBase {
    @Override
    protected VariablePartCuboidBase.VariableFaceData getFaceData(Direction side, JsonVariableModel.ITextureGetter spriteLookup) {
       if (FACE_DATA.sprite == null) {
-         TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+         TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
          FACE_DATA.sprite = atlas.getSprite(MissingTextureAtlasSprite.getLocation());
       }
 

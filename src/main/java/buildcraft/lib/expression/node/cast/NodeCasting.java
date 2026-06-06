@@ -9,6 +9,7 @@ import buildcraft.lib.expression.api.InvalidExpressionException;
 import buildcraft.lib.expression.api.NodeTypes;
 import java.util.Collections;
 
+@SuppressWarnings("unchecked")
 public class NodeCasting {
    public static IExpressionNode.INodeObject<String> castToString(IExpressionNode node) {
       return node instanceof IExpressionNode.INodeObject && ((IExpressionNode.INodeObject)node).getType() == String.class

@@ -41,7 +41,7 @@ public class NodeFuncBooleanBooleanToBoolean extends NodeFuncBase implements INo
    }
 
    public NodeFuncBooleanBooleanToBoolean.FuncBooleanBooleanToBoolean create(IExpressionNode.INodeBoolean argA, IExpressionNode.INodeBoolean argB) {
-      return new NodeFuncBooleanBooleanToBoolean.FuncBooleanBooleanToBoolean(argA, argB);
+      return new FuncBooleanBooleanToBoolean(argA, argB);
    }
 
    public class FuncBooleanBooleanToBoolean implements IExpressionNode.INodeBoolean, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -106,6 +106,7 @@ public class NodeFuncBooleanBooleanToBoolean extends NodeFuncBase implements INo
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

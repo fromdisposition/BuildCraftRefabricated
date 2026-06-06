@@ -15,6 +15,7 @@ public class SchematicEntityFactory<S extends ISchematicEntity> implements Compa
    @Nonnull
    public final Class<S> clazz;
 
+   @SuppressWarnings("unchecked")
    public SchematicEntityFactory(@Nonnull Object name, int priority, @Nonnull Predicate<SchematicEntityContext> predicate, @Nonnull Supplier<S> supplier) {
       this.name = name;
       this.priority = priority;

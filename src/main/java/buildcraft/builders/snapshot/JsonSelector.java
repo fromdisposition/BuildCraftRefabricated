@@ -31,6 +31,7 @@ public class JsonSelector {
                throw new UnsupportedOperationException();
             }
 
+            @SuppressWarnings("unchecked")
             public T read(JsonReader in) throws IOException {
                return (T)(in.peek() == JsonToken.STRING ? new JsonSelector(in.nextString(), Collections.emptyList()) : delegate.read(in));
             }

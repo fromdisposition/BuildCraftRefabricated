@@ -177,6 +177,7 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
    }
 
    @Override
+   @SuppressWarnings("unchecked")
    public <T> T getCapability(@Nonnull Object capability, Direction facing) {
       if (facing == null) {
          return null;

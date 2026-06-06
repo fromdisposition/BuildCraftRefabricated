@@ -56,12 +56,14 @@ public class SoundTestCommand {
 
    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
       dispatcher.register(
-         (LiteralArgumentBuilder)((LiteralArgumentBuilder)Commands.literal("bcsoundtest").executes(SoundTestCommand::printMenu))
+         Commands.literal("bcsoundtest")
+            .executes(SoundTestCommand::printMenu)
             .then(
-               ((RequiredArgumentBuilder)Commands.argument("sound", IdentifierArgument.id()).executes(ctx -> play(ctx, 1.0F, 1.0F)))
+               Commands.argument("sound", IdentifierArgument.id())
+                  .executes(ctx -> play(ctx, 1.0F, 1.0F))
                   .then(
-                     ((RequiredArgumentBuilder)Commands.argument("pitch", FloatArgumentType.floatArg(0.0F, 2.0F))
-                           .executes(ctx -> play(ctx, FloatArgumentType.getFloat(ctx, "pitch"), 1.0F)))
+                     Commands.argument("pitch", FloatArgumentType.floatArg(0.0F, 2.0F))
+                        .executes(ctx -> play(ctx, FloatArgumentType.getFloat(ctx, "pitch"), 1.0F))
                         .then(
                            Commands.argument("volume", FloatArgumentType.floatArg(0.0F, 4.0F))
                               .executes(ctx -> play(ctx, FloatArgumentType.getFloat(ctx, "pitch"), FloatArgumentType.getFloat(ctx, "volume")))

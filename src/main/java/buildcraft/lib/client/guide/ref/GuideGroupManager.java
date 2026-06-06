@@ -345,9 +345,9 @@ public class GuideGroupManager {
          addKey("buildcraft", "distillation_outputs", distiller);
       }
 
-      addEntries("buildcraft", "filler_patterns", BCBuildersStatements.PATTERNS);
+      addEntries("buildcraft", "filler_patterns", (Object)BCBuildersStatements.PATTERNS);
       addKey("buildcraft", "filler_patterns", BCBuildersItems.FILLER);
-      addEntries("buildcraft", "extraction_presets", BCTransportStatements.ACTION_EXTRACTION_PRESET);
+      addEntries("buildcraft", "extraction_presets", (Object)BCTransportStatements.ACTION_EXTRACTION_PRESET);
       addKey("buildcraft", "extraction_presets", BCTransportItems.PIPE_EMZULI_ITEM);
       Object[] pipeSignals = new Object[3 * ColourUtil.COLOURS.length];
       int psIdx = 0;
@@ -359,7 +359,7 @@ public class GuideGroupManager {
       }
 
       addEntries("buildcraft", "pipe_signals", pipeSignals);
-      addEntries("buildcraft", "paint_pipe_colour", BCTransportStatements.ACTION_PIPE_COLOUR);
+      addEntries("buildcraft", "paint_pipe_colour", (Object)BCTransportStatements.ACTION_PIPE_COLOUR);
       addKeys("buildcraft", "paint_pipe_colour", BCTransportItems.PIPE_LAPIS_ITEM, BCTransportItems.PIPE_DAIZULI_ITEM);
       Object[] powerLimits = new Object[BCTransportStatements.ACTION_IRON_POWER_LIMIT.length
          + BCTransportStatements.ACTION_DIAMOND_POWER_LIMIT.length
@@ -384,15 +384,15 @@ public class GuideGroupManager {
       }
 
       addEntries("buildcraft", "set_power_limit", powerLimits);
-      addEntries("buildcraft", "set_power_limit_iron", BCTransportStatements.ACTION_IRON_POWER_LIMIT);
+      addEntries("buildcraft", "set_power_limit_iron", (Object)BCTransportStatements.ACTION_IRON_POWER_LIMIT);
       addKeys("buildcraft", "set_power_limit_iron", BCTransportItems.PIPE_IRON_POWER);
-      addEntries("buildcraft", "set_power_limit_diamond", BCTransportStatements.ACTION_DIAMOND_POWER_LIMIT);
+      addEntries("buildcraft", "set_power_limit_diamond", (Object)BCTransportStatements.ACTION_DIAMOND_POWER_LIMIT);
       addKeys("buildcraft", "set_power_limit_diamond", BCTransportItems.PIPE_DIAMOND_POWER);
-      addEntries("buildcraft", "set_power_limit_iron_rf", BCTransportStatements.ACTION_IRON_RF_LIMIT);
+      addEntries("buildcraft", "set_power_limit_iron_rf", (Object)BCTransportStatements.ACTION_IRON_RF_LIMIT);
       addKeys("buildcraft", "set_power_limit_iron_rf", BCTransportItems.PIPE_IRON_RF);
-      addEntries("buildcraft", "set_power_limit_diamond_rf", BCTransportStatements.ACTION_DIAMOND_RF_LIMIT);
+      addEntries("buildcraft", "set_power_limit_diamond_rf", (Object)BCTransportStatements.ACTION_DIAMOND_RF_LIMIT);
       addKeys("buildcraft", "set_power_limit_diamond_rf", BCTransportItems.PIPE_DIAMOND_RF);
-      addEntries("buildcraft", "set_pipe_direction", BCTransportStatements.ACTION_PIPE_DIRECTION);
+      addEntries("buildcraft", "set_pipe_direction", (Object)BCTransportStatements.ACTION_PIPE_DIRECTION);
       addKeys(
          "buildcraft",
          "set_pipe_direction",

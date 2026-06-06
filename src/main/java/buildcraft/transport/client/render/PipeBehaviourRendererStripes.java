@@ -1,5 +1,6 @@
 package buildcraft.transport.client.render;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.transport.pipe.IPipeBehaviourRenderer;
 import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.transport.client.model.PipeMutableQuadCache;
@@ -53,7 +54,7 @@ public enum PipeBehaviourRendererStripes implements IPipeBehaviourRenderer<PipeB
       float maxY = 0.53125F;
       float minZ = 0.46875F;
       float maxZ = 0.53125F;
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
       TextureAtlasSprite sprite = atlas.getSprite(Identifier.parse("minecraft:block/gold_block"));
       float u0 = sprite.getU(0.0F);
       float u1 = sprite.getU(1.0F);

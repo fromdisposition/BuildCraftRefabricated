@@ -53,6 +53,7 @@ public interface MutableDataComponentHolder extends DataComponentHolder {
       }
    }
 
+   @SuppressWarnings("unchecked")
    default void copyFrom(DataComponentHolder src, Supplier<? extends DataComponentType<?>>... componentTypes) {
       for (Supplier<? extends DataComponentType<?>> componentType : componentTypes) {
          this.copyFrom(componentType.get(), src);

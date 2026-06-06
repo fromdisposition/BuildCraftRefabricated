@@ -58,7 +58,9 @@ public class NodeVariableObject<T> extends NodeVariable implements IVariableNode
          throw new IllegalArgumentException("Cannot convert " + obj.getType() + " to " + this.getType());
       }
 
-      this.src = (IExpressionNode.INodeObject<T>)source;
+      @SuppressWarnings("unchecked")
+      IExpressionNode.INodeObject<T> typedSource = (IExpressionNode.INodeObject<T>)source;
+      this.src = typedSource;
    }
 
    @Override

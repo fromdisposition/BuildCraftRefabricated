@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
 import net.minecraft.resources.Identifier;
 
 public record MessageMultiPipePayload(List<MessagePipePayload> payloads) implements CustomPacketPayload {
-   public static final Type<MessageMultiPipePayload> TYPE = new Type(Identifier.parse("buildcraftrefabricated:multi_pipe_payload"));
+   public static final Type<MessageMultiPipePayload> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:multi_pipe_payload"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessageMultiPipePayload> STREAM_CODEC = StreamCodec.of(
       MessageMultiPipePayload::encode, MessageMultiPipePayload::decode
    );

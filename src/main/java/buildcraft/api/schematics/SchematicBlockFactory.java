@@ -15,6 +15,7 @@ public class SchematicBlockFactory<S extends ISchematicBlock> implements Compara
    @Nonnull
    public final Class<S> clazz;
 
+   @SuppressWarnings("unchecked")
    public SchematicBlockFactory(@Nonnull Object name, int priority, @Nonnull Predicate<SchematicBlockContext> predicate, @Nonnull Supplier<S> supplier) {
       this.name = name;
       this.priority = priority;

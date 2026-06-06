@@ -60,7 +60,7 @@ public class NodeFuncBooleanBooleanBooleanToObject<R> extends NodeFuncBase imple
    public NodeFuncBooleanBooleanBooleanToObject<R>.FuncBooleanBooleanBooleanToObject create(
       IExpressionNode.INodeBoolean argA, IExpressionNode.INodeBoolean argB, IExpressionNode.INodeBoolean argC
    ) {
-      return new NodeFuncBooleanBooleanBooleanToObject.FuncBooleanBooleanBooleanToObject(argA, argB, argC);
+      return new FuncBooleanBooleanBooleanToObject(argA, argB, argC);
    }
 
    public class FuncBooleanBooleanBooleanToObject implements IExpressionNode.INodeObject<R>, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -137,6 +137,7 @@ public class NodeFuncBooleanBooleanBooleanToObject<R> extends NodeFuncBase imple
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

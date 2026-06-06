@@ -12,7 +12,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 public record MessagePipeLandingEffect(BlockPos pos, double x, double y, double z, int numberOfParticles) implements CustomPacketPayload {
-   public static final Type<MessagePipeLandingEffect> TYPE = new Type(Identifier.parse("buildcraftrefabricated:pipe_landing_effect"));
+   public static final Type<MessagePipeLandingEffect> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:pipe_landing_effect"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessagePipeLandingEffect> STREAM_CODEC = StreamCodec.composite(
       BlockPos.STREAM_CODEC,
       MessagePipeLandingEffect::pos,

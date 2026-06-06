@@ -95,6 +95,7 @@ public class PipeBehaviourWood extends PipeBehaviourDirectional implements IMjRe
    }
 
    @Override
+   @SuppressWarnings("unchecked")
    public <T> T getCapability(@Nonnull Object capability, Direction facing) {
       return (T)(capability != MjAPI.CAP_RECEIVER && capability != MjAPI.CAP_CONNECTOR ? super.getCapability(capability, facing) : this);
    }

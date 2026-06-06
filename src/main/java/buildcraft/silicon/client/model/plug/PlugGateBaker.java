@@ -1,5 +1,6 @@
 package buildcraft.silicon.client.model.plug;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.transport.pluggable.IPluggableStaticBaker;
 import buildcraft.lib.client.model.ModelUtil;
 import buildcraft.lib.client.model.MutableQuad;
@@ -30,7 +31,7 @@ public class PlugGateBaker implements IPluggableStaticBaker<KeyPlugGate> {
    }
 
    private TextureAtlasSprite getSprite(String path) {
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
       return atlas.getSprite(Identifier.parse(path));
    }
 

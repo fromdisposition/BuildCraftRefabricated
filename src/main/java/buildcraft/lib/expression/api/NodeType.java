@@ -6,6 +6,7 @@ public final class NodeType<T> extends NodeTypeBase<T> {
    public final Class<T> type;
    public final T defaultValue;
 
+   @SuppressWarnings("unchecked")
    public NodeType(String name, T defaultValue) {
       this(name, (Class<T>)defaultValue.getClass(), defaultValue);
    }
@@ -27,6 +28,7 @@ public final class NodeType<T> extends NodeTypeBase<T> {
    }
 
    @Override
+      @SuppressWarnings("unchecked")
    public boolean equals(Object obj) {
       if (this == obj) {
          return true;

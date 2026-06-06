@@ -1,5 +1,6 @@
 package buildcraft.lib.misc;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -22,6 +23,6 @@ public class SpriteUtil {
    }
 
    private static TextureAtlas getBlockAtlas() {
-      return (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+      return BcTextureAtlases.blocks(Minecraft.getInstance());
    }
 }

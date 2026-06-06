@@ -1,5 +1,6 @@
 package buildcraft.core.marker.volume;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.lib.client.render.BCLibRenderTypes;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -23,7 +24,7 @@ public class AddonDefaultRenderer<T extends Addon> implements IFastAddonRenderer
 
    @Override
    public void renderAddonFast(T addon, Player player, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource) {
-      VertexConsumer builder = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(TextureAtlas.LOCATION_BLOCKS));
+      VertexConsumer builder = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE));
       AABB bb = addon.getBoundingBox();
       Matrix4f pose = poseStack.last().pose();
       float u0 = this.sprite != null ? (float)this.sprite.getInterpU(0.0) : 0.0F;

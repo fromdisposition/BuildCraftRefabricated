@@ -1,5 +1,6 @@
 package buildcraft.lib.client.model;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.core.BCLog;
 import buildcraft.lib.client.model.json.JsonModel;
 import buildcraft.lib.client.model.json.JsonModelPart;
@@ -126,7 +127,7 @@ public class ModelHolderStatic extends ModelHolder {
    }
 
    private MutableQuad[] bakePart(JsonModelPart[] a) {
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
       TextureAtlasSprite missingSprite = atlas.getSprite(MissingTextureAtlasSprite.getLocation());
       List<MutableQuad> list = new ArrayList<>();
 

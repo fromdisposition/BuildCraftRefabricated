@@ -17,7 +17,7 @@ public class NodeFuncGenericToObject<T> extends NodeFuncGeneric implements INode
 
    @Override
    public IExpressionNode.INodeObject<T> getNode(INodeStack stack) throws InvalidExpressionException {
-      return new NodeFuncGenericToObject.FuncObject(this.popArgs(stack));
+      return new FuncObject(this.popArgs(stack));
    }
 
    @Override

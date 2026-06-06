@@ -35,7 +35,7 @@ public final class ItemStorageResolve {
       if (parts.isEmpty()) {
          return null;
       } else {
-         return (Storage<ItemVariant>)(parts.size() == 1 ? parts.get(0) : new CombinedStorage(parts));
+         return parts.size() == 1 ? parts.get(0) : new CombinedStorage<>(parts);
       }
    }
 

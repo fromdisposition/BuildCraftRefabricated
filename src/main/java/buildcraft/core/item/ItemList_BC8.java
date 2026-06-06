@@ -76,8 +76,9 @@ public class ItemList_BC8 extends Item implements IList {
       return InteractionResult.SUCCESS;
    }
 
+   @Override
+   @SuppressWarnings("deprecation")
    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-      super.appendHoverText(stack, context, display, tooltip, flag);
       String label = this.getLocationName(stack);
       if (label != null && !label.isEmpty()) {
          tooltip.accept(Component.literal(label).withStyle(ChatFormatting.ITALIC));

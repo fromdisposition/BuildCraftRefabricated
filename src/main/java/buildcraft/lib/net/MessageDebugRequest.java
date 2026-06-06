@@ -15,7 +15,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 public record MessageDebugRequest(BlockPos pos, Direction side) implements CustomPacketPayload {
-   public static final Type<MessageDebugRequest> TYPE = new Type(Identifier.parse("buildcraftrefabricated:debug_request"));
+   public static final Type<MessageDebugRequest> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:debug_request"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessageDebugRequest> STREAM_CODEC = StreamCodec.of(
       MessageDebugRequest::encode, MessageDebugRequest::decode
    );

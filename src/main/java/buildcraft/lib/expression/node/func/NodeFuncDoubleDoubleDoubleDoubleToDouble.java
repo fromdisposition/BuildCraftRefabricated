@@ -47,7 +47,7 @@ public class NodeFuncDoubleDoubleDoubleDoubleToDouble extends NodeFuncBase imple
    public NodeFuncDoubleDoubleDoubleDoubleToDouble.FuncDoubleDoubleDoubleDoubleToDouble create(
       IExpressionNode.INodeDouble argA, IExpressionNode.INodeDouble argB, IExpressionNode.INodeDouble argC, IExpressionNode.INodeDouble argD
    ) {
-      return new NodeFuncDoubleDoubleDoubleDoubleToDouble.FuncDoubleDoubleDoubleDoubleToDouble(argA, argB, argC, argD);
+      return new FuncDoubleDoubleDoubleDoubleToDouble(argA, argB, argC, argD);
    }
 
    public class FuncDoubleDoubleDoubleDoubleToDouble implements IExpressionNode.INodeDouble, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -126,6 +126,7 @@ public class NodeFuncDoubleDoubleDoubleDoubleToDouble extends NodeFuncBase imple
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

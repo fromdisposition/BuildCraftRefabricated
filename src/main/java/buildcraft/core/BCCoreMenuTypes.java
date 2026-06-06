@@ -14,7 +14,7 @@ public final class BCCoreMenuTypes {
    }
 
    public static void register() {
-      LIST = BCRegistries.registerMenuType("buildcraftcore", "list", new MenuType((syncId, inv) -> {
+      LIST = BCRegistries.registerMenuType("buildcraftcore", "list", new MenuType<>((syncId, inv) -> {
          InteractionHand hand = ListOpenContext.consume(inv.player);
          if (hand == null) {
             hand = InteractionHand.MAIN_HAND;

@@ -15,7 +15,7 @@ public final class ItemFluidLookup {
    }
 
    public static @Nullable Storage<FluidVariant> storage(ItemStack stack, ContainerItemContext context) {
-      return stack.isEmpty() ? null : (Storage)FluidStorage.ITEM.find(stack, context);
+      return stack.isEmpty() ? null : FluidStorage.ITEM.find(stack, context);
    }
 
    public static @Nullable Storage<FluidVariant> storage(ItemStack stack) {

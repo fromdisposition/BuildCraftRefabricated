@@ -55,6 +55,8 @@ public class ItemPipeHolder extends BlockItem implements IItemPipe {
       return def.identifier != null && def.identifier.endsWith("_rf");
    }
 
+   @Override
+   @SuppressWarnings("deprecation")
    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
       PipeDefinition def = this.getDefinition();
       String id = def.identifier;

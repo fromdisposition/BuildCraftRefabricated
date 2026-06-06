@@ -115,7 +115,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
 
       FluidVariant variant = TransferConvert.toVariant(fluid);
       long amount = TransferConvert.mbToDroplets(fluid.getAmount());
-      return (Iterator<StorageView<FluidVariant>>)(Iterator<?>)Collections.singletonList(new FragileFluidContainerStorage.SingleView(variant, amount)).iterator();
+      return Collections.<StorageView<FluidVariant>>singletonList(new SingleView(variant, amount)).iterator();
    }
 
    private final class SingleView implements StorageView<FluidVariant> {

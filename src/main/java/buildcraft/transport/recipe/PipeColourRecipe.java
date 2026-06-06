@@ -20,7 +20,7 @@ public class PipeColourRecipe extends CustomRecipe {
    public static final PipeColourRecipe INSTANCE = new PipeColourRecipe();
    public static final MapCodec<PipeColourRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
    public static final StreamCodec<RegistryFriendlyByteBuf, PipeColourRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
-   public static final RecipeSerializer<PipeColourRecipe> SERIALIZER = new RecipeSerializer(MAP_CODEC, STREAM_CODEC);
+   public static final RecipeSerializer<PipeColourRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 
    public boolean matches(CraftingInput input, Level level) {
       return analyse(input).output() != null;

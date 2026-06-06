@@ -678,8 +678,11 @@ public class TileBuilder
       }
    }
 
-   private static void applyBuilderClientData(SnapshotBuilder active, CompoundTag tag, List savedBreak, List savedPlace) {
-      active.loadClientNBT(tag, savedBreak, savedPlace);
+   @SuppressWarnings({"unchecked", "rawtypes"})
+   private static void applyBuilderClientData(
+      SnapshotBuilder<?> active, CompoundTag tag, List<SnapshotBuilder<?>.BreakTask> savedBreak, List<SnapshotBuilder<?>.PlaceTask> savedPlace
+   ) {
+      ((SnapshotBuilder)active).loadClientNBT(tag, (List)savedBreak, (List)savedPlace);
    }
 
    public Box getBox() {

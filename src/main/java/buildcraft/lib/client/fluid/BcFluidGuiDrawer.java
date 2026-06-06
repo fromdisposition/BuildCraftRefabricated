@@ -1,5 +1,6 @@
 package buildcraft.lib.client.fluid;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -35,7 +36,7 @@ public final class BcFluidGuiDrawer {
             int drawH = Math.min(spriteSize, y + height - tileY);
             graphics.blit(
                RenderPipelines.GUI_TEXTURED,
-               TextureAtlas.LOCATION_BLOCKS,
+               BcTextureAtlases.BLOCKS_TEXTURE,
                tileX,
                tileY,
                sprite.getU0() * atlasWidth,

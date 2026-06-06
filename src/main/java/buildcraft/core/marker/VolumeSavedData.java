@@ -35,7 +35,7 @@ public class VolumeSavedData extends SavedData {
             return data;
          })
    );
-   public static final SavedDataType<VolumeSavedData> TYPE = new SavedDataType(
+   public static final SavedDataType<VolumeSavedData> TYPE = new SavedDataType<>(
       Identifier.withDefaultNamespace("buildcraft_marker_volume"), VolumeSavedData::new, CODEC, DataFixTypes.LEVEL
    );
 

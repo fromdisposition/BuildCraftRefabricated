@@ -50,6 +50,7 @@ public final class BCEnergyFabricClient {
       BCTooltips.addTooltip(BCEnergyItems.DYNAMO_MJ, "tip.block.mj_dynamo");
    }
 
+   @SuppressWarnings("unchecked")
    private static <T extends TileEngineBase_BC8> void registerEngineBer(BlockEntityType<T> type, BiFunction<T, Float, MutableQuad[]> quads) {
       BlockEntityRenderers.register(type, ctx -> new RenderEngine_BC8((engine, pt) -> quads.apply((T)engine, pt)));
    }

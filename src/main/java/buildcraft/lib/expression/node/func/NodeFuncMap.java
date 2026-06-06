@@ -74,7 +74,7 @@ public class NodeFuncMap<K extends Enum<K>, V> implements INodeFunc.INodeFuncObj
 
    @Override
    public IExpressionNode.INodeObject<V> getNode(INodeStack stack) throws InvalidExpressionException {
-      return new NodeFuncMap.Node(stack.popObject(this.keyClass));
+      return this.new Node(stack.popObject(this.keyClass));
    }
 
    @Override

@@ -41,7 +41,7 @@ public class NodeFuncDoubleDoubleToDouble extends NodeFuncBase implements INodeF
    }
 
    public NodeFuncDoubleDoubleToDouble.FuncDoubleDoubleToDouble create(IExpressionNode.INodeDouble argA, IExpressionNode.INodeDouble argB) {
-      return new NodeFuncDoubleDoubleToDouble.FuncDoubleDoubleToDouble(argA, argB);
+      return new FuncDoubleDoubleToDouble(argA, argB);
    }
 
    public class FuncDoubleDoubleToDouble implements IExpressionNode.INodeDouble, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -106,6 +106,7 @@ public class NodeFuncDoubleDoubleToDouble extends NodeFuncBase implements INodeF
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

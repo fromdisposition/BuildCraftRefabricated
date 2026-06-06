@@ -41,6 +41,7 @@ public class PipeItemModel implements ItemModel {
    private final @Nullable ModelRenderProperties renderProperties;
    private final Supplier<Vector3fc[]> extents;
 
+   @SuppressWarnings("unchecked")
    public PipeItemModel(ItemModel vanillaDelegate, PipeDefinition definition) {
       this.vanillaDelegate = vanillaDelegate;
       this.definition = definition;

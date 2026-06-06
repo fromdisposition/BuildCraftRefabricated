@@ -60,6 +60,7 @@ public class BCSiliconJeiPlugin implements IModPlugin {
       registration.addRecipes(AssemblyRecipeJeiTypes.ASSEMBLY, AssemblyRecipeCollector.collect());
    }
 
+   @SuppressWarnings("unchecked")
    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
       registration.addRecipeTransferHandler(
          new BlueprintTransferHandler(ContainerAdvancedCraftingTable.class, BCSiliconMenuTypes.ADVANCED_CRAFTING_TABLE), RecipeTypes.CRAFTING
@@ -67,6 +68,7 @@ public class BCSiliconJeiPlugin implements IModPlugin {
       registration.addRecipeTransferHandler(new AssemblyTableTransferHandler(registration.getTransferHelper()), AssemblyRecipeJeiTypes.ASSEMBLY);
    }
 
+   @SuppressWarnings("unchecked")
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
       registration.addRecipeClickArea(GuiAdvancedCraftingTable.class, 93, 32, 23, 16, new IRecipeType[]{RecipeTypes.CRAFTING});
       registration.addGhostIngredientHandler(GuiAdvancedCraftingTable.class, new BCGhostIngredientHandler());

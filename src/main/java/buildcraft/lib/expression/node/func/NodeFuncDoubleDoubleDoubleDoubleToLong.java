@@ -47,7 +47,7 @@ public class NodeFuncDoubleDoubleDoubleDoubleToLong extends NodeFuncBase impleme
    public NodeFuncDoubleDoubleDoubleDoubleToLong.FuncDoubleDoubleDoubleDoubleToLong create(
       IExpressionNode.INodeDouble argA, IExpressionNode.INodeDouble argB, IExpressionNode.INodeDouble argC, IExpressionNode.INodeDouble argD
    ) {
-      return new NodeFuncDoubleDoubleDoubleDoubleToLong.FuncDoubleDoubleDoubleDoubleToLong(argA, argB, argC, argD);
+      return new FuncDoubleDoubleDoubleDoubleToLong(argA, argB, argC, argD);
    }
 
    public class FuncDoubleDoubleDoubleDoubleToLong implements IExpressionNode.INodeLong, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -126,6 +126,7 @@ public class NodeFuncDoubleDoubleDoubleDoubleToLong extends NodeFuncBase impleme
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

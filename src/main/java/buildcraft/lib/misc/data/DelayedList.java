@@ -34,6 +34,7 @@ public class DelayedList<E> {
       return this.elements.size();
    }
 
+   @SuppressWarnings("unchecked")
    public List<E> advance() {
       return (List<E>)(this.elements.isEmpty() ? ImmutableList.of() : this.elements.remove(0));
    }

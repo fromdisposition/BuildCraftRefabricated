@@ -648,11 +648,11 @@ public enum BCBuildersEventDist {
                if (filler != null && !filler.isRemoved() && filler.builder != null && !filler.builder.clientPlaceTasks.isEmpty()) {
                   Map<BlockPos, Vec3> prevPlacePosByBlock = new HashMap<>();
 
-                  for (SnapshotBuilder.PlaceTask prevTask : filler.builder.prevClientPlaceTasks) {
+                  for (var prevTask : filler.builder.prevClientPlaceTasks) {
                      prevPlacePosByBlock.put(prevTask.pos, filler.builder.getPlaceTaskItemPos(prevTask));
                   }
 
-                  for (SnapshotBuilder.PlaceTask placeTask : filler.builder.clientPlaceTasks) {
+                  for (var placeTask : filler.builder.clientPlaceTasks) {
                      Vec3 targetPos = filler.builder.getPlaceTaskItemPos(placeTask);
                      Vec3 prevPos = prevPlacePosByBlock.getOrDefault(placeTask.pos, targetPos);
                      Vec3 pos = prevPos.add(targetPos.subtract(prevPos).scale(partialTicks));

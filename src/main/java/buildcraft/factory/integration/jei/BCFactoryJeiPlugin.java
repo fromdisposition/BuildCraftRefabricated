@@ -75,6 +75,7 @@ public class BCFactoryJeiPlugin implements IModPlugin {
       return recipes;
    }
 
+   @SuppressWarnings("unchecked")
    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
       registration.addRecipeTransferHandler(
          new BlueprintTransferHandler(ContainerAutoCraftItems.class, BCFactoryMenuTypes.AUTO_WORKBENCH_ITEMS), RecipeTypes.CRAFTING
@@ -83,6 +84,7 @@ public class BCFactoryJeiPlugin implements IModPlugin {
       registration.addRecipeTransferHandler(new HeatExchangerTransferHandler(registration.getTransferHelper()), HeatExchangerRecipeTypes.PAIR);
    }
 
+   @SuppressWarnings("unchecked")
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
       registration.addRecipeClickArea(GuiAutoCraftItems.class, 90, 47, 23, 10, new IRecipeType[]{RecipeTypes.CRAFTING});
       registration.addGhostIngredientHandler(GuiAutoCraftItems.class, new BCGhostIngredientHandler());

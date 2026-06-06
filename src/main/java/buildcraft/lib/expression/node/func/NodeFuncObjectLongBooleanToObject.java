@@ -78,7 +78,7 @@ public class NodeFuncObjectLongBooleanToObject<A, R> extends NodeFuncBase implem
    public NodeFuncObjectLongBooleanToObject<A, R>.FuncObjectLongBooleanToObject create(
       IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeLong argB, IExpressionNode.INodeBoolean argC
    ) {
-      return new NodeFuncObjectLongBooleanToObject.FuncObjectLongBooleanToObject(argA, argB, argC);
+      return new FuncObjectLongBooleanToObject(argA, argB, argC);
    }
 
    public class FuncObjectLongBooleanToObject implements IExpressionNode.INodeObject<R>, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -155,6 +155,7 @@ public class NodeFuncObjectLongBooleanToObject<A, R> extends NodeFuncBase implem
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

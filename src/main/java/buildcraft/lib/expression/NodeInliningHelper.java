@@ -5,6 +5,7 @@ import buildcraft.lib.expression.api.IExpressionNode;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+@SuppressWarnings("unchecked")
 public class NodeInliningHelper {
    public static <F extends IExpressionNode, T extends IExpressionNode> T tryInline(T node, F subNode, Function<F, T> changer, Function<F, T> inlinedChanger) {
       T inlined = (T)OptimizingInliningHelper.tryOptimizedInline(node);

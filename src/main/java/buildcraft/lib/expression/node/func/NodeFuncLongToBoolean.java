@@ -40,7 +40,7 @@ public class NodeFuncLongToBoolean extends NodeFuncBase implements INodeFunc.INo
    }
 
    public NodeFuncLongToBoolean.FuncLongToBoolean create(IExpressionNode.INodeLong argA) {
-      return new NodeFuncLongToBoolean.FuncLongToBoolean(argA);
+      return new FuncLongToBoolean(argA);
    }
 
    public class FuncLongToBoolean implements IExpressionNode.INodeBoolean, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -98,6 +98,7 @@ public class NodeFuncLongToBoolean extends NodeFuncBase implements INodeFunc.INo
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

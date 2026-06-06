@@ -57,6 +57,8 @@ public class ItemPluggableGate extends Item implements IItemPluggable {
       return getVariant(stack).getLocalizedName();
    }
 
+   @Override
+   @SuppressWarnings("deprecation")
    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
       super.appendHoverText(stack, context, display, tooltip, flag);
       GateVariant variant = getVariant(stack);

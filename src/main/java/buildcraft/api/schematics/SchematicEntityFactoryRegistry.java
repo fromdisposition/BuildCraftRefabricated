@@ -28,6 +28,7 @@ public class SchematicEntityFactoryRegistry {
    }
 
    @Nonnull
+   @SuppressWarnings("unchecked")
    public static <S extends ISchematicEntity> SchematicEntityFactory<S> getFactoryByInstance(S instance) {
       return (SchematicEntityFactory<S>)FACTORIES.stream()
          .filter(schematicEntityFactory -> schematicEntityFactory.clazz == instance.getClass())

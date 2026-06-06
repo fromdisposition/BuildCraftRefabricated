@@ -1,5 +1,6 @@
 package buildcraft.fabric.fluid;
 
+import buildcraft.lib.misc.BlockUtil;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -162,7 +163,7 @@ final class BcGaseousFluidPhysics {
             float neighborHeight = neighbourFluid.isEmpty() ? 0.0F : neighbourFluid.getOwnHeight();
             float distance = 0.0F;
             if (neighborHeight == 0.0F) {
-               if (!level.getBlockState(blockPos).blocksMotion()) {
+               if (!BlockUtil.blocksMotion(level.getBlockState(blockPos))) {
                   BlockPos aboveNeighbor = blockPos.above();
                   FluidState aboveNeighborState = level.getFluidState(aboveNeighbor);
                   if (aboveNeighborState.getType().isSame(fluidState.getType())) {
@@ -336,7 +337,7 @@ final class BcGaseousFluidPhysics {
    }
 
    private static boolean gaseousCanHoldAnyFluid(BlockState state) {
-      return state.getBlock() instanceof LiquidBlockContainer ? true : !state.blocksMotion() && state.canBeReplaced();
+      return state.getBlock() instanceof LiquidBlockContainer ? true : !BlockUtil.blocksMotion(state) && state.canBeReplaced();
    }
 
    private static boolean gaseousCanHoldFluid(BlockGetter level, BlockPos pos, BlockState state, Fluid fluid) {
@@ -350,7 +351,7 @@ final class BcGaseousFluidPhysics {
    private static boolean gaseousCanPassThroughWall(
       Direction direction, BlockGetter level, BlockPos sourcePos, BlockState sourceState, BlockPos targetPos, BlockState targetState
    ) {
-      return targetState.blocksMotion() && targetState.getFluidState().isEmpty()
+      return BlockUtil.blocksMotion(targetState) && targetState.getFluidState().isEmpty()
          ? false
          : targetState.canBeReplaced() || !targetState.getFluidState().isEmpty();
    }

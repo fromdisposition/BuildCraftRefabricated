@@ -1,5 +1,6 @@
 package buildcraft.lib.client.fluid;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;
 import java.util.Map;
@@ -27,13 +28,13 @@ public final class FluidClientCache {
 
    private static FluidClientCache.Appearance build(FluidStack stack) {
       Identifier id = FluidUtilBC.getFluidTexture(stack);
-      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(TextureAtlas.LOCATION_BLOCKS);
+      TextureAtlas atlas = (TextureAtlas)Minecraft.getInstance().getTextureManager().getTexture(BcTextureAtlases.BLOCKS_TEXTURE);
       TextureAtlasSprite sprite = atlas.getSprite(id);
       return new FluidClientCache.Appearance(sprite, FluidUtilBC.getFluidColor(stack), FluidUtilBC.shouldRenderTranslucent(stack));
    }
 
    public static RenderType renderType(FluidClientCache.Appearance appearance) {
-      return appearance.translucent() ? RenderTypes.entityTranslucent(TextureAtlas.LOCATION_BLOCKS) : RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS);
+      return appearance.translucent() ? RenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE) : RenderTypes.entityCutout(BcTextureAtlases.BLOCKS_TEXTURE);
    }
 
    public static void clear() {

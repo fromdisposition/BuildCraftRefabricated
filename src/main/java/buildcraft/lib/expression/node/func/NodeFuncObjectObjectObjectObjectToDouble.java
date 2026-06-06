@@ -93,7 +93,7 @@ public class NodeFuncObjectObjectObjectObjectToDouble<A, B, C, D> extends NodeFu
    public NodeFuncObjectObjectObjectObjectToDouble<A, B, C, D>.FuncObjectObjectObjectObjectToDouble create(
       IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeObject<B> argB, IExpressionNode.INodeObject<C> argC, IExpressionNode.INodeObject<D> argD
    ) {
-      return new NodeFuncObjectObjectObjectObjectToDouble.FuncObjectObjectObjectObjectToDouble(argA, argB, argC, argD);
+      return new FuncObjectObjectObjectObjectToDouble(argA, argB, argC, argD);
    }
 
    public class FuncObjectObjectObjectObjectToDouble implements IExpressionNode.INodeDouble, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -172,6 +172,7 @@ public class NodeFuncObjectObjectObjectObjectToDouble<A, B, C, D> extends NodeFu
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

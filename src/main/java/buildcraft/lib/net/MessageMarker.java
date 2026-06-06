@@ -14,7 +14,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 public record MessageMarker(boolean add, boolean connection, int cacheId, List<BlockPos> positions) implements CustomPacketPayload {
-   public static final Type<MessageMarker> TYPE = new Type(Identifier.parse("buildcraftrefabricated:marker"));
+   public static final Type<MessageMarker> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:marker"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessageMarker> STREAM_CODEC = StreamCodec.of(MessageMarker::encode, MessageMarker::decode);
 
    private static void encode(RegistryFriendlyByteBuf buf, MessageMarker msg) {

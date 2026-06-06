@@ -20,7 +20,7 @@ import net.minecraft.nbt.Tag;
 public class NbtPath {
    private final List<String> elements;
    public static final JsonDeserializer<NbtPath> DESERIALIZER = (json, typeOfT, context) -> new NbtPath(
-      (List<String>)context.deserialize(json, (new TypeToken<List<String>>() {}).getType())
+      context.deserialize(json, TypeToken.getParameterized(List.class, String.class).getType())
    );
 
    private NbtPath(List<String> elements) {
@@ -109,6 +109,11 @@ public class NbtPath {
       } else {
          return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
       }
+   }
+
+   @SuppressWarnings("unchecked")
+   public <N extends Tag> N getTyped(Tag tag) {
+      return (N)this.get(tag);
    }
 
    public Tag get(Tag tag) {

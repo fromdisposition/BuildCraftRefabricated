@@ -52,7 +52,7 @@ public class NodeFuncObjectToObject<A, R> extends NodeFuncBase implements INodeF
    }
 
    public NodeFuncObjectToObject<A, R>.FuncObjectToObject create(IExpressionNode.INodeObject<A> argA) {
-      return new NodeFuncObjectToObject.FuncObjectToObject(argA);
+      return new FuncObjectToObject(argA);
    }
 
    public class FuncObjectToObject implements IExpressionNode.INodeObject<R>, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -115,6 +115,7 @@ public class NodeFuncObjectToObject<A, R> extends NodeFuncBase implements INodeF
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

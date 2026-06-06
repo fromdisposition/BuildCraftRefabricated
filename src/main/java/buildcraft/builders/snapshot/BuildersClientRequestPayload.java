@@ -19,7 +19,7 @@ import org.apache.logging.log4j.Logger;
 
 public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kind, Snapshot.Key snapshotKey, BlockPos architectPos)
    implements CustomPacketPayload {
-   public static final Type<BuildersClientRequestPayload> TYPE = new Type(Identifier.parse("buildcraftrefabricated:builders_client_request"));
+   public static final Type<BuildersClientRequestPayload> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:builders_client_request"));
    public static final StreamCodec<FriendlyByteBuf, BuildersClientRequestPayload> STREAM_CODEC = StreamCodec.of(
       BuildersClientRequestPayload::encode, BuildersClientRequestPayload::decode
    );

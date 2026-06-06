@@ -10,6 +10,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class ListMatchHandlerTools extends ListMatchHandler {
+   @SuppressWarnings("unchecked")
    private static final TagKey<Item>[] TOOL_TAGS = new TagKey[]{ItemTags.AXES, ItemTags.PICKAXES, ItemTags.SHOVELS, ItemTags.HOES, ItemTags.SWORDS};
 
    @Override

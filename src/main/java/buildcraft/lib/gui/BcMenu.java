@@ -131,9 +131,8 @@ public abstract class BcMenu extends RecipeBookMenu {
             ResourceKey<Recipe<?>> key = ResourceKey.create(Registries.RECIPE, recipeId);
             Optional<RecipeHolder<CraftingRecipe>> holder = serverLevel.recipeAccess()
                .byKey(key)
-               .filter(r -> r.value() instanceof CraftingRecipe)
-               .map(r -> (RecipeHolder<CraftingRecipe>)r);
-            holder.ifPresent(recipe -> this.handlePlacement(false, this.player.isCreative(), (RecipeHolder<?>)recipe, serverLevel, this.player.getInventory()));
+               .flatMap(r -> r.value() instanceof CraftingRecipe crafting ? Optional.of(new RecipeHolder<>(r.id(), crafting)) : Optional.empty());
+            holder.ifPresent(recipe -> this.handlePlacement(false, this.player.isCreative(), recipe, serverLevel, this.player.getInventory()));
          }
       } else if (id == 101 && !isClient) {
          int slotIdx = buffer.readUnsignedShort();

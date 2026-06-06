@@ -73,6 +73,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
    }
 
    @Override
+   @SuppressWarnings("unchecked")
    public void updateSnapshot() {
       super.updateSnapshot();
       this.remainingDisplayRequiredBlocks = new List[this.getBuildingInfo().getSnapshot().getDataSize()];

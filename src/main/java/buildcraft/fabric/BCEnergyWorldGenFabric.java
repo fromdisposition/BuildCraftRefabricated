@@ -116,7 +116,7 @@ public final class BCEnergyWorldGenFabric {
          instance -> instance.group(Codec.LONG.listOf().optionalFieldOf("chunks", List.of()).forGetter(d -> new ArrayList<>(d.generatedChunks)))
             .apply(instance, BCEnergyWorldGenFabric.OilGenSavedData::new)
       );
-      public static final SavedDataType<BCEnergyWorldGenFabric.OilGenSavedData> TYPE = new SavedDataType(
+      public static final SavedDataType<BCEnergyWorldGenFabric.OilGenSavedData> TYPE = new SavedDataType<>(
          Identifier.withDefaultNamespace("buildcraft_oil_gen"), BCEnergyWorldGenFabric.OilGenSavedData::new, CODEC, DataFixTypes.LEVEL
       );
 

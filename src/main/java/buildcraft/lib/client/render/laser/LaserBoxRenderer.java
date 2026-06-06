@@ -1,5 +1,6 @@
 package buildcraft.lib.client.render.laser;
 
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.client.render.BCLibRenderTypes;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.misc.data.Box;
@@ -35,7 +36,7 @@ public class LaserBoxRenderer {
             new LaserBoxRenderer.BoxKey(box.min(), box.max(), type, center, enableDiffuse), k -> makeLaserBox(box, type, center, enableDiffuse)
          );
          BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-         VertexConsumer consumer = bufferSource.getBuffer(BCLibRenderTypes.entitySolid(TextureAtlas.LOCATION_BLOCKS));
+         VertexConsumer consumer = bufferSource.getBuffer(BCLibRenderTypes.entitySolid(BcTextureAtlases.BLOCKS_TEXTURE));
 
          for (LaserData_BC8 data : datas) {
             BcLaserRenderer.renderLaser(poseStack, consumer, data, cameraPos);

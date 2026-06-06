@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import net.minecraft.util.profiling.ProfilerFiller;
 
+@SuppressWarnings("unchecked")
 public class SimpleSuffixArray<T> implements ISuffixArray<T> {
    private static final boolean ADD_IS_GENERATE = true;
    private static final boolean USE_AVL = true;

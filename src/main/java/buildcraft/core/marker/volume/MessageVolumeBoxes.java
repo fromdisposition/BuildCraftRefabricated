@@ -14,7 +14,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
 public final class MessageVolumeBoxes implements CustomPacketPayload {
-   public static final Type<MessageVolumeBoxes> TYPE = new Type(Identifier.parse("buildcraftrefabricated:volume_boxes"));
+   public static final Type<MessageVolumeBoxes> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:volume_boxes"));
    public static final StreamCodec<RegistryFriendlyByteBuf, MessageVolumeBoxes> STREAM_CODEC = StreamCodec.of(
       MessageVolumeBoxes::encode, MessageVolumeBoxes::decode
    );

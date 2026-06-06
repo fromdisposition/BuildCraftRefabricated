@@ -56,8 +56,9 @@ public class ItemSnapshot extends Item {
       return null;
    }
 
+   @Override
+   @SuppressWarnings("deprecation")
    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
-      super.appendHoverText(stack, context, display, tooltip, flag);
       Snapshot.Header header = getHeader(stack);
       if (header == null) {
          tooltip.accept(Component.translatable("item.blueprint.blank").withStyle(ChatFormatting.GRAY));

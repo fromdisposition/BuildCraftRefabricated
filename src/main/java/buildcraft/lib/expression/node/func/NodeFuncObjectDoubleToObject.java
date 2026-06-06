@@ -60,7 +60,7 @@ public class NodeFuncObjectDoubleToObject<A, R> extends NodeFuncBase implements 
    }
 
    public NodeFuncObjectDoubleToObject<A, R>.FuncObjectDoubleToObject create(IExpressionNode.INodeObject<A> argA, IExpressionNode.INodeDouble argB) {
-      return new NodeFuncObjectDoubleToObject.FuncObjectDoubleToObject(argA, argB);
+      return new FuncObjectDoubleToObject(argA, argB);
    }
 
    public class FuncObjectDoubleToObject implements IExpressionNode.INodeObject<R>, IDependantNode, NodeFuncBase.IFunctionNode {
@@ -132,6 +132,7 @@ public class NodeFuncObjectDoubleToObject<A, R> extends NodeFuncBase implements 
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public boolean equals(Object obj) {
          if (obj == this) {
             return true;

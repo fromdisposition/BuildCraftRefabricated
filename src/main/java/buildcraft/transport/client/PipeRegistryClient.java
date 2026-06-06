@@ -12,6 +12,7 @@ import buildcraft.api.transport.pluggable.PluggableModelKey;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 public enum PipeRegistryClient implements PipeApiClient.IClientRegistry {
    INSTANCE;
 
