@@ -3,11 +3,7 @@ package buildcraft.lib.client.sprite;
 import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.core.render.ISprite;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.sprite.SpriteGetter;
-import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.resources.Identifier;
 
 public class SpriteHolderRegistry {
@@ -16,14 +12,6 @@ public class SpriteHolderRegistry {
 
    public static SpriteHolderRegistry.SpriteHolder getHolder(String location) {
       return new SpriteHolderRegistry.SpriteHolder(location);
-   }
-
-   private static final class AtlasLookup {
-      static SpriteId[] candidates(Identifier texture) {
-         return new SpriteId[]{
-            Sheets.BLOCKS_MAPPER.apply(texture), Sheets.ITEMS_MAPPER.apply(texture), new SpriteId(Sheets.GUI_SHEET, texture)
-         };
-      }
    }
 
    public static class SpriteHolder implements ISprite {
@@ -62,22 +50,18 @@ public class SpriteHolderRegistry {
       }
 
       private TextureAtlasSprite resolveSprite() {
-         SpriteGetter sprites = BcTextureAtlases.blocksSpriteGetter(Minecraft.getInstance());
-         Identifier missingId = MissingTextureAtlasSprite.getLocation();
-         TextureAtlasSprite firstMissing = null;
-
-         for (SpriteId spriteId : SpriteHolderRegistry.AtlasLookup.candidates(this.resourceLocation)) {
-            TextureAtlasSprite sprite = sprites.get(spriteId);
-            if (!sprite.contents().name().equals(missingId)) {
-               return sprite;
-            }
-
-            if (firstMissing == null) {
-               firstMissing = sprite;
-            }
+         Minecraft minecraft = Minecraft.getInstance();
+         TextureAtlasSprite block = BcTextureAtlases.getBlockSprite(minecraft, this.resourceLocation);
+         if (!BcTextureAtlases.isMissing(block)) {
+            return block;
          }
 
-         return firstMissing;
+         TextureAtlasSprite item = BcTextureAtlases.getItemSprite(minecraft, this.resourceLocation);
+         if (!BcTextureAtlases.isMissing(item)) {
+            return item;
+         }
+
+         return BcTextureAtlases.getGuiSprite(minecraft, this.resourceLocation);
       }
 
       public void invalidate() {
