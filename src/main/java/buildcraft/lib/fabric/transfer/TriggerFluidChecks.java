@@ -34,7 +34,7 @@ public final class TriggerFluidChecks {
          }
       }
 
-      return hasViews(storage);
+      return true;
    }
 
    public static boolean contains(@Nullable Storage<FluidVariant> storage, FluidStack searchedFluid) {

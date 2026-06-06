@@ -35,7 +35,7 @@ public abstract class JsonVariableModelPart {
       }
 
       if ("face".equals(type)) {
-         throw new UnsupportedOperationException("Model part type 'face' is not implemented");
+         return new VariablePartTextureExpand(obj, fnCtx);
       } else if ("led".equals(type)) {
          return new VariablePartLed(obj, fnCtx);
       } else if ("texture_expand".equals(type)) {

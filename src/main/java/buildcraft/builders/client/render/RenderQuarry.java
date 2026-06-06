@@ -5,11 +5,7 @@ import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
 import buildcraft.lib.client.render.tile.LedRenderUtil;
 import buildcraft.lib.client.render.tile.RenderPartCube;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.PoseStack.Pose;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
@@ -31,40 +27,34 @@ public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRender
       return new QuarryRenderState();
    }
 
-   public void submit(QuarryRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-      TileQuarry tile = renderState.tile;
-      if (tile != null) {
-         BlockState state = tile.getBlockState();
-         Direction front = state.hasProperty(HorizontalDirectionalBlock.FACING)
-            ? (Direction)state.getValue(HorizontalDirectionalBlock.FACING)
-            : Direction.NORTH;
-         Direction rear = front.getOpposite();
-         poseStack.pushPose();
-         BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-         this.renderLEDs(tile, rear, poseStack, bufferSource);
-         LedRenderUtil.flush(bufferSource);
-         poseStack.popPose();
-      }
-   }
-
-   private void renderLEDs(TileQuarry tile, Direction rear, PoseStack poseStack, BufferSource bufferSource) {
+   @Override
+   protected void extract(TileQuarry tile, QuarryRenderState state, float partialTick) {
+      BlockState blockState = tile.getBlockState();
+      Direction front = blockState.hasProperty(HorizontalDirectionalBlock.FACING)
+         ? (Direction)blockState.getValue(HorizontalDirectionalBlock.FACING)
+         : Direction.NORTH;
+      state.rear = front.getOpposite();
       boolean hasPower = tile.hasPower();
       boolean hasTask = tile.isMining();
       boolean greenOn = hasPower || !hasTask;
       boolean redOn = !hasPower || !hasTask;
-      int greenColour = greenOn ? -8921737 : -14741477;
-      int redColour = redOn ? -14540067 : -14741477;
-      VertexConsumer consumer = LedRenderUtil.begin(bufferSource);
-      Pose pose = poseStack.last();
+      state.greenColour = greenOn ? -8921737 : -14741477;
+      state.redColour = redOn ? -14540067 : -14741477;
+   }
+
+   public void submit(QuarryRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
+      poseStack.pushPose();
 
       for (int i = 0; i < 4; i++) {
          Direction dir = Direction.from2DDataValue(i);
-         if (dir != rear) {
+         if (dir != renderState.rear) {
             Direction skipFace = dir.getOpposite();
-            LedRenderUtil.render(LED_GREEN[i], pose, consumer, skipFace, greenColour);
-            LedRenderUtil.render(LED_RED[i], pose, consumer, skipFace, redColour);
+            LedRenderUtil.submit(poseStack, collector, LED_GREEN[i], skipFace, renderState.greenColour);
+            LedRenderUtil.submit(poseStack, collector, LED_RED[i], skipFace, renderState.redColour);
          }
       }
+
+      poseStack.popPose();
    }
 
    static {

@@ -12,7 +12,7 @@ public final class FabricPayloadContexts {
    }
 
    public static BCPayloadContext of(ServerPlayer player) {
-      return of(player);
+      return of((Player)player);
    }
 
    public static BCPayloadContext of(final Player player) {

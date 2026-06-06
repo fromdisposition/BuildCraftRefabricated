@@ -6,11 +6,7 @@ import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
 import buildcraft.lib.client.render.tile.LedRenderUtil;
 import buildcraft.lib.client.render.tile.RenderPartCube;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.PoseStack.Pose;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
@@ -31,48 +27,39 @@ public class RenderFiller extends BcBlockEntityRenderer<TileFiller, FillerRender
       return new FillerRenderState();
    }
 
-   public void submit(FillerRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-      TileFiller tile = renderState.tile;
-      if (tile != null) {
-         poseStack.pushPose();
-         BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-         this.renderLEDs(tile, poseStack, bufferSource);
-         LedRenderUtil.flush(bufferSource);
-         poseStack.popPose();
-      }
-   }
-
-   private void renderLEDs(TileFiller tile, PoseStack poseStack, BufferSource bufferSource) {
+   @Override
+   protected void extract(TileFiller tile, FillerRenderState state, float partialTick) {
       IControllable.Mode controlMode = tile.getControlMode();
       boolean hasPower = tile.hasPower();
       boolean finished = tile.isFinished();
-      int greenColour;
-      int redColour;
       if (controlMode == IControllable.Mode.OFF) {
-         greenColour = -14741477;
-         redColour = -14741477;
+         state.greenColour = -14741477;
+         state.redColour = -14741477;
       } else if (!hasPower) {
-         greenColour = -14741477;
-         redColour = -14540067;
+         state.greenColour = -14741477;
+         state.redColour = -14540067;
       } else if (finished) {
-         greenColour = -8921737;
-         redColour = -14540067;
+         state.greenColour = -8921737;
+         state.redColour = -14540067;
       } else if (controlMode == IControllable.Mode.LOOP) {
-         greenColour = -12617921;
-         redColour = -14741477;
+         state.greenColour = -12617921;
+         state.redColour = -14741477;
       } else {
-         greenColour = -8921737;
-         redColour = -14741477;
+         state.greenColour = -8921737;
+         state.redColour = -14741477;
       }
+   }
 
-      VertexConsumer consumer = LedRenderUtil.begin(bufferSource);
-      Pose pose = poseStack.last();
+   public void submit(FillerRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
+      poseStack.pushPose();
 
       for (int i = 0; i < 4; i++) {
          Direction skipFace = Direction.from2DDataValue(i).getOpposite();
-         LedRenderUtil.render(LED_GREEN[i], pose, consumer, skipFace, greenColour);
-         LedRenderUtil.render(LED_RED[i], pose, consumer, skipFace, redColour);
+         LedRenderUtil.submit(poseStack, collector, LED_GREEN[i], skipFace, renderState.greenColour);
+         LedRenderUtil.submit(poseStack, collector, LED_RED[i], skipFace, renderState.redColour);
       }
+
+      poseStack.popPose();
    }
 
    static {

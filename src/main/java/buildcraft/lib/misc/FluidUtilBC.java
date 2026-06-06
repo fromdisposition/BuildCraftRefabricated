@@ -24,6 +24,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -363,6 +364,17 @@ public class FluidUtilBC {
 
             if (fluidStack.is(Fluids.LAVA)) {
                return new ItemStack(Items.LAVA_BUCKET);
+            }
+
+            Fluid fluid = canonicalFluid(fluidStack.getFluid());
+            BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
+            if (entry != null && entry.bucket() != null) {
+               return new ItemStack(entry.bucket());
+            }
+
+            Item bucket = FluidTypes.of(fluid).getBucket(fluidStack);
+            if (bucket != null) {
+               return new ItemStack(bucket);
             }
          }
 

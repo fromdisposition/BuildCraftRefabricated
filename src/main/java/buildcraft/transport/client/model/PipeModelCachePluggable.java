@@ -16,14 +16,14 @@ import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.Direction;
 
 public class PipeModelCachePluggable {
+   public static final ModelCache<PluggableModelKey> cacheCutoutSingle = new ModelCache<>(PipeModelCachePluggable::generate);
+   public static final ModelCache<PluggableModelKey> cacheTranslucentSingle = new ModelCache<>(PipeModelCachePluggable::generate);
    public static final IModelCache<PipeModelCachePluggable.PluggableKey> cacheCutoutAll = new ModelCacheMultipleSame<>(
       PipeModelCachePluggable.PluggableKey::getKeys, PipeModelCachePluggable.cacheCutoutSingle
    );
    public static final IModelCache<PipeModelCachePluggable.PluggableKey> cacheTranslucentAll = new ModelCacheMultipleSame<>(
       PipeModelCachePluggable.PluggableKey::getKeys, PipeModelCachePluggable.cacheTranslucentSingle
    );
-   public static final ModelCache<PluggableModelKey> cacheCutoutSingle = new ModelCache<>(PipeModelCachePluggable::generate);
-   public static final ModelCache<PluggableModelKey> cacheTranslucentSingle = new ModelCache<>(PipeModelCachePluggable::generate);
 
    private static <K extends PluggableModelKey> List<BakedQuad> generate(K key) {
       if (key == null) {

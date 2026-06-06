@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "buildcraftenergy:item/fluid_buckets/oil_residue_heat_1_bucket"
-  }
+    "model": {
+        "type": "minecraft:model",
+        "model": "buildcraftenergy:item/fluid_buckets/oil_residue_heat_1_bucket"
+    }
 }

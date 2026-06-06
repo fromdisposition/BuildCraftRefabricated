@@ -39,12 +39,18 @@ public class JsonModelPart {
       }
    }
 
-   private JsonModelPart(JsonQuad[] quads) {
-      this.quads = quads;
-   }
-
    private static JsonQuad[] readFace(JsonObject obj) {
-      throw new AbstractMethodError("Implement this!");
+      float[] from = readFloatPositionSmaller(obj, "from");
+      float[] to = readFloatPositionSmaller(obj, "to");
+      boolean shade = GsonHelper.getAsBoolean(obj, "shade", false);
+      Direction face = Direction.byName(GsonHelper.getAsString(obj, "face"));
+      if (face == null) {
+         throw new JsonSyntaxException("Missing or invalid 'face' in " + obj);
+      }
+
+      JsonQuad quad = new JsonQuad(obj, from, to, face);
+      quad.shade = shade;
+      return new JsonQuad[]{quad};
    }
 
    private static float[] readFloatPositionSmaller(JsonObject obj, String member) {

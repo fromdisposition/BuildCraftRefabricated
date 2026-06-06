@@ -11,14 +11,12 @@ import buildcraft.transport.client.BCTransportClient;
 import buildcraft.transport.client.PipeBlockColourHandler;
 import buildcraft.transport.client.PipeRegistryClient;
 import buildcraft.transport.client.render.PipePlacementHighlight;
-import buildcraft.transport.client.render.PipeRenderBufferFlush;
 import buildcraft.transport.client.render.RenderPipeHolder;
 import buildcraft.transport.gui.GuiDiamondPipe;
 import buildcraft.transport.gui.GuiDiamondWoodPipe;
 import buildcraft.transport.gui.GuiEmzuliPipe_BC8;
 import buildcraft.transport.gui.GuiFilteredBuffer;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
@@ -33,7 +31,6 @@ public final class BCTransportFabricClient {
       MenuScreens.register(BCTransportMenuTypes.DIAMOND_WOOD_PIPE, GuiDiamondWoodPipe::new);
       MenuScreens.register(BCTransportMenuTypes.EMZULI_PIPE, GuiEmzuliPipe_BC8::new);
       BlockEntityRenderers.register(BCTransportBlockEntities.PIPE_HOLDER, RenderPipeHolder::new);
-      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> PipeRenderBufferFlush.flushFrame());
       PipeApiClient.registry = PipeRegistryClient.INSTANCE;
       BCTransportClient.registerFlowRenderers();
       ExtractBlockOutlineRenderStateEvent.register(PipePlacementHighlight::onExtractBlockOutline);
@@ -46,6 +43,8 @@ public final class BCTransportFabricClient {
    }
 
    private static void registerBlockTintSources() {
-      PipeBlockColourHandler.onRegisterBlockTintSources(new RegisterColorHandlersEvent.BlockTintSources());
+      ClientLifecycleEvents.CLIENT_STARTED.register(
+         client -> PipeBlockColourHandler.onRegisterBlockTintSources(new RegisterColorHandlersEvent.BlockTintSources())
+      );
    }
 }

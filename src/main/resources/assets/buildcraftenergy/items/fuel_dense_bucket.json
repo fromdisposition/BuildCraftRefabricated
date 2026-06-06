@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "buildcraftenergy:item/fluid_buckets/fuel_dense_bucket"
-  }
+    "model": {
+        "type": "minecraft:model",
+        "model": "buildcraftenergy:item/fluid_buckets/fuel_dense_bucket"
+    }
 }

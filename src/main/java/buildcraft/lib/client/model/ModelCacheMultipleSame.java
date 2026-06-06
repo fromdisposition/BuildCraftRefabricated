@@ -33,7 +33,9 @@ public class ModelCacheMultipleSame<K, T> implements IModelCache<K> {
    @Override
    public void clear() {
       this.mainCache.clear();
-      this.separateCache.clear();
+      if (this.separateCache != null) {
+         this.separateCache.clear();
+      }
    }
 
    public interface IModelKeyMultipleSameMapper<F, T> {

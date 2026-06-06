@@ -2,6 +2,7 @@ package buildcraft.transport.client.render;
 
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
+import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.client.fluid.BcFluidQuadEmitter;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;
@@ -84,6 +85,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                   }
 
                   renderFluidCuboid(
+                     flow.renderCacheEntry,
                      sprite,
                      cx - rx,
                      cy - ry,
@@ -111,7 +113,9 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             boolean renderedHorizCenter = false;
             double horizPos = 0.26;
             if (horizontal || !vertical) {
-               renderFluidCuboid(sprite, 0.26, 0.26, 0.26, 0.74, 0.74, 0.74, centerAmount, flow.capacity, gas, 0, r, g, b, a, packedLight, bb, poseStack);
+               renderFluidCuboid(
+                  flow.renderCacheEntry, sprite, 0.26, 0.26, 0.26, 0.74, 0.74, 0.74, centerAmount, flow.capacity, gas, 0, r, g, b, a, packedLight, bb, poseStack
+               );
                horizPos += 0.48 * centerAmount / flow.capacity;
                renderedHorizCenter = true;
             }
@@ -127,7 +131,9 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                   pillarSkipMask = 1 << (gas ? Direction.UP.ordinal() : Direction.DOWN.ordinal());
                }
 
-               renderFluidCuboid(sprite, minXZ, yMin, minXZ, maxXZ, yMax, maxXZ, 1.0, 1.0, gas, pillarSkipMask, r, g, b, a, packedLight, bb, poseStack);
+               renderFluidCuboid(
+                  flow.renderCacheEntry, sprite, minXZ, yMin, minXZ, maxXZ, yMax, maxXZ, 1.0, 1.0, gas, pillarSkipMask, r, g, b, a, packedLight, bb, poseStack
+               );
             }
          }
       }
@@ -146,8 +152,18 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
          flow.renderCacheFluid = current;
          FluidUtilBC.FluidAppearance appearance = FluidUtilBC.appearance(fluidStack, FluidUtilBC.FluidRenderContext.PIPE);
          flow.renderCacheSpriteId = appearance.texture();
-         flow.renderCacheBcGradient = false;
-         flow.renderCacheEntry = null;
+         flow.renderCacheEntry = BCEnergyFluidsFabric.findEntry(current);
+         flow.renderCacheBcGradient = flow.renderCacheEntry != null;
+         if (flow.renderCacheEntry != null) {
+            flow.renderCacheTexLight = flow.renderCacheEntry.texLight();
+            flow.renderCacheTexDark = flow.renderCacheEntry.texDark();
+            flow.renderCacheHeat = flow.renderCacheEntry.heat();
+         } else {
+            flow.renderCacheTexLight = 0;
+            flow.renderCacheTexDark = 0;
+            flow.renderCacheHeat = -1;
+         }
+
          int color = appearance.tintArgb();
          flow.renderCacheTintR = color >> 16 & 0xFF;
          flow.renderCacheTintG = color >> 8 & 0xFF;
@@ -159,6 +175,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
    }
 
    private static void renderFluidCuboid(
+      BCEnergyFluidsFabric.FluidEntry entry,
       TextureAtlasSprite sprite,
       double minX,
       double minY,
@@ -202,9 +219,15 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             realMaxY = (float)(minY + (maxY - minY) * height);
          }
 
-         BcFluidQuadEmitter.emitStaticPipeCuboid(
-            poseStack.last(), bb, sprite, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, r, g, b, a, packedLight
-         );
+         if (entry != null) {
+            BcFluidQuadEmitter.emitPipeCuboid(
+               poseStack.last(), bb, sprite, entry, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, r, g, b, a, packedLight
+            );
+         } else {
+            BcFluidQuadEmitter.emitStaticPipeCuboid(
+               poseStack.last(), bb, sprite, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, r, g, b, a, packedLight
+            );
+         }
       }
    }
 }

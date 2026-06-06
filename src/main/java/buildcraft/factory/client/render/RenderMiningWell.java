@@ -7,11 +7,7 @@ import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
 import buildcraft.lib.client.render.tile.LedRenderUtil;
 import buildcraft.lib.client.render.tile.RenderPartCube;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.PoseStack.Pose;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
@@ -33,31 +29,23 @@ public class RenderMiningWell extends BcBlockEntityRenderer<TileMiningWell, Mini
       return new MiningWellRenderState();
    }
 
-   public void submit(MiningWellRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-      TileMiningWell tile = renderState.tile;
-      if (tile != null) {
-         poseStack.pushPose();
-         BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-         this.renderLEDs(tile, poseStack, bufferSource);
-         LedRenderUtil.flush(bufferSource);
-         poseStack.popPose();
-      }
+   @Override
+   protected void extract(TileMiningWell tile, MiningWellRenderState state, float partialTick) {
+      BlockState blockState = tile.getBlockState();
+      state.facing = blockState.is(BCFactoryBlocks.MINING_WELL) ? (Direction)blockState.getValue(BuildCraftProperties.BLOCK_FACING) : Direction.NORTH;
+      float percentFilled = tile.getPercentFilledForRender();
+      state.powerColour = COLOUR_POWER[(int)(percentFilled * (COLOUR_POWER.length - 1))];
+      state.statusColour = tile.isComplete() ? -14741477 : -8921737;
    }
 
-   private void renderLEDs(TileMiningWell tile, PoseStack poseStack, BufferSource bufferSource) {
-      BlockState state = tile.getBlockState();
-      Direction facing = state.is(BCFactoryBlocks.MINING_WELL) ? (Direction)state.getValue(BuildCraftProperties.BLOCK_FACING) : Direction.NORTH;
-      float percentFilled = tile.getPercentFilledForRender();
-      int powerColour = COLOUR_POWER[(int)(percentFilled * (COLOUR_POWER.length - 1))];
-      boolean complete = tile.isComplete();
-      int statusColour = complete ? -14741477 : -8921737;
-      LedRenderUtil.setFacePosition(LED_POWER, facing, 0.0125, 0.15625, 0.34375);
-      LedRenderUtil.setFacePosition(LED_STATUS, facing, 0.0125, 0.28125, 0.34375);
-      VertexConsumer consumer = LedRenderUtil.begin(bufferSource);
-      Pose pose = poseStack.last();
-      Direction skipFace = facing.getOpposite();
-      LedRenderUtil.render(LED_POWER, pose, consumer, skipFace, powerColour);
-      LedRenderUtil.render(LED_STATUS, pose, consumer, skipFace, statusColour);
+   public void submit(MiningWellRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
+      poseStack.pushPose();
+      LedRenderUtil.setFacePosition(LED_POWER, renderState.facing, 0.0125, 0.15625, 0.34375);
+      LedRenderUtil.setFacePosition(LED_STATUS, renderState.facing, 0.0125, 0.28125, 0.34375);
+      Direction skipFace = renderState.facing.getOpposite();
+      LedRenderUtil.submit(poseStack, collector, LED_POWER, skipFace, renderState.powerColour);
+      LedRenderUtil.submit(poseStack, collector, LED_STATUS, skipFace, renderState.statusColour);
+      poseStack.popPose();
    }
 
    static {

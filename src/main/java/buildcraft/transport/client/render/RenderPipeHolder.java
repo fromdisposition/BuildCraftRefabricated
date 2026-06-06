@@ -8,7 +8,7 @@ import buildcraft.api.transport.pluggable.IPlugDynamicRenderer;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.client.render.BCLibRenderTypes;
-import buildcraft.lib.client.render.LightUtil;
+import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.transport.client.PipeRegistryClient;
 import buildcraft.transport.client.model.ModelPipe;
 import buildcraft.transport.client.model.PipeMutableQuadCache;
@@ -28,6 +28,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Con
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -53,6 +54,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
    public void extractRenderState(
       TilePipeHolder blockEntity, PipeHolderRenderState renderState, float partialTick, Vec3 cameraPos, @Nullable CrumblingOverlay crumblingOverlay
    ) {
+      BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, partialTick, cameraPos, crumblingOverlay);
       renderState.pipe = blockEntity;
       renderState.partialTick = partialTick;
       renderState.beginItemExtraction();
@@ -94,22 +96,28 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       if (pipe != null) {
          Level level = pipe.getLevel();
          if (level != null) {
-            int light = LightUtil.getLightCoords(level, pipe.getBlockPos());
+            int light = renderState.lightCoords;
             poseStack.pushPose();
-            VertexConsumer cutoutCull = PipeRenderBufferFlush.getBuffer(BCLibRenderTypes.entityCutoutCull(TextureAtlas.LOCATION_BLOCKS));
-            ModelPipe.renderDirect(pipe, poseStack.last(), cutoutCull, light);
-            ModelPipe.renderCutoutPluggables(pipe, poseStack.last(), cutoutCull, light);
+            BcBerRenderUtil.submit(
+               poseStack, collector, BCLibRenderTypes.entityCutoutCull(TextureAtlas.LOCATION_BLOCKS), (pose, buffer) -> {
+                  ModelPipe.renderDirect(pipe, pose, buffer, light);
+                  ModelPipe.renderCutoutPluggables(pipe, pose, buffer, light);
+               }
+            );
             Pipe bodyPipe = pipe.getPipe();
             if (bodyPipe != null && bodyPipe.getColour() != null) {
-               ModelPipe.renderMaskOverlay(
-                  pipe, poseStack.last(), PipeRenderBufferFlush.getBuffer(BCLibRenderTypes.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS)), light, 76
+               BcBerRenderUtil.submit(
+                  poseStack, collector, BCLibRenderTypes.entityTranslucentCull(TextureAtlas.LOCATION_BLOCKS), (pose, buffer) -> {
+                     ModelPipe.renderMaskOverlay(pipe, pose, buffer, light, 76);
+                  }
                );
             }
 
-            VertexConsumer cutoutBuffer = PipeRenderBufferFlush.getBuffer(Sheets.cutoutBlockSheet());
-            PipeWireRenderer.renderWires(pipe, poseStack.last(), light, cutoutBuffer);
+            BcBerRenderUtil.submit(poseStack, collector, Sheets.cutoutBlockSheet(), (pose, buffer) -> {
+               PipeWireRenderer.renderWires(pipe, pose, light, buffer);
+            });
             submitItems(renderState, poseStack, collector, light);
-            renderContents(pipe, 0.0, 0.0, 0.0, renderState.partialTick, poseStack, light);
+            renderContents(pipe, 0.0, 0.0, 0.0, renderState.partialTick, poseStack, collector, light);
             poseStack.popPose();
          }
       }
@@ -118,7 +126,6 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
    private static void submitItems(PipeHolderRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, int light) {
       if (!renderState.itemEntries.isEmpty()) {
          Random modelOffsetRandom = new Random(0L);
-         VertexConsumer colourBuffer = null;
 
          for (PipeHolderRenderState.ItemRenderEntry entry : renderState.itemEntries) {
             if (!entry.renderState.isEmpty()) {
@@ -147,33 +154,30 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                }
 
                if (entry.colour != null) {
-                  if (colourBuffer == null) {
-                     colourBuffer = PipeRenderBufferFlush.getBuffer(Sheets.cutoutBlockSheet());
-                  }
-
-                  renderColourOverlay(poseStack, colourBuffer, entry, light);
+                  poseStack.pushPose();
+                  poseStack.translate(entry.posX, entry.posY, entry.posZ);
+                  BcBerRenderUtil.submit(poseStack, collector, Sheets.cutoutBlockSheet(), (pose, buffer) -> {
+                     renderColourOverlayQuads(pose, buffer, entry, light);
+                  });
+                  poseStack.popPose();
                }
             }
          }
       }
    }
 
-   private static void renderColourOverlay(PoseStack poseStack, VertexConsumer buffer, PipeHolderRenderState.ItemRenderEntry entry, int light) {
+   private static void renderColourOverlayQuads(Pose pose, VertexConsumer buffer, PipeHolderRenderState.ItemRenderEntry entry, int light) {
       MutableQuad[] colourQuads = PipeItemColourQuads.get(entry.colour);
       if (colourQuads != null) {
          MutableQuad scratch = PipeMutableQuadCache.renderScratch();
-         poseStack.pushPose();
-         poseStack.translate(entry.posX, entry.posY, entry.posZ);
 
          for (MutableQuad template : colourQuads) {
             if (template != null) {
                scratch.copyFrom(template);
                scratch.lighti(light);
-               scratch.render(poseStack.last(), buffer);
+               scratch.render(pose, buffer);
             }
          }
-
-         poseStack.popPose();
       }
    }
 
@@ -205,39 +209,41 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       return stackCount > 1 ? 2 : 1;
    }
 
-   private static void renderContents(TilePipeHolder pipe, double x, double y, double z, float partialTicks, PoseStack poseStack, int light) {
+   private static void renderContents(
+      TilePipeHolder pipe, double x, double y, double z, float partialTicks, PoseStack poseStack, SubmitNodeCollector collector, int light
+   ) {
       Pipe p = pipe.getPipe();
       if (p != null) {
          PipeRenderContext.setPackedLight(light);
          if (p.behaviour != null) {
-            renderBehaviour(p.behaviour, x, y, z, partialTicks, pluggableBuffer(), poseStack.last());
+            BcBerRenderUtil.submit(poseStack, collector, Sheets.cutoutBlockSheet(), (pose, buffer) -> {
+               renderBehaviour(p.behaviour, x, y, z, partialTicks, buffer, pose);
+            });
          }
 
          for (Direction facing : Direction.values()) {
             PipePluggable plug = pipe.getPluggable(facing);
             if (plug != null) {
-               renderPluggable(plug, x, y, z, partialTicks, pluggableBuffer(), poseStack);
+               BcBerRenderUtil.submitWithPoseStack(poseStack, collector, Sheets.cutoutBlockSheet(), (stack, buffer) -> {
+                  renderPluggable(plug, x, y, z, partialTicks, buffer, stack);
+               });
             }
          }
 
          if (p.flow != null && !(p.flow instanceof PipeFlowItems)) {
-            VertexConsumer flowBuffer = pluggableBuffer();
+            RenderType flowType = Sheets.cutoutBlockSheet();
             if (p.flow instanceof PipeFlowFluids fluids) {
                PipeFlowRendererFluids.prepareRenderCache(fluids);
-               flowBuffer = PipeRenderBufferFlush.getBuffer(
-                  fluids.renderCacheTranslucent
-                     ? BCLibRenderTypes.entityTranslucent(TextureAtlas.LOCATION_BLOCKS)
-                     : BCLibRenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS)
-               );
+               flowType = fluids.renderCacheTranslucent
+                  ? BCLibRenderTypes.entityTranslucent(TextureAtlas.LOCATION_BLOCKS)
+                  : BCLibRenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS);
             }
 
-            renderFlow(p.flow, x, y, z, partialTicks, flowBuffer, poseStack);
+            BcBerRenderUtil.submitWithPoseStack(poseStack, collector, flowType, (stack, buffer) -> {
+               renderFlow(p.flow, x, y, z, partialTicks, buffer, stack);
+            });
          }
       }
-   }
-
-   private static VertexConsumer pluggableBuffer() {
-      return PipeRenderBufferFlush.getBuffer(Sheets.cutoutBlockSheet());
    }
 
    private static <P extends PipePluggable> void renderPluggable(

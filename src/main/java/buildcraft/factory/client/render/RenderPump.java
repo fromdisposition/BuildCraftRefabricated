@@ -5,11 +5,7 @@ import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
 import buildcraft.lib.client.render.tile.LedRenderUtil;
 import buildcraft.lib.client.render.tile.RenderPartCube;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.PoseStack.Pose;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.Direction;
@@ -30,30 +26,23 @@ public class RenderPump extends BcBlockEntityRenderer<TilePump, PumpRenderState>
       return new PumpRenderState();
    }
 
-   public void submit(PumpRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-      TilePump tile = renderState.tile;
-      if (tile != null) {
-         poseStack.pushPose();
-         BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-         this.renderLEDs(tile, poseStack, bufferSource);
-         LedRenderUtil.flush(bufferSource);
-         poseStack.popPose();
-      }
+   @Override
+   protected void extract(TilePump tile, PumpRenderState state, float partialTick) {
+      float percentFilled = tile.getPercentFilledForRender();
+      state.powerColour = COLOUR_POWER[(int)(percentFilled * (COLOUR_POWER.length - 1))];
+      state.statusColour = tile.isComplete() ? -14741477 : -8921737;
    }
 
-   private void renderLEDs(TilePump tile, PoseStack poseStack, BufferSource bufferSource) {
-      float percentFilled = tile.getPercentFilledForRender();
-      int powerColour = COLOUR_POWER[(int)(percentFilled * (COLOUR_POWER.length - 1))];
-      boolean complete = tile.isComplete();
-      int statusColour = complete ? -14741477 : -8921737;
-      VertexConsumer consumer = LedRenderUtil.begin(bufferSource);
-      Pose pose = poseStack.last();
+   public void submit(PumpRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
+      poseStack.pushPose();
 
       for (int i = 0; i < 4; i++) {
          Direction skipFace = Direction.from2DDataValue(i).getOpposite();
-         LedRenderUtil.render(LED_POWER[i], pose, consumer, skipFace, powerColour);
-         LedRenderUtil.render(LED_STATUS[i], pose, consumer, skipFace, statusColour);
+         LedRenderUtil.submit(poseStack, collector, LED_POWER[i], skipFace, renderState.powerColour);
+         LedRenderUtil.submit(poseStack, collector, LED_STATUS[i], skipFace, renderState.statusColour);
       }
+
+      poseStack.popPose();
    }
 
    static {

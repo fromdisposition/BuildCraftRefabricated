@@ -1,4 +1,4 @@
-package buildcraft.lib.client.model.data;
+package buildcraft.lib.model.data;
 
 public final class ModelProperty<T> {
    private ModelProperty() {

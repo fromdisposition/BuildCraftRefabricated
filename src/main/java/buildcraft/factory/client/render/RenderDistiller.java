@@ -2,6 +2,7 @@ package buildcraft.factory.client.render;
 
 import buildcraft.factory.tile.TileDistiller_BC8;
 import buildcraft.lib.client.fluid.BcFluidBerHelper;
+import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -54,12 +55,11 @@ public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller_BC8, Di
             if (sizes != null) {
                int light = renderState.light;
                poseStack.pushPose();
-               BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
                float partialTicks = renderState.partialTick;
-               BcFluidBerHelper.renderSmoothedFluid(tile.getSmoothIn(), sizes.tankIn, poseStack, bufferSource, light, partialTicks);
-               BcFluidBerHelper.renderSmoothedFluid(tile.getSmoothGasOut(), sizes.tankGasOut, poseStack, bufferSource, light, partialTicks);
-               BcFluidBerHelper.renderSmoothedFluid(tile.getSmoothLiquidOut(), sizes.tankLiquidOut, poseStack, bufferSource, light, partialTicks);
-               renderPowerCubes(tile, sizes, poseStack, bufferSource, light, partialTicks);
+               BcFluidBerHelper.renderSmoothedFluid(tile.getSmoothIn(), sizes.tankIn, poseStack, collector, light, partialTicks);
+               BcFluidBerHelper.renderSmoothedFluid(tile.getSmoothGasOut(), sizes.tankGasOut, poseStack, collector, light, partialTicks);
+               BcFluidBerHelper.renderSmoothedFluid(tile.getSmoothLiquidOut(), sizes.tankLiquidOut, poseStack, collector, light, partialTicks);
+               renderPowerCubes(tile, sizes, poseStack, collector, light, partialTicks);
                poseStack.popPose();
             }
          }
@@ -67,7 +67,7 @@ public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller_BC8, Di
    }
 
    private static void renderPowerCubes(
-      TileDistiller_BC8 tile, RenderDistiller.TankSizes sizes, PoseStack poseStack, BufferSource bufferSource, int light, float partialTicks
+      TileDistiller_BC8 tile, RenderDistiller.TankSizes sizes, PoseStack poseStack, SubmitNodeCollector collector, int light, float partialTicks
    ) {
       double prevAnim = tile.getPrevAnimState();
       double curAnim = tile.getAnimState();
@@ -93,11 +93,11 @@ public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller_BC8, Di
       float g = 1.0F;
       float b = 1.0F;
       float a = 1.0F;
-      VertexConsumer buffer = bufferSource.getBuffer(RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS));
-      Pose pose = poseStack.last();
       int overlay = OverlayTexture.NO_OVERLAY;
-      renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerRight, y1, r, g, b, a, light, overlay);
-      renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerLeft, y2, r, g, b, a, light, overlay);
+      BcBerRenderUtil.submit(poseStack, collector, RenderTypes.entityCutout(TextureAtlas.LOCATION_BLOCKS), (pose, buffer) -> {
+         renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerRight, y1, r, g, b, a, light, overlay);
+         renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerLeft, y2, r, g, b, a, light, overlay);
+      });
    }
 
    private static void renderPowerCube(

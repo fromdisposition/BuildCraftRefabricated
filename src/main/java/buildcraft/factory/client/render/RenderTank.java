@@ -3,20 +3,16 @@ package buildcraft.factory.client.render;
 import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.client.fluid.BcFluidTankRenderer;
 import buildcraft.lib.client.fluid.FluidClientCache;
+import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
 import buildcraft.lib.fluid.FluidSmoother;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.PoseStack.Pose;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.profiling.Profiler;
@@ -24,13 +20,6 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
 
 public class RenderTank extends BcBlockEntityRenderer<TileTank, TankRenderState> {
-   private static final float MIN_XZ = 0.135F;
-   private static final float MAX_XZ = 0.865F;
-   private static final float MIN_Y = 0.01F;
-   private static final float MAX_Y = 0.99F;
-   private static final float MIN_Y_CONNECTED = 0.0F;
-   private static final float MAX_Y_CONNECTED = 0.99999F;
-
    public RenderTank(Context context) {
    }
 
@@ -38,69 +27,75 @@ public class RenderTank extends BcBlockEntityRenderer<TileTank, TankRenderState>
       return new TankRenderState();
    }
 
+   @Override
+   protected void extract(TileTank tile, TankRenderState state, float partialTick) {
+      state.hasFluid = false;
+      Level level = tile.getLevel();
+      if (level == null) {
+         return;
+      }
+
+      FluidSmoother.FluidStackInterp interp = tile.smoothedTank.getFluidForRender(partialTick);
+      if (interp == null) {
+         return;
+      }
+
+      FluidStack fluid = interp.fluid();
+      double amount = interp.amount();
+      int capacity = tile.smoothedTank.getCapacity();
+      if (amount <= 0.0 || capacity <= 0) {
+         return;
+      }
+
+      FluidClientCache.Appearance appearance = FluidClientCache.get(fluid);
+      if (appearance == null) {
+         return;
+      }
+
+      boolean connectedDown = isConnectedFluid(tile, Direction.DOWN);
+      boolean connectedUp = isConnectedFluid(tile, Direction.UP);
+      float fillRatio = (float)(amount / capacity);
+      state.hasFluid = true;
+      state.appearance = appearance;
+      state.fluid = fluid;
+      state.amount = amount;
+      state.capacity = capacity;
+      state.minY = connectedDown ? 0.0F : 0.01F;
+      state.maxYFull = connectedUp ? 0.99999F : 0.99F;
+      state.renderTop = !connectedUp || fillRatio < 1.0F;
+      state.renderBottom = !connectedDown;
+   }
+
    public void submit(TankRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
       ProfilerFiller _profiler = Profiler.get();
       _profiler.push("buildcraft:tank_submit");
 
       try {
-         TileTank tile = renderState.tile;
-         if (tile == null) {
+         if (!renderState.hasFluid || renderState.appearance == null) {
             return;
          }
 
-         Level level = tile.getLevel();
-         if (level == null) {
-            return;
-         }
-
-         float partialTicks = renderState.partialTick;
-         FluidSmoother.FluidStackInterp interp = tile.smoothedTank.getFluidForRender(partialTicks);
-         if (interp == null) {
-            return;
-         }
-
-         FluidStack fluid = interp.fluid();
-         double amount = interp.amount();
-         int capacity = tile.smoothedTank.getCapacity();
-         if (amount <= 0.0 || capacity <= 0) {
-            return;
-         }
-
-         FluidClientCache.Appearance appearance = FluidClientCache.get(fluid);
-         if (appearance != null) {
-            TextureAtlasSprite sprite = appearance.sprite();
-            boolean connectedDown = isConnectedFluid(tile, Direction.DOWN);
-            boolean connectedUp = isConnectedFluid(tile, Direction.UP);
-            float minY = connectedDown ? 0.0F : 0.01F;
-            float maxYFull = connectedUp ? 0.99999F : 0.99F;
-            float fillRatio = (float)(amount / capacity);
-            int light = renderState.light;
-            int overlay = OverlayTexture.NO_OVERLAY;
-            poseStack.pushPose();
-            BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
-            VertexConsumer buffer = bufferSource.getBuffer(FluidClientCache.renderType(appearance));
-            Pose pose = poseStack.last();
-            BcFluidTankRenderer.renderFilledBox(
-               pose,
-               buffer,
-               sprite,
-               0.135F,
-               minY,
-               0.135F,
-               0.865F,
-               maxYFull,
-               0.865F,
-               fluid,
-               amount,
-               capacity,
-               !connectedUp || fillRatio < 1.0F,
-               !connectedDown,
-               light,
-               overlay
-            );
-            poseStack.popPose();
-            return;
-         }
+         int light = renderState.light;
+         poseStack.pushPose();
+         BcBerRenderUtil.submit(poseStack, collector, FluidClientCache.renderType(renderState.appearance), (pose, buffer) -> BcFluidTankRenderer.renderFilledBox(
+            pose,
+            buffer,
+            renderState.appearance.sprite(),
+            0.135F,
+            renderState.minY,
+            0.135F,
+            0.865F,
+            renderState.maxYFull,
+            0.865F,
+            renderState.fluid,
+            renderState.amount,
+            renderState.capacity,
+            renderState.renderTop,
+            renderState.renderBottom,
+            light,
+            OverlayTexture.NO_OVERLAY
+         ));
+         poseStack.popPose();
       } finally {
          _profiler.pop();
       }

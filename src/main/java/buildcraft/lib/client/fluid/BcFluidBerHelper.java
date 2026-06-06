@@ -1,11 +1,14 @@
 package buildcraft.lib.client.fluid;
 
+import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.lib.fluid.FluidSmoother;
 import buildcraft.lib.fluids.FluidStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 
 public final class BcFluidBerHelper {
@@ -14,6 +17,28 @@ public final class BcFluidBerHelper {
 
    public static void renderSmoothedFluid(
       FluidSmoother smoother, BcFluidBerHelper.TankBounds bounds, PoseStack poseStack, BufferSource bufferSource, int light, float partialTicks
+   ) {
+      renderSmoothedFluidInternal(smoother, bounds, poseStack, light, partialTicks, (renderType, draw) -> {
+         VertexConsumer buffer = bufferSource.getBuffer(renderType);
+         draw.accept(poseStack.last(), buffer);
+      });
+   }
+
+   public static void renderSmoothedFluid(
+      FluidSmoother smoother, BcFluidBerHelper.TankBounds bounds, PoseStack poseStack, SubmitNodeCollector collector, int light, float partialTicks
+   ) {
+      renderSmoothedFluidInternal(smoother, bounds, poseStack, light, partialTicks, (renderType, draw) -> {
+         BcBerRenderUtil.submit(poseStack, collector, renderType, draw);
+      });
+   }
+
+   private static void renderSmoothedFluidInternal(
+      FluidSmoother smoother,
+      BcFluidBerHelper.TankBounds bounds,
+      PoseStack poseStack,
+      int light,
+      float partialTicks,
+      BcFluidBerHelper.FluidDraw submitter
    ) {
       FluidSmoother.FluidStackInterp interp = smoother.getFluidForRender(partialTicks);
       if (interp != null && !(interp.amount() <= 0.0)) {
@@ -29,9 +54,8 @@ public final class BcFluidBerHelper {
                float maxX = bounds.maxX / 16.0F - shrink;
                float maxY = bounds.maxY / 16.0F - shrink;
                float maxZ = bounds.maxZ / 16.0F - shrink;
-               VertexConsumer buffer = bufferSource.getBuffer(FluidClientCache.renderType(appearance));
-               Pose pose = poseStack.last();
-               BcFluidTankRenderer.renderFilledBox(
+               RenderType renderType = FluidClientCache.renderType(appearance);
+               submitter.accept(renderType, (pose, buffer) -> BcFluidTankRenderer.renderFilledBox(
                   pose,
                   buffer,
                   appearance.sprite(),
@@ -48,10 +72,15 @@ public final class BcFluidBerHelper {
                   true,
                   light,
                   OverlayTexture.NO_OVERLAY
-               );
+               ));
             }
          }
       }
+   }
+
+   @FunctionalInterface
+   private interface FluidDraw {
+      void accept(RenderType renderType, java.util.function.BiConsumer<Pose, VertexConsumer> draw);
    }
 
    public static final class TankBounds {
