@@ -5,6 +5,7 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.IStationFilter;
+import buildcraft.robotics.statement.StationActions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
@@ -49,7 +50,7 @@ public class AIRobotSearchStation extends AIRobot {
             continue;
          }
 
-         if (this.filter.matches(station)) {
+         if (this.filter.matches(station) && !StationActions.isRobotForbidden(station, this.robot)) {
             double distance = this.robot.position().distanceToSqr(Vec3.atCenterOf(pos));
             if (best == null || distance < bestDistance) {
                best = station;

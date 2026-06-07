@@ -4,6 +4,7 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.IRequestProvider;
+import buildcraft.lib.misc.StackUtil;
 import buildcraft.robotics.StackRequest;
 import buildcraft.robotics.entity.EntityRobot;
 import net.minecraft.nbt.CompoundTag;
@@ -56,7 +57,7 @@ public class AIRobotDeliverRequested extends AIRobot {
 
       for (int slot = 0; slot < EntityRobot.NB_ITEMS_SLOTS; slot++) {
          ItemStack stack = entityRobot.getStackInSlot(slot);
-         if (stack.isEmpty() || !ItemStack.isSameItemSameComponents(stack, wanted)) {
+         if (stack.isEmpty() || !StackUtil.isMatchingItemOrList(wanted, stack)) {
             continue;
          }
 

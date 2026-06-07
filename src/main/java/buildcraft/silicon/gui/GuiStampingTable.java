@@ -3,6 +3,9 @@ package buildcraft.silicon.gui;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.GuiIcon;
+import buildcraft.lib.gui.help.DummyHelpElement;
+import buildcraft.lib.gui.help.ElementHelpInfo;
+import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.silicon.container.ContainerStampingTable;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -20,6 +23,22 @@ public class GuiStampingTable extends BcScreen<ContainerStampingTable> {
    @Override
    protected void initGuiElements() {
       this.mainGui.shownElements.add(new LedgerTablePower(this.mainGui, this.menu.tile, true));
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(15.0, 18.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.stamping_table.input.title", -13176, "buildcraft.help.stamping_table.input.desc")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(111.0, 18.0, 54.0, 43.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.stamping_table.output.title", -10665929, "buildcraft.help.stamping_table.output.desc")
+            )
+         );
    }
 
    @Override

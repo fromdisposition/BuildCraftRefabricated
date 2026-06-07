@@ -18,7 +18,7 @@ public class AIRobotFetchAndEquipItemStack extends AIRobot {
 
    public AIRobotFetchAndEquipItemStack(EntityRobotBase robot, IStackFilter filter) {
       this(robot);
-      this.filter = StationActions.getGateFilter(robot.getLinkedStation()).and(filter);
+      this.filter = StationActions.getGateToolFilter(robot.getLinkedStation()).and(filter);
    }
 
    @Override

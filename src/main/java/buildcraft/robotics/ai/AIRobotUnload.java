@@ -6,7 +6,7 @@ import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.transport.IInjectable;
 import buildcraft.robotics.entity.EntityRobot;
-import buildcraft.robotics.filter.ArrayStackFilter;
+import buildcraft.robotics.filter.ArrayStackOrListFilter;
 import buildcraft.robotics.statement.StationActions;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -53,7 +53,7 @@ public class AIRobotUnload extends AIRobot {
             continue;
          }
 
-         if (!StationActions.canInteractWithItem(station, new ArrayStackFilter(stack), StationActions.ACCEPT_ITEMS)) {
+         if (!StationActions.canInteractWithItem(station, new ArrayStackOrListFilter(stack), StationActions.ACCEPT_ITEMS)) {
             continue;
          }
 
@@ -64,6 +64,27 @@ public class AIRobotUnload extends AIRobot {
                ItemStack left = stack.copy();
                left.shrink(used);
                entityRobot.setStackInSlot(slot, left.isEmpty() ? ItemStack.EMPTY : left);
+            }
+
+            return true;
+         }
+      }
+
+      ItemStack held = robot.getHeldItem();
+      if (!held.isEmpty()) {
+         if (!StationActions.canInteractWithItem(station, new ArrayStackOrListFilter(held), StationActions.ACCEPT_ITEMS)) {
+            return false;
+         }
+
+         ItemStack remaining = output.injectItem(held.copy(), doUnload, injectSide, null, 0.0);
+         int used = held.getCount() - remaining.getCount();
+         if (used > 0) {
+            if (doUnload) {
+               if (remaining.isEmpty()) {
+                  robot.setItemInUse(ItemStack.EMPTY);
+               } else {
+                  robot.setItemInUse(remaining);
+               }
             }
 
             return true;

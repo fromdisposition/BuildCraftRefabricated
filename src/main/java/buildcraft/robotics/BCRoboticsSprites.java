@@ -20,6 +20,8 @@ public class BCRoboticsSprites {
    public static final SpriteHolderRegistry.SpriteHolder ACTION_STATION_FORCE_ROBOT = getHolder("triggers/action_station_robot_mandatory");
    public static final SpriteHolderRegistry.SpriteHolder ACTION_ROBOT_WORK_IN_AREA = getHolder("triggers/action_robot_work_in_area");
    public static final SpriteHolderRegistry.SpriteHolder ACTION_ROBOT_LOAD_UNLOAD_AREA = getHolder("triggers/action_robot_load_unload_area");
+   public static final SpriteHolderRegistry.SpriteHolder ACTION_ROBOT_FILTER_TOOL = getHolder("triggers/action_robot_filter_tool");
+   public static final SpriteHolderRegistry.SpriteHolder ACTION_ROBOT_GOTO_STATION = getHolder("triggers/action_robot_goto_station");
 
    private static SpriteHolderRegistry.SpriteHolder getHolder(String loc) {
       return SpriteHolderRegistry.getHolder("buildcraftrobotics:" + loc);

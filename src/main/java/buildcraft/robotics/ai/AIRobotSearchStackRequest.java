@@ -7,6 +7,7 @@ import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.IRequestProvider;
 import buildcraft.robotics.IStationFilter;
+import buildcraft.lib.misc.StackUtil;
 import buildcraft.robotics.StackRequest;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,7 +54,7 @@ public class AIRobotSearchStackRequest extends AIRobot {
    private boolean isBlacklisted(ItemStack stack) {
       if (this.blackList != null) {
          for (ItemStack black : this.blackList) {
-            if (ItemStack.isSameItemSameComponents(stack, black)) {
+            if (StackUtil.isMatchingItemOrList(black, stack)) {
                return true;
             }
          }

@@ -10,10 +10,13 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.IRobotRegistry;
 import buildcraft.api.robots.RobotManager;
 import buildcraft.robotics.BCRoboticsEntities;
+import buildcraft.robotics.ai.AIRobotMain;
 import buildcraft.robotics.boards.RedstoneBoardRobotEmptyNBT;
+import buildcraft.robotics.robot.DockingStationPipe;
 import java.util.HashSet;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -50,10 +53,14 @@ public class EntityRobot extends EntityRobotBase {
    private final Set<Integer> unreachableEntities = new HashSet<>();
 
    private RedstoneBoardRobot board;
-   private AIRobot mainAI;
+   private AIRobotMain mainAI;
    private DockingStation linkedStation;
    private DockingStation currentDockingStation;
    private DockingStation mainStation;
+   private BlockPos linkedStationPos;
+   private Direction linkedStationSide;
+   private BlockPos currentDockingStationPos;
+   private Direction currentDockingStationSide;
    private long robotId = NULL_ROBOT_ID;
    private boolean needsInit = true;
 
@@ -106,6 +113,21 @@ public class EntityRobot extends EntityRobotBase {
          this.needsInit = false;
          if (this.getRegistry().getLoadedRobot(this.getRobotId()) != this) {
             this.getRegistry().registerRobot(this);
+         }
+      }
+
+      this.resolveStationsFromRegistry();
+
+      if (this.currentDockingStation != null) {
+         this.setDeltaMovement(Vec3.ZERO);
+         this.destination = null;
+         BlockPos dockPos = this.currentDockingStation.getPos();
+         Direction dockSide = this.currentDockingStation.side();
+         this.setPos(
+            Vec3.atCenterOf(dockPos).add(dockSide.getStepX() * 0.5, dockSide.getStepY() * 0.5, dockSide.getStepZ() * 0.5)
+         );
+         if (this.currentDockingStation.providesPower() && this.currentDockingStation instanceof DockingStationPipe pipeStation) {
+            pipeStation.tryChargeRobot(this);
          }
       }
 
@@ -174,6 +196,10 @@ public class EntityRobot extends EntityRobotBase {
    @Override
    public void dock(DockingStation station) {
       this.currentDockingStation = station;
+      if (station != null) {
+         this.currentDockingStationPos = station.getPos();
+         this.currentDockingStationSide = station.side();
+      }
    }
 
    @Override
@@ -181,17 +207,58 @@ public class EntityRobot extends EntityRobotBase {
       if (this.currentDockingStation != null) {
          DockingStation station = this.currentDockingStation;
          this.currentDockingStation = null;
+         this.currentDockingStationPos = null;
+         this.currentDockingStationSide = null;
          station.release(this);
       }
    }
 
    public void setLinkedStation(DockingStation station) {
       this.linkedStation = station;
+      if (station != null) {
+         this.linkedStationPos = station.getPos();
+         this.linkedStationSide = station.side();
+      } else {
+         this.linkedStationPos = null;
+         this.linkedStationSide = null;
+      }
    }
 
    @Override
    public void setMainStation(DockingStation station) {
+      if (this.linkedStation != null && this.linkedStation != station) {
+         this.linkedStation.unsafeRelease(this);
+      }
+
       this.mainStation = station;
+      this.setLinkedStation(station);
+   }
+
+   public AIRobotMain getMainAI() {
+      return this.mainAI;
+   }
+
+   public void overrideAI(AIRobot ai) {
+      if (this.mainAI != null) {
+         this.mainAI.setOverridingAI(ai);
+      }
+   }
+
+   public long receivePower(long maxReceive, boolean simulate) {
+      long notAccepted = this.battery.addPower(maxReceive, simulate);
+      return maxReceive - notAccepted;
+   }
+
+   private void resolveStationsFromRegistry() {
+      IRobotRegistry registry = this.getRegistry();
+
+      if (this.linkedStation == null && this.linkedStationPos != null && this.linkedStationSide != null) {
+         this.linkedStation = registry.getStation(this.linkedStationPos, this.linkedStationSide);
+      }
+
+      if (this.currentDockingStation == null && this.currentDockingStationPos != null && this.currentDockingStationSide != null) {
+         this.currentDockingStation = registry.getStation(this.currentDockingStationPos, this.currentDockingStationSide);
+      }
    }
 
    @Override
@@ -408,8 +475,12 @@ public class EntityRobot extends EntityRobotBase {
 
    @Override
    public void remove(Entity.RemovalReason reason) {
-      if (!this.level().isClientSide() && this.robotId != NULL_ROBOT_ID) {
-         this.getRegistry().killRobot(this);
+      if (!this.level().isClientSide()) {
+         if (reason == Entity.RemovalReason.UNLOADED_TO_CHUNK) {
+            this.onChunkUnload();
+         } else if (this.robotId != NULL_ROBOT_ID) {
+            this.getRegistry().killRobot(this);
+         }
       }
 
       super.remove(reason);
@@ -436,6 +507,27 @@ public class EntityRobot extends EntityRobotBase {
 
       output.store("inv", CompoundTag.CODEC, invTag);
       this.fluidTank.serialize(output.child("fluidTank"));
+      if (!this.itemInUse.isEmpty()) {
+         output.store("itemInUse", ItemStack.CODEC, this.itemInUse);
+      }
+
+      this.writeStationNBT(output, "linkedStation", this.linkedStationPos, this.linkedStationSide);
+      this.writeStationNBT(output, "currentStation", this.currentDockingStationPos, this.currentDockingStationSide);
+
+      if (this.mainAI != null) {
+         CompoundTag aiTag = new CompoundTag();
+         this.mainAI.writeToNBT(aiTag);
+         output.store("mainAI", CompoundTag.CODEC, aiTag);
+      }
+   }
+
+   private void writeStationNBT(ValueOutput output, String key, BlockPos pos, Direction side) {
+      if (pos != null && side != null) {
+         CompoundTag tag = new CompoundTag();
+         tag.putIntArray("pos", new int[]{pos.getX(), pos.getY(), pos.getZ()});
+         tag.putByte("side", (byte) side.ordinal());
+         output.store(key, CompoundTag.CODEC, tag);
+      }
    }
 
    @Override
@@ -463,6 +555,33 @@ public class EntityRobot extends EntityRobotBase {
          }
       });
       input.child("fluidTank").ifPresent(this.fluidTank::deserialize);
+      input.read("itemInUse", ItemStack.CODEC).ifPresent(stack -> this.itemInUse = stack);
+      this.readStationNBT(input, "linkedStation", true);
+      this.readStationNBT(input, "currentStation", false);
+      input.read("mainAI", CompoundTag.CODEC).ifPresent(tag -> {
+         AIRobot loaded = AIRobot.loadAI(tag, this);
+         if (loaded instanceof AIRobotMain main) {
+            this.mainAI = main;
+         }
+      });
+   }
+
+   private void readStationNBT(ValueInput input, String key, boolean linked) {
+      input.read(key, CompoundTag.CODEC).ifPresent(tag -> {
+         int[] pos = tag.getIntArray("pos").orElse(new int[0]);
+         int sideOrdinal = tag.getByte("side").orElse((byte) 0);
+         if (pos.length == 3 && sideOrdinal >= 0 && sideOrdinal < Direction.values().length) {
+            BlockPos blockPos = new BlockPos(pos[0], pos[1], pos[2]);
+            Direction side = Direction.values()[sideOrdinal];
+            if (linked) {
+               this.linkedStationPos = blockPos;
+               this.linkedStationSide = side;
+            } else {
+               this.currentDockingStationPos = blockPos;
+               this.currentDockingStationSide = side;
+            }
+         }
+      });
    }
 
    @Override

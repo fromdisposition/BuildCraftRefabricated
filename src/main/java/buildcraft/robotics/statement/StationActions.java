@@ -2,12 +2,16 @@ package buildcraft.robotics.statement;
 
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.robots.DockingStation;
+import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.StatementParameterItemStack;
 import buildcraft.api.statements.StatementSlot;
-import buildcraft.robotics.filter.ArrayStackFilter;
+import buildcraft.robotics.filter.ArrayFluidFilter;
+import buildcraft.robotics.filter.ArrayStackOrListFilter;
 import buildcraft.robotics.filter.PassThroughStackFilter;
 import buildcraft.robotics.filter.StatementParameterStackFilter;
+import buildcraft.robotics.path.IFluidFilter;
+import buildcraft.robotics.path.PassThroughFluidFilter;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.item.ItemStack;
@@ -19,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class StationActions {
    public static final String WORK_FILTER = "buildcraft:robot.work_filter";
+   public static final String FILTER_TOOL = "buildcraft:robot.work_filter_tool";
    public static final String PROVIDE_ITEMS = "buildcraft:station.provide_items";
    public static final String ACCEPT_ITEMS = "buildcraft:station.accept_items";
 
@@ -52,10 +57,67 @@ public final class StationActions {
       return result;
    }
 
+   /** Collects item stacks configured on the station's tool-filter actions. */
+   public static List<ItemStack> getGateToolFilterStacks(DockingStation station) {
+      return getFilterStacks(station, FILTER_TOOL);
+   }
+
    /** The combined work filter for a station: pass-through when no work-filter action is configured. */
    public static IStackFilter getGateFilter(DockingStation station) {
       List<ItemStack> stacks = getGateFilterStacks(station);
-      return stacks.isEmpty() ? PassThroughStackFilter.INSTANCE : new ArrayStackFilter(stacks.toArray(new ItemStack[0]));
+      return stacks.isEmpty() ? PassThroughStackFilter.INSTANCE : new ArrayStackOrListFilter(stacks.toArray(new ItemStack[0]));
+   }
+
+   /** Tool filter for equipping held items; pass-through when no tool-filter action is configured. */
+   public static IStackFilter getGateToolFilter(DockingStation station) {
+      List<ItemStack> stacks = getGateToolFilterStacks(station);
+      return stacks.isEmpty() ? PassThroughStackFilter.INSTANCE : new ArrayStackOrListFilter(stacks.toArray(new ItemStack[0]));
+   }
+
+   /** Fluid filter derived from work-filter item parameters (buckets, fluid containers). */
+   public static IFluidFilter getGateFluidFilter(DockingStation station) {
+      List<ItemStack> stacks = getGateFilterStacks(station);
+      return stacks.isEmpty() ? PassThroughFluidFilter.INSTANCE : new ArrayFluidFilter(stacks.toArray(new ItemStack[0]));
+   }
+
+   /** Whether the robot is forbidden from using this station (forbid / force gate actions). */
+   public static boolean isRobotForbidden(DockingStation station, EntityRobotBase robot) {
+      if (station == null || robot == null) {
+         return false;
+      }
+
+      for (StatementSlot slot : station.getActiveActions()) {
+         if (slot.statement instanceof ActionStationForbidRobot forbid) {
+            boolean matches = StatementParameterRobot.matchesAny(slot, robot);
+            if (forbid.isInvert() ^ matches) {
+               return true;
+            }
+         }
+      }
+
+      return false;
+   }
+
+   private static List<ItemStack> getFilterStacks(DockingStation station, String tag) {
+      List<ItemStack> result = new ArrayList<>();
+      if (station == null) {
+         return result;
+      }
+
+      for (StatementSlot slot : station.getActiveActions()) {
+         if (hasTag(slot, tag)) {
+            for (IStatementParameter param : slot.parameters) {
+               if (param instanceof StatementParameterItemStack stackParam) {
+                  ItemStack stack = stackParam.getItemStack();
+                  if (!stack.isEmpty()) {
+                     result.add(stack);
+                  }
+               }
+            }
+         }
+      }
+
+      return result;
    }
 
    /** Whether a "provide items" action permits extracting the given stack (no filter = anything allowed). */

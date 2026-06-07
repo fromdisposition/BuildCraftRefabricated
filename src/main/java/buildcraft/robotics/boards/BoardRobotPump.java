@@ -7,17 +7,23 @@ import buildcraft.api.core.IWorldProperty;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.ResourceIdBlock;
+import buildcraft.lib.misc.BlockUtil;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
 import buildcraft.robotics.ai.AIRobotGotoStationAndUnloadFluids;
 import buildcraft.robotics.ai.AIRobotPumpBlock;
 import buildcraft.robotics.ai.AIRobotSearchAndGotoBlock;
 import buildcraft.robotics.path.IBlockFilter;
+import buildcraft.robotics.path.IFluidFilter;
+import buildcraft.robotics.path.PassThroughFluidFilter;
+import buildcraft.robotics.statement.StationActions;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 
 public class BoardRobotPump extends RedstoneBoardRobot {
    private BlockPos blockFound;
+   private IFluidFilter fluidFilter;
 
    public BoardRobotPump(EntityRobotBase robot) {
       super(robot);
@@ -34,10 +40,13 @@ public class BoardRobotPump extends RedstoneBoardRobot {
          this.startDelegateAI(new AIRobotGotoStationAndUnloadFluids(this.robot));
       } else {
          final IWorldProperty isFluidSource = BuildCraftAPI.getWorldProperty("fluidSource");
+         this.updateFilter();
          this.startDelegateAI(new AIRobotSearchAndGotoBlock(this.robot, false, new IBlockFilter() {
             @Override
             public boolean matches(Level world, BlockPos pos) {
-               return isFluidSource.get(world, pos) && !BoardRobotPump.this.robot.getRegistry().isTaken(new ResourceIdBlock(pos));
+               return isFluidSource.get(world, pos)
+                  && !BoardRobotPump.this.robot.getRegistry().isTaken(new ResourceIdBlock(pos))
+                  && BoardRobotPump.this.matchesGateFilter(world, pos);
             }
          }));
       }
@@ -62,6 +71,22 @@ public class BoardRobotPump extends RedstoneBoardRobot {
    @Override
    public void end() {
       this.releaseBlockFound();
+   }
+
+   private void updateFilter() {
+      this.fluidFilter = StationActions.getGateFluidFilter(this.robot.getLinkedStation());
+      if (this.fluidFilter instanceof PassThroughFluidFilter) {
+         this.fluidFilter = null;
+      }
+   }
+
+   private boolean matchesGateFilter(Level world, BlockPos pos) {
+      if (this.fluidFilter == null) {
+         return true;
+      }
+
+      Fluid fluid = BlockUtil.getFluid(world, pos);
+      return this.fluidFilter.matches(fluid);
    }
 
    private void releaseBlockFound() {

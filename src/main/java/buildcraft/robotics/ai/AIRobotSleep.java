@@ -1,13 +1,19 @@
 package buildcraft.robotics.ai;
 
+import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.statements.StatementSlot;
+import buildcraft.robotics.BCRoboticsStatements;
 import buildcraft.robotics.entity.EntityRobot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
 public class AIRobotSleep extends AIRobot {
+   private static final int SLEEPING_TIME = 60 * 20;
+   private int sleptTime;
+
    public AIRobotSleep(EntityRobotBase robot) {
       super(robot);
    }
@@ -18,12 +24,33 @@ public class AIRobotSleep extends AIRobot {
    }
 
    @Override
+   public void preempt(AIRobot ai) {
+      DockingStation linked = this.robot.getLinkedStation();
+      if (linked == null) {
+         return;
+      }
+
+      for (StatementSlot slot : linked.getActiveActions()) {
+         if (slot.statement != null && BCRoboticsStatements.ACTION_ROBOT_WAKEUP.getUniqueTag().equals(slot.statement.getUniqueTag())) {
+            this.terminate();
+            return;
+         }
+      }
+   }
+
+   @Override
    public void update() {
+      this.sleptTime++;
+
       DockingStation station = this.robot.getDockingStation();
       if (station != null && this.robot instanceof EntityRobot entityRobot) {
          BlockPos pos = station.getPos();
          entityRobot.destination = Vec3.atCenterOf(pos)
             .add(station.side().getStepX() * 0.5, station.side().getStepY() * 0.5, station.side().getStepZ() * 0.5);
+      }
+
+      if (this.sleptTime > SLEEPING_TIME) {
+         this.terminate();
       }
    }
 
@@ -34,6 +61,6 @@ public class AIRobotSleep extends AIRobot {
 
    @Override
    public long getPowerCost() {
-      return 0L;
+      return this.sleptTime % 10 == 0 ? MjAPI.MJ / 10L : 0L;
    }
 }

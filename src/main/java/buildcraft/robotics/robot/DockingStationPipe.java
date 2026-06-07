@@ -5,6 +5,7 @@ import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.IRequestProvider;
 import buildcraft.api.robots.RobotManager;
+import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.StatementSlot;
 import buildcraft.api.transport.IInjectable;
 import buildcraft.api.transport.pipe.IFlowItems;
@@ -12,6 +13,8 @@ import buildcraft.api.transport.pipe.IFlowPower;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
+import buildcraft.robotics.BCRoboticsStatements;
+import buildcraft.robotics.entity.EntityRobot;
 import buildcraft.silicon.gate.GateLogic;
 import buildcraft.silicon.plug.PluggableGate;
 import java.util.ArrayList;
@@ -202,12 +205,80 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
 
    @Override
    public int getRequestsCount() {
-      return 0;
+      return 127;
    }
 
    @Override
    public ItemStack getRequest(int slot) {
+      int facing = (slot & 0x70) >> 4;
+      int action = (slot & 0xc) >> 2;
+      int param = slot & 0x3;
+
+      if (facing >= 6) {
+         return ItemStack.EMPTY;
+      }
+
+      IPipeHolder holder = this.getPipe();
+      if (holder == null) {
+         return ItemStack.EMPTY;
+      }
+
+      Direction gateSide = Direction.from3DDataValue(facing);
+      PipePluggable plug = holder.getPluggable(gateSide);
+      if (!(plug instanceof PluggableGate gate) || gate.logic == null) {
+         return ItemStack.EMPTY;
+      }
+
+      GateLogic logic = gate.logic;
+      List<IStatement> actions = logic.getActions();
+      if (actions.size() <= action) {
+         return ItemStack.EMPTY;
+      }
+
+      IStatement targetAction = actions.get(action);
+      if (targetAction == null || !BCRoboticsStatements.ACTION_STATION_REQUEST_ITEMS.getUniqueTag().equals(targetAction.getUniqueTag())) {
+         return ItemStack.EMPTY;
+      }
+
+      for (StatementSlot slotStmt : logic.getActiveActions()) {
+         if (slotStmt.statement == targetAction) {
+            if (slotStmt.parameters.length <= param || slotStmt.parameters[param] == null) {
+               return ItemStack.EMPTY;
+            }
+
+            return slotStmt.parameters[param].getItemStack();
+         }
+      }
+
       return ItemStack.EMPTY;
+   }
+
+   public long tryChargeRobot(EntityRobotBase robot) {
+      if (!this.providesPower() || robot == null || robot.getDockingStation() != this) {
+         return 0L;
+      }
+
+      IPipeHolder holder = this.getPipe();
+      if (holder == null) {
+         return 0L;
+      }
+
+      IPipe ipipe = holder.getPipe();
+      if (!(ipipe.getFlow() instanceof IFlowPower flow)) {
+         return 0L;
+      }
+
+      long needed = robot.getBattery().getCapacity() - robot.getBattery().getStored();
+      if (needed <= 0L) {
+         return 0L;
+      }
+
+      long extracted = flow.tryExtractPower(needed, this.side.getOpposite());
+      if (extracted > 0L && robot instanceof EntityRobot entityRobot) {
+         return entityRobot.receivePower(extracted, false);
+      }
+
+      return 0L;
    }
 
    @Override

@@ -2,6 +2,7 @@ package buildcraft.robotics.tile;
 
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.robots.IRequestProvider;
+import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;
@@ -25,7 +26,7 @@ public class TileRequester extends BcBlockEntity implements IRequestProvider {
 
    private boolean matchesRequest(int slot, ItemStack stack) {
       ItemStack request = this.invRequests.getStackInSlot(slot);
-      return !request.isEmpty() && ItemStack.isSameItemSameComponents(request, stack);
+      return !request.isEmpty() && StackUtil.isMatchingItemOrList(request, stack);
    }
 
    public ItemStack getRequestTemplate(int index) {
@@ -43,7 +44,7 @@ public class TileRequester extends BcBlockEntity implements IRequestProvider {
          return false;
       }
 
-      return ItemStack.isSameItemSameComponents(request, existing) && existing.getCount() >= request.getCount();
+      return StackUtil.isMatchingItemOrList(request, existing) && existing.getCount() >= request.getCount();
    }
 
    @Override
@@ -64,7 +65,7 @@ public class TileRequester extends BcBlockEntity implements IRequestProvider {
          return remaining;
       }
 
-      if (!ItemStack.isSameItemSameComponents(request, existing)) {
+      if (!StackUtil.isMatchingItemOrList(request, existing)) {
          return ItemStack.EMPTY;
       }
 
@@ -75,7 +76,7 @@ public class TileRequester extends BcBlockEntity implements IRequestProvider {
    @Override
    public ItemStack offerItem(int i, ItemStack stack) {
       ItemStack request = this.invRequests.getStackInSlot(i);
-      if (request.isEmpty() || stack.isEmpty() || !ItemStack.isSameItemSameComponents(stack, request)) {
+      if (request.isEmpty() || stack.isEmpty() || !StackUtil.isMatchingItemOrList(request, stack)) {
          return stack;
       }
 

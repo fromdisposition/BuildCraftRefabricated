@@ -7,6 +7,8 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
 import buildcraft.robotics.ai.AIRobotGotoStationAndLoadFluids;
 import buildcraft.robotics.ai.AIRobotGotoStationAndUnloadFluids;
+import buildcraft.robotics.path.IFluidFilter;
+import buildcraft.robotics.statement.StationActions;
 
 public class BoardRobotFluidCarrier extends RedstoneBoardRobot {
    public BoardRobotFluidCarrier(EntityRobotBase robot) {
@@ -21,7 +23,8 @@ public class BoardRobotFluidCarrier extends RedstoneBoardRobot {
    @Override
    public void update() {
       if (!this.robot.hasFluid()) {
-         this.startDelegateAI(new AIRobotGotoStationAndLoadFluids(this.robot, buildcraft.robotics.path.PassThroughFluidFilter.INSTANCE));
+         IFluidFilter filter = StationActions.getGateFluidFilter(this.robot.getLinkedStation());
+         this.startDelegateAI(new AIRobotGotoStationAndLoadFluids(this.robot, filter));
       } else {
          this.startDelegateAI(new AIRobotGotoStationAndUnloadFluids(this.robot));
       }

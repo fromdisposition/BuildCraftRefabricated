@@ -3,6 +3,8 @@ package buildcraft.silicon.gui;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.GuiIcon;
+import buildcraft.lib.gui.help.DummyHelpElement;
+import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.silicon.container.ContainerPackager;
 import net.minecraft.client.resources.language.I18n;
@@ -21,6 +23,38 @@ public class GuiPackager extends BcScreen<ContainerPackager> {
 
    @Override
    protected void initGuiElements() {
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(124.0, 7.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.packager.input.title", -13176, "buildcraft.help.packager.input.desc")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(30.0, 17.0, 54.0, 54.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.packager.pattern.title", -7811960, "buildcraft.help.packager.pattern.desc1", "buildcraft.help.packager.pattern.desc2")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(8.0, 84.0, 162.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.packager.storage.title", -7811960, "buildcraft.help.packager.storage.desc")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(123.0, 59.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.packager.output.title", -10665929, "buildcraft.help.packager.output.desc")
+            )
+         );
    }
 
    @Override

@@ -32,12 +32,16 @@ public class RobotsActionProvider implements IActionProvider {
       }
 
       actions.add(BCRoboticsStatements.ACTION_ROBOT_WAKEUP);
+      actions.add(BCRoboticsStatements.ACTION_ROBOT_GOTO_STATION);
 
       IPipe pipe = holder.getPipe();
       boolean itemPipe = pipe != null && pipe.getFlow() instanceof IFlowItems;
       boolean fluidPipe = pipe != null && pipe.getFlow() instanceof IFlowFluid;
 
       actions.add(BCRoboticsStatements.ACTION_ROBOT_FILTER);
+      actions.add(BCRoboticsStatements.ACTION_ROBOT_FILTER_TOOL);
+      actions.add(BCRoboticsStatements.ACTION_STATION_FORBID_ROBOT);
+      actions.add(BCRoboticsStatements.ACTION_STATION_FORCE_ROBOT);
       actions.add(BCRoboticsStatements.ACTION_ROBOT_WORK_IN_AREA);
       actions.add(BCRoboticsStatements.ACTION_ROBOT_LOAD_UNLOAD_AREA);
 

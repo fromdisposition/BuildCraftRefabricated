@@ -3,6 +3,9 @@ package buildcraft.robotics.gui;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.GuiIcon;
+import buildcraft.lib.gui.help.DummyHelpElement;
+import buildcraft.lib.gui.help.ElementHelpInfo;
+import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.robotics.container.ContainerRequester;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -19,6 +22,22 @@ public class GuiRequester extends BcScreen<ContainerRequester> {
 
    @Override
    protected void initGuiElements() {
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(9.0, 7.0, 72.0, 90.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.requester.requests.title", -13176, "buildcraft.help.requester.requests.desc1", "buildcraft.help.requester.requests.desc2")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(117.0, 7.0, 72.0, 90.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.requester.items.title", -7811960, "buildcraft.help.requester.items.desc")
+            )
+         );
    }
 
    @Override
