@@ -44,8 +44,4 @@ public class SlotDisplay extends Slot {
    public int getMaxStackSize() {
       return 0;
    }
-
-   public boolean isFake() {
-      return true;
-   }
 }

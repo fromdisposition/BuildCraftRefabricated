@@ -35,8 +35,4 @@ public class SlotPhantom extends SlotBase implements IPhantomSlot {
    public int getMaxStackSize() {
       return 1;
    }
-
-   public boolean isFake() {
-      return true;
-   }
 }

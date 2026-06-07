@@ -121,13 +121,11 @@ public class ZonePlannerMapElement implements IInteractionElement {
 
          if (this.tile != null) {
             int selected = this.activeLayer();
-
-            for (int layer = 0; layer < this.tile.layers.length; layer++) {
-               ZonePlan plan = this.tile.layers[layer];
+            if (selected >= 0 && selected < this.tile.layers.length) {
+               ZonePlan plan = this.tile.layers[selected];
                if (plan != null) {
-                  boolean isSelected = layer == selected;
-                  int rgb = DyeColor.byId(layer).getTextureDiffuseColor() & 16777215;
-                  int argb = (isSelected ? -1073741824 : 1426063360) | rgb;
+                  int rgb = DyeColor.byId(selected).getTextureDiffuseColor() & 16777215;
+                  int argb = 0x55000000 | rgb;
                   this.drawLayerCells(g, plan, ox, oy, argb);
                }
             }
