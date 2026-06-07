@@ -149,10 +149,11 @@ public class ZonePlannerMapElement implements IInteractionElement {
       List<int[]> cells = plan.getAll();
       int bx0 = this.firstBlockX();
       int bz0 = this.firstBlockZ();
+      BlockPos tilePos = this.tile.getBlockPos();
 
       for (int[] cell : cells) {
-         int dx = cell[0] - bx0;
-         int dz = cell[1] - bz0;
+         int dx = cell[0] + tilePos.getX() - bx0;
+         int dz = cell[1] + tilePos.getZ() - bz0;
          if (dx >= 0 && dz >= 0 && dx < this.viewW && dz < this.viewH) {
             int sx = ox + dx * 3;
             int sy = oy + dz * 3;
@@ -256,15 +257,16 @@ public class ZonePlannerMapElement implements IInteractionElement {
             if (layer >= 0 && (button == 0 || button == 1)) {
                int i = (int)((mx - ox) / 3.0);
                int j = (int)((my - oy) / 3.0);
-               int wx = this.firstBlockX() + i;
-               int wz = this.firstBlockZ() + j;
+               BlockPos tilePos = this.tile.getBlockPos();
+               int rx = this.firstBlockX() + i - tilePos.getX();
+               int rz = this.firstBlockZ() + j - tilePos.getZ();
                boolean set = button == 0;
                if (this.tile.layers[layer] == null) {
                   this.tile.layers[layer] = new ZonePlan();
                }
 
-               this.tile.layers[layer].set(wx, wz, set);
-               ((ContainerZonePlanner)this.gui.getMenu()).sendPaint(layer, wx, wz, set);
+               this.tile.layers[layer].set(rx, rz, set);
+               ((ContainerZonePlanner)this.gui.getMenu()).sendPaint(layer, rx, rz, set);
             }
          }
       }

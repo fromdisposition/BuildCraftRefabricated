@@ -80,7 +80,8 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
             if (layer >= 0) {
                ZonePlan plan = new ZonePlan();
                readZoneFromMap(map, plan);
-               this.layers[layer] = plan;
+               BlockPos pos = this.getBlockPos();
+               this.layers[layer] = plan.getWithOffset(-pos.getX(), -pos.getZ());
             }
 
             this.invInputResult.setStackInSlot(0, map.copy());
@@ -112,7 +113,8 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
             ItemStack result = map.copy();
             result.setCount(1);
             if (layer >= 0) {
-               writeZoneToMap(result, this.layers[layer]);
+               BlockPos pos = this.getBlockPos();
+               writeZoneToMap(result, this.layers[layer].getWithOffset(pos.getX(), pos.getZ()));
             }
 
             this.invOutputResult.setStackInSlot(0, result);
