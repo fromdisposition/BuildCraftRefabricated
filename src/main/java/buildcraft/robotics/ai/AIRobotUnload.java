@@ -1,0 +1,74 @@
+package buildcraft.robotics.ai;
+
+import buildcraft.api.mj.MjAPI;
+import buildcraft.api.robots.AIRobot;
+import buildcraft.api.robots.DockingStation;
+import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.transport.IInjectable;
+import buildcraft.robotics.entity.EntityRobot;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.ItemStack;
+
+/** Pushes the robot's carried items into the docked station's output (the pipe it sits on). */
+public class AIRobotUnload extends AIRobot {
+   private int waitedCycles;
+
+   public AIRobotUnload(EntityRobotBase robot) {
+      super(robot);
+   }
+
+   @Override
+   public void update() {
+      this.waitedCycles++;
+      if (this.waitedCycles > 40) {
+         if (unload(this.robot, this.robot.getDockingStation(), true)) {
+            this.waitedCycles = 0;
+         } else {
+            this.setSuccess(!this.robot.containsItems());
+            this.terminate();
+         }
+      }
+   }
+
+   public static boolean unload(EntityRobotBase robot, DockingStation station, boolean doUnload) {
+      if (station == null || !(robot instanceof EntityRobot entityRobot)) {
+         return false;
+      }
+
+      IInjectable output = station.getItemOutput();
+      if (output == null) {
+         return false;
+      }
+
+      Direction injectSide = station.getItemOutputSide().face;
+      if (injectSide == null || !output.canInjectItems(injectSide)) {
+         return false;
+      }
+
+      for (int slot = 0; slot < EntityRobot.NB_ITEMS_SLOTS; slot++) {
+         ItemStack stack = entityRobot.getStackInSlot(slot);
+         if (stack.isEmpty()) {
+            continue;
+         }
+
+         ItemStack remaining = output.injectItem(stack.copy(), doUnload, injectSide, null, 0.0);
+         int used = stack.getCount() - remaining.getCount();
+         if (used > 0) {
+            if (doUnload) {
+               ItemStack left = stack.copy();
+               left.shrink(used);
+               entityRobot.setStackInSlot(slot, left.isEmpty() ? ItemStack.EMPTY : left);
+            }
+
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   @Override
+   public long getPowerCost() {
+      return MjAPI.MJ * 10L / 10L;
+   }
+}

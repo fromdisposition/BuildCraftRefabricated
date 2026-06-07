@@ -134,7 +134,7 @@ public abstract class DockingStation {
 
       this.side = Direction.values()[nbt.getByte("side").orElse((byte)0)];
       this.linkIsMain = nbt.getBoolean("isMain").orElse(false);
-      this.robotTakingId = nbt.getLong("robotId").orElse(0L);
+      this.robotTakingId = nbt.getLong("robotId").orElse(Long.MAX_VALUE);
    }
 
    public boolean isTaken() {

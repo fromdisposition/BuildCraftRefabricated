@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " I ",
+    "ICI",
+    " P "
+  ],
+  "key": {
+    "I": "#c:ingots/iron",
+    "C": "minecraft:crafting_table",
+    "P": "minecraft:piston"
+  },
+  "result": {
+    "id": "buildcraftsilicon:packager"
+  }
+}

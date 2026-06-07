@@ -21,6 +21,11 @@ public final class BCSiliconCreativeEntries {
       accept(output, BCSiliconItems.ASSEMBLY_TABLE);
       accept(output, BCSiliconItems.ADVANCED_CRAFTING_TABLE);
       accept(output, BCSiliconItems.INTEGRATION_TABLE);
+      accept(output, BCSiliconItems.CHARGING_TABLE);
+      accept(output, BCSiliconItems.PROGRAMMING_TABLE);
+      accept(output, BCSiliconItems.STAMPING_TABLE);
+      accept(output, BCSiliconItems.PACKAGER);
+      accept(output, BCSiliconItems.PACKAGE);
       accept(output, BCSiliconItems.CHIPSET_REDSTONE);
       accept(output, BCSiliconItems.CHIPSET_IRON);
       accept(output, BCSiliconItems.CHIPSET_GOLD);

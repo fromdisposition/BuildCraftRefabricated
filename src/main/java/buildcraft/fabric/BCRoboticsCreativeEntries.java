@@ -9,7 +9,11 @@ public final class BCRoboticsCreativeEntries {
    }
 
    public static void addMainTabItems(Output output) {
+      accept(output, BCRoboticsItems.REDSTONE_BOARD);
       accept(output, BCRoboticsItems.ZONE_PLANNER);
+      accept(output, BCRoboticsItems.REQUESTER);
+      accept(output, BCRoboticsItems.ROBOT_STATION);
+      accept(output, BCRoboticsItems.ROBOT);
    }
 
    private static void accept(Output output, Item item) {

@@ -22,6 +22,10 @@ public abstract class EntityRobotBase extends LivingEntity {
       super(EntityType.PIG, par1World);
    }
 
+   public EntityRobotBase(EntityType<? extends EntityRobotBase> type, Level par1World) {
+      super(type, par1World);
+   }
+
    public abstract void setItemInUse(ItemStack var1);
 
    public abstract void setItemActive(boolean var1);
@@ -65,6 +69,8 @@ public abstract class EntityRobotBase extends LivingEntity {
    public abstract boolean isKnownUnreachable(Entity var1);
 
    public abstract long getRobotId();
+
+   public abstract void setUniqueRobotId(long var1);
 
    public abstract IRobotRegistry getRegistry();
 

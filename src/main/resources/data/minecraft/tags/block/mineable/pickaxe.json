@@ -32,8 +32,13 @@
     "buildcraftsilicon:assembly_table",
     "buildcraftsilicon:advanced_crafting_table",
     { "id": "buildcraftsilicon:integration_table", "required": false },
+    { "id": "buildcraftsilicon:charging_table", "required": false },
+    { "id": "buildcraftsilicon:programming_table", "required": false },
+    { "id": "buildcraftsilicon:stamping_table", "required": false },
+    { "id": "buildcraftsilicon:packager", "required": false },
     "buildcrafttransport:filtered_buffer",
     "buildcrafttransport:pipe_holder",
-    { "id": "buildcraftrobotics:zone_planner", "required": false }
+    { "id": "buildcraftrobotics:zone_planner", "required": false },
+    { "id": "buildcraftrobotics:requester", "required": false }
   ]
 }

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "PRP",
+    "PPP"
+  ],
+  "key": {
+    "P": "minecraft:paper",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "buildcraftrobotics:redstone_board",
+    "count": 8
+  }
+}

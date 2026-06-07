@@ -7,6 +7,7 @@ import buildcraft.lib.fluid.CoolantRegistry;
 import buildcraft.lib.fluid.FuelRegistry;
 import buildcraft.lib.fluids.CauldronFluidContent;
 import buildcraft.lib.recipe.IntegrationRecipeRegistry;
+import buildcraft.lib.recipe.ProgrammingRecipeRegistry;
 import buildcraft.lib.recipe.RefineryRecipeRegistry;
 import buildcraft.lib.registry.MigrationRegistry;
 
@@ -40,6 +41,10 @@ public final class BCLib {
 
       if (BuildcraftRecipeRegistry.integrationRecipes == null) {
          BuildcraftRecipeRegistry.integrationRecipes = IntegrationRecipeRegistry.INSTANCE;
+      }
+
+      if (BuildcraftRecipeRegistry.programmingTable == null) {
+         BuildcraftRecipeRegistry.programmingTable = ProgrammingRecipeRegistry.INSTANCE;
       }
    }
 }
