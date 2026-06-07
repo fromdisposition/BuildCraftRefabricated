@@ -19,8 +19,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -592,6 +594,34 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
    public Storage<ItemVariant> getItemStorage(Direction side) {
       return new PipeItemInjectStorage(this, side);
+   }
+
+   public record ExtractableEntry(ItemVariant variant, long amount) {
+   }
+
+   public List<ExtractableEntry> snapshotExtractable(Direction side) {
+      Level world = this.pipe.getHolder().getPipeWorld();
+      if (world == null || world.isClientSide()) {
+         return List.of();
+      }
+
+      Map<ItemVariant, Long> aggregated = new HashMap<>();
+
+      for (List<TravellingItem> bucket : this.items.getAllElements()) {
+         for (TravellingItem item : bucket) {
+            if (!item.isPhantom && !item.toCenter && item.side == side && !item.stack.isEmpty()) {
+               ItemVariant variant = ItemVariant.of(item.stack);
+               aggregated.merge(variant, (long)item.stack.getCount(), Long::sum);
+            }
+         }
+      }
+
+      List<ExtractableEntry> result = new ArrayList<>(aggregated.size());
+      for (Map.Entry<ItemVariant, Long> entry : aggregated.entrySet()) {
+         result.add(new ExtractableEntry(entry.getKey(), entry.getValue()));
+      }
+
+      return result;
    }
 
    public int extractItemsForExternalSide(Direction side, ItemVariant resource, int amount, TransactionContext transaction) {

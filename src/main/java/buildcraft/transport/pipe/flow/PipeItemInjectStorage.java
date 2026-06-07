@@ -2,8 +2,10 @@ package buildcraft.transport.pipe.flow;
 
 import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.lib.fabric.transfer.FabricDeferredCommit;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -48,11 +50,49 @@ public final class PipeItemInjectStorage implements Storage<ItemVariant> {
       }
    }
 
+   @SuppressWarnings("unchecked")
    public Iterator<StorageView<ItemVariant>> iterator() {
-      return Collections.emptyIterator();
+      if (!(this.flow instanceof PipeFlowItems pipeFlow)) {
+         return Collections.emptyIterator();
+      }
+
+      List<StorageView<ItemVariant>> views = new ArrayList<>();
+      for (PipeFlowItems.ExtractableEntry entry : pipeFlow.snapshotExtractable(this.side)) {
+         views.add(new ItemView(entry));
+      }
+
+      return (Iterator<StorageView<ItemVariant>>)(Iterator<?>)views.iterator();
    }
 
    private static int saturate(long amount) {
       return amount > 2147483647L ? Integer.MAX_VALUE : (int)amount;
+   }
+
+   private final class ItemView implements StorageView<ItemVariant> {
+      private final PipeFlowItems.ExtractableEntry entry;
+
+      private ItemView(PipeFlowItems.ExtractableEntry entry) {
+         this.entry = entry;
+      }
+
+      public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
+         return PipeItemInjectStorage.this.extract(resource, maxAmount, transaction);
+      }
+
+      public boolean isResourceBlank() {
+         return this.entry.amount() <= 0L;
+      }
+
+      public ItemVariant getResource() {
+         return this.entry.variant();
+      }
+
+      public long getAmount() {
+         return this.entry.amount();
+      }
+
+      public long getCapacity() {
+         return this.entry.amount();
+      }
    }
 }
