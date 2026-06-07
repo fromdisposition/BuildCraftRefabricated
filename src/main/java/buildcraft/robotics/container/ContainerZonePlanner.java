@@ -12,6 +12,7 @@ import buildcraft.robotics.zone.ZonePlan;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -42,6 +43,33 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       this.addSlot(new SlotBase(tile.invOutputPaintbrush, 0, 233, 9));
       this.addSlot(new SlotBase(tile.invOutputMapLocation, 0, 233, 27));
       this.addSlot(new SlotOutput(tile.invOutputResult, 0, 233, 75));
+
+      this.addDataSlot(new DataSlot() {
+         @Override
+         public int get() {
+            return tile != null ? tile.getProgressInput() : 0;
+         }
+
+         @Override
+         public void set(int value) {
+            if (tile != null) {
+               tile.setProgressInput(value);
+            }
+         }
+      });
+      this.addDataSlot(new DataSlot() {
+         @Override
+         public int get() {
+            return tile != null ? tile.getProgressOutput() : 0;
+         }
+
+         @Override
+         public void set(int value) {
+            if (tile != null) {
+               tile.setProgressOutput(value);
+            }
+         }
+      });
    }
 
    public void sendPaint(int layer, int x, int z, boolean set) {

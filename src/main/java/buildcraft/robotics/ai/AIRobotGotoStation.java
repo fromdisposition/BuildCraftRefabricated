@@ -55,6 +55,8 @@ public class AIRobotGotoStation extends AIRobot {
          } else {
             this.terminate();
          }
+      } else if (!ai.success()) {
+         this.terminate();
       } else {
          this.setSuccess(true);
          if (this.stationSide.getStepY() == 0) {

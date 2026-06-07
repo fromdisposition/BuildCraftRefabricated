@@ -124,6 +124,22 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
       }
    }
 
+   public int getProgressInput() {
+      return this.progressInput;
+   }
+
+   public int getProgressOutput() {
+      return this.progressOutput;
+   }
+
+   public void setProgressInput(int progress) {
+      this.progressInput = progress;
+   }
+
+   public void setProgressOutput(int progress) {
+      this.progressOutput = progress;
+   }
+
    public void applyPaint(int layer, int x, int z, boolean set) {
       if (layer >= 0 && layer < this.layers.length) {
          if (this.layers[layer] == null) {

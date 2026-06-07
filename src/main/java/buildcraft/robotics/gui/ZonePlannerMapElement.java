@@ -1,5 +1,7 @@
 package buildcraft.robotics.gui;
 
+import buildcraft.core.BCCore;
+import buildcraft.core.item.ItemPaintbrush_BC8;
 import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.GuiIcon;
@@ -11,6 +13,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
@@ -25,20 +28,15 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private final int mapOffsetY;
    private final int mapW;
    private final int mapH;
-   private final int barOffsetX;
-   private final int barOffsetY;
-   private static final int SWATCH_W = 12;
-   private static final int SWATCH_H = 8;
    private final int viewW;
    private final int viewH;
-   private DyeColor selectedColour = DyeColor.WHITE;
    private int centerX;
    private int centerZ;
    private int[] colourCache;
    private int cacheCenterX = Integer.MIN_VALUE;
    private int cacheCenterZ = Integer.MIN_VALUE;
 
-   public ZonePlannerMapElement(GuiZonePlanner gui, TileZonePlanner tile, int mapOffsetX, int mapOffsetY, int mapW, int mapH, int barOffsetX, int barOffsetY) {
+   public ZonePlannerMapElement(GuiZonePlanner gui, TileZonePlanner tile, int mapOffsetX, int mapOffsetY, int mapW, int mapH) {
       this.gui = gui;
       this.tile = tile;
       this.mapOffsetX = mapOffsetX;
@@ -47,8 +45,6 @@ public class ZonePlannerMapElement implements IInteractionElement {
       this.viewH = mapH / 3;
       this.mapW = this.viewW * 3;
       this.mapH = this.viewH * 3;
-      this.barOffsetX = barOffsetX;
-      this.barOffsetY = barOffsetY;
       if (tile != null) {
          BlockPos pos = tile.getBlockPos();
          this.centerX = pos.getX();
@@ -56,8 +52,16 @@ public class ZonePlannerMapElement implements IInteractionElement {
       }
    }
 
-   public DyeColor getSelectedColour() {
-      return this.selectedColour;
+   private int activeLayer() {
+      ItemStack carried = this.gui.getMenu().getCarried();
+      if (!carried.isEmpty() && carried.getItem() instanceof ItemPaintbrush_BC8) {
+         DyeColor colour = (DyeColor)carried.get(BCCore.BRUSH_COLOR);
+         if (colour != null) {
+            return colour.getId();
+         }
+      }
+
+      return -1;
    }
 
    private int mapX() {
@@ -68,34 +72,24 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return this.gui.getGuiTopPos() + this.mapOffsetY;
    }
 
-   private int barX() {
-      return this.gui.getGuiLeftPos() + this.barOffsetX;
-   }
-
-   private int barY() {
-      return this.gui.getGuiTopPos() + this.barOffsetY;
-   }
-
    @Override
    public double getX() {
-      return Math.min(this.mapX(), this.barX());
+      return this.mapX();
    }
 
    @Override
    public double getY() {
-      return Math.min(this.mapY(), this.barY());
+      return this.mapY();
    }
 
    @Override
    public double getWidth() {
-      int right = Math.max(this.mapX() + this.mapW, this.barX() + 192);
-      return right - this.getX();
+      return this.mapW;
    }
 
    @Override
    public double getHeight() {
-      int bottom = Math.max(this.mapY() + this.mapH, this.barY() + 8);
-      return bottom - this.getY();
+      return this.mapH;
    }
 
    private int firstBlockX() {
@@ -126,7 +120,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
          }
 
          if (this.tile != null) {
-            int selected = this.selectedColour.getId();
+            int selected = this.activeLayer();
 
             for (int layer = 0; layer < this.tile.layers.length; layer++) {
                ZonePlan plan = this.tile.layers[layer];
@@ -150,17 +144,6 @@ public class ZonePlannerMapElement implements IInteractionElement {
          }
 
          drawBorder(g, ox, oy, this.mapW, this.mapH, -16777216);
-         int bx = this.barX();
-         int by = this.barY();
-
-         for (int c = 0; c < 16; c++) {
-            int rgb = DyeColor.byId(c).getTextureDiffuseColor() & 16777215;
-            int x = bx + c * 12;
-            g.fill(x, by, x + 12 - 1, by + 8, 0xFF000000 | rgb);
-            if (c == this.selectedColour.getId()) {
-               drawBorder(g, x - 1, by - 1, 12, 10, -1);
-            }
-         }
       }
    }
 
@@ -236,23 +219,29 @@ public class ZonePlannerMapElement implements IInteractionElement {
          rgb = 0;
       }
 
-      return rgb == 0 ? -15724528 : 0xFF000000 | rgb & 16777215;
+      if (rgb == 0) {
+         return -15724528;
+      }
+
+      return 0xFF000000 | shadeByHeight(rgb & 16777215, level, topY);
+   }
+
+   private static int shadeByHeight(int rgb, Level level, int topY) {
+      int range = level.getHeight();
+      double norm = range <= 0 ? 0.5 : (topY - level.getMinY()) / (double)range;
+      norm = Math.max(0.0, Math.min(1.0, norm));
+      double shade = 0.6 + 0.4 * norm;
+      int r = (int)Math.min(255.0, ((rgb >> 16) & 0xFF) * shade);
+      int g = (int)Math.min(255.0, ((rgb >> 8) & 0xFF) * shade);
+      int b = (int)Math.min(255.0, (rgb & 0xFF) * shade);
+      return r << 16 | g << 8 | b;
    }
 
    @Override
    public void onMouseClicked(int button) {
       double mx = this.gui.mainGui.mouse.getX();
       double my = this.gui.mainGui.mouse.getY();
-      int bx = this.barX();
-      int by = this.barY();
-      if (mx >= bx && mx < bx + 192 && my >= by && my < by + 8) {
-         int c = (int)((mx - bx) / 12.0);
-         if (c >= 0 && c < 16) {
-            this.selectedColour = DyeColor.byId(c);
-         }
-      } else {
-         this.paintAt(mx, my, button);
-      }
+      this.paintAt(mx, my, button);
    }
 
    @Override
@@ -265,13 +254,13 @@ public class ZonePlannerMapElement implements IInteractionElement {
       int oy = this.mapY();
       if (!(mx < ox) && !(my < oy) && !(mx >= ox + this.mapW) && !(my >= oy + this.mapH)) {
          if (this.tile != null) {
-            int i = (int)((mx - ox) / 3.0);
-            int j = (int)((my - oy) / 3.0);
-            int wx = this.firstBlockX() + i;
-            int wz = this.firstBlockZ() + j;
-            boolean set = button == 0;
-            if (button == 0 || button == 1) {
-               int layer = this.selectedColour.getId();
+            int layer = this.activeLayer();
+            if (layer >= 0 && (button == 0 || button == 1)) {
+               int i = (int)((mx - ox) / 3.0);
+               int j = (int)((my - oy) / 3.0);
+               int wx = this.firstBlockX() + i;
+               int wz = this.firstBlockZ() + j;
+               boolean set = button == 0;
                if (this.tile.layers[layer] == null) {
                   this.tile.layers[layer] = new ZonePlan();
                }

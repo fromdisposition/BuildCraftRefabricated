@@ -69,13 +69,11 @@ public class BoardRobotBuilder extends BoardRobotBC {
 
       BlueprintBuilder builder = this.context.getBlueprintBuilder();
 
-      if (!this.materialsUnavailable && this.robot.hasFreeSlot()) {
-         ItemStack missing = this.firstMissingRequired(builder);
-         if (missing != null) {
-            IStackFilter filter = stack -> StackUtil.canMerge(missing, stack);
-            this.startDelegateAI(new AIRobotGotoStationAndLoad(this.robot, filter, missing.getCount()));
-            return;
-         }
+      ItemStack missing = this.firstMissingRequired(builder);
+      if (missing != null && this.robot.hasFreeSlot() && !this.materialsUnavailable) {
+         IStackFilter filter = stack -> StackUtil.canMerge(missing, stack);
+         this.startDelegateAI(new AIRobotGotoStationAndLoad(this.robot, filter, missing.getCount()));
+         return;
       }
 
       Vec3 centroid = this.activeCentroid(builder);
@@ -92,7 +90,13 @@ public class BoardRobotBuilder extends BoardRobotBC {
       if (done) {
          this.completeMarker();
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));
-      } else if (this.materialsUnavailable) {
+         return;
+      }
+
+      // Nothing is currently buildable and we still need materials we cannot fetch right now
+      // (e.g. inventory full or the last station load failed). Idle and retry after sleeping
+      // instead of hovering in place forever and draining power.
+      if (centroid == null && missing != null) {
          this.materialsUnavailable = false;
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));
       }

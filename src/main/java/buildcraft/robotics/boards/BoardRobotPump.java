@@ -12,8 +12,6 @@ import buildcraft.robotics.ai.AIRobotGotoStationAndUnloadFluids;
 import buildcraft.robotics.ai.AIRobotPumpBlock;
 import buildcraft.robotics.ai.AIRobotSearchAndGotoBlock;
 import buildcraft.robotics.path.IBlockFilter;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
@@ -32,7 +30,7 @@ public class BoardRobotPump extends RedstoneBoardRobot {
 
    @Override
    public void update() {
-      if (this.robotHasFluid()) {
+      if (this.robot.hasFluid()) {
          this.startDelegateAI(new AIRobotGotoStationAndUnloadFluids(this.robot));
       } else {
          final IWorldProperty isFluidSource = BuildCraftAPI.getWorldProperty("fluidSource");
@@ -71,16 +69,6 @@ public class BoardRobotPump extends RedstoneBoardRobot {
          this.robot.getRegistry().release(new ResourceIdBlock(this.blockFound));
          this.blockFound = null;
       }
-   }
-
-   private boolean robotHasFluid() {
-      for (StorageView<FluidVariant> view : this.robot.getFluidStorage()) {
-         if (!view.isResourceBlank() && view.getAmount() > 0L) {
-            return true;
-         }
-      }
-
-      return false;
    }
 
    @Override

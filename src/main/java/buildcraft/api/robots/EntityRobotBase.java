@@ -6,6 +6,7 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -87,4 +88,15 @@ public abstract class EntityRobotBase extends LivingEntity {
    public abstract void setMainStation(DockingStation var1);
 
    public abstract Storage<FluidVariant> getFluidStorage();
+
+   /** Returns true if the robot's internal tank currently holds any fluid. */
+   public boolean hasFluid() {
+      for (StorageView<FluidVariant> view : this.getFluidStorage()) {
+         if (!view.isResourceBlank() && view.getAmount() > 0L) {
+            return true;
+         }
+      }
+
+      return false;
+   }
 }

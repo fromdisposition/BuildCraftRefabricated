@@ -76,6 +76,11 @@ public class AIRobotPumpBlock extends AIRobot {
    }
 
    @Override
+   public boolean canLoadFromNBT() {
+      return true;
+   }
+
+   @Override
    public void writeSelfToNBT(CompoundTag nbt) {
       super.writeSelfToNBT(nbt);
       if (this.blockToPump != null) {

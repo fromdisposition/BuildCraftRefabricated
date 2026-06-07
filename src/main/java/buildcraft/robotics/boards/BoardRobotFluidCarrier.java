@@ -7,8 +7,6 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
 import buildcraft.robotics.ai.AIRobotGotoStationAndLoadFluids;
 import buildcraft.robotics.ai.AIRobotGotoStationAndUnloadFluids;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 
 public class BoardRobotFluidCarrier extends RedstoneBoardRobot {
    public BoardRobotFluidCarrier(EntityRobotBase robot) {
@@ -22,7 +20,7 @@ public class BoardRobotFluidCarrier extends RedstoneBoardRobot {
 
    @Override
    public void update() {
-      if (!this.robotHasFluid()) {
+      if (!this.robot.hasFluid()) {
          this.startDelegateAI(new AIRobotGotoStationAndLoadFluids(this.robot, buildcraft.robotics.path.PassThroughFluidFilter.INSTANCE));
       } else {
          this.startDelegateAI(new AIRobotGotoStationAndUnloadFluids(this.robot));
@@ -34,15 +32,5 @@ public class BoardRobotFluidCarrier extends RedstoneBoardRobot {
       if ((ai instanceof AIRobotGotoStationAndLoadFluids || ai instanceof AIRobotGotoStationAndUnloadFluids) && !ai.success()) {
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));
       }
-   }
-
-   private boolean robotHasFluid() {
-      for (StorageView<FluidVariant> view : this.robot.getFluidStorage()) {
-         if (!view.isResourceBlank() && view.getAmount() > 0L) {
-            return true;
-         }
-      }
-
-      return false;
    }
 }
