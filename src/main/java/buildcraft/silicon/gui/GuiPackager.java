@@ -27,7 +27,7 @@ public class GuiPackager extends BcScreen<ContainerPackager> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(124.0, 7.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(125.0, 8.0, 14.0, 14.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.packager.input.title", -13176, "buildcraft.help.packager.input.desc")
             )
          );
@@ -35,7 +35,7 @@ public class GuiPackager extends BcScreen<ContainerPackager> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(30.0, 17.0, 54.0, 54.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(30.0, 17.0, 52.0, 52.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.packager.pattern.title", -7811960, "buildcraft.help.packager.pattern.desc1", "buildcraft.help.packager.pattern.desc2")
             )
          );
@@ -43,7 +43,7 @@ public class GuiPackager extends BcScreen<ContainerPackager> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(8.0, 84.0, 162.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(9.0, 85.0, 158.0, 14.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.packager.storage.title", -7811960, "buildcraft.help.packager.storage.desc")
             )
          );
@@ -51,7 +51,7 @@ public class GuiPackager extends BcScreen<ContainerPackager> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(123.0, 59.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(124.0, 60.0, 14.0, 14.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.packager.output.title", -10665929, "buildcraft.help.packager.output.desc")
             )
          );
