@@ -105,6 +105,35 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
    }
 
    @Override
+   public net.fabricmc.fabric.api.transfer.v1.storage.Storage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> getFluidInput() {
+      if (this.getPipe() == null || this.world == null) {
+         return null;
+      }
+
+      BlockPos neighbourPos = this.getPos().relative(this.side());
+      return buildcraft.lib.fabric.transfer.BcTransfers.fluid(this.world, neighbourPos, this.side().getOpposite());
+   }
+
+   @Override
+   public EnumPipePart getFluidInputSide() {
+      return EnumPipePart.fromFacing(this.side().getOpposite());
+   }
+
+   @Override
+   public net.fabricmc.fabric.api.transfer.v1.storage.Storage<net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant> getFluidOutput() {
+      if (this.getPipe() == null || this.world == null) {
+         return null;
+      }
+
+      return buildcraft.lib.fabric.transfer.BcTransfers.fluid(this.world, this.getPos(), this.side());
+   }
+
+   @Override
+   public EnumPipePart getFluidOutputSide() {
+      return EnumPipePart.fromFacing(this.side());
+   }
+
+   @Override
    public boolean providesPower() {
       IPipeHolder holder = this.getPipe();
       if (holder == null) {

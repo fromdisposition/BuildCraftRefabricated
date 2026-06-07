@@ -37,9 +37,16 @@ public class EntityRobot extends EntityRobotBase {
    public static final int NB_ITEMS_SLOTS = 8;
    private static final EntityDataAccessor<Boolean> DATA_ITEM_ACTIVE = SynchedEntityData.defineId(EntityRobot.class, EntityDataSerializers.BOOLEAN);
    private static final EntityDataAccessor<Float> DATA_ENERGY = SynchedEntityData.defineId(EntityRobot.class, EntityDataSerializers.FLOAT);
+   private static final EntityDataAccessor<String> DATA_TEXTURE = SynchedEntityData.defineId(EntityRobot.class, EntityDataSerializers.STRING);
+   private static final EntityDataAccessor<ItemStack> DATA_ITEM = SynchedEntityData.defineId(EntityRobot.class, EntityDataSerializers.ITEM_STACK);
+   private static final EntityDataAccessor<Float> DATA_AIM_YAW = SynchedEntityData.defineId(EntityRobot.class, EntityDataSerializers.FLOAT);
+   public static final net.minecraft.resources.Identifier DEFAULT_TEXTURE = net.minecraft.resources.Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/robot_base");
+
+   public static final int MAX_FLUID_MB = 4000;
 
    private final MjBattery battery = new MjBattery(MAX_POWER);
    private final ItemStack[] inv = new ItemStack[NB_ITEMS_SLOTS];
+   private final buildcraft.lib.fabric.transfer.SingleFluidTank fluidTank = new buildcraft.lib.fabric.transfer.SingleFluidTank(MAX_FLUID_MB);
    private final Set<Integer> unreachableEntities = new HashSet<>();
 
    private RedstoneBoardRobot board;
@@ -79,6 +86,9 @@ public class EntityRobot extends EntityRobotBase {
    protected void defineSynchedData(SynchedEntityData.Builder builder) {
       builder.define(DATA_ITEM_ACTIVE, false);
       builder.define(DATA_ENERGY, 0.0F);
+      builder.define(DATA_TEXTURE, DEFAULT_TEXTURE.toString());
+      builder.define(DATA_ITEM, ItemStack.EMPTY);
+      builder.define(DATA_AIM_YAW, 0.0F);
    }
 
    public static net.minecraft.world.entity.ai.attributes.AttributeSupplier.Builder createAttributes() {
@@ -101,6 +111,11 @@ public class EntityRobot extends EntityRobotBase {
 
       this.battery.tick(this.level(), this.position());
       this.entityData.set(DATA_ENERGY, (float) this.battery.getStored() / (float) this.battery.getCapacity());
+      this.entityData.set(DATA_AIM_YAW, this.aimYaw);
+      this.entityData.set(DATA_ITEM, this.itemInUse == null ? ItemStack.EMPTY : this.itemInUse);
+      if (this.board != null && this.board.getNBTHandler() != null) {
+         this.entityData.set(DATA_TEXTURE, this.board.getNBTHandler().getRobotTexture().toString());
+      }
 
       if (this.mainAI == null && this.board != null) {
          this.mainAI = new buildcraft.robotics.ai.AIRobotMain(this);
@@ -181,11 +196,33 @@ public class EntityRobot extends EntityRobotBase {
 
    @Override
    public IZone getZoneToWork() {
-      return null;
+      return this.getZone("buildcraft:robot.work_in_area");
    }
 
    @Override
    public IZone getZoneToLoadUnload() {
+      IZone zone = this.getZone("buildcraft:robot.load_unload_area");
+      return zone != null ? zone : this.getZoneToWork();
+   }
+
+   private IZone getZone(String actionTag) {
+      if (this.linkedStation == null) {
+         return null;
+      }
+
+      for (buildcraft.api.statements.StatementSlot slot : this.linkedStation.getActiveActions()) {
+         if (slot.statement != null && actionTag.equals(slot.statement.getUniqueTag())
+            && slot.parameters.length > 0 && slot.parameters[0] != null) {
+            ItemStack stack = slot.parameters[0].getItemStack();
+            if (!stack.isEmpty() && stack.getItem() instanceof buildcraft.api.items.IMapLocation map) {
+               IZone zone = map.getZone(stack);
+               if (zone != null) {
+                  return zone;
+               }
+            }
+         }
+      }
+
       return null;
    }
 
@@ -213,6 +250,11 @@ public class EntityRobot extends EntityRobotBase {
 
    public ItemStack getStackInSlot(int slot) {
       return slot >= 0 && slot < this.inv.length ? this.inv[slot] : ItemStack.EMPTY;
+   }
+
+   @Override
+   public buildcraft.lib.fabric.transfer.SingleFluidTank getFluidStorage() {
+      return this.fluidTank;
    }
 
    public void setStackInSlot(int slot, ItemStack stack) {
@@ -281,6 +323,35 @@ public class EntityRobot extends EntityRobotBase {
       this.itemInUse = stack;
    }
 
+   public ItemStack getItemInUse() {
+      return this.itemInUse;
+   }
+
+   @Override
+   public ItemStack getHeldItem() {
+      return this.itemInUse;
+   }
+
+   public void attackTargetEntityWithCurrentItem(Entity target) {
+      if (!(this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
+         return;
+      }
+
+      float damage = 1.0F;
+      ItemStack weapon = this.itemInUse;
+      if (!weapon.isEmpty()) {
+         damage = weapon.is(net.minecraft.tags.ItemTags.SWORDS) ? 6.0F : 3.0F;
+         if (weapon.isDamageableItem()) {
+            weapon.hurtAndBreak(1, this, net.minecraft.world.entity.EquipmentSlot.MAINHAND);
+            if (weapon.isEmpty()) {
+               this.setItemInUse(ItemStack.EMPTY);
+            }
+         }
+      }
+
+      target.hurtServer(serverLevel, this.damageSources().mobAttack(this), damage);
+   }
+
    @Override
    public void setItemActive(boolean active) {
       this.entityData.set(DATA_ITEM_ACTIVE, active);
@@ -292,6 +363,24 @@ public class EntityRobot extends EntityRobotBase {
 
    public float getEnergyFraction() {
       return this.entityData.get(DATA_ENERGY);
+   }
+
+   public net.minecraft.resources.Identifier getTexture() {
+      String path = this.entityData.get(DATA_TEXTURE);
+      if (path == null || path.isEmpty()) {
+         return DEFAULT_TEXTURE;
+      }
+
+      net.minecraft.resources.Identifier parsed = net.minecraft.resources.Identifier.tryParse(path);
+      return parsed != null ? parsed : DEFAULT_TEXTURE;
+   }
+
+   public ItemStack getRenderItem() {
+      return this.entityData.get(DATA_ITEM);
+   }
+
+   public float getRenderAimYaw() {
+      return this.entityData.get(DATA_AIM_YAW);
    }
 
    @Override
@@ -346,6 +435,7 @@ public class EntityRobot extends EntityRobotBase {
       }
 
       output.store("inv", CompoundTag.CODEC, invTag);
+      this.fluidTank.serialize(output.child("fluidTank"));
    }
 
    @Override
@@ -372,6 +462,7 @@ public class EntityRobot extends EntityRobotBase {
             }
          }
       });
+      input.child("fluidTank").ifPresent(this.fluidTank::deserialize);
    }
 
    @Override

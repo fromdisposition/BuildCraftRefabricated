@@ -37,6 +37,10 @@ public class RobotsActionProvider implements IActionProvider {
       boolean itemPipe = pipe != null && pipe.getFlow() instanceof IFlowItems;
       boolean fluidPipe = pipe != null && pipe.getFlow() instanceof IFlowFluid;
 
+      actions.add(BCRoboticsStatements.ACTION_ROBOT_FILTER);
+      actions.add(BCRoboticsStatements.ACTION_ROBOT_WORK_IN_AREA);
+      actions.add(BCRoboticsStatements.ACTION_ROBOT_LOAD_UNLOAD_AREA);
+
       if (itemPipe) {
          actions.add(BCRoboticsStatements.ACTION_STATION_REQUEST_ITEMS);
          actions.add(BCRoboticsStatements.ACTION_STATION_ACCEPT_ITEMS);

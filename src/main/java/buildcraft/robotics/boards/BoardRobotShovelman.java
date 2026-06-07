@@ -1,14 +1,30 @@
 package buildcraft.robotics.boards;
 
+import buildcraft.api.boards.RedstoneBoardRobotNBT;
+import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.robots.EntityRobotBase;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
-public class BoardRobotShovelman extends BoardRobotBC {
+public class BoardRobotShovelman extends BoardRobotGenericBreakBlock {
    public BoardRobotShovelman(EntityRobotBase robot) {
       super(robot);
    }
 
    @Override
-   protected String boardName() {
-      return "shovelman";
+   public RedstoneBoardRobotNBT getNBTHandler() {
+      return BCBoardNBT.REGISTRY.get("shovelman");
+   }
+
+   @Override
+   public boolean isExpectedTool(ItemStack stack) {
+      return !stack.isEmpty() && stack.is(ItemTags.SHOVELS);
+   }
+
+   @Override
+   public boolean isExpectedBlock(Level world, BlockPos pos) {
+      return BuildCraftAPI.getWorldProperty("shoveled").get(world, pos);
    }
 }

@@ -19,6 +19,15 @@ public class BCRoboticsStatements {
    public static final ActionStation ACTION_ROBOT_WAKEUP = new ActionStation(
       "buildcraft:robot.wakeup", "gate.action.robot.wakeup", BCRoboticsSprites.ACTION_ROBOT_WAKEUP, 0, false
    );
+   public static final ActionStation ACTION_ROBOT_FILTER = new ActionStation(
+      "buildcraft:robot.work_filter", "gate.action.robot.filter", BCRoboticsSprites.ACTION_ROBOT_FILTER, 3, true
+   );
+   public static final ActionStation ACTION_ROBOT_WORK_IN_AREA = new ActionStation(
+      "buildcraft:robot.work_in_area", "gate.action.robot.work_in_area", BCRoboticsSprites.ACTION_ROBOT_WORK_IN_AREA, 1, true
+   );
+   public static final ActionStation ACTION_ROBOT_LOAD_UNLOAD_AREA = new ActionStation(
+      "buildcraft:robot.load_unload_area", "gate.action.robot.load_unload_area", BCRoboticsSprites.ACTION_ROBOT_LOAD_UNLOAD_AREA, 1, true
+   );
    public static final ActionStation ACTION_STATION_PROVIDE_ITEMS = new ActionStation(
       "buildcraft:station.provide_items", "gate.action.station.provide_items", BCRoboticsSprites.ACTION_STATION_PROVIDE_ITEMS, 3, true
    );
@@ -48,6 +57,9 @@ public class BCRoboticsStatements {
       StatementManager.registerStatement(TRIGGER_ROBOT_LINKED);
       StatementManager.registerStatement(TRIGGER_ROBOT_RESERVED);
       StatementManager.registerStatement(ACTION_ROBOT_WAKEUP);
+      StatementManager.registerStatement(ACTION_ROBOT_FILTER);
+      StatementManager.registerStatement(ACTION_ROBOT_WORK_IN_AREA);
+      StatementManager.registerStatement(ACTION_ROBOT_LOAD_UNLOAD_AREA);
       StatementManager.registerStatement(ACTION_STATION_PROVIDE_ITEMS);
       StatementManager.registerStatement(ACTION_STATION_REQUEST_ITEMS);
       StatementManager.registerStatement(ACTION_STATION_ACCEPT_ITEMS);

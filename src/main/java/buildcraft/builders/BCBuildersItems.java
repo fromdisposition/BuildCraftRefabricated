@@ -15,6 +15,7 @@ public final class BCBuildersItems {
    public static BlockItem LIBRARY;
    public static BlockItem REPLACER;
    public static BlockItem QUARRY;
+   public static BlockItem CONSTRUCTION_MARKER;
    public static ItemSnapshot BLUEPRINT_CLEAN;
    public static ItemSnapshot BLUEPRINT_USED;
    public static ItemSnapshot TEMPLATE_CLEAN;
@@ -34,6 +35,7 @@ public final class BCBuildersItems {
       LIBRARY = BCRegistries.registerBlockItem("buildcraftbuilders", "library", BCBuildersBlocks.LIBRARY);
       REPLACER = BCRegistries.registerBlockItem("buildcraftbuilders", "replacer", BCBuildersBlocks.REPLACER);
       QUARRY = BCRegistries.registerBlockItem("buildcraftbuilders", "quarry", BCBuildersBlocks.QUARRY);
+      CONSTRUCTION_MARKER = BCRegistries.registerBlockItem("buildcraftbuilders", "construction_marker", BCBuildersBlocks.CONSTRUCTION_MARKER);
       BLUEPRINT_CLEAN = BCRegistries.registerItem(
          "buildcraftbuilders", "blueprint_clean", props -> new ItemSnapshot(props, EnumSnapshotType.BLUEPRINT, false), p -> p.stacksTo(16)
       );

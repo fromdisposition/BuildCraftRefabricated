@@ -15,6 +15,11 @@ public class BCRoboticsSprites {
    public static final SpriteHolderRegistry.SpriteHolder ACTION_STATION_ACCEPT_FLUIDS = getHolder("triggers/action_station_accept_fluids");
    public static final SpriteHolderRegistry.SpriteHolder ACTION_STATION_MACHINE_REQUEST = getHolder("triggers/action_station_machine_request");
    public static final SpriteHolderRegistry.SpriteHolder ACTION_ROBOT_WAKEUP = getHolder("triggers/action_robot_wakeup");
+   public static final SpriteHolderRegistry.SpriteHolder ACTION_ROBOT_FILTER = getHolder("triggers/action_robot_filter");
+   public static final SpriteHolderRegistry.SpriteHolder ACTION_STATION_FORBID_ROBOT = getHolder("triggers/action_station_robot_forbidden");
+   public static final SpriteHolderRegistry.SpriteHolder ACTION_STATION_FORCE_ROBOT = getHolder("triggers/action_station_robot_mandatory");
+   public static final SpriteHolderRegistry.SpriteHolder ACTION_ROBOT_WORK_IN_AREA = getHolder("triggers/action_robot_work_in_area");
+   public static final SpriteHolderRegistry.SpriteHolder ACTION_ROBOT_LOAD_UNLOAD_AREA = getHolder("triggers/action_robot_load_unload_area");
 
    private static SpriteHolderRegistry.SpriteHolder getHolder(String loc) {
       return SpriteHolderRegistry.getHolder("buildcraftrobotics:" + loc);

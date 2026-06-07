@@ -2,6 +2,7 @@ package buildcraft.builders;
 
 import buildcraft.builders.tile.TileArchitectTable;
 import buildcraft.builders.tile.TileBuilder;
+import buildcraft.builders.tile.TileConstructionMarker;
 import buildcraft.builders.tile.TileElectronicLibrary;
 import buildcraft.builders.tile.TileFiller;
 import buildcraft.builders.tile.TileQuarry;
@@ -16,6 +17,7 @@ public final class BCBuildersBlockEntities {
    public static BlockEntityType<TileElectronicLibrary> LIBRARY;
    public static BlockEntityType<TileReplacer> REPLACER;
    public static BlockEntityType<TileQuarry> QUARRY;
+   public static BlockEntityType<TileConstructionMarker> CONSTRUCTION_MARKER;
 
    private BCBuildersBlockEntities() {
    }
@@ -27,5 +29,8 @@ public final class BCBuildersBlockEntities {
       LIBRARY = BCRegistries.registerBlockEntity("buildcraftbuilders", "library", TileElectronicLibrary::new, BCBuildersBlocks.LIBRARY);
       REPLACER = BCRegistries.registerBlockEntity("buildcraftbuilders", "replacer", TileReplacer::new, BCBuildersBlocks.REPLACER);
       QUARRY = BCRegistries.registerBlockEntity("buildcraftbuilders", "quarry", TileQuarry::new, BCBuildersBlocks.QUARRY);
+      CONSTRUCTION_MARKER = BCRegistries.registerBlockEntity(
+         "buildcraftbuilders", "construction_marker", TileConstructionMarker::new, BCBuildersBlocks.CONSTRUCTION_MARKER
+      );
    }
 }

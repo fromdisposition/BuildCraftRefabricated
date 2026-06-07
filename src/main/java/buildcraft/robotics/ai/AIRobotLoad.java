@@ -6,6 +6,7 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.entity.EntityRobot;
+import buildcraft.robotics.statement.StationActions;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
 import net.minecraft.world.WorldlyContainer;
@@ -53,6 +54,10 @@ public class AIRobotLoad extends AIRobot {
          return false;
       }
 
+      if (!StationActions.canInteractWithItem(station, filter, StationActions.PROVIDE_ITEMS)) {
+         return false;
+      }
+
       Direction face = station.getItemInputSide().face;
       WorldlyContainer sided = input instanceof WorldlyContainer wc ? wc : null;
       int[] slots = slotsFor(input, sided, face);
@@ -65,6 +70,10 @@ public class AIRobotLoad extends AIRobot {
          }
 
          if (sided != null && face != null && !sided.canTakeItemThroughFace(slot, stack, face)) {
+            continue;
+         }
+
+         if (!StationActions.canExtractItem(station, stack)) {
             continue;
          }
 
@@ -95,6 +104,48 @@ public class AIRobotLoad extends AIRobot {
       }
 
       return loaded > 0;
+   }
+
+   /** Removes and returns a single matching item from the station's input inventory, for equipping as a held tool. */
+   public static ItemStack takeSingle(DockingStation station, IStackFilter filter, boolean doTake) {
+      if (station == null) {
+         return ItemStack.EMPTY;
+      }
+
+      Container input = station.getItemInput();
+      if (input == null || !StationActions.canInteractWithItem(station, filter, StationActions.PROVIDE_ITEMS)) {
+         return ItemStack.EMPTY;
+      }
+
+      Direction face = station.getItemInputSide().face;
+      WorldlyContainer sided = input instanceof WorldlyContainer wc ? wc : null;
+      int[] slots = slotsFor(input, sided, face);
+
+      for (int slot : slots) {
+         ItemStack stack = input.getItem(slot);
+         if (stack.isEmpty() || !filter.matches(stack)) {
+            continue;
+         }
+
+         if (sided != null && face != null && !sided.canTakeItemThroughFace(slot, stack, face)) {
+            continue;
+         }
+
+         if (!StationActions.canExtractItem(station, stack)) {
+            continue;
+         }
+
+         ItemStack single = stack.copy();
+         single.setCount(1);
+         if (doTake) {
+            input.removeItem(slot, 1);
+            input.setChanged();
+         }
+
+         return single;
+      }
+
+      return ItemStack.EMPTY;
    }
 
    private static int[] slotsFor(Container input, WorldlyContainer sided, Direction face) {

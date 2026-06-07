@@ -44,6 +44,11 @@ public final class BCRoboticsFabric {
    }
 
    public static void register() {
+      buildcraft.core.properties.WorldProperties.register();
+      if (buildcraft.api.crops.CropManager.getDefaultHandler() == null) {
+         buildcraft.api.crops.CropManager.setDefaultHandler(buildcraft.lib.crops.CropHandlerPlantable.INSTANCE);
+      }
+
       BCRoboticsBlocks.register();
       BCRoboticsItems.register();
       BCRoboticsBlockEntities.register();
@@ -86,6 +91,27 @@ public final class BCRoboticsFabric {
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationToUnload.class, "buildcraft:aiRobotGotoStationToUnload");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationAndUnload.class, "buildcraft:aiRobotGotoStationAndUnload");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotDisposeItems.class, "buildcraft:aiRobotDisposeItems");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotSearchBlock.class, "buildcraft:aiRobotSearchBlock");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotSearchAndGotoBlock.class, "buildcraft:aiRobotSearchAndGotoBlock");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotSearchRandomGroundBlock.class, "buildcraft:aiRobotSearchRandomGroundBlock");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotBreak.class, "buildcraft:aiRobotBreak");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotUseToolOnBlock.class, "buildcraft:aiRobotUseToolOnBlock");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotSearchEntity.class, "buildcraft:aiRobotSearchEntity");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotFetchItem.class, "buildcraft:aiRobotFetchItem");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotSearchStackRequest.class, "buildcraft:aiRobotSearchStackRequest");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotDeliverRequested.class, "buildcraft:aiRobotDeliverRequested");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotFetchAndEquipItemStack.class, "buildcraft:aiRobotFetchAndEquipItemStack");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotHarvest.class, "buildcraft:aiRobotHarvest");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotPlant.class, "buildcraft:aiRobotPlant");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotAttack.class, "buildcraft:aiRobotAttack");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotStripesHandler.class, "buildcraft:aiRobotStripesHandler");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotLoadFluids.class, "buildcraft:aiRobotLoadFluids");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotUnloadFluids.class, "buildcraft:aiRobotUnloadFluids");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationToLoadFluids.class, "buildcraft:aiRobotGotoStationToLoadFluids");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationAndLoadFluids.class, "buildcraft:aiRobotGotoStationAndLoadFluids");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationToUnloadFluids.class, "buildcraft:aiRobotGotoStationToUnloadFluids");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationAndUnloadFluids.class, "buildcraft:aiRobotGotoStationAndUnloadFluids");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotPumpBlock.class, "buildcraft:aiRobotPumpBlock");
    }
 
    private static void registerBoards() {

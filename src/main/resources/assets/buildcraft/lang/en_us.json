@@ -583,6 +583,8 @@
   "item.buildcraftbuilders.filler": "Filler",
   "block.buildcraftbuilders.builder": "Builder",
   "item.buildcraftbuilders.builder": "Builder",
+  "block.buildcraftbuilders.construction_marker": "Construction Marker",
+  "item.buildcraftbuilders.construction_marker": "Construction Marker",
   "block.buildcraftbuilders.architect": "Architect Table",
   "item.buildcraftbuilders.architect": "Architect Table",
   "block.buildcraftbuilders.library": "Electronic Library",

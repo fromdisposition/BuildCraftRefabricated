@@ -2,6 +2,7 @@ package buildcraft.builders;
 
 import buildcraft.builders.block.BlockArchitectTable;
 import buildcraft.builders.block.BlockBuilder;
+import buildcraft.builders.block.BlockConstructionMarker;
 import buildcraft.builders.block.BlockElectronicLibrary;
 import buildcraft.builders.block.BlockFiller;
 import buildcraft.builders.block.BlockFrame;
@@ -18,6 +19,7 @@ public final class BCBuildersBlocks {
    public static BlockElectronicLibrary LIBRARY;
    public static BlockReplacer REPLACER;
    public static BlockQuarry QUARRY;
+   public static BlockConstructionMarker CONSTRUCTION_MARKER;
 
    private BCBuildersBlocks() {
    }
@@ -43,6 +45,9 @@ public final class BCBuildersBlocks {
       );
       QUARRY = BCRegistries.registerBlock(
          "buildcraftbuilders", "quarry", BlockQuarry::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.ANVIL).requiresCorrectToolForDrops()
+      );
+      CONSTRUCTION_MARKER = BCRegistries.registerBlock(
+         "buildcraftbuilders", "construction_marker", BlockConstructionMarker::new, p -> p.strength(2.0F, 4.0F).noOcclusion().sound(SoundType.METAL)
       );
    }
 }

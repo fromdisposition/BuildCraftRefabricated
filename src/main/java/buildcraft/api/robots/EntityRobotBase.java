@@ -4,6 +4,8 @@ import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.core.IZone;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -27,6 +29,8 @@ public abstract class EntityRobotBase extends LivingEntity {
    }
 
    public abstract void setItemInUse(ItemStack var1);
+
+   public abstract ItemStack getHeldItem();
 
    public abstract void setItemActive(boolean var1);
 
@@ -81,4 +85,6 @@ public abstract class EntityRobotBase extends LivingEntity {
    public abstract ItemStack receiveItem(BlockEntity var1, ItemStack var2);
 
    public abstract void setMainStation(DockingStation var1);
+
+   public abstract Storage<FluidVariant> getFluidStorage();
 }

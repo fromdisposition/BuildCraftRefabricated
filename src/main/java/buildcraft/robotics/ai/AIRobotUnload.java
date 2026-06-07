@@ -6,6 +6,8 @@ import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.transport.IInjectable;
 import buildcraft.robotics.entity.EntityRobot;
+import buildcraft.robotics.filter.ArrayStackFilter;
+import buildcraft.robotics.statement.StationActions;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 
@@ -48,6 +50,10 @@ public class AIRobotUnload extends AIRobot {
       for (int slot = 0; slot < EntityRobot.NB_ITEMS_SLOTS; slot++) {
          ItemStack stack = entityRobot.getStackInSlot(slot);
          if (stack.isEmpty()) {
+            continue;
+         }
+
+         if (!StationActions.canInteractWithItem(station, new ArrayStackFilter(stack), StationActions.ACCEPT_ITEMS)) {
             continue;
          }
 

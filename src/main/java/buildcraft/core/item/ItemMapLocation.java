@@ -321,7 +321,9 @@ public class ItemMapLocation extends Item implements IMapLocation {
          case PATH_REPEATING:
             return getPointBox(item);
          case ZONE:
-            return null;
+            buildcraft.robotics.zone.ZonePlan plan = new buildcraft.robotics.zone.ZonePlan();
+            plan.readFromNBT(getCustomTag(item));
+            return plan;
          default:
             return null;
       }

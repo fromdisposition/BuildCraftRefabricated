@@ -4,8 +4,8 @@ import buildcraft.robotics.BCRoboticsEntities;
 import buildcraft.robotics.BCRoboticsMenuTypes;
 import buildcraft.robotics.gui.GuiRequester;
 import buildcraft.robotics.gui.GuiZonePlanner;
+import buildcraft.robotics.client.render.RenderRobot;
 import net.minecraft.client.renderer.entity.EntityRenderers;
-import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.client.gui.screens.MenuScreens;
 
 public final class BCRoboticsFabricClient {
@@ -22,7 +22,7 @@ public final class BCRoboticsFabricClient {
       }
 
       if (BCRoboticsEntities.ROBOT != null) {
-         EntityRenderers.register(BCRoboticsEntities.ROBOT, NoopRenderer::new);
+         EntityRenderers.register(BCRoboticsEntities.ROBOT, RenderRobot::new);
       }
    }
 }

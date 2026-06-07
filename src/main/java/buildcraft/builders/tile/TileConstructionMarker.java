@@ -1,0 +1,136 @@
+package buildcraft.builders.tile;
+
+import buildcraft.builders.BCBuildersBlockEntities;
+import buildcraft.builders.item.ItemSnapshot;
+import buildcraft.builders.snapshot.Blueprint;
+import buildcraft.builders.snapshot.ConstructionMarkerRegistry;
+import buildcraft.builders.snapshot.GlobalSavedDataSnapshots;
+import buildcraft.builders.snapshot.Snapshot;
+import buildcraft.lib.tile.BcBlockEntity;
+import java.util.Arrays;
+import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
+/**
+ * A passive marker block that stores a blueprint snapshot and exposes its {@link Blueprint.BuildingInfo} anchored at the
+ * marker position. Builder robots discover markers through {@link ConstructionMarkerRegistry} and drive a real
+ * {@link buildcraft.builders.snapshot.BlueprintBuilder} against the building info reported here.
+ */
+public class TileConstructionMarker extends BcBlockEntity {
+   private ItemStack blueprintStack = ItemStack.EMPTY;
+   @Nullable
+   private Snapshot snapshot;
+   @Nullable
+   private Blueprint.BuildingInfo blueprintBuildingInfo;
+   @Nullable
+   private Rotation rotation;
+
+   public TileConstructionMarker(BlockPos pos, BlockState state) {
+      super(BCBuildersBlockEntities.CONSTRUCTION_MARKER, pos, state);
+   }
+
+   public ItemStack getBlueprintStack() {
+      return this.blueprintStack;
+   }
+
+   public boolean hasBlueprint() {
+      return this.blueprintBuildingInfo != null;
+   }
+
+   @Nullable
+   public Blueprint.BuildingInfo getBlueprintBuildingInfo() {
+      return this.blueprintBuildingInfo;
+   }
+
+   public void setBlueprint(ItemStack stack) {
+      this.blueprintStack = stack == null ? ItemStack.EMPTY : stack;
+      this.recomputeBuildingInfo();
+      this.setChanged();
+   }
+
+   public ItemStack removeBlueprint() {
+      ItemStack removed = this.blueprintStack;
+      this.blueprintStack = ItemStack.EMPTY;
+      this.snapshot = null;
+      this.blueprintBuildingInfo = null;
+      this.rotation = null;
+      if (this.level != null) {
+         ConstructionMarkerRegistry.unregister(this.level, this.worldPosition);
+      }
+
+      this.setChanged();
+      return removed;
+   }
+
+   /** Called by a builder robot once the structure for this marker is fully built so it stops being a build target. */
+   public void markBuilt() {
+      if (this.level != null) {
+         ConstructionMarkerRegistry.unregister(this.level, this.worldPosition);
+      }
+   }
+
+   private void recomputeBuildingInfo() {
+      this.snapshot = null;
+      this.blueprintBuildingInfo = null;
+      this.rotation = null;
+      if (this.level != null && !this.level.isClientSide() && this.blueprintStack.getItem() instanceof ItemSnapshot) {
+         Snapshot.Header header = ItemSnapshot.getHeader(this.blueprintStack);
+         if (header != null) {
+            Snapshot resolved = GlobalSavedDataSnapshots.get(this.level).getSnapshot(header.key);
+            if (resolved instanceof Blueprint blueprint) {
+               this.snapshot = blueprint;
+               this.rotation = Arrays.stream(Rotation.values())
+                  .filter(r -> r.rotate(blueprint.facing) == this.getBlockState().getValue(HorizontalDirectionalBlock.FACING))
+                  .findFirst()
+                  .orElse(Rotation.NONE);
+               this.blueprintBuildingInfo = blueprint.new BuildingInfo(this.worldPosition, this.rotation);
+            }
+         }
+      }
+
+      if (this.level != null) {
+         if (this.blueprintBuildingInfo != null) {
+            ConstructionMarkerRegistry.register(this.level, this.worldPosition);
+         } else {
+            ConstructionMarkerRegistry.unregister(this.level, this.worldPosition);
+         }
+      }
+   }
+
+   @Override
+   public void clearRemoved() {
+      super.clearRemoved();
+      if (!this.blueprintStack.isEmpty() && this.blueprintBuildingInfo == null) {
+         this.recomputeBuildingInfo();
+      }
+   }
+
+   @Override
+   public void setRemoved() {
+      super.setRemoved();
+      if (this.level != null) {
+         ConstructionMarkerRegistry.unregister(this.level, this.worldPosition);
+      }
+   }
+
+   @Override
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      if (!this.blueprintStack.isEmpty()) {
+         output.store("blueprint", ItemStack.CODEC, this.blueprintStack);
+      }
+   }
+
+   @Override
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.blueprintStack = input.read("blueprint", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+      this.recomputeBuildingInfo();
+   }
+}
