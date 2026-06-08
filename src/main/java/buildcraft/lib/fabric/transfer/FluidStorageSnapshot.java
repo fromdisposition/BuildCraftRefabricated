@@ -1,6 +1,7 @@
 package buildcraft.lib.fabric.transfer;
 
 import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -51,8 +52,8 @@ public record FluidStorageSnapshot(FluidStack fluid, int amountMb, int capacityM
          }
       }
 
-      FluidStack fluid = variant.isBlank() ? FluidStack.EMPTY : TransferConvert.toFluidStack(variant, TransferConvert.mbToDroplets(saturateMb(amountMb)));
-      return new FluidStorageSnapshot(fluid, saturateMb(amountMb), saturateMb(capacityMb));
+      FluidStack fluid = variant.isBlank() ? FluidStack.EMPTY : TransferConvert.toFluidStack(variant, TransferConvert.mbToDroplets(TransferCommits.saturateMb(amountMb)));
+      return new FluidStorageSnapshot(fluid, TransferCommits.saturateMb(amountMb), TransferCommits.saturateMb(capacityMb));
    }
 
    public boolean isEmpty() {
@@ -63,7 +64,4 @@ public record FluidStorageSnapshot(FluidStack fluid, int amountMb, int capacityM
       return this.isEmpty() ? FluidStack.EMPTY : this.fluid.copyWithAmount(this.amountMb);
    }
 
-   private static int saturateMb(long millibuckets) {
-      return millibuckets > 2147483647L ? Integer.MAX_VALUE : (int)millibuckets;
-   }
 }

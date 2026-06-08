@@ -19,9 +19,8 @@ import buildcraft.transport.client.model.key.KeyPlugBlocker;
 import buildcraft.transport.client.model.key.KeyPlugPowerAdaptor;
 import buildcraft.transport.client.model.plug.PlugBakerSimple;
 import buildcraft.transport.client.render.PipeBehaviourRendererStripes;
-import buildcraft.transport.client.render.PipeFlowRendererFE;
+import buildcraft.transport.client.render.PipeFlowRendererEnergyAdapter;
 import buildcraft.transport.client.render.PipeFlowRendererFluids;
-import buildcraft.transport.client.render.PipeFlowRendererPower;
 import buildcraft.transport.pipe.behaviour.PipeBehaviourStripes;
 import buildcraft.transport.pipe.flow.PipeFlowFluids;
 import buildcraft.transport.pipe.flow.PipeFlowPower;
@@ -67,8 +66,8 @@ public class BCTransportClient {
    }
 
    public static void registerFlowRenderers() {
-      PipeRegistryClient.INSTANCE.registerRenderer(PipeFlowPower.class, PipeFlowRendererPower.INSTANCE);
-      PipeRegistryClient.INSTANCE.registerRenderer(PipeFlowRedstoneFlux.class, PipeFlowRendererFE.INSTANCE);
+      PipeRegistryClient.INSTANCE.registerRenderer(PipeFlowPower.class, PipeFlowRendererEnergyAdapter.POWER);
+      PipeRegistryClient.INSTANCE.registerRenderer(PipeFlowRedstoneFlux.class, PipeFlowRendererEnergyAdapter.FE);
       PipeRegistryClient.INSTANCE.registerRenderer(PipeFlowFluids.class, PipeFlowRendererFluids.INSTANCE);
       PipeRegistryClient.INSTANCE.registerRenderer(PipeBehaviourStripes.class, PipeBehaviourRendererStripes.INSTANCE);
       PipeRegistryClient.INSTANCE.registerBaker(KeyPlugBlocker.class, BAKER_PLUG_BLOCKER);

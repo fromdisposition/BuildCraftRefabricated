@@ -14,6 +14,7 @@ import buildcraft.api.items.FluidItemDrops;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.api.transport.pipe.IFlowFluid;
 import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeEvent;
 import buildcraft.api.transport.pipe.PipeEventFluid;
@@ -22,6 +23,7 @@ import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.fabric.BCEnergyFluidsFabric;
+import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.MathUtil;
@@ -77,6 +79,10 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    public transient int renderCacheTexLight;
    public transient int renderCacheTexDark;
    public transient int renderCacheHeat;
+   private @Nullable PipeEventFluid.SideCheck routingFluidSideCheck;
+   private @Nullable PipeEventFluid.PreMoveToCentre routingPreMove;
+   private @Nullable PipeEventFluid.OnMoveToCentre routingOnMove;
+   private @Nullable PipeEventFluid.TryInsert routingTryInsert;
    private final FluidPipeMovement.Host fluidMovementHost = new FluidPipeMovement.Host() {
       @Override
       public PipeFlowFluids flow() {
@@ -162,7 +168,55 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       public void fireEvent(PipeEvent event) {
          PipeFlowFluids.this.pipe.getHolder().fireEvent(event);
       }
+
+      @Override
+      public PipeEventFluid.SideCheck sideCheck(FluidStack fluid) {
+         return PipeFlowFluids.this.sideCheckEvent(fluid);
+      }
+
+      @Override
+      public PipeEventFluid.PreMoveToCentre preMoveToCentre(FluidStack fluid, int totalAcceptable, int[] totalOffered, int[] actuallyOffered) {
+         return PipeFlowFluids.this.preMoveEvent(fluid, totalAcceptable, totalOffered, actuallyOffered);
+      }
+
+      @Override
+      public PipeEventFluid.OnMoveToCentre onMoveToCentre(FluidStack fluid, int[] fluidLeavingSide, int[] fluidEnteringCentre) {
+         return PipeFlowFluids.this.onMoveEvent(fluid, fluidLeavingSide, fluidEnteringCentre);
+      }
    };
+
+   private PipeEventFluid.SideCheck sideCheckEvent(FluidStack fluid) {
+      IPipeHolder holder = this.pipe.getHolder();
+      if (this.routingFluidSideCheck == null) {
+         this.routingFluidSideCheck = new PipeEventFluid.SideCheck(holder, this, fluid);
+      } else {
+         this.routingFluidSideCheck.prepare(fluid);
+      }
+
+      return this.routingFluidSideCheck;
+   }
+
+   private PipeEventFluid.PreMoveToCentre preMoveEvent(FluidStack fluid, int totalAcceptable, int[] totalOffered, int[] actuallyOffered) {
+      IPipeHolder holder = this.pipe.getHolder();
+      if (this.routingPreMove == null) {
+         this.routingPreMove = new PipeEventFluid.PreMoveToCentre(holder, this, fluid, totalAcceptable, totalOffered, actuallyOffered);
+      } else {
+         this.routingPreMove.prepare(fluid, totalAcceptable);
+      }
+
+      return this.routingPreMove;
+   }
+
+   private PipeEventFluid.OnMoveToCentre onMoveEvent(FluidStack fluid, int[] fluidLeavingSide, int[] fluidEnteringCentre) {
+      IPipeHolder holder = this.pipe.getHolder();
+      if (this.routingOnMove == null) {
+         this.routingOnMove = new PipeEventFluid.OnMoveToCentre(holder, this, fluid, fluidLeavingSide, fluidEnteringCentre);
+      } else {
+         this.routingOnMove.prepare(fluid);
+      }
+
+      return this.routingOnMove;
+   }
 
    private SafeTimeTracker getTracker() {
       if (this.tracker == null) {
@@ -333,7 +387,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             }
          }
 
-         int extracted = PipeNeighborTransfers.extractFluidMb(storage, resource, millibuckets, !simulate);
+         int extracted = FluidStorageOps.extractFluidMb(storage, resource, millibuckets, !simulate);
          if (extracted <= 0) {
             return null;
          }
@@ -946,10 +1000,16 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
          FluidStack fluidStack = fluid.isEmpty() ? FluidStack.EMPTY : fluid.copyWithAmount(insertAmount);
          if (this.getCurrentDirection().canInput() && PipeFlowFluids.this.pipe.isConnected(this.part.face) && !fluidStack.isEmpty()) {
-            PipeEventFluid.TryInsert tryInsert = new PipeEventFluid.TryInsert(
-               PipeFlowFluids.this.pipe.getHolder(), PipeFlowFluids.this, this.part.face, fluidStack
-            );
-            PipeFlowFluids.this.pipe.getHolder().fireEvent(tryInsert);
+            IPipeHolder holder = PipeFlowFluids.this.pipe.getHolder();
+            PipeEventFluid.TryInsert tryInsert = PipeFlowFluids.this.routingTryInsert;
+            if (tryInsert == null) {
+               tryInsert = new PipeEventFluid.TryInsert(holder, PipeFlowFluids.this, this.part.face, fluidStack);
+               PipeFlowFluids.this.routingTryInsert = tryInsert;
+            } else {
+               tryInsert.prepare(this.part.face, fluidStack);
+            }
+
+            holder.fireEvent(tryInsert);
             if (tryInsert.isCanceled()) {
                return 0;
             }

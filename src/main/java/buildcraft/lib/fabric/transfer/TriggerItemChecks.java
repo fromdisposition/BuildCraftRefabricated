@@ -35,7 +35,7 @@ public final class TriggerItemChecks {
 
       for (StorageView<ItemVariant> view : storage) {
          result.hasSlots = true;
-         ItemStack stack = view.isResourceBlank() ? ItemStack.EMPTY : ((ItemVariant)view.getResource()).toStack(EnergyStorageOps.saturate(view.getAmount()));
+         ItemStack stack = view.isResourceBlank() ? ItemStack.EMPTY : ((ItemVariant)view.getResource()).toStack(TransferCommits.saturateCount(view.getAmount()));
          boolean stackMatchesSearch = matchesSearch(searchedStack, stack, isList, listFilter);
          result.foundItems = result.foundItems | (!stack.isEmpty() && stackMatchesSearch);
          result.foundSpace = result.foundSpace | hasSpace(view, stack, searchedStack, isList, listFilter, stackMatchesSearch);
@@ -53,8 +53,8 @@ public final class TriggerItemChecks {
       int foundItems = 0;
 
       for (StorageView<ItemVariant> view : storage) {
-         ItemStack stackInSlot = view.isResourceBlank() ? ItemStack.EMPTY : ((ItemVariant)view.getResource()).toStack(EnergyStorageOps.saturate(view.getAmount()));
-         int slotCapacity = EnergyStorageOps.saturate(view.getCapacity());
+         ItemStack stackInSlot = view.isResourceBlank() ? ItemStack.EMPTY : ((ItemVariant)view.getResource()).toStack(TransferCommits.saturateCount(view.getAmount()));
+         int slotCapacity = TransferCommits.saturateCount(view.getCapacity());
          if (stackInSlot.isEmpty()) {
             if (searchStack.isEmpty()) {
                itemSpace += slotCapacity;
@@ -82,7 +82,7 @@ public final class TriggerItemChecks {
          return stackMatchesSearch && stack.getCount() < stack.getMaxStackSize();
       } else if (StackUtil.canMerge(stack, searchedStack) && stack.getCount() < stack.getMaxStackSize()) {
          int amount = Math.min(searchedStack.getCount(), stack.getMaxStackSize() - stack.getCount());
-         return amount > 0 && EnergyStorageOps.saturate(view.getCapacity()) >= stack.getCount() + amount;
+         return amount > 0 && TransferCommits.saturateCount(view.getCapacity()) >= stack.getCount() + amount;
       } else {
          return false;
       }

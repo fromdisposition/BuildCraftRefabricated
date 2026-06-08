@@ -7,36 +7,16 @@
 package buildcraft.transport.pipe.flow;
 
 import buildcraft.api.core.IStackFilter;
-import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.fluids.FluidStack;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
 public final class PipeNeighborTransfers {
    private PipeNeighborTransfers() {
-   }
-
-   public static int extractFluidMb(Storage<FluidVariant> storage, FluidStack fluid, int maxMillibuckets, boolean commit) {
-      return FluidStorageOps.extractFluidMb(storage, fluid, maxMillibuckets, commit);
-   }
-
-   public static int extractFluidMb(Storage<FluidVariant> storage, FluidVariant variant, int maxMillibuckets, TransactionContext transaction) {
-      return FluidStorageOps.extractFluidMb(storage, variant, maxMillibuckets, transaction);
-   }
-
-   public static int insertFluidMb(Storage<FluidVariant> storage, FluidStack fluid, int millibuckets, boolean commit) {
-      return FluidStorageOps.insertFluidMb(storage, fluid, millibuckets, commit);
-   }
-
-   public static int insertFluidMb(Storage<FluidVariant> storage, FluidVariant variant, int millibuckets, TransactionContext transaction) {
-      return FluidStorageOps.insertFluidMb(storage, variant, millibuckets, transaction);
    }
 
    public static PipeNeighborTransfers.@Nullable ItemProbe findMatchingItem(Storage<ItemVariant> storage, int maxCount, IStackFilter filter) {

@@ -52,25 +52,6 @@ public final class FluidUtil {
    private FluidUtil() {
    }
 
-   public static FluidStack getFirstStackContained(ItemStack stack) {
-      if (stack.isEmpty()) {
-         return FluidStack.EMPTY;
-      }
-
-      Storage<FluidVariant> storage = ItemFluidLookup.storage(stack);
-      if (storage == null) {
-         return FluidStack.EMPTY;
-      }
-
-      for (StorageView<FluidVariant> view : storage) {
-         if (!view.isResourceBlank() && view.getAmount() > 0L) {
-            return TransferConvert.toFluidStack((FluidVariant)view.getResource(), view.getAmount());
-         }
-      }
-
-      return FluidStack.EMPTY;
-   }
-
    public static boolean interactWithFluidHandler(Player player, InteractionHand hand, Level level, BlockPos pos, @Nullable Direction side) {
       Preconditions.checkNotNull(level);
       Preconditions.checkNotNull(pos);
@@ -156,10 +137,6 @@ public final class FluidUtil {
 
          return true;
       }
-   }
-
-   private static int saturateMb(long millibuckets) {
-      return millibuckets > 2147483647L ? Integer.MAX_VALUE : (int)millibuckets;
    }
 
    private static void playSoundAndGameEvent(FluidStack stack, Level level, @Nullable BlockPos blockPos, @Nullable Player player, boolean pickup) {

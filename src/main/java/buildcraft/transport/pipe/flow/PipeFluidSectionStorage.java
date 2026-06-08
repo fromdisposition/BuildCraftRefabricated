@@ -7,6 +7,7 @@
 package buildcraft.transport.pipe.flow;
 
 import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import java.util.Collections;
 import java.util.Iterator;
@@ -30,7 +31,7 @@ public final class PipeFluidSectionStorage implements Storage<FluidVariant> {
             return 0L;
          }
 
-         int inserted = this.section.insert(0, TransferConvert.toFluidStack(resource), saturateMb(millibuckets), transaction);
+         int inserted = this.section.insert(0, TransferConvert.toFluidStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
          return TransferConvert.mbToDroplets(inserted);
       } else {
          return 0L;
@@ -44,7 +45,7 @@ public final class PipeFluidSectionStorage implements Storage<FluidVariant> {
             return 0L;
          }
 
-         int extracted = this.section.extract(0, TransferConvert.toFluidStack(resource), saturateMb(millibuckets), transaction);
+         int extracted = this.section.extract(0, TransferConvert.toFluidStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
          return TransferConvert.mbToDroplets(extracted);
       } else {
          return 0L;
@@ -57,10 +58,6 @@ public final class PipeFluidSectionStorage implements Storage<FluidVariant> {
       return !fluid.isEmpty() && this.section.getAmountAsLong(0) > 0L
          ? (Iterator<StorageView<FluidVariant>>)(Iterator<?>)List.of(new PipeFluidSectionStorage.SectionView()).iterator()
          : Collections.emptyIterator();
-   }
-
-   private static int saturateMb(long millibuckets) {
-      return millibuckets > 2147483647L ? Integer.MAX_VALUE : (int)millibuckets;
    }
 
    private final class SectionView implements StorageView<FluidVariant> {

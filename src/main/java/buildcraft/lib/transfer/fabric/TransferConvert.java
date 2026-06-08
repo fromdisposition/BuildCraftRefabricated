@@ -6,6 +6,7 @@
 
 package buildcraft.lib.transfer.fabric;
 
+import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.fluids.FluidStack;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 
@@ -25,12 +26,8 @@ public final class TransferConvert {
 
    public static FluidStack toFluidStack(FluidVariant variant, long droplets) {
       return !variant.isBlank() && droplets > 0L
-         ? new FluidStack(variant.getFluid(), saturateMb(dropletsToMb(droplets)), variant.getComponentsPatch())
+         ? new FluidStack(variant.getFluid(), TransferCommits.saturateMb(dropletsToMb(droplets)), variant.getComponentsPatch())
          : FluidStack.EMPTY;
-   }
-
-   private static int saturateMb(long millibuckets) {
-      return millibuckets > 2147483647L ? Integer.MAX_VALUE : (int)millibuckets;
    }
 
    public static long dropletsToMb(long droplets) {

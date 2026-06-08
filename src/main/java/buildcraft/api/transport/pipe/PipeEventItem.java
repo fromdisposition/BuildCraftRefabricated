@@ -21,7 +21,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 public abstract class PipeEventItem extends PipeEvent {
    public final IFlowItems flow;
@@ -68,56 +67,16 @@ public abstract class PipeEventItem extends PipeEvent {
       }
    }
 
-   public abstract static class Ejected extends PipeEventItem {
-      public final ItemStack inserted;
-      @Nonnull
-      private ItemStack excess;
-      public final Direction to;
-
-      protected Ejected(IPipeHolder holder, IFlowItems flow, ItemStack inserted, ItemStack excess, Direction to) {
-         super(holder, flow);
-         this.inserted = inserted;
-         this.excess = excess;
-         this.to = to;
-      }
-
-      @Nonnull
-      public ItemStack getExcess() {
-         return this.excess;
-      }
-
-      public void setExcess(ItemStack stack) {
-         if (stack == null) {
-            throw new NullPointerException("stack");
-         }
-
-         this.excess = stack;
-      }
-
-      public static class IntoPipe extends PipeEventItem.Ejected {
-         public final IFlowItems otherPipe;
-
-         public IntoPipe(IPipeHolder holder, IFlowItems flow, ItemStack inserted, ItemStack excess, Direction to, IFlowItems otherPipe) {
-            super(holder, flow, inserted, excess, to);
-            this.otherPipe = otherPipe;
-         }
-      }
-
-      public static class IntoTile extends PipeEventItem.Ejected {
-         public final BlockEntity tile;
-
-         public IntoTile(IPipeHolder holder, IFlowItems flow, ItemStack inserted, ItemStack excess, Direction to, BlockEntity tile) {
-            super(holder, flow, inserted, excess, to);
-            this.tile = tile;
-         }
-      }
-   }
-
    public static class FindDest extends PipeEventItem.OrderedEvent {
-      public final ImmutableList<PipeEventItem.ItemEntry> items;
+      public List<PipeEventItem.ItemEntry> items;
 
-      public FindDest(IPipeHolder holder, IFlowItems flow, List<EnumSet<Direction>> orderedDestinations, ImmutableList<PipeEventItem.ItemEntry> items) {
+      public FindDest(IPipeHolder holder, IFlowItems flow, List<EnumSet<Direction>> orderedDestinations, List<PipeEventItem.ItemEntry> items) {
          super(holder, flow, orderedDestinations);
+         this.items = items;
+      }
+
+      public void prepare(List<EnumSet<Direction>> orderedDestinations, List<PipeEventItem.ItemEntry> items) {
+         this.orderedDestinations = orderedDestinations;
          this.items = items;
       }
    }
@@ -179,7 +138,7 @@ public abstract class PipeEventItem extends PipeEvent {
    }
 
    public abstract static class OrderedEvent extends PipeEventItem {
-      public final List<EnumSet<Direction>> orderedDestinations;
+      public List<EnumSet<Direction>> orderedDestinations;
 
       public OrderedEvent(IPipeHolder holder, IFlowItems flow, List<EnumSet<Direction>> orderedDestinations) {
          super(holder, flow);
@@ -250,10 +209,16 @@ public abstract class PipeEventItem extends PipeEvent {
    }
 
    public static class ReachEnd extends PipeEventItem.ReachDest {
-      public final Direction to;
+      public Direction to;
 
       public ReachEnd(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack, Direction to) {
          super(holder, flow, colour, stack);
+         this.to = to;
+      }
+
+      public void prepare(DyeColor colour, @Nonnull ItemStack stack, Direction to) {
+         this.colour = colour;
+         this.setStack(stack);
          this.to = to;
       }
    }
@@ -370,6 +335,12 @@ public abstract class PipeEventItem extends PipeEvent {
          super(holder, flow, order);
          this.items.add(toSplit);
       }
+
+      public void prepare(List<EnumSet<Direction>> order, PipeEventItem.ItemEntry toSplit) {
+         this.orderedDestinations = order;
+         this.items.clear();
+         this.items.add(toSplit);
+      }
    }
 
    public static class TryBounce extends PipeEventItem {
@@ -395,14 +366,21 @@ public abstract class PipeEventItem extends PipeEvent {
    }
 
    public static class TryInsert extends PipeEventItem {
-      public final DyeColor colour;
-      public final Direction from;
+      public DyeColor colour;
+      public Direction from;
       @Nonnull
-      public final ItemStack attempting;
+      public ItemStack attempting;
       public int accepted;
 
       public TryInsert(IPipeHolder holder, IFlowItems flow, DyeColor colour, Direction from, @Nonnull ItemStack attempting) {
          super(true, holder, flow);
+         this.colour = colour;
+         this.from = from;
+         this.attempting = attempting;
+         this.accepted = attempting.getCount();
+      }
+
+      public void prepare(DyeColor colour, Direction from, @Nonnull ItemStack attempting) {
          this.colour = colour;
          this.from = from;
          this.attempting = attempting;

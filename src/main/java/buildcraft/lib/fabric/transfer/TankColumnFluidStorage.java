@@ -3,6 +3,7 @@ package buildcraft.lib.fabric.transfer;
 import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import java.util.Collections;
 import java.util.Iterator;
@@ -145,12 +146,8 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
          capacityMb += tank.fluidTank.getCapacityMb();
       }
 
-      FluidStack stack = fluid.isEmpty() ? FluidStack.EMPTY : fluid.copyWithAmount(saturateMb(amountMb));
-      return new FluidStorageSnapshot(stack, saturateMb(amountMb), saturateMb(capacityMb));
-   }
-
-   private static int saturateMb(long millibuckets) {
-      return millibuckets > 2147483647L ? Integer.MAX_VALUE : (int)millibuckets;
+      FluidStack stack = fluid.isEmpty() ? FluidStack.EMPTY : fluid.copyWithAmount(TransferCommits.saturateMb(amountMb));
+      return new FluidStorageSnapshot(stack, TransferCommits.saturateMb(amountMb), TransferCommits.saturateMb(capacityMb));
    }
 
    private static FluidStack resolveColumnFluid(List<TileTank> tanks, FluidStack candidate) {

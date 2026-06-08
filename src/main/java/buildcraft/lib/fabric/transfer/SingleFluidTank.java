@@ -3,6 +3,7 @@ package buildcraft.lib.fabric.transfer;
 import buildcraft.lib.common.util.ValueIOSerializable;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import com.mojang.serialization.Codec;
 import java.util.ArrayList;
@@ -131,7 +132,7 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
             return 0L;
          }
 
-         int insertMb = saturateMb(millibuckets);
+         int insertMb = TransferCommits.saturateMb(millibuckets);
          if (!this.isEmpty() && !FluidUtilBC.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
             return 0L;
          }
@@ -168,7 +169,7 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
             return 0L;
          }
 
-         int extractMb = Math.min(saturateMb(millibuckets), this.getAmountMb());
+         int extractMb = Math.min(TransferCommits.saturateMb(millibuckets), this.getAmountMb());
          if (extractMb <= 0) {
             return 0L;
          }
@@ -217,10 +218,6 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
 
    private FluidStack copyContents() {
       return this.isEmpty() ? FluidStack.EMPTY : this.contents.copy();
-   }
-
-   private static int saturateMb(long millibuckets) {
-      return millibuckets > 2147483647L ? Integer.MAX_VALUE : (int)millibuckets;
    }
 
    private static NonNullList<FluidStack> copyStacks(List<FluidStack> stacks) {

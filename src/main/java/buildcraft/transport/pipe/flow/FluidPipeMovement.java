@@ -9,6 +9,7 @@ package buildcraft.transport.pipe.flow;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.PipeEvent;
 import buildcraft.api.transport.pipe.PipeEventFluid;
+import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fluids.FluidStack;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,14 +48,14 @@ public final class FluidPipeMovement {
          if (host.sectionCanOutput(part)) {
             int maxDrain = host.sectionDrain(part, host.transferPerTick(), false);
             if (maxDrain > 0) {
-               PipeEventFluid.SideCheck sideCheck = new PipeEventFluid.SideCheck(host.flow().pipe.getHolder(), host.flow(), host.currentFluid());
+               PipeEventFluid.SideCheck sideCheck = host.sideCheck(host.currentFluid());
                sideCheck.disallowAllExcept(part.face);
                host.fireEvent(sideCheck);
                if (sideCheck.getOrderedDirections().size() == 1) {
                   Storage<FluidVariant> storage = host.externalFluidStorage(part.face);
                   if (storage != null) {
                      FluidStack resource = host.currentFluid().copyWithAmount(1);
-                     int filled = PipeNeighborTransfers.insertFluidMb(storage, resource, maxDrain, true);
+                     int filled = FluidStorageOps.insertFluidMb(storage, resource, maxDrain, true);
                      if (filled > 0) {
                         host.sectionDrain(part, filled, true);
                         host.setSectionCooldownOutput(part);
@@ -80,7 +81,7 @@ public final class FluidPipeMovement {
          }
 
          if (!realDirections.isEmpty()) {
-            PipeEventFluid.SideCheck sideCheck = new PipeEventFluid.SideCheck(host.flow().pipe.getHolder(), host.flow(), host.currentFluid());
+            PipeEventFluid.SideCheck sideCheck = host.sideCheck(host.currentFluid());
             sideCheck.disallowAllExcept(realDirections);
             host.fireEvent(sideCheck);
             List<Direction> random = new ArrayList<>(sideCheck.getOrderedDirections());
@@ -129,8 +130,8 @@ public final class FluidPipeMovement {
          }
 
          System.arraycopy(scratch.inputPerTick, 0, scratch.totalOffered, 0, 6);
-         PipeEventFluid.PreMoveToCentre preMove = new PipeEventFluid.PreMoveToCentre(
-            host.flow().pipe.getHolder(), host.flow(), host.currentFluid(), Math.min(flowRate, spaceAvailable), scratch.totalOffered, scratch.inputPerTick
+         PipeEventFluid.PreMoveToCentre preMove = host.preMoveToCentre(
+            host.currentFluid(), Math.min(flowRate, spaceAvailable), scratch.totalOffered, scratch.inputPerTick
          );
          host.fireEvent(preMove);
          int left = Math.min(flowRate, spaceAvailable);
@@ -157,9 +158,7 @@ public final class FluidPipeMovement {
          }
 
          System.arraycopy(scratch.fluidLeavingSide, 0, scratch.fluidEnteringCentre, 0, 6);
-         PipeEventFluid.OnMoveToCentre move = new PipeEventFluid.OnMoveToCentre(
-            host.flow().pipe.getHolder(), host.flow(), host.currentFluid(), scratch.fluidLeavingSide, scratch.fluidEnteringCentre
-         );
+         PipeEventFluid.OnMoveToCentre move = host.onMoveToCentre(host.currentFluid(), scratch.fluidLeavingSide, scratch.fluidEnteringCentre);
          host.fireEvent(move);
 
          for (EnumPipePart part : EnumPipePart.FACES) {
@@ -233,5 +232,11 @@ public final class FluidPipeMovement {
       Storage<FluidVariant> externalFluidStorage(Direction var1);
 
       void fireEvent(PipeEvent var1);
+
+      PipeEventFluid.SideCheck sideCheck(FluidStack fluid);
+
+      PipeEventFluid.PreMoveToCentre preMoveToCentre(FluidStack fluid, int totalAcceptable, int[] totalOffered, int[] actuallyOffered);
+
+      PipeEventFluid.OnMoveToCentre onMoveToCentre(FluidStack fluid, int[] fluidLeavingSide, int[] fluidEnteringCentre);
    }
 }

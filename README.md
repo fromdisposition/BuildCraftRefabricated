@@ -16,7 +16,7 @@
 
 BuildCraft Refabricated extends Minecraft with pipes, engines, quarries, gates, oil processing, auto-crafting, and the rest of the classic BuildCraft automation toolkit. This is the **unofficial Fabric port** for **Minecraft 26.1.2**, developed and published from **[fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)**.
 
-The modern 26.1.2 gameplay code traces back to **[legoj15's NeoForge port](https://github.com/legoj15/BuildCraft)** (NeoForge, not Fabric). **This repository** is where that tree is migrated to Fabric and maintained: Transfer API interop (`FabricTransferBridge`), BC 8.0-faithful fluid rendering, pipe/attachment fixes, transactional transfer cleanup, and release work all land here.
+The modern 26.1.2 gameplay code traces back to **[legoj15's NeoForge port](https://github.com/legoj15/BuildCraft)** (NeoForge, not Fabric). **This repository** is where that tree is migrated to Fabric and maintained: native Fabric Transfer API interop (`BcTransfers`), BC 8.0-faithful fluid rendering, pipe/attachment fixes, transactional transfer cleanup, and release work all land here.
 
 ---
 
@@ -116,7 +116,7 @@ BuildCraft Refabricated — Fabric 26.1.2 (fromdisposition — this repository)
 - **Original BuildCraft** — Created by SpaceToad and the BuildCraft Team. Pipes, MJ, engines, quarries, and the automation philosophy behind the mod. Licensed under [MPL-2.0](LICENSE).
 - **BuildCraft 8.0.x** — Last major classic line (Forge, Minecraft 1.12.2). The [compatibility matrix](#bc-80x-compatibility-matrix) compares **this Fabric build** against BC 8.0.x **gameplay**.
 - **BuildCraft unofficial — [legoj15](https://github.com/legoj15) NeoForge 26.1.2** — Modern community port on **NeoForge** ([legoj15/BuildCraft](https://github.com/legoj15/BuildCraft)): unified mod JAR, BC 8 modules brought to 26.1.2, attachment-style capabilities, registries, networking, and most gameplay code. **Not Fabric.** This tree is the **primary code source** adapted into the Fabric build below.
-- **BuildCraft Refabricated — [fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated) (this repo)** — **The Fabric port.** Source of truth for the Fabric build: `buildcraft.fabric.*`, `FabricTransferBridge`, Loom/Fabric API wiring, fluid pipe rendering, interop, and ongoing maintenance.
+- **BuildCraft Refabricated — [fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated) (this repo)** — **The Fabric port.** Source of truth for the Fabric build: `buildcraft.fabric.*`, `BcTransfers` / Fabric Transfer API wiring, fluid pipe rendering, interop, and ongoing maintenance.
 
 **Credits:** SpaceToad and the BuildCraft Team (original mod); **[legoj15](https://github.com/legoj15)** (NeoForge 26.1.2 port — major code source); **[fromdisposition](https://github.com/fromdisposition)** (Fabric 26.1.2 port — maintainer of this repository).
 
@@ -253,97 +253,35 @@ The items below are **Fabric-port and maintenance work** in [BuildCraftRefabrica
 - **Unified JSON config** (`buildcraftrefabricated-common.json` via `BCFabricConfig`) covering core, lib, energy, factory, and transport settings; reloadable on datapack reload.
 - **Custom Fabric networking** (`BuildCraftFabricNetworking`) for pipe items, payloads, wire systems, and landing effects.
 
-### Transfer system rewrite
+### Transfer system (Fabric-native)
 
-BC8 used Forge `IFluidHandler` and `IItemHandler` directly. This port introduces a unified transactional layer:
+BC8 used Forge `IFluidHandler` / `IItemHandler`. This port uses **Fabric Transfer API** (`Storage<T>`, `Transaction`) end-to-end. Legacy Forge handler bridges and `FabricTransferBridge` are removed.
 
-- **`ResourceHandler<T>`** — typed insert/extract with slot support (`buildcraft.lib.transfer`).
-- **`Transaction` / `TransactionContext`** — simulate-then-commit semantics across pipes, tanks, and bridges.
-- **`IFluidHandlerAdv`** — modern fluid API extending `ResourceHandler<FluidResource>` (replaces legacy `lib/fluids/capability/IFluidHandler`).
+**Core entry points** (`buildcraft.lib.fabric.transfer`):
 
-**Removed dead legacy** (no longer referenced anywhere):
+| Class | Role |
+|-------|------|
+| `BcTransfers` | `FluidStorage.SIDED` / `ItemStorage.SIDED` / `EnergyStorage.SIDED` lookup; registers vanilla + BC fallbacks at init |
+| `FluidStorageOps` / `TransferCommits` / `EnergyStorageOps` | Shared simulate→commit helpers (fluid mB, items, FE) |
+| `ItemFluidLookup` | `FluidStorage.ITEM` on stacks (buckets, cells, gate parameters) |
+| `TriggerFluidChecks` / `TriggerItemChecks` | Gate trigger predicates over Fabric storages |
+| `SidedFluidStorages` | Insert-only / extract-only sided wrappers for factory tiles |
+| `FabricDeferredCommit` | Deferred commit for transactional pipe item inject |
 
-- `lib/fluids/capability/IFluidHandler.java`
-- `lib/fluids/capability/templates/FluidTank.java`
-- `lib/misc/MultiTankResourceHandler.java`
+**Conversion:** `TransferConvert` maps Fabric droplets ↔ BC millibuckets (81 droplets = 1 mB).
 
-### Attachments API (capability replacement)
+**MJ power** (wooden/stone engines, MJ pipes, `TriggerPower`) remains on the BC MJ capability graph — parallel to Team Reborn `EnergyStorage` used by RF pipes and autoconversion.
 
-NeoForge-style attachments adapted for Fabric (`buildcraft.lib.attachments`):
+### Pipe transport (current)
 
-| Attachment | Contexts |
-|------------|----------|
-| `Attachments.Fluid.BLOCK` / `ITEM` | Sided blocks, fluid container items |
-| `Attachments.Item.BLOCK` / `ITEM` / `ENTITY` | Inventories, bundles, player automation |
-| `Attachments.Energy.BLOCK` | Internal FE storage (engines, dynamo, RF pipes) |
-
-**Vanilla providers** (`AttachmentHooks.init()`):
-
-- Chests, trapped chests, furnaces, blast furnaces, smokers, hoppers, barrels, dispensers, droppers, shulker boxes
-- All vanilla `BucketItem`s (except `buildcraftenergy` buckets registered separately)
-- Players (inventory wrappers)
-- Composter
-- **Cauldron fluid content** — new vs BC8 (`CauldronFluidContent`)
-
-**Per-module registration** in `BCCoreFabric`, `BCEnergyFabric`, `BCFactoryFabric`, `BCTransportFabric`, `BCBuildersFabric`, etc.
-
-**Resolution chain** (`BlockAttachment.getCapability`):
-
-1. Registered block/BE provider
-2. `FabricTransferBridge.tryWrapForward` for external Fabric mods
-3. `null`
-
-`AttachmentLevelAccess` (level mixin) adds caching and invalidation on block changes.
-
-### Fabric Transfer API bridge
-
-`FabricTransferBridge` (`buildcraft.lib.fabric.transfer`) is the core interoperability layer.
-
-**BC → Fabric (fallbacks registered at init):**
-
-| Fabric API | BC wrapper |
-|------------|------------|
-| `FluidStorage.SIDED` | `BcFluidStorage` |
-| `ItemStorage.SIDED` | `BcItemStorage` |
-| `FluidStorage.ITEM` | `BcFluidStorage` (BC providers only, via `getCapabilityFromProvidersOnly`) |
-
-**Fabric → BC (forward wrap in attachment lookup):**
-
-| Fabric API | BC wrapper |
-|------------|------------|
-| `FluidStorage.SIDED` | `FabricFluidResourceHandler` |
-| `ItemStorage.SIDED` | `FabricItemResourceHandler` |
-| `FluidStorage.ITEM` | `FabricFluidResourceHandler` (via `ItemAttachment` + `tryWrapItemFluid`) |
-
-**Safety mechanisms:**
-
-- `ThreadLocal REENTRANT` guard prevents infinite BC↔Fabric lookup loops.
-- `FabricTransactionMirror` / `FabricToBcTransactionMirror` nest Fabric and BC transactions so simulate/commit stay aligned.
-- `TransferConvert` maps Fabric droplets to BC millibuckets (81 droplets = 1 mB); cross-mod moves use **whole mB only**.
-
-**Item fluid containers:**
-
-- `ContainerItemContextItemAccess` maps Fabric `ContainerItemContext` to BC `ItemAccess` for correct read/write.
-- BC buckets registered in `BCEnergyFabric.registerBucketAttachments()`.
-- Fragile fluid shards in `BCCoreFabric`.
-- `AttachmentHooks` skips `buildcraftenergy` buckets to avoid double registration.
-
-### Pipe transport enhancements
-
-Improvements over BC8 pipe behaviour and interop:
-
-| Area | Change | Key files |
-|------|--------|-----------|
-| Fluid section extract | Real `Section.extract` with `drainInternal`, `canOutput`, fluid match, empty cleanup | `PipeFlowFluids.java` |
-| Advanced fluid filter | `tryExtractFluidAdv` applies `IFluidFilter.matches()` before extract | `PipeFlowFluids.java` |
-| Section NBT | Writes `"amount"`, reads with fallback `"capacity"` | `PipeFlowFluids.java` |
-| Sided fluid dedup | `SidedFluidHandlers.insertOnly` / `extractOnly` for pump, distiller, heat exchange | `SidedFluidHandlers.java`, `BCFactoryFabric.java` |
-| Fluid item bridge | Mod fluid cells visible to diamond filter and `FluidUtilBC.isFluidContainerItem()` | `FabricTransferBridge.java`, `ItemAttachment.java` |
-| Item pipe Fabric insert | `PipeItemInjectHandler` on `PIPE_HOLDER` — external mods insert via `ItemStorage.SIDED` | `PipeItemInjectHandler.java`, `BCTransportFabric.java` |
-| Item extract from tiles | `tryExtractItems` uses `Attachments.Item.BLOCK` + transactions | `PipeFlowItems.java` |
-| Force inject client sync | `insertItemsForce` calls `addItemTryMerge` → `sendItemDataToClient` | `PipeFlowItems.java` |
-| Power/RF display dedup | Shared `PipeEnergyEnumFlow`, `PipeEnergyDisplaySupport` (client anim, network sync, neighbour propagate) | `PipeEnergyEnumFlow.java`, `PipeEnergyDisplaySupport.java` |
-| PipeRegistry API | `createItemForPipe` / `createUnnamedItemForPipe` implemented via `BCRegistries` | `PipeRegistry.java` |
+| Area | Implementation | Key files |
+|------|----------------|-----------|
+| Neighbor resolution | Pluggable → block (`BcTransfers`) → neighbor pipe flow | `PipeNeighborStorageAccess`, `PipeNeighbor*Access` |
+| Item pipes | `PipeNeighborTransfers` probe/extract; `PipeItemInjectStorage` for external insert | `PipeFlowItems.java` |
+| Fluid pipes | `FluidStorageOps` + `FluidPipeMovement` scratch reuse | `PipeFlowFluids.java` |
+| RF pipes | `BcTransfers.energy()` → `EnergyStorageOps` | `PipeFlowRedstoneFlux.java` |
+| Gate triggers | Direct `BcTransfers` + `Trigger*Checks` / `ItemFluidLookup` | `CoreTriggerProvider.java` |
+| Client render | Batched BER submits, shared `PipeFlowRendererEnergy` for MJ+FE | `RenderPipeHolder.java` |
 
 ### Fluid rendering (BC 8.0 visual fidelity)
 
@@ -385,6 +323,7 @@ BC8 baked ~350 dyed fluid-pipe sprites via `dye_replace` into the blocks atlas. 
 - AUDIT cleanup: removed dead lib filters/stubs, merged `PipeNeighborEnergyTransfers` into `EnergyStorageOps`, cached pipe item/fluid sided storage, `BigInteger`→`long` in power distribution, `FluidPipeMovement` scratch reuse, simplified `TileBuilder` inventory transactor, updated transfer interop docs (`BcTransfers` not legacy bridge).
 - AUDIT phase 2: block lookups call `BcTransfers` directly (slim `TriggerTransferAccess`), removed `PipePluggableTransferAccess`, `SidedFluidStorages` uses Fabric insert/extract-only wrappers, shared `ArrayStackOrListFilter` in lib, `RenderPipeHolder` caches item models per tick.
 - AUDIT phase 3: shared `TransferCommits` + `FluidStorageOps` fluid MB helpers, slim `PipeNeighborTransfers`, removed `TriggerTransferAccess` (call sites use `ItemFluidLookup` / `BcTransfers` + trigger checks), pooled item-pipe routing events in `PipeFlowItems`, batched `RenderPipeHolder` cutout submits.
+- AUDIT phase 4: full item/fluid pipe event pooling, dead code removal (`PipeHolderCapabilityRouting`, `IFluidTank`, unused API), `PipeNeighborStorageAccess`, fluid ops call `FluidStorageOps` directly, `saturate*` via `TransferCommits`, merged MJ/FE flow renderer, README transfer docs updated.
 
 ---
 

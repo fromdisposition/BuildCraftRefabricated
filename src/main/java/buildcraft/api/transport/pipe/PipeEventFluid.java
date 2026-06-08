@@ -31,7 +31,7 @@ public abstract class PipeEventFluid extends PipeEvent {
    }
 
    public static class OnMoveToCentre extends PipeEventFluid {
-      public final FluidStack fluid;
+      public FluidStack fluid;
       public final int[] fluidLeavingSide;
       public final int[] fluidEnteringCentre;
       private final int[] fluidLeaveCheck;
@@ -42,8 +42,19 @@ public abstract class PipeEventFluid extends PipeEvent {
          this.fluid = fluid;
          this.fluidLeavingSide = fluidLeavingSide;
          this.fluidEnteringCentre = fluidEnteringCentre;
-         this.fluidLeaveCheck = Arrays.copyOf(fluidLeavingSide, fluidLeavingSide.length);
-         this.fluidEnterCheck = Arrays.copyOf(fluidEnteringCentre, fluidEnteringCentre.length);
+         this.fluidLeaveCheck = new int[fluidLeavingSide.length];
+         this.fluidEnterCheck = new int[fluidEnteringCentre.length];
+         this.captureChecks();
+      }
+
+      public void prepare(FluidStack fluid) {
+         this.fluid = fluid;
+         this.captureChecks();
+      }
+
+      private void captureChecks() {
+         System.arraycopy(this.fluidLeavingSide, 0, this.fluidLeaveCheck, 0, this.fluidLeavingSide.length);
+         System.arraycopy(this.fluidEnteringCentre, 0, this.fluidEnterCheck, 0, this.fluidEnteringCentre.length);
       }
 
       @Override
@@ -87,8 +98,8 @@ public abstract class PipeEventFluid extends PipeEvent {
    }
 
    public static class PreMoveToCentre extends PipeEventFluid {
-      public final FluidStack fluid;
-      public final int totalAcceptable;
+      public FluidStack fluid;
+      public int totalAcceptable;
       public final int[] totalOffered;
       private final int[] totalOfferedCheck;
       public final int[] actuallyOffered;
@@ -98,8 +109,19 @@ public abstract class PipeEventFluid extends PipeEvent {
          this.fluid = fluid;
          this.totalAcceptable = totalAcceptable;
          this.totalOffered = totalOffered;
-         this.totalOfferedCheck = Arrays.copyOf(totalOffered, totalOffered.length);
+         this.totalOfferedCheck = new int[totalOffered.length];
          this.actuallyOffered = actuallyOffered;
+         this.captureChecks();
+      }
+
+      public void prepare(FluidStack fluid, int totalAcceptable) {
+         this.fluid = fluid;
+         this.totalAcceptable = totalAcceptable;
+         this.captureChecks();
+      }
+
+      private void captureChecks() {
+         System.arraycopy(this.totalOffered, 0, this.totalOfferedCheck, 0, this.totalOffered.length);
       }
 
       @Override
@@ -127,13 +149,20 @@ public abstract class PipeEventFluid extends PipeEvent {
    }
 
    public static class SideCheck extends PipeEventFluid {
-      public final FluidStack fluid;
+      public FluidStack fluid;
       private final int[] priority = new int[6];
       private final EnumSet<Direction> allowed = EnumSet.allOf(Direction.class);
 
       public SideCheck(IPipeHolder holder, IFlowFluid flow, FluidStack fluid) {
          super(holder, flow);
          this.fluid = fluid;
+      }
+
+      public void prepare(FluidStack fluid) {
+         this.fluid = fluid;
+         Arrays.fill(this.priority, 0);
+         this.allowed.clear();
+         this.allowed.addAll(EnumSet.allOf(Direction.class));
       }
 
       public boolean isAllowed(Direction side) {
@@ -262,12 +291,17 @@ public abstract class PipeEventFluid extends PipeEvent {
    }
 
    public static class TryInsert extends PipeEventFluid {
-      public final Direction from;
+      public Direction from;
       @Nonnull
-      public final FluidStack fluid;
+      public FluidStack fluid;
 
       public TryInsert(IPipeHolder holder, IFlowFluid flow, Direction from, @Nonnull FluidStack fluid) {
          super(true, holder, flow);
+         this.from = from;
+         this.fluid = fluid;
+      }
+
+      public void prepare(Direction from, @Nonnull FluidStack fluid) {
          this.from = from;
          this.fluid = fluid;
       }

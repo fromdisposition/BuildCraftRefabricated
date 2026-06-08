@@ -22,7 +22,6 @@ import buildcraft.transport.net.MessageMultiPipeItem;
 import buildcraft.transport.net.PipeItemMessageQueue;
 import buildcraft.transport.tile.TilePipeHolder;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.UnmodifiableIterator;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -60,6 +59,10 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    private @Nullable PipeEventItem.TryBounce routingTryBounce;
    private @Nullable PipeEventItem.ModifySpeed routingModifySpeed;
    private @Nullable PipeEventItem.ItemEntry routingItemEntry;
+   private @Nullable PipeEventItem.Split routingSplit;
+   private @Nullable PipeEventItem.FindDest routingFindDest;
+   private @Nullable PipeEventItem.TryInsert routingTryInsert;
+   private @Nullable PipeEventItem.ReachEnd routingReachEnd;
 
    public PipeFlowItems(IPipe pipe) {
       super(pipe);
@@ -173,7 +176,14 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
          count = possible.getMaxStackSize();
       }
 
-      PipeEventItem.TryInsert tryInsert = new PipeEventItem.TryInsert(holder, this, colour, from, possible);
+      PipeEventItem.TryInsert tryInsert = this.routingTryInsert;
+      if (tryInsert == null) {
+         tryInsert = new PipeEventItem.TryInsert(holder, this, colour, from, possible);
+         this.routingTryInsert = tryInsert;
+      } else {
+         tryInsert.prepare(colour, from, possible);
+      }
+
       holder.fireEvent(tryInsert);
       if (!tryInsert.isCanceled() && tryInsert.accepted > 0) {
          count = Math.min(count, tryInsert.accepted);
@@ -331,17 +341,27 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
             entry.prepare(reachCenter.colour, reachCenter.getStack(), reachCenter.from);
          }
 
-         PipeEventItem.Split split = new PipeEventItem.Split(holder, this, order, entry);
+         PipeEventItem.Split split = this.routingSplit;
+         if (split == null) {
+            split = new PipeEventItem.Split(holder, this, order, entry);
+            this.routingSplit = split;
+         } else {
+            split.prepare(order, entry);
+         }
+
          holder.fireEvent(split);
-         ImmutableList<PipeEventItem.ItemEntry> entries = ImmutableList.copyOf(split.items);
-         PipeEventItem.FindDest findDest = new PipeEventItem.FindDest(holder, this, order, entries);
+         PipeEventItem.FindDest findDest = this.routingFindDest;
+         if (findDest == null) {
+            findDest = new PipeEventItem.FindDest(holder, this, order, split.items);
+            this.routingFindDest = findDest;
+         } else {
+            findDest.prepare(order, split.items);
+         }
+
          holder.fireEvent(findDest);
          Level world = holder.getPipeWorld();
          long now = world.getGameTime();
-         UnmodifiableIterator var13 = findDest.items.iterator();
-
-         while (var13.hasNext()) {
-            PipeEventItem.ItemEntry itemEntry = (PipeEventItem.ItemEntry)var13.next();
+         for (PipeEventItem.ItemEntry itemEntry : findDest.items) {
             if (!itemEntry.stack.isEmpty()) {
                PipeEventItem.ModifySpeed modifySpeed = this.routingModifySpeed;
                if (modifySpeed == null) {
@@ -394,7 +414,14 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    private void onItemReachEnd(TravellingItem item) {
       this.markSaveDirty();
       IPipeHolder holder = this.pipe.getHolder();
-      PipeEventItem.ReachEnd reachEnd = new PipeEventItem.ReachEnd(holder, this, item.colour, item.stack, item.side);
+      PipeEventItem.ReachEnd reachEnd = this.routingReachEnd;
+      if (reachEnd == null) {
+         reachEnd = new PipeEventItem.ReachEnd(holder, this, item.colour, item.stack, item.side);
+         this.routingReachEnd = reachEnd;
+      } else {
+         reachEnd.prepare(item.colour, item.stack, item.side);
+      }
+
       holder.fireEvent(reachEnd);
       item.colour = reachEnd.colour;
       item.stack = reachEnd.getStack();
@@ -484,8 +511,16 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
          speed = 0.01;
       }
 
-      PipeEventItem.TryInsert tryInsert = new PipeEventItem.TryInsert(this.pipe.getHolder(), this, colour, from, stack);
-      this.pipe.getHolder().fireEvent(tryInsert);
+      IPipeHolder holder = this.pipe.getHolder();
+      PipeEventItem.TryInsert tryInsert = this.routingTryInsert;
+      if (tryInsert == null) {
+         tryInsert = new PipeEventItem.TryInsert(holder, this, colour, from, stack);
+         this.routingTryInsert = tryInsert;
+      } else {
+         tryInsert.prepare(colour, from, stack);
+      }
+
+      holder.fireEvent(tryInsert);
       if (!tryInsert.isCanceled() && tryInsert.accepted > 0) {
          ItemStack toSplit = stack.copy();
          ItemStack toInsert = toSplit.split(tryInsert.accepted);
