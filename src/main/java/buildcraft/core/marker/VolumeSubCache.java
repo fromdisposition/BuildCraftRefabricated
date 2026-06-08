@@ -4,7 +4,6 @@ import buildcraft.core.BCCoreConfig;
 import buildcraft.core.client.BuildCraftLaserManager;
 import buildcraft.lib.client.render.laser.LaserData_BC8;
 import buildcraft.lib.marker.MarkerCache;
-import buildcraft.lib.marker.MarkerSubCache;
 import buildcraft.lib.net.MessageMarker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -16,38 +15,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.Level;
 
-public class VolumeSubCache extends MarkerSubCache<VolumeConnection> {
-   private VolumeSavedData savedData;
+public class VolumeSubCache extends SavedDataBackedMarkerSubCache<VolumeConnection, VolumeSavedData> {
+   public VolumeSubCache(Level world) {
+      super(world, MarkerCache.CACHES.indexOf(VolumeCache.INSTANCE), VolumeSavedData.getOrCreate(world), (cache, positions) -> new VolumeConnection((VolumeSubCache)cache, positions));
+   }
 
    @Override
    public LaserData_BC8.LaserType getPossibleLaserType() {
       return BuildCraftLaserManager.MARKER_VOLUME_POSSIBLE;
-   }
-
-   public VolumeSubCache(Level world) {
-      super(world, MarkerCache.CACHES.indexOf(VolumeCache.INSTANCE));
-      VolumeSavedData data = VolumeSavedData.getOrCreate(world);
-      this.savedData = data;
-
-      for (BlockPos pos : data.markerPositions) {
-         this.loadMarker(pos, null);
-      }
-
-      for (List<BlockPos> connectionPositions : data.markerConnections) {
-         if (connectionPositions.size() >= 2) {
-            this.addConnection(new VolumeConnection(this, connectionPositions));
-         }
-      }
-
-      data.setSubCache(this);
-      data.setDirty();
-   }
-
-   @Override
-   protected void markSavedDataDirty() {
-      if (this.savedData != null) {
-         this.savedData.setDirty();
-      }
    }
 
    @Override
@@ -101,27 +76,6 @@ public class VolumeSubCache extends MarkerSubCache<VolumeConnection> {
 
    @Override
    protected boolean handleMessage(MessageMarker message) {
-      List<BlockPos> positions = message.positions();
-      if (message.connection()) {
-         if (message.add()) {
-            for (BlockPos p : positions) {
-               VolumeConnection existing = this.getConnection(p);
-               this.destroyConnection(existing);
-            }
-
-            VolumeConnection con = new VolumeConnection(this, positions);
-            this.addConnection(con);
-         } else {
-            for (BlockPos p : positions) {
-               VolumeConnection existing = this.getConnection(p);
-               if (existing != null) {
-                  existing.removeMarker(p);
-                  this.refreshConnection(existing);
-               }
-            }
-         }
-      }
-
-      return false;
+      return this.handleConnectionMessage(message, (cache, positions) -> new VolumeConnection((VolumeSubCache)cache, positions));
    }
 }

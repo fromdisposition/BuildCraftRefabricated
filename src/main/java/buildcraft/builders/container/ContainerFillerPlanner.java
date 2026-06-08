@@ -7,6 +7,7 @@ import buildcraft.api.filler.IFillerPattern;
 import buildcraft.builders.BCBuildersMenuTypes;
 import buildcraft.builders.BCBuildersStatements;
 import buildcraft.builders.addon.AddonFillerPlanner;
+import buildcraft.builders.filler.FillerPatternStatementGroups;
 import buildcraft.builders.filler.FillerType;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.core.marker.volume.Addon;
@@ -16,7 +17,6 @@ import buildcraft.core.marker.volume.WorldSavedDataVolumeBoxes;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.fabric.menu.FillerPlannerMenuKey;
 import buildcraft.lib.gui.BcMenu;
-import buildcraft.lib.gui.ISimpleDrawable;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.statement.StatementContext;
@@ -24,7 +24,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
@@ -38,80 +37,7 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
    private final FullStatement<IFillerPattern> patternStatementClient = new FullStatement<>(
       FillerType.INSTANCE, 4, (statement, paramIndex) -> this.onStatementChange()
    );
-   public final StatementContext<IFillerPattern> possiblePatternsContext = () -> List.of(
-      new StatementContext.StatementGroup<IFillerPattern>() {
-         @Override
-         public List<IFillerPattern> getValues() {
-            return Arrays.asList(
-               BCBuildersStatements.PATTERN_NONE, BCBuildersStatements.PATTERN_BOX, BCBuildersStatements.PATTERN_CLEAR, BCBuildersStatements.PATTERN_FILL
-            );
-         }
-
-         @Override
-         public ISimpleDrawable getSourceIcon() {
-            return null;
-         }
-      },
-      new StatementContext.StatementGroup<IFillerPattern>() {
-         @Override
-         public List<IFillerPattern> getValues() {
-            return Arrays.asList(
-               BCBuildersStatements.PATTERN_FRAME,
-               BCBuildersStatements.PATTERN_PYRAMID,
-               BCBuildersStatements.PATTERN_SPHERE,
-               BCBuildersStatements.PATTERN_EIGHTH_SPHERE
-            );
-         }
-
-         @Override
-         public ISimpleDrawable getSourceIcon() {
-            return null;
-         }
-      },
-      new StatementContext.StatementGroup<IFillerPattern>() {
-         @Override
-         public List<IFillerPattern> getValues() {
-            return Arrays.asList(BCBuildersStatements.PATTERN_HEMI_SPHERE, BCBuildersStatements.PATTERN_QUARTER_SPHERE, BCBuildersStatements.PATTERN_STAIRS);
-         }
-
-         @Override
-         public ISimpleDrawable getSourceIcon() {
-            return null;
-         }
-      },
-      new StatementContext.StatementGroup<IFillerPattern>() {
-         @Override
-         public List<IFillerPattern> getValues() {
-            return Arrays.asList(
-               BCBuildersStatements.PATTERN_ARC,
-               BCBuildersStatements.PATTERN_CIRCLE,
-               BCBuildersStatements.PATTERN_HEXAGON,
-               BCBuildersStatements.PATTERN_OCTAGON
-            );
-         }
-
-         @Override
-         public ISimpleDrawable getSourceIcon() {
-            return null;
-         }
-      },
-      new StatementContext.StatementGroup<IFillerPattern>() {
-         @Override
-         public List<IFillerPattern> getValues() {
-            return Arrays.asList(
-               BCBuildersStatements.PATTERN_PENTAGON,
-               BCBuildersStatements.PATTERN_SEMI_CIRCLE,
-               BCBuildersStatements.PATTERN_SQUARE,
-               BCBuildersStatements.PATTERN_TRIANGLE
-            );
-         }
-
-         @Override
-         public ISimpleDrawable getSourceIcon() {
-            return null;
-         }
-      }
-   );
+   public final StatementContext<IFillerPattern> possiblePatternsContext = FillerPatternStatementGroups.CONTEXT;
    private byte[] lastStatementHash = null;
 
    public ContainerFillerPlanner(int containerId, Inventory playerInv, AddonFillerPlanner addon) {

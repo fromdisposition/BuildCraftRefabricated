@@ -4,6 +4,7 @@ import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.container.ContainerDistiller;
 import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.integration.jei.BucketJeiTransfer;
 import buildcraft.lib.integration.jei.JeiTransferUtil;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -12,7 +13,6 @@ import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
 import mezz.jei.api.recipe.types.IRecipeType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -52,12 +52,7 @@ public class DistillerTransferHandler implements IRecipeTransferHandler<Containe
       Item bucket = in != null && !in.isEmpty() ? in.getFluid().getBucket() : Items.AIR;
       if (bucket != Items.AIR && JeiTransferUtil.countMatching(player.getInventory(), new ItemStack(bucket)) >= 1) {
          if (doTransfer) {
-            String bucketId = BuiltInRegistries.ITEM.getKey(bucket).toString();
-            container.sendMessage(103, buf -> {
-               buf.writeVarInt(1);
-               buf.writeVarInt(0);
-               buf.writeUtf(bucketId);
-            });
+            BucketJeiTransfer.sendSingle(container, 0, bucket);
          }
 
          return null;

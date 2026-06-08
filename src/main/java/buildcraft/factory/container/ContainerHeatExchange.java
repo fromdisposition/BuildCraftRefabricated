@@ -1,20 +1,14 @@
 package buildcraft.factory.container;
 
-import net.minecraft.network.FriendlyByteBuf;
-import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.tile.TileHeatExchange;
 import buildcraft.lib.fabric.menu.MenuBlockEntityLookup;
 import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.widget.WidgetFluidTank;
-import buildcraft.lib.integration.jei.JeiTransferUtil;
-import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
@@ -53,18 +47,9 @@ public class ContainerHeatExchange extends BcMenu {
    }
 
    @Override
-   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
-      if (id == 103 && !isClient && this.tile != null) {
-         int count = buffer.readVarInt();
-
-         for (int i = 0; i < count; i++) {
-            int slot = buffer.readVarInt();
-            Item bucket = (Item)BuiltInRegistries.ITEM.getValue(Identifier.parse(buffer.readUtf()));
-            JeiTransferUtil.moveBucketToSlot(this.player.getInventory(), bucket, this.tile.containerSlots, slot);
-         }
-      } else {
-         super.readMessage(id, buffer, isClient, ctx);
-      }
+   @Nullable
+   protected ItemHandlerSimple getJeiBucketTransferSlots() {
+      return this.tile != null ? this.tile.containerSlots : null;
    }
 
    @Nullable

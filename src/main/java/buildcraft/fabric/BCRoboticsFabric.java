@@ -49,10 +49,12 @@ public final class BCRoboticsFabric {
          buildcraft.api.crops.CropManager.setDefaultHandler(buildcraft.lib.crops.CropHandlerPlantable.INSTANCE);
       }
 
-      BCRoboticsBlocks.register();
-      BCRoboticsItems.register();
-      BCRoboticsBlockEntities.register();
-      BCRoboticsMenuTypes.register();
+      FabricModuleBootstrap.registerContent(
+         BCRoboticsBlocks::register,
+         BCRoboticsItems::register,
+         BCRoboticsBlockEntities::register,
+         BCRoboticsMenuTypes::register
+      );
       BCRoboticsEntities.register();
       FabricDefaultAttributeRegistry.register(BCRoboticsEntities.ROBOT, EntityRobot.createAttributes());
       BCRoboticsBoards.init();

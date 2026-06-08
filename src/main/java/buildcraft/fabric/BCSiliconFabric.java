@@ -33,14 +33,15 @@ public final class BCSiliconFabric {
    public static void register() {
       BCSiliconPlugs.preInit();
       BCSiliconStatements.preInit();
-      BCSiliconBlocks.register();
-      BCSiliconItems.register();
-      BCSiliconBlockEntities.register();
+      FabricModuleBootstrap.registerContent(
+         BCSiliconBlocks::register,
+         BCSiliconItems::register,
+         BCSiliconBlockEntities::register,
+         BCSiliconMenuTypes::register
+      );
       BCSiliconEntities.register();
-      BCSiliconMenuTypes.register();
       BCSiliconCreativeTabs.register();
-      registerMjCapabilities();
-      registerNativeTransfer();
+      FabricModuleBootstrap.registerCapabilities(BCSiliconFabric::registerMjCapabilities, BCSiliconFabric::registerNativeTransfer);
       ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> {
          BCSiliconPlugs.registerAll();
          FacadeAPI.facadeItem = BCSiliconItems.PLUG_FACADE;

@@ -25,13 +25,15 @@ public final class BCFactoryFabric {
    }
 
    public static void register() {
-      BCFactoryBlocks.register();
-      BCFactoryItems.register();
-      BCFactoryBlockEntities.register();
-      BCFactoryMenuTypes.register();
+      FabricModuleBootstrap.registerStandardModule(
+         BCFactoryBlocks::register,
+         BCFactoryItems::register,
+         BCFactoryBlockEntities::register,
+         BCFactoryMenuTypes::register,
+         BCFactoryFabric::registerMjCapabilities,
+         BCFactoryFabric::registerNativeTransfer
+      );
       BCFactoryAttachments.register();
-      registerMjCapabilities();
-      registerNativeTransfer();
    }
 
    private static void registerNativeTransfer() {

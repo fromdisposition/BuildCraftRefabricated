@@ -4,7 +4,6 @@ import buildcraft.core.BCCoreConfig;
 import buildcraft.core.client.BuildCraftLaserManager;
 import buildcraft.lib.client.render.laser.LaserData_BC8;
 import buildcraft.lib.marker.MarkerCache;
-import buildcraft.lib.marker.MarkerSubCache;
 import buildcraft.lib.net.MessageMarker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
@@ -13,38 +12,14 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
-public class PathSubCache extends MarkerSubCache<PathConnection> {
-   private PathSavedData savedData;
+public class PathSubCache extends SavedDataBackedMarkerSubCache<PathConnection, PathSavedData> {
+   public PathSubCache(Level world) {
+      super(world, MarkerCache.CACHES.indexOf(PathCache.INSTANCE), PathSavedData.getOrCreate(world), (cache, positions) -> new PathConnection((PathSubCache)cache, positions));
+   }
 
    @Override
    public LaserData_BC8.LaserType getPossibleLaserType() {
       return BuildCraftLaserManager.MARKER_PATH_POSSIBLE;
-   }
-
-   public PathSubCache(Level world) {
-      super(world, MarkerCache.CACHES.indexOf(PathCache.INSTANCE));
-      PathSavedData data = PathSavedData.getOrCreate(world);
-      this.savedData = data;
-
-      for (BlockPos pos : data.markerPositions) {
-         this.loadMarker(pos, null);
-      }
-
-      for (List<BlockPos> connectionPositions : data.markerConnections) {
-         if (connectionPositions.size() >= 2) {
-            this.addConnection(new PathConnection(this, connectionPositions));
-         }
-      }
-
-      data.setSubCache(this);
-      data.setDirty();
-   }
-
-   @Override
-   protected void markSavedDataDirty() {
-      if (this.savedData != null) {
-         this.savedData.setDirty();
-      }
    }
 
    @Override
@@ -88,27 +63,6 @@ public class PathSubCache extends MarkerSubCache<PathConnection> {
 
    @Override
    protected boolean handleMessage(MessageMarker message) {
-      List<BlockPos> positions = message.positions();
-      if (message.connection()) {
-         if (message.add()) {
-            for (BlockPos p : positions) {
-               PathConnection existing = this.getConnection(p);
-               this.destroyConnection(existing);
-            }
-
-            PathConnection con = new PathConnection(this, positions);
-            this.addConnection(con);
-         } else {
-            for (BlockPos p : positions) {
-               PathConnection existing = this.getConnection(p);
-               if (existing != null) {
-                  existing.removeMarker(p);
-                  this.refreshConnection(existing);
-               }
-            }
-         }
-      }
-
-      return false;
+      return this.handleConnectionMessage(message, (cache, positions) -> new PathConnection((PathSubCache)cache, positions));
    }
 }

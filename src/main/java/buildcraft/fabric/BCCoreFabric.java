@@ -8,7 +8,7 @@ public final class BCCoreFabric {
    }
 
    public static void register() {
-      registerMjCapabilities();
+      FabricModuleBootstrap.registerCapabilities(BCCoreFabric::registerMjCapabilities, () -> {});
    }
 
    private static void registerMjCapabilities() {

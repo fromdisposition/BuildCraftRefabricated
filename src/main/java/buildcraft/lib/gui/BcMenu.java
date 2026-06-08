@@ -3,10 +3,12 @@ package buildcraft.lib.gui;
 import buildcraft.api.core.BCLog;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.slot.SlotPhantom;
+import buildcraft.lib.integration.jei.BucketJeiTransfer;
 import buildcraft.lib.net.BcEnvelopeCodec;
 import buildcraft.lib.net.BcPacketDistributor;
 import buildcraft.lib.net.IPayloadWriter;
 import buildcraft.lib.net.MessageContainerPayload;
+import buildcraft.lib.tile.ItemHandlerSimple;
 import net.minecraft.network.FriendlyByteBuf;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
@@ -148,7 +150,17 @@ public abstract class BcMenu extends RecipeBookMenu {
                phantom.set(stack);
             });
          }
+      } else if (id == NET_JEI_TRANSFER_BUCKETS && !isClient) {
+         ItemHandlerSimple machineSlots = this.getJeiBucketTransferSlots();
+         if (machineSlots != null) {
+            BucketJeiTransfer.apply(buffer, this.player.getInventory(), machineSlots);
+         }
       }
+   }
+
+   @javax.annotation.Nullable
+   protected ItemHandlerSimple getJeiBucketTransferSlots() {
+      return null;
    }
 
    public void clicked(int slotId, int dragType, ContainerInput containerInput, Player player) {

@@ -1,6 +1,5 @@
 package buildcraft.robotics.ai;
 
-import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import net.minecraft.core.BlockPos;
@@ -8,7 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
 /** Takes a station as the robot's main station and links to it (used to bind a robot to its home dock). */
-public class AIRobotGoAndLinkToDock extends AIRobot {
+public class AIRobotGoAndLinkToDock extends AIRobotStationNavigate {
    private DockingStation station;
 
    public AIRobotGoAndLinkToDock(EntityRobotBase robot) {
@@ -16,8 +15,12 @@ public class AIRobotGoAndLinkToDock extends AIRobot {
    }
 
    public AIRobotGoAndLinkToDock(EntityRobotBase robot, DockingStation station) {
-      this(robot);
+      super(robot);
       this.station = station;
+      if (station != null) {
+         this.stationIndex = station.index();
+         this.stationSide = station.side();
+      }
    }
 
    @Override
@@ -25,10 +28,7 @@ public class AIRobotGoAndLinkToDock extends AIRobot {
       if (this.station == this.robot.getLinkedStation() && this.station == this.robot.getDockingStation()) {
          this.terminate();
       } else if (this.station != null && this.station.takeAsMain(this.robot)) {
-         this.startDelegateAI(new AIRobotGotoBlock(this.robot,
-            this.station.index().getX() + this.station.side().getStepX() * 2,
-            this.station.index().getY() + this.station.side().getStepY() * 2,
-            this.station.index().getZ() + this.station.side().getStepZ() * 2));
+         this.beginNavigation(this.station);
       } else {
          this.setSuccess(false);
          this.terminate();
@@ -36,37 +36,19 @@ public class AIRobotGoAndLinkToDock extends AIRobot {
    }
 
    @Override
-   public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotGotoBlock) {
-         if (ai.success()) {
-            this.startDelegateAI(new AIRobotStraightMoveTo(this.robot,
-               this.station.index().getX() + 0.5 + this.station.side().getStepX() * 0.5,
-               this.station.index().getY() + 0.5 + this.station.side().getStepY() * 0.5,
-               this.station.index().getZ() + 0.5 + this.station.side().getStepZ() * 0.5));
-         } else {
-            this.terminate();
-         }
-      } else if (ai instanceof AIRobotStraightMoveTo) {
-         if (ai.success()) {
-            this.robot.dock(this.station);
-         }
-
-         this.terminate();
-      }
+   protected int approachSteps() {
+      return 2;
    }
 
    @Override
-   public boolean canLoadFromNBT() {
-      return true;
+   protected void onReachedDock(DockingStation station) {
+      this.robot.dock(station);
+      this.terminate();
    }
 
    @Override
-   public void writeSelfToNBT(CompoundTag nbt) {
-      super.writeSelfToNBT(nbt);
-      if (this.station != null && this.station.index() != null) {
-         nbt.putIntArray("stationIndex", new int[]{this.station.index().getX(), this.station.index().getY(), this.station.index().getZ()});
-         nbt.putByte("stationSide", (byte)this.station.side().ordinal());
-      }
+   protected DockingStation getStation() {
+      return this.station != null ? this.station : super.getStation();
    }
 
    @Override

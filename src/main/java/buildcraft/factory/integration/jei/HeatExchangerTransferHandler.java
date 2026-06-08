@@ -3,6 +3,7 @@ package buildcraft.factory.integration.jei;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.container.ContainerHeatExchange;
 import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.integration.jei.BucketJeiTransfer;
 import buildcraft.lib.integration.jei.JeiTransferUtil;
 import java.util.Optional;
 import javax.annotation.Nullable;
@@ -11,7 +12,6 @@ import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
 import mezz.jei.api.recipe.types.IRecipeType;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -56,15 +56,7 @@ public class HeatExchangerTransferHandler implements IRecipeTransferHandler<Cont
          }
 
          if (doTransfer) {
-            String slot0Id = BuiltInRegistries.ITEM.getKey(slot0Bucket).toString();
-            String slot1Id = BuiltInRegistries.ITEM.getKey(slot1Bucket).toString();
-            container.sendMessage(103, buf -> {
-               buf.writeVarInt(2);
-               buf.writeVarInt(0);
-               buf.writeUtf(slot0Id);
-               buf.writeVarInt(1);
-               buf.writeUtf(slot1Id);
-            });
+            BucketJeiTransfer.sendPair(container, 0, slot0Bucket, 1, slot1Bucket);
          }
 
          return null;
