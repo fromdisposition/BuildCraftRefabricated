@@ -1,17 +1,21 @@
 package buildcraft.robotics.container;
 
 import net.minecraft.network.FriendlyByteBuf;
+import buildcraft.core.item.ItemMapLocation;
+import buildcraft.core.item.ItemPaintbrush_BC8;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.ContainerBCTile;
 import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.slot.SlotOutput;
 import buildcraft.lib.net.PacketBufferBC;
+import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.robotics.BCRoboticsMenuTypes;
 import buildcraft.robotics.tile.TileZonePlanner;
 import buildcraft.robotics.zone.ZonePlan;
 import buildcraft.robotics.zone.ZonePlannerMapColours;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -34,6 +38,11 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    private static final int PLAYER_SLOTS_END = 36;
    private static final int MACHINE_SLOTS_END = 58;
    public final ZonePlannerMapColours mapColours = new ZonePlannerMapColours();
+   /** Client-side counter bumped whenever the painted layers change, so the map can invalidate its cached overlay. */
+   public int clientLayerVersion;
+   private int lastLayersVersion = -1;
+   private static final Predicate<ItemStack> IS_BRUSH = stack -> stack.getItem() instanceof ItemPaintbrush_BC8;
+   private static final Predicate<ItemStack> IS_MAP = stack -> stack.getItem() instanceof ItemMapLocation;
 
    public ContainerZonePlanner(int containerId, Inventory playerInv, BlockPos pos) {
       this(containerId, playerInv, getTile(playerInv, pos));
@@ -45,15 +54,15 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
 
       for (int x = 0; x < 4; x++) {
          for (int y = 0; y < 4; y++) {
-            this.addSlot(new SlotBase(tile.invPaintbrushes, x * 4 + y, 8 + x * 18, 146 + y * 18));
+            this.addSlot(filtered(tile.invPaintbrushes, x * 4 + y, 8 + x * 18, 146 + y * 18, IS_BRUSH));
          }
       }
 
-      this.addSlot(new SlotBase(tile.invInputPaintbrush, 0, 8, 125));
-      this.addSlot(new SlotBase(tile.invInputMapLocation, 0, 26, 125));
+      this.addSlot(filtered(tile.invInputPaintbrush, 0, 8, 125, IS_BRUSH));
+      this.addSlot(filtered(tile.invInputMapLocation, 0, 26, 125, IS_MAP));
       this.addSlot(new SlotOutput(tile.invInputResult, 0, 74, 125));
-      this.addSlot(new SlotBase(tile.invOutputPaintbrush, 0, 233, 9));
-      this.addSlot(new SlotBase(tile.invOutputMapLocation, 0, 233, 27));
+      this.addSlot(filtered(tile.invOutputPaintbrush, 0, 233, 9, IS_BRUSH));
+      this.addSlot(filtered(tile.invOutputMapLocation, 0, 233, 27, IS_MAP));
       this.addSlot(new SlotOutput(tile.invOutputResult, 0, 233, 75));
 
       this.addDataSlot(new DataSlot() {
@@ -82,6 +91,15 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
             }
          }
       });
+   }
+
+   private static SlotBase filtered(ItemHandlerSimple inv, int idx, int x, int y, Predicate<ItemStack> accepts) {
+      return new SlotBase(inv, idx, x, y) {
+         @Override
+         public boolean mayPlace(ItemStack stack) {
+            return !stack.isEmpty() && accepts.test(stack) && super.mayPlace(stack);
+         }
+      };
    }
 
    public void sendPaint(int layer, int x, int z, boolean set) {
@@ -183,9 +201,29 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
                plan.readFromByteBuf(buffer);
                this.tile.layers[i] = plan;
             }
+
+            this.clientLayerVersion++;
          }
       } else {
          super.readMessage(id, buffer, isClient, ctx);
+      }
+   }
+
+   /**
+    * Server-side polling hook (run every tick for each open menu). When the tile's painted layers change — from this
+    * player's paint, an import tick, or another player editing — it pushes the full layer set back to this player so
+    * the map updates without re-opening the screen. This also keeps multiplayer viewers in sync.
+    */
+   @Override
+   public void broadcastChanges() {
+      super.broadcastChanges();
+      if (this.tile != null && this.tile.getLevel() != null && !this.tile.getLevel().isClientSide() && this.tile.layersVersion != this.lastLayersVersion) {
+         this.lastLayersVersion = this.tile.layersVersion;
+         this.sendMessage(202, buf -> {
+            for (ZonePlan plan : this.tile.layers) {
+               (plan == null ? new ZonePlan() : plan).writeToByteBuf(buf);
+            }
+         });
       }
    }
 
@@ -263,15 +301,15 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
                rgb = 0;
             }
 
-            heightOut[idx] = topY;
-            colOut[idx] = rgb == 0 ? 0 : 0xFF000000 | shadeByHeight(rgb & 16777215, level, topY);
+            heightOut[idx] = y;
+            colOut[idx] = rgb == 0 ? 0 : 0xFF000000 | shadeByHeight(rgb & 16777215, level, y);
          }
       }
    }
 
-   private static int shadeByHeight(int rgb, Level level, int topY) {
+   private static int shadeByHeight(int rgb, Level level, int surfaceY) {
       int range = level.getHeight();
-      double norm = range <= 0 ? 0.5 : (topY - level.getMinY()) / (double)range;
+      double norm = range <= 0 ? 0.5 : (surfaceY - level.getMinY()) / (double)range;
       norm = Math.max(0.0, Math.min(1.0, norm));
       double shade = 0.6 + 0.4 * norm;
       int r = (int)Math.min(255.0, ((rgb >> 16) & 0xFF) * shade);

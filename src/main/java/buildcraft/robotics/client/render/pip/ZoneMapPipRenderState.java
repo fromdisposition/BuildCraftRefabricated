@@ -25,12 +25,16 @@ public record ZoneMapPipRenderState(
    int viewRadius,
    int overlayColour,
    int[] overlayCells,
+   @Nullable int[] overlayColours,
    boolean hasSelection,
    int selX0,
    int selZ0,
    int selX1,
    int selZ1,
    int selColour,
+   boolean hasHover,
+   int hoverX,
+   int hoverZ,
    int terrainVersion,
    int x0,
    int y0,
@@ -56,12 +60,16 @@ public record ZoneMapPipRenderState(
       int viewRadius,
       int overlayColour,
       int[] overlayCells,
+      @Nullable int[] overlayColours,
       boolean hasSelection,
       int selX0,
       int selZ0,
       int selX1,
       int selZ1,
       int selColour,
+      boolean hasHover,
+      int hoverX,
+      int hoverZ,
       int terrainVersion,
       int x0,
       int y0,
@@ -72,7 +80,8 @@ public record ZoneMapPipRenderState(
    ) {
       this(
          colours, originX, originZ, camX, camZ, camY, pitchDeg, yawDeg, viewRadius, overlayColour, overlayCells,
-         hasSelection, selX0, selZ0, selX1, selZ1, selColour, terrainVersion, x0, y0, x1, y1, scale, scissorArea,
+         overlayColours, hasSelection, selX0, selZ0, selX1, selZ1, selColour, hasHover, hoverX, hoverZ, terrainVersion,
+         x0, y0, x1, y1, scale, scissorArea,
          PictureInPictureRenderState.getBounds(x0, y0, x1, y1, scissorArea)
       );
    }
@@ -111,7 +120,11 @@ public record ZoneMapPipRenderState(
       return new double[]{near.x(), near.y(), near.z(), far.x(), far.y(), far.z()};
    }
 
-   /** Cheap change-stamp; identical stamp across frames lets the renderer reuse the offscreen texture. */
+   /**
+    * Change-stamp; an identical stamp across frames lets the renderer reuse the offscreen texture. It folds the full
+    * painted-overlay content (not just its length) so that any paint/erase/import is reflected immediately instead of
+    * waiting for a pan or zoom.
+    */
    public long renderStamp() {
       long h = 1125899906842597L;
       h = 31L * h + Double.doubleToLongBits(this.camX);
@@ -121,12 +134,27 @@ public record ZoneMapPipRenderState(
       h = 31L * h + Float.floatToIntBits(this.yawDeg);
       h = 31L * h + this.terrainVersion;
       h = 31L * h + this.overlayColour;
-      h = 31L * h + (this.overlayCells == null ? 0 : this.overlayCells.length);
+      if (this.overlayCells != null) {
+         for (int c : this.overlayCells) {
+            h = 31L * h + c;
+         }
+      }
+
+      if (this.overlayColours != null) {
+         for (int c : this.overlayColours) {
+            h = 31L * h + c;
+         }
+      }
+
       h = 31L * h + (this.hasSelection ? 1 : 0);
       h = 31L * h + this.selX0;
       h = 31L * h + this.selZ0;
       h = 31L * h + this.selX1;
       h = 31L * h + this.selZ1;
+      h = 31L * h + this.selColour;
+      h = 31L * h + (this.hasHover ? 1 : 0);
+      h = 31L * h + this.hoverX;
+      h = 31L * h + this.hoverZ;
       return h;
    }
 }

@@ -1,6 +1,7 @@
 package buildcraft.robotics.tile;
 
 import buildcraft.core.BCCore;
+import buildcraft.core.BCCoreItems;
 import buildcraft.core.item.ItemMapLocation;
 import buildcraft.core.item.ItemPaintbrush_BC8;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
@@ -43,6 +44,8 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
    private int progressInput = -1;
    private int progressOutput = -1;
    public ZonePlan[] layers = new ZonePlan[16];
+   /** Bumped whenever {@link #layers} change so open containers can push the update to their clients. Not persisted. */
+   public int layersVersion;
 
    public TileZonePlanner(BlockPos pos, BlockState state) {
       super(BCRoboticsBlockEntities.ZONE_PLANNER, pos, state);
@@ -82,9 +85,10 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
                readZoneFromMap(map, plan);
                BlockPos pos = this.getBlockPos();
                this.layers[layer] = plan.getWithOffset(-pos.getX(), -pos.getZ());
+               this.layersVersion++;
             }
 
-            this.invInputResult.setStackInSlot(0, map.copy());
+            this.invInputResult.setStackInSlot(0, new ItemStack(BCCoreItems.MAP_LOCATION));
             this.invInputMapLocation.setStackInSlot(0, ItemStack.EMPTY);
          }
 
@@ -149,6 +153,7 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
          }
 
          this.layers[layer].set(x, z, set);
+         this.layersVersion++;
          this.setChanged();
       }
    }

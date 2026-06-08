@@ -53,6 +53,12 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private int hoverBlockX;
    private int hoverBlockZ;
    private int hoverBlockY;
+   private int selColourValue = 0xFFFFFFFF;
+   private int cachedOverlayVersion = Integer.MIN_VALUE;
+   private int cachedOverlayLayer = Integer.MIN_VALUE;
+   private int[] cachedOverlayCells = new int[0];
+   private int[] cachedOverlayColours;
+   private int cachedOverlayColour;
 
    public ZonePlannerMapElement(GuiZonePlanner gui, TileZonePlanner tile, int mapOffsetX, int mapOffsetY, int mapW, int mapH) {
       this.gui = gui;
@@ -147,6 +153,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
          this.ensureVisibleChunks(menu, cache);
          if (cache != null) {
             this.updateHover(cache);
+            this.ensureOverlay(menu);
             ZoneMapPipRenderState state = this.buildState(g, cache, true);
             GuiGraphicsCompat.submitPictureInPictureRenderState(g.raw, state);
          }
@@ -181,15 +188,11 @@ public class ZonePlannerMapElement implements IInteractionElement {
       int originX = Mth.floor(this.camX);
       int originZ = Mth.floor(this.camZ);
       int radius = this.viewRadius();
-      int layer = this.activeLayer();
-      int overlayColour = 0;
-      int[] overlayCells = new int[0];
-      if (withContent && this.tile != null && layer >= 0 && layer < this.tile.layers.length) {
-         overlayColour = 0xFF000000 | DyeColor.byId(layer).getTextureDiffuseColor() & 0xFFFFFF;
-         overlayCells = this.collectLayerCells(layer, originX, originZ, radius);
-      }
-
+      int[] overlayCells = withContent ? this.cachedOverlayCells : new int[0];
+      int[] overlayColours = withContent ? this.cachedOverlayColours : null;
+      int overlayColour = withContent ? this.cachedOverlayColour : 0;
       boolean hasSel = withContent && this.selecting;
+      boolean hasHover = withContent && this.hasHover;
       return new ZoneMapPipRenderState(
          cache,
          originX,
@@ -202,12 +205,16 @@ public class ZonePlannerMapElement implements IInteractionElement {
          radius,
          overlayColour,
          overlayCells,
+         overlayColours,
          hasSel,
          this.selStartBX,
          this.selStartBZ,
          this.selEndBX,
          this.selEndBZ,
-         0xFFFFFFFF,
+         this.selColourValue,
+         hasHover,
+         this.hoverBlockX,
+         this.hoverBlockZ,
          cache.globalVersion(),
          this.mapX(),
          this.mapY(),
@@ -218,7 +225,34 @@ public class ZonePlannerMapElement implements IInteractionElement {
       );
    }
 
-   private int[] collectLayerCells(int layer, int originX, int originZ, int radius) {
+   /**
+    * Rebuilds the cached overlay only when the painted layers or the held brush change. With a brush in hand only that
+    * layer is shown; with an empty cursor all sixteen layers are shown at once, each in its own dye colour (BC 8.0).
+    */
+   private void ensureOverlay(ContainerZonePlanner menu) {
+      int layer = this.activeLayer();
+      int version = menu != null ? menu.clientLayerVersion : 0;
+      if (version == this.cachedOverlayVersion && layer == this.cachedOverlayLayer) {
+         return;
+      }
+
+      this.cachedOverlayVersion = version;
+      this.cachedOverlayLayer = layer;
+      if (this.tile == null) {
+         this.cachedOverlayCells = new int[0];
+         this.cachedOverlayColours = null;
+         this.cachedOverlayColour = 0;
+      } else if (layer >= 0 && layer < this.tile.layers.length) {
+         this.cachedOverlayColour = 0xFF000000 | DyeColor.byId(layer).getTextureDiffuseColor() & 0xFFFFFF;
+         this.cachedOverlayCells = this.collectLayerCells(layer);
+         this.cachedOverlayColours = null;
+      } else {
+         this.cachedOverlayColour = 0;
+         this.collectAllLayers();
+      }
+   }
+
+   private int[] collectLayerCells(int layer) {
       ZonePlan plan = this.tile.layers[layer];
       if (plan == null) {
          return new int[0];
@@ -226,24 +260,49 @@ public class ZonePlannerMapElement implements IInteractionElement {
 
       BlockPos tilePos = this.tile.getBlockPos();
       List<int[]> cells = plan.getAll();
-      List<Integer> out = new ArrayList<>();
+      int[] arr = new int[cells.size() * 2];
+      int n = 0;
 
       for (int[] cell : cells) {
-         int wx = cell[0] + tilePos.getX();
-         int wz = cell[1] + tilePos.getZ();
-         if (Math.abs(wx - originX) <= radius && Math.abs(wz - originZ) <= radius) {
-            out.add(wx);
-            out.add(wz);
-         }
-      }
-
-      int[] arr = new int[out.size()];
-
-      for (int i = 0; i < arr.length; i++) {
-         arr[i] = out.get(i);
+         arr[n++] = cell[0] + tilePos.getX();
+         arr[n++] = cell[1] + tilePos.getZ();
       }
 
       return arr;
+   }
+
+   private void collectAllLayers() {
+      BlockPos tilePos = this.tile.getBlockPos();
+      List<Integer> cellsOut = new ArrayList<>();
+      List<Integer> coloursOut = new ArrayList<>();
+
+      for (int layer = 0; layer < this.tile.layers.length; layer++) {
+         ZonePlan plan = this.tile.layers[layer];
+         if (plan != null) {
+            int colour = 0xFF000000 | DyeColor.byId(layer).getTextureDiffuseColor() & 0xFFFFFF;
+
+            for (int[] cell : plan.getAll()) {
+               cellsOut.add(cell[0] + tilePos.getX());
+               cellsOut.add(cell[1] + tilePos.getZ());
+               coloursOut.add(colour);
+            }
+         }
+      }
+
+      int[] cells = new int[cellsOut.size()];
+
+      for (int i = 0; i < cells.length; i++) {
+         cells[i] = cellsOut.get(i);
+      }
+
+      int[] colours = new int[coloursOut.size()];
+
+      for (int i = 0; i < colours.length; i++) {
+         colours[i] = coloursOut.get(i);
+      }
+
+      this.cachedOverlayCells = cells;
+      this.cachedOverlayColours = colours;
    }
 
    private void ensureVisibleChunks(ContainerZonePlanner menu, ZonePlannerMapColours cache) {
@@ -316,14 +375,17 @@ public class ZonePlannerMapElement implements IInteractionElement {
          ContainerZonePlanner menu = this.container();
          ZonePlannerMapColours cache = menu != null ? menu.mapColours : null;
          int layer = this.activeLayer();
-         if (this.tile != null && cache != null && layer >= 0 && (button == 0 || button == 1)) {
-            int[] hit = this.pick(cache, mx, my);
-            if (hit != null) {
-               this.selecting = true;
-               this.selStartBX = hit[0];
-               this.selStartBZ = hit[1];
-               this.selEndBX = hit[0];
-               this.selEndBZ = hit[1];
+         if (layer >= 0) {
+            if (this.tile != null && cache != null && (button == 0 || button == 1)) {
+               int[] hit = this.pick(cache, mx, my);
+               if (hit != null) {
+                  this.selecting = true;
+                  this.selStartBX = hit[0];
+                  this.selStartBZ = hit[1];
+                  this.selEndBX = hit[0];
+                  this.selEndBZ = hit[1];
+                  this.selColourValue = button == 0 ? 0xFF000000 | DyeColor.byId(layer).getTextureDiffuseColor() & 0xFFFFFF : 0xFFFF5555;
+               }
             }
          } else {
             this.panning = true;
@@ -389,6 +451,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
             ContainerZonePlanner menu = this.container();
             if (menu != null) {
                menu.sendPaintRect(layer, rx0, rz0, rx1, rz1, set);
+               menu.clientLayerVersion++;
             }
          }
       }
