@@ -24,10 +24,12 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private static final float PITCH_DEG = 90.0F;
    private static final int PAN_STEP = 4;
    private static final double MIN_DIST = 16.0;
-   private static final double MAX_DIST = 384.0;
+   private static final double MAX_DIST = 180.0;
    private static final double ZOOM_SPEED = 6.0;
    private static final int RETRY_INTERVAL = 60;
    private static final int DEFAULT_HEIGHT = 64;
+   private static final int MARGIN_CHUNKS = 1;
+   private static final int MAX_CHUNK_SPAN = 48;
    private final GuiZonePlanner gui;
    private final TileZonePlanner tile;
    private final int mapOffsetX;
@@ -122,8 +124,32 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return (chunkX & 0xFFFFFFFFL) | (long)chunkZ << 32;
    }
 
-   private int viewRadius() {
-      return Mth.clamp((int)(this.camDist * 0.8) + 8, 24, 96);
+   /**
+    * Computes the rectangular chunk window covered by the (strictly top-down) camera frustum so the terrain fills the
+    * whole wider-than-tall viewport instead of a centred square. Returns {@code {minCX, minCZ, maxCX, maxCZ}}.
+    */
+   private int[] footprintChunkBounds(ZonePlannerMapColours cache) {
+      double groundY = this.focusHeight(cache);
+      double aboveGround = Math.max(8.0, this.camY(cache) - groundY);
+      double halfZ = aboveGround * Math.tan(Math.toRadians(ZoneMapPipRenderState.FOV / 2.0));
+      double halfX = halfZ * ((double)this.mapW / this.mapH);
+      int minCX = Mth.floor((this.camX - halfX) / 16.0) - MARGIN_CHUNKS;
+      int maxCX = Mth.floor((this.camX + halfX) / 16.0) + MARGIN_CHUNKS;
+      int minCZ = Mth.floor((this.camZ - halfZ) / 16.0) - MARGIN_CHUNKS;
+      int maxCZ = Mth.floor((this.camZ + halfZ) / 16.0) + MARGIN_CHUNKS;
+      int cx = Mth.floor(this.camX / 16.0);
+      int cz = Mth.floor(this.camZ / 16.0);
+      if (maxCX - minCX > MAX_CHUNK_SPAN) {
+         minCX = cx - MAX_CHUNK_SPAN / 2;
+         maxCX = cx + MAX_CHUNK_SPAN / 2;
+      }
+
+      if (maxCZ - minCZ > MAX_CHUNK_SPAN) {
+         minCZ = cz - MAX_CHUNK_SPAN / 2;
+         maxCZ = cz + MAX_CHUNK_SPAN / 2;
+      }
+
+      return new int[]{minCX, minCZ, maxCX, maxCZ};
    }
 
    private int focusHeight(ZonePlannerMapColours cache) {
@@ -187,7 +213,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private ZoneMapPipRenderState buildState(BCGraphics g, ZonePlannerMapColours cache, boolean withContent) {
       int originX = Mth.floor(this.camX);
       int originZ = Mth.floor(this.camZ);
-      int radius = this.viewRadius();
+      int[] bounds = this.footprintChunkBounds(cache);
       int[] overlayCells = withContent ? this.cachedOverlayCells : new int[0];
       int[] overlayColours = withContent ? this.cachedOverlayColours : null;
       int overlayColour = withContent ? this.cachedOverlayColour : 0;
@@ -202,7 +228,10 @@ public class ZonePlannerMapElement implements IInteractionElement {
          this.camY(cache),
          PITCH_DEG,
          0.0F,
-         radius,
+         bounds[0],
+         bounds[1],
+         bounds[2],
+         bounds[3],
          overlayColour,
          overlayCells,
          overlayColours,
@@ -312,13 +341,11 @@ public class ZonePlannerMapElement implements IInteractionElement {
             cache.retryMissing();
          }
 
-         int originX = Mth.floor(this.camX);
-         int originZ = Mth.floor(this.camZ);
-         int radius = this.viewRadius();
-         int cx0 = originX - radius >> 4;
-         int cx1 = originX + radius >> 4;
-         int cz0 = originZ - radius >> 4;
-         int cz1 = originZ + radius >> 4;
+         int[] bounds = this.footprintChunkBounds(cache);
+         int cx0 = bounds[0];
+         int cz0 = bounds[1];
+         int cx1 = bounds[2];
+         int cz1 = bounds[3];
          List<Long> missing = new ArrayList<>();
 
          for (int cx = cx0; cx <= cx1; cx++) {

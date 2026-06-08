@@ -11,7 +11,9 @@ import org.joml.Vector4f;
 /**
  * Render-state for the 3D Zone Planner terrain map. Submitted from {@code ZonePlannerMapElement} into the GUI
  * Picture-in-Picture pipeline; drawn by {@link ZoneMapPipRenderer}. All world XZ coordinates are kept relative to
- * {@code originX/originZ} (floor of the camera centre) for float precision; Y stays absolute.
+ * {@code originX/originZ} (floor of the camera centre) for float precision; Y stays absolute. The visible terrain is
+ * described by an explicit rectangular chunk window ({@code minChunkX..maxChunkX} x {@code minChunkZ..maxChunkZ}) so it
+ * fills the whole (wider-than-tall) viewport instead of a centred square.
  */
 public record ZoneMapPipRenderState(
    ZonePlannerMapColours colours,
@@ -22,7 +24,10 @@ public record ZoneMapPipRenderState(
    double camY,
    float pitchDeg,
    float yawDeg,
-   int viewRadius,
+   int minChunkX,
+   int minChunkZ,
+   int maxChunkX,
+   int maxChunkZ,
    int overlayColour,
    int[] overlayCells,
    @Nullable int[] overlayColours,
@@ -57,7 +62,10 @@ public record ZoneMapPipRenderState(
       double camY,
       float pitchDeg,
       float yawDeg,
-      int viewRadius,
+      int minChunkX,
+      int minChunkZ,
+      int maxChunkX,
+      int maxChunkZ,
       int overlayColour,
       int[] overlayCells,
       @Nullable int[] overlayColours,
@@ -79,9 +87,9 @@ public record ZoneMapPipRenderState(
       @Nullable ScreenRectangle scissorArea
    ) {
       this(
-         colours, originX, originZ, camX, camZ, camY, pitchDeg, yawDeg, viewRadius, overlayColour, overlayCells,
-         overlayColours, hasSelection, selX0, selZ0, selX1, selZ1, selColour, hasHover, hoverX, hoverZ, terrainVersion,
-         x0, y0, x1, y1, scale, scissorArea,
+         colours, originX, originZ, camX, camZ, camY, pitchDeg, yawDeg, minChunkX, minChunkZ, maxChunkX, maxChunkZ,
+         overlayColour, overlayCells, overlayColours, hasSelection, selX0, selZ0, selX1, selZ1, selColour, hasHover,
+         hoverX, hoverZ, terrainVersion, x0, y0, x1, y1, scale, scissorArea,
          PictureInPictureRenderState.getBounds(x0, y0, x1, y1, scissorArea)
       );
    }
@@ -132,6 +140,10 @@ public record ZoneMapPipRenderState(
       h = 31L * h + Double.doubleToLongBits(this.camY);
       h = 31L * h + Float.floatToIntBits(this.pitchDeg);
       h = 31L * h + Float.floatToIntBits(this.yawDeg);
+      h = 31L * h + this.minChunkX;
+      h = 31L * h + this.minChunkZ;
+      h = 31L * h + this.maxChunkX;
+      h = 31L * h + this.maxChunkZ;
       h = 31L * h + this.terrainVersion;
       h = 31L * h + this.overlayColour;
       if (this.overlayCells != null) {

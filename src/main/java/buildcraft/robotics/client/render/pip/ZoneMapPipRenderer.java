@@ -18,7 +18,9 @@ import org.joml.Matrix4f;
 
 /** Draws the Zone Planner terrain as a 3D top-down perspective height-field into an offscreen texture. */
 public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRenderState> {
-   private static final float WIRE_THICKNESS = 0.08F;
+   private static final int OVERLAY_ALPHA = 0x55;
+   private static final int SELECTION_ALPHA = 0x99;
+   private static final int HOVER_ALPHA = 0x99;
    private ProjectionMatrixBuffer perspBuffer;
    private ProjectionMatrixBuffer orthoRestoreBuffer;
    private final Projection orthoRestore = new Projection();
@@ -47,6 +49,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
    @Override
    protected void renderToTexture(ZoneMapPipRenderState state, PoseStack poseStack) {
       this.lastStamp = state.renderStamp();
+      this.evictFarMeshes(state);
       Minecraft mc = Minecraft.getInstance();
       int guiScale = (int)mc.getWindow().getGuiScale();
       int width = (state.x1() - state.x0()) * guiScale;
@@ -74,11 +77,10 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
          VertexConsumer vc = this.bufferSource.getBuffer(BCLibRenderTypes.debugSolid());
          int originX = state.originX();
          int originZ = state.originZ();
-         int radius = state.viewRadius();
-         int cx0 = (originX - radius) >> 4;
-         int cx1 = (originX + radius) >> 4;
-         int cz0 = (originZ - radius) >> 4;
-         int cz1 = (originZ + radius) >> 4;
+         int cx0 = state.minChunkX();
+         int cx1 = state.maxChunkX();
+         int cz0 = state.minChunkZ();
+         int cz1 = state.maxChunkZ();
 
          for (int cx = cx0; cx <= cx1; cx++) {
             for (int cz = cz0; cz <= cz1; cz++) {
@@ -90,7 +92,23 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
             }
          }
 
-         this.emitOverlay(state, pose, vc);
+         this.emitOverlay(state, pose);
+      }
+   }
+
+   /** Drops baked meshes well outside the current view so panning across a world does not grow the cache without bound. */
+   private void evictFarMeshes(ZoneMapPipRenderState state) {
+      if (this.meshCache.size() > 1024) {
+         int pad = 2;
+         int minX = state.minChunkX() - pad;
+         int maxX = state.maxChunkX() + pad;
+         int minZ = state.minChunkZ() - pad;
+         int maxZ = state.maxChunkZ() + pad;
+         this.meshCache.keySet().removeIf(key -> {
+            int cx = (int)(key & 0xFFFFFFFFL);
+            int cz = (int)(key >> 32);
+            return cx < minX || cx > maxX || cz < minZ || cz > maxZ;
+         });
       }
    }
 
@@ -110,10 +128,16 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       return mesh;
    }
 
-   private void emitOverlay(ZoneMapPipRenderState state, Pose pose, VertexConsumer vc) {
+   /**
+    * Translucent zone overlays (BC 8.0 look): painted cells as raised semi-transparent cuboids in their layer colour,
+    * the live drag selection in the brush colour, and the hovered block as a highlight cuboid in the block's own colour.
+    * Drawn through a translucent debug render type so terrain shades through and taller terrain occludes correctly.
+    */
+   private void emitOverlay(ZoneMapPipRenderState state, Pose pose) {
       ZonePlannerMapColours cache = state.colours();
       int originX = state.originX();
       int originZ = state.originZ();
+      VertexConsumer vc = this.bufferSource.getBuffer(BCLibRenderTypes.debugFilled());
       int[] cells = state.overlayCells();
       int[] cellColours = state.overlayColours();
       int single = state.overlayColour();
@@ -121,23 +145,13 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
          for (int i = 0; i + 1 < cells.length; i += 2) {
             int colour = cellColours != null && i / 2 < cellColours.length ? cellColours[i / 2] : single;
             if ((colour >>> 24) != 0) {
-               int wx = cells[i];
-               int wz = cells[i + 1];
-               int h = cache.heightAt(chunkKey(wx >> 4, wz >> 4), wx, wz);
-               if (h != ZonePlannerMapColours.NO_HEIGHT) {
-                  float x0 = wx - originX;
-                  float z0 = wz - originZ;
-                  emitTop(vc, pose, x0, z0, x0 + 1.0F, z0 + 1.0F, h + 1.05F, colour >> 16 & 0xFF, colour >> 8 & 0xFF, colour & 0xFF, 255);
-               }
+               this.emitOverlayCell(vc, pose, cache, cells[i], cells[i + 1], originX, originZ, colour, OVERLAY_ALPHA);
             }
          }
       }
 
       if (state.hasSelection()) {
          int sc = state.selColour();
-         int r = sc >> 16 & 0xFF;
-         int g = sc >> 8 & 0xFF;
-         int b = sc & 0xFF;
          int minX = Math.min(state.selX0(), state.selX1());
          int maxX = Math.max(state.selX0(), state.selX1());
          int minZ = Math.min(state.selZ0(), state.selZ1());
@@ -145,12 +159,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
 
          for (int wx = minX; wx <= maxX; wx++) {
             for (int wz = minZ; wz <= maxZ; wz++) {
-               int h = cache.heightAt(chunkKey(wx >> 4, wz >> 4), wx, wz);
-               if (h != ZonePlannerMapColours.NO_HEIGHT) {
-                  float x0 = wx - originX;
-                  float z0 = wz - originZ;
-                  emitTop(vc, pose, x0, z0, x0 + 1.0F, z0 + 1.0F, h + 1.1F, r, g, b, 255);
-               }
+               this.emitOverlayCell(vc, pose, cache, wx, wz, originX, originZ, sc, SELECTION_ALPHA);
             }
          }
       }
@@ -158,26 +167,38 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       if (state.hasHover()) {
          int wx = state.hoverX();
          int wz = state.hoverZ();
-         int h = cache.heightAt(chunkKey(wx >> 4, wz >> 4), wx, wz);
+         long key = chunkKey(wx >> 4, wz >> 4);
+         int h = cache.heightAt(key, wx, wz);
          if (h != ZonePlannerMapColours.NO_HEIGHT) {
-            this.emitWire(vc, pose, wx - originX, wz - originZ, h + 1.15F);
+            int c = cache.colourAt(key, wx, wz);
+            int r = (int)((c >> 16 & 0xFF) * 0.7F);
+            int g = (int)((c >> 8 & 0xFF) * 0.7F);
+            int b = (int)((c & 0xFF) * 0.7F);
+            float x0 = wx - originX;
+            float z0 = wz - originZ;
+            emitFilledCuboid(vc, pose, x0 - 0.04F, z0 - 0.04F, x0 + 1.04F, z0 + 1.04F, h + 0.5F, h + 1.7F, r, g, b, HOVER_ALPHA);
          }
       }
    }
 
-   /** Thin white outline around the top face of the hovered block, drawn from four narrow top quads. */
-   private void emitWire(VertexConsumer vc, Pose pose, float x0, float z0, float y) {
-      float x1 = x0 + 1.0F;
-      float z1 = z0 + 1.0F;
-      float t = WIRE_THICKNESS;
-      emitTop(vc, pose, x0, z0, x1, z0 + t, y, 255, 255, 255, 255);
-      emitTop(vc, pose, x0, z1 - t, x1, z1, y, 255, 255, 255, 255);
-      emitTop(vc, pose, x0, z0 + t, x0 + t, z1 - t, y, 255, 255, 255, 255);
-      emitTop(vc, pose, x1 - t, z0 + t, x1, z1 - t, y, 255, 255, 255, 255);
+   private void emitOverlayCell(VertexConsumer vc, Pose pose, ZonePlannerMapColours cache, int wx, int wz, int originX, int originZ, int colour, int alpha) {
+      int h = cache.heightAt(chunkKey(wx >> 4, wz >> 4), wx, wz);
+      if (h != ZonePlannerMapColours.NO_HEIGHT) {
+         float x0 = wx - originX;
+         float z0 = wz - originZ;
+         emitFilledCuboid(vc, pose, x0, z0, x0 + 1.0F, z0 + 1.0F, h + 1.02F, h + 2.0F, colour >> 16 & 0xFF, colour >> 8 & 0xFF, colour & 0xFF, alpha);
+      }
    }
 
-   private static void emitTop(VertexConsumer vc, Pose pose, float x0, float z0, float x1, float z1, float y, int r, int g, int b, int a) {
-      emitQuad(vc, pose, x0, y, z1, x1, y, z1, x1, y, z0, x0, y, z0, r, g, b, a);
+   /** A raised box (top plus four sides, bottom omitted as it sits on the terrain). */
+   private static void emitFilledCuboid(
+      VertexConsumer vc, Pose pose, float x0, float z0, float x1, float z1, float yb, float yt, int r, int g, int b, int a
+   ) {
+      emitQuad(vc, pose, x0, yt, z1, x1, yt, z1, x1, yt, z0, x0, yt, z0, r, g, b, a);
+      emitQuad(vc, pose, x0, yb, z0, x0, yt, z0, x1, yt, z0, x1, yb, z0, r, g, b, a);
+      emitQuad(vc, pose, x1, yb, z1, x1, yt, z1, x0, yt, z1, x0, yb, z1, r, g, b, a);
+      emitQuad(vc, pose, x0, yb, z1, x0, yt, z1, x0, yt, z0, x0, yb, z0, r, g, b, a);
+      emitQuad(vc, pose, x1, yb, z0, x1, yt, z0, x1, yt, z1, x1, yb, z1, r, g, b, a);
    }
 
    private static void emitQuad(
