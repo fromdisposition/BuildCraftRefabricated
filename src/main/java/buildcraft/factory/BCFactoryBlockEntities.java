@@ -7,6 +7,7 @@
 package buildcraft.factory;
 
 import buildcraft.fabric.BCRegistries;
+import buildcraft.factory.tile.TileAutoWorkbenchFluids;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.factory.tile.TileChute;
 import buildcraft.factory.tile.TileDistiller_BC8;
@@ -19,6 +20,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public final class BCFactoryBlockEntities {
    public static BlockEntityType<TileAutoWorkbenchItems> AUTO_WORKBENCH_ITEMS;
+   public static BlockEntityType<TileAutoWorkbenchFluids> AUTO_WORKBENCH_FLUIDS;
    public static BlockEntityType<TileMiningWell> MINING_WELL;
    public static BlockEntityType<TilePump> PUMP;
    public static BlockEntityType<TileFloodGate> FLOOD_GATE;
@@ -33,6 +35,9 @@ public final class BCFactoryBlockEntities {
    public static void register() {
       AUTO_WORKBENCH_ITEMS = BCRegistries.registerBlockEntity(
          "buildcraftfactory", "autoworkbench_item", TileAutoWorkbenchItems::new, BCFactoryBlocks.AUTOWORKBENCH_ITEM
+      );
+      AUTO_WORKBENCH_FLUIDS = BCRegistries.registerBlockEntity(
+         "buildcraftfactory", "autoworkbench_fluid", TileAutoWorkbenchFluids::new, BCFactoryBlocks.AUTOWORKBENCH_FLUID
       );
       MINING_WELL = BCRegistries.registerBlockEntity("buildcraftfactory", "mining_well", TileMiningWell::new, BCFactoryBlocks.MINING_WELL);
       PUMP = BCRegistries.registerBlockEntity("buildcraftfactory", "pump", TilePump::new, BCFactoryBlocks.PUMP);

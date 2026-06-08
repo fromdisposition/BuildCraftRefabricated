@@ -9,6 +9,7 @@ import buildcraft.factory.client.render.RenderMiningWell;
 import buildcraft.factory.client.render.RenderPump;
 import buildcraft.factory.client.render.RenderTank;
 import buildcraft.factory.client.render.TubeRenderer;
+import buildcraft.factory.gui.GuiAutoCraftFluids;
 import buildcraft.factory.gui.GuiAutoCraftItems;
 import buildcraft.factory.gui.GuiChute;
 import buildcraft.factory.gui.GuiDistiller;
@@ -27,6 +28,7 @@ public final class BCFactoryFabricClient {
 
    public static void init() {
       MenuScreens.register(BCFactoryMenuTypes.AUTO_WORKBENCH_ITEMS, GuiAutoCraftItems::new);
+      MenuScreens.register(BCFactoryMenuTypes.AUTO_WORKBENCH_FLUIDS, GuiAutoCraftFluids::new);
       MenuScreens.register(BCFactoryMenuTypes.TANK, GuiTank::new);
       MenuScreens.register(BCFactoryMenuTypes.CHUTE, GuiChute::new);
       MenuScreens.register(BCFactoryMenuTypes.DISTILLER, GuiDistiller::new);
@@ -47,6 +49,7 @@ public final class BCFactoryFabricClient {
 
    private static void registerTooltips() {
       BCTooltips.addTooltip(BCFactoryItems.AUTOWORKBENCH_ITEM, "tip.block.autoworkbench_item");
+      BCTooltips.addTooltip(BCFactoryItems.AUTOWORKBENCH_FLUID, "tip.block.autoworkbench_fluid");
       BCTooltips.addTooltip(BCFactoryItems.MINING_WELL, "tip.block.mining_well");
       BCTooltips.addTooltip(BCFactoryItems.PUMP, "tip.block.pump");
       BCTooltips.addTooltip(BCFactoryItems.FLOOD_GATE, "tip.block.flood_gate");

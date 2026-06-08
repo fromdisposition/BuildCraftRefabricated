@@ -38,6 +38,8 @@ public class WorkbenchCrafting {
    @Nullable
    private RecipeHolder<CraftingRecipe> currentRecipe;
    private ItemStack assumedResult = ItemStack.EMPTY;
+   @Nullable
+   private IFluidCraftSupport fluidSupport;
 
    public WorkbenchCrafting(
       int width, int height, BcBlockEntity tile, ItemHandlerSimple invBlueprint, ItemHandlerSimple invMaterials, ItemHandlerSimple invResult
@@ -54,6 +56,10 @@ public class WorkbenchCrafting {
 
       this.invMaterials = invMaterials;
       this.invResult = invResult;
+   }
+
+   public void setFluidSupport(@Nullable IFluidCraftSupport fluidSupport) {
+      this.fluidSupport = fluidSupport;
    }
 
    public int getSize() {
@@ -141,8 +147,12 @@ public class WorkbenchCrafting {
          ArrayStackFilter filter = new ArrayStackFilter(entry.getKey().baseStack);
          int count = entry.getValue();
          ItemStack inInventory = this.invMaterials.extract(filter, count, count, true);
-         if (inInventory.isEmpty() || inInventory.getCount() < count) {
-            return false;
+         int have = inInventory.isEmpty() ? 0 : inInventory.getCount();
+         if (have < count) {
+            int missing = count - have;
+            if (this.fluidSupport == null || !this.fluidSupport.canSupply(entry.getKey().baseStack, missing, true)) {
+               return false;
+            }
          }
       }
 
@@ -156,6 +166,10 @@ public class WorkbenchCrafting {
          ItemStack bpt = this.invBlueprint.getStackInSlot(s);
          if (!bpt.isEmpty()) {
             ItemStack stack = this.invMaterials.extract(new ArrayStackFilter(bpt), 1, 1, false);
+            if (stack.isEmpty() && this.fluidSupport != null) {
+               stack = this.fluidSupport.extractForCraft(bpt);
+            }
+
             if (stack.isEmpty()) {
                this.returnItemsToMaterials(gridContents);
                return false;

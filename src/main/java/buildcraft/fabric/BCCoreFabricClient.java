@@ -6,6 +6,7 @@ import buildcraft.core.BCCoreMenuTypes;
 import buildcraft.core.BCCoreModels;
 import buildcraft.core.client.DebugOverlayHelper;
 import buildcraft.core.client.DebugOverlayRenderer;
+import buildcraft.core.client.GogglesZoneRenderer;
 import buildcraft.core.client.VolumeBoxRenderer;
 import buildcraft.core.item.ItemMarkerConnector;
 import buildcraft.core.list.GuiList;
@@ -19,6 +20,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTic
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.resources.Identifier;
@@ -33,7 +35,14 @@ public final class BCCoreFabricClient {
          player -> player.getMainHandItem().getItem() instanceof ItemMarkerConnector || player.getOffhandItem().getItem() instanceof ItemMarkerConnector
       );
       LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES
-         .register((AfterTranslucentFeatures)context -> MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos));
+         .register(
+            (AfterTranslucentFeatures)context -> {
+               MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos);
+               if (Minecraft.getInstance().level != null) {
+                  GogglesZoneRenderer.render(context.poseStack(), context.levelState().cameraRenderState.pos, Minecraft.getInstance().level);
+               }
+            }
+         );
       BlockEntityRenderers.register(BCCoreBlockEntities.ENGINE_REDSTONE, ctx -> new RenderEngine_BC8(BCCoreModels::getWoodEngineQuads));
       BlockEntityRenderers.register(BCCoreBlockEntities.ENGINE_CREATIVE, ctx -> new RenderEngine_BC8(BCCoreModels::getCreativeEngineQuads));
       MenuScreens.register(BCCoreMenuTypes.LIST, GuiList::new);
@@ -50,9 +59,7 @@ public final class BCCoreFabricClient {
             BCTooltips.markDevOnly(BCCoreItems.POWER_TESTER);
          }
 
-         if (BCCoreItems.GOGGLES != null) {
-            BCTooltips.markDevOnly(BCCoreItems.GOGGLES);
-         }
       }
+      BCTooltips.addTooltip(BCCoreItems.GOGGLES, "tip.item.goggles");
    }
 }

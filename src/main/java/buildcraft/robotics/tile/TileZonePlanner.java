@@ -124,7 +124,7 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
             result.setCount(1);
             if (layer >= 0) {
                BlockPos pos = this.getBlockPos();
-               writeZoneToMap(result, this.layers[layer].getWithOffset(pos.getX(), pos.getZ()));
+               writeZoneToMap(result, this.layers[layer].getWithOffset(pos.getX(), pos.getZ()), layer);
             }
 
             this.invOutputResult.setStackInSlot(0, result);
@@ -198,11 +198,16 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
       }
    }
 
-   private static void writeZoneToMap(ItemStack map, ZonePlan plan) {
+   private static void writeZoneToMap(ItemStack map, ZonePlan plan, int layer) {
       CustomData existing = (CustomData)map.get(DataComponents.CUSTOM_DATA);
       CompoundTag tag = existing == null ? new CompoundTag() : existing.copyTag();
       plan.writeToNBT(tag);
       tag.putString("mapType", "ZONE");
+      if (layer >= 0 && layer < 16) {
+         tag.putInt("layer", layer);
+         tag.putInt("layerColour", DyeColor.byId(layer).getTextureDiffuseColor() & 0xFFFFFF);
+      }
+
       map.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
       map.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(4.0F), List.of(), List.of(), List.of()));
    }

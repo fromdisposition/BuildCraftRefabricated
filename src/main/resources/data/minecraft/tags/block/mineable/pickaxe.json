@@ -14,6 +14,7 @@
     "buildcraftenergy:engine_rf",
     "buildcraftenergy:mj_dynamo",
     "buildcraftfactory:autoworkbench_item",
+    "buildcraftfactory:autoworkbench_fluid",
     "buildcraftfactory:mining_well",
     "buildcraftfactory:pump",
     "buildcraftfactory:flood_gate",

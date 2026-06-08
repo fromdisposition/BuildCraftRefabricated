@@ -5,6 +5,7 @@ import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.BCFactoryBlocks;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.factory.BCFactoryMenuTypes;
+import buildcraft.factory.tile.TileAutoWorkbenchFluids;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.factory.tile.TileChute;
 import buildcraft.factory.tile.TileDistiller_BC8;
@@ -69,6 +70,16 @@ public final class BCFactoryFabric {
             (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchItems workbench ? workbench.getSidedItemStorage(direction) : null,
             BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS
          );
+      ItemStorage.SIDED
+         .registerForBlockEntity(
+            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedItemStorage(direction) : null,
+            BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
+         );
+      FluidStorage.SIDED
+         .registerForBlockEntity(
+            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedFluidStorage(direction) : null,
+            BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
+         );
       EnergyStorage.SIDED
          .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TileMiner miner ? miner.getSidedEnergyStorage() : null, BCFactoryBlockEntities.MINING_WELL
@@ -95,6 +106,8 @@ public final class BCFactoryFabric {
    private static void registerMjCapabilities() {
       MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS, (workbench, direction) -> workbench.getMjReceiver());
       MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS, (workbench, direction) -> workbench.getMjReceiver());
+      MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS, (workbench, direction) -> workbench.getMjReceiver());
+      MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS, (workbench, direction) -> workbench.getMjReceiver());
       MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.MINING_WELL, (miner, direction) -> miner.getMjReceiver());
       MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.MINING_WELL, (miner, direction) -> miner.getMjReceiver());
       MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.PUMP, (pump, direction) -> pump.getMjReceiver());
