@@ -8,6 +8,7 @@ package buildcraft.lib.client.guide.ref;
 
 import buildcraft.lib.client.guide.entry.PageValue;
 import buildcraft.lib.misc.LocaleUtil;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,17 +35,13 @@ public final class GuideGroupSet {
    }
 
    public GuideGroupSet addSingle(Object value) {
-      PageValue<?> entry = GuideGroupManager.toPageValue(value);
-      if (entry != null) {
-         this.entries.add(entry);
-      }
-
+      this.forEachFlattened(value, this::addSingleElement);
       return this;
    }
 
    public GuideGroupSet addArray(Object... values) {
       for (Object value : values) {
-         this.addSingle(value);
+         this.forEachFlattened(value, this::addSingleElement);
       }
 
       return this;
@@ -52,24 +49,20 @@ public final class GuideGroupSet {
 
    public GuideGroupSet addCollection(Collection<? extends Object> values) {
       for (Object value : values) {
-         this.addSingle(value);
+         this.forEachFlattened(value, this::addSingleElement);
       }
 
       return this;
    }
 
    public GuideGroupSet addKey(Object value) {
-      PageValue<?> entry = GuideGroupManager.toPageValue(value);
-      if (entry != null) {
-         this.sources.add(entry);
-      }
-
+      this.forEachFlattened(value, this::addKeyElement);
       return this;
    }
 
    public GuideGroupSet addKeyArray(Object... values) {
       for (Object value : values) {
-         this.addKey(value);
+         this.forEachFlattened(value, this::addKeyElement);
       }
 
       return this;
@@ -77,10 +70,36 @@ public final class GuideGroupSet {
 
    public GuideGroupSet addKeyCollection(Collection<? extends Object> values) {
       for (Object value : values) {
-         this.addKey(value);
+         this.forEachFlattened(value, this::addKeyElement);
       }
 
       return this;
+   }
+
+   private void addSingleElement(Object value) {
+      PageValue<?> entry = GuideGroupManager.toPageValue(value);
+      if (entry != null) {
+         this.entries.add(entry);
+      }
+   }
+
+   private void addKeyElement(Object value) {
+      PageValue<?> entry = GuideGroupManager.toPageValue(value);
+      if (entry != null) {
+         this.sources.add(entry);
+      }
+   }
+
+   private void forEachFlattened(Object value, java.util.function.Consumer<Object> consumer) {
+      if (value != null && value.getClass().isArray()) {
+         int length = Array.getLength(value);
+
+         for (int i = 0; i < length; i++) {
+            consumer.accept(Array.get(value, i));
+         }
+      } else {
+         consumer.accept(value);
+      }
    }
 
    public enum GroupDirection {

@@ -9,7 +9,9 @@ package buildcraft.transport.wire;
 import buildcraft.api.transport.EnumWirePart;
 import buildcraft.api.transport.IWireEmitter;
 import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.net.BcPacketDistributor;
+import buildcraft.silicon.plug.PluggableGate;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import java.util.ArrayList;
@@ -22,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.Identifier;
@@ -77,6 +81,26 @@ public class SavedDataWireSystems extends SavedData {
 
    public void markSystemPowerDirty(WireSystem wireSystem) {
       this.systemsNeedingPowerUpdate.add(wireSystem);
+   }
+
+   private void wakeGatesForWireSystem(WireSystem wireSystem) {
+      Set<BlockPos> visited = new HashSet<>();
+
+      for (WireSystem.WireElement element : wireSystem.elements) {
+         BlockPos pos = element.blockPos;
+         if (!visited.add(pos) || !(this.world.getBlockEntity(pos) instanceof IPipeHolder holder)) {
+            continue;
+         }
+
+         holder.wakePipe();
+
+         for (Direction side : Direction.values()) {
+            PipePluggable plug = holder.getPluggable(side);
+            if (plug instanceof PluggableGate gate) {
+               gate.logic.markResolveDirty();
+            }
+         }
+      }
    }
 
    private void indexWireSystem(WireSystem wireSystem) {
@@ -268,6 +292,7 @@ public class SavedDataWireSystems extends SavedData {
                         boolean newPowered = wireSystem.update(this);
                         if (oldPowered != newPowered) {
                            this.changedSystems.add(wireSystem);
+                           this.wakeGatesForWireSystem(wireSystem);
                         }
 
                         this.wireSystems.put(wireSystem, newPowered);

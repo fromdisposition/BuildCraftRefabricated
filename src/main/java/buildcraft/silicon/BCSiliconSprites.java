@@ -28,12 +28,16 @@ public class BCSiliconSprites {
       return SpriteHolderRegistry.getHolder("buildcraftsilicon:" + loc);
    }
 
+   private static SpriteHolderRegistry.SpriteHolder getCoreTextureHolder(String loc) {
+      return SpriteHolderRegistry.getHolder("buildcraftcore:textures/" + loc);
+   }
+
    public static void preInit() {
    }
 
    static {
       for (DyeColor colour : ColourUtil.COLOURS) {
-         ACTION_PIPE_COLOUR[colour.ordinal()] = getHolder("core", "item/paintbrush/" + colour.getName());
+         ACTION_PIPE_COLOUR[colour.ordinal()] = getCoreTextureHolder("item/paintbrush/" + colour.getName());
       }
    }
 }

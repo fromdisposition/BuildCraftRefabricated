@@ -13,7 +13,6 @@ import buildcraft.lib.gui.help.DummyHelpElement;
 import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.robotics.container.ContainerRequester;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -49,12 +48,5 @@ public class GuiRequester extends BcScreen<ContainerRequester> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
-   }
-
-   @Override
-   protected void drawForegroundLayer() {
-      BCGraphics graphics = GuiIcon.getGuiGraphics();
-      String title = I18n.get("block.buildcraftrobotics.requester", new Object[0]);
-      graphics.text(this.font, title, (this.imageWidth - this.font.width(title)) / 2, 6, -12566464, false);
    }
 }

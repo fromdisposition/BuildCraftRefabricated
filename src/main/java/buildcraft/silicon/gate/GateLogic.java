@@ -31,6 +31,10 @@ import buildcraft.lib.statement.ActionWrapper;
 import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.statement.TriggerWrapper;
 import buildcraft.silicon.plug.PluggableGate;
+import buildcraft.silicon.statement.TriggerTimer;
+import buildcraft.transport.statements.TriggerParameterSignal;
+import buildcraft.transport.statements.TriggerPipeEmpty;
+import buildcraft.transport.statements.TriggerPipeSignal;
 import buildcraft.transport.wire.SavedDataWireSystems;
 import buildcraft.transport.wire.WireSystem;
 import java.io.IOException;
@@ -432,16 +436,22 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
    private boolean hasPollingTrigger() {
       for (GateLogic.StatementPair pair : this.statements) {
          TriggerWrapper trigger = pair.trigger.get();
-         if (trigger != null) {
-            IStatement delegate = trigger.delegate;
-            String id = delegate.getUniqueTag();
-            if (id != null && id.contains("timer")) {
-               return true;
-            }
+         if (trigger != null && triggerRequiresPolling(trigger.delegate, pair.trigger.getParameters())) {
+            return true;
+         }
+      }
 
-            if (id != null && (id.contains("pipesignal") || id.contains("pipe_empty"))) {
-               return true;
-            }
+      return false;
+   }
+
+   private static boolean triggerRequiresPolling(IStatement delegate, IStatementParameter[] parameters) {
+      if (delegate instanceof TriggerTimer || delegate instanceof TriggerPipeSignal || delegate instanceof TriggerPipeEmpty) {
+         return true;
+      }
+
+      for (IStatementParameter parameter : parameters) {
+         if (parameter instanceof TriggerParameterSignal signal && signal.colour != null) {
+            return true;
          }
       }
 
