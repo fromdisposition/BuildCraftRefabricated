@@ -13,4 +13,8 @@ public interface IInteractionElement extends IGuiElement {
    default boolean onKeyPress(char typedChar, int keyCode) {
       return false;
    }
+
+   default boolean onMouseScroll(double amount) {
+      return false;
+   }
 }

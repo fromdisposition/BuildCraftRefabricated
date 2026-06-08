@@ -222,6 +222,26 @@ public class BuildCraftGui {
       }
    }
 
+   public boolean onMouseScroll(int mouseX, int mouseY, double amount) {
+      this.mouse.setMousePosition(mouseX, mouseY);
+      boolean handled = false;
+      IMenuElement m = this.currentMenu;
+      if (m != null) {
+         handled = m.onMouseScroll(amount);
+         if (m.shouldFullyOverride()) {
+            return handled;
+         }
+      }
+
+      for (IGuiElement element : this.shownElements) {
+         if (element instanceof IInteractionElement) {
+            handled |= ((IInteractionElement)element).onMouseScroll(amount);
+         }
+      }
+
+      return handled;
+   }
+
    public boolean onKeyTyped(char typedChar, int keyCode) {
       boolean action = false;
       IMenuElement m = this.currentMenu;

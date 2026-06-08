@@ -2,54 +2,79 @@ package buildcraft.robotics.gui;
 
 import buildcraft.core.BCCore;
 import buildcraft.core.item.ItemPaintbrush_BC8;
-import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.GuiIcon;
 import buildcraft.lib.gui.IInteractionElement;
 import buildcraft.robotics.container.ContainerZonePlanner;
 import buildcraft.robotics.tile.TileZonePlanner;
 import buildcraft.robotics.zone.ZonePlan;
+import buildcraft.robotics.zone.ZonePlannerMapColours;
+import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap.Types;
 
 public class ZonePlannerMapElement implements IInteractionElement {
-   private static final int SCALE = 3;
    private static final int PAN_STEP = 4;
+   private static final int MIN_SCALE = 1;
+   private static final int MAX_SCALE = 8;
    private static final int UNLOADED_COLOUR = -15724528;
+   private static final int RETRY_INTERVAL = 60;
    private final GuiZonePlanner gui;
    private final TileZonePlanner tile;
    private final int mapOffsetX;
    private final int mapOffsetY;
-   private final int mapW;
-   private final int mapH;
-   private final int viewW;
-   private final int viewH;
+   private final int boundsW;
+   private final int boundsH;
+   private int scale = 3;
+   private int mapW;
+   private int mapH;
+   private int viewW;
+   private int viewH;
    private int centerX;
    private int centerZ;
-   private int[] colourCache;
-   private int cacheCenterX = Integer.MIN_VALUE;
-   private int cacheCenterZ = Integer.MIN_VALUE;
+   private int retryCounter;
+   private boolean panning;
+   private double panStartMouseX;
+   private double panStartMouseY;
+   private int panStartCenterX;
+   private int panStartCenterZ;
+   private boolean selecting;
+   private int selStartBX;
+   private int selStartBZ;
+   private int selEndBX;
+   private int selEndBZ;
+   private boolean hasHover;
+   private int hoverBlockX;
+   private int hoverBlockZ;
+   private int hoverBlockY;
 
    public ZonePlannerMapElement(GuiZonePlanner gui, TileZonePlanner tile, int mapOffsetX, int mapOffsetY, int mapW, int mapH) {
       this.gui = gui;
       this.tile = tile;
       this.mapOffsetX = mapOffsetX;
       this.mapOffsetY = mapOffsetY;
-      this.viewW = mapW / 3;
-      this.viewH = mapH / 3;
-      this.mapW = this.viewW * 3;
-      this.mapH = this.viewH * 3;
+      this.boundsW = mapW;
+      this.boundsH = mapH;
+      this.recomputeView();
       if (tile != null) {
          BlockPos pos = tile.getBlockPos();
          this.centerX = pos.getX();
          this.centerZ = pos.getZ();
       }
+   }
+
+   private void recomputeView() {
+      this.viewW = this.boundsW / this.scale;
+      this.viewH = this.boundsH / this.scale;
+      this.mapW = this.viewW * this.scale;
+      this.mapH = this.viewH * this.scale;
+   }
+
+   private ContainerZonePlanner container() {
+      return this.gui.getMenu() instanceof ContainerZonePlanner c ? c : null;
    }
 
    private int activeLayer() {
@@ -92,6 +117,10 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return this.mapH;
    }
 
+   private static long chunkKey(int chunkX, int chunkZ) {
+      return (chunkX & 0xFFFFFFFFL) | ((long)chunkZ << 32);
+   }
+
    private int firstBlockX() {
       return this.centerX - this.viewW / 2;
    }
@@ -104,18 +133,31 @@ public class ZonePlannerMapElement implements IInteractionElement {
    public void drawBackground(float partialTicks) {
       BCGraphics g = GuiIcon.getGuiGraphics();
       if (g != null) {
-         this.ensureCache();
+         ContainerZonePlanner menu = this.container();
+         ZonePlannerMapColours cache = menu != null ? menu.mapColours : null;
+         this.ensureVisibleChunks(menu, cache);
          int ox = this.mapX();
          int oy = this.mapY();
+         int bx0 = this.firstBlockX();
+         int bz0 = this.firstBlockZ();
          g.enableScissor(ox, oy, ox + this.mapW, oy + this.mapH);
-         if (this.colourCache != null) {
-            for (int j = 0; j < this.viewH; j++) {
-               for (int i = 0; i < this.viewW; i++) {
-                  int colour = this.colourCache[j * this.viewW + i];
-                  int sx = ox + i * 3;
-                  int sy = oy + j * 3;
-                  g.fill(sx, sy, sx + 3, sy + 3, colour);
+
+         for (int j = 0; j < this.viewH; j++) {
+            for (int i = 0; i < this.viewW; i++) {
+               int wx = bx0 + i;
+               int wz = bz0 + j;
+               int colour = UNLOADED_COLOUR;
+               if (cache != null) {
+                  long key = chunkKey(wx >> 4, wz >> 4);
+                  int cached = cache.colourAt(key, wx, wz);
+                  if (cached != 0) {
+                     colour = cached;
+                  }
                }
+
+               int sx = ox + i * this.scale;
+               int sy = oy + j * this.scale;
+               g.fill(sx, sy, sx + this.scale, sy + this.scale, colour);
             }
          }
 
@@ -129,19 +171,25 @@ public class ZonePlannerMapElement implements IInteractionElement {
                   this.drawLayerCells(g, plan, ox, oy, argb);
                }
             }
+
+            if (this.selecting) {
+               this.drawSelection(g, ox, oy);
+            }
          }
 
          g.disableScissor();
+         this.updateHover(menu);
          int planX = this.tile != null ? this.tile.getBlockPos().getX() : this.centerX;
          int planZ = this.tile != null ? this.tile.getBlockPos().getZ() : this.centerZ;
          if (this.inView(planX, planZ)) {
-            int sx = ox + (planX - this.firstBlockX()) * 3;
-            int sy = oy + (planZ - this.firstBlockZ()) * 3;
-            g.fill(sx - 1, sy, sx + 3 + 1, sy + 3, -1);
-            g.fill(sx, sy - 1, sx + 3, sy + 3 + 1, -1);
+            int sx = ox + (planX - bx0) * this.scale;
+            int sy = oy + (planZ - bz0) * this.scale;
+            g.fill(sx - 1, sy, sx + this.scale + 1, sy + this.scale, -1);
+            g.fill(sx, sy - 1, sx + this.scale, sy + this.scale + 1, -1);
          }
 
          drawBorder(g, ox, oy, this.mapW, this.mapH, -16777216);
+         this.drawHover(g, ox, oy);
       }
    }
 
@@ -155,10 +203,40 @@ public class ZonePlannerMapElement implements IInteractionElement {
          int dx = cell[0] + tilePos.getX() - bx0;
          int dz = cell[1] + tilePos.getZ() - bz0;
          if (dx >= 0 && dz >= 0 && dx < this.viewW && dz < this.viewH) {
-            int sx = ox + dx * 3;
-            int sy = oy + dz * 3;
-            g.fill(sx, sy, sx + 3, sy + 3, argb);
+            int sx = ox + dx * this.scale;
+            int sy = oy + dz * this.scale;
+            g.fill(sx, sy, sx + this.scale, sy + this.scale, argb);
          }
+      }
+   }
+
+   private void drawSelection(BCGraphics g, int ox, int oy) {
+      int bx0 = this.firstBlockX();
+      int bz0 = this.firstBlockZ();
+      int minX = Math.min(this.selStartBX, this.selEndBX);
+      int maxX = Math.max(this.selStartBX, this.selEndBX);
+      int minZ = Math.min(this.selStartBZ, this.selEndBZ);
+      int maxZ = Math.max(this.selStartBZ, this.selEndBZ);
+      int sx = ox + (minX - bx0) * this.scale;
+      int sy = oy + (minZ - bz0) * this.scale;
+      int ex = ox + (maxX - bx0 + 1) * this.scale;
+      int ey = oy + (maxZ - bz0 + 1) * this.scale;
+      int colour = -1;
+      g.fill(sx, sy, ex, sy + 1, colour);
+      g.fill(sx, ey - 1, ex, ey, colour);
+      g.fill(sx, sy, sx + 1, ey, colour);
+      g.fill(ex - 1, sy, ex, ey, colour);
+   }
+
+   private void drawHover(BCGraphics g, int ox, int oy) {
+      if (this.hasHover) {
+         String text = "X:" + this.hoverBlockX + " Z:" + this.hoverBlockZ + (this.hoverBlockY != Integer.MIN_VALUE ? " Y:" + this.hoverBlockY : "");
+         Minecraft mc = Minecraft.getInstance();
+         int tw = mc.font.width(text);
+         int tx = ox + 2;
+         int ty = oy + this.mapH - mc.font.lineHeight - 2;
+         g.fill(tx - 1, ty - 1, tx + tw + 1, ty + mc.font.lineHeight, -1610612736);
+         g.text(mc.font, text, tx, ty, -1);
       }
    }
 
@@ -175,120 +253,180 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return dx >= 0 && dz >= 0 && dx < this.viewW && dz < this.viewH;
    }
 
-   private void ensureCache() {
-      if (this.colourCache == null || this.cacheCenterX != this.centerX || this.cacheCenterZ != this.centerZ) {
-         this.colourCache = new int[this.viewW * this.viewH];
-         Level level = this.tile != null ? this.tile.getLevel() : null;
+   private void ensureVisibleChunks(ContainerZonePlanner menu, ZonePlannerMapColours cache) {
+      if (menu != null && cache != null) {
+         if (++this.retryCounter >= RETRY_INTERVAL) {
+            this.retryCounter = 0;
+            cache.retryMissing();
+         }
+
          int bx0 = this.firstBlockX();
          int bz0 = this.firstBlockZ();
-         MutableBlockPos mpos = new MutableBlockPos();
+         int cx0 = bx0 >> 4;
+         int cx1 = (bx0 + this.viewW - 1) >> 4;
+         int cz0 = bz0 >> 4;
+         int cz1 = (bz0 + this.viewH - 1) >> 4;
+         List<Long> missing = new ArrayList<>();
 
-         for (int j = 0; j < this.viewH; j++) {
-            for (int i = 0; i < this.viewW; i++) {
-               int wx = bx0 + i;
-               int wz = bz0 + j;
-               this.colourCache[j * this.viewW + i] = sampleColumn(level, wx, wz, mpos);
+         for (int cx = cx0; cx <= cx1; cx++) {
+            for (int cz = cz0; cz <= cz1; cz++) {
+               long key = chunkKey(cx, cz);
+               if (!cache.hasData(key) && !cache.isRequested(key)) {
+                  cache.markRequested(key);
+                  missing.add(key);
+               }
             }
          }
 
-         this.cacheCenterX = this.centerX;
-         this.cacheCenterZ = this.centerZ;
+         menu.requestChunks(missing);
       }
    }
 
-   private static int sampleColumn(Level level, int wx, int wz, MutableBlockPos mpos) {
-      if (level == null) {
-         return -15724528;
-      }
-
-      mpos.set(wx, level.getMinY(), wz);
-      if (!Mc26Compat.isChunkLoaded(level, mpos)) {
-         return -15724528;
-      }
-
-      int topY = level.getHeight(Types.WORLD_SURFACE, wx, wz);
-      int y = Math.max(level.getMinY(), topY - 1);
-      mpos.set(wx, y, wz);
-      BlockState state = level.getBlockState(mpos);
-
-      int rgb;
-      try {
-         rgb = state.getMapColor(level, mpos).col;
-      } catch (Throwable t) {
-         rgb = 0;
-      }
-
-      if (rgb == 0) {
-         return -15724528;
-      }
-
-      return 0xFF000000 | shadeByHeight(rgb & 16777215, level, topY);
+   private int blockXAt(double mx) {
+      return this.firstBlockX() + (int)Math.floor((mx - this.mapX()) / this.scale);
    }
 
-   private static int shadeByHeight(int rgb, Level level, int topY) {
-      int range = level.getHeight();
-      double norm = range <= 0 ? 0.5 : (topY - level.getMinY()) / (double)range;
-      norm = Math.max(0.0, Math.min(1.0, norm));
-      double shade = 0.6 + 0.4 * norm;
-      int r = (int)Math.min(255.0, ((rgb >> 16) & 0xFF) * shade);
-      int g = (int)Math.min(255.0, ((rgb >> 8) & 0xFF) * shade);
-      int b = (int)Math.min(255.0, (rgb & 0xFF) * shade);
-      return r << 16 | g << 8 | b;
+   private int blockZAt(double my) {
+      return this.firstBlockZ() + (int)Math.floor((my - this.mapY()) / this.scale);
+   }
+
+   private boolean inBounds(double mx, double my) {
+      int ox = this.mapX();
+      int oy = this.mapY();
+      return mx >= ox && my >= oy && mx < ox + this.mapW && my < oy + this.mapH;
    }
 
    @Override
    public void onMouseClicked(int button) {
       double mx = this.gui.mainGui.mouse.getX();
       double my = this.gui.mainGui.mouse.getY();
-      this.paintAt(mx, my, button);
+      if (this.inBounds(mx, my)) {
+         int layer = this.activeLayer();
+         if (this.tile != null && layer >= 0 && (button == 0 || button == 1)) {
+            this.selecting = true;
+            this.selStartBX = this.blockXAt(mx);
+            this.selStartBZ = this.blockZAt(my);
+            this.selEndBX = this.selStartBX;
+            this.selEndBZ = this.selStartBZ;
+         } else {
+            this.panning = true;
+            this.panStartMouseX = mx;
+            this.panStartMouseY = my;
+            this.panStartCenterX = this.centerX;
+            this.panStartCenterZ = this.centerZ;
+         }
+      }
    }
 
    @Override
    public void onMouseDragged(int button, long ticksSinceClick) {
-      this.paintAt(this.gui.mainGui.mouse.getX(), this.gui.mainGui.mouse.getY(), button);
+      double mx = this.gui.mainGui.mouse.getX();
+      double my = this.gui.mainGui.mouse.getY();
+      if (this.selecting) {
+         this.selEndBX = this.blockXAt(mx);
+         this.selEndBZ = this.blockZAt(my);
+      } else if (this.panning) {
+         this.centerX = this.panStartCenterX - (int)((mx - this.panStartMouseX) / this.scale);
+         this.centerZ = this.panStartCenterZ - (int)((my - this.panStartMouseY) / this.scale);
+      }
    }
 
-   private void paintAt(double mx, double my, int button) {
-      int ox = this.mapX();
-      int oy = this.mapY();
-      if (!(mx < ox) && !(my < oy) && !(mx >= ox + this.mapW) && !(my >= oy + this.mapH)) {
-         if (this.tile != null) {
-            int layer = this.activeLayer();
-            if (layer >= 0 && (button == 0 || button == 1)) {
-               int i = (int)((mx - ox) / 3.0);
-               int j = (int)((my - oy) / 3.0);
-               BlockPos tilePos = this.tile.getBlockPos();
-               int rx = this.firstBlockX() + i - tilePos.getX();
-               int rz = this.firstBlockZ() + j - tilePos.getZ();
-               boolean set = button == 0;
-               if (this.tile.layers[layer] == null) {
-                  this.tile.layers[layer] = new ZonePlan();
-               }
+   @Override
+   public void onMouseReleased(int button) {
+      if (this.selecting && this.tile != null) {
+         int layer = this.activeLayer();
+         if (layer >= 0) {
+            boolean set = button == 0;
+            BlockPos tilePos = this.tile.getBlockPos();
+            int rx0 = this.selStartBX - tilePos.getX();
+            int rz0 = this.selStartBZ - tilePos.getZ();
+            int rx1 = this.selEndBX - tilePos.getX();
+            int rz1 = this.selEndBZ - tilePos.getZ();
+            if (this.tile.layers[layer] == null) {
+               this.tile.layers[layer] = new ZonePlan();
+            }
 
-               this.tile.layers[layer].set(rx, rz, set);
-               ((ContainerZonePlanner)this.gui.getMenu()).sendPaint(layer, rx, rz, set);
+            int minX = Math.min(rx0, rx1);
+            int maxX = Math.max(rx0, rx1);
+            int minZ = Math.min(rz0, rz1);
+            int maxZ = Math.max(rz0, rz1);
+
+            for (int x = minX; x <= maxX; x++) {
+               for (int z = minZ; z <= maxZ; z++) {
+                  this.tile.layers[layer].set(x, z, set);
+               }
+            }
+
+            ContainerZonePlanner menu = this.container();
+            if (menu != null) {
+               menu.sendPaintRect(layer, rx0, rz0, rx1, rz1, set);
             }
          }
       }
+
+      this.selecting = false;
+      this.panning = false;
+   }
+
+   @Override
+   public boolean onMouseScroll(double amount) {
+      double mx = this.gui.mainGui.mouse.getX();
+      double my = this.gui.mainGui.mouse.getY();
+      if (!this.inBounds(mx, my)) {
+         return false;
+      }
+
+      int oldScale = this.scale;
+      int newScale = amount > 0.0 ? this.scale + 1 : this.scale - 1;
+      newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+      if (newScale == oldScale) {
+         return true;
+      }
+
+      int focusX = this.blockXAt(mx);
+      int focusZ = this.blockZAt(my);
+      this.scale = newScale;
+      this.recomputeView();
+      this.centerX = focusX;
+      this.centerZ = focusZ;
+      return true;
    }
 
    @Override
    public boolean onKeyPress(char typedChar, int keyCode) {
       switch (keyCode) {
          case 262:
-            this.centerX += 4;
+            this.centerX += PAN_STEP;
             return true;
          case 263:
-            this.centerX -= 4;
+            this.centerX -= PAN_STEP;
             return true;
          case 264:
-            this.centerZ += 4;
+            this.centerZ += PAN_STEP;
             return true;
          case 265:
-            this.centerZ -= 4;
+            this.centerZ -= PAN_STEP;
             return true;
          default:
             return false;
+      }
+   }
+
+   private void updateHover(ContainerZonePlanner menu) {
+      double mx = this.gui.mainGui.mouse.getX();
+      double my = this.gui.mainGui.mouse.getY();
+      if (this.inBounds(mx, my)) {
+         this.hasHover = true;
+         this.hoverBlockX = this.blockXAt(mx);
+         this.hoverBlockZ = this.blockZAt(my);
+         if (menu != null) {
+            long key = chunkKey(this.hoverBlockX >> 4, this.hoverBlockZ >> 4);
+            this.hoverBlockY = menu.mapColours.heightAt(key, this.hoverBlockX, this.hoverBlockZ);
+         } else {
+            this.hoverBlockY = Integer.MIN_VALUE;
+         }
+      } else {
+         this.hasHover = false;
       }
    }
 }

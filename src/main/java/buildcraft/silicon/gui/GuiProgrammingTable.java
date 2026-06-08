@@ -45,6 +45,22 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
                new ElementHelpInfo("buildcraft.help.programming_table.options.title", -7811960, "buildcraft.help.programming_table.options.desc")
             )
          );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               RECT_PROGRESS.offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.programming_table.power.title", -2249985, "buildcraft.help.programming_table.power.desc")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(8.0, 90.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.programming_table.output.title", -10665929, "buildcraft.help.programming_table.output.desc")
+            )
+         );
    }
 
    @Override

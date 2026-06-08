@@ -125,6 +125,11 @@ public abstract class BcScreen<C extends BcMenu> extends AbstractContainerScreen
       return super.mouseDragged(event, dragX, dragY);
    }
 
+   @Override
+   public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+      return this.mainGui.onMouseScroll((int)mouseX, (int)mouseY, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+   }
+
    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
       BCGraphics bcg = new BCGraphics(graphics);
       GuiIcon.setGuiGraphics(bcg);
