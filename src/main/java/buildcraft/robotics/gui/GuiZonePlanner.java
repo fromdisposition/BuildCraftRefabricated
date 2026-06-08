@@ -79,15 +79,53 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
    protected void initGuiElements() {
       TileZonePlanner tile = ((ContainerZonePlanner)this.getMenu()).tile;
       this.mainGui.shownElements.add(new ZonePlannerMapElement(this, tile, MAP_X, MAP_Y, MAP_W, MAP_H));
-      this.mainGui
-         .shownElements
-         .add(
-            new DummyHelpElement(
-               new GuiRectangle((double)MAP_X, (double)MAP_Y, (double)MAP_W, (double)MAP_H).offset(this.mainGui.rootElement),
-               new ElementHelpInfo(
-                  "buildcraft.help.zone_planner.map.title", -7811960, "buildcraft.help.zone_planner.map.desc1", "buildcraft.help.zone_planner.map.desc2"
-               )
-            )
-         );
+      this.addHelp(
+         new GuiRectangle((double)MAP_X, (double)MAP_Y, (double)MAP_W, (double)MAP_H),
+         new ElementHelpInfo(
+            "buildcraft.help.zone_planner.map.title", -7811960, "buildcraft.help.zone_planner.map.desc1", "buildcraft.help.zone_planner.map.desc2"
+         )
+      );
+      this.addHelp(
+         new GuiRectangle(8.0, 146.0, 70.0, 70.0),
+         new ElementHelpInfo("buildcraft.help.zone_planner.paintbrushes.title", -13176, "buildcraft.help.zone_planner.paintbrushes.desc")
+      );
+      this.addHelp(
+         new GuiRectangle(8.0, 125.0, 36.0, 16.0),
+         new ElementHelpInfo(
+            "buildcraft.help.zone_planner.import.title",
+            -7811960,
+            "buildcraft.help.zone_planner.import.desc1",
+            "buildcraft.help.zone_planner.import.desc2"
+         )
+      );
+      this.addHelp(
+         new GuiRectangle((double)PROGRESS_INPUT_X, (double)PROGRESS_INPUT_Y, (double)PROGRESS_INPUT_W, (double)PROGRESS_INPUT_H),
+         new ElementHelpInfo("buildcraft.help.zone_planner.import_progress.title", -2249985, "buildcraft.help.zone_planner.import_progress.desc")
+      );
+      this.addHelp(
+         new GuiRectangle(74.0, 125.0, 16.0, 16.0),
+         new ElementHelpInfo("buildcraft.help.zone_planner.import_result.title", -10665929, "buildcraft.help.zone_planner.import_result.desc")
+      );
+      this.addHelp(
+         new GuiRectangle(233.0, 9.0, 16.0, 34.0),
+         new ElementHelpInfo(
+            "buildcraft.help.zone_planner.export.title",
+            -7811960,
+            "buildcraft.help.zone_planner.export.desc1",
+            "buildcraft.help.zone_planner.export.desc2"
+         )
+      );
+      this.addHelp(
+         new GuiRectangle((double)PROGRESS_OUTPUT_X, (double)PROGRESS_OUTPUT_Y, (double)PROGRESS_OUTPUT_W, (double)PROGRESS_OUTPUT_H),
+         new ElementHelpInfo("buildcraft.help.zone_planner.export_progress.title", -2249985, "buildcraft.help.zone_planner.export_progress.desc")
+      );
+      this.addHelp(
+         new GuiRectangle(233.0, 75.0, 16.0, 16.0),
+         new ElementHelpInfo("buildcraft.help.zone_planner.export_result.title", -10665929, "buildcraft.help.zone_planner.export_result.desc")
+      );
+   }
+
+   private void addHelp(GuiRectangle rect, ElementHelpInfo info) {
+      this.mainGui.shownElements.add(new DummyHelpElement(rect.offset(this.mainGui.rootElement), info));
    }
 }
