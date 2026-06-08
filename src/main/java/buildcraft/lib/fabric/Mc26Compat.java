@@ -2,6 +2,8 @@ package buildcraft.lib.fabric;
 
 import buildcraft.lib.fluids.FluidStack;
 import com.mojang.serialization.DynamicOps;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -25,6 +27,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 public final class Mc26Compat {
+   private static final Map<Fluid, Item> FLUID_BUCKET_CACHE = new IdentityHashMap<>();
+
    private Mc26Compat() {
    }
 
@@ -53,13 +57,27 @@ public final class Mc26Compat {
          return Items.BUCKET;
       }
 
-      for (Item item : BuiltInRegistries.ITEM) {
-         if (item instanceof BucketItem bucket && bucket.getContent().isSame(fluid)) {
-            return item;
-         }
+      Item cached = FLUID_BUCKET_CACHE.get(fluid);
+      if (cached != null) {
+         return cached;
       }
 
-      return Items.AIR;
+      synchronized (FLUID_BUCKET_CACHE) {
+         cached = FLUID_BUCKET_CACHE.get(fluid);
+         if (cached != null) {
+            return cached;
+         }
+
+         for (Item item : BuiltInRegistries.ITEM) {
+            if (item instanceof BucketItem bucket && bucket.getContent().isSame(fluid)) {
+               FLUID_BUCKET_CACHE.put(fluid, item);
+               return item;
+            }
+         }
+
+         FLUID_BUCKET_CACHE.put(fluid, Items.AIR);
+         return Items.AIR;
+      }
    }
 
    public static float composterValue(ItemStack stack) {

@@ -2,6 +2,7 @@ package buildcraft.fabric.config;
 
 import buildcraft.builders.BCBuildersConfig;
 import buildcraft.core.BCCoreConfig;
+import buildcraft.core.BCUnifiedClientConfig;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.fabric.BCBuildersFabric;
 import buildcraft.fabric.BCEnergyFabric;
@@ -22,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 
@@ -102,6 +104,24 @@ public final class BCFabricConfig {
 
          BCLibConfig.mjRfConversionAmount.set(doubleVal(lib, "mjRfConversion", BCLibConfig.mjRfConversionAmount.get()));
          BCLibConfig.canEnginesExplode.set(bool(lib, "canEnginesExplode", BCLibConfig.canEnginesExplode.get()));
+         BCLibConfig.ColorBlindMode previousColorBlind = BCLibConfig.colorBlindMode.get();
+         String colorBlind = string(lib, "colorBlindMode", previousColorBlind.name());
+
+         try {
+            BCLibConfig.colorBlindMode.set(BCLibConfig.ColorBlindMode.valueOf(colorBlind));
+         } catch (IllegalArgumentException e) {
+            LOGGER.warn("Unknown colorBlindMode '{}', keeping {}", colorBlind, previousColorBlind);
+         }
+
+         if (previousColorBlind != BCLibConfig.colorBlindMode.get()) {
+            notifyClientDisplayConfigReloaded();
+         }
+      }
+   }
+
+   private static void notifyClientDisplayConfigReloaded() {
+      if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+         BCUnifiedClientConfig.onDisplayConfigReloaded();
       }
    }
 
@@ -213,6 +233,7 @@ public final class BCFabricConfig {
       root.add("core", core);
       JsonObject lib = new JsonObject();
       lib.addProperty("powerMode", "MJ_ONLY");
+      lib.addProperty("colorBlindMode", "AUTO");
       lib.addProperty("mjRfConversion", 0.1);
       lib.addProperty("canEnginesExplode", false);
       root.add("lib", lib);

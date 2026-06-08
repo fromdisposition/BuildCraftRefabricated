@@ -1,5 +1,7 @@
 package buildcraft.fabric;
 
+import buildcraft.core.BCUnifiedClientConfig;
+import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.client.fluid.BcFluidTintUtil;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.model.ModelHolderRegistry;
@@ -7,20 +9,25 @@ import buildcraft.lib.debug.AdvDebugRenderer;
 import buildcraft.lib.gui.config.GuiConfigManager;
 import buildcraft.lib.misc.data.ModelVariableData;
 import java.util.HashSet;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.resource.v1.reloader.SimpleReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 public final class BCLibFabricClient {
+   private static boolean lastAutoHighContrast;
+
    private BCLibFabricClient() {
    }
 
    public static void init() {
       BCReloadFabric.initClient();
+      registerColorBlindAutoWatcher();
       AdvDebugRenderer.register();
       GuiConfigManager.init(FabricLoader.getInstance().getConfigDir().resolve("buildcraft").resolve("gui_state.json"));
       ResourceLoader clientResources = ResourceLoader.get(PackType.CLIENT_RESOURCES);
@@ -69,5 +76,24 @@ public final class BCLibFabricClient {
             }
          }
       );
+   }
+
+   private static void registerColorBlindAutoWatcher() {
+      ClientTickEvents.END_CLIENT_TICK.register(client -> {
+         if (BCLibConfig.colorBlindMode.get() != BCLibConfig.ColorBlindMode.AUTO) {
+            return;
+         }
+
+         Minecraft mc = Minecraft.getInstance();
+         if (mc.options == null) {
+            return;
+         }
+
+         boolean highContrast = mc.options.highContrast().get();
+         if (highContrast != lastAutoHighContrast) {
+            lastAutoHighContrast = highContrast;
+            BCUnifiedClientConfig.onDisplayConfigReloaded();
+         }
+      });
    }
 }

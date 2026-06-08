@@ -18,6 +18,7 @@ public final class PipeItemInjectStorage implements Storage<ItemVariant> {
    private final IFlowItems flow;
    private final Direction side;
    private final FabricDeferredCommit<ItemStack> pendingInjects;
+   private final List<StorageView<ItemVariant>> extractableViews = new ArrayList<>(4);
 
    public PipeItemInjectStorage(IFlowItems flow, Direction side) {
       this.flow = flow;
@@ -50,18 +51,17 @@ public final class PipeItemInjectStorage implements Storage<ItemVariant> {
       }
    }
 
-   @SuppressWarnings("unchecked")
    public Iterator<StorageView<ItemVariant>> iterator() {
       if (!(this.flow instanceof PipeFlowItems pipeFlow)) {
          return Collections.emptyIterator();
       }
 
-      List<StorageView<ItemVariant>> views = new ArrayList<>();
+      this.extractableViews.clear();
       for (PipeFlowItems.ExtractableEntry entry : pipeFlow.snapshotExtractable(this.side)) {
-         views.add(new ItemView(entry));
+         this.extractableViews.add(new ItemView(entry));
       }
 
-      return (Iterator<StorageView<ItemVariant>>)(Iterator<?>)views.iterator();
+      return this.extractableViews.iterator();
    }
 
    private static int saturate(long amount) {

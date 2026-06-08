@@ -20,7 +20,6 @@ import net.minecraft.client.renderer.item.ModelRenderProperties;
 import net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
-import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.item.DyeColor;
@@ -31,15 +30,12 @@ import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 
 public class PipeItemModel implements ItemModel {
-   private static final Field QUADS_FIELD;
    private static final Field PROPERTIES_FIELD;
-   private static final Field TINTS_FIELD;
    private static final Field EXTENTS_FIELD;
    private final ItemModel vanillaDelegate;
    private final PipeDefinition definition;
-   private final @Nullable QuadCollection vanillaQuads;
    private final @Nullable ModelRenderProperties renderProperties;
-   private final Supplier<Vector3fc[]> extents;
+   private final @Nullable Supplier<Vector3fc[]> extents;
 
    @SuppressWarnings("unchecked")
    public PipeItemModel(ItemModel vanillaDelegate, PipeDefinition definition) {
@@ -47,14 +43,12 @@ public class PipeItemModel implements ItemModel {
       this.definition = definition;
       if (vanillaDelegate instanceof CuboidItemModelWrapper wrapper) {
          try {
-            this.vanillaQuads = (QuadCollection)QUADS_FIELD.get(wrapper);
             this.renderProperties = (ModelRenderProperties)PROPERTIES_FIELD.get(wrapper);
             this.extents = (Supplier<Vector3fc[]>)EXTENTS_FIELD.get(wrapper);
          } catch (IllegalAccessException e) {
-            throw new RuntimeException("Failed to read CuboidItemModelWrapper fields", e);
+            throw new RuntimeException("Failed to read CuboidItemModelWrapper bake data", e);
          }
       } else {
-         this.vanillaQuads = null;
          this.renderProperties = null;
          this.extents = null;
       }
@@ -69,41 +63,34 @@ public class PipeItemModel implements ItemModel {
       @Nullable ItemOwner owner,
       int seed
    ) {
-      DyeColor colour = (DyeColor)stack.get(BCTransportItems.PIPE_COLOUR);
-      if (this.vanillaQuads == null || this.renderProperties == null) {
-         this.vanillaDelegate.update(renderState, stack, modelResolver, displayContext, level, owner, seed);
-      } else if (colour == null) {
-         this.vanillaDelegate.update(renderState, stack, modelResolver, displayContext, level, owner, seed);
-      } else {
-         renderState.appendModelIdentityElement(this);
-         renderState.appendModelIdentityElement(colour);
-         LayerRenderState baseLayer = renderState.newLayer();
-         baseLayer.prepareQuadList().addAll(this.vanillaQuads.getAll());
-         if (this.extents != null) {
-            baseLayer.setExtents(this.extents);
-         }
-
-         this.renderProperties.applyToLayer(baseLayer, displayContext);
-         TextureAtlasSprite[] maskArray = PipeBaseModelGenStandard.ensureMaskSprites(this.definition);
-         TextureAtlasSprite maskSprite = maskArray != null && maskArray.length > 0 ? maskArray[0] : null;
-         if (maskSprite != null && maskSprite != SpriteUtil.missingSprite()) {
-            List<BakedQuad> overlayQuads = generateOverlayQuads(maskSprite);
-            if (!overlayQuads.isEmpty()) {
-               LayerRenderState overlayLayer = renderState.newLayer();
-               overlayLayer.prepareQuadList().addAll(overlayQuads);
-               if (this.extents != null) {
-                  overlayLayer.setExtents(this.extents);
-               }
-
-               this.renderProperties.applyToLayer(overlayLayer, displayContext);
-               // Fluid pipes paint the waterproofing band opaquely (alpha 0xFF), matching the old
-               // baked dyed sprite; other colourable pipes keep the translucent tint film (alpha 0x4C).
-               int alpha = this.definition.flowType == PipeApi.flowFluids ? 0xFF000000 : 0x4C000000;
-               int tintColour = alpha | ColourUtil.getLightHex(colour);
-               overlayLayer.tintLayers().add(tintColour);
-            }
-         }
+      this.vanillaDelegate.update(renderState, stack, modelResolver, displayContext, level, owner, seed);
+      DyeColor colour = stack.get(BCTransportItems.PIPE_COLOUR);
+      if (colour == null || this.renderProperties == null) {
+         return;
       }
+
+      renderState.appendModelIdentityElement(colour);
+      TextureAtlasSprite[] maskArray = PipeBaseModelGenStandard.ensureMaskSprites(this.definition);
+      TextureAtlasSprite maskSprite = maskArray != null && maskArray.length > 0 ? maskArray[0] : null;
+      if (maskSprite == null || maskSprite == SpriteUtil.missingSprite()) {
+         return;
+      }
+
+      List<BakedQuad> overlayQuads = generateOverlayQuads(maskSprite);
+      if (overlayQuads.isEmpty()) {
+         return;
+      }
+
+      LayerRenderState overlayLayer = renderState.newLayer();
+      overlayLayer.prepareQuadList().addAll(overlayQuads);
+      if (this.extents != null) {
+         overlayLayer.setExtents(this.extents);
+      }
+
+      this.renderProperties.applyToLayer(overlayLayer, displayContext);
+      int alpha = this.definition.flowType == PipeApi.flowFluids ? 0xFF000000 : 0x4C000000;
+      int tintColour = alpha | ColourUtil.getLightHex(colour);
+      overlayLayer.tintLayers().add(tintColour);
    }
 
    private static List<BakedQuad> generateOverlayQuads(TextureAtlasSprite maskSprite) {
@@ -155,16 +142,12 @@ public class PipeItemModel implements ItemModel {
 
    static {
       try {
-         QUADS_FIELD = CuboidItemModelWrapper.class.getDeclaredField("quads");
-         QUADS_FIELD.setAccessible(true);
          PROPERTIES_FIELD = CuboidItemModelWrapper.class.getDeclaredField("properties");
          PROPERTIES_FIELD.setAccessible(true);
-         TINTS_FIELD = CuboidItemModelWrapper.class.getDeclaredField("tints");
-         TINTS_FIELD.setAccessible(true);
          EXTENTS_FIELD = CuboidItemModelWrapper.class.getDeclaredField("extents");
          EXTENTS_FIELD.setAccessible(true);
       } catch (NoSuchFieldException e) {
-         throw new RuntimeException("Failed to access CuboidItemModelWrapper fields", e);
+         throw new RuntimeException("Failed to access CuboidItemModelWrapper bake data", e);
       }
    }
 }
