@@ -2,6 +2,7 @@ package buildcraft.lib.net;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.DecoderException;
 import java.nio.charset.StandardCharsets;
 import net.minecraft.network.FriendlyByteBuf;
 
@@ -209,6 +210,10 @@ public class PacketBufferBC extends FriendlyByteBuf {
       }
 
       int index = this.readFixedBits(bits);
+      if (index < 0 || index >= enums.length) {
+         throw new DecoderException("Invalid enum index " + index + " for " + enumClass.getName());
+      }
+
       return enums[index];
    }
 

@@ -53,15 +53,17 @@ public record MessagePipePayload(BlockPos pos, int receiverOrdinal, byte[] paylo
       Level world = ctx.player().level();
       if (world != null) {
          if (world.getBlockEntity(message.pos) instanceof TilePipeHolder holder) {
-            Pipe pipe = holder.getPipe();
-            if (pipe != null) {
-               try {
-                  BcEnvelopeCodec.decode(message.payload, buffer -> {
-                     try {
-                        if (message.receiverOrdinal == LEGACY_WIRES_RECEIVER_ORDINAL) {
-                           PipeReceiverPayloadCodec.ignoreLegacyWiresPayload(holder, buffer);
-                        } else if (message.receiverOrdinal == MULTI_RECEIVER_ORDINAL) {
-                           PipeReceiverPayloadCodec.readMulti(holder, pipe, buffer);
+            try {
+               BcEnvelopeCodec.decode(message.payload, buffer -> {
+                  try {
+                     if (message.receiverOrdinal == LEGACY_WIRES_RECEIVER_ORDINAL) {
+                        PipeReceiverPayloadCodec.ignoreLegacyWiresPayload(holder, buffer);
+                     } else {
+                        Pipe pipe = holder.getPipe();
+                        if (message.receiverOrdinal == MULTI_RECEIVER_ORDINAL) {
+                           if (pipe != null) {
+                              PipeReceiverPayloadCodec.readMulti(holder, pipe, buffer);
+                           }
                         } else {
                            IPipeHolder.PipeMessageReceiver[] receivers = IPipeHolder.PipeMessageReceiver.VALUES;
                            if (message.receiverOrdinal < 0 || message.receiverOrdinal >= receivers.length) {
@@ -69,15 +71,18 @@ public record MessagePipePayload(BlockPos pos, int receiverOrdinal, byte[] paylo
                               return;
                            }
 
-                           PipeReceiverPayloadCodec.read(receivers[message.receiverOrdinal], holder, pipe, buffer);
+                           IPipeHolder.PipeMessageReceiver receiver = receivers[message.receiverOrdinal];
+                           if (receiver.face != null || pipe != null) {
+                              PipeReceiverPayloadCodec.read(receiver, holder, pipe, buffer);
+                           }
                         }
-                     } catch (IOException e) {
-                        throw new RuntimeException(e);
                      }
-                  });
-               } catch (Exception e) {
-                  BCLog.logger.warn("[transport.net] Error handling pipe payload at " + message.pos, e);
-               }
+                  } catch (IOException e) {
+                     throw new RuntimeException(e);
+                  }
+               });
+            } catch (Exception e) {
+               BCLog.logger.warn("[transport.net] Error handling pipe payload at " + message.pos, e);
             }
          }
       }

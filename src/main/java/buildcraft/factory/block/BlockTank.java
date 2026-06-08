@@ -3,6 +3,10 @@ package buildcraft.factory.block;
 import buildcraft.api.items.FluidItemDrops;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileTank;
+import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.transfer.fabric.TransferConvert;
+import java.util.List;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.FluidUtilBC;
 import com.mojang.serialization.MapCodec;
@@ -169,11 +173,42 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
 
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
       if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileTank tank) {
-         NonNullList<ItemStack> toDrop = NonNullList.create();
-         FluidItemDrops.addFluidDrops(toDrop, tank.fluidTank.getFluidStack());
+         List<TileTank> column = tank.getTankColumn();
+         FluidStack fluidType = FluidStack.EMPTY;
+         long amountMb = 0L;
 
-         for (ItemStack drop : toDrop) {
-            Block.popResource(level, pos, drop);
+         for (TileTank segment : column) {
+            FluidStack held = segment.fluidTank.getFluidStack();
+            if (!held.isEmpty()) {
+               if (fluidType.isEmpty()) {
+                  fluidType = held.copyWithAmount(1);
+               }
+
+               amountMb += segment.fluidTank.getAmountMb();
+            }
+         }
+
+         if (!fluidType.isEmpty() && amountMb > 0) {
+            NonNullList<ItemStack> toDrop = NonNullList.create();
+            int dropMb = amountMb > 2147483647L ? Integer.MAX_VALUE : (int)amountMb;
+            FluidItemDrops.addFluidDrops(toDrop, fluidType.copyWithAmount(dropMb));
+
+            for (ItemStack drop : toDrop) {
+               Block.popResource(level, pos, drop);
+            }
+         }
+
+         try (Transaction tx = Transaction.openOuter()) {
+            for (TileTank segment : column) {
+               FluidStack held = segment.fluidTank.getFluidStack();
+               if (!held.isEmpty()) {
+                  segment.fluidTank.extract(
+                     TransferConvert.toVariant(held), TransferConvert.mbToDroplets(segment.fluidTank.getAmountMb()), tx
+                  );
+               }
+            }
+
+            tx.commit();
          }
       }
 

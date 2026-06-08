@@ -5,6 +5,8 @@ import buildcraft.fabric.event.Event;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+/** @deprecated Not fired by Refabricated yet; reserved for a future event bus. */
+@Deprecated(forRemoval = true)
 public abstract class RobotEvent extends Event {
    public final EntityRobotBase robot;
 

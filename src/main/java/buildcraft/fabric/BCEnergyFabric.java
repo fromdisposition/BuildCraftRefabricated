@@ -42,6 +42,8 @@ public final class BCEnergyFabric {
    }
 
    public static void onConfigReloaded() {
+      BCEnergyFluidsFabric.reapplyConfigProperties();
+      BCEnergyFluids.refreshSnapshot();
    }
 
    private static void registerNativeTransfer() {

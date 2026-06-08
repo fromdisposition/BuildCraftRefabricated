@@ -60,6 +60,11 @@ public class ContainerAssemblyTable extends ContainerBCTile<TileAssemblyTable> {
             this.tile.recipesStates.put(instruction, EnumAssemblyRecipeState.PAUSED);
          }
 
+         this.tile.setChanged();
+         if (this.tile.getLevel() != null) {
+            this.tile.getLevel().sendBlockUpdated(this.tile.getBlockPos(), this.tile.getBlockState(), this.tile.getBlockState(), 3);
+         }
+
          return true;
       } else {
          return false;

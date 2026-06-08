@@ -53,6 +53,10 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
       this.spreadCache = null;
    }
 
+   public void invalidateSpreadCache() {
+      this.clearSpreadCache();
+   }
+
    public Fluid getFlowing() {
       return this.holder.flowing;
    }
@@ -204,17 +208,76 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
    }
 
    public static final class Holder {
-      public final BcFluidWorldProperties props;
+      public BcFluidWorldProperties props;
       public final String regName;
       public Fluid still;
       public Fluid flowing;
       public Block block;
       public Item bucket;
       private boolean sealed;
+      private final String baseName;
+      private final int heat;
+      private final int baseDensity;
+      private final int baseViscosity;
+      private final int boilPoint;
+      private final int baseSpread;
+      private final int stickyFlag;
+      private final int flammableFlag;
 
-      public Holder(BcFluidWorldProperties props) {
+      public Holder(
+         BcFluidWorldProperties props,
+         String baseName,
+         int heat,
+         int baseDensity,
+         int baseViscosity,
+         int boilPoint,
+         int baseSpread,
+         int stickyFlag,
+         int flammableFlag
+      ) {
          this.props = props;
-         this.regName = BcFluidWorldProperties.regName(props.baseName(), props.heat());
+         this.baseName = baseName;
+         this.heat = heat;
+         this.baseDensity = baseDensity;
+         this.baseViscosity = baseViscosity;
+         this.boilPoint = boilPoint;
+         this.baseSpread = baseSpread;
+         this.stickyFlag = stickyFlag;
+         this.flammableFlag = flammableFlag;
+         this.regName = BcFluidWorldProperties.regName(baseName, heat);
+      }
+
+      public void reapplyConfig(boolean stickyEnabled, boolean flammableEnabled) {
+         boolean wasFlammable = this.props.flammable();
+         BcFluidWorldProperties newProps = BcFluidWorldProperties.compute(
+            this.baseName,
+            this.heat,
+            this.baseDensity,
+            this.baseViscosity,
+            this.boilPoint,
+            this.baseSpread,
+            stickyEnabled,
+            this.stickyFlag,
+            flammableEnabled,
+            this.flammableFlag
+         );
+         this.props = newProps;
+         if (this.still instanceof BcOilFluid stillFluid) {
+            stillFluid.invalidateSpreadCache();
+         }
+
+         if (this.flowing instanceof BcOilFluid flowingFluid) {
+            flowingFluid.invalidateSpreadCache();
+         }
+
+         if (this.still != null && this.flowing != null) {
+            buildcraft.lib.fluids.FluidTypes.register(this.still, newProps.viscosity(), newProps.density());
+            buildcraft.lib.fluids.FluidTypes.register(this.flowing, newProps.viscosity(), newProps.density());
+         }
+
+         if (newProps.flammable() && !wasFlammable && this.block != null) {
+            net.fabricmc.fabric.api.registry.FlammableBlockRegistry.getDefaultInstance().add(this.block, 200, 200);
+         }
       }
 
       public void seal() {

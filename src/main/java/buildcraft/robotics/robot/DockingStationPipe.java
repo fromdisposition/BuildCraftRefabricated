@@ -289,7 +289,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       }
 
       Direction from = this.side().getOpposite();
-      ItemStack remaining = output.injectItem(stack.copy(), true, from, null, 0.0);
+      ItemStack remaining = output.injectItem(stack.copy(), false, from, null, 0.0);
       return remaining;
    }
 }

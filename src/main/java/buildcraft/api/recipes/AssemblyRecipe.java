@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import net.minecraft.core.NonNullList;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public abstract class AssemblyRecipe implements Comparable<AssemblyRecipe> {
@@ -23,7 +24,15 @@ public abstract class AssemblyRecipe implements Comparable<AssemblyRecipe> {
    }
 
    public final AssemblyRecipe setRegistryName(Object name) {
-      return this;
+      if (name == null) {
+         throw new IllegalArgumentException("Registry name cannot be null");
+      } else if (name instanceof Identifier id) {
+         return this.setRegistryName(id.toString());
+      } else if (name instanceof String s) {
+         return this.setRegistryName(s);
+      } else {
+         return this.setRegistryName(name.toString());
+      }
    }
 
    public String getRegistryName() {

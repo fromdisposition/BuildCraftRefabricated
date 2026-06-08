@@ -1,7 +1,6 @@
 package buildcraft.silicon.tile;
 
 import buildcraft.api.mj.ILaserTarget;
-import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.IngredientStack;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.lib.misc.MessageUtil;
@@ -24,7 +23,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 public abstract class TileLaserTableBase extends BcBlockEntity implements ILaserTarget, IDebuggable {
-   private static final long MJ_FLOW_ROUND = MjAPI.MJ / 10L;
    private final AverageLong avgPower = new AverageLong(120);
    public long avgPowerClient;
    public long power;

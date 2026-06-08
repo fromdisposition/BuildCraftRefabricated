@@ -142,7 +142,7 @@ public class OilGenerator {
       boolean isExcludedBiome = BCEnergyConfig.getExcludedBiomes().contains(biomeId);
       boolean biomeBlacklisted = BCEnergyConfig.biomeListMode.get() == BCEnergyConfig.ListMode.BLACKLIST;
       if (isExcludedBiome == biomeBlacklisted) {
-         if (DEBUG_OILGEN_BASIC & log) {
+         if (DEBUG_OILGEN_BASIC && log) {
             BCLog.logger.info("[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz + " because the biome (" + biomeId + ") is excluded!");
          }
 
@@ -170,7 +170,7 @@ public class OilGenerator {
                type = OilGenerator.GenType.LARGE;
             } else {
                if (!(rand.nextDouble() <= 0.0025 * globalMul)) {
-                  if (DEBUG_OILGEN_ALL & log) {
+                  if (DEBUG_OILGEN_ALL && log) {
                      BCLog.logger
                         .info(
                            "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz + " because none of the random numbers were above the thresholds."
@@ -201,7 +201,7 @@ public class OilGenerator {
                type = OilGenerator.GenType.LARGE;
             } else {
                if (!(rand.nextDouble() <= BCEnergyConfig.mediumOilGenProb.get() * effectiveRate)) {
-                  if (DEBUG_OILGEN_ALL & log) {
+                  if (DEBUG_OILGEN_ALL && log) {
                      BCLog.logger
                         .info(
                            "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz + " because none of the random numbers were above the thresholds."
@@ -219,7 +219,7 @@ public class OilGenerator {
             }
          }
 
-         if (DEBUG_OILGEN_BASIC & log) {
+         if (DEBUG_OILGEN_BASIC && log) {
             BCLog.logger
                .info("[energy.oilgen] Generating an oil well (" + type.name().toLowerCase(Locale.ROOT) + ") in chunk " + cx + ", " + cz + " at " + x + ", " + z);
          }
@@ -301,7 +301,7 @@ public class OilGenerator {
          type = OilGenerator.GenType.LARGE;
       } else {
          if (!(rand.nextDouble() <= BCEnergyConfig.mediumOilGenProb.get() * globalMul)) {
-            if (DEBUG_OILGEN_ALL & log) {
+            if (DEBUG_OILGEN_ALL && log) {
                BCLog.logger
                   .info(
                      "[energy.oilgen] Not generating nether oil in chunk " + cx + ", " + cz + " because none of the random numbers were above the thresholds."
@@ -314,7 +314,7 @@ public class OilGenerator {
          type = OilGenerator.GenType.MEDIUM;
       }
 
-      if (DEBUG_OILGEN_BASIC & log) {
+      if (DEBUG_OILGEN_BASIC && log) {
          BCLog.logger
             .info(
                "[energy.oilgen] Generating nether oil well (" + type.name().toLowerCase(Locale.ROOT) + ") in chunk " + cx + ", " + cz + " at " + x + ", " + z

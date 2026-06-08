@@ -7,6 +7,7 @@ import buildcraft.api.statements.IActionInternalSided;
 import buildcraft.api.statements.IActionProvider;
 import buildcraft.api.statements.IStatementContainer;
 import buildcraft.api.transport.IWireEmitter;
+import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeDefinition;
 import buildcraft.api.transport.pipe.PipeEventStatement;
@@ -37,7 +38,12 @@ public enum ActionProviderPipes implements IActionProvider {
             }
          }
 
-         PipeDefinition def = holder.getPipe().getDefinition();
+         IPipe pipe = holder.getPipe();
+         if (pipe == null) {
+            return;
+         }
+
+         PipeDefinition def = pipe.getDefinition();
          if (def == BCTransportPipes.ironPower) {
             Collections.addAll(actions, BCTransportStatements.ACTION_IRON_POWER_LIMIT);
          }

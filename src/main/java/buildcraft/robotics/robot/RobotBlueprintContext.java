@@ -8,11 +8,19 @@ import buildcraft.builders.snapshot.ITileForBlueprintBuilder;
 import buildcraft.builders.snapshot.SnapshotBuilder;
 import buildcraft.lib.fabric.transfer.MultiFluidTankStorage;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.builders.snapshot.EnumFluidHandlingMode;
+import buildcraft.lib.fluids.FluidStack;
 import buildcraft.robotics.entity.EntityRobot;
 import com.mojang.authlib.GameProfile;
+import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Adapter that lets an {@link EntityRobot} act as the host of a real {@link BlueprintBuilder}. All resources the builder
@@ -96,5 +104,27 @@ public class RobotBlueprintContext implements ITileForBlueprintBuilder {
    @Override
    public MultiFluidTankStorage getFluidTanks() {
       return this.fluidTanks;
+   }
+
+   @Override
+   public void onBlockBroken(BlockPos brokenPos, List<ItemStack> drops, int xp, FluidStack capturedFluid) {
+      if (this.robot.level() instanceof ServerLevel serverLevel) {
+         for (ItemStack stack : drops) {
+            if (!stack.isEmpty()) {
+               ItemStack remaining = this.invResources.insert(stack.copy(), false, false);
+               if (!remaining.isEmpty()) {
+                  Block.popResource(serverLevel, brokenPos, remaining);
+               }
+            }
+         }
+
+         if (xp > 0) {
+            ExperienceOrb.award(serverLevel, Vec3.atCenterOf(this.robot.blockPosition()), xp);
+         }
+
+         if (!capturedFluid.isEmpty() && this.getFluidMode() == EnumFluidHandlingMode.CLEAR) {
+            this.fluidTanks.insertMillibuckets(capturedFluid, capturedFluid.getAmount(), true);
+         }
+      }
    }
 }

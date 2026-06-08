@@ -43,7 +43,7 @@ public final class FluidPipeMovement {
                PipeEventFluid.SideCheck sideCheck = new PipeEventFluid.SideCheck(host.flow().pipe.getHolder(), host.flow(), host.currentFluid());
                sideCheck.disallowAllExcept(part.face);
                host.fireEvent(sideCheck);
-               if (sideCheck.getOrder().size() == 1) {
+               if (sideCheck.getOrderedDirections().size() == 1) {
                   Storage<FluidVariant> storage = host.externalFluidStorage(part.face);
                   if (storage != null) {
                      FluidStack resource = host.currentFluid().copyWithAmount(1);
@@ -76,7 +76,7 @@ public final class FluidPipeMovement {
             PipeEventFluid.SideCheck sideCheck = new PipeEventFluid.SideCheck(host.flow().pipe.getHolder(), host.flow(), host.currentFluid());
             sideCheck.disallowAllExcept(realDirections);
             host.fireEvent(sideCheck);
-            List<Direction> random = new ArrayList<>(sideCheck.getOrder());
+            List<Direction> random = new ArrayList<>(sideCheck.getOrderedDirections());
             Collections.shuffle(random, ThreadLocalRandom.current());
             float min = (float)Math.min(flowRate * realDirections.size(), totalAvailable) / flowRate / realDirections.size();
 

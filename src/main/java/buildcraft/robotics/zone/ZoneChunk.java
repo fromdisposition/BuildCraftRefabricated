@@ -45,7 +45,7 @@ public class ZoneChunk {
       } else {
          if (this.fullSet) {
             this.property = new BitSet(256);
-            this.property.flip(0, 255);
+            this.property.flip(0, 256);
             this.fullSet = false;
          } else if (this.property == null) {
             this.property = new BitSet(256);

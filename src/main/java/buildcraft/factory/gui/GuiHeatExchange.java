@@ -14,6 +14,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
+   private int lastSectionSyncHash = Integer.MIN_VALUE;
    private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/heat_exchanger.png");
    private static final int SIZE_X = 176;
    private static final int SIZE_Y = 171;
@@ -146,6 +147,16 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
                )
             )
          );
+   }
+
+   @Override
+   protected void containerTick() {
+      super.containerTick();
+      int hash = ((ContainerHeatExchange)this.menu).getSectionSyncHash();
+      if (hash != this.lastSectionSyncHash) {
+         this.lastSectionSyncHash = hash;
+         this.init();
+      }
    }
 
    @Override

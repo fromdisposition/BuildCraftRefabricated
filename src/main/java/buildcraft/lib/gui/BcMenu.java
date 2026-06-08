@@ -229,7 +229,7 @@ public abstract class BcMenu extends RecipeBookMenu {
    }
 
    public boolean stillValid(Player player) {
-      return true;
+      return player.isAlive() && !player.isRemoved();
    }
 
    public PostPlaceAction handlePlacement(boolean useMaxItems, boolean isCreative, RecipeHolder<?> recipe, ServerLevel level, Inventory playerInv) {

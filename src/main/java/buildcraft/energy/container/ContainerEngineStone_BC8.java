@@ -53,13 +53,6 @@ public class ContainerEngineStone_BC8 extends BcMenu {
             }
 
             public void set(int index, int value) {
-               switch (index) {
-                  case 0:
-                     engine.burnTime = value;
-                     break;
-                  case 1:
-                     engine.totalBurnTime = value;
-               }
             }
 
             public int getCount() {

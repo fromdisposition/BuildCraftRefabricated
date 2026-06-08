@@ -49,7 +49,11 @@ public final class PipeReceiverPayloadCodec {
       switch (receiver) {
          case BEHAVIOUR:
             if (buffer.readBoolean()) {
-               pipe.readPayload(buffer);
+               if (pipe != null) {
+                  pipe.readPayload(buffer);
+               } else {
+                  throw new IOException("Unexpected pipe behaviour payload without pipe");
+               }
             }
             break;
          case FLOW:

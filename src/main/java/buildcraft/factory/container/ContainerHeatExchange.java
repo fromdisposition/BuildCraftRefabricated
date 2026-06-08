@@ -29,6 +29,7 @@ public class ContainerHeatExchange extends BcMenu {
    public final WidgetFluidTank widgetTankStartOutput;
    public final WidgetFluidTank widgetTankEndInput;
    public final WidgetFluidTank widgetTankEndOutput;
+   private int lastSectionSyncHash = Integer.MIN_VALUE;
 
    public ContainerHeatExchange(int containerId, Inventory playerInv, BlockPos pos) {
       this(containerId, playerInv, resolveStartTile(MenuBlockEntityLookup.get(playerInv, pos, TileHeatExchange.class)));
@@ -95,6 +96,35 @@ public class ContainerHeatExchange extends BcMenu {
       ItemHandlerSimple slots = new ItemHandlerSimple(4, 1);
       slots.setChecker((slot, stack) -> false);
       return slots;
+   }
+
+   @Override
+   public void broadcastChanges() {
+      super.broadcastChanges();
+      this.rebindSectionWidgets();
+   }
+
+   public int getSectionSyncHash() {
+      return this.tile != null ? this.tile.getSyncHash() : 0;
+   }
+
+   private void rebindSectionWidgets() {
+      if (this.tile == null) {
+         return;
+      }
+
+      int hash = this.tile.getSyncHash();
+      if (hash == this.lastSectionSyncHash) {
+         return;
+      }
+
+      this.lastSectionSyncHash = hash;
+      TileHeatExchange.ExchangeSectionStart start = this.startSection();
+      TileHeatExchange.ExchangeSectionEnd end = start != null ? start.getEndSection() : null;
+      this.widgetTankStartInput.setTank(start != null ? start.tankInput : null);
+      this.widgetTankStartOutput.setTank(start != null ? start.tankOutput : null);
+      this.widgetTankEndInput.setTank(end != null ? end.tankInput : null);
+      this.widgetTankEndOutput.setTank(end != null ? end.tankOutput : null);
    }
 
    @Override

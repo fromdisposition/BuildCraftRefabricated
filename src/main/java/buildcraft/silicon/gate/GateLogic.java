@@ -57,8 +57,6 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
    public final boolean[] connections;
    public final boolean[] triggerOn;
    public final boolean[] actionOn;
-   public int redstoneOutput;
-   public int redstoneOutputSide;
    private final EnumSet<DyeColor> wireBroadcasts;
    public boolean isOn;
    private boolean resolveDirty = true;

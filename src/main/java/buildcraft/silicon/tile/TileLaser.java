@@ -197,12 +197,12 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
          this.avgPower.clear();
       }
 
+      long previousAverageClient = this.averageClient;
       this.averageClient = (long)this.avgPower.getAverage();
-      if (Objects.equals(previousTargetPos, this.targetPos)) {
+      if (!Objects.equals(previousTargetPos, this.targetPos) || this.averageClient != previousAverageClient) {
+         this.setChanged();
+         MessageUtil.sendUpdateToTrackingPlayers(this);
       }
-
-      this.setChanged();
-      MessageUtil.sendUpdateToTrackingPlayers(this);
    }
 
    protected void saveAdditional(ValueOutput output) {

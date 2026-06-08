@@ -26,6 +26,6 @@ public abstract class PipeEvent {
    }
 
    public String checkStateForErrors() {
-      return this.canceled & !this.canBeCancelled ? "Somehow cancelled an event that isn't marked as such!" : null;
+      return this.canceled && !this.canBeCancelled ? "Somehow cancelled an event that isn't marked as such!" : null;
    }
 }

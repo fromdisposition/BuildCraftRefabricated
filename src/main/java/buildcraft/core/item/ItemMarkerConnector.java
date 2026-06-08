@@ -47,8 +47,7 @@ public class ItemMarkerConnector extends Item {
          }
       }
 
-      InteractionResult volumeResult = this.onUseVolumeBoxes(level, player);
-      return (InteractionResult)(volumeResult.consumesAction() ? volumeResult : InteractionResult.SUCCESS);
+      return this.onUseVolumeBoxes(level, player);
    }
 
    private static <S extends MarkerSubCache<?>> boolean interactCache(S cache, Player player) {

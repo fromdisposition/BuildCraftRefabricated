@@ -25,6 +25,7 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
    private static final GuiIcon ICON_SAVED = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 16.0, 16.0);
    private static final GuiIcon ICON_SAVED_ENOUGH = new GuiIcon(TEXTURE_BASE, 176.0, 16.0, 16.0, 16.0);
    private static final GuiIcon ICON_SAVED_ENOUGH_ACTIVE = new GuiIcon(TEXTURE_BASE, 176.0, 32.0, 16.0, 16.0);
+   private static final GuiIcon ICON_PAUSED = new GuiIcon(TEXTURE_BASE, 192.0, 0.0, 16.0, 16.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 48.0, 4.0, 70.0);
    private static final GuiRectangle RECT_PROGRESS = new GuiRectangle(86.0, 36.0, 4.0, 70.0);
    private static final int INPUT_X = 8;
@@ -109,7 +110,7 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
          }
 
          if (state == EnumAssemblyRecipeState.PAUSED) {
-            ICON_SAVED.drawAt(area);
+            ICON_PAUSED.drawAt(area);
          }
 
          if (state == EnumAssemblyRecipeState.SAVED_ENOUGH) {

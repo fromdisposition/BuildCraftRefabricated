@@ -475,9 +475,9 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
          }
       }
 
-      loadTank(this.tankIn, input, "fluidIn");
-      loadTank(this.tankGasOut, input, "fluidGasOut");
-      loadTank(this.tankLiquidOut, input, "fluidLiquidOut");
+      FactoryTileUtils.loadTank(this.tankIn, input, "fluidIn");
+      FactoryTileUtils.loadTank(this.tankGasOut, input, "fluidGasOut");
+      FactoryTileUtils.loadTank(this.tankLiquidOut, input, "fluidLiquidOut");
       this.mjBattery.addPowerChecking(input.getLongOr("mjStored", 0L), false);
       this.distillPower = input.getLongOr("distillPower", 0L);
       this.isActive = input.getBooleanOr("isActive", false);
@@ -488,11 +488,6 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
 
    private static FluidStack syncIdentity(FluidStack stack) {
       return stack.isEmpty() ? FluidStack.EMPTY : stack.copyWithAmount(1);
-   }
-
-   private static void loadTank(SingleFluidTank tank, ValueInput input, String key) {
-      FluidStack fluid = input.read(key, FluidStack.CODEC).orElse(FluidStack.EMPTY);
-      tank.setContents(fluid);
    }
 
    public CompoundTag getUpdateTag(Provider registries) {

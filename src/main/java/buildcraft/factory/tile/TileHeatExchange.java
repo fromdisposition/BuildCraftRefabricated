@@ -391,6 +391,10 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       }
    }
 
+   public int getSyncHash() {
+      return this.computeSyncHash();
+   }
+
    private int computeSyncHash() {
       if (this.section == null) {
          return 0;
@@ -511,8 +515,8 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                s = new TileHeatExchange.ExchangeSectionStart(this);
             }
 
-            loadTank(s.tankInput, input, "sectionInput");
-            loadTank(s.tankOutput, input, "sectionOutput");
+            FactoryTileUtils.loadTank(s.tankInput, input, "sectionInput");
+            FactoryTileUtils.loadTank(s.tankOutput, input, "sectionOutput");
             s.middleCount = input.getIntOr("middleCount", 1);
             int stateOrd = input.getIntOr("progressState", 0);
             s.progressState = TileHeatExchange.EnumProgressState.values()[Math.min(stateOrd, TileHeatExchange.EnumProgressState.values().length - 1)];
@@ -525,8 +529,8 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                e = new TileHeatExchange.ExchangeSectionEnd(this);
             }
 
-            loadTank(e.tankInput, input, "sectionInput");
-            loadTank(e.tankOutput, input, "sectionOutput");
+            FactoryTileUtils.loadTank(e.tankInput, input, "sectionInput");
+            FactoryTileUtils.loadTank(e.tankOutput, input, "sectionOutput");
             this.section = e;
          }
       } else if (this.section != null) {
@@ -534,15 +538,6 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       }
 
       this.checkNeighbours = true;
-   }
-
-   private static void loadTank(SingleFluidTank tank, ValueInput input, String key) {
-      FluidStack fluid = input.read(key, FluidStack.CODEC).orElse(FluidStack.EMPTY);
-      if (fluid.isEmpty()) {
-         tank.setContents(FluidStack.EMPTY);
-      } else {
-         tank.setContents(fluid);
-      }
    }
 
    public CompoundTag getUpdateTag(Provider registries) {
@@ -775,9 +770,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                            if (this.progressState == TileHeatExchange.EnumProgressState.OFF) {
                               this.progressState = TileHeatExchange.EnumProgressState.PREPARING;
                            } else if (this.progressState == TileHeatExchange.EnumProgressState.RUNNING) {
-                              Transaction tx = Transaction.openOuter();
-
-                              try {
+                              try (Transaction tx = Transaction.openOuter()) {
                                  boolean ok = true;
                                  if (c_out_f != null && !c_out_f.isEmpty()) {
                                     long n = c_out.insertInternal(TransferConvert.toVariant(c_out_f), TransferConvert.mbToDroplets(c_out_f.getAmount()), tx);
@@ -802,20 +795,6 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                                  if (ok) {
                                     tx.commit();
                                  }
-                              } catch (Throwable var27) {
-                                 if (tx != null) {
-                                    try {
-                                       tx.close();
-                                    } catch (Throwable var26) {
-                                       var27.addSuppressed(var26);
-                                    }
-                                 }
-
-                                 throw var27;
-                              }
-
-                              if (tx != null) {
-                                 tx.close();
                               }
                            }
                         } else {

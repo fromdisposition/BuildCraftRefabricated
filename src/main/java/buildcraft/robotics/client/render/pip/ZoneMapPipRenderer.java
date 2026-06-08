@@ -1,6 +1,7 @@
 package buildcraft.robotics.client.render.pip;
 
 import buildcraft.lib.client.render.BCLibRenderTypes;
+import buildcraft.robotics.zone.ZonePlannerChunkKeys;
 import buildcraft.robotics.zone.ZonePlannerMapColours;
 import com.mojang.blaze3d.ProjectionType;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -84,7 +85,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
 
          for (int cx = cx0; cx <= cx1; cx++) {
             for (int cz = cz0; cz <= cz1; cz++) {
-               long key = chunkKey(cx, cz);
+               long key = ZonePlannerChunkKeys.chunkKey(cx, cz);
                if (cache.versionOf(key) != 0) {
                   CachedMesh mesh = this.meshFor(cache, cx, cz, key);
                   mesh.emit(vc, pose, originX, originZ);
@@ -115,10 +116,10 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
    /** Returns a cached baked mesh for the chunk, rebuilding it when the chunk or any neighbour terrain changed. */
    private CachedMesh meshFor(ZonePlannerMapColours cache, int cx, int cz, long key) {
       int selfVer = cache.versionOf(key);
-      int vW = cache.versionOf(chunkKey(cx - 1, cz));
-      int vE = cache.versionOf(chunkKey(cx + 1, cz));
-      int vN = cache.versionOf(chunkKey(cx, cz - 1));
-      int vS = cache.versionOf(chunkKey(cx, cz + 1));
+      int vW = cache.versionOf(ZonePlannerChunkKeys.chunkKey(cx - 1, cz));
+      int vE = cache.versionOf(ZonePlannerChunkKeys.chunkKey(cx + 1, cz));
+      int vN = cache.versionOf(ZonePlannerChunkKeys.chunkKey(cx, cz - 1));
+      int vS = cache.versionOf(ZonePlannerChunkKeys.chunkKey(cx, cz + 1));
       CachedMesh mesh = this.meshCache.get(key);
       if (mesh == null || !mesh.matches(selfVer, vW, vE, vN, vS)) {
          mesh = CachedMesh.build(cache, cx, cz, selfVer, vW, vE, vN, vS);
@@ -167,7 +168,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       if (state.hasHover()) {
          int wx = state.hoverX();
          int wz = state.hoverZ();
-         long key = chunkKey(wx >> 4, wz >> 4);
+         long key = ZonePlannerChunkKeys.chunkKey(wx >> 4, wz >> 4);
          int h = cache.heightAt(key, wx, wz);
          if (h != ZonePlannerMapColours.NO_HEIGHT) {
             int c = cache.colourAt(key, wx, wz);
@@ -182,7 +183,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
    }
 
    private void emitOverlayCell(VertexConsumer vc, Pose pose, ZonePlannerMapColours cache, int wx, int wz, int originX, int originZ, int colour, int alpha) {
-      int h = cache.heightAt(chunkKey(wx >> 4, wz >> 4), wx, wz);
+      int h = cache.heightAt(ZonePlannerChunkKeys.chunkKey(wx >> 4, wz >> 4), wx, wz);
       if (h != ZonePlannerMapColours.NO_HEIGHT) {
          float x0 = wx - originX;
          float z0 = wz - originZ;
@@ -209,10 +210,6 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       vc.addVertex(pose, bx, by, bz).setColor(r, g, b, a);
       vc.addVertex(pose, cx, cy, cz).setColor(r, g, b, a);
       vc.addVertex(pose, dx, dy, dz).setColor(r, g, b, a);
-   }
-
-   private static long chunkKey(int chunkX, int chunkZ) {
-      return (chunkX & 0xFFFFFFFFL) | (long)chunkZ << 32;
    }
 
    @Override
@@ -279,9 +276,9 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
             for (int lx = 0; lx < 16; lx++) {
                int wx = (cx << 4) + lx;
                int wz = (cz << 4) + lz;
-               int colour = cache.colourAt(chunkKey(cx, cz), wx, wz);
+               int colour = cache.colourAt(ZonePlannerChunkKeys.chunkKey(cx, cz), wx, wz);
                if (colour != 0) {
-                  int h = cache.heightAt(chunkKey(cx, cz), wx, wz);
+                  int h = cache.heightAt(ZonePlannerChunkKeys.chunkKey(cx, cz), wx, wz);
                   int rgb = colour & 0xFFFFFF;
                   int shaded = darken(rgb);
                   float x0 = wx;
@@ -312,7 +309,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       ) {
          int nx = wx + dx;
          int nz = wz + dz;
-         int nh = cache.heightAt(chunkKey(nx >> 4, nz >> 4), nx, nz);
+         int nh = cache.heightAt(ZonePlannerChunkKeys.chunkKey(nx >> 4, nz >> 4), nx, nz);
          if (nh != ZonePlannerMapColours.NO_HEIGHT && nh < h) {
             float yTop = h + 1.0F;
             float yBot = nh + 1.0F;

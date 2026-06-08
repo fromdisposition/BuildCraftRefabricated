@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 import net.minecraft.world.level.block.Block;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jspecify.annotations.Nullable;
 
 public final class ClientBlockExtensionsRegistry {
@@ -13,6 +14,7 @@ public final class ClientBlockExtensionsRegistry {
       BLOCK_EXTENSIONS.put(block, extensions);
    }
 
+   @Internal
    public void registerBlock(Supplier<ClientBlockExtensions> extensions) {
    }
 

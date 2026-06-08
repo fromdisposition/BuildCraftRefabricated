@@ -7,11 +7,17 @@ import buildcraft.api.transport.pluggable.PipePluggable;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
+/** Central transport API: pipe/flow registries, default transfer rates, and capability tokens. */
 public final class PipeApi {
+   @Nullable
    public static IPipeRegistry pipeRegistry;
+   @Nullable
    public static IPluggableRegistry pluggableRegistry;
+   @Nullable
    public static IStripesRegistry stripeRegistry;
+   @Nullable
    public static IPipeExtensionManager extensionManager;
    public static PipeFlowType flowStructure;
    public static PipeFlowType flowItems;

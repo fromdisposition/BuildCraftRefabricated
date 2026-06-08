@@ -10,6 +10,7 @@ import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.container.ContainerDynamoMJ;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.engine.TileEngineBase_BC8;
+import static buildcraft.lib.engine.TileEngineBase_BC8.MAX_HEAT;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.EnergyStorageOps;
 import buildcraft.lib.fabric.transfer.FeEnergyStorage;
@@ -149,8 +150,8 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
                this.currentOutput = maxFe;
                this.energyStorage.set(currentFe + maxFe);
                this.heat += 0.06F;
-               if (this.heat >= 200.0F) {
-                  this.heat = 200.0F;
+               if (this.heat >= MAX_HEAT) {
+                  this.heat = MAX_HEAT;
                }
             }
          } else {

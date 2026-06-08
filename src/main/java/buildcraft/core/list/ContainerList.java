@@ -9,7 +9,6 @@ import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.slot.SlotPhantom;
 import buildcraft.lib.list.ListHandler;
 import buildcraft.lib.misc.AdvancementUtil;
-import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import javax.annotation.Nonnull;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -62,14 +61,8 @@ public class ContainerList extends BcMenu {
       return !stack.isEmpty() && stack.getItem() instanceof ItemList_BC8 ? stack : ItemStack.EMPTY;
    }
 
-   public void switchButton(int lineIndex, int button) {
+   private void applyButtonToggle(int lineIndex, int button) {
       this.lines[lineIndex].toggleOption(button);
-      if (this.player.level().isClientSide()) {
-         this.sendMessage(2, buffer -> {
-            buffer.writeByte(lineIndex);
-            buffer.writeByte(button);
-         });
-      }
 
       if ((button == 1 || button == 2) && this.lines[lineIndex].isOneStackMode()) {
          for (int i = 1; i < 9; i++) {
@@ -81,6 +74,16 @@ public class ContainerList extends BcMenu {
       ItemStack listStack = this.getListItemStack();
       ListHandler.saveLines(listStack, this.lines);
       ItemList_BC8.updateModelData(listStack);
+   }
+
+   public void switchButton(int lineIndex, int button) {
+      this.applyButtonToggle(lineIndex, button);
+      if (this.player.level().isClientSide()) {
+         this.sendMessage(2, buffer -> {
+            buffer.writeByte(lineIndex);
+            buffer.writeByte(button);
+         });
+      }
    }
 
    public void setLabel(String text) {
@@ -102,7 +105,7 @@ public class ContainerList extends BcMenu {
             int lineIndex = buffer.readUnsignedByte();
             int button = buffer.readUnsignedByte();
             if (lineIndex >= 0 && lineIndex < this.lines.length && button >= 0 && button < 3) {
-               this.switchButton(lineIndex, button);
+               this.applyButtonToggle(lineIndex, button);
             }
          } else if (id == 1) {
             this.setLabel(buffer.readUtf(1024));

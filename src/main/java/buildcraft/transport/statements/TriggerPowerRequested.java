@@ -6,6 +6,7 @@ import buildcraft.api.statements.IStatementContainer;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.ITriggerInternal;
 import buildcraft.api.transport.pipe.IFlowPowerLike;
+import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.core.statements.BCStatement;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.transport.BCTransportSprites;
@@ -18,9 +19,12 @@ public class TriggerPowerRequested extends BCStatement implements ITriggerIntern
 
    @Override
    public boolean isTriggerActive(IStatementContainer source, IStatementParameter[] parameters) {
-      return !(source instanceof IGate)
-         ? false
-         : ((IGate)source).getPipeHolder().getPipe().getFlow() instanceof IFlowPowerLike powerLike && powerLike.getPowerRequested() > 0L;
+      if (source instanceof IGate gate) {
+         IPipe pipe = gate.getPipeHolder().getPipe();
+         return pipe != null && pipe.getFlow() instanceof IFlowPowerLike powerLike && powerLike.getPowerRequested() > 0L;
+      }
+
+      return false;
    }
 
    @Override

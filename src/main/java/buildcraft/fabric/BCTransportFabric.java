@@ -21,6 +21,7 @@ import buildcraft.transport.stripes.StripesHandlerDispenser;
 import buildcraft.transport.stripes.StripesHandlerEntityInteract;
 import buildcraft.transport.stripes.StripesHandlerHoe;
 import buildcraft.transport.stripes.StripesHandlerMinecartDestroy;
+import buildcraft.transport.stripes.PipeExtensionManager;
 import buildcraft.transport.stripes.StripesHandlerPipes;
 import buildcraft.transport.stripes.StripesHandlerPlaceBlock;
 import buildcraft.transport.stripes.StripesHandlerPlant;
@@ -57,9 +58,11 @@ public final class BCTransportFabric {
       initStripesRegistry();
       registerMjCapabilities();
       registerNativeTransfer();
+      TilePipeHolder.registerGuiViewerDisconnectHook();
       ServerTickEvents.END_SERVER_TICK.register((EndTick)server -> {
          PipeItemMessageQueue.serverTick();
          PipePayloadMessageQueue.serverTick();
+         PipeExtensionManager.INSTANCE.tick(server);
 
          for (ServerLevel serverLevel : server.getAllLevels()) {
             SavedDataWireSystems.get(serverLevel).tick();
@@ -81,6 +84,8 @@ public final class BCTransportFabric {
    }
 
    private static void initStripesRegistry() {
+      PipeApi.extensionManager = PipeExtensionManager.INSTANCE;
+      PipeExtensionManager.INSTANCE.registerRetractionPipe(BCTransportPipes.structure);
       PipeApi.stripeRegistry = StripesRegistry.INSTANCE;
       PipeApi.stripeRegistry.addHandler(StripesHandlerPlant.INSTANCE);
       PipeApi.stripeRegistry.addHandler(StripesHandlerShears.INSTANCE);

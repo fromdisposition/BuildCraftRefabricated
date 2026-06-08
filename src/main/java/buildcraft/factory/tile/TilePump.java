@@ -60,13 +60,14 @@ public class TilePump extends TileMiner implements IDebuggable {
    private boolean queueBuilt = false;
    private long builtAtRevision = -1L;
    private final Map<BlockPos, TilePump.FluidPath> paths = new HashMap<>();
-   private BlockPos fluidConnection;
    private final Deque<BlockPos> queue = new ArrayDeque<>();
    private boolean isInfiniteWaterSource;
    private int rebuildDelay = 0;
    private BlockPos targetPos;
    @Nullable
    private BlockPos oilSpringPos;
+   @Nullable
+   private IMjReceiver mjReceiver;
 
    public static void onConfigReloaded() {
       CONFIG_REVISION.incrementAndGet();
@@ -78,7 +79,11 @@ public class TilePump extends TileMiner implements IDebuggable {
 
    @Override
    protected IMjReceiver createMjReceiver() {
-      return new MjRedstoneBatteryReceiver(this.battery);
+      if (this.mjReceiver == null) {
+         this.mjReceiver = new MjRedstoneBatteryReceiver(this.battery);
+      }
+
+      return this.mjReceiver;
    }
 
    public Storage<FluidVariant> getExtractFluidStorage() {
@@ -127,7 +132,6 @@ public class TilePump extends TileMiner implements IDebuggable {
       Fluid queueFluid = BlockUtil.getFluidWithFlowing(this.level, seed);
       if (queueFluid != null) {
          this.targetPos = seed;
-         this.fluidConnection = seed;
          LongSet checked = new LongOpenHashSet();
          List<BlockPos> nextPosesToCheck = new ArrayList<>();
          nextPosesToCheck.add(seed);
@@ -489,11 +493,6 @@ public class TilePump extends TileMiner implements IDebuggable {
       left.add("fluid = " + FluidUtilBC.getDebugString(this.fluidTank.getFluidStack()));
       left.add("queue size = " + this.queue.size());
       left.add("infinite = " + this.isInfiniteWaterSource);
-   }
-
-   @Override
-   public void setRemoved() {
-      super.setRemoved();
    }
 
    @Override

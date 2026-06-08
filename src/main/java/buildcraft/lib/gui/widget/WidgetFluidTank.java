@@ -27,10 +27,14 @@ import org.jspecify.annotations.Nullable;
 
 public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
    private static final byte NET_CLICK = 0;
-   private final @Nullable Storage<FluidVariant> tank;
+   private @Nullable Storage<FluidVariant> tank;
 
    public WidgetFluidTank(BcMenu container, @Nullable Storage<FluidVariant> tank) {
       super(container);
+      this.tank = tank;
+   }
+
+   public void setTank(@Nullable Storage<FluidVariant> tank) {
       this.tank = tank;
    }
 

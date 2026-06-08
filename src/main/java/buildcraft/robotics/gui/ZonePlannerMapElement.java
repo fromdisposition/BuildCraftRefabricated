@@ -8,6 +8,7 @@ import buildcraft.lib.gui.GuiIcon;
 import buildcraft.lib.gui.IInteractionElement;
 import buildcraft.robotics.client.render.pip.ZoneMapPipRenderState;
 import buildcraft.robotics.container.ContainerZonePlanner;
+import buildcraft.robotics.zone.ZonePlannerChunkKeys;
 import buildcraft.robotics.tile.TileZonePlanner;
 import buildcraft.robotics.zone.ZonePlan;
 import buildcraft.robotics.zone.ZonePlannerMapColours;
@@ -120,10 +121,6 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return this.mapH;
    }
 
-   private static long chunkKey(int chunkX, int chunkZ) {
-      return (chunkX & 0xFFFFFFFFL) | (long)chunkZ << 32;
-   }
-
    /**
     * Computes the rectangular chunk window covered by the (strictly top-down) camera frustum so the terrain fills the
     * whole wider-than-tall viewport instead of a centred square. Returns {@code {minCX, minCZ, maxCX, maxCZ}}.
@@ -156,7 +153,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
       if (cache != null) {
          int wx = Mth.floor(this.camX);
          int wz = Mth.floor(this.camZ);
-         int h = cache.heightAt(chunkKey(wx >> 4, wz >> 4), wx, wz);
+         int h = cache.heightAt(ZonePlannerChunkKeys.chunkKey(wx >> 4, wz >> 4), wx, wz);
          if (h != ZonePlannerMapColours.NO_HEIGHT) {
             return h;
          }
@@ -350,7 +347,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
 
          for (int cx = cx0; cx <= cx1; cx++) {
             for (int cz = cz0; cz <= cz1; cz++) {
-               long key = chunkKey(cx, cz);
+               long key = ZonePlannerChunkKeys.chunkKey(cx, cz);
                if (!cache.hasData(key) && !cache.isRequested(key)) {
                   cache.markRequested(key);
                   missing.add(key);
@@ -385,7 +382,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
          double wz = nz + dz * t;
          int bx = Mth.floor(wx);
          int bz = Mth.floor(wz);
-         int h = cache.heightAt(chunkKey(bx >> 4, bz >> 4), bx, bz);
+         int h = cache.heightAt(ZonePlannerChunkKeys.chunkKey(bx >> 4, bz >> 4), bx, bz);
          if (h != ZonePlannerMapColours.NO_HEIGHT && wy <= h + 1) {
             return new int[]{bx, bz, h};
          }
@@ -460,25 +457,9 @@ public class ZonePlannerMapElement implements IInteractionElement {
             int rz0 = this.selStartBZ - tilePos.getZ();
             int rx1 = this.selEndBX - tilePos.getX();
             int rz1 = this.selEndBZ - tilePos.getZ();
-            if (this.tile.layers[layer] == null) {
-               this.tile.layers[layer] = new ZonePlan();
-            }
-
-            int minX = Math.min(rx0, rx1);
-            int maxX = Math.max(rx0, rx1);
-            int minZ = Math.min(rz0, rz1);
-            int maxZ = Math.max(rz0, rz1);
-
-            for (int x = minX; x <= maxX; x++) {
-               for (int z = minZ; z <= maxZ; z++) {
-                  this.tile.layers[layer].set(x, z, set);
-               }
-            }
-
             ContainerZonePlanner menu = this.container();
             if (menu != null) {
                menu.sendPaintRect(layer, rx0, rz0, rx1, rz1, set);
-               menu.clientLayerVersion++;
             }
          }
       }

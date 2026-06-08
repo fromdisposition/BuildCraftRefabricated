@@ -96,6 +96,11 @@ public class ItemMapLocation extends Item implements IMapLocation {
       return new BlockPos(tag.getInt("X").orElse(0), tag.getInt("Y").orElse(0), tag.getInt("Z").orElse(0));
    }
 
+   private static Direction readSide(CompoundTag tag) {
+      int side = tag.getByte("side").orElse((byte)0) & 255;
+      return side >= 0 && side < Direction.values().length ? Direction.values()[side] : Direction.UP;
+   }
+
    public static void appendTooltipLines(ItemMapLocation item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       CompoundTag cpt = getCustomTag(stack);
       if (cpt.contains("name")) {
@@ -112,7 +117,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
                int x = cpt.getInt("x").orElse(0);
                int y = cpt.getInt("y").orElse(0);
                int z = cpt.getInt("z").orElse(0);
-               Direction side = Direction.values()[cpt.getByte("side").orElse((byte)0)];
+               Direction side = readSide(cpt);
                tooltip.add(Component.literal("{" + x + ", " + y + ", " + z + ", " + side + "}"));
             }
             break;
@@ -260,6 +265,35 @@ public class ItemMapLocation extends Item implements IMapLocation {
       return new Box(min, max);
    }
 
+   public static IBox getPathBoundingBox(@Nonnull ItemStack item) {
+      if (!(item.getItem() instanceof ItemMapLocation map)) {
+         return null;
+      }
+
+      List<BlockPos> path = map.getPath(item);
+      if (path == null || path.isEmpty()) {
+         return null;
+      }
+
+      int minX = path.get(0).getX();
+      int minY = path.get(0).getY();
+      int minZ = path.get(0).getZ();
+      int maxX = minX;
+      int maxY = minY;
+      int maxZ = minZ;
+
+      for (BlockPos pos : path) {
+         minX = Math.min(minX, pos.getX());
+         minY = Math.min(minY, pos.getY());
+         minZ = Math.min(minZ, pos.getZ());
+         maxX = Math.max(maxX, pos.getX());
+         maxY = Math.max(maxY, pos.getY());
+         maxZ = Math.max(maxZ, pos.getZ());
+      }
+
+      return new Box(new BlockPos(minX, minY, minZ), new BlockPos(maxX, maxY, maxZ));
+   }
+
    public static IBox getPointBox(@Nonnull ItemStack item) {
       CompoundTag cpt = getCustomTag(item);
       IMapLocation.MapLocationType type = getTypeFromStack(item);
@@ -277,7 +311,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
 
    public static Direction getPointFace(@Nonnull ItemStack stack) {
       CompoundTag cpt = getCustomTag(stack);
-      return Direction.values()[cpt.getByte("side").orElse((byte)0)];
+      return readSide(cpt);
    }
 
    @Override
@@ -298,7 +332,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
       IMapLocation.MapLocationType type = getTypeFromStack(item);
       if (type == IMapLocation.MapLocationType.SPOT) {
          CompoundTag cpt = getCustomTag(item);
-         return Direction.values()[cpt.getByte("side").orElse((byte)0)];
+         return readSide(cpt);
       } else {
          return null;
       }
@@ -319,7 +353,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
             return this.getBox(item);
          case PATH:
          case PATH_REPEATING:
-            return getPointBox(item);
+            return getPathBoundingBox(item);
          case ZONE:
             buildcraft.robotics.zone.ZonePlan plan = new buildcraft.robotics.zone.ZonePlan();
             plan.readFromNBT(getCustomTag(item));

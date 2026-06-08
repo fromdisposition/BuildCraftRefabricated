@@ -33,6 +33,7 @@ import net.minecraft.world.level.material.PushReaction;
 
 public final class BCEnergyFluidsFabric {
    public static final List<String> BASE_NAMES = List.of(BcFluidWorldProperties.FLUID_NAMES);
+   private static final List<BcOilFluid.Holder> HOLDERS = new ArrayList<>();
    private static final List<BCEnergyFluidsFabric.FluidEntry> ENTRIES = new ArrayList<>();
    private static final Map<Fluid, BCEnergyFluidsFabric.FluidEntry> BY_FLUID = new IdentityHashMap<>();
    private static final Map<String, Fluid> BY_NAME = new HashMap<>();
@@ -43,6 +44,7 @@ public final class BCEnergyFluidsFabric {
    }
 
    public static void register() {
+      HOLDERS.clear();
       ENTRIES.clear();
       BY_FLUID.clear();
       BY_NAME.clear();
@@ -92,7 +94,9 @@ public final class BCEnergyFluidsFabric {
       String regName = BcFluidWorldProperties.regName(baseName, heat);
       Identifier id = Identifier.fromNamespaceAndPath("buildcraftenergy", regName);
       boolean gaseous = props.gaseous();
-      BcOilFluid.Holder holder = new BcOilFluid.Holder(props);
+      BcOilFluid.Holder holder = new BcOilFluid.Holder(
+         props, baseName, heat, baseDensity, baseViscosity, boilPoint, baseSpread, stickyFlag, flammableFlag
+      );
       holder.still = BCRegistries.registerFluid("buildcraftenergy", regName, new BcOilFluid.Source(holder));
       holder.flowing = BCRegistries.registerFluid("buildcraftenergy", regName + "_flowing", new BcOilFluid.Flowing(holder));
       ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, id);
@@ -120,12 +124,22 @@ public final class BCEnergyFluidsFabric {
          "buildcraftenergy", regName + "_bucket", itemProps -> new BucketItem(holder.still, itemProps.craftRemainder(Items.BUCKET).stacksTo(1))
       );
       holder.seal();
+      HOLDERS.add(holder);
       FluidTypes.register(holder.still, props.viscosity(), props.density());
       FluidTypes.register(holder.flowing, props.viscosity(), props.density());
       BcFluidAttributesFabric.register(holder.still, holder.flowing, gaseous);
       return new BCEnergyFluidsFabric.FluidEntry(
          regName, baseName, heat, texLight, texDark, tintColor, holder.still, holder.flowing, holder.block, holder.bucket, gaseous
       );
+   }
+
+   public static void reapplyConfigProperties() {
+      boolean stickyEnabled = BCEnergyConfig.oilIsSticky.get();
+      boolean flammableEnabled = BCEnergyConfig.enableOilBurn.get();
+
+      for (BcOilFluid.Holder holder : HOLDERS) {
+         holder.reapplyConfig(stickyEnabled, flammableEnabled);
+      }
    }
 
    @Nullable

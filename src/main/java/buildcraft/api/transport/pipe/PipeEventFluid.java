@@ -1,9 +1,12 @@
 package buildcraft.api.transport.pipe;
 
 import buildcraft.lib.fluids.FluidStack;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import javax.annotation.Nonnull;
 import net.minecraft.core.Direction;
 
@@ -202,13 +205,14 @@ public abstract class PipeEventFluid extends PipeEvent {
          this.increasePriority(side, -by);
       }
 
-      public EnumSet<Direction> getOrder() {
+      /** All allowed faces in gate-priority order (highest priority first). */
+      public List<Direction> getOrderedDirections() {
          if (this.allowed.isEmpty()) {
-            return EnumSet.noneOf(Direction.class);
+            return Collections.emptyList();
          }
 
          if (this.allowed.size() == 1) {
-            return this.allowed;
+            return List.of(this.allowed.iterator().next());
          }
 
          int val = this.priority[0];
@@ -217,31 +221,37 @@ public abstract class PipeEventFluid extends PipeEvent {
             if (this.priority[i] != val) {
                int[] ordered = Arrays.copyOf(this.priority, 6);
                Arrays.sort(ordered);
-               i = 0;
+               List<Direction> list = new ArrayList<>();
+               int lastPriority = Integer.MIN_VALUE;
 
                for (int ix = 0; ix < 6; ix++) {
                   int current = ordered[ix];
-                  if (ix == 0 || current != i) {
-                     i = current;
-                     EnumSet<Direction> set = EnumSet.noneOf(Direction.class);
+                  if (ix == 0 || current != lastPriority) {
+                     lastPriority = current;
 
                      for (Direction face : Direction.values()) {
                         if (this.allowed.contains(face) && this.priority[face.ordinal()] == current) {
-                           set.add(face);
+                           list.add(face);
                         }
-                     }
-
-                     if (set.size() > 0) {
-                        return set;
                      }
                   }
                }
 
-               return EnumSet.noneOf(Direction.class);
+               return list;
             }
          }
 
-         return this.allowed;
+         return new ArrayList<>(this.allowed);
+      }
+
+      public EnumSet<Direction> getOrder() {
+         EnumSet<Direction> result = EnumSet.noneOf(Direction.class);
+
+         for (Direction direction : this.getOrderedDirections()) {
+            result.add(direction);
+         }
+
+         return result;
       }
    }
 

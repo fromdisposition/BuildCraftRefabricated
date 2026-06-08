@@ -160,7 +160,7 @@ public class TileBuilder
             return stack;
          }
 
-         if (!simulate && (simulate || allOrNone)) {
+         if (!simulate) {
             for (int i = 0; i < scratch.size(); i++) {
                TileBuilder.this.resourceInventory.stacks.set(i, (ItemStack)scratch.get(i));
             }

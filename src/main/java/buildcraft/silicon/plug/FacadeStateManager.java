@@ -67,6 +67,43 @@ public enum FacadeStateManager implements IFacadeRegistry {
       }
    }
 
+   @Override
+   public void disableBlock(Block block, String source) {
+      disabledBlocks.put(block, source);
+      if (initialized) {
+         SortedMap<BlockState, FacadeBlockStateInfo> nextValid = new TreeMap<>(validFacadeStates);
+         nextValid.keySet().removeIf(state -> state.is(block));
+         validFacadeStates = Collections.unmodifiableSortedMap(nextValid);
+      }
+   }
+
+   @Override
+   public void mapStateToStack(BlockState state, ItemStack stack) {
+      customBlocks.put(state, stack.copy());
+      if (initialized) {
+         SortedMap<BlockState, FacadeBlockStateInfo> nextValid = new TreeMap<>(validFacadeStates);
+         Map<ItemStackKey, List<FacadeBlockStateInfo>> nextStackFacades = new HashMap<>();
+
+         for (Entry<ItemStackKey, List<FacadeBlockStateInfo>> entry : stackFacades.entrySet()) {
+            List<FacadeBlockStateInfo> filtered = entry.getValue().stream().filter(info -> !info.state.is(state.getBlock())).toList();
+            if (!filtered.isEmpty()) {
+               nextStackFacades.put(entry.getKey(), new ArrayList<>(filtered));
+            }
+         }
+
+         nextValid.keySet().removeIf(s -> s.is(state.getBlock()));
+         scanBlock(state.getBlock(), nextValid, nextStackFacades);
+         validFacadeStates = Collections.unmodifiableSortedMap(nextValid);
+         Map<ItemStackKey, List<FacadeBlockStateInfo>> published = new HashMap<>();
+
+         for (Entry<ItemStackKey, List<FacadeBlockStateInfo>> entry : nextStackFacades.entrySet()) {
+            published.put(entry.getKey(), List.copyOf(entry.getValue()));
+         }
+
+         stackFacades = Map.copyOf(published);
+      }
+   }
+
    private static Comparator<BlockState> blockStateComparator() {
       return Comparator.comparingInt(state -> Block.BLOCK_STATE_REGISTRY.getId(state));
    }

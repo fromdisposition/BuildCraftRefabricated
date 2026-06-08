@@ -27,12 +27,14 @@ import buildcraft.transport.net.MessagePipePayload;
 import buildcraft.transport.net.PipePayloadMessageQueue;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.PipeEventBus;
+import buildcraft.transport.pipe.PipePluggableTransferAccess;
 import buildcraft.transport.pipe.behaviour.PipeBehaviourDaizuli;
 import buildcraft.transport.pipe.flow.PipeFlowInternalAccess;
 import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 import buildcraft.transport.wire.SavedDataWireSystems;
 import buildcraft.transport.wire.WireManager;
 import com.mojang.authlib.GameProfile;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -40,7 +42,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -73,6 +78,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import team.reborn.energy.api.EnergyStorage;
 
 public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebuggable, IBlockEntityLoadHook {
+   private static final Set<TilePipeHolder> GUI_VIEWER_HOLDERS = Collections.newSetFromMap(new WeakHashMap<>());
+   private static final AtomicBoolean DISCONNECT_HOOK_REGISTERED = new AtomicBoolean();
    private static final Identifier ADVANCEMENT_PIPE_DREAM = Identifier.parse("buildcrafttransport:pipe_dream");
    private static final Identifier ADVANCEMENT_PIPE_DIVERSIFICATION = Identifier.parse("buildcrafttransport:pipe_diversification");
    private static final Identifier ADVANCEMENT_PIPE_FANATIC = Identifier.parse("buildcrafttransport:pipe_fanatic");
@@ -90,6 +97,18 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    private boolean saveDirtyThisTick = false;
    private final int[] redstoneOutputs = new int[Direction.values().length];
    private final int[] redstoneOutputsThisTick = new int[Direction.values().length];
+
+   public static void registerGuiViewerDisconnectHook() {
+      if (DISCONNECT_HOOK_REGISTERED.compareAndSet(false, true)) {
+         ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> clearGuiViewer(handler.player));
+      }
+   }
+
+   public static void clearGuiViewer(ServerPlayer player) {
+      for (TilePipeHolder holder : new ArrayList<>(GUI_VIEWER_HOLDERS)) {
+         holder.guiViewers.remove(player);
+      }
+   }
 
    public TilePipeHolder(BlockPos pos, BlockState state) {
       super(BCTransportBlockEntities.PIPE_HOLDER, pos, state);
@@ -713,11 +732,18 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       Pipe pipe = this.getPipe();
       if (pipe != null && side != null) {
          PipePluggable plug = this.getPluggable(side);
-         if (plug != null && plug.isBlocking()) {
-            return null;
-         } else {
-            return pipe.getFlow() instanceof PipeFlowRedstoneFlux ? PipeFlowInternalAccess.energyStorage(pipe.getFlow(), side) : null;
+         if (plug != null) {
+            EnergyStorage pluggableStorage = PipePluggableTransferAccess.energyStorage(plug);
+            if (pluggableStorage != null) {
+               return pluggableStorage;
+            }
+
+            if (plug.isBlocking()) {
+               return null;
+            }
          }
+
+         return pipe.getFlow() instanceof PipeFlowRedstoneFlux ? PipeFlowInternalAccess.energyStorage(pipe.getFlow(), side) : null;
       } else {
          return null;
       }
@@ -728,11 +754,18 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       Pipe pipe = this.getPipe();
       if (pipe != null && side != null) {
          PipePluggable plug = this.getPluggable(side);
-         if (plug != null && plug.isBlocking()) {
-            return null;
-         } else {
-            return pipe.getFlow() instanceof IFlowFluid ? PipeFlowInternalAccess.fluidStorage(pipe.getFlow(), side) : null;
+         if (plug != null) {
+            Storage<FluidVariant> pluggableStorage = PipePluggableTransferAccess.fluidStorage(plug);
+            if (pluggableStorage != null) {
+               return pluggableStorage;
+            }
+
+            if (plug.isBlocking()) {
+               return null;
+            }
          }
+
+         return pipe.getFlow() instanceof IFlowFluid ? PipeFlowInternalAccess.fluidStorage(pipe.getFlow(), side) : null;
       } else {
          return null;
       }
@@ -743,7 +776,18 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       Pipe pipe = this.getPipe();
       if (pipe != null && side != null) {
          PipePluggable plug = this.getPluggable(side);
-         return plug != null && plug.isBlocking() ? null : PipeFlowInternalAccess.itemStorage(pipe.getFlow(), side);
+         if (plug != null) {
+            Storage<ItemVariant> pluggableStorage = PipePluggableTransferAccess.itemStorage(plug);
+            if (pluggableStorage != null) {
+               return pluggableStorage;
+            }
+
+            if (plug.isBlocking()) {
+               return null;
+            }
+         }
+
+         return PipeFlowInternalAccess.itemStorage(pipe.getFlow(), side);
       } else {
          return null;
       }
@@ -806,6 +850,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    @Override
    public void onPlayerOpen(Player player) {
       if (player instanceof ServerPlayer serverPlayer) {
+         GUI_VIEWER_HOLDERS.add(this);
          this.guiViewers.add(serverPlayer);
       }
    }
@@ -814,6 +859,9 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    public void onPlayerClose(Player player) {
       if (player instanceof ServerPlayer serverPlayer) {
          this.guiViewers.remove(serverPlayer);
+         if (this.guiViewers.isEmpty()) {
+            GUI_VIEWER_HOLDERS.remove(this);
+         }
       }
    }
 

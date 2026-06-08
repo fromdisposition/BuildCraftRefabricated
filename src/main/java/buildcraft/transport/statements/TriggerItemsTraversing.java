@@ -9,6 +9,7 @@ import buildcraft.api.statements.StatementParameterItemStack;
 import buildcraft.core.statements.BCStatement;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.transport.BCTransportSprites;
+import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.transport.pipe.flow.PipeFlowItems;
 import net.minecraft.world.item.ItemStack;
 
@@ -39,11 +40,14 @@ public class TriggerItemsTraversing extends BCStatement implements ITriggerInter
 
    @Override
    public boolean isTriggerActive(IStatementContainer source, IStatementParameter[] parameters) {
-      if (source instanceof IGate && ((IGate)source).getPipeHolder().getPipe().getFlow() instanceof PipeFlowItems itemFlow) {
-         ItemStack filter = getParam(0, parameters, StatementParameterItemStack.EMPTY).getItemStack();
-         return itemFlow.containsItemMatching(filter);
-      } else {
-         return false;
+      if (source instanceof IGate gate) {
+         IPipe pipe = gate.getPipeHolder().getPipe();
+         if (pipe != null && pipe.getFlow() instanceof PipeFlowItems itemFlow) {
+            ItemStack filter = getParam(0, parameters, StatementParameterItemStack.EMPTY).getItemStack();
+            return itemFlow.containsItemMatching(filter);
+         }
       }
+
+      return false;
    }
 }

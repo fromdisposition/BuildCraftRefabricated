@@ -20,6 +20,11 @@ public enum AddonsRegistry {
    }
 
    public Identifier getNameByClass(Class<? extends Addon> clazz) {
-      return this.addonClasses.entrySet().stream().filter(nameClass -> nameClass.getValue().equals(clazz)).findFirst().orElse(null).getKey();
+      return this.addonClasses.entrySet()
+         .stream()
+         .filter(nameClass -> nameClass.getValue().equals(clazz))
+         .map(Map.Entry::getKey)
+         .findFirst()
+         .orElse(null);
    }
 }

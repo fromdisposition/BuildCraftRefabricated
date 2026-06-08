@@ -135,7 +135,7 @@ public class PathConnection extends MarkerConnection<PathConnection> {
          if (this.positions.getFirst().equals(from)) {
             return contains ? this.positions.getLast().equals(toAdd) : true;
          } else if (this.positions.getLast().equals(from)) {
-            return contains ? this.positions.getLast().equals(toAdd) : true;
+            return contains ? this.positions.getFirst().equals(toAdd) : true;
          } else {
             return false;
          }

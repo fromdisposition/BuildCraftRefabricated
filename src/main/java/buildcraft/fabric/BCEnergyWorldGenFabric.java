@@ -49,19 +49,22 @@ public final class BCEnergyWorldGenFabric {
                enqueueOilGeneration(serverLevel, chunkPos);
             }
          });
-         ServerTickEvents.END_SERVER_TICK.register((EndTick)server -> {
-            for (ServerLevel level : server.getAllLevels()) {
-               processOilGenerationQueue(level);
-            }
-
-            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-               onPlayerTick(player);
-            }
-         });
          BCLog.logger.info("[energy.oilgen] Registered oil world generation (Fabric).");
       } else {
          BCLog.logger.info("[energy.oilgen] Oil generation is disabled by config.");
       }
+
+      ServerTickEvents.END_SERVER_TICK.register((EndTick)server -> {
+         if (BCCoreConfig.worldGen.get() && BCEnergyConfig.enableOilGeneration.get()) {
+            for (ServerLevel level : server.getAllLevels()) {
+               processOilGenerationQueue(level);
+            }
+         }
+
+         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            onPlayerTick(player);
+         }
+      });
    }
 
    private static void enqueueOilGeneration(ServerLevel level, ChunkPos pos) {

@@ -66,10 +66,10 @@ public class TileStampingTable extends TileLaserTableBase {
       ItemStack input = this.invInput.getStackInSlot(0);
       CraftingInput craftInput = this.buildCraftInput(input);
       RecipeHolder<CraftingRecipe> recipe = CraftingUtil.findMatchingRecipe(craftInput, this.level);
-      this.power -= target;
       if (recipe != null) {
          ItemStack result = recipe.value().assemble(craftInput).copy();
          if (!result.isEmpty()) {
+            this.power -= target;
             this.output(result);
 
             for (ItemStack remaining : recipe.value().getRemainingItems(craftInput)) {

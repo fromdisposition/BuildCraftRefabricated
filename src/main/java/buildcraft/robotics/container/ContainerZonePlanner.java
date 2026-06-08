@@ -1,6 +1,7 @@
 package buildcraft.robotics.container;
 
 import net.minecraft.network.FriendlyByteBuf;
+import buildcraft.core.BCCore;
 import buildcraft.core.item.ItemMapLocation;
 import buildcraft.core.item.ItemPaintbrush_BC8;
 import buildcraft.fabric.network.BCPayloadContext;
@@ -21,6 +22,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -28,7 +30,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
 
 public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
-   public static final int NET_PAINT = 200;
    public static final int NET_REQUEST_LAYERS = 201;
    public static final int NET_LAYERS = 202;
    public static final int NET_MAP_REQUEST = 203;
@@ -102,15 +103,6 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       };
    }
 
-   public void sendPaint(int layer, int x, int z, boolean set) {
-      this.sendMessage(200, buf -> {
-         buf.writeByte(layer);
-         buf.writeVarInt(x);
-         buf.writeVarInt(z);
-         buf.writeBoolean(set);
-      });
-   }
-
    public void requestLayers() {
       this.sendMessage(201, buf -> {});
    }
@@ -139,22 +131,16 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
-      if (id == 200 && !isClient) {
-         int layer = buffer.readByte() & 255;
-         int x = buffer.readVarInt();
-         int z = buffer.readVarInt();
-         boolean set = buffer.readBoolean();
-         if (this.tile != null) {
-            this.tile.applyPaint(layer, x, z, set);
-         }
-      } else if (id == 205 && !isClient) {
+      if (id == 205 && !isClient) {
          int layer = buffer.readByte() & 255;
          int x0 = buffer.readVarInt();
          int z0 = buffer.readVarInt();
          int x1 = buffer.readVarInt();
          int z1 = buffer.readVarInt();
          boolean set = buffer.readBoolean();
-         if (this.tile != null) {
+         if (!this.canPaint(ctx.player(), layer)) {
+            this.pushLayersToClient();
+         } else if (this.tile != null) {
             int minX = Math.min(x0, x1);
             int maxX = Math.max(x0, x1);
             int minZ = Math.min(z0, z1);
@@ -225,6 +211,60 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
             }
          });
       }
+   }
+
+   private boolean canPaint(Player player, int layer) {
+      if (this.tile == null || !this.tile.canInteractWith(player)) {
+         return false;
+      }
+
+      return layer >= 0 && layer < this.tile.layers.length && this.hasBrushForLayer(player, layer);
+   }
+
+   private boolean hasBrushForLayer(Player player, int layer) {
+      if (brushMatchesLayer(this.getCarried(), layer)) {
+         return true;
+      }
+
+      if (this.tile != null) {
+         for (int i = 0; i < this.tile.invPaintbrushes.getSlots(); i++) {
+            if (brushMatchesLayer(this.tile.invPaintbrushes.getStackInSlot(i), layer)) {
+               return true;
+            }
+         }
+
+         if (brushMatchesLayer(this.tile.invInputPaintbrush.getStackInSlot(0), layer)) {
+            return true;
+         }
+
+         if (brushMatchesLayer(this.tile.invOutputPaintbrush.getStackInSlot(0), layer)) {
+            return true;
+         }
+      }
+
+      return brushMatchesLayer(player.getMainHandItem(), layer) || brushMatchesLayer(player.getOffhandItem(), layer);
+   }
+
+   private static boolean brushMatchesLayer(ItemStack stack, int layer) {
+      if (stack.isEmpty() || !(stack.getItem() instanceof ItemPaintbrush_BC8)) {
+         return false;
+      }
+
+      DyeColor colour = stack.get(BCCore.BRUSH_COLOR);
+      return colour != null && colour.getId() == layer;
+   }
+
+   private void pushLayersToClient() {
+      if (this.tile == null) {
+         return;
+      }
+
+      this.lastLayersVersion = this.tile.layersVersion;
+      this.sendMessage(202, buf -> {
+         for (ZonePlan plan : this.tile.layers) {
+            (plan == null ? new ZonePlan() : plan).writeToByteBuf(buf);
+         }
+      });
    }
 
    private void handleMapRequest(FriendlyByteBuf buffer) {

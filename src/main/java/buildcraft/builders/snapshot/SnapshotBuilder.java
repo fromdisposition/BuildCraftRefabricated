@@ -49,6 +49,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    public final Queue<SnapshotBuilder<T>.BreakTask> breakTasks = new ArrayDeque<>();
    public final Queue<SnapshotBuilder<T>.BreakTask> clientBreakTasks = new ArrayDeque<>();
    public final Set<SnapshotBuilder<T>.BreakTask> clientBreakTasksCache = new HashSet<>();
+   public final Set<SnapshotBuilder<T>.PlaceTask> clientPlaceTasksCache = new HashSet<>();
    public final Queue<SnapshotBuilder<T>.BreakTask> prevClientBreakTasks = new ArrayDeque<>();
    public final Queue<SnapshotBuilder<T>.PlaceTask> placeTasks = new ArrayDeque<>();
    public final Queue<SnapshotBuilder<T>.PlaceTask> clientPlaceTasks = new ArrayDeque<>();
@@ -383,6 +384,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             long target = placeTask.getTarget();
             placeTask.power = placeTask.power + this.tile.getBattery().extractPower(0L, Math.min(target - placeTask.power, max / this.placeTasks.size()));
             if (placeTask.power >= target) {
+               this.clientPlaceTasksCache.add(placeTask);
                if (!this.doPlaceTask(placeTask)) {
                   this.cancelPlaceTask(placeTask);
                }
@@ -393,6 +395,8 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
                this.invalidateFluidCache();
                iteratorx.remove();
+            } else {
+               this.clientPlaceTasksCache.add(placeTask);
             }
          }
       }
@@ -609,12 +613,13 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    public CompoundTag serializeClientNBT() {
       CompoundTag nbt = new CompoundTag();
       nbt.put("breakTasks", NBTUtilBC.writeCompoundList(this.clientBreakTasksCache.stream().map(SnapshotBuilder.BreakTask::writeToNBT)));
-      nbt.put("placeTasks", NBTUtilBC.writeCompoundList(this.placeTasks.stream().map(SnapshotBuilder.PlaceTask::writeToNBT)));
+      nbt.put("placeTasks", NBTUtilBC.writeCompoundList(this.clientPlaceTasksCache.stream().map(SnapshotBuilder.PlaceTask::writeToNBT)));
       return nbt;
    }
 
    public void onNetworkSync() {
       this.clientBreakTasksCache.clear();
+      this.clientPlaceTasksCache.clear();
    }
 
    public void deserializeNBT(CompoundTag nbt) {
@@ -717,20 +722,14 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
       public PlaceTask(CompoundTag nbt) {
          this.pos = new BlockPos((int)nbt.getLongOr("pos_x", 0L), (int)nbt.getLongOr("pos_y", 0L), (int)nbt.getLongOr("pos_z", 0L));
-         this.items = ImmutableList.copyOf(NBTUtilBC.readCompoundList(nbt.get("items")).map(tag -> {
-            if (tag.contains("id")) {
-               String idStr = tag.getString("id").orElse("");
-               Identifier id = Identifier.tryParse(idStr);
-               if (id != null) {
-                  Item item = (Item)BuiltInRegistries.ITEM.getValue(id);
-                  if (item != null && item != Items.AIR) {
-                     return new ItemStack(item, tag.getInt("count").orElse(1));
-                  }
-               }
-            }
-
-            return ItemStack.EMPTY;
-         }).filter(stack -> !stack.isEmpty()).collect(Collectors.toList()));
+         this.items = ImmutableList.copyOf(
+            NBTUtilBC.readCompoundList(nbt.get("items"))
+               .map(
+                  tag -> ItemStack.CODEC.parse(NBTUtilBC.registryAwareOps(), tag).resultOrPartial().orElse(ItemStack.EMPTY)
+               )
+               .filter(stack -> !stack.isEmpty())
+               .collect(Collectors.toList())
+         );
          this.power = nbt.getLongOr("power", 0L);
       }
 
@@ -768,11 +767,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
          for (ItemStack stack : this.items) {
             if (!stack.isEmpty()) {
-               CompoundTag itemNbt = new CompoundTag();
-               Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-               itemNbt.putString("id", itemId.toString());
-               itemNbt.putInt("count", stack.getCount());
-               list.add(itemNbt);
+               ItemStack.CODEC.encodeStart(NBTUtilBC.registryAwareOps(), stack).resultOrPartial().ifPresent(list::add);
             }
          }
 

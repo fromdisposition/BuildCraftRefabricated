@@ -70,9 +70,12 @@ public class TileConstructionMarker extends BcBlockEntity {
 
    /** Called by a builder robot once the structure for this marker is fully built so it stops being a build target. */
    public void markBuilt() {
+      this.blueprintBuildingInfo = null;
       if (this.level != null) {
          ConstructionMarkerRegistry.unregister(this.level, this.worldPosition);
       }
+
+      this.setChanged();
    }
 
    private void recomputeBuildingInfo() {

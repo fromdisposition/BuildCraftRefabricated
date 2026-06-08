@@ -10,7 +10,6 @@ import buildcraft.lib.engine.TileEngineBase_BC8;
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.SoundUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -79,19 +78,11 @@ public class BlockEngineStone_BC8 extends BlockEngineBase_BC8 {
    }
 
    private InteractionResult openGui(BlockState state, Level level, BlockPos pos, Player player) {
-      if (level.isClientSide()) {
-         return InteractionResult.SUCCESS;
-      }
-
-      if (level.getBlockEntity(pos) instanceof TileEngineStone_BC8 engine && player instanceof ServerPlayer serverPlayer) {
-         serverPlayer.openMenu(engine);
-      }
-
-      return InteractionResult.SUCCESS;
+      return EngineBlockGui.open(level, pos, player, TileEngineStone_BC8.class);
    }
 
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (level.getBlockEntity(pos) instanceof TileEngineStone_BC8 engine) {
+      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileEngineStone_BC8 engine) {
          BlockDropsUtil.dropStack(level, pos, engine.getFuelStack());
       }
 

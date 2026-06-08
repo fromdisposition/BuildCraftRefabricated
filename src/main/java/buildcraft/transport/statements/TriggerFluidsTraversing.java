@@ -5,7 +5,7 @@ import buildcraft.api.gates.IGate;
 import buildcraft.api.statements.IStatementContainer;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.ITriggerInternal;
-import buildcraft.api.transport.pipe.PipeFlow;
+import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.core.statements.BCStatement;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.transport.BCTransportSprites;
@@ -28,10 +28,10 @@ public class TriggerFluidsTraversing extends BCStatement implements ITriggerInte
 
    @Override
    public boolean isTriggerActive(IStatementContainer source, IStatementParameter[] parameters) {
-      if (source instanceof IGate) {
-         PipeFlow flow = ((IGate)source).getPipeHolder().getPipe().getFlow();
-         if (flow instanceof PipeFlowFluids) {
-            return ((PipeFlowFluids)flow).doesContainFluid();
+      if (source instanceof IGate gate) {
+         IPipe pipe = gate.getPipeHolder().getPipe();
+         if (pipe != null && pipe.getFlow() instanceof PipeFlowFluids fluids) {
+            return fluids.doesContainFluid();
          }
       }
 

@@ -145,6 +145,13 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
          for (ItemStack drop : toDrop) {
             Block.popResource(level, pos, drop);
          }
+
+         for (int i = 0; i < distiller.containerSlots.getSlots(); i++) {
+            ItemStack slotStack = distiller.containerSlots.getStackInSlot(i);
+            if (!slotStack.isEmpty()) {
+               Block.popResource(level, pos, slotStack);
+            }
+         }
       }
 
       return super.playerWillDestroy(level, pos, state, player);

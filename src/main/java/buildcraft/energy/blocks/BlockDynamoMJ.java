@@ -10,7 +10,6 @@ import buildcraft.lib.engine.TileEngineBase_BC8;
 import buildcraft.lib.misc.BlockDropsUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -148,15 +147,7 @@ public class BlockDynamoMJ extends Block implements EntityBlock, ICustomRotation
    }
 
    private InteractionResult openGui(BlockState state, Level level, BlockPos pos, Player player) {
-      if (level.isClientSide()) {
-         return InteractionResult.SUCCESS;
-      }
-
-      if (level.getBlockEntity(pos) instanceof TileDynamoMJ dynamo && player instanceof ServerPlayer serverPlayer) {
-         serverPlayer.openMenu(dynamo);
-      }
-
-      return InteractionResult.SUCCESS;
+      return EngineBlockGui.open(level, pos, player, TileDynamoMJ.class);
    }
 
    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block blockIn, @Nullable Orientation orientation, boolean isMoving) {
@@ -166,7 +157,7 @@ public class BlockDynamoMJ extends Block implements EntityBlock, ICustomRotation
    }
 
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (level.getBlockEntity(pos) instanceof TileDynamoMJ dynamo) {
+      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileDynamoMJ dynamo) {
          BlockDropsUtil.dropItems(level, pos, dynamo.upgrades);
       }
 

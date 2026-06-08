@@ -51,22 +51,10 @@ public class TileAssemblyTable extends TileLaserTableBase {
    }
 
    private void updateRecipes() {
-      int count = this.recipesStates.size();
-
       for (AssemblyRecipe recipe : AssemblyRecipeRegistry.REGISTRY.values()) {
          for (ItemStack out : recipe.getOutputs(this.inv.stacks)) {
-            boolean found = false;
-
-            for (TileAssemblyTable.AssemblyInstruction instruction : this.recipesStates.keySet()) {
-               if (instruction.recipe == recipe && out == instruction.output) {
-                  found = true;
-                  break;
-               }
-            }
-
             TileAssemblyTable.AssemblyInstruction instruction = new TileAssemblyTable.AssemblyInstruction(recipe, out);
-            boolean alreadyContains = this.recipesStates.containsKey(instruction);
-            if (!found && !alreadyContains) {
+            if (!this.recipesStates.containsKey(instruction)) {
                this.recipesStates.put(instruction, EnumAssemblyRecipeState.POSSIBLE);
             }
          }
@@ -199,11 +187,12 @@ public class TileAssemblyTable extends TileLaserTableBase {
             TileAssemblyTable.AssemblyInstruction instruction = this.getActiveRecipe();
             if (instruction != null) {
                long target = this.getTarget();
-               this.extract(this.inv, instruction.recipe.getInputsFor(instruction.output), false, false);
-               InventoryUtil.addToBestAcceptor(this.getLevel(), this.getBlockPos(), null, instruction.output.copy());
-               this.power -= target;
-               this.setChanged();
-               this.activateNextRecipe();
+               if (this.extract(this.inv, instruction.recipe.getInputsFor(instruction.output), false, false)) {
+                  InventoryUtil.addToBestAcceptor(this.getLevel(), this.getBlockPos(), null, instruction.output.copy());
+                  this.power -= target;
+                  this.setChanged();
+                  this.activateNextRecipe();
+               }
             }
          }
       }

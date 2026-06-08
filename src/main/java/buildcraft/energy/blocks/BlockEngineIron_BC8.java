@@ -11,7 +11,6 @@ import buildcraft.lib.misc.FluidUtilBC;
 import buildcraft.lib.misc.SoundUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -96,14 +95,6 @@ public class BlockEngineIron_BC8 extends BlockEngineBase_BC8 {
    }
 
    private InteractionResult openGui(BlockState state, Level level, BlockPos pos, Player player) {
-      if (level.isClientSide()) {
-         return InteractionResult.SUCCESS;
-      }
-
-      if (level.getBlockEntity(pos) instanceof TileEngineIron_BC8 engine && player instanceof ServerPlayer serverPlayer) {
-         serverPlayer.openMenu(engine);
-      }
-
-      return InteractionResult.SUCCESS;
+      return EngineBlockGui.open(level, pos, player, TileEngineIron_BC8.class);
    }
 }

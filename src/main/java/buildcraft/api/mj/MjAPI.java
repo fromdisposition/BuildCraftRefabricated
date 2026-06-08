@@ -3,10 +3,12 @@ package buildcraft.api.mj;
 import buildcraft.lib.BCLibConfig;
 import java.text.DecimalFormat;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+/** Minecraft Joules (MJ) constants, formatting, RF conversion, and capability tokens. */
 public class MjAPI {
    public static final long ONE_MINECRAFT_JOULE = getMjValue();
    public static final long MJ = ONE_MINECRAFT_JOULE;

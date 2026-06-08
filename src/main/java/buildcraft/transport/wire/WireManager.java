@@ -241,8 +241,11 @@ public class WireManager implements IWireManager {
       this.parts.clear();
       int[] wiresArray = nbt.getIntArray("parts").orElse(new int[0]);
 
-      for (int i = 0; i < wiresArray.length; i += 2) {
-         this.parts.put(EnumWirePart.VALUES[wiresArray[i]], DyeColor.byId(wiresArray[i + 1]));
+      for (int i = 0; i + 1 < wiresArray.length; i += 2) {
+         int partOrdinal = wiresArray[i];
+         if (partOrdinal >= 0 && partOrdinal < EnumWirePart.VALUES.length) {
+            this.parts.put(EnumWirePart.VALUES[partOrdinal], DyeColor.byId(wiresArray[i + 1]));
+         }
       }
    }
 }
