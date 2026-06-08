@@ -176,8 +176,8 @@ the current port status in this build.
 | ---------------------------- | -------------- | -------------- | ----- |
 | **Core** (`buildcraft.core`) |                |                |       |
 | Landmark / path markers      | ✅             | ✅             | DONE — path/volume markers, connector, client render |
-| Volume box system            | ✅             | 🚧             | Saved data, client sync, filler/architect integration; `volume_box` item has no survival recipe |
-| List mod (filler/builder)    | ✅             | 🚧             | GUI + NBT lists work; pipes/robots/gates filter by list — filler/builder list handlers not wired |
+| Volume box system            | ✅             | ✅             | DONE — saved data, client sync, filler/architect integration; `volume_box` is creative-only (no survival recipe), same as BC 8 |
+| List mod                     | ✅             | ✅             | DONE — GUI + NBT, survival recipe; pipes/robots/gates filter by list. Builder/filler resource matching uses exact stack merge (`canMerge`), not list substitution — same as BC 8 |
 | Creative engine              | ✅             | ✅             | DONE  |
 | Engine tester (dev)          | ✅             | 🚧             | `BlockPowerConsumerTester` registered only with `-Dbuildcraft.dev=true` |
 | Oil springs                  | ✅             | ✅             | DONE — `BlockSpring` + `TileSpringOil` liquid generation |
@@ -424,14 +424,13 @@ Honest list of current gaps and design constraints:
 4. **Fluid bridge granularity** — Cross-mod fluid moves truncate to whole millibuckets (81 Fabric droplets = 1 mB).
 5. **Wood pipe required for extraction** — Cobble/gold/iron fluid and item pipes do not passively drain neighbours; wood + MJ is by BC design.
 6. **Multi-tank fluid extract** — Unfiltered external fluid pulls may return the first tank view in iteration order, not a merged multi-tank handler.
-7. **List mod builder gap** — List GUI/NBT works and lists filter pipes/robots/gates, but filler and builder do not consume list items yet.
-8. **Robotics survival loop gap** — No recipe for empty `buildcraftrobotics:robot` shell; chain is redstone board → programming table → integration table → docking station deploy.
-9. **Guide book content incomplete** — 164 pages load; robotics guide has only `zone_planner.md`; several silicon tables (e.g. programming table) also lack writeups; missing entries auto-stub as WIP.
-10. **Dev-only blocks** — Engine power tester and decorated debug blocks register only with `-Dbuildcraft.dev=true`; creative engine is always available.
-11. **Engine explosion default** — `canEnginesExplode` defaults to `false`; BC 8 commonly used `true`.
-12. **RF autoconversion off by default** — Config `MJ_ONLY`; enabling RF↔MJ conversion exposes `EnergyStorage` on BC machines and is required for cross-mod RF tank/engine interop beyond RF pipes.
-13. **Pipe flow transactions** — Pipe internals mutate immediately; nested transaction rollback does not fully undo travelling items (especially `PipeItemInjectStorage`).
-14. **MJ loss particles** — Engine spark effects are no-op (`NullaryEffectManager`); gameplay MJ loss still applies.
+7. **Robotics survival loop gap** — No recipe for empty `buildcraftrobotics:robot` shell; chain is redstone board → programming table → integration table → docking station deploy.
+8. **Guide book content incomplete** — 164 pages load; robotics guide has only `zone_planner.md`; several silicon tables (e.g. programming table) also lack writeups; missing entries auto-stub as WIP.
+9. **Dev-only blocks** — Engine power tester and decorated debug blocks register only with `-Dbuildcraft.dev=true`; creative engine is always available.
+10. **Engine explosion default** — `canEnginesExplode` defaults to `false`; BC 8 commonly used `true`.
+11. **RF autoconversion off by default** — Config `MJ_ONLY`; enabling RF↔MJ conversion exposes `EnergyStorage` on BC machines and is required for cross-mod RF tank/engine interop beyond RF pipes.
+12. **Pipe flow transactions** — Pipe internals mutate immediately; nested transaction rollback does not fully undo travelling items (especially `PipeItemInjectStorage`).
+13. **MJ loss particles** — Engine spark effects are no-op (`NullaryEffectManager`); gameplay MJ loss still applies.
 
 ---
 
