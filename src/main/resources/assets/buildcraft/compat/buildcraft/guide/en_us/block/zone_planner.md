@@ -8,5 +8,4 @@ The Zone Planner is a map table for defining coloured zones in the world around 
 The centre panel shows a top-down map of nearby chunks. Select a colour from the palette, then <bold>left-click</bold> to paint a cell and <bold>right-click</bold> to erase it. Arrow keys pan the view.
 The two side slots accept Map Location items — use them to write the current zone layout to a tag or load a saved layout back onto the map.
 <recipes_usages stack="buildcraftrobotics:zone_planner"/>
-<chapter name="Availability"/>
-In release builds the Zone Planner is registered only when the JVM flag <code>-Dbuildcraft.dev=true</code> is set. Without it the block does not appear in creative or recipes; the guide entry documents the feature for parity with BC 8.0.x.
+<recipe id="buildcraftcore:map_location"/>

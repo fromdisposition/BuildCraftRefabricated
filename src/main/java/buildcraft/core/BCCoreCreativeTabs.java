@@ -42,6 +42,7 @@ public final class BCCoreCreativeTabs {
                output.accept(BCCoreItems.VOLUME_BOX);
                output.accept(BCCoreItems.LIST);
                output.accept(BCCoreItems.PAINTBRUSH);
+               output.accept(BCCoreItems.MAP_LOCATION);
                output.accept(BCCoreItems.FRAGILE_FLUID_CONTAINER);
                output.accept(BCCoreItems.ENGINE_REDSTONE);
                output.accept(BCCoreItems.ENGINE_CREATIVE);
@@ -98,10 +99,6 @@ public final class BCCoreCreativeTabs {
 
                   if (BCCoreItems.GOGGLES != null) {
                      output.accept(BCCoreItems.GOGGLES);
-                  }
-
-                  if (BCCoreItems.MAP_LOCATION != null) {
-                     output.accept(BCCoreItems.MAP_LOCATION);
                   }
 
                   if (BCLibItems.DEBUGGER != null) {

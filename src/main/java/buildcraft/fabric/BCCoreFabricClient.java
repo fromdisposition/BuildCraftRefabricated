@@ -53,10 +53,6 @@ public final class BCCoreFabricClient {
          if (BCCoreItems.GOGGLES != null) {
             BCTooltips.markDevOnly(BCCoreItems.GOGGLES);
          }
-
-         if (BCCoreItems.MAP_LOCATION != null) {
-            BCTooltips.markDevOnly(BCCoreItems.MAP_LOCATION);
-         }
       }
    }
 }

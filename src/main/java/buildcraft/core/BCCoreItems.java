@@ -74,13 +74,13 @@ public class BCCoreItems {
       SPRING_WATER = BCRegistries.registerBlockItem("buildcraftcore", "spring_water", BCCoreBlocks.SPRING_WATER);
       SPRING_OIL = BCRegistries.registerBlockItem("buildcraftcore", "spring_oil", BCCoreBlocks.SPRING_OIL);
       DECORATED_LASER = BCRegistries.registerBlockItem("buildcraftcore", "decorated_laser", BCCoreBlocks.DECORATED_LASER);
+      MAP_LOCATION = BCRegistries.registerItem("buildcraftcore", "map_location", ItemMapLocation::new, p -> p.stacksTo(1));
       if (BCLib.DEV) {
          GOGGLES = BCRegistries.registerItem("buildcraftcore", "goggles", ItemGoggles::new, p -> p.stacksTo(1).equippable(EquipmentSlot.HEAD));
          if (BCCoreBlocks.POWER_TESTER != null) {
             POWER_TESTER = BCRegistries.registerBlockItem("buildcraftcore", "power_tester", BCCoreBlocks.POWER_TESTER);
          }
 
-         MAP_LOCATION = BCRegistries.registerItem("buildcraftcore", "map_location", ItemMapLocation::new, p -> p.stacksTo(1));
          if (BCCoreBlocks.DECORATED_DESTROY != null) {
             DECORATED_DESTROY = BCRegistries.registerBlockItem("buildcraftcore", "decorated_destroy", BCCoreBlocks.DECORATED_DESTROY);
          }
