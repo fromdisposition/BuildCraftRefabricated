@@ -1,6 +1,7 @@
 package buildcraft.lib.fabric.mixin.client;
 
 import buildcraft.builders.client.render.pip.BlueprintPipRenderer;
+import buildcraft.robotics.client.render.pip.ZoneMapPipRenderer;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.Minecraft;
@@ -25,6 +26,7 @@ public class GameRendererPipMixin {
       List<PictureInPictureRenderer<?>> renderers = new ArrayList<>(vanilla);
       BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
       renderers.add(new BlueprintPipRenderer(buffers));
+      renderers.add(new ZoneMapPipRenderer(buffers));
       return List.copyOf(renderers);
    }
 }

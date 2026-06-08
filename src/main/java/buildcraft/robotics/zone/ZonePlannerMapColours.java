@@ -10,7 +10,9 @@ public class ZonePlannerMapColours {
    public static final int NO_HEIGHT = Integer.MIN_VALUE;
    private final Map<Long, int[]> colour = new HashMap<>();
    private final Map<Long, int[]> height = new HashMap<>();
+   private final Map<Long, Integer> version = new HashMap<>();
    private final Set<Long> requested = new HashSet<>();
+   private int globalVersion;
 
    public boolean hasData(long key) {
       return this.colour.containsKey(key);
@@ -27,7 +29,18 @@ public class ZonePlannerMapColours {
    public void put(long key, int[] colours, int[] heights) {
       this.colour.put(key, colours);
       this.height.put(key, heights);
+      this.version.put(key, ++this.globalVersion);
       this.requested.remove(key);
+   }
+
+   /** Monotonic version for a chunk; 0 = no data. Used to invalidate cached render meshes. */
+   public int versionOf(long key) {
+      return this.version.getOrDefault(key, 0);
+   }
+
+   /** Monotonic counter bumped on every {@link #put}; lets renderers detect any terrain change cheaply. */
+   public int globalVersion() {
+      return this.globalVersion;
    }
 
    public int colourAt(long key, int localX, int localZ) {
@@ -47,6 +60,7 @@ public class ZonePlannerMapColours {
    public void clear() {
       this.colour.clear();
       this.height.clear();
+      this.version.clear();
       this.requested.clear();
    }
 }
