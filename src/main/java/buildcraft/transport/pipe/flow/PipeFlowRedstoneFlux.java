@@ -12,6 +12,7 @@ import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeEventRedstoneFlux;
 import buildcraft.api.transport.pipe.PipeFlow;
+import buildcraft.lib.fabric.transfer.EnergyStorageOps;
 import buildcraft.lib.misc.data.AverageInt;
 import buildcraft.transport.tile.TilePipeHolder;
 import java.io.IOException;
@@ -113,7 +114,7 @@ public class PipeFlowRedstoneFlux extends PipeEnergyFlowBase implements IFlowRed
    @Override
    public int tryExtractPower(int maxExtracted, Direction from) {
       return this.isReceiver && !this.disabled
-         ? PipeNeighborEnergyTransfers.extract(PipeNeighborEnergyAccess.storage(this.pipe.getHolder(), from), maxExtracted, true)
+         ? EnergyStorageOps.extract(PipeNeighborEnergyAccess.storage(this.pipe.getHolder(), from), maxExtracted, true)
          : 0;
    }
 
@@ -198,14 +199,14 @@ public class PipeFlowRedstoneFlux extends PipeEnergyFlowBase implements IFlowRed
                PipeFlowRedstoneFlux oFlow = (PipeFlowRedstoneFlux)neighbour.getFlow();
                return oFlow.sections.get(targetFace.getOpposite()).receivePowerInternal(sent);
             } else {
-               int accepted = PipeNeighborEnergyTransfers.insert(PipeNeighborEnergyAccess.storage(this.pipe.getHolder(), targetFace), sent, true);
+               int accepted = EnergyStorageOps.insert(PipeNeighborEnergyAccess.storage(this.pipe.getHolder(), targetFace), sent, true);
                return accepted > 0 ? sent - accepted : sent;
             }
          });
          PipeEnergySimulation.updateDisplayPower(this.sections, this.maxPower);
          PipeEnergySimulation.requestFromConnectedTiles(this.pipe, face -> {
             EnergyStorage recv = PipeNeighborEnergyAccess.storage(this.pipe.getHolder(), face);
-            return !PipeNeighborEnergyTransfers.canAccept(recv) ? 0L : PipeNeighborEnergyTransfers.spareCapacity(recv);
+            return !EnergyStorageOps.canAccept(recv) ? 0L : EnergyStorageOps.spareCapacity(recv);
          }, (face, amount) -> this.requestPower(face, (int)amount));
          long[] transferQuery = PipeEnergySimulation.buildTransferQuery(this.pipe, this.sections);
          PipeEnergyDisplaySupport.propagateQueriesToNeighbourPipes(

@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -56,9 +55,5 @@ public final class BcTransfers {
 
    public static @Nullable EnergyStorage energy(Level level, BlockPos pos, @Nullable Direction side) {
       return energy(level, pos, null, null, side);
-   }
-
-   public static @Nullable Storage<ItemVariant> player(@Nullable Player player) {
-      return PlayerItemStorage.ofNullable(player);
    }
 }

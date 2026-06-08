@@ -10,7 +10,6 @@ import buildcraft.api.items.IList;
 import buildcraft.api.recipes.IngredientStack;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -101,10 +100,6 @@ public class StackUtil {
       }
    }
 
-   public static boolean matchesStackOrList(@Nonnull ItemStack filter, @Nonnull ItemStack toTest) {
-      return isMatchingItemOrList(filter, toTest);
-   }
-
    public static NonNullList<ItemStack> listOf() {
       return NonNullList.withSize(0, EMPTY);
    }
@@ -147,10 +142,6 @@ public class StackUtil {
 
    public static <E> Collector<E, ?, NonNullList<E>> nonNullListCollector() {
       return Collectors.toCollection(NonNullList::create);
-   }
-
-   public static int hash(@Nonnull ItemStack stack) {
-      return stack.isEmpty() ? 0 : Objects.hash(stack.getItem(), stack.getComponents());
    }
 
    public static NonNullList<ItemStack> mergeSameItems(List<ItemStack> items) {

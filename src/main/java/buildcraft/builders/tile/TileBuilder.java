@@ -7,7 +7,6 @@
 package buildcraft.builders.tile;
 
 import buildcraft.api.core.IPathProvider;
-import buildcraft.api.core.IStackFilter;
 import buildcraft.api.enums.EnumOptionalSnapshotType;
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.api.inventory.IItemTransactor;
@@ -32,7 +31,6 @@ import buildcraft.builders.snapshot.SnapshotBuilder;
 import buildcraft.builders.snapshot.Template;
 import buildcraft.builders.snapshot.TemplateBuilder;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import buildcraft.lib.fabric.transfer.FabricItemStorageProvider;
 import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.fabric.transfer.MultiFluidTankStorage;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
@@ -44,7 +42,6 @@ import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.tile.WrappedItemStorageInsert;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import java.util.ArrayList;
@@ -127,100 +124,6 @@ public class TileBuilder
       new SingleFluidTank(8000, SingleFluidTank.TankAccess.OPEN, this::setChanged)
    };
    private final MultiFluidTankStorage fluidTanks = new MultiFluidTankStorage(this.tanks);
-   private final FabricItemStorageProvider pipeItemStorage = new WrappedItemStorageInsert(this.resourceInventory);
-   private final IItemTransactor invResourcesTransactor = new IItemTransactor() {
-      @Override
-      public ItemStack insert(ItemStack stack, boolean allOrNone, boolean simulate) {
-         if (stack.isEmpty()) {
-            return ItemStack.EMPTY;
-         }
-
-         ItemStack remaining = stack.copy();
-         NonNullList<ItemStack> scratch = !simulate && !allOrNone ? TileBuilder.this.resourceInventory.stacks : TileBuilder.this.copyInventory();
-
-         for (int i = 0; i < scratch.size() && !remaining.isEmpty(); i++) {
-            ItemStack slot = (ItemStack)scratch.get(i);
-            if (!slot.isEmpty() && ItemStack.isSameItemSameComponents(slot, remaining)) {
-               int max = Math.min(slot.getMaxStackSize(), remaining.getMaxStackSize());
-               int space = max - slot.getCount();
-               if (space > 0) {
-                  int moved = Math.min(space, remaining.getCount());
-                  slot.grow(moved);
-                  remaining.shrink(moved);
-                  scratch.set(i, slot);
-               }
-            }
-         }
-
-         for (int i = 0; i < scratch.size() && !remaining.isEmpty(); i++) {
-            ItemStack slot = (ItemStack)scratch.get(i);
-            if (slot.isEmpty()) {
-               int moved = Math.min(remaining.getMaxStackSize(), remaining.getCount());
-               ItemStack placed = remaining.copyWithCount(moved);
-               scratch.set(i, placed);
-               remaining.shrink(moved);
-            }
-         }
-
-         if (allOrNone && !remaining.isEmpty()) {
-            return stack;
-         }
-
-         if (!simulate) {
-            for (int i = 0; i < scratch.size(); i++) {
-               TileBuilder.this.resourceInventory.stacks.set(i, (ItemStack)scratch.get(i));
-            }
-         }
-
-         if (!simulate) {
-            TileBuilder.this.onResourcesChanged();
-         }
-
-         return remaining;
-      }
-
-      @Override
-      public ItemStack extract(IStackFilter filter, int min, int max, boolean simulate) {
-         if (max <= 0) {
-            return ItemStack.EMPTY;
-         }
-
-         ItemStack accumulated = ItemStack.EMPTY;
-         NonNullList<ItemStack> scratch = TileBuilder.this.copyInventory();
-
-         for (int i = 0; i < scratch.size() && accumulated.getCount() < max; i++) {
-            ItemStack slot = (ItemStack)scratch.get(i);
-            if (!slot.isEmpty() && (filter == null || filter.matches(slot))) {
-               if (accumulated.isEmpty()) {
-                  int take = Math.min(max, slot.getCount());
-                  accumulated = slot.copyWithCount(take);
-                  slot.shrink(take);
-                  scratch.set(i, slot.isEmpty() ? ItemStack.EMPTY : slot);
-               } else if (ItemStack.isSameItemSameComponents(accumulated, slot)) {
-                  int want = max - accumulated.getCount();
-                  int take = Math.min(want, slot.getCount());
-                  accumulated.grow(take);
-                  slot.shrink(take);
-                  scratch.set(i, slot.isEmpty() ? ItemStack.EMPTY : slot);
-               }
-            }
-         }
-
-         if (accumulated.getCount() < min) {
-            return ItemStack.EMPTY;
-         }
-
-         if (!simulate) {
-            for (int i = 0; i < scratch.size(); i++) {
-               TileBuilder.this.resourceInventory.stacks.set(i, (ItemStack)scratch.get(i));
-            }
-
-            TileBuilder.this.onResourcesChanged();
-         }
-
-         return accumulated;
-      }
-   };
 
    public TileBuilder(BlockPos pos, BlockState state) {
       super(BCBuildersBlockEntities.BUILDER, pos, state);
@@ -495,16 +398,6 @@ public class TileBuilder
    @Override
    public MultiFluidTankStorage getFluidTanks() {
       return this.fluidTanks;
-   }
-
-   private NonNullList<ItemStack> copyInventory() {
-      NonNullList<ItemStack> copy = NonNullList.withSize(this.resourceInventory.stacks.size(), ItemStack.EMPTY);
-
-      for (int i = 0; i < this.resourceInventory.stacks.size(); i++) {
-         copy.set(i, ((ItemStack)this.resourceInventory.stacks.get(i)).copy());
-      }
-
-      return copy;
    }
 
    @Override
@@ -788,7 +681,7 @@ public class TileBuilder
 
    @Override
    public IItemTransactor getInvResources() {
-      return this.invResourcesTransactor;
+      return this.resourceInventory;
    }
 
    @Override
@@ -801,7 +694,7 @@ public class TileBuilder
       if (this.level instanceof ServerLevel serverLevel) {
          for (ItemStack stack : drops) {
             if (!stack.isEmpty()) {
-               ItemStack remaining = this.invResourcesTransactor.insert(stack.copy(), false, false);
+               ItemStack remaining = this.resourceInventory.insert(stack.copy(), false, false);
                if (!remaining.isEmpty()) {
                   Block.popResource(serverLevel, brokenPos, remaining);
                }

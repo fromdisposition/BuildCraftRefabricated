@@ -13,7 +13,7 @@ import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 import buildcraft.transport.pipe.flow.PipeNeighborEnergyAccess;
-import buildcraft.transport.pipe.flow.PipeNeighborEnergyTransfers;
+import buildcraft.lib.fabric.transfer.EnergyStorageOps;
 import buildcraft.transport.pipe.flow.PipeNeighborMjAccess;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -58,7 +58,7 @@ public class PipeBehaviourWoodPower extends PipeBehaviour {
          } else if (tile instanceof TileDynamoMJ) {
             return 1;
          } else {
-            return PipeNeighborEnergyTransfers.insert(storage, 1, true) > 0 ? 0 : 1;
+            return EnergyStorageOps.insert(storage, 1, true) > 0 ? 0 : 1;
          }
       } else {
          IMjReceiver recv = PipeNeighborMjAccess.receiver(this.pipe.getHolder(), face);

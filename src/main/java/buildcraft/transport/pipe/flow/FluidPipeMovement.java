@@ -26,6 +26,7 @@ public final class FluidPipeMovement {
    private static final int COOLDOWN_INPUT = -60;
    public static final int COOLDOWN_OUTPUT_TICKS = 60;
    public static final int COOLDOWN_INPUT_TICKS = -60;
+   private static final ThreadLocal<MoveToCenterScratch> MOVE_TO_CENTER_SCRATCH = ThreadLocal.withInitial(MoveToCenterScratch::new);
 
    private FluidPipeMovement() {
    }
@@ -111,34 +112,34 @@ public final class FluidPipeMovement {
       int transferInCount = 0;
       int spaceAvailable = host.capacity() - host.centerAmount();
       if (spaceAvailable > 0 && host.centerMaxFill() > 0) {
+         MoveToCenterScratch scratch = MOVE_TO_CENTER_SCRATCH.get();
          int flowRate = host.transferPerTick();
-         EnumPipePart[] faces = EnumPipePart.FACES.clone();
-         shuffleFaces(faces);
-         int[] inputPerTick = new int[6];
+         scratch.resetFaces();
+         shuffleFaces(scratch.faces);
+         Arrays.fill(scratch.inputPerTick, 0);
+         Arrays.fill(scratch.fluidLeavingSide, 0);
 
-         for (EnumPipePart part : faces) {
-            inputPerTick[part.getIndex()] = 0;
+         for (EnumPipePart part : scratch.faces) {
             if (host.sectionCanInput(part)) {
-               inputPerTick[part.getIndex()] = host.sectionDrain(part, flowRate, false);
-               if (inputPerTick[part.getIndex()] > 0) {
+               scratch.inputPerTick[part.getIndex()] = host.sectionDrain(part, flowRate, false);
+               if (scratch.inputPerTick[part.getIndex()] > 0) {
                   transferInCount++;
                }
             }
          }
 
-         int[] totalOffered = Arrays.copyOf(inputPerTick, 6);
+         System.arraycopy(scratch.inputPerTick, 0, scratch.totalOffered, 0, 6);
          PipeEventFluid.PreMoveToCentre preMove = new PipeEventFluid.PreMoveToCentre(
-            host.flow().pipe.getHolder(), host.flow(), host.currentFluid(), Math.min(flowRate, spaceAvailable), totalOffered, inputPerTick
+            host.flow().pipe.getHolder(), host.flow(), host.currentFluid(), Math.min(flowRate, spaceAvailable), scratch.totalOffered, scratch.inputPerTick
          );
          host.fireEvent(preMove);
-         int[] fluidLeavingSide = new int[6];
          int left = Math.min(flowRate, spaceAvailable);
          float min = (float)Math.min(flowRate * transferInCount, spaceAvailable) / flowRate / transferInCount;
 
          for (EnumPipePart part : EnumPipePart.FACES) {
             int i = part.getIndex();
-            if (inputPerTick[i] > 0) {
-               int amountToDrain = (int)(inputPerTick[i] * min);
+            if (scratch.inputPerTick[i] > 0) {
+               int amountToDrain = (int)(scratch.inputPerTick[i] * min);
                if (amountToDrain < 1) {
                   amountToDrain++;
                }
@@ -149,21 +150,21 @@ public final class FluidPipeMovement {
 
                int amountToPush = host.sectionDrain(part, amountToDrain, false);
                if (amountToPush > 0) {
-                  fluidLeavingSide[i] = amountToPush;
+                  scratch.fluidLeavingSide[i] = amountToPush;
                   left -= amountToPush;
                }
             }
          }
 
-         int[] fluidEnteringCentre = Arrays.copyOf(fluidLeavingSide, 6);
+         System.arraycopy(scratch.fluidLeavingSide, 0, scratch.fluidEnteringCentre, 0, 6);
          PipeEventFluid.OnMoveToCentre move = new PipeEventFluid.OnMoveToCentre(
-            host.flow().pipe.getHolder(), host.flow(), host.currentFluid(), fluidLeavingSide, fluidEnteringCentre
+            host.flow().pipe.getHolder(), host.flow(), host.currentFluid(), scratch.fluidLeavingSide, scratch.fluidEnteringCentre
          );
          host.fireEvent(move);
 
          for (EnumPipePart part : EnumPipePart.FACES) {
             int i = part.getIndex();
-            int leaving = fluidLeavingSide[i];
+            int leaving = scratch.fluidLeavingSide[i];
             if (leaving > 0) {
                int actuallyDrained = host.sectionDrain(part, leaving, true);
                if (actuallyDrained != leaving) {
@@ -174,7 +175,7 @@ public final class FluidPipeMovement {
                   host.setSectionCooldownInput(part);
                }
 
-               int entering = fluidEnteringCentre[i];
+               int entering = scratch.fluidEnteringCentre[i];
                if (entering > 0) {
                   int actuallyFilled = host.sectionFill(EnumPipePart.CENTER, entering, true);
                   if (actuallyFilled != entering) {
@@ -183,6 +184,18 @@ public final class FluidPipeMovement {
                }
             }
          }
+      }
+   }
+
+   private static final class MoveToCenterScratch {
+      final EnumPipePart[] faces = new EnumPipePart[6];
+      final int[] inputPerTick = new int[6];
+      final int[] totalOffered = new int[6];
+      final int[] fluidLeavingSide = new int[6];
+      final int[] fluidEnteringCentre = new int[6];
+
+      void resetFaces() {
+         System.arraycopy(EnumPipePart.FACES, 0, this.faces, 0, EnumPipePart.FACES.length);
       }
    }
 

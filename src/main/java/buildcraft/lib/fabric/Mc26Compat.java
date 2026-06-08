@@ -1,6 +1,5 @@
 package buildcraft.lib.fabric;
 
-import buildcraft.lib.fluids.FluidStack;
 import com.mojang.serialization.DynamicOps;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -10,13 +9,11 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup.Provider;
-import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -30,22 +27,6 @@ public final class Mc26Compat {
    private static final Map<Fluid, Item> FLUID_BUCKET_CACHE = new IdentityHashMap<>();
 
    private Mc26Compat() {
-   }
-
-   public static boolean componentsPatchEmpty(ItemStack stack) {
-      return stack.isEmpty() || stack.getComponentsPatch().isEmpty();
-   }
-
-   public static boolean componentsPatchEmpty(FluidStack stack) {
-      return stack.isEmpty() || stack.getComponentsPatch().isEmpty();
-   }
-
-   public static boolean componentsPatchEmpty(DataComponentPatch patch) {
-      return patch == null || patch.isEmpty();
-   }
-
-   public static void containerSetItem(Container container, int slot, ItemStack stack) {
-      container.setItem(slot, stack);
    }
 
    public static Fluid bucketFluid(BucketItem bucket) {

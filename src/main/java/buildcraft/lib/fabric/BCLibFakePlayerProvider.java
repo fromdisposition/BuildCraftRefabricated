@@ -56,10 +56,6 @@ public final class BCLibFakePlayerProvider implements IFakePlayerProvider {
       }
    }
 
-   public void unloadWorld(ServerLevel world) {
-      this.players.values().removeIf(player -> player.level() == world);
-   }
-
    private void unloadAll() {
       this.players.clear();
    }

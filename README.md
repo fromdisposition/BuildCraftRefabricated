@@ -382,20 +382,20 @@ BC8 baked ~350 dyed fluid-pipe sprites via `dye_replace` into the blocks atlas. 
 - Removed unused `IFluidHandlerAdv` imports from `PipeFlowFluids`, `FluidUtilBC`, `IFlowFluid`.
 - Removed dead method `getFirstNonEmptySet()` from `PipeFlowItems`.
 - Bucket attachment dedup: `AttachmentHooks` skips `buildcraftenergy` namespace buckets already registered in `BCEnergyFabric`.
-- AUDIT hot-path performance and nativeness fixes (caching, Fabric-native APIs on pipe/transfer/render paths).
+- AUDIT cleanup: removed dead lib filters/stubs, merged `PipeNeighborEnergyTransfers` into `EnergyStorageOps`, cached pipe item/fluid sided storage, `BigInteger`→`long` in power distribution, `FluidPipeMovement` scratch reuse, simplified `TileBuilder` inventory transactor, updated transfer interop docs (`BcTransfers` not legacy bridge).
 
 ---
 
 ## Transfer API interoperability
 
-Reference for mod developers connecting to BuildCraft on Fabric.
+Reference for mod developers connecting to BuildCraft on Fabric. Interop is wired through native Fabric/Team Reborn sided lookups (`BcTransfers` → `FluidStorage.SIDED` / `ItemStorage.SIDED` / `EnergyStorage.SIDED`), with vanilla and BC item-fluid fallbacks registered at init.
 
-| Resource | BC attachment / API | Fabric API | Direction |
-|----------|---------------------|------------|-----------|
-| Block fluids | `Attachments.Fluid.BLOCK` | `FluidStorage.SIDED` | **Both ways** |
-| Block items | `Attachments.Item.BLOCK` | `ItemStorage.SIDED` | **Both ways** |
-| Item fluids (buckets, cells) | `Attachments.Fluid.ITEM` | `FluidStorage.ITEM` | **Both ways** |
-| Block energy (RF) | `Attachments.Energy.BLOCK` | `EnergyStorage.SIDED` (Team Reborn) | **BC → Fabric** when RF autoconversion enabled |
+| Resource | BC entry point | Fabric API | Direction |
+|----------|----------------|------------|-----------|
+| Block fluids | `BcTransfers.fluid()` / tile `getSidedFluidStorage()` | `FluidStorage.SIDED` | **Both ways** |
+| Block items | `BcTransfers.item()` / tile `getSidedItemStorage()` | `ItemStorage.SIDED` | **Both ways** |
+| Item fluids (buckets, cells) | `ItemFluidNativeFallbacks` | `FluidStorage.ITEM` | **Both ways** |
+| Block energy (RF) | `BcTransfers.energy()` / `MjEnergyStorage` | `EnergyStorage.SIDED` (Team Reborn) | **BC → Fabric** when RF autoconversion enabled |
 | MJ power | `MjAPI.CAP_RECEIVER` / `CAP_CONNECTOR` / `CAP_PASSIVE_PROVIDER` | — | BC internal only |
 | RF pipes | `PipeFlowRedstoneFlux` | `EnergyStorage.SIDED` on `PIPE_HOLDER` | **Both ways** with Team Reborn API mods |
 

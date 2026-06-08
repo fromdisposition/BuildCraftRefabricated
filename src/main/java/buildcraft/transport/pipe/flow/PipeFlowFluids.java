@@ -272,7 +272,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    @Nullable
    public Storage<FluidVariant> getFluidStorage(@Nullable Direction facing) {
       PipeFlowFluids.Section section = facing == null ? null : this.sections.get(EnumPipePart.fromFacing(facing));
-      return section == null ? null : new PipeFluidSectionStorage(section);
+      return section == null ? null : section.fluidStorage;
    }
 
    @Override
@@ -729,6 +729,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
    class Section {
       final EnumPipePart part;
+      final PipeFluidSectionStorage fluidStorage;
       int amount = 0;
       int lastSentAmount = 0;
       PipeFlowFluids.Dir lastSentDirection = PipeFlowFluids.Dir.NONE;
@@ -748,6 +749,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
       Section(EnumPipePart part) {
          this.part = part;
+         this.fluidStorage = new PipeFluidSectionStorage(this);
       }
 
       void writeToNbt(CompoundTag nbt) {

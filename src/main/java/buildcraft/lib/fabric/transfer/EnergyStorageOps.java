@@ -47,7 +47,21 @@ public final class EnergyStorageOps {
       return storage != null && amount > 0 && storage.supportsInsertion() ? saturate(storage.insert(amount, transaction)) : 0;
    }
 
-   private static int saturate(long amount) {
+   public static long spareCapacity(@Nullable EnergyStorage storage) {
+      return storage == null ? 0L : Math.max(0L, storage.getCapacity() - storage.getAmount());
+   }
+
+   public static boolean canAccept(@Nullable EnergyStorage storage) {
+      if (storage != null && storage.supportsInsertion()) {
+         try (Transaction transaction = Transaction.openOuter()) {
+            return storage.insert(1L, transaction) > 0L;
+         }
+      } else {
+         return false;
+      }
+   }
+
+   public static int saturate(long amount) {
       return amount > 2147483647L ? Integer.MAX_VALUE : (int)amount;
    }
 }

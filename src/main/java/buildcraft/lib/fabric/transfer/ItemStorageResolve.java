@@ -4,15 +4,10 @@ import buildcraft.lib.tile.CombinedItemStorageProvider;
 import buildcraft.lib.tile.WrappedItemStorageExtract;
 import buildcraft.lib.tile.WrappedItemStorageInsert;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.ExtractionOnlyStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
 
 public final class ItemStorageResolve {
@@ -50,25 +45,5 @@ public final class ItemStorageResolve {
       }
 
       return combine(parts);
-   }
-
-   public static @Nullable Storage<ItemVariant> insertionOnly(final @Nullable Storage<ItemVariant> inner) {
-      return inner == null ? null : new InsertionOnlyStorage<ItemVariant>() {
-         public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
-            return inner.insert(resource, maxAmount, transaction);
-         }
-      };
-   }
-
-   public static @Nullable Storage<ItemVariant> extractionOnly(final @Nullable Storage<ItemVariant> inner) {
-      return inner == null ? null : new ExtractionOnlyStorage<ItemVariant>() {
-         public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
-            return inner.extract(resource, maxAmount, transaction);
-         }
-
-         public Iterator<StorageView<ItemVariant>> iterator() {
-            return inner.iterator();
-         }
-      };
    }
 }

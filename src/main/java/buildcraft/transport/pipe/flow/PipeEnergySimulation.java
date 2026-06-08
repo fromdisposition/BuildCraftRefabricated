@@ -11,7 +11,6 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.lib.misc.data.AverageInt;
-import java.math.BigInteger;
 import java.util.EnumMap;
 import net.minecraft.core.Direction;
 
@@ -56,10 +55,9 @@ public final class PipeEnergySimulation {
                      long targetQuery = target.getPowerQuery();
                      if (targetQuery > 0L) {
                         long available = source.getInternalPower();
-                        long watts = Math.min(
-                           BigInteger.valueOf(available).multiply(BigInteger.valueOf(targetQuery)).divide(BigInteger.valueOf(unusedPowerQuery)).longValue(),
-                           available
-                        );
+                        long watts = unusedPowerQuery <= 0L
+                           ? 0L
+                           : Math.min(available, available * targetQuery / unusedPowerQuery);
                         unusedPowerQuery -= targetQuery;
                         long leftover = sink.receive(face2, watts);
                         long used = watts - leftover;

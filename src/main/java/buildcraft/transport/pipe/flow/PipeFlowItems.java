@@ -53,13 +53,17 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    private final DelayedList<TravellingItem> items = new DelayedList<>();
    private final List<ItemStack> postDropCache = new ArrayList<>();
    private final PipeFlowItems.PipeExtractJournal extractJournal = new PipeFlowItems.PipeExtractJournal();
+   @SuppressWarnings("unchecked")
+   private final Storage<ItemVariant>[] itemStorages = (Storage<ItemVariant>[])new Storage<?>[6];
 
    public PipeFlowItems(IPipe pipe) {
       super(pipe);
+      this.initItemStorages();
    }
 
    public PipeFlowItems(IPipe pipe, CompoundTag nbt) {
       super(pipe, nbt);
+      this.initItemStorages();
       ListTag list = nbt.getListOrEmpty("items");
       Level world = pipe.getHolder().getPipeWorld();
       long tickNow = world != null ? world.getGameTime() : 0L;
@@ -565,14 +569,14 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
       for (List<TravellingItem> list : this.items.getAllElements()) {
          for (TravellingItem item : list) {
-            if (StackUtil.matchesStackOrList(filter, item.stack)) {
+            if (StackUtil.isMatchingItemOrList(filter, item.stack)) {
                return true;
             }
          }
       }
 
       for (ItemStack stack : this.postDropCache) {
-         if (StackUtil.matchesStackOrList(filter, stack)) {
+         if (StackUtil.isMatchingItemOrList(filter, stack)) {
             return true;
          }
       }
@@ -598,8 +602,14 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
       }
    }
 
+   private void initItemStorages() {
+      for (Direction direction : Direction.values()) {
+         this.itemStorages[direction.ordinal()] = new PipeItemInjectStorage(this, direction);
+      }
+   }
+
    public Storage<ItemVariant> getItemStorage(Direction side) {
-      return new PipeItemInjectStorage(this, side);
+      return this.itemStorages[side.ordinal()];
    }
 
    public record ExtractableEntry(ItemVariant variant, long amount) {
