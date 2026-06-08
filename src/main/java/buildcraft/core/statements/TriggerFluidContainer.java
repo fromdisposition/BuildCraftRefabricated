@@ -16,7 +16,7 @@ import buildcraft.core.BCCoreStatements;
 import buildcraft.lib.client.sprite.SpriteHolderRegistry;
 import buildcraft.lib.fabric.transfer.TriggerFluidChecks;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.LocaleUtil;
 import java.util.Locale;
@@ -53,7 +53,7 @@ public class TriggerFluidContainer extends BCStatement implements ITriggerExtern
          Storage<FluidVariant> storage = BcTransfers.fluid(tile.getLevel(), tile.getBlockPos(), side != null ? side.getOpposite() : null);
          FluidStack searchedFluid = FluidStack.EMPTY;
          if (parameters != null && parameters.length >= 1 && parameters[0] != null && !parameters[0].getItemStack().isEmpty()) {
-            searchedFluid = TriggerTransferAccess.fluidFromItemParameter(parameters[0].getItemStack());
+            searchedFluid = ItemFluidLookup.firstFluid(parameters[0].getItemStack());
          }
          return switch (this.state) {
             case EMPTY -> TriggerFluidChecks.isEmpty(storage);

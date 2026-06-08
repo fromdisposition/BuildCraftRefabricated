@@ -384,6 +384,7 @@ BC8 baked ~350 dyed fluid-pipe sprites via `dye_replace` into the blocks atlas. 
 - Bucket attachment dedup: `AttachmentHooks` skips `buildcraftenergy` namespace buckets already registered in `BCEnergyFabric`.
 - AUDIT cleanup: removed dead lib filters/stubs, merged `PipeNeighborEnergyTransfers` into `EnergyStorageOps`, cached pipe item/fluid sided storage, `BigInteger`→`long` in power distribution, `FluidPipeMovement` scratch reuse, simplified `TileBuilder` inventory transactor, updated transfer interop docs (`BcTransfers` not legacy bridge).
 - AUDIT phase 2: block lookups call `BcTransfers` directly (slim `TriggerTransferAccess`), removed `PipePluggableTransferAccess`, `SidedFluidStorages` uses Fabric insert/extract-only wrappers, shared `ArrayStackOrListFilter` in lib, `RenderPipeHolder` caches item models per tick.
+- AUDIT phase 3: shared `TransferCommits` + `FluidStorageOps` fluid MB helpers, slim `PipeNeighborTransfers`, removed `TriggerTransferAccess` (call sites use `ItemFluidLookup` / `BcTransfers` + trigger checks), pooled item-pipe routing events in `PipeFlowItems`, batched `RenderPipeHolder` cutout submits.
 
 ---
 

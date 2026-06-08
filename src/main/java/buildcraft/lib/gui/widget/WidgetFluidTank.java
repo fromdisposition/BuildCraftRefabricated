@@ -12,7 +12,7 @@ import buildcraft.api.fuels.ISolidCoolant;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.Widget_Neptune;
@@ -81,7 +81,7 @@ public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
          ItemStack invStack = inv.getItem(i);
          if (!invStack.isEmpty()) {
             ContainerItemContext slotContext = ContainerItemContext.ofPlayerSlot(player, PlayerInventoryStorage.of(player).getSlot(i));
-            Storage<FluidVariant> slotStorage = TriggerTransferAccess.itemFluidStorage(invStack, slotContext);
+            Storage<FluidVariant> slotStorage = ItemFluidLookup.storage(invStack, slotContext);
             if (slotStorage != null && FluidStorageSnapshot.of(slotStorage).isEmpty() && FluidStorageOps.move(this.tank, slotStorage, Long.MAX_VALUE) > 0L) {
                return true;
             }
@@ -112,7 +112,7 @@ public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
             if (isCreative) {
                ItemStack bucketCopy = carried.copy();
                ContainerItemContext copyContext = ContainerItemContext.withConstant(bucketCopy);
-               Storage<FluidVariant> bucketStorage = TriggerTransferAccess.itemFluidStorage(bucketCopy, copyContext);
+               Storage<FluidVariant> bucketStorage = ItemFluidLookup.storage(bucketCopy, copyContext);
                if (bucketStorage != null) {
                   FluidStorageSnapshot bucketSnapshot = FluidStorageSnapshot.of(bucketStorage);
                   if (!bucketSnapshot.isEmpty()) {
@@ -176,7 +176,7 @@ public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
             } else {
                ItemStack original = carried.copy();
                ContainerItemContext cursorContext = ContainerItemContext.ofPlayerCursor(player, player.containerMenu);
-               Storage<FluidVariant> handStorage = TriggerTransferAccess.itemFluidStorage(original, cursorContext);
+               Storage<FluidVariant> handStorage = ItemFluidLookup.storage(original, cursorContext);
                if (handStorage != null) {
                   if (FluidStorageOps.move(handStorage, this.tank, Long.MAX_VALUE) > 0L) {
                      return;

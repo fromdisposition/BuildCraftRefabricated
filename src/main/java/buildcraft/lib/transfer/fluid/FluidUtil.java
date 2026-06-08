@@ -10,7 +10,7 @@ import buildcraft.lib.common.SoundActions;
 import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.fluids.FluidType;
 import buildcraft.lib.misc.BlockUtil;
@@ -57,7 +57,7 @@ public final class FluidUtil {
          return FluidStack.EMPTY;
       }
 
-      Storage<FluidVariant> storage = TriggerTransferAccess.itemFluidStorage(stack);
+      Storage<FluidVariant> storage = ItemFluidLookup.storage(stack);
       if (storage == null) {
          return FluidStack.EMPTY;
       }
@@ -85,7 +85,7 @@ public final class FluidUtil {
       }
 
       ItemStack held = handContext.getItemVariant().toStack((int)Math.min(handContext.getAmount(), 2147483647L));
-      Storage<FluidVariant> handStorage = TriggerTransferAccess.itemFluidStorage(held, handContext);
+      Storage<FluidVariant> handStorage = ItemFluidLookup.storage(held, handContext);
       return handStorage == null
          ? false
          : moveStorageWithSound(tank, handStorage, player.level(), pos, player, true)

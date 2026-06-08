@@ -7,7 +7,7 @@
 package buildcraft.factory;
 
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -22,7 +22,7 @@ public final class FactoryFluidContainers {
    public static void syncDrainSlot(ItemHandlerSimple slots, int slot, Storage<FluidVariant> tank) {
       ItemStack stack = slots.getStackInSlot(slot);
       if (!stack.isEmpty() && stack.getCount() == 1) {
-         Storage<FluidVariant> hand = TriggerTransferAccess.itemFluidStorage(stack);
+         Storage<FluidVariant> hand = ItemFluidLookup.storage(stack);
          if (hand != null) {
             Transaction tx = Transaction.openOuter();
 
@@ -54,7 +54,7 @@ public final class FactoryFluidContainers {
    public static void syncFillSlot(ItemHandlerSimple slots, int slot, Storage<FluidVariant> tank) {
       ItemStack stack = slots.getStackInSlot(slot);
       if (!stack.isEmpty() && stack.getCount() == 1) {
-         Storage<FluidVariant> hand = TriggerTransferAccess.itemFluidStorage(stack);
+         Storage<FluidVariant> hand = ItemFluidLookup.storage(stack);
          if (hand != null) {
             Transaction tx = Transaction.openOuter();
 

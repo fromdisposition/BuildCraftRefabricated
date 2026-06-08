@@ -22,6 +22,7 @@ import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.fabric.BCEnergyFluidsFabric;
+import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.transfer.fabric.TransferConvert;
@@ -326,7 +327,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          if (filter != null && !filter.isEmpty()) {
             resource = filter.copyWithAmount(1);
          } else {
-            resource = PipeNeighborTransfers.firstFluid(storage);
+            resource = ItemFluidLookup.firstFluid(storage);
             if (resource == null || resource.isEmpty()) {
                return null;
             }

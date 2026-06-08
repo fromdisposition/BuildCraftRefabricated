@@ -8,7 +8,6 @@ package buildcraft.lib.list;
 
 import buildcraft.api.lists.ListMatchHandler;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
 import buildcraft.lib.fluids.FluidStack;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -22,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 public class ListMatchHandlerFluid extends ListMatchHandler {
    @Nullable
    private static Storage<FluidVariant> storageOf(@Nonnull ItemStack stack) {
-      return stack.isEmpty() ? null : TriggerTransferAccess.itemFluidStorage(stack);
+      return stack.isEmpty() ? null : ItemFluidLookup.storage(stack);
    }
 
    @Nullable

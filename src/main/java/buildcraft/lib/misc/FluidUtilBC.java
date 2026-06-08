@@ -9,7 +9,7 @@ package buildcraft.lib.misc;
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.client.fluid.BcFluidTintUtil;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.fluids.FluidTypes;
 import buildcraft.lib.transfer.fabric.TransferConvert;
@@ -334,7 +334,7 @@ public class FluidUtilBC {
    }
 
    public static boolean isFluidContainerItem(ItemStack stack) {
-      return stack.isEmpty() ? false : TriggerTransferAccess.itemFluidStorage(stack) != null;
+      return stack.isEmpty() ? false : ItemFluidLookup.storage(stack) != null;
    }
 
    public static boolean isFluidContainerInHand(Player player, InteractionHand hand) {
@@ -344,7 +344,7 @@ public class FluidUtilBC {
       }
 
       ItemStack held = context.getItemVariant().toStack((int)Math.min(context.getAmount(), 2147483647L));
-      return held.isEmpty() ? false : TriggerTransferAccess.itemFluidStorage(held, context) != null;
+      return held.isEmpty() ? false : ItemFluidLookup.storage(held, context) != null;
    }
 
    public static boolean onTankActivated(Player player, BlockPos pos, InteractionHand hand, Storage<FluidVariant> storage) {

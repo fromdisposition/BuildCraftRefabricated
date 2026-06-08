@@ -15,7 +15,9 @@ import buildcraft.api.statements.containers.IRedstoneStatementContainer;
 import buildcraft.api.tiles.IHasWork;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.core.BCCoreStatements;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.BcTransfers;
+import buildcraft.lib.fabric.transfer.TriggerFluidChecks;
+import buildcraft.lib.fabric.transfer.TriggerItemChecks;
 import java.util.Collection;
 import javax.annotation.Nonnull;
 import net.minecraft.core.Direction;
@@ -60,7 +62,7 @@ public enum CoreTriggerProvider implements ITriggerProvider {
          if (!blockInventoryTriggers
             && tile != null
             && tile.getLevel() != null
-            && TriggerTransferAccess.hasBlockItem(tile.getLevel(), tile.getBlockPos(), side.getOpposite())) {
+            && TriggerItemChecks.hasViews(BcTransfers.item(tile.getLevel(), tile.getBlockPos(), side.getOpposite()))) {
             res.add(BCCoreStatements.TRIGGER_INVENTORY_EMPTY);
             res.add(BCCoreStatements.TRIGGER_INVENTORY_SPACE);
             res.add(BCCoreStatements.TRIGGER_INVENTORY_CONTAINS);
@@ -73,7 +75,7 @@ public enum CoreTriggerProvider implements ITriggerProvider {
          if (!blockFluidHandlerTriggers
             && tile != null
             && tile.getLevel() != null
-            && TriggerTransferAccess.hasBlockFluid(tile.getLevel(), tile.getBlockPos(), side.getOpposite())) {
+            && TriggerFluidChecks.hasViews(BcTransfers.fluid(tile.getLevel(), tile.getBlockPos(), side.getOpposite()))) {
             res.add(BCCoreStatements.TRIGGER_FLUID_EMPTY);
             res.add(BCCoreStatements.TRIGGER_FLUID_SPACE);
             res.add(BCCoreStatements.TRIGGER_FLUID_CONTAINS);

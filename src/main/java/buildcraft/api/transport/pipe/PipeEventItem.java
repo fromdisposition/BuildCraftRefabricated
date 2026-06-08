@@ -123,10 +123,10 @@ public abstract class PipeEventItem extends PipeEvent {
    }
 
    public static class ItemEntry {
-      public final DyeColor colour;
+      public DyeColor colour;
       @Nonnull
-      public final ItemStack stack;
-      public final Direction from;
+      public ItemStack stack;
+      public Direction from;
       @Nullable
       public List<Direction> to;
 
@@ -135,11 +135,18 @@ public abstract class PipeEventItem extends PipeEvent {
          this.stack = stack;
          this.from = from;
       }
+
+      public void prepare(DyeColor colour, @Nonnull ItemStack stack, Direction from) {
+         this.colour = colour;
+         this.stack = stack;
+         this.from = from;
+         this.to = null;
+      }
    }
 
    public static class ModifySpeed extends PipeEventItem {
-      public final PipeEventItem.ItemEntry item;
-      public final double currentSpeed;
+      public PipeEventItem.ItemEntry item;
+      public double currentSpeed;
       public double targetSpeed = 0.0;
       public double maxSpeedChange = 0.0;
 
@@ -147,6 +154,13 @@ public abstract class PipeEventItem extends PipeEvent {
          super(holder, flow);
          this.item = item;
          this.currentSpeed = initSpeed;
+      }
+
+      public void prepare(PipeEventItem.ItemEntry item, double initSpeed) {
+         this.item = item;
+         this.currentSpeed = initSpeed;
+         this.targetSpeed = 0.0;
+         this.maxSpeedChange = 0.0;
       }
 
       public void modifyTo(double target, double maxDelta) {
@@ -196,10 +210,16 @@ public abstract class PipeEventItem extends PipeEvent {
    }
 
    public static class ReachCenter extends PipeEventItem.ReachDest {
-      public final Direction from;
+      public Direction from;
 
       public ReachCenter(IPipeHolder holder, IFlowItems flow, DyeColor colour, @Nonnull ItemStack stack, Direction from) {
          super(holder, flow, colour, stack);
+         this.from = from;
+      }
+
+      public void prepare(DyeColor colour, @Nonnull ItemStack stack, Direction from) {
+         this.colour = colour;
+         this.setStack(stack);
          this.from = from;
       }
    }
@@ -239,10 +259,10 @@ public abstract class PipeEventItem extends PipeEvent {
    }
 
    public static class SideCheck extends PipeEventItem {
-      public final DyeColor colour;
-      public final Direction from;
+      public DyeColor colour;
+      public Direction from;
       @Nonnull
-      public final ItemStack stack;
+      public ItemStack stack;
       private final int[] priority = new int[6];
       private final EnumSet<Direction> allowed = EnumSet.allOf(Direction.class);
 
@@ -251,6 +271,15 @@ public abstract class PipeEventItem extends PipeEvent {
          this.colour = colour;
          this.from = from;
          this.stack = stack;
+      }
+
+      public void prepare(DyeColor colour, Direction from, @Nonnull ItemStack stack) {
+         this.colour = colour;
+         this.from = from;
+         this.stack = stack;
+         Arrays.fill(this.priority, 0);
+         this.allowed.clear();
+         this.allowed.addAll(EnumSet.allOf(Direction.class));
       }
 
       public boolean isAllowed(Direction side) {
@@ -344,10 +373,10 @@ public abstract class PipeEventItem extends PipeEvent {
    }
 
    public static class TryBounce extends PipeEventItem {
-      public final DyeColor colour;
-      public final Direction from;
+      public DyeColor colour;
+      public Direction from;
       @Nonnull
-      public final ItemStack stack;
+      public ItemStack stack;
       public boolean canBounce = false;
 
       public TryBounce(IPipeHolder holder, IFlowItems flow, DyeColor colour, Direction from, @Nonnull ItemStack stack) {
@@ -355,6 +384,13 @@ public abstract class PipeEventItem extends PipeEvent {
          this.colour = colour;
          this.from = from;
          this.stack = stack;
+      }
+
+      public void prepare(DyeColor colour, Direction from, @Nonnull ItemStack stack) {
+         this.colour = colour;
+         this.from = from;
+         this.stack = stack;
+         this.canBounce = false;
       }
    }
 

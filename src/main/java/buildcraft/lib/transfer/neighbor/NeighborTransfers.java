@@ -6,9 +6,10 @@
 
 package buildcraft.lib.transfer.neighbor;
 
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
-import buildcraft.lib.fabric.transfer.BcTransfers;
+import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -57,7 +58,7 @@ public final class NeighborTransfers {
 
             Storage<ItemVariant> storage = BcTransfers.item(level, adjPos, face.getOpposite());
             if (storage != null) {
-               int inserted = insertCommitted(storage, stack, remaining);
+               int inserted = TransferCommits.insertItems(storage, stack, remaining, true);
                remaining -= inserted;
             }
          }
@@ -90,7 +91,7 @@ public final class NeighborTransfers {
             if (face != ignore) {
                Storage<ItemVariant> storage = BcTransfers.item(level, pos.relative(face), face.getOpposite());
                if (storage != null) {
-                  int inserted = insertCommitted(storage, template, remaining);
+                  int inserted = TransferCommits.insertItems(storage, template, remaining, true);
                   totalInserted += inserted;
                   remaining -= inserted;
                }
@@ -134,27 +135,7 @@ public final class NeighborTransfers {
             transaction.commit();
          }
 
-         return saturateMb(TransferConvert.dropletsToMb(moved));
+         return TransferCommits.saturateMb(TransferConvert.dropletsToMb(moved));
       }
-   }
-
-   private static int insertCommitted(Storage<ItemVariant> storage, ItemStack template, int amount) {
-      ItemVariant variant = ItemVariant.of(template);
-      try (Transaction transaction = Transaction.openOuter()) {
-         long inserted = storage.insert(variant, amount, transaction);
-         if (inserted > 0L) {
-            transaction.commit();
-         }
-
-         return saturateCount(inserted);
-      }
-   }
-
-   private static int saturateMb(long millibuckets) {
-      return millibuckets > 2147483647L ? Integer.MAX_VALUE : (int)millibuckets;
-   }
-
-   private static int saturateCount(long count) {
-      return count > 2147483647L ? Integer.MAX_VALUE : (int)count;
    }
 }

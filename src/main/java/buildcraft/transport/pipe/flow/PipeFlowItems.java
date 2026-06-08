@@ -55,6 +55,11 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    private final PipeFlowItems.PipeExtractJournal extractJournal = new PipeFlowItems.PipeExtractJournal();
    @SuppressWarnings("unchecked")
    private final Storage<ItemVariant>[] itemStorages = (Storage<ItemVariant>[])new Storage<?>[6];
+   private @Nullable PipeEventItem.ReachCenter routingReachCenter;
+   private @Nullable PipeEventItem.SideCheck routingSideCheck;
+   private @Nullable PipeEventItem.TryBounce routingTryBounce;
+   private @Nullable PipeEventItem.ModifySpeed routingModifySpeed;
+   private @Nullable PipeEventItem.ItemEntry routingItemEntry;
 
    public PipeFlowItems(IPipe pipe) {
       super(pipe);
@@ -272,10 +277,24 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    private void onItemReachCenter(TravellingItem item) {
       this.markSaveDirty();
       IPipeHolder holder = this.pipe.getHolder();
-      PipeEventItem.ReachCenter reachCenter = new PipeEventItem.ReachCenter(holder, this, item.colour, item.stack, item.side);
+      PipeEventItem.ReachCenter reachCenter = this.routingReachCenter;
+      if (reachCenter == null) {
+         reachCenter = new PipeEventItem.ReachCenter(holder, this, item.colour, item.stack, item.side);
+         this.routingReachCenter = reachCenter;
+      } else {
+         reachCenter.prepare(item.colour, item.stack, item.side);
+      }
+
       holder.fireEvent(reachCenter);
       if (!reachCenter.getStack().isEmpty()) {
-         PipeEventItem.SideCheck sideCheck = new PipeEventItem.SideCheck(holder, this, reachCenter.colour, reachCenter.from, reachCenter.getStack());
+         PipeEventItem.SideCheck sideCheck = this.routingSideCheck;
+         if (sideCheck == null) {
+            sideCheck = new PipeEventItem.SideCheck(holder, this, reachCenter.colour, reachCenter.from, reachCenter.getStack());
+            this.routingSideCheck = sideCheck;
+         } else {
+            sideCheck.prepare(reachCenter.colour, reachCenter.from, reachCenter.getStack());
+         }
+
          sideCheck.disallow(reachCenter.from);
 
          for (Direction face : Direction.values()) {
@@ -287,7 +306,14 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
          holder.fireEvent(sideCheck);
          List<EnumSet<Direction>> order = sideCheck.getOrder();
          if (order.isEmpty()) {
-            PipeEventItem.TryBounce tryBounce = new PipeEventItem.TryBounce(holder, this, reachCenter.colour, reachCenter.from, reachCenter.getStack());
+            PipeEventItem.TryBounce tryBounce = this.routingTryBounce;
+            if (tryBounce == null) {
+               tryBounce = new PipeEventItem.TryBounce(holder, this, reachCenter.colour, reachCenter.from, reachCenter.getStack());
+               this.routingTryBounce = tryBounce;
+            } else {
+               tryBounce.prepare(reachCenter.colour, reachCenter.from, reachCenter.getStack());
+            }
+
             holder.fireEvent(tryBounce);
             if (!tryBounce.canBounce) {
                this.dropItem(item.stack, null, item.side.getOpposite(), item.speed);
@@ -297,7 +323,14 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
             order = ImmutableList.of(EnumSet.of(reachCenter.from));
          }
 
-         PipeEventItem.ItemEntry entry = new PipeEventItem.ItemEntry(reachCenter.colour, reachCenter.getStack(), reachCenter.from);
+         PipeEventItem.ItemEntry entry = this.routingItemEntry;
+         if (entry == null) {
+            entry = new PipeEventItem.ItemEntry(reachCenter.colour, reachCenter.getStack(), reachCenter.from);
+            this.routingItemEntry = entry;
+         } else {
+            entry.prepare(reachCenter.colour, reachCenter.getStack(), reachCenter.from);
+         }
+
          PipeEventItem.Split split = new PipeEventItem.Split(holder, this, order, entry);
          holder.fireEvent(split);
          ImmutableList<PipeEventItem.ItemEntry> entries = ImmutableList.copyOf(split.items);
@@ -310,7 +343,14 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
          while (var13.hasNext()) {
             PipeEventItem.ItemEntry itemEntry = (PipeEventItem.ItemEntry)var13.next();
             if (!itemEntry.stack.isEmpty()) {
-               PipeEventItem.ModifySpeed modifySpeed = new PipeEventItem.ModifySpeed(holder, this, itemEntry, item.speed);
+               PipeEventItem.ModifySpeed modifySpeed = this.routingModifySpeed;
+               if (modifySpeed == null) {
+                  modifySpeed = new PipeEventItem.ModifySpeed(holder, this, itemEntry, item.speed);
+                  this.routingModifySpeed = modifySpeed;
+               } else {
+                  modifySpeed.prepare(itemEntry, item.speed);
+               }
+
                double newSpeed;
                if (holder.fireEvent(modifySpeed)) {
                   double target = modifySpeed.targetSpeed;

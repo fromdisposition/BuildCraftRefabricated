@@ -130,6 +130,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (pose, buffer) -> {
                   ModelPipe.renderDirect(pipe, pose, buffer, light);
                   ModelPipe.renderCutoutPluggables(pipe, pose, buffer, light);
+                  PipeWireRenderer.renderWires(pipe, pose, light, buffer);
                }
             );
             Pipe bodyPipe = pipe.getPipe();
@@ -141,10 +142,6 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                   }
                );
             }
-
-            BcBerRenderUtil.submit(poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (pose, buffer) -> {
-               PipeWireRenderer.renderWires(pipe, pose, light, buffer);
-            });
             submitItems(renderState, poseStack, collector, light);
             renderContents(pipe, 0.0, 0.0, 0.0, renderState.partialTick, poseStack, collector, light);
             poseStack.popPose();
@@ -244,19 +241,29 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       Pipe p = pipe.getPipe();
       if (p != null) {
          PipeRenderContext.setPackedLight(light);
-         if (p.behaviour != null) {
-            BcBerRenderUtil.submit(poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (pose, buffer) -> {
-               renderBehaviour(p.behaviour, x, y, z, partialTicks, buffer, pose);
-            });
-         }
+         boolean hasBehaviour = p.behaviour != null;
+         boolean hasPluggables = false;
 
          for (Direction facing : Direction.values()) {
-            PipePluggable plug = pipe.getPluggable(facing);
-            if (plug != null) {
-               BcBerRenderUtil.submitWithPoseStack(poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (stack, buffer) -> {
-                  renderPluggable(plug, x, y, z, partialTicks, buffer, stack);
-               });
+            if (pipe.getPluggable(facing) != null) {
+               hasPluggables = true;
+               break;
             }
+         }
+
+         if (hasBehaviour || hasPluggables) {
+            BcBerRenderUtil.submitWithPoseStack(poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (stack, buffer) -> {
+               if (hasBehaviour) {
+                  renderBehaviour(p.behaviour, x, y, z, partialTicks, buffer, stack.last());
+               }
+
+               for (Direction facing : Direction.values()) {
+                  PipePluggable plug = pipe.getPluggable(facing);
+                  if (plug != null) {
+                     renderPluggable(plug, x, y, z, partialTicks, buffer, stack);
+                  }
+               }
+            });
          }
 
          if (p.flow != null && !(p.flow instanceof PipeFlowItems)) {

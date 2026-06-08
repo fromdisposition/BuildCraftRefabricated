@@ -7,7 +7,7 @@
 package buildcraft.factory.tile;
 
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;
 import buildcraft.lib.tile.craft.IFluidCraftSupport;
@@ -26,7 +26,7 @@ public final class FluidWorkbenchCraftSupport implements IFluidCraftSupport {
 
    @Override
    public boolean canSupply(ItemStack required, int count, boolean simulate) {
-      FluidStack needed = TriggerTransferAccess.fluidFromItemParameter(required);
+      FluidStack needed = ItemFluidLookup.firstFluid(required);
       if (needed.isEmpty() || count <= 0) {
          return false;
       }
@@ -37,7 +37,7 @@ public final class FluidWorkbenchCraftSupport implements IFluidCraftSupport {
 
    @Override
    public ItemStack extractForCraft(ItemStack required) {
-      FluidStack needed = TriggerTransferAccess.fluidFromItemParameter(required);
+      FluidStack needed = ItemFluidLookup.firstFluid(required);
       if (needed.isEmpty()) {
          return ItemStack.EMPTY;
       }

@@ -1,5 +1,7 @@
 package buildcraft.lib.fabric.transfer;
 
+import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.transfer.fabric.TransferConvert;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
@@ -39,6 +41,56 @@ public final class FluidStorageOps {
          return !view.isResourceBlank() && !((FluidVariant)view.getResource()).equals(resource) ? false : view.getCapacity() - view.getAmount() >= maxDroplets;
       } else {
          return false;
+      }
+   }
+
+   public static int extractFluidMb(Storage<FluidVariant> storage, FluidStack fluid, int maxMillibuckets, boolean commit) {
+      if (storage != null && fluid != null && !fluid.isEmpty() && maxMillibuckets > 0) {
+         FluidVariant variant = TransferConvert.toVariant(fluid);
+         try (Transaction transaction = Transaction.openOuter()) {
+            int extracted = extractFluidMb(storage, variant, maxMillibuckets, transaction);
+            if (commit && extracted > 0) {
+               transaction.commit();
+            }
+
+            return extracted;
+         }
+      } else {
+         return 0;
+      }
+   }
+
+   public static int extractFluidMb(Storage<FluidVariant> storage, FluidVariant variant, int maxMillibuckets, TransactionContext transaction) {
+      if (storage != null && !variant.isBlank() && maxMillibuckets > 0) {
+         long extracted = storage.extract(variant, TransferConvert.mbToDroplets(maxMillibuckets), transaction);
+         return TransferCommits.saturateMb(TransferConvert.dropletsToMb(extracted));
+      } else {
+         return 0;
+      }
+   }
+
+   public static int insertFluidMb(Storage<FluidVariant> storage, FluidStack fluid, int millibuckets, boolean commit) {
+      if (storage != null && fluid != null && !fluid.isEmpty() && millibuckets > 0) {
+         FluidVariant variant = TransferConvert.toVariant(fluid);
+         try (Transaction transaction = Transaction.openOuter()) {
+            int inserted = insertFluidMb(storage, variant, millibuckets, transaction);
+            if (commit && inserted > 0) {
+               transaction.commit();
+            }
+
+            return inserted;
+         }
+      } else {
+         return 0;
+      }
+   }
+
+   public static int insertFluidMb(Storage<FluidVariant> storage, FluidVariant variant, int millibuckets, TransactionContext transaction) {
+      if (storage != null && !variant.isBlank() && millibuckets > 0) {
+         long inserted = storage.insert(variant, TransferConvert.mbToDroplets(millibuckets), transaction);
+         return TransferCommits.saturateMb(TransferConvert.dropletsToMb(inserted));
+      } else {
+         return 0;
       }
    }
 }

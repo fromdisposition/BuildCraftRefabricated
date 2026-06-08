@@ -18,7 +18,6 @@ import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.SidedFluidStorages;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
 import buildcraft.lib.fluid.FluidSmoother;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;

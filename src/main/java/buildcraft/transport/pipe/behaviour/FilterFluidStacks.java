@@ -6,7 +6,7 @@
 
 package buildcraft.transport.pipe.behaviour;
 
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -23,7 +23,7 @@ public final class FilterFluidStacks {
          return FluidStack.EMPTY;
       }
 
-      Storage<FluidVariant> storage = TriggerTransferAccess.itemFluidStorage(stack);
+      Storage<FluidVariant> storage = ItemFluidLookup.storage(stack);
       if (storage == null) {
          return FluidStack.EMPTY;
       }
