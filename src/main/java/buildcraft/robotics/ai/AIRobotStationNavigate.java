@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.robots.AIRobot;
@@ -7,7 +13,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
-/** Shared A* approach and straight-line docking for a known docking station. */
 public abstract class AIRobotStationNavigate extends AIRobot {
    protected BlockPos stationIndex;
    protected Direction stationSide;

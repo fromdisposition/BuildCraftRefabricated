@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.builders.tile;
 
 import buildcraft.builders.BCBuildersBlockEntities;
@@ -17,11 +23,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-/**
- * A passive marker block that stores a blueprint snapshot and exposes its {@link Blueprint.BuildingInfo} anchored at the
- * marker position. Builder robots discover markers through {@link ConstructionMarkerRegistry} and drive a real
- * {@link buildcraft.builders.snapshot.BlueprintBuilder} against the building info reported here.
- */
 public class TileConstructionMarker extends BcBlockEntity {
    private ItemStack blueprintStack = ItemStack.EMPTY;
    @Nullable
@@ -68,7 +69,7 @@ public class TileConstructionMarker extends BcBlockEntity {
       return removed;
    }
 
-   /** Called by a builder robot once the structure for this marker is fully built so it stops being a build target. */
+   
    public void markBuilt() {
       this.blueprintBuildingInfo = null;
       if (this.level != null) {

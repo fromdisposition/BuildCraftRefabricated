@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.path.PathFinding;
 import net.minecraft.core.BlockPos;
 
-/** Out-of-power behaviour: undock, stop, and gently sink to the ground so the robot stays reachable. */
 public class AIRobotShutdown extends AIRobotGoto {
    public AIRobotShutdown(EntityRobotBase robot) {
       super(robot);

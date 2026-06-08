@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.core.BuildCraftAPI;
@@ -18,7 +24,6 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-/** Uses the robot's held tool on a block (e.g. bonemeal, hoe), via a fake player interaction. */
 public class AIRobotUseToolOnBlock extends AIRobot {
    private BlockPos useToBlock;
    private int useCycles;

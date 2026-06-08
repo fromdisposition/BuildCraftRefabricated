@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.client.render;
 
 import buildcraft.lib.client.model.ModelUtil;
@@ -19,15 +25,11 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
-/**
- * Faithful Fabric port of BuildCraft 7.1.x {@code RenderRobot}: a textured 8x8x8 body cube tinted by an animated energy
- * overlay, with the held tool rendered in front. Replaces the previous {@code NoopRenderer} so robots are visible.
- */
 public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
    private static final Identifier OVERLAY_SIDE = Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_side");
    private static final Identifier OVERLAY_BOTTOM = Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_bottom");
 
-   /** Body half-extent in blocks (8px cube at 1/16 scale = 0.5 block, half = 0.25). */
+   
    private static final float RADIUS = 0.25F;
    private static final Vector3f CENTER = new Vector3f(0.0F, 0.0F, 0.0F);
    private static final Vector3f EXTENT = new Vector3f(RADIUS, RADIUS, RADIUS);

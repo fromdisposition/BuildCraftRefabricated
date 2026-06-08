@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics;
 
 import buildcraft.api.robots.DockingStation;
@@ -13,7 +19,6 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-/** A pending item request from a machine/requester, paired with the station that serves it. */
 public class StackRequest {
    private IRequestProvider requester;
    private final int slot;

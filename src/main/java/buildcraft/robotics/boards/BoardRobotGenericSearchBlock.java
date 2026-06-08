@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.boards;
 
 import buildcraft.api.boards.RedstoneBoardRobot;
@@ -14,10 +20,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-/**
- * Base board that searches the world for a block matching {@link #isExpectedBlock} (further constrained by the
- * station's work-filter gate action) and navigates to it. Port of BuildCraft 7.1.x {@code BoardRobotGenericSearchBlock}.
- */
 public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
    private BlockPos blockFound;
 

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.core.IStackFilter;
@@ -12,7 +18,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.item.ItemStack;
 
-/** Pulls items matching a filter from the docked station's input inventory into the robot. */
 public class AIRobotLoad extends AIRobot {
    public static final int ANY_QUANTITY = -1;
 
@@ -106,7 +111,7 @@ public class AIRobotLoad extends AIRobot {
       return loaded > 0;
    }
 
-   /** Removes and returns a single matching item from the station's input inventory, for equipping as a held tool. */
+   
    public static ItemStack takeSingle(DockingStation station, IStackFilter filter, boolean doTake) {
       if (station == null) {
          return ItemStack.EMPTY;

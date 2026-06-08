@@ -16,12 +16,7 @@ public final class BCSpriteSourcesFabric {
    private BCSpriteSourcesFabric() {
    }
 
-   /**
-    * Registration happens natively via {@code SpriteSourcesBootstrapMixin}, which calls
-    * {@link #registerInto} with the accessor-exposed {@code ID_MAPPER} at the end of
-    * {@code SpriteSources.bootstrap}. This method is kept as a no-op entry point so client
-    * init order stays explicit; it no longer reflects into vanilla internals.
-    */
+   
    public static void register() {
    }
 

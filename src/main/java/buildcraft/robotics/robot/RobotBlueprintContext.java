@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.robot;
 
 import buildcraft.api.inventory.IItemTransactor;
@@ -22,11 +28,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Adapter that lets an {@link EntityRobot} act as the host of a real {@link BlueprintBuilder}. All resources the builder
- * needs (items, fluids, energy) are sourced directly from the robot, while the structure layout and owner come from a
- * construction marker. The robot therefore reuses the entire snapshot build pipeline instead of a bespoke per-slot API.
- */
 public class RobotBlueprintContext implements ITileForBlueprintBuilder {
    private final EntityRobot robot;
    private final BlockPos markerPos;

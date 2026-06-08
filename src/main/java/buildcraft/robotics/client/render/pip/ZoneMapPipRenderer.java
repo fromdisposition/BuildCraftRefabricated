@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.client.render.pip;
 
 import buildcraft.lib.client.render.BCLibRenderTypes;
@@ -17,7 +23,6 @@ import net.minecraft.client.renderer.Projection;
 import net.minecraft.client.renderer.ProjectionMatrixBuffer;
 import org.joml.Matrix4f;
 
-/** Draws the Zone Planner terrain as a 3D top-down perspective height-field into an offscreen texture. */
 public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRenderState> {
    private static final int OVERLAY_ALPHA = 0x55;
    private static final int SELECTION_ALPHA = 0x99;
@@ -97,7 +102,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       }
    }
 
-   /** Drops baked meshes well outside the current view so panning across a world does not grow the cache without bound. */
+   
    private void evictFarMeshes(ZoneMapPipRenderState state) {
       if (this.meshCache.size() > 1024) {
          int pad = 2;
@@ -113,7 +118,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       }
    }
 
-   /** Returns a cached baked mesh for the chunk, rebuilding it when the chunk or any neighbour terrain changed. */
+   
    private CachedMesh meshFor(ZonePlannerMapColours cache, int cx, int cz, long key) {
       int selfVer = cache.versionOf(key);
       int vW = cache.versionOf(ZonePlannerChunkKeys.chunkKey(cx - 1, cz));
@@ -129,11 +134,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       return mesh;
    }
 
-   /**
-    * Translucent zone overlays (BC 8.0 look): painted cells as raised semi-transparent cuboids in their layer colour,
-    * the live drag selection in the brush colour, and the hovered block as a highlight cuboid in the block's own colour.
-    * Drawn through a translucent debug render type so terrain shades through and taller terrain occludes correctly.
-    */
+   
    private void emitOverlay(ZoneMapPipRenderState state, Pose pose) {
       ZonePlannerMapColours cache = state.colours();
       int originX = state.originX();
@@ -191,7 +192,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       }
    }
 
-   /** A raised box (top plus four sides, bottom omitted as it sits on the terrain). */
+   
    private static void emitFilledCuboid(
       VertexConsumer vc, Pose pose, float x0, float z0, float x1, float z1, float yb, float yt, int r, int g, int b, int a
    ) {
@@ -227,11 +228,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       }
    }
 
-   /**
-    * Baked, origin-independent geometry for one terrain chunk. Vertices are stored in absolute world coordinates and
-    * shifted by the current origin at emit time, so the cache survives panning and zooming and only rebuilds when the
-    * chunk or one of its four neighbours reports a new terrain version.
-    */
+   
    private static final class CachedMesh {
       private final int selfVer;
       private final int vW;
@@ -354,7 +351,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       }
    }
 
-   /** Minimal growable primitive float buffer to avoid boxing while baking chunk meshes. */
+   
    private static final class FloatList {
       private float[] data = new float[256];
       private int size;
@@ -376,7 +373,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       }
    }
 
-   /** Minimal growable primitive int buffer to avoid boxing while baking chunk meshes. */
+   
    private static final class IntList {
       private int[] data = new int[256];
       private int size;

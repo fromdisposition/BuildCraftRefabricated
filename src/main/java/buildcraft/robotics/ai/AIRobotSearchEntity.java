@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.core.IZone;
@@ -8,7 +14,6 @@ import buildcraft.robotics.path.IEntityFilter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 
-/** Finds the nearest living/world entity matching a filter within range (and optional zone). */
 public class AIRobotSearchEntity extends AIRobot {
    public Entity target;
    private float maxRange;

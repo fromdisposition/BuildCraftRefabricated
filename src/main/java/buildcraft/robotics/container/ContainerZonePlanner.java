@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.container;
 
 import net.minecraft.network.FriendlyByteBuf;
@@ -39,7 +45,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    private static final int PLAYER_SLOTS_END = 36;
    private static final int MACHINE_SLOTS_END = 58;
    public final ZonePlannerMapColours mapColours = new ZonePlannerMapColours();
-   /** Client-side counter bumped whenever the painted layers change, so the map can invalidate its cached overlay. */
+   
    public int clientLayerVersion;
    private int lastLayersVersion = -1;
    private static final Predicate<ItemStack> IS_BRUSH = stack -> stack.getItem() instanceof ItemPaintbrush_BC8;
@@ -195,11 +201,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       }
    }
 
-   /**
-    * Server-side polling hook (run every tick for each open menu). When the tile's painted layers change — from this
-    * player's paint, an import tick, or another player editing — it pushes the full layer set back to this player so
-    * the map updates without re-opening the screen. This also keeps multiplayer viewers in sync.
-    */
+   
    @Override
    public void broadcastChanges() {
       super.broadcastChanges();

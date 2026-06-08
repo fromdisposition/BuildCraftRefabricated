@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.statement;
 
 import buildcraft.api.core.IStackFilter;
@@ -16,11 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * Port of BuildCraft 7.1.x gate-action filtering (ActionRobotFilter / ActionStationProvideItems). Actions are matched
- * by their unique tag rather than by subclass, since the port models every station action with the generic
- * {@link ActionStation}.
- */
 public final class StationActions {
    public static final String WORK_FILTER = "buildcraft:robot.work_filter";
    public static final String FILTER_TOOL = "buildcraft:robot.work_filter_tool";
@@ -34,7 +35,7 @@ public final class StationActions {
       return slot.statement != null && tag.equals(slot.statement.getUniqueTag());
    }
 
-   /** Collects the item stacks configured on the station's work-filter actions. */
+   
    public static List<ItemStack> getGateFilterStacks(DockingStation station) {
       List<ItemStack> result = new ArrayList<>();
       if (station == null) {
@@ -57,30 +58,30 @@ public final class StationActions {
       return result;
    }
 
-   /** Collects item stacks configured on the station's tool-filter actions. */
+   
    public static List<ItemStack> getGateToolFilterStacks(DockingStation station) {
       return getFilterStacks(station, FILTER_TOOL);
    }
 
-   /** The combined work filter for a station: pass-through when no work-filter action is configured. */
+   
    public static IStackFilter getGateFilter(DockingStation station) {
       List<ItemStack> stacks = getGateFilterStacks(station);
       return stacks.isEmpty() ? PassThroughStackFilter.INSTANCE : new ArrayStackOrListFilter(stacks.toArray(new ItemStack[0]));
    }
 
-   /** Tool filter for equipping held items; pass-through when no tool-filter action is configured. */
+   
    public static IStackFilter getGateToolFilter(DockingStation station) {
       List<ItemStack> stacks = getGateToolFilterStacks(station);
       return stacks.isEmpty() ? PassThroughStackFilter.INSTANCE : new ArrayStackOrListFilter(stacks.toArray(new ItemStack[0]));
    }
 
-   /** Fluid filter derived from work-filter item parameters (buckets, fluid containers). */
+   
    public static IFluidFilter getGateFluidFilter(DockingStation station) {
       List<ItemStack> stacks = getGateFilterStacks(station);
       return stacks.isEmpty() ? PassThroughFluidFilter.INSTANCE : new ArrayFluidFilter(stacks.toArray(new ItemStack[0]));
    }
 
-   /** Whether the robot is forbidden from using this station (forbid / force gate actions). */
+   
    public static boolean isRobotForbidden(DockingStation station, EntityRobotBase robot) {
       if (station == null || robot == null) {
          return false;
@@ -120,7 +121,7 @@ public final class StationActions {
       return result;
    }
 
-   /** Whether a "provide items" action permits extracting the given stack (no filter = anything allowed). */
+   
    public static boolean canExtractItem(DockingStation station, ItemStack stack) {
       boolean hasFilter = false;
       if (station == null) {
@@ -142,10 +143,7 @@ public final class StationActions {
       return !hasFilter;
    }
 
-   /**
-    * Whether the station has an active action with the given tag whose parameters intersect the requested filter (or
-    * which has no parameters). Mirrors {@code ActionRobotFilter.canInteractWithItem}.
-    */
+   
    public static boolean canInteractWithItem(DockingStation station, IStackFilter filter, String actionTag) {
       if (station == null) {
          return false;

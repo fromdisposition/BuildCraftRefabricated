@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.robot;
 
 import buildcraft.api.core.IStackFilter;
@@ -7,10 +13,6 @@ import buildcraft.robotics.entity.EntityRobot;
 import javax.annotation.Nonnull;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * Exposes an {@link EntityRobot}'s internal item slots as an {@link buildcraft.api.inventory.IItemTransactor} so that a
- * {@link buildcraft.builders.snapshot.BlueprintBuilder} can draw its building materials directly from the robot.
- */
 public class RobotItemTransactor extends AbstractInvItemTransactor {
    private final EntityRobot robot;
 

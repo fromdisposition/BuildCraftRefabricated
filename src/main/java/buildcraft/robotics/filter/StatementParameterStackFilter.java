@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.filter;
 
 import buildcraft.api.statements.IStatementParameter;
@@ -6,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.item.ItemStack;
 
-/** Builds a stack filter from the item-stack parameters of a gate action slot. */
 public class StatementParameterStackFilter extends ArrayStackFilter {
    public StatementParameterStackFilter(IStatementParameter... parameters) {
       super(collect(parameters));

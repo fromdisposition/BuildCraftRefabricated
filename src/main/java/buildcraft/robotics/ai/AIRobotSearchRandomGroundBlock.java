@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.core.IZone;
@@ -7,7 +13,6 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.path.IBlockFilter;
 import net.minecraft.core.BlockPos;
 
-/** Picks random columns and scans downward for the first matching ground block under open air. */
 public class AIRobotSearchRandomGroundBlock extends AIRobot {
    private static final int MAX_ATTEMPTS = 4096;
    private static final java.util.Random RANDOM = new java.util.Random();

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics;
 
 import buildcraft.api.boards.RedstoneBoardNBT;
@@ -16,11 +22,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
-/**
- * Integration Table recipe combining a blank robot with a programmed redstone board into a programmed robot. Mirrors
- * BuildCraft 7.1.x {@code RobotIntegrationRecipe}: 50,000 MJ, energy carried over from the input robot (minimum
- * {@link EntityRobotBase#SAFETY_POWER}).
- */
 public final class RobotIntegrationRecipe extends IntegrationRecipe {
    private static final long INTEGRATION_COST = 50000L * MjAPI.MJ;
    private static boolean initialized;

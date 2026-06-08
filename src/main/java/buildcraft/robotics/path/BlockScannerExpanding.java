@@ -1,12 +1,14 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.path;
 
 import java.util.Iterator;
 import net.minecraft.core.BlockPos;
 
-/**
- * Iterates block offsets in expanding hollow cubes around the origin (radius 1..63). Port of BuildCraft 7.1.x
- * {@code BlockScannerExpanding}; offsets are relative and must be added to the scan origin.
- */
 public class BlockScannerExpanding implements Iterable<BlockPos> {
    private int searchRadius = 1;
    private int searchX = -1;

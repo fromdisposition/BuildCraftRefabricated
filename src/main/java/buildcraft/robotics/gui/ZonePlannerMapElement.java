@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.gui;
 
 import buildcraft.core.BCCore;
@@ -20,7 +26,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 
-/** Interactive 3D top-down perspective terrain map (BC 8.0 parity), rendered via the GUI Picture-in-Picture pipeline. */
 public class ZonePlannerMapElement implements IInteractionElement {
    private static final float PITCH_DEG = 90.0F;
    private static final int PAN_STEP = 4;
@@ -121,10 +126,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return this.mapH;
    }
 
-   /**
-    * Computes the rectangular chunk window covered by the (strictly top-down) camera frustum so the terrain fills the
-    * whole wider-than-tall viewport instead of a centred square. Returns {@code {minCX, minCZ, maxCX, maxCZ}}.
-    */
+   
    private int[] footprintChunkBounds(ZonePlannerMapColours cache) {
       double groundY = this.focusHeight(cache);
       double aboveGround = Math.max(8.0, this.camY(cache) - groundY);
@@ -251,10 +253,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
       );
    }
 
-   /**
-    * Rebuilds the cached overlay only when the painted layers or the held brush change. With a brush in hand only that
-    * layer is shown; with an empty cursor all sixteen layers are shown at once, each in its own dye colour (BC 8.0).
-    */
+   
    private void ensureOverlay(ContainerZonePlanner menu) {
       int layer = this.activeLayer();
       int version = menu != null ? menu.clientLayerVersion : 0;
@@ -359,7 +358,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
       }
    }
 
-   /** Ray-pick the terrain under a GUI cursor. Returns {worldX, worldZ, worldY} or null. */
+   
    private int[] pick(ZonePlannerMapColours cache, double mouseX, double mouseY) {
       ZoneMapPipRenderState state = this.buildState(null, cache, false);
       double[] ray = state.unprojectRay(mouseX, mouseY);

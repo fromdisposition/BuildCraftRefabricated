@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.core.IStackFilter;
@@ -5,7 +11,6 @@ import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.IStationFilter;
 
-/** Navigates to a station that can provide items matching the filter (without loading them yet). */
 public class AIRobotGotoStationToLoad extends AIRobotGotoStationForInventory {
    private IStackFilter filter;
    private int quantity;

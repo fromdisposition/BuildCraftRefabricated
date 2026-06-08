@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.api.mj;
 
 import buildcraft.lib.BCLibConfig;
@@ -8,7 +14,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-/** Minecraft Joules (MJ) constants, formatting, RF conversion, and capability tokens. */
 public class MjAPI {
    public static final long ONE_MINECRAFT_JOULE = getMjValue();
    public static final long MJ = ONE_MINECRAFT_JOULE;

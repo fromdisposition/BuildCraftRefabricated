@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.tile;
 
 import buildcraft.core.BCCore;
@@ -44,7 +50,7 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
    private int progressInput = -1;
    private int progressOutput = -1;
    public ZonePlan[] layers = new ZonePlan[16];
-   /** Bumped whenever {@link #layers} change so open containers can push the update to their clients. Not persisted. */
+   
    public int layersVersion;
 
    public TileZonePlanner(BlockPos pos, BlockState state) {

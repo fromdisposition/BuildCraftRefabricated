@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.core.IZone;
@@ -5,7 +11,6 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.IStationFilter;
 
-/** Searches for a station matching a filter and then navigates to it. */
 public class AIRobotSearchAndGotoStation extends AIRobot {
    private IStationFilter filter;
    private IZone zone;

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.api.robots;
 
 import buildcraft.api.boards.RedstoneBoardRobot;
@@ -89,7 +95,7 @@ public abstract class EntityRobotBase extends LivingEntity {
 
    public abstract Storage<FluidVariant> getFluidStorage();
 
-   /** Returns true if the robot's internal tank currently holds any fluid. */
+   
    public boolean hasFluid() {
       for (StorageView<FluidVariant> view : this.getFluidStorage()) {
          if (!view.isResourceBlank() && view.getAmount() > 0L) {

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.robots.EntityRobotBase;
@@ -8,11 +14,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Walks the robot to a target block, navigating around obstacles with A*. The path search runs synchronously on the
- * server thread in {@link PathFinding#PATH_ITERATIONS}-sized increments, which is Fabric-safe (no off-thread world
- * access, unlike the original 1.7.10 background job).
- */
 public class AIRobotGotoBlock extends AIRobotGoto {
    private PathFinding pathSearch;
    private LinkedList<BlockPos> path;

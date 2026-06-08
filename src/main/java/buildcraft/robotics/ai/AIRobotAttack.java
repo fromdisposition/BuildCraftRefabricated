@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.mj.MjAPI;
@@ -6,7 +12,6 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.entity.EntityRobot;
 import net.minecraft.world.entity.Entity;
 
-/** Pursues a target entity and strikes it with the robot's held weapon. */
 public class AIRobotAttack extends AIRobot {
    private Entity target;
    private int delay = 10;

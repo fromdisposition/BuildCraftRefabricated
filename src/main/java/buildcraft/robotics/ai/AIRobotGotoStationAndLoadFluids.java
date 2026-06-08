@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.path.IFluidFilter;
 
-/** Navigates to a providing station and then loads matching fluid into the robot's tank. */
 public class AIRobotGotoStationAndLoadFluids extends AIRobot {
    private IFluidFilter filter;
 

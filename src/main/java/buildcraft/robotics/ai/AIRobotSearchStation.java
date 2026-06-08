@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.core.IZone;
@@ -9,7 +15,6 @@ import buildcraft.robotics.statement.StationActions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
-/** Finds the nearest free docking station matching a filter (optionally constrained to a zone). */
 public class AIRobotSearchStation extends AIRobot {
    public DockingStation targetStation;
    private IStationFilter filter;

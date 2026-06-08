@@ -1,13 +1,13 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.robot;
 
 import buildcraft.api.mj.MjBattery;
 
-/**
- * An {@link MjBattery} facade backed entirely by a robot's real battery. Power extraction is gated by {@link #inRange}:
- * while the builder robot has not physically reached the block it is working on, no energy is allowed to flow, so the
- * underlying {@link buildcraft.builders.snapshot.SnapshotBuilder} cannot finish any break/place task. This reproduces
- * the strict "fly to every block before acting" behaviour without forking the snapshot pipeline.
- */
 public class GatedMjBattery extends MjBattery {
    private final MjBattery delegate;
    public boolean inRange;

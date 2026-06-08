@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.core.IStackFilter;
@@ -13,9 +19,8 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
-/** Locates a dropped item matching a filter, walks to it, and picks it up into the robot inventory. */
 public class AIRobotFetchItem extends AIRobot {
-   /** Items already claimed by some robot this session, to avoid two robots chasing the same drop. */
+   
    public static final Set<Integer> targettedItems = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
    private ItemEntity target;

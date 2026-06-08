@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.core.properties;
 
 import buildcraft.api.core.BuildCraftAPI;
@@ -13,11 +19,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 
-/**
- * Fabric-native re-implementation of BuildCraft 7.1.x world properties. These back the robot board block filters
- * ("wood", "leaves", "ore@hardness=N", "harvestable", "dirt", "shoveled", "replaceable", "soft", "fluidSource",
- * "farmland"), using vanilla block tags and block states rather than the old OreDictionary/forge metadata model.
- */
 public final class WorldProperties {
    public static final int MAX_HARVEST_LEVEL = 3;
 

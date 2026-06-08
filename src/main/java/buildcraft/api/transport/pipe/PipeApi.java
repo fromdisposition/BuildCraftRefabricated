@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.api.transport.pipe;
 
 import buildcraft.api.mj.MjAPI;
@@ -9,7 +15,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-/** Central transport API: pipe/flow registries, default transfer rates, and capability tokens. */
 public final class PipeApi {
    @Nullable
    public static IPipeRegistry pipeRegistry;

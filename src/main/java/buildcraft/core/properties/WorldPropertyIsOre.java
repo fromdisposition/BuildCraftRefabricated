@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.core.properties;
 
 import buildcraft.api.core.IWorldProperty;
@@ -8,10 +14,6 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * Matches ore blocks mineable by a pickaxe of at most the given harvest level. Harvest level is approximated from the
- * vanilla tier tags ({@code needs_stone/iron/diamond_tool}): 0 = stone/wood tier, 1 = stone, 2 = iron, 3 = diamond.
- */
 public class WorldPropertyIsOre implements IWorldProperty {
    private final int harvestLevel;
 

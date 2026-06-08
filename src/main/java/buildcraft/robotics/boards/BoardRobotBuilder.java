@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.boards;
 
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
@@ -22,12 +28,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Builder board. The robot itself hosts a real {@link BlueprintBuilder} (via {@link buildcraft.robotics.robot.RobotBlueprintContext}),
- * reusing the entire snapshot build pipeline. It discovers {@link TileConstructionMarker}s through
- * {@link ConstructionMarkerRegistry}, fetches missing materials from stations, physically flies to the active work
- * cluster, and only lets the builder place/break blocks while it is in range.
- */
 public class BoardRobotBuilder extends BoardRobotBC {
    private static final double REACH = 5.0;
 
@@ -93,9 +93,9 @@ public class BoardRobotBuilder extends BoardRobotBC {
          return;
       }
 
-      // Nothing is currently buildable and we still need materials we cannot fetch right now
-      // (e.g. inventory full or the last station load failed). Idle and retry after sleeping
-      // instead of hovering in place forever and draining power.
+      
+      
+      
       if (centroid == null && missing != null) {
          this.materialsUnavailable = false;
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));

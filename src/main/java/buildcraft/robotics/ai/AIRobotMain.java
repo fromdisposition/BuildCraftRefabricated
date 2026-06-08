@@ -1,13 +1,15 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.ai;
 
 import buildcraft.api.core.BCLog;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 
-/**
- * Root AI scheduling the robot's board. It pre-empts the board with overriding AIs (e.g. shutdown when out of power,
- * recharge when low, or one-off externally injected behaviours).
- */
 public class AIRobotMain extends AIRobot {
    private AIRobot overridingAI;
    private int rechargeCooldown;

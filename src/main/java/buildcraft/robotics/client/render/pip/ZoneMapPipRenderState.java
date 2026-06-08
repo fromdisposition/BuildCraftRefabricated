@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.client.render.pip;
 
 import buildcraft.robotics.zone.ZonePlannerMapColours;
@@ -8,13 +14,6 @@ import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
-/**
- * Render-state for the 3D Zone Planner terrain map. Submitted from {@code ZonePlannerMapElement} into the GUI
- * Picture-in-Picture pipeline; drawn by {@link ZoneMapPipRenderer}. All world XZ coordinates are kept relative to
- * {@code originX/originZ} (floor of the camera centre) for float precision; Y stays absolute. The visible terrain is
- * described by an explicit rectangular chunk window ({@code minChunkX..maxChunkX} x {@code minChunkZ..maxChunkZ}) so it
- * fills the whole (wider-than-tall) viewport instead of a centred square.
- */
 public record ZoneMapPipRenderState(
    ZonePlannerMapColours colours,
    int originX,
@@ -94,7 +93,7 @@ public record ZoneMapPipRenderState(
       );
    }
 
-   /** Camera/view matrix in the origin-relative frame (vertices are emitted relative to originX/originZ). */
+   
    public Matrix4f viewMatrix() {
       Matrix4f m = new Matrix4f();
       m.rotateX((float)Math.toRadians(this.pitchDeg));
@@ -112,9 +111,7 @@ public record ZoneMapPipRenderState(
       return new Matrix4f().setPerspective((float)Math.toRadians((double)FOV), aspect, NEAR, FAR, zeroToOne);
    }
 
-   /**
-    * Unprojects a GUI-space cursor into a world-space ray (origin-relative). Returns {@code {nearX,nearY,nearZ, farX,farY,farZ}}.
-    */
+   
    public double[] unprojectRay(double mouseX, double mouseY) {
       double ndcX = 2.0 * (mouseX - this.x0) / (this.x1 - this.x0) - 1.0;
       double ndcY = 1.0 - 2.0 * (mouseY - this.y0) / (this.y1 - this.y0);
@@ -128,11 +125,7 @@ public record ZoneMapPipRenderState(
       return new double[]{near.x(), near.y(), near.z(), far.x(), far.y(), far.z()};
    }
 
-   /**
-    * Change-stamp; an identical stamp across frames lets the renderer reuse the offscreen texture. It folds the full
-    * painted-overlay content (not just its length) so that any paint/erase/import is reflected immediately instead of
-    * waiting for a pan or zoom.
-    */
+   
    public long renderStamp() {
       long h = 1125899906842597L;
       h = 31L * h + Double.doubleToLongBits(this.camX);

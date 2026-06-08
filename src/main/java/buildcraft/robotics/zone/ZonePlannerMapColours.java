@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.robotics.zone;
 
 import java.util.HashMap;
@@ -5,7 +11,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/** Client-side cache of zone planner terrain colours, keyed by {@link net.minecraft.world.level.ChunkPos#asLong}. */
 public class ZonePlannerMapColours {
    public static final int NO_HEIGHT = Integer.MIN_VALUE;
    private final Map<Long, int[]> colour = new HashMap<>();
@@ -33,12 +38,12 @@ public class ZonePlannerMapColours {
       this.requested.remove(key);
    }
 
-   /** Monotonic version for a chunk; 0 = no data. Used to invalidate cached render meshes. */
+   
    public int versionOf(long key) {
       return this.version.getOrDefault(key, 0);
    }
 
-   /** Monotonic counter bumped on every {@link #put}; lets renderers detect any terrain change cheaply. */
+   
    public int globalVersion() {
       return this.globalVersion;
    }
