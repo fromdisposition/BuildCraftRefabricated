@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.robotics.filter;
+package buildcraft.lib.inventory.filter;
 
 import buildcraft.api.core.IStackFilter;
 import buildcraft.lib.misc.StackUtil;

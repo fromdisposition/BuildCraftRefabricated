@@ -10,7 +10,6 @@ import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.transport.pipe.PipePluggableTransferAccess;
 import buildcraft.transport.tile.TilePipeHolder;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -28,7 +27,7 @@ public final class PipeNeighborEnergyAccess {
          if (holder.getPipeTile() instanceof TilePipeHolder tile) {
             PipePluggable plug = tile.getPluggable(from);
             if (plug != null) {
-               EnergyStorage pluggableStorage = PipePluggableTransferAccess.energyStorage(plug);
+               EnergyStorage pluggableStorage = plug.energyStorage();
                if (pluggableStorage != null) {
                   return pluggableStorage;
                }

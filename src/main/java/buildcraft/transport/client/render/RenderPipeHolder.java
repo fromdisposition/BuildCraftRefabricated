@@ -28,6 +28,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import com.mojang.math.Axis;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -49,9 +51,29 @@ import org.jspecify.annotations.Nullable;
 
 public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, PipeHolderRenderState> {
    private final ItemModelResolver itemModelResolver;
+   private long itemModelCacheTick = Long.MIN_VALUE;
+   private final Map<Integer, ItemStackRenderState> itemModelBySignature = new HashMap<>();
 
    public RenderPipeHolder(Context context) {
       this.itemModelResolver = context.itemModelResolver();
+   }
+
+   private ItemStackRenderState resolveItemModel(PipeHolderRenderState renderState, ItemStack stack, Level world, int seed, long tick) {
+      if (tick != this.itemModelCacheTick) {
+         this.itemModelBySignature.clear();
+         this.itemModelCacheTick = tick;
+      }
+
+      int signature = ItemStack.hashItemAndComponents(stack);
+      ItemStackRenderState cached = this.itemModelBySignature.get(signature);
+      if (cached != null) {
+         return cached;
+      }
+
+      ItemStackRenderState itemState = renderState.acquireItemState();
+      this.itemModelResolver.updateForTopItem(itemState, stack, ItemDisplayContext.NONE, world, null, seed);
+      this.itemModelBySignature.put(signature, itemState);
+      return itemState;
    }
 
    public PipeHolderRenderState createRenderState() {
@@ -82,8 +104,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                   }
 
                   if (stack != null && !stack.isEmpty()) {
-                     ItemStackRenderState itemState = renderState.acquireItemState();
-                     this.itemModelResolver.updateForTopItem(itemState, stack, ItemDisplayContext.NONE, world, null, posHash + i);
+                     ItemStackRenderState itemState = this.resolveItemModel(renderState, stack, world, posHash + i, now);
                      if (!itemState.isEmpty()) {
                         item.writeRenderPosition(BlockPos.ZERO, now, partialTick, flowItems, posScratch);
                         Direction dir = item.getRenderDirection(now, partialTick);

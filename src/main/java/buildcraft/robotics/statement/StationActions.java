@@ -13,7 +13,7 @@ import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.StatementParameterItemStack;
 import buildcraft.api.statements.StatementSlot;
 import buildcraft.robotics.filter.ArrayFluidFilter;
-import buildcraft.robotics.filter.ArrayStackOrListFilter;
+import buildcraft.lib.inventory.filter.ArrayStackOrListFilter;
 import buildcraft.robotics.filter.PassThroughStackFilter;
 import buildcraft.robotics.filter.StatementParameterStackFilter;
 import buildcraft.robotics.path.IFluidFilter;

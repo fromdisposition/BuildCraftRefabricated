@@ -15,7 +15,7 @@ import buildcraft.core.BCCoreSprites;
 import buildcraft.core.BCCoreStatements;
 import buildcraft.lib.client.sprite.SpriteHolderRegistry;
 import buildcraft.lib.fabric.transfer.TriggerItemChecks;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.misc.LocaleUtil;
 import java.util.Locale;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -56,7 +56,7 @@ public class TriggerInventoryLevel extends BCStatement implements ITriggerExtern
          return false;
       }
 
-      Storage<ItemVariant> storage = TriggerTransferAccess.blockItemStorage(tile.getLevel(), tile.getBlockPos(), side != null ? side.getOpposite() : null);
+      Storage<ItemVariant> storage = BcTransfers.item(tile.getLevel(), tile.getBlockPos(), side != null ? side.getOpposite() : null);
       if (storage == null) {
          return false;
       }

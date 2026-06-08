@@ -15,7 +15,7 @@ import buildcraft.api.mj.MjToRfAutoConvertor;
 import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.lib.BCLibConfig;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.data.ModelVariableData;
@@ -279,7 +279,7 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
                return receiver;
             }
 
-            EnergyStorage feStorage = TriggerTransferAccess.blockEnergyStorage(this.level, targetPos, side.getOpposite());
+            EnergyStorage feStorage = BcTransfers.energy(this.level, targetPos, side.getOpposite());
             if (feStorage != null) {
                IMjReceiver feReceiver = MjToRfAutoConvertor.createReceiver(feStorage);
                if (feReceiver != null && feReceiver.canConnect(this.getMjConnector())) {

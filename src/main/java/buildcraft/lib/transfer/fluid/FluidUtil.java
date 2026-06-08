@@ -9,6 +9,7 @@ package buildcraft.lib.transfer.fluid;
 import buildcraft.lib.common.SoundActions;
 import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.fluids.FluidType;
@@ -73,7 +74,7 @@ public final class FluidUtil {
    public static boolean interactWithFluidHandler(Player player, InteractionHand hand, Level level, BlockPos pos, @Nullable Direction side) {
       Preconditions.checkNotNull(level);
       Preconditions.checkNotNull(pos);
-      Storage<FluidVariant> storage = TriggerTransferAccess.blockFluidStorage(level, pos, side);
+      Storage<FluidVariant> storage = BcTransfers.fluid(level, pos, side);
       return storage != null && interactWithFluidStorage(player, hand, pos, storage);
    }
 
@@ -189,7 +190,7 @@ public final class FluidUtil {
 
       BlockState state = level.getBlockState(pos);
       if (!(state.getBlock() instanceof BucketPickup bucketPickup)) {
-         Storage<FluidVariant> blockStorage = TriggerTransferAccess.blockFluidStorage(level, pos, state, null, side);
+         Storage<FluidVariant> blockStorage = BcTransfers.fluid(level, pos, state, null, side);
          if (blockStorage == null) {
             return FluidStack.EMPTY;
          }

@@ -17,6 +17,7 @@ import buildcraft.factory.container.ContainerHeatExchange;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.SidedFluidStorages;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
 import buildcraft.lib.fluid.FluidSmoother;
 import buildcraft.lib.fluids.FluidStack;
@@ -623,7 +624,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       Storage<FluidVariant> getFluidAutoOutputTarget() {
          return this.getTile().level == null
             ? null
-            : TriggerTransferAccess.blockFluidStorage(this.getTile().level, this.getTile().worldPosition.above(), Direction.DOWN);
+            : BcTransfers.fluid(this.getTile().level, this.getTile().worldPosition.above(), Direction.DOWN);
       }
    }
 
@@ -661,7 +662,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
          Direction facing = this.getTile().getFacing();
          if (facing != null && this.getTile().level != null) {
             BlockPos targetPos = this.getTile().worldPosition.relative(facing.getClockWise());
-            return TriggerTransferAccess.blockFluidStorage(this.getTile().level, targetPos, facing.getCounterClockWise());
+            return BcTransfers.fluid(this.getTile().level, targetPos, facing.getCounterClockWise());
          } else {
             return null;
          }

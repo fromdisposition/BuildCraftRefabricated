@@ -19,7 +19,7 @@ import static buildcraft.lib.engine.TileEngineBase_BC8.MAX_HEAT;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.EnergyStorageOps;
 import buildcraft.lib.fabric.transfer.FeEnergyStorage;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -146,7 +146,7 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
                }
 
                BlockPos neighborPos = this.getBlockPos().relative(dir);
-               EnergyStorage storage = TriggerTransferAccess.blockEnergyStorage(this.level, neighborPos, dir.getOpposite());
+               EnergyStorage storage = BcTransfers.energy(this.level, neighborPos, dir.getOpposite());
                if (storage != null) {
                   int want = 10000 - currentFe;
                   if (want <= 0) {

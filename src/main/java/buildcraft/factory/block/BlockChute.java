@@ -11,7 +11,7 @@ import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileChute;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.transport.pipe.flow.PipeFlowItems;
 import com.mojang.serialization.MapCodec;
@@ -106,7 +106,7 @@ public class BlockChute extends BaseEntityBlock {
       } else {
          BlockPos neighborPos = pos.relative(direction);
          Direction toNeighbourFace = direction.getOpposite();
-         if (level instanceof Level realLevel && TriggerTransferAccess.blockItemStorage(realLevel, neighborPos, toNeighbourFace) != null) {
+         if (level instanceof Level realLevel && BcTransfers.item(realLevel, neighborPos, toNeighbourFace) != null) {
             return true;
          } else {
             if (level.getBlockEntity(neighborPos) instanceof IPipeHolder holder) {

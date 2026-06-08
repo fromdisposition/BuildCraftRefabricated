@@ -1,10 +1,11 @@
 package buildcraft.lib.fabric.transfer;
 
-import java.util.Collections;
 import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.ExtractionOnlyStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 
 public final class SidedFluidStorages {
@@ -12,11 +13,7 @@ public final class SidedFluidStorages {
    }
 
    public static Storage<FluidVariant> extractOnly(final Storage<FluidVariant> storage) {
-      return new Storage<FluidVariant>() {
-         public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            return 0L;
-         }
-
+      return new ExtractionOnlyStorage<FluidVariant>() {
          public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
             return storage.extract(resource, maxAmount, transaction);
          }
@@ -28,33 +25,9 @@ public final class SidedFluidStorages {
    }
 
    public static Storage<FluidVariant> insertOnly(final Storage<FluidVariant> storage) {
-      return new Storage<FluidVariant>() {
+      return new InsertionOnlyStorage<FluidVariant>() {
          public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
             return storage.insert(resource, maxAmount, transaction);
-         }
-
-         public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            return 0L;
-         }
-
-         public Iterator<StorageView<FluidVariant>> iterator() {
-            return storage.iterator();
-         }
-      };
-   }
-
-   public static Storage<FluidVariant> empty() {
-      return new Storage<FluidVariant>() {
-         public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            return 0L;
-         }
-
-         public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
-            return 0L;
-         }
-
-         public Iterator<StorageView<FluidVariant>> iterator() {
-            return Collections.emptyIterator();
          }
       };
    }

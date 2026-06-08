@@ -8,7 +8,7 @@ package buildcraft.lib.transfer.neighbor;
 
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +55,7 @@ public final class NeighborTransfers {
                }
             }
 
-            Storage<ItemVariant> storage = TriggerTransferAccess.blockItemStorage(level, adjPos, face.getOpposite());
+            Storage<ItemVariant> storage = BcTransfers.item(level, adjPos, face.getOpposite());
             if (storage != null) {
                int inserted = insertCommitted(storage, stack, remaining);
                remaining -= inserted;
@@ -88,7 +88,7 @@ public final class NeighborTransfers {
             }
 
             if (face != ignore) {
-               Storage<ItemVariant> storage = TriggerTransferAccess.blockItemStorage(level, pos.relative(face), face.getOpposite());
+               Storage<ItemVariant> storage = BcTransfers.item(level, pos.relative(face), face.getOpposite());
                if (storage != null) {
                   int inserted = insertCommitted(storage, template, remaining);
                   totalInserted += inserted;
@@ -113,7 +113,7 @@ public final class NeighborTransfers {
       }
 
       for (Direction dir : Direction.values()) {
-         Storage<FluidVariant> neighbor = TriggerTransferAccess.blockFluidStorage(level, pos.relative(dir), dir.getOpposite());
+         Storage<FluidVariant> neighbor = BcTransfers.fluid(level, pos.relative(dir), dir.getOpposite());
          if (neighbor != null) {
             int moved = moveFluidCommitted(from, neighbor, maxPerNeighbor);
             if (moved > 0 && FluidStorageSnapshot.of(from).isEmpty()) {

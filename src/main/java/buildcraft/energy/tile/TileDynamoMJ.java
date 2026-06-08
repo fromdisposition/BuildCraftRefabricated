@@ -20,7 +20,7 @@ import static buildcraft.lib.engine.TileEngineBase_BC8.MAX_HEAT;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.EnergyStorageOps;
 import buildcraft.lib.fabric.transfer.FeEnergyStorage;
-import buildcraft.lib.fabric.transfer.TriggerTransferAccess;
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import java.util.LinkedHashMap;
@@ -195,7 +195,7 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
          }
 
          if (tile.getClass() != this.getClass()) {
-            return TriggerTransferAccess.blockEnergyStorage(this.level, targetPos, side.getOpposite());
+            return BcTransfers.energy(this.level, targetPos, side.getOpposite());
          }
 
          if (((TileDynamoMJ)tile).orientation != side) {

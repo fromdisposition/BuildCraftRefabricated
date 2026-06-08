@@ -12,7 +12,7 @@ import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.transport.IInjectable;
 import buildcraft.robotics.entity.EntityRobot;
-import buildcraft.robotics.filter.ArrayStackOrListFilter;
+import buildcraft.lib.inventory.filter.ArrayStackOrListFilter;
 import buildcraft.robotics.statement.StationActions;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;

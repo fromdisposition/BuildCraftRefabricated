@@ -10,7 +10,6 @@ import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.transport.pipe.PipePluggableTransferAccess;
 import buildcraft.transport.tile.TilePipeHolder;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -29,7 +28,7 @@ public final class PipeNeighborItemAccess {
          if (holder.getPipeTile() instanceof TilePipeHolder tile) {
             PipePluggable plug = tile.getPluggable(from);
             if (plug != null) {
-               Storage<ItemVariant> pluggableStorage = PipePluggableTransferAccess.itemStorage(plug);
+               Storage<ItemVariant> pluggableStorage = plug.itemStorage();
                if (pluggableStorage != null) {
                   return pluggableStorage;
                }

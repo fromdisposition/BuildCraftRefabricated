@@ -33,7 +33,6 @@ import buildcraft.transport.net.MessagePipePayload;
 import buildcraft.transport.net.PipePayloadMessageQueue;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.PipeEventBus;
-import buildcraft.transport.pipe.PipePluggableTransferAccess;
 import buildcraft.transport.pipe.behaviour.PipeBehaviourDaizuli;
 import buildcraft.transport.pipe.flow.PipeFlowInternalAccess;
 import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
@@ -739,7 +738,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       if (pipe != null && side != null) {
          PipePluggable plug = this.getPluggable(side);
          if (plug != null) {
-            EnergyStorage pluggableStorage = PipePluggableTransferAccess.energyStorage(plug);
+            EnergyStorage pluggableStorage = plug.energyStorage();
             if (pluggableStorage != null) {
                return pluggableStorage;
             }
@@ -761,7 +760,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       if (pipe != null && side != null) {
          PipePluggable plug = this.getPluggable(side);
          if (plug != null) {
-            Storage<FluidVariant> pluggableStorage = PipePluggableTransferAccess.fluidStorage(plug);
+            Storage<FluidVariant> pluggableStorage = plug.fluidStorage();
             if (pluggableStorage != null) {
                return pluggableStorage;
             }
@@ -783,7 +782,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       if (pipe != null && side != null) {
          PipePluggable plug = this.getPluggable(side);
          if (plug != null) {
-            Storage<ItemVariant> pluggableStorage = PipePluggableTransferAccess.itemStorage(plug);
+            Storage<ItemVariant> pluggableStorage = plug.itemStorage();
             if (pluggableStorage != null) {
                return pluggableStorage;
             }
