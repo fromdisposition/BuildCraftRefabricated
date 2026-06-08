@@ -63,7 +63,7 @@ public class GuiList extends BcScreen<ContainerList> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  new GuiRectangle(8.0, rowY, 162.0, 16.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(8.0, rowY, 160.0, 16.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.list.slots.title", -7811960, "buildcraft.help.list.slots.desc1", "buildcraft.help.list.slots.desc2")
                )
             );

@@ -56,7 +56,7 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  new GuiRectangle(82.0, 26.0, 12.0, 12.0).offset(this.mainGui.rootElement),
+                  this.flameRect,
                   new ElementHelpInfo("buildcraft.help.stone_engine.flame.title", -225, "buildcraft.help.stone_engine.flame")
                )
             );

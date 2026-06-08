@@ -41,7 +41,7 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(43.0, 36.0, 108.0, 72.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(43.0, 36.0, 106.0, 70.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.programming_table.options.title", -7811960, "buildcraft.help.programming_table.options.desc")
             )
          );

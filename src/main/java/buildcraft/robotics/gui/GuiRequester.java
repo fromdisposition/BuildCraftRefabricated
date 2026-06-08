@@ -26,7 +26,7 @@ public class GuiRequester extends BcScreen<ContainerRequester> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(9.0, 7.0, 72.0, 90.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(9.0, 7.0, 70.0, 88.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.requester.requests.title", -13176, "buildcraft.help.requester.requests.desc1", "buildcraft.help.requester.requests.desc2")
             )
          );
@@ -34,7 +34,7 @@ public class GuiRequester extends BcScreen<ContainerRequester> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(117.0, 7.0, 72.0, 90.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(117.0, 7.0, 70.0, 88.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.requester.items.title", -7811960, "buildcraft.help.requester.items.desc")
             )
          );
