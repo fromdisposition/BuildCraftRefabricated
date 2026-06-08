@@ -221,13 +221,6 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
    }
 
    @Override
-   @SuppressWarnings("deprecation")
-   public void removeComponentsFromTag(ValueOutput output) {
-      super.removeComponentsFromTag(output);
-      output.discard("stacks");
-   }
-
-   @Override
    public BlockEntity asBlockEntity() {
       return this;
    }

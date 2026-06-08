@@ -1,6 +1,5 @@
 package buildcraft.api.registry;
 
-import buildcraft.fabric.event.Event;
 import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +7,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 
-public abstract class EventBuildCraftReload extends Event {
+public abstract class EventBuildCraftReload {
    private static final List<Consumer<EventBuildCraftReload.BeforeClear>> BEFORE_CLEAR = new ArrayList<>();
    private static final List<Consumer<EventBuildCraftReload.PreLoad>> PRE_LOAD = new ArrayList<>();
    private static final List<Consumer<EventBuildCraftReload.PopulateGson>> POPULATE_GSON = new ArrayList<>();

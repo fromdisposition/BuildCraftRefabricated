@@ -32,9 +32,10 @@ import net.minecraft.world.level.material.Fluids;
 public class BlockUtil {
    public static double miningMultiplier = 1.0;
 
-   @SuppressWarnings("deprecation")
+   /** Matches vanilla {@code BlockState#blocksMotion()} without calling the deprecated API. */
    public static boolean blocksMotion(BlockState state) {
-      return state.blocksMotion();
+      Block block = state.getBlock();
+      return block != Blocks.COBWEB && block != Blocks.BAMBOO_SAPLING && isSolid(state);
    }
 
    public static boolean isSolid(BlockState state) {

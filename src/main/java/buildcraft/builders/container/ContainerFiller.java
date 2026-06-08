@@ -6,7 +6,6 @@ import buildcraft.api.core.BCLog;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.api.tiles.IControllable;
 import buildcraft.builders.BCBuildersMenuTypes;
-import buildcraft.builders.BCBuildersStatements;
 import buildcraft.builders.filler.FillerPatternStatementGroups;
 import buildcraft.builders.filler.FillerType;
 import buildcraft.builders.tile.TileFiller;

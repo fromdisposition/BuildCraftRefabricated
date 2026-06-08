@@ -5,7 +5,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.builders.BCBuildersMenuTypes;
-import buildcraft.builders.BCBuildersStatements;
 import buildcraft.builders.addon.AddonFillerPlanner;
 import buildcraft.builders.filler.FillerPatternStatementGroups;
 import buildcraft.builders.filler.FillerType;

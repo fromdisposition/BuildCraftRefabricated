@@ -20,7 +20,8 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializable {
-   public static final String VALUE_IO_KEY = "stacks";
+   public static final String VALUE_IO_KEY = "fluidStack";
+   private static final String LEGACY_VALUE_IO_KEY = "stacks";
    private static final Codec<NonNullList<FluidStack>> STACKS_CODEC = FluidStack.OPTIONAL_CODEC.listOf().xmap(SingleFluidTank::copyStacks, Function.identity());
    private FluidStack contents = FluidStack.EMPTY;
    private final int capacityMb;
@@ -94,12 +95,12 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
    public void serialize(ValueOutput output) {
       NonNullList<FluidStack> stacks = NonNullList.withSize(1, FluidStack.EMPTY);
       stacks.set(0, this.isEmpty() ? FluidStack.EMPTY : this.contents.copy());
-      output.store("stacks", STACKS_CODEC, stacks);
+      output.store(VALUE_IO_KEY, STACKS_CODEC, stacks);
    }
 
    @Override
    public void deserialize(ValueInput input) {
-      input.read("stacks", STACKS_CODEC).ifPresent(stacks -> {
+      input.read(VALUE_IO_KEY, STACKS_CODEC).or(() -> input.read(LEGACY_VALUE_IO_KEY, STACKS_CODEC)).ifPresent(stacks -> {
          if (stacks.isEmpty()) {
             this.contents = FluidStack.EMPTY;
          } else {

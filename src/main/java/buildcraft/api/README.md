@@ -21,9 +21,9 @@ Public entry points for addon and integration authors. Registries are assigned d
 
 - `buildcraft.api.robots.*` — robot entities, docking stations, AI base classes.
 
-## Events (`buildcraft.api.events`)
+## Registry reload hooks
 
-Event classes are part of the public API surface but are **not fired** by Refabricated yet. They are marked `@Deprecated(forRemoval = true)` until a Fabric event bus wires them up. Do not subscribe in production addons.
+- `buildcraft.api.registry.EventBuildCraftReload` — static listener registration for data-driven registry reload phases (`onBeforeClear`, `onPreLoad`, etc.).
 
 ## Conventions
 
