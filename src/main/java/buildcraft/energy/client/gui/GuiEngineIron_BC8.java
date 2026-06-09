@@ -24,18 +24,8 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiEngineIron_BC8 extends BcScreen<ContainerEngineIron_BC8> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/combustion_engine_gui.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 177;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 177.0);
    private static final GuiIcon ICON_TANK_OVERLAY = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 60.0);
-   private static final int TANK_WIDTH = 16;
-   private static final int TANK_HEIGHT = 60;
-   private static final int TANK_FUEL_X = 26;
-   private static final int TANK_FUEL_Y = 18;
-   private static final int TANK_COOLANT_X = 80;
-   private static final int TANK_COOLANT_Y = 18;
-   private static final int TANK_RESIDUE_X = 134;
-   private static final int TANK_RESIDUE_Y = 18;
 
    public GuiEngineIron_BC8(ContainerEngineIron_BC8 menu, Inventory playerInv, Component title) {
       super(menu, playerInv, title, 176, 177);

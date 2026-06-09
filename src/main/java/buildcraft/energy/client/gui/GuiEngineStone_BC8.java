@@ -15,7 +15,6 @@ import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.ledger.LedgerEngine;
 import buildcraft.lib.gui.ledger.LedgerOwnership;
 import buildcraft.lib.gui.pos.GuiRectangle;
-import buildcraft.lib.gui.pos.IGuiArea;
 import buildcraft.lib.misc.LocaleUtil;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -24,10 +23,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/steam_engine_gui.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 166;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 166.0);
-   private final IGuiArea flameRect = new GuiRectangle(81.0, 25.0, 14.0, 14.0).offset(this.mainGui.rootElement);
 
    public GuiEngineStone_BC8(ContainerEngineStone_BC8 menu, Inventory playerInv, Component title) {
       super(menu, playerInv, title, 176, 166);
@@ -62,7 +58,7 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  this.flameRect,
+                  new GuiRectangle(81.0, 25.0, 14.0, 14.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.stone_engine.flame.title", -225, "buildcraft.help.stone_engine.flame")
                )
             );
@@ -86,8 +82,8 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
          graphics.blit(
             RenderPipelines.GUI_TEXTURED,
             TEXTURE,
-            (int)this.flameRect.getX(),
-            (int)(this.flameRect.getY() + this.flameRect.getHeight() - flameHeight),
+            this.leftPos + 81,
+            this.topPos + 25 + 14 - flameHeight,
             176.0F,
             14 - flameHeight,
             14,

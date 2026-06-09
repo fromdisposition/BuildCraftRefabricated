@@ -30,24 +30,6 @@ import net.minecraft.world.item.ItemStack;
 
 public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftbuilders:textures/gui/architect.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 240;
-   private static final int PREVIEW_X = 8;
-   private static final int PREVIEW_Y = 8;
-   private static final int PREVIEW_W = 160;
-   private static final int PREVIEW_H = 100;
-   private static final int SNAPSHOT_IN_X = 52;
-   private static final int SNAPSHOT_IN_Y = 125;
-   private static final int PROGRESS_X = 77;
-   private static final int PROGRESS_Y = 125;
-   private static final int PROGRESS_W = 22;
-   private static final int PROGRESS_H = 16;
-   private static final int SNAPSHOT_OUT_X = 111;
-   private static final int SNAPSHOT_OUT_Y = 125;
-   private static final int NAME_X = 8;
-   private static final int NAME_Y = 145;
-   private static final int NAME_W = 160;
-   private static final int NAME_H = 12;
    private EditBox nameField;
    private int previewRefreshCounter = 0;
 

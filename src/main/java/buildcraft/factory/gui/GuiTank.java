@@ -20,14 +20,8 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiTank extends BcScreen<ContainerTank> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/tank.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 181;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 181.0);
    private static final GuiIcon ICON_TANK_OVERLAY = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 64.0);
-   private static final int TANK_X = 80;
-   private static final int TANK_Y = 18;
-   private static final int TANK_WIDTH = 16;
-   private static final int TANK_HEIGHT = 64;
 
    public GuiTank(ContainerTank menu, Inventory playerInv, Component title) {
       super(menu, playerInv, title, 176, 181);

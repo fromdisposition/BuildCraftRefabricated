@@ -24,11 +24,8 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCraftingTable> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/advanced_crafting_table.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 241;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 241.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 4.0, 70.0);
-   private static final GuiRectangle RECT_PROGRESS = new GuiRectangle(164.0, 7.0, 4.0, 70.0);
    private ACTRecipeBookComponent recipeBookComponent;
    private ImageButton recipeBookButton;
    private boolean widthTooNarrow;
@@ -97,10 +94,10 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
          double v = (double)((ContainerAdvancedCraftingTable)this.menu).tile.power / target;
          ICON_PROGRESS.drawCutInside(
             new GuiRectangle(
-                  RECT_PROGRESS.x,
-                  (int)(RECT_PROGRESS.y + RECT_PROGRESS.height * Math.max(1.0 - v, 0.0)),
-                  RECT_PROGRESS.width,
-                  (int)Math.ceil(RECT_PROGRESS.height * Math.min(v, 1.0))
+                  164.0,
+                  (int)(7.0 + 70.0 * Math.max(1.0 - v, 0.0)),
+                  4.0,
+                  (int)Math.ceil(70.0 * Math.min(v, 1.0))
                )
                .offset(this.mainGui.rootElement)
          );

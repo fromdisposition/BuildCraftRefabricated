@@ -26,7 +26,6 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 207.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 18.0, 4.0, 70.0);
    private static final GuiIcon ICON_OPTION_SELECTED = new GuiIcon(TEXTURE_BASE, 196.0, 1.0, 16.0, 16.0);
-   private static final GuiRectangle RECT_PROGRESS = new GuiRectangle(164.0, 36.0, 4.0, 70.0);
 
    public GuiProgrammingTable(ContainerProgrammingTable container, Inventory playerInventory, Component title) {
       super(container, playerInventory, title, 176, 207);
@@ -55,7 +54,7 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               RECT_PROGRESS.offset(this.mainGui.rootElement),
+               new GuiRectangle(164.0, 36.0, 4.0, 70.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.programming_table.power.title", -2249985, "buildcraft.help.programming_table.power.desc")
             )
          );
@@ -78,10 +77,10 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
          double v = (double)tile.power / target;
          ICON_PROGRESS.drawCutInside(
             new GuiRectangle(
-                  RECT_PROGRESS.x,
-                  (int)(RECT_PROGRESS.y + RECT_PROGRESS.height * Math.max(1.0 - v, 0.0)),
-                  RECT_PROGRESS.width,
-                  (int)Math.ceil(RECT_PROGRESS.height * Math.min(v, 1.0))
+                  164.0,
+                  (int)(36.0 + 70.0 * Math.max(1.0 - v, 0.0)),
+                  4.0,
+                  (int)Math.ceil(70.0 * Math.min(v, 1.0))
                )
                .offset(this.mainGui.rootElement)
          );

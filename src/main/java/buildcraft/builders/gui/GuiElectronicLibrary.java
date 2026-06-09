@@ -26,38 +26,6 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/electronic_library.png");
-   private static final int SIZE_X = 244;
-   private static final int SIZE_Y = 220;
-   private static final int LIST_X = 8;
-   private static final int LIST_Y = 22;
-   private static final int LIST_W = 154;
-   private static final int LIST_ROW_H = 8;
-   private static final int LIST_MAX_ROWS = 13;
-   private static final int LIST_HELP_X = 7;
-   private static final int LIST_HELP_W = 155;
-   private static final int LIST_HELP_H = 108;
-   private static final int DOWN_OUT_X = 175;
-   private static final int DOWN_OUT_Y = 57;
-   private static final int DOWN_IN_X = 219;
-   private static final int DOWN_IN_Y = 57;
-   private static final int UP_IN_X = 175;
-   private static final int UP_IN_Y = 79;
-   private static final int UP_OUT_X = 219;
-   private static final int UP_OUT_Y = 79;
-   private static final int ARROW_DOWN_X = 194;
-   private static final int ARROW_DOWN_Y = 58;
-   private static final int ARROW_UP_X = 194;
-   private static final int ARROW_UP_Y = 79;
-   private static final int ARROW_W = 22;
-   private static final int ARROW_H = 16;
-   private static final int FILLED_DOWN_U = 234;
-   private static final int FILLED_DOWN_V = 240;
-   private static final int FILLED_UP_U = 234;
-   private static final int FILLED_UP_V = 224;
-   private static final int DEL_X = 174;
-   private static final int DEL_Y = 109;
-   private static final int DEL_W = 60;
-   private static final int DEL_H = 20;
    private Button deleteButton;
 
    public GuiElectronicLibrary(ContainerElectronicLibrary container, Inventory playerInv, Component title) {

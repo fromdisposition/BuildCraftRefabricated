@@ -40,22 +40,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class GuiReplacer extends BcScreen<ContainerReplacer> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/replacer.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 241;
-   private static final int PREVIEW_X = 8;
-   private static final int PREVIEW_Y = 9;
-   private static final int PREVIEW_W = 160;
-   private static final int PREVIEW_H = 100;
-   private static final int NAME_X = 30;
-   private static final int NAME_Y = 117;
-   private static final int NAME_W = 138;
-   private static final int NAME_H = 12;
-   private static final int REPLACE_X = 80;
-   private static final int REPLACE_Y = 135;
-   private static final int REPLACE_W = 60;
-   private static final int REPLACE_H = 20;
-   private static final int SUMMARY_X = 8;
-   private static final int SUMMARY_Y = 156;
    private EditBox nameField;
    private Button replaceButton;
    private Snapshot.Key lastSeededKey;

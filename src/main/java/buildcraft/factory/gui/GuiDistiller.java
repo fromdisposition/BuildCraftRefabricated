@@ -21,29 +21,11 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiDistiller extends BcScreen<ContainerDistiller> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/distiller.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 161;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 161.0);
    private static final GuiIcon OVERLAY_VERTICAL = new GuiIcon(TEXTURE, 0.0, 161.0, 16.0, 38.0);
    private static final GuiIcon OVERLAY_HORIZONTAL = new GuiIcon(TEXTURE, 17.0, 161.0, 34.0, 17.0);
-   private static final int CENTER_DST_X = 61;
-   private static final int CENTER_DST_Y = 12;
-   private static final int CENTER_W = 36;
-   private static final int CENTER_H = 57;
    private static final GuiIcon OVERLAY_STUCK = new GuiIcon(TEXTURE, 176.0, 0.0, 36.0, 57.0);
    private static final GuiIcon OVERLAY_RUNNING = new GuiIcon(TEXTURE, 212.0, 0.0, 36.0, 57.0);
-   private static final int TANK_IN_X = 44;
-   private static final int TANK_IN_Y = 23;
-   private static final int TANK_IN_W = 16;
-   private static final int TANK_IN_H = 38;
-   private static final int TANK_GAS_X = 98;
-   private static final int TANK_GAS_Y = 10;
-   private static final int TANK_GAS_W = 34;
-   private static final int TANK_GAS_H = 17;
-   private static final int TANK_LIQ_X = 98;
-   private static final int TANK_LIQ_Y = 54;
-   private static final int TANK_LIQ_W = 34;
-   private static final int TANK_LIQ_H = 17;
 
    public GuiDistiller(ContainerDistiller menu, Inventory playerInv, Component title) {
       super(menu, playerInv, title, 176, 161);

@@ -45,11 +45,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 public class GuiFiller extends BcScreen<ContainerFiller> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/filler.png");
    private static final Identifier LOCK_TEXTURE = Identifier.parse("buildcraftlib:textures/icons/lock.png");
-   private static final int LOCK_X = 12;
-   private static final int LOCK_Y = 16;
-   private static final int CONTROL_X = 28;
-   private static final int CONTROL_Y = 16;
-   private static final int ICON_SIZE = 16;
 
    public GuiFiller(ContainerFiller container, Inventory playerInv, Component title) {
       super(container, playerInv, Component.translatable("block.buildcraftbuilders.filler"), 176, 241);

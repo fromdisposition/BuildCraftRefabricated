@@ -25,23 +25,12 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/assembly_table.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 220;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 220.0);
    private static final GuiIcon ICON_SAVED = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 16.0, 16.0);
    private static final GuiIcon ICON_SAVED_ENOUGH = new GuiIcon(TEXTURE_BASE, 176.0, 16.0, 16.0, 16.0);
    private static final GuiIcon ICON_SAVED_ENOUGH_ACTIVE = new GuiIcon(TEXTURE_BASE, 176.0, 32.0, 16.0, 16.0);
    private static final GuiIcon ICON_PAUSED = new GuiIcon(TEXTURE_BASE, 192.0, 0.0, 16.0, 16.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 48.0, 4.0, 70.0);
-   private static final GuiRectangle RECT_PROGRESS = new GuiRectangle(86.0, 36.0, 4.0, 70.0);
-   private static final int INPUT_X = 8;
-   private static final int INPUT_Y = 36;
-   private static final int INPUT_W = 52;
-   private static final int INPUT_H = 70;
-   private static final int RECIPES_X = 116;
-   private static final int RECIPES_Y = 36;
-   private static final int RECIPES_W = 52;
-   private static final int RECIPES_H = 70;
 
    public GuiAssemblyTable(ContainerAssemblyTable container, Inventory playerInventory, Component title) {
       super(container, playerInventory, title, 176, 220);
@@ -85,7 +74,7 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               RECT_PROGRESS.offset(this.mainGui.rootElement),
+               new GuiRectangle(86.0, 36.0, 4.0, 70.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.assembly_table.power.title", -2249985, "buildcraft.help.assembly_table.power.desc")
             )
          );
@@ -99,10 +88,10 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
          double v = (double)((ContainerAssemblyTable)this.menu).tile.power / target;
          ICON_PROGRESS.drawCutInside(
             new GuiRectangle(
-                  RECT_PROGRESS.x,
-                  (int)(RECT_PROGRESS.y + RECT_PROGRESS.height * Math.max(1.0 - v, 0.0)),
-                  RECT_PROGRESS.width,
-                  (int)Math.ceil(RECT_PROGRESS.height * Math.min(v, 1.0))
+                  86.0,
+                  (int)(36.0 + 70.0 * Math.max(1.0 - v, 0.0)),
+                  4.0,
+                  (int)Math.ceil(70.0 * Math.min(v, 1.0))
                )
                .offset(this.mainGui.rootElement)
          );

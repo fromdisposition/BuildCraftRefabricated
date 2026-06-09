@@ -20,11 +20,8 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/integration_table.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 191;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 191.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 4.0, 70.0);
-   private static final GuiRectangle RECT_PROGRESS = new GuiRectangle(164.0, 22.0, 4.0, 70.0);
 
    public GuiIntegrationTable(ContainerIntegrationTable container, Inventory playerInventory, Component title) {
       super(container, playerInventory, title, 176, 191);
@@ -53,7 +50,7 @@ public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               RECT_PROGRESS.offset(this.mainGui.rootElement),
+               new GuiRectangle(164.0, 22.0, 4.0, 70.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.integration_table.power.title", -2249985, "buildcraft.help.integration_table.power.desc")
             )
          );
@@ -67,10 +64,10 @@ public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
          double v = (double)((ContainerIntegrationTable)this.menu).tile.power / target;
          ICON_PROGRESS.drawCutInside(
             new GuiRectangle(
-                  RECT_PROGRESS.x,
-                  (int)(RECT_PROGRESS.y + RECT_PROGRESS.height * Math.max(1.0 - v, 0.0)),
-                  RECT_PROGRESS.width,
-                  (int)Math.ceil(RECT_PROGRESS.height * Math.min(v, 1.0))
+                  164.0,
+                  (int)(22.0 + 70.0 * Math.max(1.0 - v, 0.0)),
+                  4.0,
+                  (int)Math.ceil(70.0 * Math.min(v, 1.0))
                )
                .offset(this.mainGui.rootElement)
          );

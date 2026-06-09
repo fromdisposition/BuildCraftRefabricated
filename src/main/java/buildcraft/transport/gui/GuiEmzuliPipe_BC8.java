@@ -27,12 +27,8 @@ import net.minecraft.world.item.DyeColor;
 
 public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
    private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/pipe_emzuli.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 166;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 166.0);
    private GuiEmzuliPipe_BC8.PaintButton[] paintButtons = new GuiEmzuliPipe_BC8.PaintButton[4];
-   private static final int[][] FILTER_SLOTS = new int[][]{{25, 21}, {25, 49}, {134, 21}, {134, 49}};
-   private static final int[][] PAINT_BUTTONS = new int[][]{{49, 19}, {49, 47}, {106, 19}, {106, 47}};
    private GuiEmzuliPipe_BC8.PaintButton activePressedButton = null;
 
    public GuiEmzuliPipe_BC8(ContainerEmzuliPipe_BC8 menu, Inventory playerInv, Component title) {
@@ -51,29 +47,78 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
       this.paintButtons[2] = this.addPaintButton(PipeBehaviourEmzuli.SlotIndex.TRIANGLE, 106, 19);
       this.paintButtons[3] = this.addPaintButton(PipeBehaviourEmzuli.SlotIndex.CROSS, 106, 47);
 
-      for (int[] pos : FILTER_SLOTS) {
-         this.mainGui
-            .shownElements
-            .add(
-               new DummyHelpElement(
-                  new GuiRectangle(pos[0], pos[1], 16.0, 16.0).offset(this.mainGui.rootElement),
-                  new ElementHelpInfo("buildcraft.help.emzuli.filter.title", -7811841, "buildcraft.help.emzuli.filter.desc")
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(25.0, 21.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.emzuli.filter.title", -7811841, "buildcraft.help.emzuli.filter.desc")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(25.0, 49.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.emzuli.filter.title", -7811841, "buildcraft.help.emzuli.filter.desc")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(134.0, 21.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.emzuli.filter.title", -7811841, "buildcraft.help.emzuli.filter.desc")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(134.0, 49.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.emzuli.filter.title", -7811841, "buildcraft.help.emzuli.filter.desc")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(49.0, 19.0, 20.0, 20.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo(
+                  "buildcraft.help.emzuli.paint.title", -2249985, "buildcraft.help.emzuli.paint.desc1", "buildcraft.help.emzuli.paint.desc2"
                )
-            );
-      }
-
-      for (int[] pos : PAINT_BUTTONS) {
-         this.mainGui
-            .shownElements
-            .add(
-               new DummyHelpElement(
-                  new GuiRectangle(pos[0], pos[1], 20.0, 20.0).offset(this.mainGui.rootElement),
-                  new ElementHelpInfo(
-                     "buildcraft.help.emzuli.paint.title", -2249985, "buildcraft.help.emzuli.paint.desc1", "buildcraft.help.emzuli.paint.desc2"
-                  )
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(49.0, 47.0, 20.0, 20.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo(
+                  "buildcraft.help.emzuli.paint.title", -2249985, "buildcraft.help.emzuli.paint.desc1", "buildcraft.help.emzuli.paint.desc2"
                )
-            );
-      }
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(106.0, 19.0, 20.0, 20.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo(
+                  "buildcraft.help.emzuli.paint.title", -2249985, "buildcraft.help.emzuli.paint.desc1", "buildcraft.help.emzuli.paint.desc2"
+               )
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(106.0, 47.0, 20.0, 20.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo(
+                  "buildcraft.help.emzuli.paint.title", -2249985, "buildcraft.help.emzuli.paint.desc1", "buildcraft.help.emzuli.paint.desc2"
+               )
+            )
+         );
    }
 
    private GuiEmzuliPipe_BC8.PaintButton addPaintButton(PipeBehaviourEmzuli.SlotIndex index, int x, int y) {

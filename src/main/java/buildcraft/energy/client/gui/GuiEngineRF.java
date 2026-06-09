@@ -37,13 +37,8 @@ import net.minecraft.world.level.ItemLike;
 
 public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/rf_engine_gui.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 177;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 177.0);
    private static final GuiIcon ICON_RF = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 60.0);
-   private static final GuiRectangle RECT_UPGRADE_HELP = new GuiRectangle(62.0, 44.0, 70.0, 16.0);
-   private static final GuiRectangle RECT_UPGRADE_TOOLTIP = new GuiRectangle(60.0, 20.0, 74.0, 20.0);
-   private static final GuiRectangle RECT_RF_BATTERY = new GuiRectangle(30.0, 17.0, 8.0, 62.0);
 
    public GuiEngineRF(ContainerEngineRF menu, Inventory playerInv, Component title) {
       super(menu, playerInv, title, 176, 177);
@@ -76,11 +71,11 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  RECT_UPGRADE_HELP.offset(this.mainGui.rootElement),
+                  new GuiRectangle(62.0, 44.0, 70.0, 16.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.rf_engine.upgrades.title", -10053121, "buildcraft.help.rf_engine.upgrades")
                )
             );
-         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, RECT_UPGRADE_TOOLTIP.offset(this.mainGui.rootElement)) {
+         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, new GuiRectangle(60.0, 20.0, 74.0, 20.0).offset(this.mainGui.rootElement)) {
             @Override
             public void addToolTips(List<ToolTip> tooltips) {
                if (this.contains(GuiEngineRF.this.mainGui.mouse)) {
@@ -102,7 +97,7 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
                }
             }
          });
-         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, RECT_RF_BATTERY.offset(this.mainGui.rootElement)) {
+         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, new GuiRectangle(30.0, 17.0, 8.0, 62.0).offset(this.mainGui.rootElement)) {
             @Override
             public void addHelpElements(List<ElementHelpInfo.HelpPosition> elements) {
                int rfPerTick = ((ContainerEngineRF)GuiEngineRF.this.menu).engine.getFeConsumptionRate();

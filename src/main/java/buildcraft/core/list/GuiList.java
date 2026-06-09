@@ -35,14 +35,9 @@ import net.minecraft.world.item.ItemStack;
 
 public class GuiList extends BcScreen<ContainerList> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftcore:textures/gui/list_new.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 191;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 191.0);
    private static final GuiIcon ICON_ONE_STACK = new GuiIcon(TEXTURE_BASE, 0.0, 191.0, 20.0, 20.0);
    private static final GuiIcon ICON_HIGHLIGHT = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 16.0, 16.0);
-   private static final int BTN_W = 14;
-   private static final int BTN_H = 14;
-   private static final int BUTTON_COUNT = 3;
    private GuiList.ToggleButton[][] toggleButtons;
    private EditBox labelField;
    private final Map<Integer, GuiList.GhostCache> ghostCache = new HashMap<>();

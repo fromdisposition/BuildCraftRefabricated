@@ -21,14 +21,8 @@ import net.minecraft.world.entity.player.Inventory;
 public class GuiDiamondPipe extends BcScreen<ContainerDiamondPipe> {
    private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/filter.png");
    private static final Identifier TEXTURE_CB = Identifier.parse("buildcrafttransport:textures/gui/filter_cb.png");
-   private static final int SIZE_X = 175;
-   private static final int SIZE_Y = 225;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 175.0, 225.0);
    private static final GuiIcon ICON_GUI_CB = new GuiIcon(TEXTURE_CB, 0.0, 0.0, 175.0, 225.0);
-   private static final int FILTER_X = 8;
-   private static final int FILTER_Y = 18;
-   private static final int FILTER_W = 160;
-   private static final int FILTER_H = 106;
 
    public GuiDiamondPipe(ContainerDiamondPipe menu, Inventory playerInv, Component title) {
       super(menu, playerInv, title, 175, 225);

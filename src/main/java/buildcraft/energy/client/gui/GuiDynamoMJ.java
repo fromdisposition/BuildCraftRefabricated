@@ -37,13 +37,8 @@ import net.minecraft.world.level.ItemLike;
 
 public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/mj_dynamo_gui.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_Y = 177;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 177.0);
    private static final GuiIcon ICON_RF = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 60.0);
-   private static final GuiRectangle RECT_UPGRADE_HELP = new GuiRectangle(44.0, 44.0, 70.0, 16.0);
-   private static final GuiRectangle RECT_UPGRADE_TOOLTIP = new GuiRectangle(42.0, 20.0, 74.0, 20.0);
-   private static final GuiRectangle RECT_RF_BATTERY = new GuiRectangle(138.0, 17.0, 8.0, 62.0);
 
    public GuiDynamoMJ(ContainerDynamoMJ menu, Inventory playerInv, Component title) {
       super(menu, playerInv, title, 176, 177);
@@ -76,11 +71,11 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  RECT_UPGRADE_HELP.offset(this.mainGui.rootElement),
+                  new GuiRectangle(44.0, 44.0, 70.0, 16.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.dynamo.upgrades.title", -10053121, "buildcraft.help.dynamo.upgrades")
                )
             );
-         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, RECT_UPGRADE_TOOLTIP.offset(this.mainGui.rootElement)) {
+         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, new GuiRectangle(42.0, 20.0, 74.0, 20.0).offset(this.mainGui.rootElement)) {
             @Override
             public void addToolTips(List<ToolTip> tooltips) {
                if (this.contains(GuiDynamoMJ.this.mainGui.mouse)) {
@@ -102,7 +97,7 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
                }
             }
          });
-         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, RECT_RF_BATTERY.offset(this.mainGui.rootElement)) {
+         this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, new GuiRectangle(138.0, 17.0, 8.0, 62.0).offset(this.mainGui.rootElement)) {
             @Override
             public void addHelpElements(List<ElementHelpInfo.HelpPosition> elements) {
                long mjPerTick = ((ContainerDynamoMJ)GuiDynamoMJ.this.menu).dynamo.getMjPerTick();

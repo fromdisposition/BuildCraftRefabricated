@@ -31,40 +31,11 @@ import net.minecraft.world.item.Items;
 public class GuiBuilder extends BcScreen<ContainerBuilder> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftbuilders:textures/gui/builder.png");
    private static final Identifier TEXTURE_BLUEPRINT = Identifier.parse("buildcraftbuilders:textures/gui/builder_blueprint.png");
-   private static final int SIZE_X = 176;
-   private static final int SIZE_BLUEPRINT_X = 256;
-   private static final int SIZE_Y = 222;
-   private static final int BLUEPRINT_WIDTH = 87;
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 222.0);
    private static final GuiIcon ICON_BLUEPRINT_GUI = new GuiIcon(TEXTURE_BLUEPRINT, 169.0, 0.0, 87.0, 222.0);
    private static final GuiIcon ICON_TANK_OVERLAY = new GuiIcon(TEXTURE_BLUEPRINT, 0.0, 54.0, 16.0, 47.0);
-   private static final int TANK_Y = 145;
-   private static final int TANK_W = 16;
-   private static final int TANK_H = 47;
-   private static final int FLUID_BUTTON_X = 150;
-   private static final int FLUID_BUTTON_Y = 20;
-   private static final int FLUID_BUTTON_SIZE = 20;
-   private static final int CONTENTS_BUTTON_X = 130;
-   private static final int CONTENTS_BUTTON_Y = 20;
-   private static final int CONTENTS_BUTTON_SIZE = 20;
-   private static final int SNAPSHOT_X = 80;
-   private static final int SNAPSHOT_Y = 27;
-   private static final int RESOURCE_X = 8;
-   private static final int RESOURCE_Y = 72;
-   private static final int RESOURCE_W = 160;
-   private static final int RESOURCE_H = 52;
-   private static final int DISPLAY_X = 179;
-   private static final int DISPLAY_Y = 18;
-   private static final int DISPLAY_W = 70;
-   private static final int DISPLAY_H = 106;
-   private static final int TANK_ROW_X = 179;
-   private static final int TANK_ROW_W = 70;
    private GuiBuilder.FluidModeButton fluidModeButton;
    private GuiBuilder.ContentsModeButton contentsModeButton;
-
-   private static int tankX(int i) {
-      return 179 + i * 18;
-   }
 
    public GuiBuilder(ContainerBuilder container, Inventory playerInv, Component title) {
       super(container, playerInv, title, 256, 222);
@@ -82,7 +53,7 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
                .add(
                   new GuiElementFluidTank(
                      this.mainGui,
-                     new GuiRectangle(tankX(idx), 145.0, 16.0, 47.0).offset(this.mainGui.rootElement),
+                     new GuiRectangle(179 + idx * 18, 145.0, 16.0, 47.0).offset(this.mainGui.rootElement),
                      widget != null ? widget.getTankStorage() : null,
                      widget,
                      ICON_TANK_OVERLAY
