@@ -38,7 +38,7 @@ public final class BCCoreFabricClient {
          .register(
             (AfterTranslucentFeatures)context -> {
                MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos);
-               if (Minecraft.getInstance().level != null) {
+               if (BCLib.DEV && BCCoreItems.GOGGLES != null && Minecraft.getInstance().level != null) {
                   GogglesZoneRenderer.render(context.poseStack(), context.levelState().cameraRenderState.pos, Minecraft.getInstance().level);
                }
             }
@@ -54,12 +54,27 @@ public final class BCCoreFabricClient {
       BCTooltips.addTooltip(BCCoreItems.ENGINE_REDSTONE, "tip.block.engine_redstone");
       BCTooltips.addTooltip(BCCoreItems.MARKER_VOLUME, "tip.block.marker_volume");
       BCTooltips.addTooltip(BCCoreItems.MARKER_PATH, "tip.block.marker_path");
+      if (BCCoreItems.GOGGLES != null) {
+         BCTooltips.addTooltip(BCCoreItems.GOGGLES, "tip.item.goggles");
+      }
+
       if (BCLib.DEV) {
+         if (BCCoreItems.GOGGLES != null) {
+            BCTooltips.markDevOnly(BCCoreItems.GOGGLES);
+         }
+
+         if (BCCoreItems.DECORATED_PAPER != null) {
+            BCTooltips.markDevOnly(BCCoreItems.DECORATED_PAPER);
+         }
+
+         if (BCCoreItems.DECORATED_LEATHER != null) {
+            BCTooltips.markDevOnly(BCCoreItems.DECORATED_LEATHER);
+         }
+
          if (BCCoreItems.POWER_TESTER != null) {
             BCTooltips.markDevOnly(BCCoreItems.POWER_TESTER);
          }
 
       }
-      BCTooltips.addTooltip(BCCoreItems.GOGGLES, "tip.item.goggles");
    }
 }

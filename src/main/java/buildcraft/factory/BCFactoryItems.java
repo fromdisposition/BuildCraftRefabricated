@@ -7,6 +7,7 @@
 package buildcraft.factory;
 
 import buildcraft.fabric.BCRegistries;
+import buildcraft.lib.BCLib;
 import buildcraft.factory.item.ItemWaterGel;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -29,7 +30,10 @@ public final class BCFactoryItems {
 
    public static void register() {
       AUTOWORKBENCH_ITEM = BCRegistries.registerBlockItem("buildcraftfactory", "autoworkbench_item", BCFactoryBlocks.AUTOWORKBENCH_ITEM);
-      AUTOWORKBENCH_FLUID = BCRegistries.registerBlockItem("buildcraftfactory", "autoworkbench_fluid", BCFactoryBlocks.AUTOWORKBENCH_FLUID);
+      if (BCLib.DEV && BCFactoryBlocks.AUTOWORKBENCH_FLUID != null) {
+         AUTOWORKBENCH_FLUID = BCRegistries.registerBlockItem("buildcraftfactory", "autoworkbench_fluid", BCFactoryBlocks.AUTOWORKBENCH_FLUID);
+      }
+
       MINING_WELL = BCRegistries.registerBlockItem("buildcraftfactory", "mining_well", BCFactoryBlocks.MINING_WELL);
       PUMP = BCRegistries.registerBlockItem("buildcraftfactory", "pump", BCFactoryBlocks.PUMP);
       FLOOD_GATE = BCRegistries.registerBlockItem("buildcraftfactory", "flood_gate", BCFactoryBlocks.FLOOD_GATE);

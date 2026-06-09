@@ -43,11 +43,11 @@ BuildCraft Refabricated ships as a **single Fabric mod** that bundles every modu
 
 | Module | Package | Contents (summary) |
 |--------|---------|-------------------|
-| **Core** | `buildcraft.core` | Landmarks, volume boxes, marker tools, map location, robot goggles, list mod, springs, creative/redstone engines |
+| **Core** | `buildcraft.core` | Landmarks, volume boxes, marker tools, map location, list mod, springs, creative/redstone engines; robot goggles WIP (dev-only) |
 | **Lib** | `buildcraft.lib` | Shared GUI, tiles, transfer system, client rendering, mixins, guide infrastructure |
 | **Energy** | `buildcraft.energy` | Stone/iron/FE engines, dynamo, oil & fuel fluids (3 heat tiers), buckets, worldgen |
 | **Transport** | `buildcraft.transport` | Item, fluid, MJ, and RF pipes; pluggables; wire systems; filtered buffer |
-| **Factory** | `buildcraft.factory` | Tank, pump, flood gate, distiller, heat exchange, chute, auto workbench (items + fluids), mining well |
+| **Factory** | `buildcraft.factory` | Tank, pump, flood gate, distiller, heat exchange, chute, auto workbench (items), mining well; fluid auto workbench WIP (dev-only) |
 | **Builders** | `buildcraft.builders` | Quarry, filler, architect table, builder, blueprints, schematics |
 | **Silicon** | `buildcraft.silicon` | Assembly/integration/advanced crafting tables, lasers, gates, facades, lenses |
 | **Robotics** | `buildcraft.robotics` | Zone planner, deployable robots, docking stations, requester (see matrix for gaps) |
@@ -183,7 +183,7 @@ the current port status in this build.
 | Oil springs                  | ✅             | ✅             | DONE — `BlockSpring` + `TileSpringOil` liquid generation |
 | Paintbrush (pipes & blocks)  | ✅             | ✅             | DONE — colours pipes and vanilla paintable blocks |
 | Map location                 | ✅             | ✅             | DONE — survival item, zone planner map export |
-| Robot goggles                | ✅             | ✅             | DONE — survival item, in-world zone overlay when worn |
+| Robot goggles                | ✅             | 🚧             | WIP — code exists; registers only with `-Dbuildcraft.dev=true` (zone overlay still polishing) |
 | **Transport** (`buildcraft.transport`) |      |                |       |
 | Item pipes                   | ✅             | ✅             | DONE — smooth client item interpolation |
 | Fluid pipes                  | ✅             | ✅             | DONE — dyed waterproofing band via runtime mask tint (no atlas `dye_replace`) |
@@ -212,7 +212,7 @@ the current port status in this build.
 | Heat exchange                | ✅             | ✅             | DONE  |
 | Chute                        | ✅             | ✅             | DONE  |
 | Auto workbench (items)       | ✅             | ✅             | DONE  |
-| Auto workbench (fluids)      | ✅             | ✅             | DONE — 2×2 crafting, dual tanks, sided fluid insert (tank1: DOWN/NORTH/WEST; tank2: UP/SOUTH/EAST) |
+| Auto workbench (fluids)      | ❌             | 🚧             | WIP — BC 8.0 never shipped this block (commented out in source); Fabric prototype registers only with `-Dbuildcraft.dev=true` |
 | Mining well                  | ✅             | ✅             | DONE — MJ vertical mining, tube extension, drop routing; halts on dense fluids (lava/oil) |
 | **Builders** (`buildcraft.builders`) |        |                |       |
 | Quarry                       | ✅             | ✅             | DONE — frame build, strip-mine to bedrock, MJ, chunkloading, item output; skips fluids, drill passes through (not a pump) |
@@ -367,7 +367,7 @@ Honest list of current gaps and design constraints:
 6. **Multi-tank fluid extract** — Unfiltered external fluid pulls may return the first tank view in iteration order, not a merged multi-tank handler.
 7. **Robotics board integration** — Empty `buildcraftrobotics:robot` shell is craftable (`robot.json`); programmed boards still require programming table → integration table → docking station deploy.
 8. **Guide book content incomplete** — 164 pages load; robotics guide has only `zone_planner.md`; several silicon tables (e.g. programming table) also lack writeups; missing entries auto-stub as WIP.
-9. **Dev-only blocks** — Engine power tester registers only with `-Dbuildcraft.dev=true`; creative engine is always available.
+9. **Dev-only / WIP content** — With `-Dbuildcraft.dev=true`: engine power tester, **robot goggles** (zone overlay WIP), **auto workbench (fluids)** (BC 8 never released it), **decorated paper/leather** (placeholder textures). Survival keeps decorated destroy/blueprint/template/laser, map location, and item auto workbench. Creative engine is always available.
 10. **Engine explosion default** — `canEnginesExplode` defaults to `false`; BC 8 commonly used `true`.
 11. **RF autoconversion off by default** — Config `MJ_ONLY`; enabling RF↔MJ conversion exposes `EnergyStorage` on BC machines and is required for cross-mod RF tank/engine interop beyond RF pipes.
 12. **Pipe flow transactions** — Pipe internals mutate immediately; nested transaction rollback does not fully undo travelling items (especially `PipeItemInjectStorage`).

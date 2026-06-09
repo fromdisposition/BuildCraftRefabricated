@@ -59,18 +59,6 @@ public class BCCoreBlocks {
          Block::new,
          p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
-      DECORATED_PAPER = BCRegistries.registerBlock(
-         "buildcraftcore",
-         "decorated_paper",
-         Block::new,
-         p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
-      );
-      DECORATED_LEATHER = BCRegistries.registerBlock(
-         "buildcraftcore",
-         "decorated_leather",
-         Block::new,
-         p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
-      );
       MARKER_VOLUME = BCRegistries.registerBlock("buildcraftcore", "marker_volume", BlockMarkerVolume::new, p -> p.sound(SoundType.METAL));
       MARKER_PATH = BCRegistries.registerBlock("buildcraftcore", "marker_path", BlockMarkerPath::new, p -> p.sound(SoundType.METAL));
       ENGINE_REDSTONE = BCRegistries.registerBlock(
@@ -80,6 +68,18 @@ public class BCCoreBlocks {
          "buildcraftcore", "engine_creative", BlockEngineCreative::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       if (BCLib.DEV) {
+         DECORATED_PAPER = BCRegistries.registerBlock(
+            "buildcraftcore",
+            "decorated_paper",
+            Block::new,
+            p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         );
+         DECORATED_LEATHER = BCRegistries.registerBlock(
+            "buildcraftcore",
+            "decorated_leather",
+            Block::new,
+            p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         );
          POWER_TESTER = BCRegistries.registerBlock(
             "buildcraftcore", "power_tester", BlockPowerConsumerTester::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
          );

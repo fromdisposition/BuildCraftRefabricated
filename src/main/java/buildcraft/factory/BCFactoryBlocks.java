@@ -7,6 +7,7 @@
 package buildcraft.factory;
 
 import buildcraft.fabric.BCRegistries;
+import buildcraft.lib.BCLib;
 import buildcraft.factory.block.BlockAutoWorkbenchFluids;
 import buildcraft.factory.block.BlockAutoWorkbenchItems;
 import buildcraft.factory.block.BlockChute;
@@ -40,9 +41,12 @@ public final class BCFactoryBlocks {
       AUTOWORKBENCH_ITEM = BCRegistries.registerBlock(
          "buildcraftfactory", "autoworkbench_item", BlockAutoWorkbenchItems::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
-      AUTOWORKBENCH_FLUID = BCRegistries.registerBlock(
-         "buildcraftfactory", "autoworkbench_fluid", BlockAutoWorkbenchFluids::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
-      );
+      if (BCLib.DEV) {
+         AUTOWORKBENCH_FLUID = BCRegistries.registerBlock(
+            "buildcraftfactory", "autoworkbench_fluid", BlockAutoWorkbenchFluids::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         );
+      }
+
       MINING_WELL = BCRegistries.registerBlock(
          "buildcraftfactory", "mining_well", BlockMiningWell::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );

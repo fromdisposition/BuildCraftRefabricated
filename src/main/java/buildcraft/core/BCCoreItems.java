@@ -77,11 +77,17 @@ public class BCCoreItems {
       DECORATED_DESTROY = BCRegistries.registerBlockItem("buildcraftcore", "decorated_destroy", BCCoreBlocks.DECORATED_DESTROY);
       DECORATED_BLUEPRINT = BCRegistries.registerBlockItem("buildcraftcore", "decorated_blueprint", BCCoreBlocks.DECORATED_BLUEPRINT);
       DECORATED_TEMPLATE = BCRegistries.registerBlockItem("buildcraftcore", "decorated_template", BCCoreBlocks.DECORATED_TEMPLATE);
-      DECORATED_PAPER = BCRegistries.registerBlockItem("buildcraftcore", "decorated_paper", BCCoreBlocks.DECORATED_PAPER);
-      DECORATED_LEATHER = BCRegistries.registerBlockItem("buildcraftcore", "decorated_leather", BCCoreBlocks.DECORATED_LEATHER);
       MAP_LOCATION = BCRegistries.registerItem("buildcraftcore", "map_location", ItemMapLocation::new, p -> p.stacksTo(1));
-      GOGGLES = BCRegistries.registerItem("buildcraftcore", "goggles", ItemGoggles::new, p -> p.stacksTo(1).equippable(EquipmentSlot.HEAD));
       if (BCLib.DEV) {
+         if (BCCoreBlocks.DECORATED_PAPER != null) {
+            DECORATED_PAPER = BCRegistries.registerBlockItem("buildcraftcore", "decorated_paper", BCCoreBlocks.DECORATED_PAPER);
+         }
+
+         if (BCCoreBlocks.DECORATED_LEATHER != null) {
+            DECORATED_LEATHER = BCRegistries.registerBlockItem("buildcraftcore", "decorated_leather", BCCoreBlocks.DECORATED_LEATHER);
+         }
+
+         GOGGLES = BCRegistries.registerItem("buildcraftcore", "goggles", ItemGoggles::new, p -> p.stacksTo(1).equippable(EquipmentSlot.HEAD));
          if (BCCoreBlocks.POWER_TESTER != null) {
             POWER_TESTER = BCRegistries.registerBlockItem("buildcraftcore", "power_tester", BCCoreBlocks.POWER_TESTER);
          }

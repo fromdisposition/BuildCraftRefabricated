@@ -70,16 +70,18 @@ public final class BCFactoryFabric {
             (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchItems workbench ? workbench.getSidedItemStorage(direction) : null,
             BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS
          );
-      ItemStorage.SIDED
-         .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedItemStorage(direction) : null,
-            BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
-         );
-      FluidStorage.SIDED
-         .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedFluidStorage(direction) : null,
-            BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
-         );
+      if (BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS != null) {
+         ItemStorage.SIDED
+            .registerForBlockEntity(
+               (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedItemStorage(direction) : null,
+               BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
+            );
+         FluidStorage.SIDED
+            .registerForBlockEntity(
+               (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedFluidStorage(direction) : null,
+               BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
+            );
+      }
       EnergyStorage.SIDED
          .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TileMiner miner ? miner.getSidedEnergyStorage() : null, BCFactoryBlockEntities.MINING_WELL
@@ -106,8 +108,10 @@ public final class BCFactoryFabric {
    private static void registerMjCapabilities() {
       MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS, (workbench, direction) -> workbench.getMjReceiver());
       MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS, (workbench, direction) -> workbench.getMjReceiver());
-      MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS, (workbench, direction) -> workbench.getMjReceiver());
-      MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS, (workbench, direction) -> workbench.getMjReceiver());
+      if (BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS != null) {
+         MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS, (workbench, direction) -> workbench.getMjReceiver());
+         MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS, (workbench, direction) -> workbench.getMjReceiver());
+      }
       MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.MINING_WELL, (miner, direction) -> miner.getMjReceiver());
       MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.MINING_WELL, (miner, direction) -> miner.getMjReceiver());
       MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.PUMP, (pump, direction) -> pump.getMjReceiver());
