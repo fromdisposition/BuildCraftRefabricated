@@ -44,6 +44,33 @@ public class BCCoreBlocks {
       DECORATED_LASER = BCRegistries.registerBlock(
          "buildcraftcore", "decorated_laser", Block::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
+      DECORATED_DESTROY = BCRegistries.registerBlock(
+         "buildcraftcore", "decorated_destroy", Block::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+      );
+      DECORATED_BLUEPRINT = BCRegistries.registerBlock(
+         "buildcraftcore",
+         "decorated_blueprint",
+         Block::new,
+         p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
+      );
+      DECORATED_TEMPLATE = BCRegistries.registerBlock(
+         "buildcraftcore",
+         "decorated_template",
+         Block::new,
+         p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
+      );
+      DECORATED_PAPER = BCRegistries.registerBlock(
+         "buildcraftcore",
+         "decorated_paper",
+         Block::new,
+         p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
+      );
+      DECORATED_LEATHER = BCRegistries.registerBlock(
+         "buildcraftcore",
+         "decorated_leather",
+         Block::new,
+         p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
+      );
       MARKER_VOLUME = BCRegistries.registerBlock("buildcraftcore", "marker_volume", BlockMarkerVolume::new, p -> p.sound(SoundType.METAL));
       MARKER_PATH = BCRegistries.registerBlock("buildcraftcore", "marker_path", BlockMarkerPath::new, p -> p.sound(SoundType.METAL));
       ENGINE_REDSTONE = BCRegistries.registerBlock(
@@ -55,33 +82,6 @@ public class BCCoreBlocks {
       if (BCLib.DEV) {
          POWER_TESTER = BCRegistries.registerBlock(
             "buildcraftcore", "power_tester", BlockPowerConsumerTester::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
-         );
-         DECORATED_DESTROY = BCRegistries.registerBlock(
-            "buildcraftcore", "decorated_destroy", Block::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops().noLootTable()
-         );
-         DECORATED_BLUEPRINT = BCRegistries.registerBlock(
-            "buildcraftcore",
-            "decorated_blueprint",
-            Block::new,
-            p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops().noLootTable()
-         );
-         DECORATED_TEMPLATE = BCRegistries.registerBlock(
-            "buildcraftcore",
-            "decorated_template",
-            Block::new,
-            p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops().noLootTable()
-         );
-         DECORATED_PAPER = BCRegistries.registerBlock(
-            "buildcraftcore",
-            "decorated_paper",
-            Block::new,
-            p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops().noLootTable()
-         );
-         DECORATED_LEATHER = BCRegistries.registerBlock(
-            "buildcraftcore",
-            "decorated_leather",
-            Block::new,
-            p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops().noLootTable()
          );
       }
    }

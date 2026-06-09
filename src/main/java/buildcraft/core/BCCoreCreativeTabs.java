@@ -91,6 +91,11 @@ public final class BCCoreCreativeTabs {
                output.accept(BCCoreItems.SPRING_WATER);
                output.accept(BCCoreItems.SPRING_OIL);
                output.accept(BCCoreItems.DECORATED_LASER);
+               output.accept(BCCoreItems.DECORATED_DESTROY);
+               output.accept(BCCoreItems.DECORATED_BLUEPRINT);
+               output.accept(BCCoreItems.DECORATED_TEMPLATE);
+               output.accept(BCCoreItems.DECORATED_PAPER);
+               output.accept(BCCoreItems.DECORATED_LEATHER);
                output.accept(BCLibItems.GUIDE);
                output.accept(BCLibItems.GUIDE_CONFIG);
                output.accept(ItemGuideNote.withPage(Identifier.parse("buildcraft:block/quarry")));
@@ -103,25 +108,6 @@ public final class BCCoreCreativeTabs {
                      output.accept(BCLibItems.DEBUGGER);
                   }
 
-                  if (BCCoreItems.DECORATED_DESTROY != null) {
-                     output.accept(BCCoreItems.DECORATED_DESTROY);
-                  }
-
-                  if (BCCoreItems.DECORATED_BLUEPRINT != null) {
-                     output.accept(BCCoreItems.DECORATED_BLUEPRINT);
-                  }
-
-                  if (BCCoreItems.DECORATED_TEMPLATE != null) {
-                     output.accept(BCCoreItems.DECORATED_TEMPLATE);
-                  }
-
-                  if (BCCoreItems.DECORATED_PAPER != null) {
-                     output.accept(BCCoreItems.DECORATED_PAPER);
-                  }
-
-                  if (BCCoreItems.DECORATED_LEATHER != null) {
-                     output.accept(BCCoreItems.DECORATED_LEATHER);
-                  }
                }
 
                output.accept(BCCoreItems.GEAR_WOOD);

@@ -41,7 +41,15 @@ public class GuiStampingTable extends BcScreen<ContainerStampingTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(111.0, 18.0, 54.0, 43.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(143.0, 18.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.stamping_table.output.title", -10665929, "buildcraft.help.stamping_table.output.desc")
+            )
+         );
+      this.mainGui
+         .shownElements
+         .add(
+            new DummyHelpElement(
+               new GuiRectangle(111.0, 45.0, 52.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.stamping_table.output.title", -10665929, "buildcraft.help.stamping_table.output.desc")
             )
          );

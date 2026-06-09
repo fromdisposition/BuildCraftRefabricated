@@ -229,7 +229,7 @@ the current port status in this build.
 | Facades, lenses, pulsar, etc.| ✅             | ✅             | DONE — pluggables, item models, bakers |
 | **Robotics** (`buildcraft.robotics`) |        |                |       |
 | Zone planner                 | ✅             | ✅             | DONE — survival block, GUI, map export to map location |
-| Deployable robots            | ✅             | 🚧             | `EntityRobot` + AI boards; no crafting recipe for empty robot shell |
+| Deployable robots            | ✅             | ✅             | DONE — `EntityRobot` + AI boards; empty shell via `robot.json` (iron + redstone chipset + diamond chipsets) |
 | Robot docking stations       | ✅             | ✅             | DONE — pipe pluggable + docking station pipe |
 | Requester                    | ✅             | ✅             | DONE  |
 | **Lib / shared** (`buildcraft.lib`) |         |                |       |
@@ -365,9 +365,9 @@ Honest list of current gaps and design constraints:
 4. **Fluid bridge granularity** — Cross-mod fluid moves truncate to whole millibuckets (81 Fabric droplets = 1 mB).
 5. **Wood pipe required for extraction** — Cobble/gold/iron fluid and item pipes do not passively drain neighbours; wood + MJ is by BC design.
 6. **Multi-tank fluid extract** — Unfiltered external fluid pulls may return the first tank view in iteration order, not a merged multi-tank handler.
-7. **Robotics survival loop gap** — No recipe for empty `buildcraftrobotics:robot` shell; chain is redstone board → programming table → integration table → docking station deploy.
+7. **Robotics board integration** — Empty `buildcraftrobotics:robot` shell is craftable (`robot.json`); programmed boards still require programming table → integration table → docking station deploy.
 8. **Guide book content incomplete** — 164 pages load; robotics guide has only `zone_planner.md`; several silicon tables (e.g. programming table) also lack writeups; missing entries auto-stub as WIP.
-9. **Dev-only blocks** — Engine power tester and decorated debug blocks register only with `-Dbuildcraft.dev=true`; creative engine is always available.
+9. **Dev-only blocks** — Engine power tester registers only with `-Dbuildcraft.dev=true`; creative engine is always available.
 10. **Engine explosion default** — `canEnginesExplode` defaults to `false`; BC 8 commonly used `true`.
 11. **RF autoconversion off by default** — Config `MJ_ONLY`; enabling RF↔MJ conversion exposes `EnergyStorage` on BC machines and is required for cross-mod RF tank/engine interop beyond RF pipes.
 12. **Pipe flow transactions** — Pipe internals mutate immediately; nested transaction rollback does not fully undo travelling items (especially `PipeItemInjectStorage`).

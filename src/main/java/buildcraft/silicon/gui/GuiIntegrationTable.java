@@ -25,14 +25,6 @@ public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 191.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 4.0, 70.0);
    private static final GuiRectangle RECT_PROGRESS = new GuiRectangle(164.0, 22.0, 4.0, 70.0);
-   private static final int INPUT_X = 19;
-   private static final int INPUT_Y = 24;
-   private static final int INPUT_W = 66;
-   private static final int INPUT_H = 66;
-   private static final int OUTPUT_X = 101;
-   private static final int OUTPUT_Y = 36;
-   private static final int OUTPUT_W = 53;
-   private static final int OUTPUT_H = 29;
 
    public GuiIntegrationTable(ContainerIntegrationTable container, Inventory playerInventory, Component title) {
       super(container, playerInventory, title, 176, 191);
@@ -53,8 +45,8 @@ public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(101.0, 36.0, 53.0, 29.0).offset(this.mainGui.rootElement),
-               new ElementHelpInfo("buildcraft.help.integration_table.output.title", -7811960, "buildcraft.help.integration_table.output.desc")
+               new GuiRectangle(138.0, 49.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new ElementHelpInfo("buildcraft.help.integration_table.output.title", -7798632, "buildcraft.help.integration_table.output.desc")
             )
          );
       this.mainGui
