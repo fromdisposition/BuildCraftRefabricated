@@ -11,6 +11,9 @@ import java.util.List;
 
 public final class BCCoreConfig {
    public static final BCCoreConfig.BooleanValue worldGen = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue worldGenWaterSpring = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue hidePower = new BCCoreConfig.BooleanValue(false);
+   public static final BCCoreConfig.BooleanValue hideFluid = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue minePlayerProtected = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue pumpsConsumeWater = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.IntValue markerMaxDistance = new BCCoreConfig.IntValue(64);

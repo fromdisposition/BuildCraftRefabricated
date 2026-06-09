@@ -16,6 +16,7 @@ import buildcraft.lib.client.guide.parts.GuidePageBase;
 import buildcraft.lib.client.guide.parts.GuidePart;
 import buildcraft.lib.gui.GuiIcon;
 import buildcraft.lib.gui.pos.GuiRectangle;
+import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.search.ISuffixArray;
 import java.util.Collections;
@@ -98,7 +99,7 @@ public class GuidePageContents extends GuidePageBase {
             this.setupChapters();
          } else {
             String text = this.lastSearchText.toLowerCase(Locale.ROOT);
-            ISuffixArray.SearchResult<PageLink> ret = GuideManager.INSTANCE.quickSearcher.search(text, 100);
+            ISuffixArray.SearchResult<PageLink> ret = GuideManager.INSTANCE.quickSearcher.search(text, BCLibConfig.maxGuideSearchCount.get());
             this.realResultCount = ret.hasAllResults() ? -1 : ret.realResultCount;
             Set<PageLink> matches = new HashSet<>(ret.results);
             this.contents.node.setVisible(matches);

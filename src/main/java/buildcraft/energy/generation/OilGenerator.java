@@ -205,23 +205,19 @@ public class OilGenerator {
             double effectiveRate = bonus * globalMul;
             if (rand.nextDouble() <= BCEnergyConfig.largeOilGenProb.get() * effectiveRate) {
                type = OilGenerator.GenType.LARGE;
+            } else if (rand.nextDouble() <= BCEnergyConfig.mediumOilGenProb.get() * effectiveRate) {
+               type = OilGenerator.GenType.MEDIUM;
+            } else if (lightOceanBiome && rand.nextDouble() <= BCEnergyConfig.smallOilGenProb.get() * effectiveRate) {
+               type = OilGenerator.GenType.LAKE;
             } else {
-               if (!(rand.nextDouble() <= BCEnergyConfig.mediumOilGenProb.get() * effectiveRate)) {
-                  if (DEBUG_OILGEN_ALL && log) {
-                     BCLog.logger
-                        .info(
-                           "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz + " because none of the random numbers were above the thresholds."
-                        );
-                  }
-
-                  return ImmutableList.of();
+               if (DEBUG_OILGEN_ALL && log) {
+                  BCLog.logger
+                     .info(
+                        "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz + " because none of the random numbers were above the thresholds."
+                     );
                }
 
-               if (lightOceanBiome && rand.nextDouble() < 0.5) {
-                  type = OilGenerator.GenType.LAKE;
-               } else {
-                  type = OilGenerator.GenType.MEDIUM;
-               }
+               return ImmutableList.of();
             }
          }
 

@@ -6,6 +6,7 @@
 
 package buildcraft.lib.chunkload;
 
+import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.misc.PositionUtil;
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,6 +47,6 @@ public final class ChunkLoaderManager {
    }
 
    private static boolean canLoadFor(IChunkLoadingTile tile) {
-      return tile.getLoadType() != null;
+      return BCLibConfig.chunkLoadingLevel.get().canLoad(tile.getLoadType());
    }
 }

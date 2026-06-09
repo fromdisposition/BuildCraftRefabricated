@@ -6,6 +6,9 @@
 
 package buildcraft.lib.misc;
 
+import buildcraft.api.mj.MjAPI;
+import buildcraft.core.BCCoreConfig;
+import buildcraft.lib.BCLibConfig;
 import net.minecraft.network.chat.Component;
 
 public final class LocaleUtil {
@@ -21,11 +24,29 @@ public final class LocaleUtil {
    }
 
    public static String localizeMj(long microMj) {
+      if (BCCoreConfig.hidePower.get()) {
+         return "";
+      }
+
+      if (BCLibConfig.powerMode.get() == BCLibConfig.PowerMode.DISPLAY_RF) {
+         return localizeRf((int)(microMj / MjAPI.getRfConversion().mjPerRf));
+      }
+
       return String.format("%.2f MJ", microMj / 1000000.0);
    }
 
    public static String localizeMjFlow(long microMjPerTick) {
-      return String.format("%.2f MJ/t", microMjPerTick / 1000000.0);
+      if (BCCoreConfig.hidePower.get()) {
+         return "";
+      }
+
+      if (BCLibConfig.powerMode.get() == BCLibConfig.PowerMode.DISPLAY_RF) {
+         return localizeRfFlow((int)(microMjPerTick / MjAPI.getRfConversion().mjPerRf));
+      }
+
+      long scaled = BCLibConfig.displayTimeGap.get().convertTicksToGap(microMjPerTick);
+      String suffix = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? " MJ/s" : " MJ/t";
+      return String.format("%.2f", scaled / 1000000.0) + suffix;
    }
 
    public static String localizeHeat(float heat) {
@@ -33,10 +54,57 @@ public final class LocaleUtil {
    }
 
    public static String localizeRfFlow(int fePerTick) {
-      return fePerTick + " FE/t";
+      if (BCCoreConfig.hidePower.get()) {
+         return "";
+      }
+
+      int scaled = (int)BCLibConfig.displayTimeGap.get().convertTicksToGap(fePerTick);
+      String suffix = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? " FE/s" : " FE/t";
+      return scaled + suffix;
+   }
+
+   public static String localizeRf(int rf) {
+      if (BCCoreConfig.hidePower.get()) {
+         return "";
+      }
+
+      return rf + " FE";
    }
 
    public static String localizeFluidFlow(int mbPerTick) {
+      if (BCCoreConfig.hideFluid.get()) {
+         return "";
+      }
+
+      if (BCLibConfig.useBucketsFlow.get()) {
+         return String.format("%.2f B/s", mbPerTick / 50.0);
+      }
+
       return mbPerTick + " mB/t";
+   }
+
+   public static String localizeFluidStaticAmount(int fluidAmount, int capacity) {
+      if (BCCoreConfig.hideFluid.get()) {
+         return "";
+      }
+
+      if (fluidAmount <= 0) {
+         return capacity > 0 ? "0 / " + formatFluidAmount(capacity) : "0 mB";
+      }
+
+      String amount = formatFluidAmount(fluidAmount);
+      if (capacity == fluidAmount) {
+         return amount;
+      }
+
+      return capacity > 0 ? amount + " / " + formatFluidAmount(capacity) : amount + " mB";
+   }
+
+   private static String formatFluidAmount(int milliBuckets) {
+      if (BCLibConfig.useBucketsStatic.get()) {
+         return String.format("%.2f", milliBuckets / 1000.0);
+      }
+
+      return Integer.toString(milliBuckets);
    }
 }

@@ -23,8 +23,13 @@ public final class BCEnergyItems {
    public static void register() {
       ENGINE_STONE = BCRegistries.registerBlockItem("buildcraftenergy", "engine_stone", BCEnergyBlocks.ENGINE_STONE);
       ENGINE_IRON = BCRegistries.registerBlockItem("buildcraftenergy", "engine_iron", BCEnergyBlocks.ENGINE_IRON);
-      ENGINE_FE = BCRegistries.registerBlockItem("buildcraftenergy", "engine_rf", BCEnergyBlocks.ENGINE_FE);
-      DYNAMO_MJ = BCRegistries.registerBlockItem("buildcraftenergy", "mj_dynamo", BCEnergyBlocks.DYNAMO_MJ);
+      if (BCEnergyBlocks.ENGINE_FE != null) {
+         ENGINE_FE = BCRegistries.registerBlockItem("buildcraftenergy", "engine_rf", BCEnergyBlocks.ENGINE_FE);
+      }
+
+      if (BCEnergyBlocks.DYNAMO_MJ != null) {
+         DYNAMO_MJ = BCRegistries.registerBlockItem("buildcraftenergy", "mj_dynamo", BCEnergyBlocks.DYNAMO_MJ);
+      }
       GLOB_OF_OIL = BCRegistries.registerItem("buildcraftenergy", "glob_of_oil", Item::new);
    }
 }

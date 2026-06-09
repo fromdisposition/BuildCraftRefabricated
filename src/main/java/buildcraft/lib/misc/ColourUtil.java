@@ -6,6 +6,7 @@
 
 package buildcraft.lib.misc;
 
+import buildcraft.lib.BCLibConfig;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
@@ -42,18 +43,37 @@ public class ColourUtil {
          sb.append(parts[i].substring(1));
       }
 
-      ChatFormatting format = COLOUR_TO_FORMAT[colour.ordinal()];
+      if (!BCLibConfig.useColouredLabels.get()) {
+         return sb.toString();
+      }
+
+      ChatFormatting format = BCLibConfig.useHighContrastLabelColours.get() ? highContrastFormat(colour) : COLOUR_TO_FORMAT[colour.ordinal()];
       return format.toString() + sb + ChatFormatting.RESET;
    }
 
    public static String getTextFullTooltip(Direction direction) {
       String localized = LocaleUtil.localize("direction." + direction.getName());
+      if (!BCLibConfig.useColouredLabels.get()) {
+         return localized;
+      }
+
       ChatFormatting format = FACE_TO_FORMAT[direction.ordinal()];
       return format.toString() + localized + ChatFormatting.RESET;
    }
 
    public static ChatFormatting convertColourToTextFormat(DyeColor colour) {
-      return COLOUR_TO_FORMAT[colour.ordinal()];
+      if (!BCLibConfig.useColouredLabels.get()) {
+         return ChatFormatting.GRAY;
+      }
+
+      return BCLibConfig.useHighContrastLabelColours.get() ? highContrastFormat(colour) : COLOUR_TO_FORMAT[colour.ordinal()];
+   }
+
+   private static ChatFormatting highContrastFormat(DyeColor colour) {
+      return switch (colour) {
+         case BLACK, BLUE, PURPLE, BROWN, GREEN, RED, GRAY -> ChatFormatting.WHITE;
+         default -> COLOUR_TO_FORMAT[colour.ordinal()];
+      };
    }
 
    public static int getLightHex(DyeColor colour) {

@@ -71,13 +71,22 @@ public class ItemPipeHolder extends BlockItem implements IItemPipe {
 
       if (def.flowType == PipeApi.flowFluids) {
          PipeApi.FluidTransferInfo fti = PipeApi.getFluidTransferInfo(def);
-         tooltip.add(Component.literal(LocaleUtil.localizeFluidFlow(fti.transferPerTick)).withStyle(ChatFormatting.GRAY));
+         String flow = LocaleUtil.localizeFluidFlow(fti.transferPerTick);
+         if (!flow.isEmpty()) {
+            tooltip.add(Component.literal(flow).withStyle(ChatFormatting.GRAY));
+         }
       } else if (def.flowType == PipeApi.flowPower) {
          PipeApi.PowerTransferInfo pti = PipeApi.getPowerTransferInfo(def);
-         tooltip.add(Component.literal(LocaleUtil.localizeMjFlow(pti.transferPerTick) + " per face").withStyle(ChatFormatting.GRAY));
+         String flow = LocaleUtil.localizeMjFlow(pti.transferPerTick);
+         if (!flow.isEmpty()) {
+            tooltip.add(Component.literal(flow + " per face").withStyle(ChatFormatting.GRAY));
+         }
       } else if (def.flowType == PipeApi.flowRf) {
          PipeApi.RedstoneFluxTransferInfo rti = PipeApi.getRfTransferInfo(def);
-         tooltip.add(Component.literal(LocaleUtil.localizeRfFlow(rti.transferPerTick) + " per face").withStyle(ChatFormatting.GRAY));
+         String flow = LocaleUtil.localizeRfFlow(rti.transferPerTick);
+         if (!flow.isEmpty()) {
+            tooltip.add(Component.literal(flow + " per face").withStyle(ChatFormatting.GRAY));
+         }
       }
    }
 }

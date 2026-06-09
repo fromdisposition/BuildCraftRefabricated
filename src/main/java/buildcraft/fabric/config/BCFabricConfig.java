@@ -7,6 +7,7 @@ import buildcraft.energy.BCEnergyConfig;
 import buildcraft.fabric.BCBuildersFabric;
 import buildcraft.fabric.BCEnergyFabric;
 import buildcraft.fabric.BCFactoryFabric;
+import buildcraft.lib.client.guide.loader.XmlPageLoader;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.transport.BCTransportConfig;
@@ -36,6 +37,7 @@ public final class BCFabricConfig {
    }
 
    public static void load() {
+      BCObjectsConfig.load();
       Path path = FabricLoader.getInstance().getConfigDir().resolve("buildcraftrefabricated-common.json");
       JsonObject root;
       if (Files.exists(path)) {
@@ -56,6 +58,7 @@ public final class BCFabricConfig {
    }
 
    public static void reload() {
+      BCObjectsConfig.load();
       load();
       BCFactoryFabric.onConfigReloaded();
       BCEnergyFabric.onConfigReloaded();
@@ -81,6 +84,9 @@ public final class BCFabricConfig {
    private static void applyCore(JsonObject core) {
       if (core != null) {
          BCCoreConfig.worldGen.set(bool(core, "worldGen", BCCoreConfig.worldGen.get()));
+         BCCoreConfig.worldGenWaterSpring.set(bool(core, "worldGenWaterSpring", BCCoreConfig.worldGenWaterSpring.get()));
+         BCCoreConfig.hidePower.set(bool(core, "hidePowerValues", BCCoreConfig.hidePower.get()));
+         BCCoreConfig.hideFluid.set(bool(core, "hideFluidValues", BCCoreConfig.hideFluid.get()));
          BCCoreConfig.minePlayerProtected.set(bool(core, "minePlayerProtected", BCCoreConfig.minePlayerProtected.get()));
          BCCoreConfig.pumpsConsumeWater.set(bool(core, "pumpsConsumeWater", BCCoreConfig.pumpsConsumeWater.get()));
          BCCoreConfig.markerMaxDistance.set(intVal(core, "markerMaxDistance", BCCoreConfig.markerMaxDistance.get()));
@@ -104,6 +110,42 @@ public final class BCFabricConfig {
 
          BCLibConfig.mjRfConversionAmount.set(doubleVal(lib, "mjRfConversion", BCLibConfig.mjRfConversionAmount.get()));
          BCLibConfig.canEnginesExplode.set(bool(lib, "canEnginesExplode", BCLibConfig.canEnginesExplode.get()));
+         BCLibConfig.useColouredLabels.set(bool(lib, "useColouredLabels", BCLibConfig.useColouredLabels.get()));
+         BCLibConfig.useHighContrastLabelColours.set(bool(lib, "useHighContrastLabelColours", BCLibConfig.useHighContrastLabelColours.get()));
+         BCLibConfig.useBucketsStatic.set(bool(lib, "useBucketsStatic", BCLibConfig.useBucketsStatic.get()));
+         BCLibConfig.useBucketsFlow.set(bool(lib, "useBucketsFlow", BCLibConfig.useBucketsFlow.get()));
+         BCLibConfig.useLongLocalizedName.set(bool(lib, "useLongLocalizedName", BCLibConfig.useLongLocalizedName.get()));
+         BCLibConfig.useSwappableSprites.set(bool(lib, "useSwappableSprites", BCLibConfig.useSwappableSprites.get()));
+         BCLibConfig.enableAnimatedSprites.set(bool(lib, "enableAnimatedSprites", BCLibConfig.enableAnimatedSprites.get()));
+         BCLibConfig.guideShowDetail.set(bool(lib, "guideBookEnableDetail", BCLibConfig.guideShowDetail.get()));
+         BCLibConfig.itemLifespan.set(intVal(lib, "itemLifespan", BCLibConfig.itemLifespan.get()));
+         BCLibConfig.guideItemSearchLimit.set(intVal(lib, "guideItemSearchLimit", BCLibConfig.guideItemSearchLimit.get()));
+         BCLibConfig.maxGuideSearchCount.set(intVal(lib, "maxGuideSearchCount", BCLibConfig.maxGuideSearchCount.get()));
+         String timeGap = string(lib, "displayTimeGap", BCLibConfig.displayTimeGap.get().name());
+
+         try {
+            BCLibConfig.displayTimeGap.set(BCLibConfig.TimeGap.valueOf(timeGap.toUpperCase()));
+         } catch (IllegalArgumentException e) {
+            LOGGER.warn("Unknown displayTimeGap '{}', keeping {}", timeGap, BCLibConfig.displayTimeGap.get());
+         }
+
+         String itemRotation = string(lib, "itemRenderRotation", BCLibConfig.rotateTravelingItems.get().name());
+
+         try {
+            BCLibConfig.rotateTravelingItems.set(BCLibConfig.RenderRotation.valueOf(itemRotation.toUpperCase()));
+         } catch (IllegalArgumentException e) {
+            LOGGER.warn("Unknown itemRenderRotation '{}', keeping {}", itemRotation, BCLibConfig.rotateTravelingItems.get());
+         }
+
+         String chunkLoadLevel = string(lib, "chunkLoadLevel", BCLibConfig.chunkLoadingLevel.get().name());
+
+         try {
+            BCLibConfig.chunkLoadingLevel.set(BCLibConfig.ChunkLoaderLevel.valueOf(chunkLoadLevel.toUpperCase()));
+         } catch (IllegalArgumentException e) {
+            LOGGER.warn("Unknown chunkLoadLevel '{}', keeping {}", chunkLoadLevel, BCLibConfig.chunkLoadingLevel.get());
+         }
+
+         XmlPageLoader.SHOW_DETAIL = BCLibConfig.guideShowDetail.get();
          BCLibConfig.ColorBlindMode previousColorBlind = BCLibConfig.colorBlindMode.get();
          String colorBlind = string(lib, "colorBlindMode", previousColorBlind.name());
 
@@ -159,6 +201,10 @@ public final class BCFabricConfig {
 
    private static void applyEnergy(JsonObject energy) {
       if (energy != null) {
+         BCEnergyConfig.enableRfEngine.set(bool(energy, "enableRfEngine", BCEnergyConfig.enableRfEngine.get()));
+         BCEnergyConfig.enableMjDynamo.set(bool(energy, "enableMjDynamo", BCEnergyConfig.enableMjDynamo.get()));
+         BCEnergyConfig.enableOilOceanBiome.set(bool(energy, "enableOilOceanBiome", BCEnergyConfig.enableOilOceanBiome.get()));
+         BCEnergyConfig.enableOilDesertBiome.set(bool(energy, "enableOilDesertBiome", BCEnergyConfig.enableOilDesertBiome.get()));
          BCEnergyConfig.oilIsSticky.set(bool(energy, "oilIsSticky", BCEnergyConfig.oilIsSticky.get()));
          BCEnergyConfig.enableOilBurn.set(bool(energy, "enableOilBurn", BCEnergyConfig.enableOilBurn.get()));
          BCEnergyConfig.useRfNaming.set(bool(energy, "useRfNaming", BCEnergyConfig.useRfNaming.get()));
@@ -174,6 +220,10 @@ public final class BCFabricConfig {
          BCEnergyConfig.largeSpoutMaxHeight.set(intVal(energy, "largeSpoutMaxHeight", BCEnergyConfig.largeSpoutMaxHeight.get()));
          BCEnergyConfig.mediumOilGenProb.set(doubleVal(energy, "mediumOilGenProb", BCEnergyConfig.mediumOilGenProb.get()));
          BCEnergyConfig.largeOilGenProb.set(doubleVal(energy, "largeOilGenProb", BCEnergyConfig.largeOilGenProb.get()));
+         if (energy.has("smallOilGenProb")) {
+            BCEnergyConfig.smallOilGenProb.set(energy.get("smallOilGenProb").getAsDouble() / 100.0);
+         }
+
          if (energy.has("forceExcessiveOilBiomes")) {
             BCEnergyConfig.forceExcessiveOilBiomes.set(stringList(energy.getAsJsonArray("forceExcessiveOilBiomes")));
          }
@@ -223,6 +273,9 @@ public final class BCFabricConfig {
       JsonObject root = new JsonObject();
       JsonObject core = new JsonObject();
       core.addProperty("worldGen", true);
+      core.addProperty("worldGenWaterSpring", true);
+      core.addProperty("hidePowerValues", false);
+      core.addProperty("hideFluidValues", false);
       core.addProperty("minePlayerProtected", false);
       core.addProperty("pumpsConsumeWater", false);
       core.addProperty("markerMaxDistance", 64);
@@ -236,9 +289,27 @@ public final class BCFabricConfig {
       lib.addProperty("colorBlindMode", "AUTO");
       lib.addProperty("mjRfConversion", 0.1);
       lib.addProperty("canEnginesExplode", false);
+      lib.addProperty("useColouredLabels", true);
+      lib.addProperty("useHighContrastLabelColours", false);
+      lib.addProperty("useBucketsStatic", true);
+      lib.addProperty("useBucketsFlow", true);
+      lib.addProperty("useLongLocalizedName", true);
+      lib.addProperty("useSwappableSprites", true);
+      lib.addProperty("enableAnimatedSprites", true);
+      lib.addProperty("guideBookEnableDetail", false);
+      lib.addProperty("itemLifespan", 60);
+      lib.addProperty("guideItemSearchLimit", 10000);
+      lib.addProperty("maxGuideSearchCount", 1200);
+      lib.addProperty("displayTimeGap", "SECONDS");
+      lib.addProperty("itemRenderRotation", "ENABLED");
+      lib.addProperty("chunkLoadLevel", "SELF_TILES");
       root.add("lib", lib);
       JsonObject energy = new JsonObject();
-      energy.addProperty("oilIsSticky", true);
+      energy.addProperty("enableRfEngine", false);
+      energy.addProperty("enableMjDynamo", false);
+      energy.addProperty("enableOilOceanBiome", true);
+      energy.addProperty("enableOilDesertBiome", true);
+      energy.addProperty("oilIsSticky", false);
       energy.addProperty("enableOilBurn", true);
       energy.addProperty("useRfNaming", false);
       energy.addProperty("useFullUnitNames", true);
@@ -253,6 +324,7 @@ public final class BCFabricConfig {
       energy.addProperty("largeSpoutMaxHeight", 20);
       energy.addProperty("mediumOilGenProb", 0.001);
       energy.addProperty("largeOilGenProb", 4.0E-4);
+      energy.addProperty("smallOilGenProb", 2.0);
       energy.add("forceExcessiveOilBiomes", GSON.toJsonTree(List.of()));
       energy.add("richSurfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getRichSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
       energy.add("surfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));

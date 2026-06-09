@@ -10,6 +10,7 @@ import buildcraft.silicon.BCSiliconIntegrationRecipes;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.BCSiliconMenuTypes;
 import buildcraft.silicon.BCSiliconPlugs;
+import buildcraft.silicon.BCSiliconRecipeSerializers;
 import buildcraft.silicon.BCSiliconRecipes;
 import buildcraft.silicon.BCSiliconStatements;
 import buildcraft.silicon.plug.FacadeStateManager;
@@ -40,6 +41,7 @@ public final class BCSiliconFabric {
          BCSiliconMenuTypes::register
       );
       BCSiliconEntities.register();
+      BCSiliconRecipeSerializers.register();
       BCSiliconCreativeTabs.register();
       FabricModuleBootstrap.registerCapabilities(BCSiliconFabric::registerMjCapabilities, BCSiliconFabric::registerNativeTransfer);
       ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> {

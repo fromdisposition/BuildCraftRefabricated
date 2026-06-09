@@ -1,8 +1,11 @@
 package buildcraft.fabric;
 
+import buildcraft.fabric.config.BCObjectsConfig;
+import com.mojang.logging.LogUtils;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+import org.slf4j.Logger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
@@ -28,6 +31,8 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.material.Fluid;
 
 public final class BCRegistries {
+   private static final Logger LOGGER = LogUtils.getLogger();
+
    private BCRegistries() {
    }
 
@@ -59,6 +64,11 @@ public final class BCRegistries {
    }
 
    public static <B extends Block> B registerBlock(String modid, String path, Function<Properties, B> factory, UnaryOperator<Properties> properties) {
+      if (!BCObjectsConfig.isBlockEnabled(modid, path)) {
+         LOGGER.info("Skipping disabled block {}:{}", modid, path);
+         return null;
+      }
+
       ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, id(modid, path));
       B block = (B)factory.apply(properties.apply(Properties.of()).setId(blockKey));
       return (B)Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
@@ -74,6 +84,11 @@ public final class BCRegistries {
       Function<net.minecraft.world.item.Item.Properties, I> factory,
       UnaryOperator<net.minecraft.world.item.Item.Properties> properties
    ) {
+      if (!BCObjectsConfig.isItemEnabled(modid, path)) {
+         LOGGER.info("Skipping disabled item {}:{}", modid, path);
+         return null;
+      }
+
       ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, id(modid, path));
       String nameKey = "item." + modid + "." + path;
       I item = (I)factory.apply(
@@ -87,6 +102,10 @@ public final class BCRegistries {
    }
 
    public static BlockItem registerBlockItem(String modid, String path, Block block, UnaryOperator<net.minecraft.world.item.Item.Properties> properties) {
+      if (block == null) {
+         return null;
+      }
+
       return registerItem(modid, path, props -> new BlockItem(block, props), properties);
    }
 

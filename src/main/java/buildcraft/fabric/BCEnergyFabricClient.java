@@ -38,16 +38,33 @@ public final class BCEnergyFabricClient {
 
       MenuScreens.register(BCEnergyMenuTypes.ENGINE_STONE, GuiEngineStone_BC8::new);
       MenuScreens.register(BCEnergyMenuTypes.ENGINE_IRON, GuiEngineIron_BC8::new);
-      MenuScreens.register(BCEnergyMenuTypes.ENGINE_FE, GuiEngineRF::new);
-      MenuScreens.register(BCEnergyMenuTypes.DYNAMO_MJ, GuiDynamoMJ::new);
+      if (BCEnergyMenuTypes.ENGINE_FE != null) {
+         MenuScreens.register(BCEnergyMenuTypes.ENGINE_FE, GuiEngineRF::new);
+      }
+
+      if (BCEnergyMenuTypes.DYNAMO_MJ != null) {
+         MenuScreens.register(BCEnergyMenuTypes.DYNAMO_MJ, GuiDynamoMJ::new);
+      }
+
       registerEngineBer(BCEnergyBlockEntities.ENGINE_STONE, BCEnergyModels::getStoneEngineQuads);
       registerEngineBer(BCEnergyBlockEntities.ENGINE_IRON, BCEnergyModels::getIronEngineQuads);
-      registerEngineBer(BCEnergyBlockEntities.ENGINE_FE, BCEnergyModels::getFeEngineQuads);
-      registerEngineBer(BCEnergyBlockEntities.DYNAMO_MJ, BCEnergyModels::getDynamoQuads);
+      if (BCEnergyBlockEntities.ENGINE_FE != null) {
+         registerEngineBer(BCEnergyBlockEntities.ENGINE_FE, BCEnergyModels::getFeEngineQuads);
+      }
+
+      if (BCEnergyBlockEntities.DYNAMO_MJ != null) {
+         registerEngineBer(BCEnergyBlockEntities.DYNAMO_MJ, BCEnergyModels::getDynamoQuads);
+      }
+
       BCTooltips.addTooltip(BCEnergyItems.ENGINE_STONE, "tip.block.engine_stone");
       BCTooltips.addTooltip(BCEnergyItems.ENGINE_IRON, "tip.block.engine_iron");
-      BCTooltips.addTooltip(BCEnergyItems.ENGINE_FE, "tip.block.engine_rf");
-      BCTooltips.addTooltip(BCEnergyItems.DYNAMO_MJ, "tip.block.mj_dynamo");
+      if (BCEnergyItems.ENGINE_FE != null) {
+         BCTooltips.addTooltip(BCEnergyItems.ENGINE_FE, "tip.block.engine_rf");
+      }
+
+      if (BCEnergyItems.DYNAMO_MJ != null) {
+         BCTooltips.addTooltip(BCEnergyItems.DYNAMO_MJ, "tip.block.mj_dynamo");
+      }
    }
 
    @SuppressWarnings("unchecked")
