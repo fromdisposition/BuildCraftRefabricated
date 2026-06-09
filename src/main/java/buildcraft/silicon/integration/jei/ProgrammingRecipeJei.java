@@ -6,11 +6,7 @@
 
 package buildcraft.silicon.integration.jei;
 
-import mezz.jei.api.recipe.types.IRecipeType;
+import net.minecraft.world.item.ItemStack;
 
-public final class AssemblyRecipeJeiTypes {
-   public static final IRecipeType<AssemblyRecipeJei> ASSEMBLY = IRecipeType.create("buildcraftsilicon", "assembly_table", AssemblyRecipeJei.class);
-
-   private AssemblyRecipeJeiTypes() {
-   }
+public record ProgrammingRecipeJei(String id, ItemStack input, ItemStack option, int optionIndex, long microJoules) {
 }

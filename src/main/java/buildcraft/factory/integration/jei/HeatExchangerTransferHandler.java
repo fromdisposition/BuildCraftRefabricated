@@ -6,6 +6,7 @@
 
 package buildcraft.factory.integration.jei;
 
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.container.ContainerHeatExchange;
 import buildcraft.lib.fluids.FluidStack;
@@ -42,7 +43,7 @@ public class HeatExchangerTransferHandler implements IRecipeTransferHandler<Cont
    }
 
    public IRecipeType<HeatExchangerRecipePair> getRecipeType() {
-      return HeatExchangerRecipeTypes.PAIR;
+      return BCJeiRecipeTypes.HEAT_EXCHANGER;
    }
 
    @Nullable

@@ -7,6 +7,7 @@
 package buildcraft.factory.integration.jei;
 
 import buildcraft.api.recipes.IRefineryRecipeManager;
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.container.ContainerDistiller;
 import buildcraft.lib.fluids.FluidStack;
@@ -42,7 +43,7 @@ public class DistillerTransferHandler implements IRecipeTransferHandler<Containe
    }
 
    public IRecipeType<IRefineryRecipeManager.IDistillationRecipe> getRecipeType() {
-      return DistillerRecipeTypes.DISTILLER;
+      return BCJeiRecipeTypes.DISTILLER;
    }
 
    @Nullable

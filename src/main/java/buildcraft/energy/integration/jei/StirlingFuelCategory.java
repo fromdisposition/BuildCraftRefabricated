@@ -8,6 +8,7 @@ package buildcraft.energy.integration.jei;
 
 import buildcraft.api.mj.MjAPI;
 import buildcraft.energy.BCEnergyItems;
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.misc.LocaleUtil;
 import java.util.List;
@@ -30,7 +31,7 @@ public class StirlingFuelCategory extends AbstractRecipeCategory<StirlingFuelJei
 
    public StirlingFuelCategory(IGuiHelper guiHelper) {
       super(
-         EngineFuelJeiTypes.STIRLING_FUEL,
+         BCJeiRecipeTypes.STIRLING_FUEL,
          Component.translatable("gui.jei.category.buildcraft.stirling_engine_fuel"),
          guiHelper.createDrawableItemLike(BCEnergyItems.ENGINE_STONE),
          176,

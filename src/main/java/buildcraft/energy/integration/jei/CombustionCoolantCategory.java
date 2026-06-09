@@ -7,6 +7,7 @@
 package buildcraft.energy.integration.jei;
 
 import buildcraft.energy.BCEnergyItems;
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.integration.jei.JeiFluids;
@@ -37,7 +38,7 @@ public class CombustionCoolantCategory extends AbstractRecipeCategory<Combustion
 
    public CombustionCoolantCategory(IGuiHelper guiHelper) {
       super(
-         EngineFuelJeiTypes.COMBUSTION_COOLANT,
+         BCJeiRecipeTypes.COMBUSTION_COOLANT,
          Component.translatable("gui.jei.category.buildcraft.combustion_engine_coolant"),
          guiHelper.createDrawableItemLike(BCEnergyItems.ENGINE_IRON),
          176,

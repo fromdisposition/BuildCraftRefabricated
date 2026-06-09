@@ -11,6 +11,7 @@ import buildcraft.api.fuels.ICoolant;
 import buildcraft.api.fuels.IFuel;
 import buildcraft.api.fuels.ISolidCoolant;
 import buildcraft.energy.BCEnergyItems;
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.energy.client.gui.GuiEngineIron_BC8;
 import buildcraft.energy.client.gui.GuiEngineStone_BC8;
 import buildcraft.lib.fluids.FluidStack;
@@ -49,9 +50,9 @@ public class BCEnergyJeiPlugin implements IModPlugin {
    }
 
    public void registerRecipes(IRecipeRegistration registration) {
-      registration.addRecipes(EngineFuelJeiTypes.COMBUSTION_FUEL, collectCombustionFuels());
-      registration.addRecipes(EngineFuelJeiTypes.COMBUSTION_COOLANT, collectCoolants());
-      registration.addRecipes(EngineFuelJeiTypes.STIRLING_FUEL, collectStirlingFuels());
+      registration.addRecipes(BCJeiRecipeTypes.COMBUSTION_FUEL, collectCombustionFuels());
+      registration.addRecipes(BCJeiRecipeTypes.COMBUSTION_COOLANT, collectCoolants());
+      registration.addRecipes(BCJeiRecipeTypes.STIRLING_FUEL, collectStirlingFuels());
    }
 
    private static List<IFuel> collectCombustionFuels() {
@@ -115,15 +116,15 @@ public class BCEnergyJeiPlugin implements IModPlugin {
    }
 
    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-      registration.addCraftingStation(EngineFuelJeiTypes.COMBUSTION_FUEL, new ItemLike[]{BCEnergyItems.ENGINE_IRON});
-      registration.addCraftingStation(EngineFuelJeiTypes.COMBUSTION_COOLANT, new ItemLike[]{BCEnergyItems.ENGINE_IRON});
-      registration.addCraftingStation(EngineFuelJeiTypes.STIRLING_FUEL, new ItemLike[]{BCEnergyItems.ENGINE_STONE});
+      registration.addCraftingStation(BCJeiRecipeTypes.COMBUSTION_FUEL, new ItemLike[]{BCEnergyItems.ENGINE_IRON});
+      registration.addCraftingStation(BCJeiRecipeTypes.COMBUSTION_COOLANT, new ItemLike[]{BCEnergyItems.ENGINE_IRON});
+      registration.addCraftingStation(BCJeiRecipeTypes.STIRLING_FUEL, new ItemLike[]{BCEnergyItems.ENGINE_STONE});
    }
 
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-      registration.addRecipeClickArea(GuiEngineStone_BC8.class, 81, 25, 14, 14, new IRecipeType[]{EngineFuelJeiTypes.STIRLING_FUEL});
+      registration.addRecipeClickArea(GuiEngineStone_BC8.class, 81, 25, 14, 14, new IRecipeType[]{BCJeiRecipeTypes.STIRLING_FUEL});
       registration.addRecipeClickArea(
-         GuiEngineIron_BC8.class, 44, 22, 34, 52, new IRecipeType[]{EngineFuelJeiTypes.COMBUSTION_FUEL, EngineFuelJeiTypes.COMBUSTION_COOLANT}
+         GuiEngineIron_BC8.class, 44, 22, 34, 52, new IRecipeType[]{BCJeiRecipeTypes.COMBUSTION_FUEL, BCJeiRecipeTypes.COMBUSTION_COOLANT}
       );
    }
 }

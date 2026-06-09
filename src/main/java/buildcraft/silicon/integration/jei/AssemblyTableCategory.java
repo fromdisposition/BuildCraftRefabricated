@@ -9,6 +9,7 @@ package buildcraft.silicon.integration.jei;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.misc.LocaleUtil;
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.silicon.BCSiliconItems;
 import java.util.List;
 import mezz.jei.api.gui.builder.IIngredientAcceptor;
@@ -46,7 +47,7 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
 
    public AssemblyTableCategory(IGuiHelper guiHelper) {
       super(
-         AssemblyRecipeJeiTypes.ASSEMBLY,
+         BCJeiRecipeTypes.ASSEMBLY,
          Component.translatable("gui.jei.category.buildcraft.assembly_table"),
          guiHelper.createDrawableItemLike(BCSiliconItems.ASSEMBLY_TABLE),
          129,

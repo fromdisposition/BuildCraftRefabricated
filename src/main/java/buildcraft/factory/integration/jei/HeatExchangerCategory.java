@@ -7,6 +7,7 @@
 package buildcraft.factory.integration.jei;
 
 import buildcraft.api.recipes.IRefineryRecipeManager;
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.integration.jei.FluidContainerAliases;
@@ -50,7 +51,7 @@ public class HeatExchangerCategory extends AbstractRecipeCategory<HeatExchangerR
 
    public HeatExchangerCategory(IGuiHelper guiHelper) {
       super(
-         HeatExchangerRecipeTypes.PAIR,
+         BCJeiRecipeTypes.HEAT_EXCHANGER,
          Component.translatable("gui.jei.category.buildcraft.heat_exchanger"),
          guiHelper.createDrawableItemLike(BCFactoryItems.HEAT_EXCHANGE),
          170,

@@ -9,6 +9,7 @@ package buildcraft.energy.integration.jei;
 import buildcraft.api.fuels.IFuel;
 import buildcraft.api.fuels.IFuelManager;
 import buildcraft.energy.BCEnergyItems;
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.integration.jei.JeiFluids;
@@ -38,7 +39,7 @@ public class CombustionFuelCategory extends AbstractRecipeCategory<IFuel> {
 
    public CombustionFuelCategory(IGuiHelper guiHelper) {
       super(
-         EngineFuelJeiTypes.COMBUSTION_FUEL,
+         BCJeiRecipeTypes.COMBUSTION_FUEL,
          Component.translatable("gui.jei.category.buildcraft.combustion_engine_fuel"),
          guiHelper.createDrawableItemLike(BCEnergyItems.ENGINE_IRON),
          176,

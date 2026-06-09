@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.integration.jei;
 
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.integration.jei.JeiTransferUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.silicon.BCSiliconMenuTypes;
@@ -41,7 +42,7 @@ public class AssemblyTableTransferHandler implements IRecipeTransferHandler<Cont
    }
 
    public IRecipeType<AssemblyRecipeJei> getRecipeType() {
-      return AssemblyRecipeJeiTypes.ASSEMBLY;
+      return BCJeiRecipeTypes.ASSEMBLY;
    }
 
    @Nullable

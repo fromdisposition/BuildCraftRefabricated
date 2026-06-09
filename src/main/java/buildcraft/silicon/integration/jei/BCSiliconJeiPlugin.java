@@ -14,9 +14,12 @@ import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.BCSiliconMenuTypes;
 import buildcraft.silicon.container.ContainerAdvancedCraftingTable;
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.silicon.gui.GuiAdvancedCraftingTable;
 import buildcraft.silicon.gui.GuiAssemblyTable;
 import buildcraft.silicon.gui.GuiGate;
+import buildcraft.silicon.gui.GuiIntegrationTable;
+import buildcraft.silicon.gui.GuiProgrammingTable;
 import buildcraft.silicon.item.ItemPluggableGate;
 import buildcraft.silicon.item.ItemPluggableLens;
 import java.util.ArrayList;
@@ -59,11 +62,15 @@ public class BCSiliconJeiPlugin implements IModPlugin {
 
    public void registerCategories(IRecipeCategoryRegistration registration) {
       IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
-      registration.addRecipeCategories(new IRecipeCategory[]{new AssemblyTableCategory(guiHelper)});
+      registration.addRecipeCategories(
+         new IRecipeCategory[]{new AssemblyTableCategory(guiHelper), new IntegrationTableCategory(guiHelper), new ProgrammingTableCategory(guiHelper)}
+      );
    }
 
    public void registerRecipes(IRecipeRegistration registration) {
-      registration.addRecipes(AssemblyRecipeJeiTypes.ASSEMBLY, AssemblyRecipeCollector.collect());
+      registration.addRecipes(BCJeiRecipeTypes.ASSEMBLY, AssemblyRecipeCollector.collect());
+      registration.addRecipes(BCJeiRecipeTypes.INTEGRATION, IntegrationRecipeCollector.collect());
+      registration.addRecipes(BCJeiRecipeTypes.PROGRAMMING, ProgrammingRecipeCollector.collect());
    }
 
    @SuppressWarnings("unchecked")
@@ -71,14 +78,16 @@ public class BCSiliconJeiPlugin implements IModPlugin {
       registration.addRecipeTransferHandler(
          new BlueprintTransferHandler(ContainerAdvancedCraftingTable.class, BCSiliconMenuTypes.ADVANCED_CRAFTING_TABLE), RecipeTypes.CRAFTING
       );
-      registration.addRecipeTransferHandler(new AssemblyTableTransferHandler(registration.getTransferHelper()), AssemblyRecipeJeiTypes.ASSEMBLY);
+      registration.addRecipeTransferHandler(new AssemblyTableTransferHandler(registration.getTransferHelper()), BCJeiRecipeTypes.ASSEMBLY);
    }
 
    @SuppressWarnings("unchecked")
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
       registration.addRecipeClickArea(GuiAdvancedCraftingTable.class, 93, 32, 23, 16, new IRecipeType[]{RecipeTypes.CRAFTING});
       registration.addGhostIngredientHandler(GuiAdvancedCraftingTable.class, new BCGhostIngredientHandler());
-      registration.addRecipeClickArea(GuiAssemblyTable.class, 86, 36, 4, 70, new IRecipeType[]{AssemblyRecipeJeiTypes.ASSEMBLY});
+      registration.addRecipeClickArea(GuiAssemblyTable.class, 86, 36, 4, 70, new IRecipeType[]{BCJeiRecipeTypes.ASSEMBLY});
+      registration.addRecipeClickArea(GuiIntegrationTable.class, 19, 24, 135, 66, new IRecipeType[]{BCJeiRecipeTypes.INTEGRATION});
+      registration.addRecipeClickArea(GuiProgrammingTable.class, 43, 36, 106, 70, new IRecipeType[]{BCJeiRecipeTypes.PROGRAMMING});
       registration.addGuiContainerHandler(GuiGate.class, new IGuiContainerHandler<GuiGate>() {
          public List<Rect2i> getGuiExtraAreas(GuiGate containerScreen) {
             List<Rect2i> extraAreas = new ArrayList<>();
@@ -96,6 +105,8 @@ public class BCSiliconJeiPlugin implements IModPlugin {
 
    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
       registration.addCraftingStation(RecipeTypes.CRAFTING, new ItemLike[]{BCSiliconItems.ADVANCED_CRAFTING_TABLE});
-      registration.addCraftingStation(AssemblyRecipeJeiTypes.ASSEMBLY, new ItemLike[]{BCSiliconItems.ASSEMBLY_TABLE});
+      registration.addCraftingStation(BCJeiRecipeTypes.ASSEMBLY, new ItemLike[]{BCSiliconItems.ASSEMBLY_TABLE});
+      registration.addCraftingStation(BCJeiRecipeTypes.INTEGRATION, new ItemLike[]{BCSiliconItems.INTEGRATION_TABLE});
+      registration.addCraftingStation(BCJeiRecipeTypes.PROGRAMMING, new ItemLike[]{BCSiliconItems.PROGRAMMING_TABLE});
    }
 }

@@ -8,6 +8,7 @@ package buildcraft.factory.integration.jei;
 
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.IRefineryRecipeManager;
+import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
@@ -53,7 +54,7 @@ public class DistillerCategory extends AbstractRecipeCategory<IRefineryRecipeMan
 
    public DistillerCategory(IGuiHelper guiHelper) {
       super(
-         DistillerRecipeTypes.DISTILLER,
+         BCJeiRecipeTypes.DISTILLER,
          Component.translatable("gui.jei.category.buildcraft.distiller"),
          guiHelper.createDrawableItemLike(BCFactoryItems.DISTILLER),
          170,
