@@ -174,19 +174,22 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
          this.worldHasUpdated = false;
       }
 
+      ILaserTarget target = null;
       if (this.battery.getStored() <= 0L) {
          this.targetPos = null;
       } else {
-         if (!this.isPowerNeededAt(this.targetPos)) {
+         target = this.getTarget();
+         boolean powerNeeded = target != null && target.getRequiredLaserPower() > 0L;
+         if (!powerNeeded) {
             this.targetPos = null;
          }
 
-         if (this.serverTargetMoveInterval.markTimeIfDelay(this.level) || !this.isPowerNeededAt(this.targetPos)) {
+         if (this.serverTargetMoveInterval.markTimeIfDelay(this.level) || !powerNeeded) {
             this.randomlyChooseTargetPos();
+            target = this.getTarget();
          }
       }
 
-      ILaserTarget target = this.getTarget();
       if (target != null) {
          long max = this.getMaxPowerPerTick();
          max *= this.battery.getStored() + max;
@@ -262,6 +265,9 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
    public void onLoad() {
       if (this.level != null && this.level.isClientSide()) {
          RenderLaser.addLaser(this);
+      } else if (this.level != null) {
+         this.worldHasUpdated = true;
+         this.ensureRegistered();
       }
    }
 

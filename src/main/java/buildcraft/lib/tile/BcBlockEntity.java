@@ -6,6 +6,7 @@
 
 package buildcraft.lib.tile;
 
+import buildcraft.api.transport.pipe.IPipeHolder;
 import com.mojang.authlib.GameProfile;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,6 +17,7 @@ import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -96,6 +98,24 @@ public abstract class BcBlockEntity extends BlockEntity {
 
    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
       this.itemManager.addDrops(toDrop);
+   }
+
+   protected void notifyPipeNeighborConnections() {
+      if (this.level == null || this.level.isClientSide()) {
+         return;
+      }
+
+      Block block = this.getBlockState().getBlock();
+
+      for (Direction direction : Direction.values()) {
+         BlockPos adjPos = this.worldPosition.relative(direction);
+         if (this.level.getBlockEntity(adjPos) instanceof IPipeHolder holder && holder.getPipe() != null) {
+            holder.getPipe().markForUpdate();
+            holder.wakePipe();
+         }
+
+         this.level.neighborChanged(adjPos, block, null);
+      }
    }
 
    @Nullable

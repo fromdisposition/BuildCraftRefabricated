@@ -171,6 +171,11 @@ public class WireManager implements IWireManager {
    }
 
    @Override
+   public boolean hasParts() {
+      return !this.parts.isEmpty();
+   }
+
+   @Override
    public DyeColor getColorOfPart(EnumWirePart part) {
       return this.parts.get(part);
    }

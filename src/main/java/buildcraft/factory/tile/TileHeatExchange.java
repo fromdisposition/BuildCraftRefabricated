@@ -175,7 +175,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
             this.checkNeighbours = false;
             Deque<TileHeatExchange> exchangers = this.findAdjacentExchangers();
             if (exchangers.isEmpty()) {
-               this.checkNeighbours = true;
+               // No adjacent exchangers: stop scanning until a neighbour block update re-arms via markCheckNeighbours().
             } else if (exchangers.size() < 3) {
                for (TileHeatExchange tile : exchangers) {
                   tile.removeSection();

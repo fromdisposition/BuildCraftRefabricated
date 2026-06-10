@@ -42,6 +42,7 @@ import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.tile.BcBlockEntity;
+import buildcraft.lib.tile.IBlockEntityLoadHook;
 import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.lib.transfer.neighbor.NeighborTransfers;
@@ -89,6 +90,7 @@ public class TileFiller
    IControllable,
    IHasWork,
    ITileForTemplateBuilder,
+   IBlockEntityLoadHook,
    MenuProvider,
    BlockEntityExtendedMenu {
    public static final int INV_SIZE = 27;
@@ -99,6 +101,7 @@ public class TileFiller
    public boolean inverted = false;
    private boolean finished = false;
    private byte lockedTicks = 0;
+   private boolean deferredNeighborNotify = false;
    private IControllable.Mode mode = IControllable.Mode.ON;
    public final Box box = new Box();
    public AddonFillerPlanner addon;
@@ -145,6 +148,13 @@ public class TileFiller
    public void clearRemoved() {
       super.clearRemoved();
       BCBuildersEventDist.INSTANCE.validateFiller(this);
+   }
+
+   @Override
+   public void onLoad() {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.deferredNeighborNotify = true;
+      }
    }
 
    @Override
@@ -232,6 +242,11 @@ public class TileFiller
                b.clientTick();
             }
          } else {
+            if (this.deferredNeighborNotify) {
+               this.deferredNeighborNotify = false;
+               this.notifyPipeNeighborConnections();
+            }
+
             this.battery.tick(this.level, this.worldPosition);
             this.lockedTicks--;
             if (this.lockedTicks < 0) {

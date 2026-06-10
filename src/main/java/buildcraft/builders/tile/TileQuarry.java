@@ -9,7 +9,6 @@ package buildcraft.builders.tile;
 import buildcraft.api.core.BCDebugging;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.mj.MjAPI;
-import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.mj.MjBattery;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.api.tiles.IHasWork;
@@ -78,7 +77,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -316,7 +314,8 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
          int minY = this.computeMiningMinY();
          this.miningBox.setMin(new BlockPos(min.getX() + 1, minY, min.getZ() + 1));
          this.miningBox.setMax(new BlockPos(max.getX() - 1, max.getY() - 1, max.getZ() - 1));
-         this.updatePoses(false);
+         this.deferredUpdatePoses = true;
+         this.deferredNeighborNotify = true;
          this.setChanged();
          if (this.level != null && !this.level.isClientSide()) {
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
@@ -513,25 +512,6 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       }
    }
 
-   private void notifyNeighborConnections() {
-      if (this.level == null || this.level.isClientSide()) {
-         return;
-      }
-
-      Block quarryBlock = this.getBlockState().getBlock();
-
-      for (Direction direction : Direction.values()) {
-         BlockPos adjPos = this.worldPosition.relative(direction);
-         BlockEntity be = this.level.getBlockEntity(adjPos);
-         if (be instanceof IPipeHolder holder && holder.getPipe() != null) {
-            holder.getPipe().markForUpdate();
-            holder.wakePipe();
-         }
-
-         this.level.neighborChanged(adjPos, quarryBlock, null);
-      }
-   }
-
    public boolean hasPower() {
       return this.battery.getStored() > 0L;
    }
@@ -566,13 +546,15 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
 
             if (this.deferredNeighborNotify) {
                this.deferredNeighborNotify = false;
-               this.notifyNeighborConnections();
+               this.notifyPipeNeighborConnections();
             }
 
             if (this.deferredChunkLoad) {
                this.deferredChunkLoad = false;
                ChunkLoaderManager.loadChunksForTile(this);
             }
+
+            this.battery.tick(this.level, this.worldPosition);
 
             if (this.frameBox.isInitialized() && this.miningBox.isInitialized()) {
                int desiredMinY = this.computeMiningMinY();

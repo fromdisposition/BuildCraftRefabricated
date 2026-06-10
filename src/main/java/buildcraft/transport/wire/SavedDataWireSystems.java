@@ -6,7 +6,6 @@
 
 package buildcraft.transport.wire;
 
-import buildcraft.api.transport.EnumWirePart;
 import buildcraft.api.transport.IWireEmitter;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
@@ -15,7 +14,6 @@ import buildcraft.silicon.plug.PluggableGate;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -254,7 +252,13 @@ public class SavedDataWireSystems extends SavedData {
    }
 
    public void rebuildWireSystemsAround(IPipeHolder holder) {
-      Arrays.stream(EnumWirePart.values())
+      if (!(holder.getWireManager() instanceof WireManager wireManager) || wireManager.parts.isEmpty()) {
+         return;
+      }
+
+      wireManager.parts
+         .keySet()
+         .stream()
          .flatMap(part -> WireSystem.getConnectedElementsOfElement(this.world, new WireSystem.WireElement(holder.getPipePos(), part)).stream())
          .distinct()
          .forEach(this::buildAndAddWireSystem);

@@ -556,6 +556,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
       if (level.getBlockEntity(pos) instanceof TilePipeHolder tile && tile.getPipe() != null) {
          tile.getPipe().scheduleConnectionRecheck();
+         tile.wakePipe();
       }
    }
 

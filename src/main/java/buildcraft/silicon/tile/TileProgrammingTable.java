@@ -9,6 +9,7 @@ package buildcraft.silicon.tile;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IProgrammingRecipe;
+import buildcraft.api.tiles.IHasWork;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;
@@ -21,7 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class TileProgrammingTable extends TileLaserTableBase {
+public class TileProgrammingTable extends TileLaserTableBase implements IHasWork {
    public static final int WIDTH = 6;
    public static final int HEIGHT = 4;
    public final ItemHandlerSimple invInput = this.itemManager.addInvHandler("input", 1, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
@@ -45,6 +46,7 @@ public class TileProgrammingTable extends TileLaserTableBase {
       return 5;
    }
 
+   @Override
    public boolean hasWork() {
       return this.currentRecipe != null && this.optionId >= 0 && this.invOutput.getStackInSlot(0).isEmpty();
    }

@@ -100,7 +100,7 @@ public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHa
 
    @Override
    public boolean hasWork() {
-      return this.powerStored > 0L;
+      return this.crafting.canCraft();
    }
 
    @Override

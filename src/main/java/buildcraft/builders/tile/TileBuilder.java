@@ -41,6 +41,7 @@ import buildcraft.lib.misc.PositionUtil;
 import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.BcBlockEntity;
+import buildcraft.lib.tile.IBlockEntityLoadHook;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -86,6 +87,7 @@ public class TileBuilder
    IHasWork,
    ITileForTemplateBuilder,
    ITileForBlueprintBuilder,
+   IBlockEntityLoadHook,
    MenuProvider,
    BlockEntityExtendedMenu {
    public static final int RESOURCE_SLOTS = 27;
@@ -115,6 +117,7 @@ public class TileBuilder
    private long bigStructureCellsBuilt = 0L;
    private boolean pavingTheWayGranted = false;
    private boolean startOfSomethingBigGranted = false;
+   private boolean deferredNeighborNotify = false;
    private ItemStack invSnapshot = ItemStack.EMPTY;
    private final ItemHandlerSimple resourceInventory = new ItemHandlerSimple(27, (handler, slot, before, after) -> this.onResourcesChanged());
    private final SingleFluidTank[] tanks = new SingleFluidTank[]{
@@ -137,6 +140,13 @@ public class TileBuilder
    public void clearRemoved() {
       super.clearRemoved();
       BCBuildersEventDist.INSTANCE.validateBuilder(this);
+   }
+
+   @Override
+   public void onLoad() {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.deferredNeighborNotify = true;
+      }
    }
 
    public MjBatteryReceiver getMjReceiver() {
@@ -199,6 +209,11 @@ public class TileBuilder
                b.clientTick();
             }
          } else {
+            if (this.deferredNeighborNotify) {
+               this.deferredNeighborNotify = false;
+               this.notifyPipeNeighborConnections();
+            }
+
             if (this.snapshot == null && !this.invSnapshot.isEmpty() && this.invSnapshot.getItem() instanceof ItemSnapshot) {
                Snapshot.Header header = ItemSnapshot.getHeader(this.invSnapshot);
                if (header != null) {

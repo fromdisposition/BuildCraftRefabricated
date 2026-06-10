@@ -17,9 +17,11 @@ import buildcraft.api.transport.pipe.PipeDefinition;
 import buildcraft.api.transport.pipe.PipeEventConnectionChange;
 import buildcraft.api.transport.pipe.PipeFaceTex;
 import buildcraft.api.transport.pipe.PipeFlow;
+import buildcraft.api.transport.IWireManager;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.transport.client.model.PipeModelCacheBase;
+import buildcraft.transport.wire.SavedDataWireSystems;
 import buildcraft.transport.client.model.key.PipeModelKey;
 import java.io.IOException;
 import java.util.EnumMap;
@@ -266,6 +268,7 @@ public final class Pipe implements IPipe, IDebuggable {
          if (!this.holder.getPipeWorld().isClientSide()) {
             this.updateMarked = false;
             EnumMap<Direction, Float> old = this.connected.clone();
+            EnumMap<Direction, IPipe.ConnectedType> oldTypes = this.types.clone();
             this.connected.clear();
             this.types.clear();
 
@@ -274,7 +277,7 @@ public final class Pipe implements IPipe, IDebuggable {
                if (plug == null || !plug.isBlocking()) {
                   BlockEntity oTile = this.getHolder().getNeighbourTile(facing);
                   if (oTile != null) {
-                     IPipe oPipe = this.getHolder().getNeighbourPipe(facing);
+                     IPipe oPipe = oTile instanceof IPipeHolder oHolder ? oHolder.getPipe() : null;
                      if (oPipe != null) {
                         PipeBehaviour oBehaviour = oPipe.getBehaviour();
                         if (oBehaviour == null) {
@@ -309,7 +312,7 @@ public final class Pipe implements IPipe, IDebuggable {
                }
             }
 
-            if (old.equals(this.connected)) {
+            if (old.equals(this.connected) && oldTypes.equals(this.types)) {
                return;
             }
 
@@ -319,7 +322,7 @@ public final class Pipe implements IPipe, IDebuggable {
             for (Direction face : Direction.values()) {
                boolean o = old.containsKey(face);
                boolean n = this.connected.containsKey(face);
-               if (o != n) {
+               if (o != n || n && oldTypes.get(face) != this.types.get(face)) {
                   connectionsChanged = true;
                   IPipe oPipe = this.getHolder().getNeighbourPipe(face);
                   if (oPipe != null) {
@@ -333,6 +336,7 @@ public final class Pipe implements IPipe, IDebuggable {
             if (connectionsChanged) {
                this.holder.wakePipe();
                this.holder.scheduleRenderUpdate();
+               this.refreshWireSystems();
             }
 
             this.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
@@ -340,6 +344,14 @@ public final class Pipe implements IPipe, IDebuggable {
          }
       } finally {
          _profiler.pop();
+      }
+   }
+
+   private void refreshWireSystems() {
+      IWireManager wireManager = this.holder.getWireManager();
+      wireManager.updateBetweens(false);
+      if (wireManager.hasParts()) {
+         SavedDataWireSystems.get(this.holder.getPipeWorld()).rebuildWireSystemsAround(this.holder);
       }
    }
 

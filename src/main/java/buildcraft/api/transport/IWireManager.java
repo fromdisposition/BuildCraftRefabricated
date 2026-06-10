@@ -14,6 +14,8 @@ public interface IWireManager {
 
    void updateBetweens(boolean var1);
 
+   boolean hasParts();
+
    DyeColor getColorOfPart(EnumWirePart var1);
 
    DyeColor removePart(EnumWirePart var1);
