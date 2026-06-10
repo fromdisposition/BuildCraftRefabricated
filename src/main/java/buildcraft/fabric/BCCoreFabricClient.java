@@ -8,17 +8,13 @@ import buildcraft.core.client.DebugOverlayHelper;
 import buildcraft.core.client.DebugOverlayRenderer;
 import buildcraft.core.client.GogglesZoneRenderer;
 import buildcraft.core.client.VolumeBoxRenderer;
-import buildcraft.core.client.model.FluidShardItemModel;
 import buildcraft.core.item.ItemMarkerConnector;
-import buildcraft.fabric.client.event.ModelEvent;
 import buildcraft.core.list.GuiList;
 import buildcraft.core.list.ListTooltipHandler;
 import buildcraft.lib.BCLib;
 import buildcraft.lib.client.BCTooltips;
-import buildcraft.lib.fabric.client.FabricModelModifyHooks;
 import buildcraft.lib.client.render.MarkerRenderer;
 import buildcraft.lib.client.render.tile.RenderEngine_BC8;
-import java.util.Map;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -27,8 +23,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.After
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-import net.minecraft.client.renderer.item.ItemModel;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 
 public final class BCCoreFabricClient {
@@ -36,7 +30,6 @@ public final class BCCoreFabricClient {
    }
 
    public static void init() {
-      FabricModelModifyHooks.register(BCCoreFabricClient::onModifyBakingResult);
       MarkerRenderer.setVolumeBoxRenderCallback(VolumeBoxRenderer::renderAll);
       MarkerRenderer.setHoldingConnectorCheck(
          player -> player.getMainHandItem().getItem() instanceof ItemMarkerConnector || player.getOffhandItem().getItem() instanceof ItemMarkerConnector
@@ -82,15 +75,6 @@ public final class BCCoreFabricClient {
             BCTooltips.markDevOnly(BCCoreItems.POWER_TESTER);
          }
 
-      }
-   }
-
-   private static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
-      Map<Identifier, ItemModel> itemModels = event.getBakingResult().itemStackModels();
-      Identifier shardId = BuiltInRegistries.ITEM.getKey(BCCoreItems.FRAGILE_FLUID_CONTAINER);
-      ItemModel vanillaModel = itemModels.get(shardId);
-      if (vanillaModel != null) {
-         itemModels.put(shardId, new FluidShardItemModel(vanillaModel));
       }
    }
 }

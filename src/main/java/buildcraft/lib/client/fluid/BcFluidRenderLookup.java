@@ -15,14 +15,17 @@ import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.Material.Baked;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import org.jspecify.annotations.Nullable;
 
 public final class BcFluidRenderLookup {
    private BcFluidRenderLookup() {
@@ -65,12 +68,37 @@ public final class BcFluidRenderLookup {
          return BcFluidTintUtil.RENDER_TINT_WHITE;
       }
 
-      return fabricTint(stack);
+      return fabricTint(stack, null, null);
    }
 
-   private static int fabricTint(FluidStack stack) {
+   public static int itemMaskTint(FluidStack stack, @Nullable BlockAndTintGetter level) {
+      if (stack == null || stack.isEmpty()) {
+         return -1;
+      }
+
+      Fluid fluid = FluidUtilBC.canonicalFluid(stack.getFluid());
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
+      if (entry != null) {
+         return BcFluidTintUtil.computeAverageGuiTint(entry.texLight(), entry.texDark(), entry.heat());
+      }
+
+      if (fluid.isSame(Fluids.WATER) || fluid.isSame(Fluids.FLOWING_WATER)) {
+         return 0xFF3F76E4;
+      }
+
+      if (fluid.isSame(Fluids.LAVA) || fluid.isSame(Fluids.FLOWING_LAVA)) {
+         return BcFluidTintUtil.RENDER_TINT_WHITE;
+      }
+
+      return fabricTint(stack, level, BlockPos.ZERO);
+   }
+
+   private static int fabricTint(FluidStack stack, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos) {
       FluidVariant variant = TransferConvert.toVariant(stack);
-      return ensureOpaqueArgb(FluidVariantRendering.getColor(variant));
+      int color = level != null && pos != null
+         ? FluidVariantRendering.getColor(variant, level, pos)
+         : FluidVariantRendering.getColor(variant);
+      return ensureOpaqueArgb(color);
    }
 
    private static int ensureOpaqueArgb(int color) {
