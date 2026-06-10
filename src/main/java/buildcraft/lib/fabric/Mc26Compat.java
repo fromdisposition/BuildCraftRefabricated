@@ -13,6 +13,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
+import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
@@ -87,6 +88,14 @@ public final class Mc26Compat {
 
    public static boolean isChunkLoaded(ServerLevel level, int chunkX, int chunkZ) {
       return level.getChunkSource().hasChunk(chunkX, chunkZ);
+   }
+
+   public static boolean isChunkReady(ServerLevel level, int chunkX, int chunkZ) {
+      if (!isChunkLoaded(level, chunkX, chunkZ)) {
+         return false;
+      }
+
+      return level.getChunk(chunkX, chunkZ).getFullStatus().isOrAfter(FullChunkStatus.FULL);
    }
 
    public static DynamicOps<Tag> registryAwareOps() {

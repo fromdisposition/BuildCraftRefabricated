@@ -15,10 +15,12 @@ import java.util.Set;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.FullChunkStatus;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 
@@ -31,25 +33,43 @@ public final class BCEnergyWorldGenFabric {
    }
 
    public static void init() {
-      if (BCCoreConfig.worldGen.get() && BCEnergyConfig.enableOilGeneration.get()) {
-         ServerChunkEvents.CHUNK_LOAD.register((serverLevel, chunk, newChunk) -> {
-            ChunkPos chunkPos = chunk.getPos();
-            OilGenSavedData data = OilGenSavedData.getOrCreate(serverLevel);
-            if (!data.hasGenerated(chunkPos)) {
-               OilGenerator.generateForChunk(serverLevel, PositionUtil.chunkX(chunkPos), PositionUtil.chunkZ(chunkPos));
-               data.markGenerated(chunkPos);
-            }
-         });
-         BCLog.logger.info("[energy.oilgen] Registered oil world generation (Fabric, synchronous on chunk load).");
-      } else {
+      if (!BCCoreConfig.worldGen.get() || !BCEnergyConfig.enableOilGeneration.get()) {
          BCLog.logger.info("[energy.oilgen] Oil generation is disabled by config.");
+         return;
       }
+
+      ServerChunkEvents.FULL_CHUNK_STATUS_CHANGE.register((level, chunk, oldStatus, newStatus) -> {
+         if (newStatus.isOrAfter(FullChunkStatus.FULL) && !oldStatus.isOrAfter(FullChunkStatus.FULL)) {
+            populateOilIfNeeded(level, chunk);
+         }
+      });
+
+      ServerChunkEvents.CHUNK_LOAD.register((level, chunk, generated) -> {
+         if (!generated) {
+            populateOilIfNeeded(level, chunk);
+         }
+      });
 
       ServerTickEvents.END_SERVER_TICK.register(server -> {
          for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             onPlayerTick(player);
          }
       });
+
+      BCLog.logger.info("[energy.oilgen] Registered oil world generation (Fabric FULL_CHUNK_STATUS_CHANGE).");
+   }
+
+   private static void populateOilIfNeeded(ServerLevel level, LevelChunk chunk) {
+      if (!OilGenerator.canGenerateOilIn(level)) {
+         return;
+      }
+
+      ChunkPos chunkPos = chunk.getPos();
+      OilGenSavedData data = OilGenSavedData.getOrCreate(level);
+      if (!data.hasGenerated(chunkPos)) {
+         OilGenerator.generateForChunk(level, PositionUtil.chunkX(chunkPos), PositionUtil.chunkZ(chunkPos));
+         data.markGenerated(chunkPos);
+      }
    }
 
    private static void onPlayerTick(ServerPlayer player) {
@@ -79,7 +99,7 @@ public final class BCEnergyWorldGenFabric {
    }
 
    public static final class OilGenSavedData extends SavedData {
-      private static final int CURRENT_VERSION = 2;
+      private static final int CURRENT_VERSION = 3;
       private int version;
       private final Set<Long> generatedChunks;
       private static final Codec<OilGenSavedData> CODEC = RecordCodecBuilder.create(

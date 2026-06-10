@@ -170,7 +170,7 @@ public class OilGenerator {
    }
 
    private static boolean isChunkLoaded(ServerLevel level, int chunkX, int chunkZ) {
-      return Mc26Compat.isChunkLoaded(level, chunkX, chunkZ);
+      return Mc26Compat.isChunkReady(level, chunkX, chunkZ);
    }
 
    public static List<OilGenStructure> getStructures(Level level, int cx, int cz) {

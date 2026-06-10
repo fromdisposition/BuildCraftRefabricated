@@ -445,7 +445,7 @@ public abstract class OilGenStructure {
 
          int x = column.getX();
          int z = column.getZ();
-         int scanMax = Math.min(column.getY() + 5, level.getMinY() + 5);
+         int scanMax = level.getMinY() + 4;
 
          for (int y = level.getMinY(); y <= scanMax; y++) {
             BlockPos pos = new BlockPos(x, y, z);
