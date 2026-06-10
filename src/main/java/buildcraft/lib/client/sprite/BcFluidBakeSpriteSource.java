@@ -32,13 +32,14 @@ public record BcFluidBakeSpriteSource() implements SpriteSource {
 
    public void run(ResourceManager rm, Output output) {
       for (BCEnergyFluidsFabric.FluidEntry entry : BCEnergyFluidsFabric.ALL) {
-         emit(rm, output, entry);
+         emit(rm, output, entry, false);
+         emit(rm, output, entry, true);
       }
    }
 
-   private static void emit(ResourceManager rm, Output output, BCEnergyFluidsFabric.FluidEntry entry) {
-      Identifier heatId = BcFluidTintUtil.heatFlowSpriteId(entry.heat());
-      Identifier outId = BcFluidTintUtil.bakedFlowSpriteId(entry.name());
+   private static void emit(ResourceManager rm, Output output, BCEnergyFluidsFabric.FluidEntry entry, boolean flow) {
+      Identifier heatId = flow ? BcFluidTintUtil.heatFlowSpriteId(entry.heat()) : BcFluidTintUtil.heatStillSpriteId(entry.heat());
+      Identifier outId = flow ? BcFluidTintUtil.bakedFlowSpriteId(entry.name()) : BcFluidTintUtil.bakedStillSpriteId(entry.name());
       Identifier texId = TEXTURE_ID_CONVERTER.idToFile(heatId);
       Optional<Resource> res = rm.getResource(texId);
       if (res.isEmpty()) {
