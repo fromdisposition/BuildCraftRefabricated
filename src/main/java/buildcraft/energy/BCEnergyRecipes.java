@@ -24,7 +24,6 @@ public class BCEnergyRecipes {
 
    public static void init() {
       if (!initialized) {
-         initialized = true;
          BuildcraftFuelRegistry.coolant.addCoolant(Fluids.WATER, 0.0023F);
          BuildcraftFuelRegistry.coolant.addSolidCoolant(new ItemStack(Blocks.ICE), new FluidStack(Fluids.WATER, 1000), 1.5F);
          BuildcraftFuelRegistry.coolant.addSolidCoolant(new ItemStack(Blocks.PACKED_ICE), new FluidStack(Fluids.WATER, 1000), 2.0F);
@@ -84,6 +83,8 @@ public class BCEnergyRecipes {
             FluidStack lava = new FluidStack(Fluids.LAVA, 5);
             BuildcraftRecipeRegistry.refineryRecipes.addCoolableRecipe(lava, null, 4, 2);
          }
+
+         initialized = true;
       }
    }
 

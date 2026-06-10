@@ -40,9 +40,9 @@ public final class BCSiliconIntegrationRecipes {
 
    public static void init() {
       if (!initialized) {
-         initialized = true;
          IntegrationRecipeRegistry.INSTANCE.addRecipe(new BCSiliconIntegrationRecipes.GateLogicToggleRecipe());
          IntegrationRecipeRegistry.INSTANCE.addRecipe(new BCSiliconIntegrationRecipes.FacadePhasedRecipe());
+         initialized = true;
       }
    }
 

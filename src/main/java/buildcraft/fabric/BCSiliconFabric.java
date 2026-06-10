@@ -1,5 +1,6 @@
 package buildcraft.fabric;
 
+import buildcraft.fabric.integration.jei.BCJeiBootstrap;
 import buildcraft.lib.mj.MjBlockCapabilities;
 import buildcraft.silicon.BCSiliconBlockEntities;
 import buildcraft.silicon.BCSiliconBlocks;
@@ -38,6 +39,7 @@ public final class BCSiliconFabric {
       BCSiliconRecipeSerializers.register();
       BCSiliconCreativeTabs.register();
       FabricModuleBootstrap.registerCapabilities(BCSiliconFabric::registerMjCapabilities, BCSiliconFabric::registerNativeTransfer);
+      BCJeiBootstrap.initSiliconRecipes();
    }
 
    private static void registerNativeTransfer() {

@@ -69,7 +69,6 @@ public class BCSiliconJeiPlugin implements IModPlugin {
    }
 
    public void registerRecipes(IRecipeRegistration registration) {
-      BCJeiBootstrap.initGameRecipes();
       registration.addRecipes(BCJeiRecipeTypes.ASSEMBLY, AssemblyRecipeCollector.collect());
       registration.addRecipes(BCJeiRecipeTypes.INTEGRATION, IntegrationRecipeCollector.collect());
       registration.addRecipes(BCJeiRecipeTypes.PROGRAMMING, ProgrammingRecipeCollector.collect());

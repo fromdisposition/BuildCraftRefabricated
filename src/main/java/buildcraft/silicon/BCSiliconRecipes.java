@@ -37,7 +37,6 @@ public class BCSiliconRecipes {
 
    public static void init() {
       if (!initialized) {
-         initialized = true;
          registerPlugRecipes();
          registerGateAssemblyRecipes();
          registerChipsetRecipes();
@@ -45,6 +44,7 @@ public class BCSiliconRecipes {
          registerWireRecipes();
          registerGateCopierRecipe();
          registerFacadeRecipes();
+         initialized = true;
       }
    }
 

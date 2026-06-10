@@ -51,7 +51,7 @@ public class BCEnergyJeiPlugin implements IModPlugin {
    }
 
    public void registerRecipes(IRecipeRegistration registration) {
-      BCJeiBootstrap.initGameRecipes();
+      BCJeiBootstrap.initEnergyRecipes();
       registration.addRecipes(BCJeiRecipeTypes.COMBUSTION_FUEL, collectCombustionFuels());
       registration.addRecipes(BCJeiRecipeTypes.COMBUSTION_COOLANT, collectCoolants());
       registration.addRecipes(BCJeiRecipeTypes.STIRLING_FUEL, collectStirlingFuels());

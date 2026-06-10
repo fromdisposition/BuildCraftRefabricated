@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.context.ContextMap;
@@ -47,7 +49,7 @@ public final class AssemblyRecipeCollector {
    }
 
    private static void collectStandard(AssemblyRecipe recipe, List<AssemblyRecipeJei> out) {
-      ContextMap displayCtx = new Builder().create(SlotDisplayContext.CONTEXT);
+      ContextMap displayCtx = displayContext();
 
       for (ItemStack output : recipe.getOutputPreviews()) {
          if (!output.isEmpty()) {
@@ -117,5 +119,11 @@ public final class AssemblyRecipeCollector {
    private static String outputKey(ItemStack output) {
       Identifier id = BuiltInRegistries.ITEM.getKey(output.getItem());
       return id + "@" + output.getComponents().hashCode();
+   }
+
+   private static ContextMap displayContext() {
+      Minecraft mc = Minecraft.getInstance();
+      ClientLevel level = mc == null ? null : mc.level;
+      return level != null ? SlotDisplayContext.fromLevel(level) : new Builder().create(SlotDisplayContext.CONTEXT);
    }
 }

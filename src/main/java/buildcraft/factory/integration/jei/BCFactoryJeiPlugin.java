@@ -51,13 +51,16 @@ public class BCFactoryJeiPlugin implements IModPlugin {
    }
 
    public void registerRecipes(IRecipeRegistration registration) {
-      BCJeiBootstrap.initGameRecipes();
+      BCJeiBootstrap.initEnergyRecipes();
       registration.addRecipes(BCJeiRecipeTypes.HEAT_EXCHANGER, enumerateHeatExchangerPairs());
       registration.addRecipes(BCJeiRecipeTypes.DISTILLER, enumerateDistillationRecipes());
    }
 
    private static List<HeatExchangerRecipePair> enumerateHeatExchangerPairs() {
       List<HeatExchangerRecipePair> pairs = new ArrayList<>();
+      if (BuildcraftRecipeRegistry.refineryRecipes == null) {
+         return pairs;
+      }
 
       for (IRefineryRecipeManager.IHeatableRecipe h : BuildcraftRecipeRegistry.refineryRecipes.getHeatableRegistry().getAllRecipes()) {
          for (IRefineryRecipeManager.ICoolableRecipe c : BuildcraftRecipeRegistry.refineryRecipes.getCoolableRegistry().getAllRecipes()) {
@@ -72,6 +75,9 @@ public class BCFactoryJeiPlugin implements IModPlugin {
 
    private static List<IRefineryRecipeManager.IDistillationRecipe> enumerateDistillationRecipes() {
       List<IRefineryRecipeManager.IDistillationRecipe> recipes = new ArrayList<>();
+      if (BuildcraftRecipeRegistry.refineryRecipes == null) {
+         return recipes;
+      }
 
       for (IRefineryRecipeManager.IDistillationRecipe r : BuildcraftRecipeRegistry.refineryRecipes.getDistillationRegistry().getAllRecipes()) {
          if (r.in() != null && !r.in().isEmpty()) {
