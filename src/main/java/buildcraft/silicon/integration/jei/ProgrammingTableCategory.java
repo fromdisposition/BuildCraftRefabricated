@@ -8,6 +8,7 @@ package buildcraft.silicon.integration.jei;
 
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.integration.jei.JeiCategoryDraw;
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.tile.TileProgrammingTable;
 import java.util.List;
@@ -25,8 +26,11 @@ import net.minecraft.resources.Identifier;
 
 public class ProgrammingTableCategory extends AbstractRecipeCategory<ProgrammingRecipeJei> {
    private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/programming_table.png");
-   private static final int BG_U = 0, BG_V = 18, BG_W = 154, BG_H = 76;
-   private static final int INPUT_X = 8, INPUT_Y = 18, OPTIONS_X = 43, OPTIONS_Y = 18, OUTPUT_X = 8, OUTPUT_Y = 72;
+   private static final int BG_U = 3, BG_V = 18, BG_W = 153, BG_H = 89;
+   private static final int INPUT_X = 5, INPUT_Y = 18, OPTIONS_X = 40, OPTIONS_Y = 18, OUTPUT_X = 5, OUTPUT_Y = 72;
+   private static final int POWER_ALIGN_W = OPTIONS_X + TileProgrammingTable.WIDTH * 18;
+   private static final int POWER_Y = BG_H + 5;
+   private static final int CARD_H = BG_H + 16;
    private final IDrawable background;
 
    public ProgrammingTableCategory(IGuiHelper guiHelper) {
@@ -35,14 +39,17 @@ public class ProgrammingTableCategory extends AbstractRecipeCategory<Programming
          Component.translatable("gui.jei.category.buildcraft.programming_table"),
          guiHelper.createDrawableItemLike(BCSiliconItems.PROGRAMMING_TABLE),
          BG_W,
-         JeiCategoryDraw.cardH(BG_H)
+         CARD_H
       );
       this.background = guiHelper.createDrawable(TEX, BG_U, BG_V, BG_W, BG_H);
    }
 
    public void draw(ProgrammingRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
-      JeiCategoryDraw.mjPower(graphics, "gui.jei.category.buildcraft.programming_table.power", recipe.microJoules(), BG_W, BG_H);
+      String mj = LocaleUtil.localizeMj(recipe.microJoules());
+      if (!mj.isEmpty()) {
+         JeiCategoryDraw.textRight(graphics, LocaleUtil.localize("gui.jei.category.buildcraft.programming_table.power", mj), POWER_ALIGN_W, POWER_Y);
+      }
    }
 
    public void setRecipe(IRecipeLayoutBuilder builder, ProgrammingRecipeJei recipe, IFocusGroup focuses) {
@@ -51,7 +58,7 @@ public class ProgrammingTableCategory extends AbstractRecipeCategory<Programming
       int row = recipe.optionIndex() / TileProgrammingTable.WIDTH;
       IRecipeSlotBuilder optionBuilder = (IRecipeSlotBuilder)builder.addInputSlot(OPTIONS_X + col * 18, OPTIONS_Y + row * 18)
          .addItemStacks(List.of(recipe.option()));
-      IRecipeSlotBuilder outputBuilder = (IRecipeSlotBuilder)builder.addOutputSlot(OUTPUT_X, OUTPUT_Y).setOutputSlotBackground().addItemStacks(List.of(recipe.option()));
+      IRecipeSlotBuilder outputBuilder = (IRecipeSlotBuilder)builder.addInputSlot(OUTPUT_X, OUTPUT_Y).addItemStacks(List.of(recipe.option()));
       builder.createFocusLink(new IIngredientAcceptor[]{inputBuilder, optionBuilder, outputBuilder});
    }
 }

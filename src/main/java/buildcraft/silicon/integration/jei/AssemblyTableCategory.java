@@ -8,6 +8,7 @@ package buildcraft.silicon.integration.jei;
 
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.integration.jei.JeiCategoryDraw;
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.silicon.BCSiliconItems;
 import java.util.List;
 import mezz.jei.api.gui.builder.IIngredientAcceptor;
@@ -25,9 +26,11 @@ import net.minecraft.world.item.ItemStack;
 
 public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipeJei> {
    private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/assembly_table.png");
-   private static final int BG_U = 3, BG_V = 27, BG_W = 89, BG_H = 74;
-   private static final int CARD_W = 129;
-   private static final int INPUT_X = 5, INPUT_Y = 9, OUTPUT_X = 105, OUTPUT_Y = 9;
+   private static final int BG_U = 3, BG_V = 27, BG_W = 172, BG_H = 80;
+   private static final int INPUT_X = 5, INPUT_Y = 9, DISPLAY_X = 113, DISPLAY_Y = 9;
+   private static final int POWER_ALIGN_W = DISPLAY_X + 3 * 18;
+   private static final int POWER_Y = BG_H + 5;
+   private static final int CARD_H = BG_H + 16;
    private final IDrawable background;
 
    public AssemblyTableCategory(IGuiHelper guiHelper) {
@@ -35,15 +38,18 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
          BCJeiRecipeTypes.ASSEMBLY,
          Component.translatable("gui.jei.category.buildcraft.assembly_table"),
          guiHelper.createDrawableItemLike(BCSiliconItems.ASSEMBLY_TABLE),
-         CARD_W,
-         JeiCategoryDraw.cardH(BG_H)
+         BG_W,
+         CARD_H
       );
       this.background = guiHelper.createDrawable(TEX, BG_U, BG_V, BG_W, BG_H);
    }
 
    public void draw(AssemblyRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
-      JeiCategoryDraw.mjPower(graphics, "gui.jei.category.buildcraft.assembly_table.power", recipe.microJoules(), BG_W, BG_H);
+      String mj = LocaleUtil.localizeMj(recipe.microJoules());
+      if (!mj.isEmpty()) {
+         JeiCategoryDraw.textRight(graphics, LocaleUtil.localize("gui.jei.category.buildcraft.assembly_table.power", mj), POWER_ALIGN_W, POWER_Y);
+      }
    }
 
    public void setRecipe(IRecipeLayoutBuilder builder, AssemblyRecipeJei recipe, IFocusGroup focuses) {
@@ -59,8 +65,15 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
       }
 
       IRecipeSlotBuilder outputSlotBuilder = null;
-      if (!recipe.outputs().isEmpty()) {
-         outputSlotBuilder = (IRecipeSlotBuilder)builder.addOutputSlot(OUTPUT_X, OUTPUT_Y).setOutputSlotBackground().addItemStacks(recipe.outputs());
+      List<ItemStack> outputs = recipe.outputs();
+      for (int i = 0; i < outputs.size() && i < 12; i++) {
+         ItemStack output = outputs.get(i);
+         if (!output.isEmpty()) {
+            IRecipeSlotBuilder slotBuilder = (IRecipeSlotBuilder)builder.addInputSlot(DISPLAY_X + i % 3 * 18, DISPLAY_Y + i / 3 * 18).addItemStacks(List.of(output));
+            if (outputSlotBuilder == null) {
+               outputSlotBuilder = slotBuilder;
+            }
+         }
       }
 
       int linkIdx = recipe.focusLinkInputIndex();
