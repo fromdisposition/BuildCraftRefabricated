@@ -14,9 +14,10 @@ import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.misc.data.Box;
 import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
+import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -26,14 +27,20 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BiomeTags;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
+import net.minecraft.world.level.levelgen.Heightmap;
+
 public class OilGenerator {
-   private static final long MAGIC_GEN_NUMBER = -3438862373895731249L;
-   private static final int SEA_LEVEL = 62;
+   /** Anchor at chunk center; one cardinal neighbor adds 16 blocks (8 + 16 + 7 = 31 → reach 23). */
+   public static final int CHUNK_CENTER_OFFSET = 8;
+   public static final int MAX_RADIUS_WITH_CARDINAL_NEIGHBORS = 23;
+   private static final long OIL_PLACEMENT_SALT = -0x4F696C4465706F73L;
    private static final int BIOME_SAMPLE_Y = 64;
    private static final double OIL_BIOME_BONUS = 3.0;
    private static final double MOUNTAINOUS_BIOME_BONUS = 0.1;
@@ -46,16 +53,6 @@ public class OilGenerator {
    private OilGenerator() {
    }
 
-   private static Random createRandomForChunk(Level level, int chunkX, int chunkZ, long magicNumber) {
-      long worldSeed = level instanceof ServerLevel sl ? sl.getSeed() : 0L;
-      Random worldRandom = new Random(worldSeed);
-      long xSeed = worldRandom.nextLong() >> 3;
-      long zSeed = worldRandom.nextLong() >> 3;
-      long chunkSeed = xSeed * chunkX + zSeed * chunkZ ^ worldSeed;
-      chunkSeed ^= magicNumber;
-      return new Random(chunkSeed);
-   }
-
    public static boolean canGenerateOilIn(ServerLevel level) {
       if (level.getChunkSource().getGenerator() instanceof FlatLevelSource) {
          return false;
@@ -64,77 +61,155 @@ public class OilGenerator {
       return level.dimension() == Level.NETHER && BCEnergyConfig.enableNetherOilGeneration.get() || !isDimensionExcluded(level.dimension());
    }
 
+   /**
+    * Lightweight advancement probe: same placement modifiers and roll logic as worldgen, without building geometry.
+    */
    public static boolean wouldGenerateOilForOriginChunk(ServerLevel level, int chunkX, int chunkZ) {
-      return canGenerateOilIn(level) && !getStructures(level, chunkX, chunkZ).isEmpty();
+      if (!canGenerateOilIn(level)) {
+         return false;
+      }
+
+      RandomSource random = createChunkPlacementRandom(level, chunkX, chunkZ);
+      return predictOilAt(level, chunkCenterBlockX(chunkX), chunkCenterBlockZ(chunkZ), random);
+   }
+
+   public static boolean predictOilAt(Level level, int x, int z, RandomSource random) {
+      ChunkSample sample = sampleAt(level, x, z, random);
+      if (isBiomeExcluded(sample.biomeId())) {
+         return false;
+      }
+
+      if (sample.biome().is(BiomeTags.IS_END) && (Math.abs(x) < 1200 || Math.abs(z) < 1200)) {
+         return false;
+      }
+
+      if (level.dimension() == Level.NETHER) {
+         return predictNetherOil(x, z, random);
+      }
+
+      return BiomeRoll.create(sample).pickType() != null;
    }
 
    public static boolean isOilDesignBiome(Identifier biomeId) {
       return BCEnergyConfig.getRichSurfaceDepositBiomes().contains(biomeId) || BCEnergyConfig.getForceExcessiveOilBiomes().contains(biomeId);
    }
 
-   private static ChunkSample sampleChunk(Level level, int cx, int cz) {
-      return sampleAt(level, cx, cz, (cx << 4) + 8, (cz << 4) + 8);
+   private static Box chunkBounds(WorldGenLevel level, int chunkX, int chunkZ) {
+      int baseX = chunkX << 4;
+      int baseZ = chunkZ << 4;
+      return new Box(new BlockPos(baseX, level.getMinY(), baseZ), new BlockPos(baseX + 15, level.getMaxY(), baseZ + 15));
    }
 
-   private static ChunkSample sampleAt(Level level, int cx, int cz, int x, int z) {
-      Random rand = createRandomForChunk(level, cx, cz, MAGIC_GEN_NUMBER);
+   private static ChunkSample sampleAt(Level level, int x, int z, RandomSource random) {
       Holder<Biome> biome = level.getBiome(new BlockPos(x, BIOME_SAMPLE_Y, z));
       Identifier biomeId = Identifier.parse(biome.getRegisteredName());
-      return new ChunkSample(rand, x, z, biome, biomeId);
-   }
-
-   private static Identifier sampleBiomeForChunkRoll(Level level, int cx, int cz) {
-      return sampleChunk(level, cx, cz).biomeId();
+      return new ChunkSample(random, x, z, biome, biomeId);
    }
 
    public static boolean isOilDesignBiomeAt(Level level, int chunkX, int chunkZ) {
-      return isOilDesignBiome(sampleBiomeForChunkRoll(level, chunkX, chunkZ));
+      return isOilDesignBiome(sampleAt(level, chunkCenterBlockX(chunkX), chunkCenterBlockZ(chunkZ), RandomSource.create(0L)).biomeId());
    }
 
-   /** One origin chunk, one pass — placement origin comes from the configured feature modifiers. */
-   public static boolean placeForChunk(WorldGenLevel level, BlockPos origin) {
+   public static int chunkCenterBlockX(int chunkX) {
+      return (chunkX << 4) + CHUNK_CENTER_OFFSET;
+   }
+
+   public static int chunkCenterBlockZ(int chunkZ) {
+      return (chunkZ << 4) + CHUNK_CENTER_OFFSET;
+   }
+
+   /**
+    * One roll per chunk at center; writes into this chunk plus cardinal neighbors whose bounds intersect
+    * the deposit (at most four extra chunks — no BC-style 11×11 scan).
+    */
+   public static boolean placeForChunk(WorldGenLevel level, BlockPos origin, RandomSource random) {
       if (!canGenerateOilIn(level.getLevel())) {
          return false;
       }
 
       int chunkX = origin.getX() >> 4;
       int chunkZ = origin.getZ() >> 4;
-      List<OilGenStructure> structures = getStructures(level.getLevel(), chunkX, chunkZ, origin.getX(), origin.getZ(), true);
+      int anchorX = chunkCenterBlockX(chunkX);
+      int anchorZ = chunkCenterBlockZ(chunkZ);
+      List<OilGenStructure> structures = buildStructures(level.getLevel(), anchorX, anchorZ, random, true);
       if (structures.isEmpty()) {
          return false;
       }
 
-      OilGenStructure.Spring spring = generateStructures(level, structures);
-      if (spring != null) {
-         spring.generate(level, countOilSources(structures));
-      }
-
-      return true;
+      return generateDepositAcrossChunks(level, structures, chunkX, chunkZ);
    }
 
-   private static OilGenStructure.Spring generateStructures(WorldGenLevel level, List<OilGenStructure> structures) {
+   private static boolean generateDepositAcrossChunks(WorldGenLevel level, List<OilGenStructure> structures, int originChunkX, int originChunkZ) {
       OilGenStructure.Spring spring = null;
+      boolean placed = false;
+      int sourceCount = 0;
 
       for (OilGenStructure struct : structures) {
-         struct.generate(level, struct.box);
          if (struct instanceof OilGenStructure.Spring found) {
             spring = found;
          }
       }
 
-      return spring;
-   }
+      for (ChunkPos chunkPos : chunksForStructureOverlap(structures, originChunkX, originChunkZ)) {
+         Box chunkBounds = chunkBounds(level, chunkPos.x(), chunkPos.z());
 
-   private static int countOilSources(List<OilGenStructure> structures) {
-      int count = 0;
+         for (OilGenStructure struct : structures) {
+            if (struct instanceof OilGenStructure.Spring) {
+               continue;
+            }
 
-      for (OilGenStructure struct : structures) {
-         if (!(struct instanceof OilGenStructure.Spring)) {
-            count += struct.countOilBlocks();
+            int placedBefore = struct.getPlacedOilPositions().size();
+            struct.generate(level, chunkBounds);
+            int placedAfter = struct.getPlacedOilPositions().size();
+            if (placedAfter > placedBefore) {
+               placed = true;
+               sourceCount += placedAfter - placedBefore;
+            }
          }
       }
 
-      return count;
+      if (spring != null && chunkBounds(level, originChunkX, originChunkZ).contains(spring.pos)) {
+         spring.generate(level, sourceCount);
+         placed = true;
+      }
+
+      return placed;
+   }
+
+   /** Origin chunk plus cardinal neighbors that intersect any structure AABB (≤ 5 chunks total). */
+   private static Set<ChunkPos> chunksForStructureOverlap(List<OilGenStructure> structures, int originChunkX, int originChunkZ) {
+      LinkedHashSet<ChunkPos> chunks = new LinkedHashSet<>();
+      chunks.add(new ChunkPos(originChunkX, originChunkZ));
+
+      for (OilGenStructure struct : structures) {
+         if (struct instanceof OilGenStructure.Spring) {
+            continue;
+         }
+
+         Box box = struct.box;
+         int minChunkX = box.min().getX() >> 4;
+         int maxChunkX = box.max().getX() >> 4;
+         int minChunkZ = box.min().getZ() >> 4;
+         int maxChunkZ = box.max().getZ() >> 4;
+
+         for (int cx = minChunkX; cx <= maxChunkX; cx++) {
+            for (int cz = minChunkZ; cz <= maxChunkZ; cz++) {
+               if (cx == originChunkX && cz == originChunkZ) {
+                  continue;
+               }
+
+               if (Math.abs(cx - originChunkX) + Math.abs(cz - originChunkZ) == 1) {
+                  chunks.add(new ChunkPos(cx, cz));
+               }
+            }
+         }
+      }
+
+      return chunks;
+   }
+
+   private static int clampHorizontalReach(int radius) {
+      return Math.min(radius, MAX_RADIUS_WITH_CARDINAL_NEIGHBORS);
    }
 
    private static boolean isDimensionExcluded(ResourceKey<Level> dimKey) {
@@ -142,27 +217,25 @@ public class OilGenerator {
       return BCEnergyConfig.dimensionListMode.get() == BCEnergyConfig.ListMode.BLACKLIST ? inList : !inList;
    }
 
-   public static List<OilGenStructure> getStructures(Level level, int cx, int cz) {
-      return getStructures(level, cx, cz, false);
-   }
-
-   private static List<OilGenStructure> getStructures(Level level, int cx, int cz, boolean log) {
-      return getStructures(level, cx, cz, (cx << 4) + 8, (cz << 4) + 8, log);
-   }
-
-   private static List<OilGenStructure> getStructures(Level level, int cx, int cz, int x, int z, boolean log) {
-      ChunkSample sample = sampleAt(level, cx, cz, x, z);
-      boolean isExcludedBiome = BCEnergyConfig.getExcludedBiomes().contains(sample.biomeId());
+   private static boolean isBiomeExcluded(Identifier biomeId) {
+      boolean isExcludedBiome = BCEnergyConfig.getExcludedBiomes().contains(biomeId);
       boolean biomeBlacklisted = BCEnergyConfig.biomeListMode.get() == BCEnergyConfig.ListMode.BLACKLIST;
-      if (isExcludedBiome == biomeBlacklisted) {
+      return isExcludedBiome == biomeBlacklisted;
+   }
+
+   private static List<OilGenStructure> buildStructures(Level level, int x, int z, RandomSource random, boolean log) {
+      int cx = x >> 4;
+      int cz = z >> 4;
+      ChunkSample sample = sampleAt(level, x, z, random);
+      if (isBiomeExcluded(sample.biomeId())) {
          if (DEBUG_OILGEN_BASIC && log) {
             BCLog.logger.info("[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz + " because the biome (" + sample.biomeId() + ") is excluded!");
          }
 
          return ImmutableList.of();
-      } else if (!sample.biome().is(BiomeTags.IS_END) || Math.abs(sample.x()) >= 1200 && Math.abs(sample.z()) >= 1200) {
+      } else if (!sample.biome().is(BiomeTags.IS_END) || Math.abs(x) >= 1200 && Math.abs(z) >= 1200) {
          if (level.dimension() == Level.NETHER) {
-            return getNetherStructures(level, log, sample.rand(), sample.x(), sample.z());
+            return getNetherStructures(level, log, random, x, z);
          }
 
          BiomeRoll roll = BiomeRoll.create(sample);
@@ -182,9 +255,9 @@ public class OilGenerator {
                      + ", "
                      + cz
                      + " at "
-                     + sample.x()
+                     + x
                      + ", "
-                     + sample.z()
+                     + z
                );
          }
 
@@ -201,9 +274,23 @@ public class OilGenerator {
       }
    }
 
+   private static int resolveSurfaceY(Level level, Holder<Biome> biome, int x, int z) {
+      Heightmap.Types heightmap = biome.is(BiomeTags.IS_OCEAN) ? Heightmap.Types.OCEAN_FLOOR : Heightmap.Types.WORLD_SURFACE;
+      if (level instanceof WorldGenLevel wg) {
+         return wg.getHeight(heightmap, x, z);
+      }
+
+      if (level instanceof LevelReader reader) {
+         return reader.getHeight(heightmap, x, z);
+      }
+
+      return OilGenStructure.findTerrainUpper(level, x, z).getY() + 1;
+   }
+
    private static List<OilGenStructure> createOverworldStructures(Level level, ChunkSample sample, BiomeRoll roll, GenType type) {
       List<OilGenStructure> structures = new ArrayList<>();
-      BlockPos surfaceCenter = new BlockPos(sample.x(), SEA_LEVEL, sample.z());
+      int surfaceY = resolveSurfaceY(level, sample.biome(), sample.x(), sample.z());
+      BlockPos surfaceCenter = new BlockPos(sample.x(), surfaceY, sample.z());
 
       if (type == OilGenerator.GenType.LAKE) {
          structures.add(createTendril(surfaceCenter, 6, 25 + sample.rand().nextInt(20), sample.rand()));
@@ -217,29 +304,31 @@ public class OilGenerator {
       BlockPos wellCenter = new BlockPos(sample.x(), wellY, sample.z());
       structures.add(createSphere(wellCenter, wellRadius));
 
-      boolean hasSpring = roll.richBiome() && (type == OilGenerator.GenType.LARGE || type == OilGenerator.GenType.MEDIUM);
-      addSpoutIfEnabled(structures, sample.rand(), wellCenter, hasSpring);
-      addSpringIfEnabled(level, structures, sample, wellY, wellRadius, hasSpring);
+      addSpoutIfEnabled(structures, sample.rand(), wellCenter, type);
+      addSpringIfEnabled(level, structures, sample, wellY, wellRadius, type == OilGenerator.GenType.LARGE);
 
       return structures;
    }
 
-   private static void addSurfaceStructure(List<OilGenStructure> structures, Random rand, BlockPos center, BiomeRoll roll, GenType type) {
+   private static void addSurfaceStructure(List<OilGenStructure> structures, RandomSource rand, BlockPos center, BiomeRoll roll, GenType type) {
       if (roll.richLand()) {
          structures.add(type == OilGenerator.GenType.LARGE ? createSurfacePoolLarge(center, rand) : createSurfacePoolMedium(center, rand));
       } else if (roll.isOcean()) {
-         int lakeRadius = type == OilGenerator.GenType.LARGE ? 4 : 2;
-         int tendrilRadius = type == OilGenerator.GenType.LARGE ? 25 + rand.nextInt(20) : 5 + rand.nextInt(10);
-         structures.add(createTendril(center, lakeRadius, tendrilRadius, rand));
+         if (type == OilGenerator.GenType.LARGE) {
+            structures.add(createTendril(center, 4, 25 + rand.nextInt(20), rand));
+         } else {
+            structures.add(createTendril(center, 2, 5 + rand.nextInt(10), rand));
+         }
       }
    }
 
-   private static void addSpoutIfEnabled(List<OilGenStructure> structures, Random rand, BlockPos wellCenter, boolean hasSpring) {
+   /** BC 8.0: large geyser segments on {@link GenType#LARGE}, finite column on {@link GenType#MEDIUM}. */
+   private static void addSpoutIfEnabled(List<OilGenStructure> structures, RandomSource rand, BlockPos wellCenter, GenType type) {
       if (!BCEnergyConfig.enableOilSpouts.get()) {
          return;
       }
 
-      OilGenerator.SpoutKind kind = hasSpring ? OilGenerator.SpoutKind.LARGE : OilGenerator.SpoutKind.FINITE;
+      OilGenerator.SpoutKind kind = type == OilGenerator.GenType.LARGE ? OilGenerator.SpoutKind.LARGE : OilGenerator.SpoutKind.FINITE;
       structures.add(createSpout(wellCenter, kind.pickSegmentHeight(rand), kind.radius));
    }
 
@@ -255,7 +344,16 @@ public class OilGenerator {
       structures.add(createSpring(new BlockPos(sample.x(), level.getMinY(), sample.z())));
    }
 
-   private static List<OilGenStructure> getNetherStructures(Level level, boolean log, Random rand, int x, int z) {
+   private static boolean predictNetherOil(int x, int z, RandomSource rand) {
+      double globalMul = BCEnergyConfig.oilWellGenerationRate.get() * BCEnergyConfig.netherOilGenRateMultiplier.get();
+      if (rand.nextDouble() <= BCEnergyConfig.largeOilGenProb.get() * globalMul) {
+         return true;
+      }
+
+      return rand.nextDouble() <= BCEnergyConfig.mediumOilGenProb.get() * globalMul;
+   }
+
+   private static List<OilGenStructure> getNetherStructures(Level level, boolean log, RandomSource rand, int x, int z) {
       double globalMul = BCEnergyConfig.oilWellGenerationRate.get() * BCEnergyConfig.netherOilGenRateMultiplier.get();
       OilGenerator.GenType type;
       if (rand.nextDouble() <= BCEnergyConfig.largeOilGenProb.get() * globalMul) {
@@ -288,7 +386,8 @@ public class OilGenerator {
       int wellRadius = type == OilGenerator.GenType.LARGE ? 8 + rand.nextInt(9) : 4 + rand.nextInt(4);
       structures.add(createSphere(new BlockPos(x, wellY, z), wellRadius));
       if (BCEnergyConfig.enableOilSpouts.get()) {
-         structures.add(createSpout(new BlockPos(x, wellY, z), OilGenerator.SpoutKind.LARGE.pickSegmentHeight(rand), OilGenerator.SpoutKind.LARGE.radius));
+         OilGenerator.SpoutKind kind = type == OilGenerator.GenType.LARGE ? OilGenerator.SpoutKind.LARGE : OilGenerator.SpoutKind.FINITE;
+         structures.add(createSpout(new BlockPos(x, wellY, z), kind.pickSegmentHeight(rand), kind.radius));
       }
 
       int tubeStart = level.getMinY() + 2;
@@ -298,6 +397,17 @@ public class OilGenerator {
       }
 
       return structures;
+   }
+
+   private static long decorationSeedForChunk(long worldSeed, int chunkX, int chunkZ) {
+      RandomSource seed = RandomSource.create(worldSeed);
+      long xScale = seed.nextLong() | 1L;
+      long zScale = seed.nextLong() | 1L;
+      return (long)(chunkX << 4) * xScale + (long)(chunkZ << 4) * zScale ^ worldSeed;
+   }
+
+   private static RandomSource createChunkPlacementRandom(ServerLevel level, int chunkX, int chunkZ) {
+      return RandomSource.create(decorationSeedForChunk(level.getSeed(), chunkX, chunkZ) ^ OIL_PLACEMENT_SALT);
    }
 
    private static OilGenStructure createSpout(BlockPos start, int height, int radius) {
@@ -339,21 +449,23 @@ public class OilGenerator {
       return (int)Math.round(Math.PI * radius * radius * (length + 1));
    }
 
-   public static OilGenStructure createTendril(BlockPos center, int lakeRadius, int radius, Random rand) {
-      BlockPos start = center.offset(-radius, 0, -radius);
-      int diameter = radius * 2 + 1;
+   public static OilGenStructure createTendril(BlockPos center, int lakeRadius, int radius, RandomSource rand) {
+      int clampedRadius = clampHorizontalReach(radius);
+      int clampedLakeRadius = clampHorizontalReach(lakeRadius);
+      BlockPos start = center.offset(-clampedRadius, 0, -clampedRadius);
+      int diameter = clampedRadius * 2 + 1;
       boolean[][] pattern = new boolean[diameter][diameter];
-      int px = radius;
-      int pz = radius;
+      int px = clampedRadius;
+      int pz = clampedRadius;
 
-      for (int dx = -lakeRadius; dx <= lakeRadius; dx++) {
-         for (int dz = -lakeRadius; dz <= lakeRadius; dz++) {
-            pattern[px + dx][pz + dz] = dx * dx + dz * dz <= lakeRadius * lakeRadius;
+      for (int dx = -clampedLakeRadius; dx <= clampedLakeRadius; dx++) {
+         for (int dz = -clampedLakeRadius; dz <= clampedLakeRadius; dz++) {
+            pattern[px + dx][pz + dz] = dx * dx + dz * dz <= clampedLakeRadius * clampedLakeRadius;
          }
       }
 
-      for (int w = 1; w < radius; w++) {
-         float proba = (float)(radius - w + 4) / (radius + 4);
+      for (int w = 1; w < clampedRadius; w++) {
+         float proba = (float)(clampedRadius - w + 4) / (clampedRadius + 4);
          fillPatternIfProba(rand, proba, px, pz + w, pattern);
          fillPatternIfProba(rand, proba, px, pz - w, pattern);
          fillPatternIfProba(rand, proba, px + w, pz, pattern);
@@ -375,16 +487,17 @@ public class OilGenerator {
       return OilGenStructure.PatternTerrainHeight.create(start, pattern, depth, center.getY());
    }
 
-   public static OilGenStructure createSurfacePoolMedium(BlockPos center, Random rand) {
+   public static OilGenStructure createSurfacePoolMedium(BlockPos center, RandomSource rand) {
       return createSurfacePool(center, 5 + rand.nextInt(3), rand);
    }
 
-   public static OilGenStructure createSurfacePoolLarge(BlockPos center, Random rand) {
+   public static OilGenStructure createSurfacePoolLarge(BlockPos center, RandomSource rand) {
       return createSurfacePool(center, 8 + rand.nextInt(5), rand);
    }
 
-   private static OilGenStructure createSurfacePool(BlockPos center, int baseRadius, Random rand) {
-      int maxRadius = baseRadius + 1;
+   private static OilGenStructure createSurfacePool(BlockPos center, int baseRadius, RandomSource rand) {
+      int cappedBaseRadius = clampHorizontalReach(baseRadius);
+      int maxRadius = cappedBaseRadius + 1;
       int diameter = maxRadius * 2 + 1;
       boolean[][] pattern = new boolean[diameter][diameter];
       int centerIdx = maxRadius;
@@ -392,7 +505,7 @@ public class OilGenerator {
       for (int dx = -maxRadius; dx <= maxRadius; dx++) {
          for (int dz = -maxRadius; dz <= maxRadius; dz++) {
             int noise = rand.nextInt(3) - 1;
-            int effectiveR = Math.max(0, baseRadius + noise);
+            int effectiveR = Math.max(0, cappedBaseRadius + noise);
             int distSq = dx * dx + dz * dz;
             pattern[centerIdx + dx][centerIdx + dz] = distSq <= effectiveR * effectiveR;
          }
@@ -403,7 +516,7 @@ public class OilGenerator {
       return OilGenStructure.SurfacePool.create(start, pattern, depth, center.getY());
    }
 
-   private static void fillPatternIfProba(Random rand, float proba, int x, int z, boolean[][] pattern) {
+   private static void fillPatternIfProba(RandomSource rand, float proba, int x, int z, boolean[][] pattern) {
       if (rand.nextFloat() <= proba) {
          pattern[x][z] = isSet(pattern, x, z - 1) | isSet(pattern, x, z + 1) | isSet(pattern, x - 1, z) | isSet(pattern, x + 1, z);
       }
@@ -417,7 +530,7 @@ public class OilGenerator {
       }
    }
 
-   private static int randomIntInclusive(Random rand, int min, int max) {
+   private static int randomIntInclusive(RandomSource rand, int min, int max) {
       if (max < min) {
          int t = max;
          max = min;
@@ -427,11 +540,11 @@ public class OilGenerator {
       return min + rand.nextInt(max - min + 1);
    }
 
-   private record ChunkSample(Random rand, int x, int z, Holder<Biome> biome, Identifier biomeId) {
+   private record ChunkSample(RandomSource rand, int x, int z, Holder<Biome> biome, Identifier biomeId) {
    }
 
    private record BiomeRoll(
-      Random rand, boolean richBiome, boolean oilBiome, boolean mountainousBiome, boolean isOcean, boolean richLand, double globalMultiplier
+      RandomSource rand, boolean richBiome, boolean oilBiome, boolean mountainousBiome, boolean isOcean, boolean richLand, double globalMultiplier
    ) {
       static BiomeRoll create(ChunkSample sample) {
          boolean richBiome = BCEnergyConfig.getRichSurfaceDepositBiomes().contains(sample.biomeId());
@@ -477,7 +590,7 @@ public class OilGenerator {
       }
 
       private double spawnBonus() {
-         if (this.oilBiome) {
+         if (this.oilBiome || this.isOcean) {
             return OIL_BIOME_BONUS;
          } else if (this.mountainousBiome) {
             return MOUNTAINOUS_BIOME_BONUS;
@@ -493,7 +606,7 @@ public class OilGenerator {
       LAKE
    }
 
-   /** Two spout profiles — BC 8.0 finite (1-wide) vs large spring (3-wide base segment). */
+   /** Finite (1-wide) vs large spring (3-wide base segment). */
    private enum SpoutKind {
       FINITE(0) {
          @Override
@@ -528,7 +641,7 @@ public class OilGenerator {
 
       abstract int maxSegmentHeight();
 
-      int pickSegmentHeight(Random rand) {
+      int pickSegmentHeight(RandomSource rand) {
          return randomIntInclusive(rand, this.minSegmentHeight(), this.maxSegmentHeight());
       }
    }

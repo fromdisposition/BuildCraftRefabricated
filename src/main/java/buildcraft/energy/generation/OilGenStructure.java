@@ -27,20 +27,15 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.FluidState;
 
 public abstract class OilGenStructure {
    public final Box box;
    public final OilGenStructure.ReplaceType replaceType;
-   /** BC 8.0 uses 2 — no neighbor fluid updates during worldgen. */
+   /** UPDATE_CLIENTS only — no neighbor fluid cascade during chunk generation (BC 8.0 / vanilla lake pattern). */
    private static final int GEN_FLAGS = 2;
    static final int SURFACE_BOX_Y_MARGIN = 8;
    static final int OCEAN_SPREAD_CLEAR_HEIGHT = 5;
    static final int LAND_SPREAD_CLEAR_HEIGHT = 1;
-
-   /** When true, exposed source blocks schedule a vanilla fluid tick after placement (spouts only). */
-   protected boolean scheduleFluidSpread = false;
 
    protected final List<BlockPos> placedOilPositions = new ArrayList<>();
 
@@ -71,7 +66,7 @@ public abstract class OilGenStructure {
    }
 
    protected void placeOil(LevelAccessor level, BlockPos pos) {
-      setOil(level, pos, this.scheduleFluidSpread);
+      setOil(level, pos);
       this.placedOilPositions.add(pos.immutable());
    }
 
@@ -80,39 +75,12 @@ public abstract class OilGenStructure {
    }
 
    public static void setOil(LevelAccessor level, BlockPos pos) {
-      setOil(level, pos, false);
-   }
-
-   public static void setOil(LevelAccessor level, BlockPos pos, boolean scheduleSpread) {
       BlockState oil = BCEnergyFluidsFabric.oilSourceBlockStateForLevel(level instanceof Level l ? l : null);
       if (oil == null) {
          oil = BCEnergyFluidsFabric.OIL_COOL.still().defaultFluidState().createLegacyBlock();
       }
 
       level.setBlock(pos, oil, GEN_FLAGS);
-      if (scheduleSpread) {
-         scheduleFluidTickIfExposed(level, pos, oil);
-      }
-   }
-
-   /** Same contract as vanilla fluid blocks after worldgen placement. */
-   private static void scheduleFluidTickIfExposed(LevelAccessor level, BlockPos pos, BlockState oil) {
-      if (!(level instanceof WorldGenLevel worldGen)) {
-         return;
-      }
-
-      BlockState above = level.getBlockState(pos.above());
-      if (!above.isAir() && !above.canBeReplaced()) {
-         return;
-      }
-
-      FluidState fluid = oil.getFluidState();
-      if (fluid.isEmpty()) {
-         return;
-      }
-
-      Fluid fluidType = fluid.getType();
-      worldGen.scheduleTick(pos, fluidType, fluidType.getTickDelay(worldGen));
    }
 
    public static BlockPos findTerrainUpper(LevelAccessor level, int x, int z) {
@@ -270,7 +238,6 @@ public abstract class OilGenStructure {
 
       public Spout(BlockPos start, OilGenStructure.ReplaceType replaceType, int radius, int height) {
          super(createBox(start), replaceType);
-         this.scheduleFluidSpread = true;
          this.start = start;
          this.radius = radius;
          this.height = height;
@@ -300,22 +267,20 @@ public abstract class OilGenStructure {
 
          int tubeLen = Math.max(0, worldTop.getY() - this.start.getY());
          OilGenStructure tubeY = OilGenerator.createTube(this.start, tubeLen, this.radius, Axis.Y);
-         this.generateChild(level, tubeY);
+         this.generateChild(level, intersect, tubeY);
          this.count += tubeY.countOilBlocks();
          BlockPos base = worldTop;
 
          for (int r = this.radius; r >= 0; r--) {
             OilGenStructure struct = OilGenerator.createTube(base, this.height, r, Axis.Y);
-            this.generateChild(level, struct);
+            this.generateChild(level, intersect, struct);
             this.count += struct.countOilBlocks();
             base = base.offset(0, this.height, 0);
          }
       }
 
-      /** BC 8.0 generates each tube in its own bounding box — not clipped to the 1-wide spout column. */
-      private void generateChild(LevelAccessor level, OilGenStructure child) {
-         child.scheduleFluidSpread = this.scheduleFluidSpread;
-         child.generate(level, child.box);
+      private void generateChild(LevelAccessor level, Box within, OilGenStructure child) {
+         child.generate(level, within);
          this.placedOilPositions.addAll(child.getPlacedOilPositions());
       }
 

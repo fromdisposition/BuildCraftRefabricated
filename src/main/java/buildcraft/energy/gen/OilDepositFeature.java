@@ -11,7 +11,8 @@ import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
 /**
- * Native Fabric entry point for oil worldgen. All deposit geometry lives in {@link OilGenerator} / {@link buildcraft.energy.generation.OilGenStructure}.
+ * Vanilla {@link Feature} hook for oil deposits. Geometry is defined in {@link buildcraft.energy.generation.OilGenStructure};
+ * {@link OilGenerator} rolls one deposit per chunk at chunk center and may clip into cardinal neighbor chunks.
  */
 public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
    public OilDepositFeature(Codec<NoneFeatureConfiguration> codec) {
@@ -29,6 +30,6 @@ public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
          return false;
       }
 
-      return OilGenerator.placeForChunk(level, context.origin());
+      return OilGenerator.placeForChunk(level, context.origin(), context.random());
    }
 }
