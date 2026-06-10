@@ -14,6 +14,9 @@ import buildcraft.fabric.fluid.BcFluidUtil;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.misc.data.Box;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -35,9 +38,15 @@ public abstract class OilGenStructure {
    static final int OCEAN_SPREAD_CLEAR_HEIGHT = 5;
    static final int LAND_SPREAD_CLEAR_HEIGHT = 1;
 
+   protected final List<BlockPos> placedOilPositions = new ArrayList<>();
+
    public OilGenStructure(Box containingBox, OilGenStructure.ReplaceType replaceType) {
       this.box = containingBox;
       this.replaceType = replaceType;
+   }
+
+   public List<BlockPos> getPlacedOilPositions() {
+      return Collections.unmodifiableList(this.placedOilPositions);
    }
 
    public final void generate(LevelAccessor level, Box within) {
@@ -53,8 +62,13 @@ public abstract class OilGenStructure {
 
    public void setOilIfCanReplace(LevelAccessor level, BlockPos pos) {
       if (this.canReplaceForOil(level, pos)) {
-         setOil(level, pos);
+         this.placeOil(level, pos);
       }
+   }
+
+   protected void placeOil(LevelAccessor level, BlockPos pos) {
+      setOil(level, pos);
+      this.placedOilPositions.add(pos.immutable());
    }
 
    public boolean canReplaceForOil(LevelAccessor level, BlockPos pos) {
@@ -89,7 +103,7 @@ public abstract class OilGenStructure {
       return new BlockPos(x, level.getMinY(), z);
    }
 
-   @javax.annotation.Nullable
+   @Nullable
    protected static BlockPos findSurfaceWater(LevelAccessor level, int x, int z, int surfaceY) {
       for (int dy = 0; dy >= -4; dy--) {
          BlockPos pos = new BlockPos(x, surfaceY + dy, z);
@@ -109,6 +123,34 @@ public abstract class OilGenStructure {
             level.setBlock(above, Blocks.AIR.defaultBlockState(), GEN_FLAGS);
          }
       }
+   }
+
+   private static Box createPatternBox(BlockPos start, boolean[][] pattern, int minY, int maxY) {
+      BlockPos min = new BlockPos(start.getX(), minY, start.getZ());
+      BlockPos max = new BlockPos(start.getX() + pattern.length - 1, maxY, start.getZ() + patternDepth(pattern) - 1);
+      return new Box(min, max);
+   }
+
+   private static int patternDepth(boolean[][] pattern) {
+      return pattern.length == 0 ? 1 : pattern[0].length;
+   }
+
+   private static boolean isPatternSet(boolean[][] pattern, int x, int z) {
+      return x >= 0 && x < pattern.length && z >= 0 && z < pattern[x].length && pattern[x][z];
+   }
+
+   private static int countPatternCells(boolean[][] pattern) {
+      int count = 0;
+
+      for (boolean[] row : pattern) {
+         for (boolean cell : row) {
+            if (cell) {
+               count++;
+            }
+         }
+      }
+
+      return count;
    }
 
    public static class GenByPredicate extends OilGenStructure {
@@ -155,11 +197,7 @@ public abstract class OilGenStructure {
       public static OilGenStructure.PatternTerrainHeight create(BlockPos start, boolean[][] pattern, int depth, int surfaceY) {
          int minY = Math.max(surfaceY - SURFACE_BOX_Y_MARGIN - depth, 1);
          int maxY = surfaceY + OCEAN_SPREAD_CLEAR_HEIGHT + SURFACE_BOX_Y_MARGIN;
-         BlockPos min = new BlockPos(start.getX(), minY, start.getZ());
-         BlockPos max = new BlockPos(
-            start.getX() + pattern.length - 1, maxY, start.getZ() + (pattern.length == 0 ? 0 : pattern[0].length - 1)
-         );
-         Box box = new Box(min, max);
+         Box box = createPatternBox(start, pattern, minY, maxY);
          return new OilGenStructure.PatternTerrainHeight(box, OilGenStructure.ReplaceType.ALWAYS, pattern, depth, surfaceY);
       }
 
@@ -170,7 +208,7 @@ public abstract class OilGenStructure {
 
             for (int z = intersect.min().getZ(); z <= intersect.max().getZ(); z++) {
                int pz = z - this.box.min().getZ();
-               if (px < 0 || px >= this.pattern.length || pz < 0 || pz >= this.pattern[px].length || !this.pattern[px][pz]) {
+               if (!isPatternSet(this.pattern, px, pz)) {
                   continue;
                }
 
@@ -200,17 +238,7 @@ public abstract class OilGenStructure {
 
       @Override
       protected int countOilBlocks() {
-         int count = 0;
-
-         for (int x = 0; x < this.pattern.length; x++) {
-            for (int z = 0; z < this.pattern[x].length; z++) {
-               if (this.pattern[x][z]) {
-                  count++;
-               }
-            }
-         }
-
-         return count * this.depth;
+         return countPatternCells(this.pattern) * this.depth;
       }
    }
 
@@ -263,16 +291,21 @@ public abstract class OilGenStructure {
 
          int tubeLen = Math.max(0, worldTop.getY() - this.start.getY());
          OilGenStructure tubeY = OilGenerator.createTube(this.start, tubeLen, this.radius, Axis.Y);
-         tubeY.generate(level, intersect);
+         this.generateChild(level, intersect, tubeY);
          this.count += tubeY.countOilBlocks();
          BlockPos base = worldTop;
 
          for (int r = this.radius; r >= 0; r--) {
             OilGenStructure struct = OilGenerator.createTube(base, this.height, r, Axis.Y);
-            struct.generate(level, intersect);
+            this.generateChild(level, intersect, struct);
             this.count += struct.countOilBlocks();
             base = base.offset(0, this.height, 0);
          }
+      }
+
+      private void generateChild(LevelAccessor level, Box intersect, OilGenStructure child) {
+         child.generate(level, intersect);
+         this.placedOilPositions.addAll(child.getPlacedOilPositions());
       }
 
       @Override
@@ -307,7 +340,7 @@ public abstract class OilGenStructure {
 
          BlockState state = BCCoreBlocks.SPRING_OIL.defaultBlockState();
          level.setBlock(placement, state, GEN_FLAGS);
-         setOil(level, placement.above());
+         this.placeOil(level, placement.above());
          if (level.getBlockEntity(placement) instanceof TileSpringOil spring) {
             spring.totalSources = count;
          } else {
@@ -349,11 +382,7 @@ public abstract class OilGenStructure {
       public static OilGenStructure.SurfacePool create(BlockPos start, boolean[][] pattern, int depth, int surfaceY) {
          int minY = Math.max(surfaceY - SURFACE_BOX_Y_MARGIN - depth, 1);
          int maxY = surfaceY + LAND_SPREAD_CLEAR_HEIGHT + SURFACE_BOX_Y_MARGIN;
-         BlockPos min = new BlockPos(start.getX(), minY, start.getZ());
-         BlockPos max = new BlockPos(
-            start.getX() + pattern.length - 1, maxY, start.getZ() + (pattern.length == 0 ? 0 : pattern[0].length - 1)
-         );
-         Box box = new Box(min, max);
+         Box box = createPatternBox(start, pattern, minY, maxY);
          return new OilGenStructure.SurfacePool(box, OilGenStructure.ReplaceType.ALWAYS, pattern, depth);
       }
 
@@ -364,7 +393,7 @@ public abstract class OilGenStructure {
 
             for (int z = intersect.min().getZ(); z <= intersect.max().getZ(); z++) {
                int pz = z - this.box.min().getZ();
-               if (px < 0 || px >= this.pattern.length || pz < 0 || pz >= this.pattern[px].length || !this.pattern[px][pz]) {
+               if (!isPatternSet(this.pattern, px, pz)) {
                   continue;
                }
 
@@ -387,17 +416,7 @@ public abstract class OilGenStructure {
 
       @Override
       protected int countOilBlocks() {
-         int count = 0;
-
-         for (int x = 0; x < this.pattern.length; x++) {
-            for (int z = 0; z < this.pattern[x].length; z++) {
-               if (this.pattern[x][z]) {
-                  count++;
-               }
-            }
-         }
-
-         return count * this.depth;
+         return countPatternCells(this.pattern) * this.depth;
       }
    }
 }
