@@ -6,12 +6,11 @@
 
 package buildcraft.factory.integration.jei;
 
-import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.gui.BCGraphics;
+import buildcraft.lib.integration.jei.JeiPowerText;
 import buildcraft.lib.integration.jei.FluidContainerAliases;
 import buildcraft.lib.integration.jei.JeiFluids;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -22,8 +21,6 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.AbstractRecipeCategory;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -47,9 +44,7 @@ public class DistillerCategory extends AbstractRecipeCategory<IRefineryRecipeMan
    private static final int TANK_LIQ_Y = 50;
    private static final int TANK_LIQ_W = 34;
    private static final int TANK_LIQ_H = 17;
-   private static final int POWER_X = 4;
-   private static final int POWER_Y = 76;
-   private static final int POWER_COLOR = -12566464;
+   private static final int POWER_Y = TEX_H + 2;
    private final IDrawable background;
 
    public DistillerCategory(IGuiHelper guiHelper) {
@@ -65,10 +60,7 @@ public class DistillerCategory extends AbstractRecipeCategory<IRefineryRecipeMan
 
    public void draw(IRefineryRecipeManager.IDistillationRecipe recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
-      double mj = (double)recipe.powerRequired() / MjAPI.MJ;
-      String powerStr = Component.translatable("gui.jei.category.buildcraft.distiller.power", new Object[]{String.format("%.1f", mj), "MJ"}).getString();
-      Font font = Minecraft.getInstance().font;
-      new BCGraphics(graphics).text(font, powerStr, 4, 76, -12566464, false);
+      JeiPowerText.drawRightAligned(graphics, "gui.jei.category.buildcraft.distiller.power", recipe.powerRequired(), TEX_W, POWER_Y);
    }
 
    public void setRecipe(IRecipeLayoutBuilder builder, IRefineryRecipeManager.IDistillationRecipe recipe, IFocusGroup focuses) {

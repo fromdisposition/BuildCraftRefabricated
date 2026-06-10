@@ -7,8 +7,7 @@
 package buildcraft.silicon.integration.jei;
 
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
-import buildcraft.lib.gui.BCGraphics;
-import buildcraft.lib.misc.LocaleUtil;
+import buildcraft.lib.integration.jei.JeiPowerText;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.tile.TileProgrammingTable;
 import java.util.List;
@@ -20,23 +19,25 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.category.AbstractRecipeCategory;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
 public class ProgrammingTableCategory extends AbstractRecipeCategory<ProgrammingRecipeJei> {
+   private static final int TEX_U = 0;
+   private static final int TEX_V = 18;
+   private static final int TEX_W = 154;
+   private static final int TEX_H = 76;
+   private static final int SLOT_Y_SHIFT = -TEX_V;
    private static final int INPUT_X = 8;
-   private static final int INPUT_Y = 36;
+   private static final int INPUT_Y = 36 + SLOT_Y_SHIFT;
    private static final int OPTIONS_X = 43;
-   private static final int OPTIONS_Y = 36;
+   private static final int OPTIONS_Y = 36 + SLOT_Y_SHIFT;
    private static final int OUTPUT_X = 8;
-   private static final int OUTPUT_Y = 90;
-   private static final int POWER_X = 4;
-   private static final int POWER_Y = 112;
-   private static final int WIDTH = 154;
-   private static final int HEIGHT = 122;
+   private static final int OUTPUT_Y = 90 + SLOT_Y_SHIFT;
+   private static final int POWER_Y = TEX_H + 2;
+   private static final int WIDTH = TEX_W;
+   private static final int HEIGHT = TEX_H + 12;
    private final IDrawable background;
 
    public ProgrammingTableCategory(IGuiHelper guiHelper) {
@@ -47,17 +48,12 @@ public class ProgrammingTableCategory extends AbstractRecipeCategory<Programming
          WIDTH,
          HEIGHT
       );
-      this.background = guiHelper.createDrawable(Identifier.parse("buildcraftsilicon:textures/gui/programming_table.png"), 0, 0, WIDTH, HEIGHT);
+      this.background = guiHelper.createDrawable(Identifier.parse("buildcraftsilicon:textures/gui/programming_table.png"), TEX_U, TEX_V, TEX_W, TEX_H);
    }
 
    public void draw(ProgrammingRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
-      String powerStr = Component.translatable(
-            "gui.jei.category.buildcraft.programming_table.power", new Object[]{LocaleUtil.localizeMj(recipe.microJoules())}
-         )
-         .getString();
-      Font font = Minecraft.getInstance().font;
-      new BCGraphics(graphics).text(font, powerStr, POWER_X, POWER_Y, -12566464, false);
+      JeiPowerText.drawRightAligned(graphics, "gui.jei.category.buildcraft.programming_table.power", recipe.microJoules(), WIDTH, POWER_Y);
    }
 
    public void setRecipe(IRecipeLayoutBuilder builder, ProgrammingRecipeJei recipe, IFocusGroup focuses) {
