@@ -29,33 +29,22 @@ public class SpringFeature extends Feature<NoneFeatureConfiguration> {
          return false;
       }
 
-      int posX = origin.getX();
-      int posZ = origin.getZ();
-
-      for (int y = 0; y < 5; y++) {
-         BlockPos pos = new BlockPos(posX, y, posZ);
-         BlockState existing = level.getBlockState(pos);
-         if (existing.getBlock() == Blocks.BEDROCK) {
-            int placeY = y > 0 ? y : y - 1;
-            if (placeY >= level.getMinY()) {
-               BlockPos springPos = new BlockPos(posX, placeY, posZ);
-               BlockState springState = BCCoreBlocks.SPRING_WATER.defaultBlockState();
-               level.setBlock(springPos, springState, 3);
-
-               for (int j = placeY + 1; j < level.getMaxY(); j++) {
-                  BlockPos waterPos = new BlockPos(posX, j, posZ);
-                  if (level.isEmptyBlock(waterPos)) {
-                     break;
-                  }
-
-                  level.setBlock(waterPos, Blocks.WATER.defaultBlockState(), 3);
-               }
-
-               return true;
-            }
-         }
+      BlockPos bedrock = SpringPlacement.findBedrock(level, origin.getX(), origin.getZ());
+      if (bedrock == null) {
+         return false;
       }
 
-      return false;
+      level.setBlock(bedrock, BCCoreBlocks.SPRING_WATER.defaultBlockState(), 3);
+
+      for (int y = bedrock.getY() + 1; y < level.getMaxY(); y++) {
+         BlockPos column = new BlockPos(origin.getX(), y, origin.getZ());
+         if (level.isEmptyBlock(column)) {
+            break;
+         }
+
+         level.setBlock(column, Blocks.WATER.defaultBlockState(), 3);
+      }
+
+      return true;
    }
 }

@@ -5,6 +5,7 @@ import buildcraft.api.mj.IMjReceiver;
 import buildcraft.core.block.BlockSpring;
 import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.BCEnergyBlocks;
+import buildcraft.energy.BCEnergyFeatures;
 import buildcraft.energy.BCEnergyFluids;
 import buildcraft.energy.BCEnergyItems;
 import buildcraft.energy.BCEnergyMenuTypes;
@@ -34,7 +35,7 @@ public final class BCEnergyFabric {
       EnumSpring.OIL.liquidBlock = BCEnergyFluidsFabric.sourceBlockState(BCEnergyFluidsFabric.OIL_COOL);
       EnumSpring.OIL.canGen = true;
       BlockSpring.oilTileFactory = TileSpringOil::new;
-      BCEnergyWorldGenFabric.init();
+      BCEnergyFeatures.register();
    }
 
    public static void onConfigReloaded() {
