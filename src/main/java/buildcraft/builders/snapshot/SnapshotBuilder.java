@@ -340,10 +340,10 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             .forEach(this.placeTasks::add);
       }
 
-      long max = Math.min(
-         (long)((double)MAX_POWER_PER_TICK * (this.tile.getBattery().getStored() + MAX_POWER_PER_TICK / 10L) / (this.tile.getBattery().getCapacity() * 2L)),
-         MAX_POWER_PER_TICK
-      );
+      long stored = this.tile.getBattery().getStored();
+      long max = stored <= 0L
+         ? 0L
+         : Math.min((long)((double)MAX_POWER_PER_TICK * stored / (this.tile.getBattery().getCapacity() * 2L)), MAX_POWER_PER_TICK);
       if (!this.breakTasks.isEmpty()) {
          Iterator<SnapshotBuilder<T>.BreakTask> iteratorx = this.breakTasks.iterator();
 
@@ -416,9 +416,9 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
    public void clientTick() {
       long stored = this.tile.getBattery().getStored();
-      long max = Math.min(
-         (long)((double)MAX_POWER_PER_TICK * (stored + MAX_POWER_PER_TICK / 10L) / (this.tile.getBattery().getCapacity() * 2L)), MAX_POWER_PER_TICK
-      );
+      long max = stored <= 0L
+         ? 0L
+         : Math.min((long)((double)MAX_POWER_PER_TICK * stored / (this.tile.getBattery().getCapacity() * 2L)), MAX_POWER_PER_TICK);
       this.prevClientBreakTasks.clear();
 
       for (SnapshotBuilder<T>.BreakTask task : this.clientBreakTasks) {

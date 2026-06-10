@@ -472,6 +472,12 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
                this.check(edgePos);
             }
 
+            if (this.toCheck.isEmpty()) {
+               List<BlockPos> blocksInArea = this.frameBox.getBlocksInArea();
+               blocksInArea.sort(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(this.worldPosition::distSqr)));
+               this.toCheck.addAll(blocksInArea);
+            }
+
             this.deferredChunkLoad = true;
          } else {
             List<BlockPos> blocksInArea = this.frameBox.getBlocksInArea();
@@ -522,7 +528,12 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
 
    @Override
    public boolean hasWork() {
-      return this.miningBox.isInitialized() && this.firstChecked ? this.isMining() || this.boxIterator != null && this.boxIterator.hasNext() : false;
+      return this.miningBox.isInitialized() && this.firstChecked
+         ? this.isMining()
+            || this.boxIterator != null && this.boxIterator.hasNext()
+            || !this.framePlaceFramePoses.isEmpty()
+            || !this.frameBreakBlockPoses.isEmpty()
+         : false;
    }
 
    public void tick() {
@@ -571,19 +582,21 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
                }
 
                if (this.firstChecked) {
-                  boolean atFullSpeedThisTick = this.battery.getStored() > this.battery.getCapacity() / 2L;
+                  long stored = this.battery.getStored();
+                  boolean atFullSpeedThisTick = stored > this.battery.getCapacity() / 2L;
                   long max;
-                  if (atFullSpeedThisTick) {
+                  if (stored <= 0L) {
+                     max = 0L;
+                  } else if (atFullSpeedThisTick) {
                      max = MAX_POWER_PER_TICK;
                   } else {
-                     long roundedUp = this.battery.getStored() + MjAPI.MJ / 2L;
-                     if (roundedUp > Long.MAX_VALUE / MAX_POWER_PER_TICK) {
-                        max = BigInteger.valueOf(roundedUp)
+                     if (stored > Long.MAX_VALUE / MAX_POWER_PER_TICK) {
+                        max = BigInteger.valueOf(stored)
                            .multiply(BigInteger.valueOf(MAX_POWER_PER_TICK))
                            .divide(BigInteger.valueOf(this.battery.getCapacity() / 2L))
                            .longValue();
                      } else {
-                        max = MAX_POWER_PER_TICK * roundedUp / (this.battery.getCapacity() / 2L);
+                        max = MAX_POWER_PER_TICK * stored / (this.battery.getCapacity() / 2L);
                      }
 
                      max = MathUtil.clamp(max, 0L, MAX_POWER_PER_TICK);
@@ -592,7 +605,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
                   this.debugPowerRate = max;
                   this.blockPercentSoFar = 0.0;
                   this.moveDistanceSoFar = 0.0;
-                  int maxTasks = Math.max(1, (int)(max * BCBuildersConfig.quarryMaxTasksPerTick.get() / MAX_POWER_PER_TICK));
+                  int maxTasks = max <= 0L ? 0 : Math.max(1, (int)(max * BCBuildersConfig.quarryMaxTasksPerTick.get() / MAX_POWER_PER_TICK));
                   boolean sendUpdate = false;
 
                   for (int i = 0; i < maxTasks; i++) {
@@ -606,7 +619,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
                            long power = this.battery.extractPower(0L, Math.min(max, scaledNeeded));
                            max -= power;
                            added = power * mult / (mult + i);
-                           if (leftover > 0L) {
+                           if (leftover > 0L && power > 0L) {
                               added++;
                            }
                         } else {

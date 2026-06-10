@@ -565,6 +565,10 @@ public class TileFiller
          return false;
       }
 
+      if (!this.hasPower()) {
+         return false;
+      }
+
       SnapshotBuilder<?> b = this.getBuilder();
       return b != null && (b.leftToPlace > 0 || b.leftToBreak > 0);
    }

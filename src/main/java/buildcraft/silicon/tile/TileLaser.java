@@ -191,10 +191,18 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       }
 
       if (target != null) {
-         long max = this.getMaxPowerPerTick();
-         max *= this.battery.getStored() + max;
-         max /= this.battery.getCapacity() / 2L;
-         max = Math.min(Math.min(max, this.getMaxPowerPerTick()), target.getRequiredLaserPower());
+         long stored = this.battery.getStored();
+         long max;
+         if (stored <= 0L) {
+            max = 0L;
+         } else {
+            long capacityHalf = this.battery.getCapacity() / 2L;
+            max = capacityHalf <= 0L
+               ? 0L
+               : Math.min(this.getMaxPowerPerTick(), this.getMaxPowerPerTick() * stored / capacityHalf);
+         }
+
+         max = Math.min(max, target.getRequiredLaserPower());
          long power = this.battery.extractPower(0L, max);
          long excess = target.receiveLaserPower(power);
          if (excess > 0L) {

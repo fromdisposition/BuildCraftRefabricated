@@ -192,6 +192,10 @@ public class TileBuilder
       if (this.snapshot == null) {
          return false;
       } else {
+         if (this.battery.getStored() <= 0L) {
+            return false;
+         }
+
          SnapshotBuilder<?> builder = this.getBuilder();
          if (builder == null) {
             return false;

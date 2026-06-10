@@ -312,10 +312,18 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
             this.isStuck = !canFillLiquid || !canFillGas;
             if (canExtract && canFillLiquid && canFillGas) {
                long maxPower = MAX_MJ_PER_TICK;
-               long scaledPower = maxPower * (this.mjBattery.getStored() + maxPower) / (this.mjBattery.getCapacity() / 2L);
-               long powerLimit = Math.min(scaledPower, MAX_MJ_PER_TICK);
+               long stored = this.mjBattery.getStored();
+               long powerLimit;
+               if (stored <= 0L) {
+                  powerLimit = 0L;
+               } else {
+                  long capacityHalf = this.mjBattery.getCapacity() / 2L;
+                  long scaledPower = capacityHalf <= 0L ? 0L : maxPower * stored / capacityHalf;
+                  powerLimit = Math.min(scaledPower, MAX_MJ_PER_TICK);
+               }
+
                long power = this.mjBattery.extractPower(0L, powerLimit);
-               this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((powerLimit - this.powerAvgSmoothed) * 0.05);
+               this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((power - this.powerAvgSmoothed) * 0.05);
                this.distillPower += power;
                this.isActive = power > 0L;
                long powerReq = this.currentRecipe.powerRequired();
