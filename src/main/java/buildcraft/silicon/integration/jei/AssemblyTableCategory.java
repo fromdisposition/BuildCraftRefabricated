@@ -26,8 +26,9 @@ import net.minecraft.world.item.ItemStack;
 
 public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipeJei> {
    private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/assembly_table.png");
-   private static final int BG_U = 3, BG_V = 27, BG_W = 172, BG_H = 80;
+   private static final int BG_U = 3, BG_V = 27, BG_H = 80;
    private static final int INPUT_X = 5, INPUT_Y = 9, DISPLAY_X = 113, DISPLAY_Y = 9;
+   private static final int BG_W = DISPLAY_X + 52 + INPUT_X;
    private static final int POWER_ALIGN_W = DISPLAY_X + 3 * 18;
    private static final int POWER_Y = BG_H + 5;
    private static final int CARD_H = BG_H + 16;
@@ -65,15 +66,8 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
       }
 
       IRecipeSlotBuilder outputSlotBuilder = null;
-      List<ItemStack> outputs = recipe.outputs();
-      for (int i = 0; i < outputs.size() && i < 12; i++) {
-         ItemStack output = outputs.get(i);
-         if (!output.isEmpty()) {
-            IRecipeSlotBuilder slotBuilder = (IRecipeSlotBuilder)builder.addInputSlot(DISPLAY_X + i % 3 * 18, DISPLAY_Y + i / 3 * 18).addItemStacks(List.of(output));
-            if (outputSlotBuilder == null) {
-               outputSlotBuilder = slotBuilder;
-            }
-         }
+      if (!recipe.outputs().isEmpty()) {
+         outputSlotBuilder = (IRecipeSlotBuilder)builder.addOutputSlot(DISPLAY_X, DISPLAY_Y).addItemStacks(recipe.outputs());
       }
 
       int linkIdx = recipe.focusLinkInputIndex();
