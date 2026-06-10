@@ -31,7 +31,7 @@ public class ContainerChargingTable extends ContainerBCTile<TileChargingTable> {
          });
       }
 
-      this.addFullPlayerInventory(8, 51);
+      this.addFullPlayerInventory(8, 50);
    }
 
    private static TileChargingTable getTile(Inventory inv, BlockPos pos) {

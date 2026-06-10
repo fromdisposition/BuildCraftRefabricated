@@ -87,7 +87,7 @@ public class BCSiliconJeiPlugin implements IModPlugin {
       registration.addRecipeClickArea(GuiAdvancedCraftingTable.class, 93, 32, 23, 16, new IRecipeType[]{RecipeTypes.CRAFTING});
       registration.addGhostIngredientHandler(GuiAdvancedCraftingTable.class, new BCGhostIngredientHandler());
       registration.addRecipeClickArea(GuiAssemblyTable.class, 86, 36, 4, 70, new IRecipeType[]{BCJeiRecipeTypes.ASSEMBLY});
-      registration.addRecipeClickArea(GuiIntegrationTable.class, 19, 24, 135, 66, new IRecipeType[]{BCJeiRecipeTypes.INTEGRATION});
+      registration.addRecipeClickArea(GuiIntegrationTable.class, 85, 51, 49, 8, new IRecipeType[]{BCJeiRecipeTypes.INTEGRATION});
       registration.addRecipeClickArea(GuiProgrammingTable.class, 43, 36, 106, 70, new IRecipeType[]{BCJeiRecipeTypes.PROGRAMMING});
       registration.addGuiContainerHandler(GuiGate.class, new IGuiContainerHandler<GuiGate>() {
          public List<Rect2i> getGuiExtraAreas(GuiGate containerScreen) {

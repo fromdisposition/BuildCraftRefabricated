@@ -25,9 +25,9 @@ import net.minecraft.world.item.ItemStack;
 
 public class IntegrationTableCategory extends AbstractRecipeCategory<IntegrationRecipeJei> {
    private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/integration_table.png");
-   private static final int BG_U = 0, BG_V = 18, BG_W = 160, BG_H = 72;
-   private static final int CENTER_X = 44, CENTER_Y = 31, OUTPUT_X = 138, OUTPUT_Y = 31;
-   private static final int[][] RING = {{19, 6}, {44, 6}, {69, 6}, {19, 31}, {69, 31}, {19, 56}, {44, 56}, {69, 56}};
+   private static final int BG_U = 3, BG_V = 18, BG_W = 157, BG_H = 72;
+   private static final int CENTER_X = 41, CENTER_Y = 31, OUTPUT_X = 135, OUTPUT_Y = 31;
+   private static final int[][] RING = {{16, 6}, {41, 6}, {66, 6}, {16, 31}, {66, 31}, {16, 56}, {41, 56}, {66, 56}};
    private final IDrawable background;
 
    public IntegrationTableCategory(IGuiHelper guiHelper) {

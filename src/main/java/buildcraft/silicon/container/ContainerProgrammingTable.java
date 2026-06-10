@@ -41,7 +41,7 @@ public class ContainerProgrammingTable extends ContainerBCTile<TileProgrammingTa
          }
       }
 
-      this.addFullPlayerInventory(8, 126);
+      this.addFullPlayerInventory(8, 123);
    }
 
    public boolean clickMenuButton(Player player, int index) {
