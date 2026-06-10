@@ -12,14 +12,14 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import buildcraft.lib.fabric.loader.GamePaths;
 import java.util.Map;
-import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 
 public final class BCObjectsConfig {
    private static final Logger LOGGER = LogUtils.getLogger();
    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-   private static final String FILE_NAME = "buildcraft-objects.json";
+   private static final String FILE_NAME = "buildcraftrefabricated-objects.json";
    private static final Map<String, Boolean> BLOCKS = new HashMap<>();
    private static final Map<String, Boolean> ITEMS = new HashMap<>();
    private static final Map<String, Boolean> PIPES = new HashMap<>();
@@ -28,7 +28,7 @@ public final class BCObjectsConfig {
    }
 
    public static void load() {
-      Path path = FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME);
+      Path path = GamePaths.BUILDCRAFT_CONFIG_DIR.resolve(FILE_NAME);
       BLOCKS.clear();
       ITEMS.clear();
       PIPES.clear();

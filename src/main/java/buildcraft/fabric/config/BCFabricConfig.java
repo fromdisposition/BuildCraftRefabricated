@@ -9,6 +9,7 @@ import buildcraft.fabric.BCEnergyFabric;
 import buildcraft.fabric.BCFactoryFabric;
 import buildcraft.lib.client.guide.loader.XmlPageLoader;
 import buildcraft.lib.BCLibConfig;
+import buildcraft.lib.fabric.loader.GamePaths;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.transport.BCTransportConfig;
 import com.google.gson.Gson;
@@ -38,7 +39,7 @@ public final class BCFabricConfig {
 
    public static void load() {
       BCObjectsConfig.load();
-      Path path = FabricLoader.getInstance().getConfigDir().resolve("buildcraftrefabricated-common.json");
+      Path path = GamePaths.BUILDCRAFT_CONFIG_DIR.resolve(FILE_NAME);
       JsonObject root;
       if (Files.exists(path)) {
          try (Reader reader = Files.newBufferedReader(path)) {
@@ -52,6 +53,11 @@ public final class BCFabricConfig {
          root = defaults();
          write(path, root);
          LOGGER.info("Created default config at {}", path.toAbsolutePath());
+      }
+
+      if (migrateLegacyCoreFactoryKeys(root)) {
+         write(path, root);
+         LOGGER.info("Moved pump/mining settings from core to factory in {}", path);
       }
 
       apply(root);
@@ -88,13 +94,8 @@ public final class BCFabricConfig {
          BCCoreConfig.hidePower.set(bool(core, "hidePowerValues", BCCoreConfig.hidePower.get()));
          BCCoreConfig.hideFluid.set(bool(core, "hideFluidValues", BCCoreConfig.hideFluid.get()));
          BCCoreConfig.minePlayerProtected.set(bool(core, "minePlayerProtected", BCCoreConfig.minePlayerProtected.get()));
-         BCCoreConfig.pumpsConsumeWater.set(bool(core, "pumpsConsumeWater", BCCoreConfig.pumpsConsumeWater.get()));
          BCCoreConfig.markerMaxDistance.set(intVal(core, "markerMaxDistance", BCCoreConfig.markerMaxDistance.get()));
-         BCCoreConfig.pumpMaxDistance.set(intVal(core, "pumpMaxDistance", BCCoreConfig.pumpMaxDistance.get()));
          BCCoreConfig.networkUpdateRate.set(intVal(core, "networkUpdateRate", BCCoreConfig.networkUpdateRate.get()));
-         BCCoreConfig.miningMultiplier.set(doubleVal(core, "miningMultiplier", BCCoreConfig.miningMultiplier.get()));
-         BCCoreConfig.miningMaxDepth.set(intVal(core, "miningMaxDepth", BCCoreConfig.miningMaxDepth.get()));
-         BlockUtil.miningMultiplier = BCCoreConfig.miningMultiplier.get();
       }
    }
 
@@ -169,23 +170,40 @@ public final class BCFabricConfig {
 
    private static void applyFactory(JsonObject factory) {
       if (factory != null) {
-         if (factory.has("pumpsConsumeWater")) {
-            BCCoreConfig.pumpsConsumeWater.set(bool(factory, "pumpsConsumeWater", BCCoreConfig.pumpsConsumeWater.get()));
-         }
+         BCCoreConfig.pumpsConsumeWater.set(bool(factory, "pumpsConsumeWater", BCCoreConfig.pumpsConsumeWater.get()));
+         BCCoreConfig.pumpMaxDistance.set(intVal(factory, "pumpMaxDistance", BCCoreConfig.pumpMaxDistance.get()));
+         BCCoreConfig.miningMaxDepth.set(intVal(factory, "miningMaxDepth", BCCoreConfig.miningMaxDepth.get()));
+         BCCoreConfig.miningMultiplier.set(doubleVal(factory, "miningMultiplier", BCCoreConfig.miningMultiplier.get()));
+         BlockUtil.miningMultiplier = BCCoreConfig.miningMultiplier.get();
+      }
+   }
 
-         if (factory.has("pumpMaxDistance")) {
-            BCCoreConfig.pumpMaxDistance.set(intVal(factory, "pumpMaxDistance", BCCoreConfig.pumpMaxDistance.get()));
-         }
+   private static boolean migrateLegacyCoreFactoryKeys(JsonObject root) {
+      if (!root.has("core")) {
+         return false;
+      }
 
-         if (factory.has("miningMaxDepth")) {
-            BCCoreConfig.miningMaxDepth.set(intVal(factory, "miningMaxDepth", BCCoreConfig.miningMaxDepth.get()));
-         }
+      JsonObject core = root.getAsJsonObject("core");
+      JsonObject factory = root.has("factory") ? root.getAsJsonObject("factory") : null;
+      if (factory == null) {
+         factory = new JsonObject();
+         root.add("factory", factory);
+      }
 
-         if (factory.has("miningMultiplier")) {
-            BCCoreConfig.miningMultiplier.set(doubleVal(factory, "miningMultiplier", BCCoreConfig.miningMultiplier.get()));
-            BlockUtil.miningMultiplier = BCCoreConfig.miningMultiplier.get();
+      boolean changed = false;
+
+      for (String key : new String[]{"pumpsConsumeWater", "pumpMaxDistance", "miningMaxDepth", "miningMultiplier"}) {
+         if (core.has(key)) {
+            if (!factory.has(key)) {
+               factory.add(key, core.get(key));
+            }
+
+            core.remove(key);
+            changed = true;
          }
       }
+
+      return changed;
    }
 
    private static void applyTransport(JsonObject transport) {
@@ -277,12 +295,8 @@ public final class BCFabricConfig {
       core.addProperty("hidePowerValues", false);
       core.addProperty("hideFluidValues", false);
       core.addProperty("minePlayerProtected", false);
-      core.addProperty("pumpsConsumeWater", false);
       core.addProperty("markerMaxDistance", 64);
-      core.addProperty("pumpMaxDistance", 64);
       core.addProperty("networkUpdateRate", 10);
-      core.addProperty("miningMultiplier", 1.0);
-      core.addProperty("miningMaxDepth", 512);
       root.add("core", core);
       JsonObject lib = new JsonObject();
       lib.addProperty("powerMode", "MJ_ONLY");

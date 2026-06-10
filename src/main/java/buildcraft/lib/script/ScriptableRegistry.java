@@ -123,7 +123,7 @@ public class ScriptableRegistry<E> extends SimpleReloadableRegistry<E> implement
          }
       }
 
-      File baseFile = new File(GamePaths.CONFIGDIR.toFile(), "buildcraft/scripts");
+      File baseFile = GamePaths.BUILDCRAFT_CONFIG_DIR.resolve("scripts").toFile();
       if (!baseFile.isDirectory()) {
          baseFile.mkdirs();
       }

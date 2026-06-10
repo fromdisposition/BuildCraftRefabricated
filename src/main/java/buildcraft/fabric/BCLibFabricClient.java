@@ -6,6 +6,7 @@ import buildcraft.lib.client.fluid.BcFluidTintUtil;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.model.ModelHolderRegistry;
 import buildcraft.lib.debug.AdvDebugRenderer;
+import buildcraft.lib.fabric.loader.GamePaths;
 import buildcraft.lib.gui.config.GuiConfigManager;
 import buildcraft.lib.misc.data.ModelVariableData;
 import java.util.HashSet;
@@ -29,7 +30,7 @@ public final class BCLibFabricClient {
       BCReloadFabric.initClient();
       registerColorBlindAutoWatcher();
       AdvDebugRenderer.register();
-      GuiConfigManager.init(FabricLoader.getInstance().getConfigDir().resolve("buildcraft").resolve("gui_state.json"));
+      GuiConfigManager.init(GamePaths.BUILDCRAFT_CONFIG_DIR.resolve("buildcraftrefabricated-gui_state.json"));
       ResourceLoader clientResources = ResourceLoader.get(PackType.CLIENT_RESOURCES);
       clientResources.registerReloadListener(
          Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_heat_templates"),
