@@ -7,6 +7,7 @@
 package buildcraft.api.mj;
 
 import buildcraft.lib.BCLibConfig;
+import buildcraft.lib.fabric.ExternalEnergyCompat;
 import java.text.DecimalFormat;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -48,9 +49,23 @@ public class MjAPI {
       return BCLibConfig.powerMode.get().autoconvert;
    }
 
+   /** True when another mod in the pack exposes Team Reborn {@link #EXTERNAL_ENERGY_UNIT}. */
+   public static boolean isExternalEnergyEcosystemPresent() {
+      return ExternalEnergyCompat.isEcosystemPresent();
+   }
+
+   /**
+    * Whether UI should label power as {@link #EXTERNAL_ENERGY_UNIT} instead of MJ.
+    * MJ_ONLY always uses MJ. DISPLAY_RF forces E. Otherwise E is shown when interop is on and
+    * the modpack includes a Team Reborn energy consumer (e.g. Tech Reborn).
+    */
    public static boolean displaysExternalEnergyUnits() {
       BCLibConfig.PowerMode mode = BCLibConfig.powerMode.get();
-      return mode.autoconvert && mode.displayExternal;
+      if (!mode.autoconvert) {
+         return false;
+      }
+
+      return mode.displayExternal || isExternalEnergyEcosystemPresent();
    }
 
    private static long getMjValue() {

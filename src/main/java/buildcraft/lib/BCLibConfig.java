@@ -124,11 +124,15 @@ public final class BCLibConfig {
    }
 
    public enum PowerMode {
+      /** No E interop; MJ labels everywhere. */
       MJ_ONLY(false, false),
+      /** Accept E; show E in UI when another Team Reborn energy mod is in the pack. */
       MJ_AUTOCONVERT_RF(true, false),
+      /** Accept E; always show E in UI regardless of loaded mods. */
       DISPLAY_RF(true, true);
 
       public final boolean autoconvert;
+      /** When true, external units are shown even without a detected E ecosystem. */
       public final boolean displayExternal;
 
       PowerMode(boolean autoconvert, boolean displayExternal) {
