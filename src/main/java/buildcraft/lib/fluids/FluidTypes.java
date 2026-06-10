@@ -9,6 +9,8 @@ package buildcraft.lib.fluids;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
@@ -30,5 +32,29 @@ public final class FluidTypes {
 
    public static FluidType of(Holder<Fluid> holder) {
       return of((Fluid)holder.value());
+   }
+
+   public static String descriptionIdFor(Fluid fluid) {
+      if (fluid == null || fluid.isSame(Fluids.EMPTY)) {
+         return "block.minecraft.air";
+      }
+
+      Identifier key = BuiltInRegistries.FLUID.getKey(fluid);
+      if (key == null) {
+         return "fluid_type.minecraft.empty";
+      }
+
+      String path = key.getPath();
+      if (path.startsWith("flowing_")) {
+         key = Identifier.fromNamespaceAndPath(key.getNamespace(), path.substring("flowing_".length()));
+      } else if (path.endsWith("_flowing")) {
+         key = Identifier.fromNamespaceAndPath(key.getNamespace(), path.substring(0, path.length() - "_flowing".length()));
+      }
+
+      if ("minecraft".equals(key.getNamespace())) {
+         return key.toLanguageKey("block");
+      }
+
+      return key.toLanguageKey("fluid_type");
    }
 }

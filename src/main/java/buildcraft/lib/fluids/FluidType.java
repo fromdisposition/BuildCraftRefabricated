@@ -8,13 +8,10 @@ package buildcraft.lib.fluids;
 
 import buildcraft.lib.common.SoundAction;
 import buildcraft.lib.common.SoundActions;
-import buildcraft.lib.misc.FluidUtilBC;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -47,8 +44,7 @@ public class FluidType {
       this.fluid = fluid;
       this.viscosity = viscosity;
       this.density = density;
-      Identifier key = BuiltInRegistries.FLUID.getKey(FluidUtilBC.canonicalFluid(fluid));
-      this.descriptionId = key == null ? "fluid_type.minecraft.empty" : key.toLanguageKey("fluid_type");
+      this.descriptionId = FluidTypes.descriptionIdFor(fluid);
       if (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER) {
          this.sounds.put(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL);
          this.sounds.put(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY);

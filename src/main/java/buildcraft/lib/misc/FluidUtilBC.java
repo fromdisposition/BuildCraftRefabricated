@@ -27,6 +27,7 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -315,6 +316,41 @@ public class FluidUtilBC {
 
    public static String getDebugString(FluidStack stack) {
       return stack != null && !stack.isEmpty() ? stack.getAmount() + " mB " + BuiltInRegistries.FLUID.getKey(stack.getFluid()) : "empty";
+   }
+
+   public static Component getFluidDisplayName(FluidStack stack) {
+      if (stack != null && !stack.isEmpty()) {
+         Component display = stack.getHoverName();
+         String descriptionId = stack.getDescriptionId();
+         if (!display.getString().equals(descriptionId)) {
+            return display;
+         }
+
+         Fluid fluid = canonicalFluid(stack.getFluid());
+         Item bucket = fluid.getBucket();
+         if (bucket != Items.AIR) {
+            Identifier bucketId = BuiltInRegistries.ITEM.getKey(bucket);
+            if (bucketId != null) {
+               String path = bucketId.getPath();
+               if (path.endsWith("_bucket")) {
+                  String blockPath = normalizeFluidPath(path.substring(0, path.length() - "_bucket".length()));
+                  return Component.translatable(Identifier.fromNamespaceAndPath(bucketId.getNamespace(), blockPath).toLanguageKey("block"));
+               }
+
+               return new ItemStack(bucket).getHoverName();
+            }
+         }
+
+         Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+         if (fluidId != null) {
+            String path = normalizeFluidPath(fluidId.getPath());
+            return Component.translatable(Identifier.fromNamespaceAndPath(fluidId.getNamespace(), path).toLanguageKey("block"));
+         }
+
+         return display;
+      } else {
+         return Component.empty();
+      }
    }
 
    public static boolean isGaseous(FluidStack fluid) {
