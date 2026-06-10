@@ -23,6 +23,7 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -34,6 +35,8 @@ public abstract class OilGenStructure {
    private static final int MAX_TREE_SCAN_HEIGHT = 32;
    private static final int TREE_CLEAR_CHUNK_EXPANSION = 4;
    private static final int TREE_CLEAR_BFS_BUDGET = 8192;
+   /** Neighbor + client updates so fluids schedule ticks during worldgen (same as water SpringWorldgen). */
+   private static final int GEN_FLAGS = 3;
 
    public OilGenStructure(Box containingBox, OilGenStructure.ReplaceType replaceType) {
       this.box = containingBox;
@@ -67,7 +70,17 @@ public abstract class OilGenStructure {
          oil = BCEnergyFluidsFabric.OIL_COOL.still().defaultFluidState().createLegacyBlock();
       }
 
-      level.setBlock(pos, oil, 2);
+      level.setBlock(pos, oil, GEN_FLAGS);
+      scheduleOilFluidTick(level, pos, oil);
+   }
+
+   private static void scheduleOilFluidTick(LevelAccessor level, BlockPos pos, BlockState oil) {
+      if (level instanceof WorldGenLevel worldGen) {
+         FluidState fluidState = oil.getFluidState();
+         if (!fluidState.isEmpty()) {
+            worldGen.scheduleTick(pos, fluidState.getType(), 0);
+         }
+      }
    }
 
    protected static BlockPos findSolidSurfaceTop(LevelAccessor level, int x, int z) {
@@ -160,7 +173,7 @@ public abstract class OilGenStructure {
 
       setOil(level, surface);
       if (!level.getBlockState(surface.above()).isAir()) {
-         level.setBlock(surface.above(), Blocks.AIR.defaultBlockState(), 2);
+         level.setBlock(surface.above(), Blocks.AIR.defaultBlockState(), GEN_FLAGS);
       }
 
       for (int d = 1; d < depth; d++) {
@@ -428,7 +441,7 @@ public abstract class OilGenStructure {
          }
 
          BlockState state = BCCoreBlocks.SPRING_OIL.defaultBlockState();
-         level.setBlock(placement, state, 2);
+         level.setBlock(placement, state, GEN_FLAGS);
          setOil(level, placement.above());
          if (level.getBlockEntity(placement) instanceof TileSpringOil spring) {
             spring.totalSources = count;

@@ -9,6 +9,7 @@ package buildcraft.energy.generation;
 import buildcraft.api.core.BCDebugging;
 import buildcraft.api.core.BCLog;
 import buildcraft.energy.BCEnergyConfig;
+import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.misc.RegistryKeyUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.misc.data.Box;
@@ -29,6 +30,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
 
 public class OilGenerator {
@@ -101,7 +104,27 @@ public class OilGenerator {
       }
 
       finalizeSpringForOrigin(level, chunkX, chunkZ, structures);
+      scheduleOilFluidTicks(level, structures);
       return true;
+   }
+
+   private static void scheduleOilFluidTicks(WorldGenLevel level, List<OilGenStructure> structures) {
+      BlockState oil = BCEnergyFluidsFabric.oilSourceBlockStateForLevel(level.getLevel());
+      if (oil == null) {
+         return;
+      }
+
+      for (OilGenStructure struct : structures) {
+         for (BlockPos pos : BlockPos.betweenClosed(struct.box.min(), struct.box.max())) {
+            BlockState state = level.getBlockState(pos);
+            if (state.is(oil.getBlock())) {
+               FluidState fluidState = state.getFluidState();
+               if (!fluidState.isEmpty()) {
+                  level.scheduleTick(pos, fluidState.getType(), 0);
+               }
+            }
+         }
+      }
    }
 
    private static Box createChunkColumnBox(LevelAccessor level, int chunkX, int chunkZ) {
