@@ -30,7 +30,7 @@ public final class FluidShardTintSource implements ItemTintSource {
       if (fluid.isEmpty()) {
          return -1;
       } else {
-         return BcFluidRenderLookup.tint(fluid);
+         return BcFluidRenderLookup.itemMaskTint(fluid, level);
       }
    }
 

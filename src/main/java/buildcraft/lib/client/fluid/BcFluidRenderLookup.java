@@ -6,21 +6,26 @@
 
 package buildcraft.lib.client.fluid;
 
+import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.Material.Baked;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import org.jspecify.annotations.Nullable;
 
 public final class BcFluidRenderLookup {
    private BcFluidRenderLookup() {
@@ -54,7 +59,55 @@ public final class BcFluidRenderLookup {
    }
 
    public static int tint(FluidStack stack) {
-      return stack != null && !stack.isEmpty() ? FluidVariantRendering.getColor(TransferConvert.toVariant(stack)) : -1;
+      if (stack == null || stack.isEmpty()) {
+         return -1;
+      }
+
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(FluidUtilBC.canonicalFluid(stack.getFluid()));
+      if (entry != null) {
+         return BcFluidTintUtil.RENDER_TINT_WHITE;
+      }
+
+      return fabricTint(stack, null, null);
+   }
+
+   public static int itemMaskTint(FluidStack stack, @Nullable BlockAndTintGetter level) {
+      if (stack == null || stack.isEmpty()) {
+         return -1;
+      }
+
+      Fluid fluid = FluidUtilBC.canonicalFluid(stack.getFluid());
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
+      if (entry != null) {
+         return BcFluidTintUtil.computeAverageGuiTint(entry.texLight(), entry.texDark(), entry.heat());
+      }
+
+      if (fluid.isSame(Fluids.WATER) || fluid.isSame(Fluids.FLOWING_WATER)) {
+         return 0xFF3F76E4;
+      }
+
+      if (fluid.isSame(Fluids.LAVA) || fluid.isSame(Fluids.FLOWING_LAVA)) {
+         return BcFluidTintUtil.RENDER_TINT_WHITE;
+      }
+
+      return fabricTint(stack, level, BlockPos.ZERO);
+   }
+
+   private static int fabricTint(FluidStack stack, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos) {
+      FluidVariant variant = TransferConvert.toVariant(stack);
+      int color = level != null && pos != null
+         ? FluidVariantRendering.getColor(variant, level, pos)
+         : FluidVariantRendering.getColor(variant);
+      return ensureOpaqueArgb(color);
+   }
+
+   private static int ensureOpaqueArgb(int color) {
+      if (color == 0) {
+         return BcFluidTintUtil.RENDER_TINT_WHITE;
+      }
+
+      int alpha = color >>> 24 & 0xFF;
+      return alpha == 0 ? 0xFF000000 | color & 0xFFFFFF : color;
    }
 
    public static boolean translucent(FluidStack stack) {
