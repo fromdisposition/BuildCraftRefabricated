@@ -232,15 +232,14 @@ public final class BCFabricConfig {
          BCEnergyConfig.netherOilGenRateMultiplier.set(doubleVal(energy, "netherOilGenRateMultiplier", BCEnergyConfig.netherOilGenRateMultiplier.get()));
          BCEnergyConfig.oilWellGenerationRate.set(doubleVal(energy, "oilWellGenerationRate", BCEnergyConfig.oilWellGenerationRate.get()));
          BCEnergyConfig.enableOilSpouts.set(bool(energy, "enableOilSpouts", BCEnergyConfig.enableOilSpouts.get()));
+         BCEnergyConfig.spawnOilSprings.set(bool(energy, "spawnOilSprings", BCEnergyConfig.spawnOilSprings.get()));
          BCEnergyConfig.finiteSpoutMinHeight.set(intVal(energy, "finiteSpoutMinHeight", BCEnergyConfig.finiteSpoutMinHeight.get()));
          BCEnergyConfig.finiteSpoutMaxHeight.set(intVal(energy, "finiteSpoutMaxHeight", BCEnergyConfig.finiteSpoutMaxHeight.get()));
          BCEnergyConfig.largeSpoutMinHeight.set(intVal(energy, "largeSpoutMinHeight", BCEnergyConfig.largeSpoutMinHeight.get()));
          BCEnergyConfig.largeSpoutMaxHeight.set(intVal(energy, "largeSpoutMaxHeight", BCEnergyConfig.largeSpoutMaxHeight.get()));
-         BCEnergyConfig.mediumOilGenProb.set(doubleVal(energy, "mediumOilGenProb", BCEnergyConfig.mediumOilGenProb.get()));
-         BCEnergyConfig.largeOilGenProb.set(doubleVal(energy, "largeOilGenProb", BCEnergyConfig.largeOilGenProb.get()));
-         if (energy.has("smallOilGenProb")) {
-            BCEnergyConfig.smallOilGenProb.set(energy.get("smallOilGenProb").getAsDouble() / 100.0);
-         }
+         BCEnergyConfig.mediumOilGenProb.set(percentVal(energy, "mediumOilGenProb", BCEnergyConfig.mediumOilGenProb.get()));
+         BCEnergyConfig.largeOilGenProb.set(percentVal(energy, "largeOilGenProb", BCEnergyConfig.largeOilGenProb.get()));
+         BCEnergyConfig.smallOilGenProb.set(percentVal(energy, "smallOilGenProb", BCEnergyConfig.smallOilGenProb.get()));
 
          if (energy.has("forceExcessiveOilBiomes")) {
             BCEnergyConfig.forceExcessiveOilBiomes.set(stringList(energy.getAsJsonArray("forceExcessiveOilBiomes")));
@@ -332,12 +331,13 @@ public final class BCFabricConfig {
       energy.addProperty("netherOilGenRateMultiplier", 4.0);
       energy.addProperty("oilWellGenerationRate", 1.0);
       energy.addProperty("enableOilSpouts", true);
+      energy.addProperty("spawnOilSprings", true);
       energy.addProperty("finiteSpoutMinHeight", 7);
       energy.addProperty("finiteSpoutMaxHeight", 10);
       energy.addProperty("largeSpoutMinHeight", 13);
       energy.addProperty("largeSpoutMaxHeight", 20);
-      energy.addProperty("mediumOilGenProb", 0.001);
-      energy.addProperty("largeOilGenProb", 4.0E-4);
+      energy.addProperty("mediumOilGenProb", 0.1);
+      energy.addProperty("largeOilGenProb", 0.04);
       energy.addProperty("smallOilGenProb", 2.0);
       energy.add("forceExcessiveOilBiomes", GSON.toJsonTree(List.of()));
       energy.add("richSurfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getRichSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
@@ -406,6 +406,20 @@ public final class BCFabricConfig {
 
    private static double doubleVal(JsonObject obj, String key, double fallback) {
       return obj.has(key) ? obj.get(key).getAsDouble() : fallback;
+   }
+
+   /** Config values are BC-style percents (0.1 = 0.1%, 2 = 2%). Legacy absolute fractions (< 1%) are still accepted. */
+   private static double percentVal(JsonObject obj, String key, double fallbackFraction) {
+      if (!obj.has(key)) {
+         return fallbackFraction;
+      }
+
+      double raw = obj.get(key).getAsDouble();
+      if (raw > 0.0 && raw < 0.01) {
+         return raw;
+      }
+
+      return raw / 100.0;
    }
 
    private static String string(JsonObject obj, String key, String fallback) {

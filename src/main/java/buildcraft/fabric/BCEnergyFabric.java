@@ -2,9 +2,9 @@ package buildcraft.fabric;
 
 import buildcraft.api.enums.EnumSpring;
 import buildcraft.api.mj.IMjReceiver;
-import buildcraft.core.block.BlockSpring;
 import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.BCEnergyBlocks;
+import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.BCEnergyFeatures;
 import buildcraft.energy.BCEnergyFluids;
 import buildcraft.energy.BCEnergyItems;
@@ -13,7 +13,6 @@ import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
 import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.energy.tile.TileEngineStone_BC8;
-import buildcraft.energy.tile.TileSpringOil;
 import buildcraft.lib.mj.MjBlockCapabilities;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
@@ -33,14 +32,18 @@ public final class BCEnergyFabric {
       registerMjCapabilities();
       registerNativeTransfer();
       EnumSpring.OIL.liquidBlock = BCEnergyFluidsFabric.sourceBlockState(BCEnergyFluidsFabric.OIL_COOL);
-      EnumSpring.OIL.canGen = true;
-      BlockSpring.oilTileFactory = TileSpringOil::new;
+      applySpringOilConfig();
       BCEnergyFeatures.register();
    }
 
    public static void onConfigReloaded() {
       BCEnergyFluidsFabric.reapplyConfigProperties();
       BCEnergyFluids.refreshSnapshot();
+      applySpringOilConfig();
+   }
+
+   private static void applySpringOilConfig() {
+      EnumSpring.OIL.canGen = BCEnergyConfig.spawnOilSprings.get();
    }
 
    private static void registerNativeTransfer() {

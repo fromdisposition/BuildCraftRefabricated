@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -107,6 +108,10 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
    }
 
    public boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluid, Direction direction) {
+      if (BcFluidUtil.isVanillaWater(state)) {
+         return false;
+      }
+
       return !state.isEmpty() && !this.isSame(state.getType()) ? false : this.isSame(fluid);
    }
 
@@ -125,7 +130,6 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
       } else {
          BcLiquidFluidPhysics.tickBeforeVanilla(this, level, pos);
          super.tick(level, pos, state, fluidState);
-         BcLiquidFluidPhysics.tickAfterVanilla(this, level, pos, state, fluidState);
       }
    }
 
@@ -139,6 +143,10 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
 
    @Override
    public void spreadTo(LevelAccessor level, BlockPos pos, BlockState state, Direction direction, FluidState target) {
+      if (BcLiquidFluidPhysics.blocksSpreadInto(state, state.getFluidState())) {
+         return;
+      }
+
       if (!BcLiquidFluidPhysics.displacesWaterAt(this, state, level, pos, target)) {
          super.spreadTo(level, pos, state, direction, target);
       }
@@ -164,7 +172,15 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
 
    @Override
    public FluidState getNewLiquid(ServerLevel level, BlockPos pos, BlockState state) {
-      return this.holder.props.gaseous() ? BcGaseousFluidPhysics.getNewLiquid(this, level, pos, state) : super.getNewLiquid(level, pos, state);
+      if (this.holder.props.gaseous()) {
+         return BcGaseousFluidPhysics.getNewLiquid(this, level, pos, state);
+      }
+
+      if (BcFluidUtil.isVanillaWater(state.getFluidState())) {
+         return Fluids.EMPTY.defaultFluidState();
+      }
+
+      return super.getNewLiquid(level, pos, state);
    }
 
    public float getHeight(FluidState fluidState, BlockGetter level, BlockPos pos) {

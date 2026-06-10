@@ -27,6 +27,7 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.DoubleValue netherOilGenRateMultiplier = new BCCoreConfig.DoubleValue(4.0);
    public static final BCCoreConfig.DoubleValue oilWellGenerationRate = new BCCoreConfig.DoubleValue(1.0);
    public static final BCCoreConfig.BooleanValue enableOilSpouts = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue spawnOilSprings = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.IntValue finiteSpoutMinHeight = new BCCoreConfig.IntValue(7);
    public static final BCCoreConfig.IntValue finiteSpoutMaxHeight = new BCCoreConfig.IntValue(10);
    public static final BCCoreConfig.IntValue largeSpoutMinHeight = new BCCoreConfig.IntValue(13);
@@ -35,20 +36,12 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.DoubleValue largeOilGenProb = new BCCoreConfig.DoubleValue(4.0E-4);
    public static final BCCoreConfig.DoubleValue smallOilGenProb = new BCCoreConfig.DoubleValue(0.02);
    public static final BCCoreConfig.StringListValue forceExcessiveOilBiomes = new BCCoreConfig.StringListValue(List.of());
+   /** Land biomes that use the rich spring / surface-pool path. BC 8.0 does not list vanilla oceans here. */
    public static final BCCoreConfig.StringListValue richSurfaceDepositBiomes = new BCCoreConfig.StringListValue(
-      List.of(
-         "minecraft:deep_ocean",
-         "minecraft:deep_lukewarm_ocean",
-         "minecraft:deep_cold_ocean",
-         "minecraft:deep_frozen_ocean",
-         "minecraft:desert",
-         "minecraft:badlands",
-         "minecraft:wooded_badlands"
-      )
+      List.of("minecraft:desert", "minecraft:badlands", "minecraft:wooded_badlands")
    );
-   public static final BCCoreConfig.StringListValue surfaceDepositBiomes = new BCCoreConfig.StringListValue(
-      List.of("minecraft:ocean", "minecraft:warm_ocean", "minecraft:lukewarm_ocean", "minecraft:cold_ocean", "minecraft:frozen_ocean")
-   );
+   /** Biomes with increased oil spawn rate (BC 8.0 default: empty; custom oil biomes are added at runtime). */
+   public static final BCCoreConfig.StringListValue surfaceDepositBiomes = new BCCoreConfig.StringListValue(List.of());
    public static final BCCoreConfig.StringListValue standardSurfaceDepositBiomes = new BCCoreConfig.StringListValue(
       List.of(
          "minecraft:jungle", "minecraft:sparse_jungle", "minecraft:bamboo_jungle", "minecraft:ice_spikes", "minecraft:snowy_beach", "minecraft:frozen_river"
