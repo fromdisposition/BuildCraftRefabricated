@@ -8,7 +8,6 @@ package buildcraft.lib.client.guide.parts.recipe;
 
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.parts.GuidePartFactory;
-import buildcraft.lib.misc.ArrayUtil;
 import buildcraft.lib.recipe.ChangingItemStack;
 import buildcraft.lib.recipe.ChangingObject;
 import java.util.Arrays;
@@ -28,7 +27,7 @@ public class GuideAssemblyFactory implements GuidePartFactory {
    }
 
    public GuideAssemblyFactory(ItemStack[] input, ItemStack output, long mjCost) {
-      this.input = ArrayUtil.map(input, ChangingItemStack::new, ChangingItemStack[]::new);
+      this.input = Arrays.stream(input).map(ChangingItemStack::new).toArray(ChangingItemStack[]::new);
       this.output = new ChangingItemStack(output);
       this.mjCost = new ChangingObject<>(new Long[]{mjCost});
       this.hash = this.computeHash();

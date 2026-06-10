@@ -11,7 +11,6 @@ import buildcraft.api.core.BCLog;
 import buildcraft.core.BCCoreBlocks;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.lib.fabric.Mc26Compat;
-import buildcraft.lib.misc.RandUtil;
 import buildcraft.lib.misc.RegistryKeyUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.misc.data.Box;
@@ -43,6 +42,16 @@ public class OilGenerator {
    private OilGenerator() {
    }
 
+   private static Random createRandomForChunk(Level level, int chunkX, int chunkZ, long magicNumber) {
+      long worldSeed = level instanceof ServerLevel sl ? sl.getSeed() : 0L;
+      Random worldRandom = new Random(worldSeed);
+      long xSeed = worldRandom.nextLong() >> 3;
+      long zSeed = worldRandom.nextLong() >> 3;
+      long chunkSeed = xSeed * chunkX + zSeed * chunkZ ^ worldSeed;
+      chunkSeed ^= magicNumber;
+      return new Random(chunkSeed);
+   }
+
    public static boolean canGenerateOilIn(ServerLevel level) {
       if (level.getChunkSource().getGenerator() instanceof FlatLevelSource) {
          return false;
@@ -70,7 +79,7 @@ public class OilGenerator {
    }
 
    private static Identifier sampleBiomeForChunkRoll(Level level, int cx, int cz) {
-      Random rand = RandUtil.createRandomForChunk(level, cx, cz, -3438862373895731249L);
+      Random rand = createRandomForChunk(level, cx, cz, -3438862373895731249L);
       int x = cx * 16 + 8 + rand.nextInt(16);
       int z = cz * 16 + 8 + rand.nextInt(16);
       return Identifier.parse(level.getBiome(new BlockPos(x, 64, z)).getRegisteredName());
@@ -139,7 +148,7 @@ public class OilGenerator {
    }
 
    private static List<OilGenStructure> getStructures(Level level, int cx, int cz, boolean log) {
-      Random rand = RandUtil.createRandomForChunk(level, cx, cz, -3438862373895731249L);
+      Random rand = createRandomForChunk(level, cx, cz, -3438862373895731249L);
       int x = cx * 16 + 8 + rand.nextInt(16);
       int z = cz * 16 + 8 + rand.nextInt(16);
       Holder<Biome> biomeHolder = level.getBiome(new BlockPos(x, 64, z));

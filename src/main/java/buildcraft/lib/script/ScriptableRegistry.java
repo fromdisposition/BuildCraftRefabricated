@@ -13,7 +13,6 @@ import buildcraft.api.registry.IScriptableRegistry;
 import buildcraft.lib.fabric.loader.FabricModResources;
 import buildcraft.lib.fabric.loader.GamePaths;
 import buildcraft.lib.misc.JsonUtil;
-import buildcraft.lib.misc.TimeUtil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
@@ -21,6 +20,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -75,13 +76,17 @@ public class ScriptableRegistry<E> extends SimpleReloadableRegistry<E> implement
       return Collections.unmodifiableSet(this.sourceDomains);
    }
 
+   private static String formatNow() {
+      return LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+   }
+
    void loadScripts(Gson gson) {
       try (AutoCloseable logFile = SimpleScript.createLogFile(this.entryPath)) {
          long start = System.currentTimeMillis();
-         SimpleScript.logForAll("Started at: " + TimeUtil.formatNow());
+         SimpleScript.logForAll("Started at: " + formatNow());
          this.loadScripts0(gson);
          long end = System.currentTimeMillis();
-         SimpleScript.logForAll("Finished at: " + TimeUtil.formatNow() + ", took " + (end - start) + "ms");
+         SimpleScript.logForAll("Finished at: " + formatNow() + ", took " + (end - start) + "ms");
       } catch (Exception e) {
          BCLog.logger.warn("[lib.script] Failed to reload scripts", e);
       }

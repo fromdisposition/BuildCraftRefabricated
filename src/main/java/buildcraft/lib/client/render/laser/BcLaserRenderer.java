@@ -8,7 +8,6 @@ package buildcraft.lib.client.render.laser;
 
 import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.client.render.BCLibRenderTypes;
-import buildcraft.lib.client.render.LightUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.HashMap;
@@ -19,6 +18,7 @@ import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.Vec3;
@@ -86,6 +86,6 @@ public final class BcLaserRenderer {
       BlockPos pos = BlockPos.containing(x, y, z);
       int blockLight = minBlockLight >= 15 ? 15 : Math.max(minBlockLight, level.getBrightness(LightLayer.BLOCK, pos));
       int skyLight = level.getBrightness(LightLayer.SKY, pos);
-      return LightUtil.pack(blockLight, skyLight);
+      return LightCoordsUtil.pack(blockLight, skyLight);
    }
 }
