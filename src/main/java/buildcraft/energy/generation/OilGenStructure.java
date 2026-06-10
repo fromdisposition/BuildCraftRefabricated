@@ -10,7 +10,6 @@ import buildcraft.api.core.BCLog;
 import buildcraft.core.BCCoreBlocks;
 import buildcraft.energy.tile.TileSpringOil;
 import buildcraft.fabric.BCEnergyFluidsFabric;
-import buildcraft.fabric.fluid.BcFluidUtil;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.misc.data.Box;
@@ -28,6 +27,8 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 
 public abstract class OilGenStructure {
    public final Box box;
@@ -37,6 +38,9 @@ public abstract class OilGenStructure {
    static final int SURFACE_BOX_Y_MARGIN = 8;
    static final int OCEAN_SPREAD_CLEAR_HEIGHT = 5;
    static final int LAND_SPREAD_CLEAR_HEIGHT = 1;
+
+   /** When true, exposed source blocks schedule a vanilla fluid tick after placement (spouts only). */
+   protected boolean scheduleFluidSpread = false;
 
    protected final List<BlockPos> placedOilPositions = new ArrayList<>();
 
@@ -67,7 +71,7 @@ public abstract class OilGenStructure {
    }
 
    protected void placeOil(LevelAccessor level, BlockPos pos) {
-      setOil(level, pos);
+      setOil(level, pos, this.scheduleFluidSpread);
       this.placedOilPositions.add(pos.immutable());
    }
 
@@ -76,12 +80,39 @@ public abstract class OilGenStructure {
    }
 
    public static void setOil(LevelAccessor level, BlockPos pos) {
+      setOil(level, pos, false);
+   }
+
+   public static void setOil(LevelAccessor level, BlockPos pos, boolean scheduleSpread) {
       BlockState oil = BCEnergyFluidsFabric.oilSourceBlockStateForLevel(level instanceof Level l ? l : null);
       if (oil == null) {
          oil = BCEnergyFluidsFabric.OIL_COOL.still().defaultFluidState().createLegacyBlock();
       }
 
       level.setBlock(pos, oil, GEN_FLAGS);
+      if (scheduleSpread) {
+         scheduleFluidTickIfExposed(level, pos, oil);
+      }
+   }
+
+   /** Same contract as vanilla fluid blocks after worldgen placement. */
+   private static void scheduleFluidTickIfExposed(LevelAccessor level, BlockPos pos, BlockState oil) {
+      if (!(level instanceof WorldGenLevel worldGen)) {
+         return;
+      }
+
+      BlockState above = level.getBlockState(pos.above());
+      if (!above.isAir() && !above.canBeReplaced()) {
+         return;
+      }
+
+      FluidState fluid = oil.getFluidState();
+      if (fluid.isEmpty()) {
+         return;
+      }
+
+      Fluid fluidType = fluid.getType();
+      worldGen.scheduleTick(pos, fluidType, fluidType.getTickDelay(worldGen));
    }
 
    public static BlockPos findTerrainUpper(LevelAccessor level, int x, int z) {
@@ -101,18 +132,6 @@ public abstract class OilGenStructure {
       }
 
       return new BlockPos(x, level.getMinY(), z);
-   }
-
-   @Nullable
-   protected static BlockPos findSurfaceWater(LevelAccessor level, int x, int z, int surfaceY) {
-      for (int dy = 0; dy >= -4; dy--) {
-         BlockPos pos = new BlockPos(x, surfaceY + dy, z);
-         if (BcFluidUtil.isVanillaWater(level.getFluidState(pos))) {
-            return pos;
-         }
-      }
-
-      return null;
    }
 
    protected static void clearSpreadSpaceAbove(LevelAccessor level, BlockPos surface, int height) {
@@ -212,24 +231,14 @@ public abstract class OilGenStructure {
                   continue;
                }
 
-               BlockPos surface = findSurfaceWater(level, x, z, this.surfaceY);
-               if (surface != null) {
-                  clearSpreadSpaceAbove(level, surface, OCEAN_SPREAD_CLEAR_HEIGHT);
-                  this.setOilIfCanReplace(level, surface);
-                  continue;
-               }
-
                BlockPos upper = findTerrainUpper(level, x, z);
                if (!this.canReplaceForOil(level, upper)) {
                   continue;
                }
 
-               for (int y = 0; y < LAND_SPREAD_CLEAR_HEIGHT; y++) {
-                  level.setBlock(upper.above(y), Blocks.AIR.defaultBlockState(), GEN_FLAGS);
-               }
+               clearSpreadSpaceAbove(level, upper, OCEAN_SPREAD_CLEAR_HEIGHT);
 
-               this.setOilIfCanReplace(level, upper);
-               for (int y = 1; y < this.depth; y++) {
+               for (int y = 0; y < this.depth; y++) {
                   this.setOilIfCanReplace(level, upper.below(y));
                }
             }
@@ -260,7 +269,8 @@ public abstract class OilGenStructure {
       private int count = 0;
 
       public Spout(BlockPos start, OilGenStructure.ReplaceType replaceType, int radius, int height) {
-         super(createBox(start, height, radius), replaceType);
+         super(createBox(start), replaceType);
+         this.scheduleFluidSpread = true;
          this.start = start;
          this.radius = radius;
          this.height = height;
@@ -270,9 +280,8 @@ public abstract class OilGenStructure {
          return this.count > 0;
       }
 
-      private static Box createBox(BlockPos start, int height, int radius) {
-         int top = start.getY() + height * (radius + 2) + 128;
-         return new Box(start, new BlockPos(start.getX(), top, start.getZ()));
+      private static Box createBox(BlockPos start) {
+         return new Box(start, new BlockPos(start.getX(), start.getY() + 320, start.getZ()));
       }
 
       @Override
@@ -291,20 +300,22 @@ public abstract class OilGenStructure {
 
          int tubeLen = Math.max(0, worldTop.getY() - this.start.getY());
          OilGenStructure tubeY = OilGenerator.createTube(this.start, tubeLen, this.radius, Axis.Y);
-         this.generateChild(level, intersect, tubeY);
+         this.generateChild(level, tubeY);
          this.count += tubeY.countOilBlocks();
          BlockPos base = worldTop;
 
          for (int r = this.radius; r >= 0; r--) {
             OilGenStructure struct = OilGenerator.createTube(base, this.height, r, Axis.Y);
-            this.generateChild(level, intersect, struct);
+            this.generateChild(level, struct);
             this.count += struct.countOilBlocks();
             base = base.offset(0, this.height, 0);
          }
       }
 
-      private void generateChild(LevelAccessor level, Box intersect, OilGenStructure child) {
-         child.generate(level, intersect);
+      /** BC 8.0 generates each tube in its own bounding box — not clipped to the 1-wide spout column. */
+      private void generateChild(LevelAccessor level, OilGenStructure child) {
+         child.scheduleFluidSpread = this.scheduleFluidSpread;
+         child.generate(level, child.box);
          this.placedOilPositions.addAll(child.getPlacedOilPositions());
       }
 

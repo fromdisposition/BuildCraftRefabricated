@@ -29,8 +29,6 @@ public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
          return false;
       }
 
-      int chunkX = context.origin().getX() >> 4;
-      int chunkZ = context.origin().getZ() >> 4;
-      return OilGenerator.placeForChunk(level, chunkX, chunkZ);
+      return OilGenerator.placeForChunk(level, context.origin());
    }
 }

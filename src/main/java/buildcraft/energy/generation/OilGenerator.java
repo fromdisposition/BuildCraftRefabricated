@@ -31,8 +31,6 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
-import net.minecraft.world.level.material.FluidState;
-
 public class OilGenerator {
    private static final long MAGIC_GEN_NUMBER = -3438862373895731249L;
    private static final int SEA_LEVEL = 62;
@@ -75,9 +73,11 @@ public class OilGenerator {
    }
 
    private static ChunkSample sampleChunk(Level level, int cx, int cz) {
+      return sampleAt(level, cx, cz, (cx << 4) + 8, (cz << 4) + 8);
+   }
+
+   private static ChunkSample sampleAt(Level level, int cx, int cz, int x, int z) {
       Random rand = createRandomForChunk(level, cx, cz, MAGIC_GEN_NUMBER);
-      int x = cx * 16 + 8 + rand.nextInt(16);
-      int z = cz * 16 + 8 + rand.nextInt(16);
       Holder<Biome> biome = level.getBiome(new BlockPos(x, BIOME_SAMPLE_Y, z));
       Identifier biomeId = Identifier.parse(biome.getRegisteredName());
       return new ChunkSample(rand, x, z, biome, biomeId);
@@ -91,13 +91,15 @@ public class OilGenerator {
       return isOilDesignBiome(sampleBiomeForChunkRoll(level, chunkX, chunkZ));
    }
 
-   /** One origin chunk, one pass — no neighbor chunk scans. */
-   public static boolean placeForChunk(WorldGenLevel level, int chunkX, int chunkZ) {
+   /** One origin chunk, one pass — placement origin comes from the configured feature modifiers. */
+   public static boolean placeForChunk(WorldGenLevel level, BlockPos origin) {
       if (!canGenerateOilIn(level.getLevel())) {
          return false;
       }
 
-      List<OilGenStructure> structures = getStructures(level.getLevel(), chunkX, chunkZ, true);
+      int chunkX = origin.getX() >> 4;
+      int chunkZ = origin.getZ() >> 4;
+      List<OilGenStructure> structures = getStructures(level.getLevel(), chunkX, chunkZ, origin.getX(), origin.getZ(), true);
       if (structures.isEmpty()) {
          return false;
       }
@@ -107,7 +109,6 @@ public class OilGenerator {
          spring.generate(level, countOilSources(structures));
       }
 
-      scheduleOilFluidTicks(level, structures);
       return true;
    }
 
@@ -136,27 +137,6 @@ public class OilGenerator {
       return count;
    }
 
-   /** One tick per placed surface source — vanilla spread on land, no box scan. */
-   private static void scheduleOilFluidTicks(WorldGenLevel level, List<OilGenStructure> structures) {
-      for (OilGenStructure struct : structures) {
-         for (BlockPos pos : struct.getPlacedOilPositions()) {
-            if (!isOilExposedToSpread(level, pos)) {
-               continue;
-            }
-
-            FluidState fluid = level.getFluidState(pos);
-            if (!fluid.isEmpty()) {
-               level.scheduleTick(pos, fluid.getType(), 1);
-            }
-         }
-      }
-   }
-
-   private static boolean isOilExposedToSpread(WorldGenLevel level, BlockPos pos) {
-      BlockState above = level.getBlockState(pos.above());
-      return above.isAir() || above.canBeReplaced();
-   }
-
    private static boolean isDimensionExcluded(ResourceKey<Level> dimKey) {
       boolean inList = BCEnergyConfig.getExcludedDimensions().contains(RegistryKeyUtil.id(dimKey));
       return BCEnergyConfig.dimensionListMode.get() == BCEnergyConfig.ListMode.BLACKLIST ? inList : !inList;
@@ -167,7 +147,11 @@ public class OilGenerator {
    }
 
    private static List<OilGenStructure> getStructures(Level level, int cx, int cz, boolean log) {
-      ChunkSample sample = sampleChunk(level, cx, cz);
+      return getStructures(level, cx, cz, (cx << 4) + 8, (cz << 4) + 8, log);
+   }
+
+   private static List<OilGenStructure> getStructures(Level level, int cx, int cz, int x, int z, boolean log) {
+      ChunkSample sample = sampleAt(level, cx, cz, x, z);
       boolean isExcludedBiome = BCEnergyConfig.getExcludedBiomes().contains(sample.biomeId());
       boolean biomeBlacklisted = BCEnergyConfig.biomeListMode.get() == BCEnergyConfig.ListMode.BLACKLIST;
       if (isExcludedBiome == biomeBlacklisted) {
@@ -255,10 +239,8 @@ public class OilGenerator {
          return;
       }
 
-      int minHeight = hasSpring ? BCEnergyConfig.largeSpoutMinHeight.get() : BCEnergyConfig.finiteSpoutMinHeight.get();
-      int maxHeight = hasSpring ? BCEnergyConfig.largeSpoutMaxHeight.get() : BCEnergyConfig.finiteSpoutMaxHeight.get();
-      int spoutRadius = hasSpring ? 1 : 0;
-      structures.add(createSpout(wellCenter, randomRange(rand, minHeight, maxHeight), spoutRadius));
+      OilGenerator.SpoutKind kind = hasSpring ? OilGenerator.SpoutKind.LARGE : OilGenerator.SpoutKind.FINITE;
+      structures.add(createSpout(wellCenter, kind.pickSegmentHeight(rand), kind.radius));
    }
 
    private static void addSpringIfEnabled(
@@ -306,10 +288,7 @@ public class OilGenerator {
       int wellRadius = type == OilGenerator.GenType.LARGE ? 8 + rand.nextInt(9) : 4 + rand.nextInt(4);
       structures.add(createSphere(new BlockPos(x, wellY, z), wellRadius));
       if (BCEnergyConfig.enableOilSpouts.get()) {
-         int minHeight = BCEnergyConfig.largeSpoutMinHeight.get();
-         int maxHeight = BCEnergyConfig.largeSpoutMaxHeight.get();
-         int height = maxHeight == minHeight ? maxHeight : minHeight + rand.nextInt(Math.max(1, maxHeight - minHeight));
-         structures.add(createSpout(new BlockPos(x, wellY, z), height, 1));
+         structures.add(createSpout(new BlockPos(x, wellY, z), OilGenerator.SpoutKind.LARGE.pickSegmentHeight(rand), OilGenerator.SpoutKind.LARGE.radius));
       }
 
       int tubeStart = level.getMinY() + 2;
@@ -438,18 +417,14 @@ public class OilGenerator {
       }
    }
 
-   private static int randomRange(Random rand, int min, int max) {
-      if (max == min) {
-         return max;
-      }
-
+   private static int randomIntInclusive(Random rand, int min, int max) {
       if (max < min) {
          int t = max;
          max = min;
          min = t;
       }
 
-      return min + rand.nextInt(max - min);
+      return min + rand.nextInt(max - min + 1);
    }
 
    private record ChunkSample(Random rand, int x, int z, Holder<Biome> biome, Identifier biomeId) {
@@ -516,5 +491,45 @@ public class OilGenerator {
       LARGE,
       MEDIUM,
       LAKE
+   }
+
+   /** Two spout profiles — BC 8.0 finite (1-wide) vs large spring (3-wide base segment). */
+   private enum SpoutKind {
+      FINITE(0) {
+         @Override
+         int minSegmentHeight() {
+            return BCEnergyConfig.finiteSpoutMinHeight.get();
+         }
+
+         @Override
+         int maxSegmentHeight() {
+            return BCEnergyConfig.finiteSpoutMaxHeight.get();
+         }
+      },
+      LARGE(1) {
+         @Override
+         int minSegmentHeight() {
+            return BCEnergyConfig.largeSpoutMinHeight.get();
+         }
+
+         @Override
+         int maxSegmentHeight() {
+            return BCEnergyConfig.largeSpoutMaxHeight.get();
+         }
+      };
+
+      final int radius;
+
+      SpoutKind(int radius) {
+         this.radius = radius;
+      }
+
+      abstract int minSegmentHeight();
+
+      abstract int maxSegmentHeight();
+
+      int pickSegmentHeight(Random rand) {
+         return randomIntInclusive(rand, this.minSegmentHeight(), this.maxSegmentHeight());
+      }
    }
 }
