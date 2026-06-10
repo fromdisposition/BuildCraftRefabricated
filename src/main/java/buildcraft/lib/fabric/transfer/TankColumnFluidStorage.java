@@ -30,14 +30,14 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
          }
 
          List<TileTank> tanks = this.owner.getTankColumn();
-         FluidStack resolved = resolveColumnFluid(tanks, fluid);
-         if (resolved.isEmpty() && !fluid.isEmpty()) {
-            resolved = fluid;
-         } else if (!resolved.isEmpty() && !FluidUtilBC.areEquivalentFluidStacks(resolved, fluid)) {
-            return 0L;
+         for (TileTank tank : tanks) {
+            FluidStack current = tank.fluidTank.getFluidStack();
+            if (!current.isEmpty() && !FluidUtilBC.areEquivalentFluidStacks(current.copyWithAmount(1), fluid)) {
+               return 0L;
+            }
          }
 
-         boolean gaseous = FluidUtilBC.isGaseous(resolved);
+         boolean gaseous = FluidUtilBC.isGaseous(fluid);
          long remaining = millibuckets;
          long totalInserted = 0L;
          if (gaseous) {
@@ -148,22 +148,6 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
 
       FluidStack stack = fluid.isEmpty() ? FluidStack.EMPTY : fluid.copyWithAmount(TransferCommits.saturateMb(amountMb));
       return new FluidStorageSnapshot(stack, TransferCommits.saturateMb(amountMb), TransferCommits.saturateMb(capacityMb));
-   }
-
-   private static FluidStack resolveColumnFluid(List<TileTank> tanks, FluidStack candidate) {
-      for (TileTank tank : tanks) {
-         FluidStack current = tank.fluidTank.getFluidStack();
-         if (!current.isEmpty()) {
-            FluidStack identity = current.copyWithAmount(1);
-            if (!candidate.isEmpty() && !FluidUtilBC.areEquivalentFluidStacks(identity, candidate)) {
-               return FluidStack.EMPTY;
-            }
-
-            return identity;
-         }
-      }
-
-      return candidate;
    }
 
    private static FluidStack resolveExtractFluid(List<TileTank> tanks, FluidStack candidate) {

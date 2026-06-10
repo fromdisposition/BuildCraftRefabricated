@@ -8,15 +8,12 @@ import buildcraft.energy.BCEnergyBlocks;
 import buildcraft.energy.BCEnergyFluids;
 import buildcraft.energy.BCEnergyItems;
 import buildcraft.energy.BCEnergyMenuTypes;
-import buildcraft.energy.BCEnergyRecipes;
 import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
 import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.energy.tile.TileEngineStone_BC8;
 import buildcraft.energy.tile.TileSpringOil;
 import buildcraft.lib.mj.MjBlockCapabilities;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarting;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import team.reborn.energy.api.EnergyStorage;
@@ -37,7 +34,6 @@ public final class BCEnergyFabric {
       EnumSpring.OIL.liquidBlock = BCEnergyFluidsFabric.sourceBlockState(BCEnergyFluidsFabric.OIL_COOL);
       EnumSpring.OIL.canGen = true;
       BlockSpring.oilTileFactory = TileSpringOil::new;
-      ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> BCEnergyRecipes.init());
       BCEnergyWorldGenFabric.init();
    }
 

@@ -29,7 +29,7 @@ public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
       FluidStack fluid = getFluid(stack);
       return fluid.isEmpty()
          ? Component.translatable(this.getDescriptionId() + ".name.empty")
-         : Component.translatable(this.getDescriptionId() + ".name", new Object[]{fluid.getHoverName().getString()});
+         : Component.translatable(this.getDescriptionId() + ".name", fluid.getHoverName());
    }
 
    public static void appendTooltipLines(ItemFragileFluidContainer item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {

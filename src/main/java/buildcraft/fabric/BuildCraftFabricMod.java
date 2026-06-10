@@ -4,6 +4,7 @@ import buildcraft.core.BCCore;
 import buildcraft.core.command.SoundTestCommand;
 import buildcraft.core.marker.volume.WorldSavedDataVolumeBoxes;
 import buildcraft.fabric.config.BCFabricConfig;
+import buildcraft.fabric.integration.jei.BCJeiBootstrap;
 import buildcraft.fabric.network.BCNetworkingRegistry;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.marker.MarkerCache;
@@ -30,6 +31,7 @@ public class BuildCraftFabricMod implements ModInitializer {
       BCBuildersFabric.register();
       BCSiliconFabric.register();
       BCRoboticsFabric.register();
+      BCJeiBootstrap.initGameRecipes();
       BCNetworkingRegistry.registerCommon();
       BCNetworkingRegistry.registerServer();
       BcTransfers.init();

@@ -28,7 +28,7 @@ public class ContainerTank extends BcMenu {
       super(BCFactoryMenuTypes.TANK, containerId, playerInv.player);
       this.tile = tank;
       this.addFullPlayerInventory(8, 99);
-      this.widgetTank = this.addWidget(new WidgetFluidTank(this, tank == null ? null : tank.getColumnFluidStorage()));
+      this.widgetTank = this.addWidget(new WidgetFluidTank(this, tank == null ? null : tank.fluidTank));
    }
 
    @Override

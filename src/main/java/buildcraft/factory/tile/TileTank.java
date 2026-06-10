@@ -42,7 +42,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 public class TileTank extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable, IBlockEntityLoadHook {
-   public final SingleFluidTank fluidTank = new SingleFluidTank(16000);
+   public final SingleFluidTank fluidTank = new SingleFluidTank(16000, SingleFluidTank.TankAccess.OPEN, this::requestColumnBalance);
    public final FluidSmoother smoothedTank = new FluidSmoother(this.fluidTank);
    private int lastComparatorLevel;
    private int lastSyncedAmount = -1;

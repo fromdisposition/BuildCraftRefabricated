@@ -25,6 +25,12 @@
     ],
     "client": [
       "buildcraft.fabric.BuildCraftFabricClient"
+    ],
+    "jei_mod_plugin": [
+      "buildcraft.core.integration.jei.BCCoreJeiPlugin",
+      "buildcraft.energy.integration.jei.BCEnergyJeiPlugin",
+      "buildcraft.factory.integration.jei.BCFactoryJeiPlugin",
+      "buildcraft.silicon.integration.jei.BCSiliconJeiPlugin"
     ]
   },
   "mixins": [
