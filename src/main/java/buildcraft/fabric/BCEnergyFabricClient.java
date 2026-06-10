@@ -15,7 +15,6 @@ import buildcraft.lib.client.render.tile.RenderEngine_BC8;
 import buildcraft.lib.engine.TileEngineBase_BC8;
 import java.util.function.BiFunction;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
-import net.minecraft.client.color.block.BlockTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.block.FluidModel.Unbaked;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
@@ -28,9 +27,9 @@ public final class BCEnergyFabricClient {
 
    public static void init() {
       for (BCEnergyFluidsFabric.FluidEntry entry : BCEnergyFluidsFabric.ALL) {
-         Material stillMaterial = new Material(BcFluidTintUtil.bakedStillSpriteId(entry.name()));
-         Material flowMaterial = new Material(BcFluidTintUtil.bakedFlowSpriteId(entry.name()));
-         Unbaked model = new Unbaked(stillMaterial, flowMaterial, null, BlockTintSources.constant(-1));
+         Material stillMaterial = new Material(BcFluidTintUtil.worldStillSpriteId(entry.name()), false);
+         Material flowMaterial = new Material(BcFluidTintUtil.worldFlowSpriteId(entry.name()), false);
+         Unbaked model = new Unbaked(stillMaterial, flowMaterial, null, null);
          FluidRenderingRegistry.register(entry.still(), entry.flowing(), model);
          FluidRenderingRegistry.setBlockTransparency(entry.block(), true);
       }
