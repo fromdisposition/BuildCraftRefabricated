@@ -6,6 +6,7 @@ import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.tile.TileSpringOil;
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.misc.BlockUtil;
+import buildcraft.lib.misc.data.Box;
 import com.mojang.serialization.Codec;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -16,7 +17,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.feature.Feature;
@@ -228,13 +228,14 @@ public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
 
       if (nether) {
          int poolRadius = type == DepositType.LARGE ? 8 + random.nextInt(5) : 5 + random.nextInt(3);
-         oilCount += placeSurfaceDeposit(level, random, x, groundLevel + 1, z, poolRadius, oil);
+         oilCount += placeSurfacePool(level, random, x, z, poolRadius, oil);
       } else if (richBiome) {
-         int lakeRadius = type == DepositType.LARGE ? 25 + random.nextInt(20) : 5 + random.nextInt(10);
-         oilCount += placeSurfaceDeposit(level, random, x, groundLevel, z, lakeRadius, oil);
+         int poolRadius = type == DepositType.LARGE ? 8 + random.nextInt(5) : 5 + random.nextInt(3);
+         oilCount += placeSurfacePool(level, random, x, z, poolRadius, oil);
       } else if (biomeHolder.is(BiomeTags.IS_OCEAN)) {
          int lakeRadius = type == DepositType.LARGE ? 4 : 2;
-         oilCount += placeSurfaceDeposit(level, random, x, groundLevel, z, lakeRadius, oil);
+         int tendrilRadius = type == DepositType.LARGE ? 25 + random.nextInt(20) : 5 + random.nextInt(10);
+         oilCount += placeTendrilDeposit(level, random, x, z, lakeRadius, tendrilRadius, oil);
       }
 
       if (springPos != null && level.getBlockEntity(springPos) instanceof TileSpringOil tile) {
@@ -245,116 +246,116 @@ public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
    }
 
    private static boolean placeLake(WorldGenLevel level, RandomSource random, int x, int groundLevel, int z, BlockState oil) {
-      return placeSurfaceDeposit(level, random, x, groundLevel, z, 5 + random.nextInt(10), oil) > 0;
+      return placeTendrilDeposit(level, random, x, z, 2, 5 + random.nextInt(10), oil) > 0;
    }
 
-   private static int placeSurfaceDeposit(WorldGenLevel level, RandomSource random, int x, int y, int z, int radius, BlockState oil) {
+   private static int placeTendrilDeposit(
+      WorldGenLevel level, RandomSource random, int centerX, int centerZ, int lakeRadius, int tendrilRadius, BlockState oil
+   ) {
+      int diameter = tendrilRadius * 2 + 1;
+      boolean[][] pattern = new boolean[diameter][diameter];
+      int cx = tendrilRadius;
+      int cz = tendrilRadius;
+
+      for (int dx = -lakeRadius; dx <= lakeRadius; dx++) {
+         for (int dz = -lakeRadius; dz <= lakeRadius; dz++) {
+            if (dx * dx + dz * dz <= lakeRadius * lakeRadius) {
+               pattern[cx + dx][cz + dz] = true;
+            }
+         }
+      }
+
+      for (int w = 1; w < tendrilRadius; w++) {
+         float chance = (float)(tendrilRadius - w + 4) / (float)(tendrilRadius + 4);
+         fillPatternIfProba(random, chance, cx, cz + w, pattern);
+         fillPatternIfProba(random, chance, cx, cz - w, pattern);
+         fillPatternIfProba(random, chance, cx + w, cz, pattern);
+         fillPatternIfProba(random, chance, cx - w, cz, pattern);
+
+         for (int i = 1; i <= w; i++) {
+            fillPatternIfProba(random, chance, cx + i, cz + w, pattern);
+            fillPatternIfProba(random, chance, cx + i, cz - w, pattern);
+            fillPatternIfProba(random, chance, cx + w, cz + i, pattern);
+            fillPatternIfProba(random, chance, cx - w, cz + i, pattern);
+            fillPatternIfProba(random, chance, cx - i, cz + w, pattern);
+            fillPatternIfProba(random, chance, cx - i, cz - w, pattern);
+            fillPatternIfProba(random, chance, cx + w, cz - i, pattern);
+            fillPatternIfProba(random, chance, cx - w, cz - i, pattern);
+         }
+      }
+
+      return placeLakePattern(level, random, centerX - tendrilRadius, centerZ - tendrilRadius, pattern, oil);
+   }
+
+   private static int placeSurfacePool(WorldGenLevel level, RandomSource random, int centerX, int centerZ, int baseRadius, BlockState oil) {
+      int maxRadius = baseRadius + 1;
+      int diameter = maxRadius * 2 + 1;
+      boolean[][] pattern = new boolean[diameter][diameter];
+      int centerIdx = maxRadius;
+
+      for (int dx = -maxRadius; dx <= maxRadius; dx++) {
+         for (int dz = -maxRadius; dz <= maxRadius; dz++) {
+            int noise = random.nextInt(3) - 1;
+            int effectiveRadius = Math.max(0, baseRadius + noise);
+            pattern[centerIdx + dx][centerIdx + dz] = dx * dx + dz * dz <= effectiveRadius * effectiveRadius;
+         }
+      }
+
+      return placeSurfacePoolPattern(level, random, centerX - maxRadius, centerZ - maxRadius, pattern, oil);
+   }
+
+   private static int placeLakePattern(
+      WorldGenLevel level, RandomSource random, int startX, int startZ, boolean[][] pattern, BlockState oil
+   ) {
       int depth = random.nextBoolean() ? 1 : 2;
       int placed = 0;
-      placeOilColumn(level, x, y, z, depth, oil);
-      placed += depth;
 
-      for (int w = 1; w <= radius; w++) {
-         float chance = (float)(radius - w + 4) / (float)(radius + 4);
-         placed += tryPlaceTendril(level, random, chance, x, y, z + w, depth, oil);
-         placed += tryPlaceTendril(level, random, chance, x, y, z - w, depth, oil);
-         placed += tryPlaceTendril(level, random, chance, x + w, y, z, depth, oil);
-         placed += tryPlaceTendril(level, random, chance, x - w, y, z, depth, oil);
+      for (int px = 0; px < pattern.length; px++) {
+         for (int pz = 0; pz < pattern[px].length; pz++) {
+            if (pattern[px][pz]) {
+               placed += OilLakePlacement.placeLakeColumn(level, startX + px, startZ + pz, depth, oil);
+            }
+         }
       }
 
       return placed;
    }
 
-   private static int tryPlaceTendril(WorldGenLevel level, RandomSource random, float chance, int x, int y, int z, int depth, BlockState oil) {
-      if (random.nextFloat() > chance) {
-         return 0;
+   private static int placeSurfacePoolPattern(
+      WorldGenLevel level, RandomSource random, int startX, int startZ, boolean[][] pattern, BlockState oil
+   ) {
+      int depth = random.nextBoolean() ? 1 : 2;
+      int placed = 0;
+      int endX = startX + pattern.length - 1;
+      int endZ = startZ + (pattern.length == 0 ? 0 : pattern[0].length - 1);
+      Box bounds = new Box(new BlockPos(startX, level.getMinY(), startZ), new BlockPos(endX, level.getMaxY(), endZ));
+
+      for (int px = 0; px < pattern.length; px++) {
+         for (int pz = 0; pz < pattern[px].length; pz++) {
+            if (pattern[px][pz]) {
+               placed += OilLakePlacement.placeSurfacePoolColumn(level, startX + px, startZ + pz, depth, oil, bounds);
+            }
+         }
       }
 
-      if (level.isEmptyBlock(new BlockPos(x, y - depth - 1, z))) {
-         return 0;
-      }
-
-      if (!hasAdjacentOil(level, x, y, z, oil)) {
-         return 0;
-      }
-
-      placeOilColumn(level, x, y, z, depth, oil);
-      return depth;
+      return placed;
    }
 
-   private static void placeOilColumn(WorldGenLevel level, int x, int y, int z, int depth, BlockState oil) {
-      BlockPos surface = findLakeSurface(level, x, z);
-      if (!canPlaceLakeOil(level, surface)) {
-         return;
-      }
-
-      level.setBlock(surface, oil, 2);
-      if (!level.isEmptyBlock(surface.above())) {
-         level.setBlock(surface.above(), Blocks.AIR.defaultBlockState(), 2);
-      }
-
-      for (int d = 1; d < depth; d++) {
-         BlockPos below = surface.below(d);
-         if (!isReplaceableLakeFluid(level, below) && !BlockUtil.blocksMotion(level.getBlockState(below.below()))) {
-            return;
-         }
-
-         level.setBlock(below, oil, 2);
+   private static void fillPatternIfProba(RandomSource random, float chance, int x, int z, boolean[][] pattern) {
+      if (random.nextFloat() <= chance) {
+         pattern[x][z] = isPatternSet(pattern, x, z - 1)
+            | isPatternSet(pattern, x, z + 1)
+            | isPatternSet(pattern, x - 1, z)
+            | isPatternSet(pattern, x + 1, z);
       }
    }
 
-   private static BlockPos findLakeSurface(WorldGenLevel level, int x, int z) {
-      for (int y = level.getMaxY(); y > level.getMinY(); y--) {
-         BlockPos pos = new BlockPos(x, y, z);
-         BlockState state = level.getBlockState(pos);
-         if (state.isAir()) {
-            continue;
-         }
-
-         FluidState fluid = level.getFluidState(pos);
-         if (!fluid.isEmpty() && !fluid.getType().isSame(Fluids.LAVA)) {
-            return pos;
-         }
-
-         if (!state.canBeReplaced() && BlockUtil.blocksMotion(state)) {
-            return pos.below();
-         }
-      }
-
-      return new BlockPos(x, level.getMinY(), z);
-   }
-
-   private static boolean canPlaceLakeOil(WorldGenLevel level, BlockPos surface) {
-      if (!isReplaceableForLake(level, surface.above())) {
+   private static boolean isPatternSet(boolean[][] pattern, int x, int z) {
+      if (x < 0 || x >= pattern.length) {
          return false;
       }
 
-      if (surface.getY() + 2 < level.getMaxY() && !level.isEmptyBlock(surface.above(2))) {
-         return false;
-      }
-
-      return isReplaceableLakeFluid(level, surface) || BlockUtil.blocksMotion(level.getBlockState(surface.below()));
-   }
-
-   private static boolean isReplaceableForLake(WorldGenLevel level, BlockPos pos) {
-      BlockState state = level.getBlockState(pos);
-      if (state.isAir() || state.canBeReplaced() || isReplaceableLakeFluid(level, pos)) {
-         return true;
-      }
-
-      return !BlockUtil.blocksMotion(state);
-   }
-
-   private static boolean isReplaceableLakeFluid(WorldGenLevel level, BlockPos pos) {
-      FluidState fluid = level.getFluidState(pos);
-      return !fluid.isEmpty() && !fluid.getType().isSame(Fluids.LAVA);
-   }
-
-   private static boolean hasAdjacentOil(WorldGenLevel level, int x, int y, int z, BlockState oil) {
-      return level.getBlockState(new BlockPos(x + 1, y, z)).equals(oil)
-         || level.getBlockState(new BlockPos(x - 1, y, z)).equals(oil)
-         || level.getBlockState(new BlockPos(x, y, z + 1)).equals(oil)
-         || level.getBlockState(new BlockPos(x, y, z - 1)).equals(oil);
+      return z >= 0 && z < pattern[x].length && pattern[x][z];
    }
 
    private static int findSolidTop(WorldGenLevel level, int x, int z) {
