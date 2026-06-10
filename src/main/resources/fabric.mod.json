@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "buildcraftrefabricated",
-  "version": "26.1.2-1",
+  "version": "${mod_version}",
   "name": "BuildCraft Refabricated",
   "description": "Unofficial Fabric port of BuildCraft for Minecraft 26.1.2 — pipes, engines, quarries, oil processing, gates, and automation.",
   "authors": [
