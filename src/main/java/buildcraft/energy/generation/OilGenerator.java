@@ -320,7 +320,9 @@ public class OilGenerator {
          if (hasSpring) {
             int tubeStart = level.getMinY() + 2;
             int tubeLength = wellY - tubeStart;
-            structures.add(createTube(new BlockPos(x, tubeStart, z), tubeLength, wellRadius, Axis.Y));
+            structures.add(
+               createTube(new BlockPos(x, tubeStart, z), tubeLength, wellRadius, Axis.Y, OilGenStructure.ReplaceType.SKIP_WATER)
+            );
             structures.add(createSpring(new BlockPos(x, level.getMinY(), z)));
          }
 
@@ -379,7 +381,9 @@ public class OilGenerator {
 
       int tubeStart = level.getMinY() + 2;
       int tubeLength = wellY - tubeStart;
-      structures.add(createTube(new BlockPos(x, tubeStart, z), tubeLength, wellRadius, Axis.Y));
+      structures.add(
+         createTube(new BlockPos(x, tubeStart, z), tubeLength, wellRadius, Axis.Y, OilGenStructure.ReplaceType.SKIP_WATER)
+      );
       structures.add(createSpring(new BlockPos(x, level.getMinY(), z)));
 
       return structures;
