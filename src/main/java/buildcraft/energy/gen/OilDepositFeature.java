@@ -1,8 +1,7 @@
 package buildcraft.energy.gen;
 
-import buildcraft.core.BCCoreBlocks;
 import buildcraft.core.BCCoreConfig;
-import buildcraft.core.gen.SpringPlacement;
+import buildcraft.core.gen.SpringWorldgen;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.tile.TileSpringOil;
 import buildcraft.fabric.BCEnergyFluidsFabric;
@@ -193,29 +192,31 @@ public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
       boolean richBiome = BCEnergyConfig.getRichSurfaceDepositBiomes().contains(Identifier.parse(biomeHolder.getRegisteredName()));
       boolean placeSpring = BCEnergyConfig.enableOilSpouts.get()
          && (nether || richBiome && type == DepositType.LARGE && random.nextDouble() <= SPRING_CHANCE);
-      int spoutBaseY = wellY;
       BlockPos springPos = null;
 
       if (placeSpring) {
-         springPos = SpringPlacement.findBedrock(level, x, z);
+         springPos = SpringWorldgen.placeOilSpringOnBedrock(level, x, z, oil);
          if (springPos != null) {
-            level.setBlock(springPos, BCCoreBlocks.SPRING_OIL.defaultBlockState(), 3);
-            BlockPos above = springPos.above();
-            level.setBlock(above, oil, 3);
-            oilCount++;
-            spoutBaseY = springPos.getY();
-         } else {
-            springPos = null;
+            oilCount += 2;
          }
       }
 
-      for (int y = spoutBaseY + 1; y <= maxHeight; y++) {
-         level.setBlock(new BlockPos(x, y, z), oil, 3);
-         oilCount++;
-      }
+      int worldTopY = SpringWorldgen.findSpoutWorldTop(level, x, z, wellY);
+      if (BCEnergyConfig.enableOilSpouts.get()) {
+         int spoutRadius = type == DepositType.LARGE ? 1 : 0;
+         int spoutMin = type == DepositType.LARGE ? BCEnergyConfig.largeSpoutMinHeight.get() : BCEnergyConfig.finiteSpoutMinHeight.get();
+         int spoutMax = type == DepositType.LARGE ? BCEnergyConfig.largeSpoutMaxHeight.get() : BCEnergyConfig.finiteSpoutMaxHeight.get();
+         if (spoutMax < spoutMin) {
+            int swap = spoutMax;
+            spoutMax = spoutMin;
+            spoutMin = swap;
+         }
 
+         int stackHeight = spoutMax == spoutMin ? spoutMax : spoutMin + random.nextInt(spoutMax - spoutMin + 1);
+         oilCount += SpringWorldgen.placeOilSpout(level, x, z, wellY, oil, stackHeight, spoutRadius, springPos, radius);
+      }
       if (type == DepositType.LARGE) {
-         int branchTop = maxHeight - wellHeight / 2;
+         int branchTop = (placeSpring ? worldTopY : maxHeight) - wellHeight / 2;
          for (int y = wellY; y <= branchTop; y++) {
             level.setBlock(new BlockPos(x + 1, y, z), oil, 3);
             level.setBlock(new BlockPos(x - 1, y, z), oil, 3);
