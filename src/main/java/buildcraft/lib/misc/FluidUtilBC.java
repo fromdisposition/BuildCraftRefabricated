@@ -17,7 +17,11 @@ import buildcraft.lib.transfer.neighbor.NeighborTransfers;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -165,38 +169,80 @@ public class FluidUtilBC {
    }
 
    public static Component getFluidDisplayName(FluidStack stack) {
-      if (stack != null && !stack.isEmpty()) {
-         Component display = stack.getHoverName();
-         String descriptionId = stack.getDescriptionId();
-         if (!display.getString().equals(descriptionId)) {
-            return display;
-         }
+      if (stack == null || stack.isEmpty()) {
+         return Component.empty();
+      }
 
-         Fluid fluid = canonicalFluid(stack.getFluid());
-         Item bucket = fluid.getBucket();
-         if (bucket != Items.AIR) {
-            Identifier bucketId = BuiltInRegistries.ITEM.getKey(bucket);
-            if (bucketId != null) {
-               String path = bucketId.getPath();
-               if (path.endsWith("_bucket")) {
-                  String blockPath = normalizeFluidPath(path.substring(0, path.length() - "_bucket".length()));
-                  return Component.translatable(Identifier.fromNamespaceAndPath(bucketId.getNamespace(), blockPath).toLanguageKey("block"));
-               }
+      Component fromClient = clientFluidDisplayName(stack);
+      if (fromClient != null) {
+         return fromClient;
+      }
 
-               return new ItemStack(bucket).getHoverName();
+      String descriptionId = stack.getDescriptionId();
+      Component fromFluidType = Component.translatable(descriptionId);
+      if (!isUntranslated(fromFluidType, descriptionId)) {
+         return fromFluidType;
+      }
+
+      Fluid fluid = canonicalFluid(stack.getFluid());
+      Item bucket = fluid.getBucket();
+      if (bucket != null && bucket != Items.AIR) {
+         ItemStack bucketStack = new ItemStack(bucket);
+         Component bucketName = bucketStack.getHoverName();
+         Identifier bucketId = BuiltInRegistries.ITEM.getKey(bucket);
+         if (bucketId != null) {
+            String bucketKey = bucketId.toLanguageKey("item");
+            if (!isUntranslated(bucketName, bucketKey)) {
+               return bucketName;
             }
          }
 
-         Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
-         if (fluidId != null) {
-            String path = normalizeFluidPath(fluidId.getPath());
-            return Component.translatable(Identifier.fromNamespaceAndPath(fluidId.getNamespace(), path).toLanguageKey("block"));
+         if (bucketId != null) {
+            String path = bucketId.getPath();
+            if (path.endsWith("_bucket")) {
+               String blockPath = normalizeFluidPath(path.substring(0, path.length() - "_bucket".length()));
+               String blockKey = Identifier.fromNamespaceAndPath(bucketId.getNamespace(), blockPath).toLanguageKey("block");
+               Component fromBlock = Component.translatable(blockKey);
+               if (!isUntranslated(fromBlock, blockKey)) {
+                  return fromBlock;
+               }
+            }
          }
-
-         return display;
-      } else {
-         return Component.empty();
       }
+
+      Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+      if (fluidId != null) {
+         String path = normalizeFluidPath(fluidId.getPath());
+         String blockKey = Identifier.fromNamespaceAndPath(fluidId.getNamespace(), path).toLanguageKey("block");
+         Component fromBlock = Component.translatable(blockKey);
+         if (!isUntranslated(fromBlock, blockKey)) {
+            return fromBlock;
+         }
+      }
+
+      return fromFluidType;
+   }
+
+   @Environment(EnvType.CLIENT)
+   private static @Nullable Component clientFluidDisplayName(FluidStack stack) {
+      if (FabricLoader.getInstance().getEnvironmentType() != EnvType.CLIENT) {
+         return null;
+      }
+
+      List<Component> tooltip = FluidVariantRendering.getTooltip(TransferConvert.toVariant(stack));
+      if (!tooltip.isEmpty()) {
+         Component name = tooltip.getFirst();
+         if (!isUntranslated(name, stack.getDescriptionId())) {
+            return name;
+         }
+      }
+
+      return null;
+   }
+
+   private static boolean isUntranslated(Component component, String translationKey) {
+      String text = component.getString();
+      return text.isEmpty() || text.equals(translationKey);
    }
 
    public static boolean isGaseous(FluidStack fluid) {

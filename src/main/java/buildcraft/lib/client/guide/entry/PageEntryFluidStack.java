@@ -50,7 +50,7 @@ public class PageEntryFluidStack extends PageValueType<FluidStackValueFilter> {
          if (fluid != Fluids.EMPTY) {
             FluidStack stack = new FluidStack(fluid, 1);
             if (!stack.isEmpty() && GuideManager.INSTANCE.objectsAdded.add(fluid)) {
-               String displayName = FluidTypes.of(fluid).getDescription(stack).getString();
+               String displayName = stack.getHoverName().getString();
                if (displayName != null && !displayName.trim().isEmpty()) {
                   consumer.addChild(OTHER_FLUIDS_TAGS, PageLinkFluidStack.create(false, stack, prof));
                }
@@ -80,7 +80,7 @@ public class PageEntryFluidStack extends PageValueType<FluidStackValueFilter> {
 
    public String getTitle(FluidStackValueFilter value) {
       FluidStack stack = value.stack;
-      return FluidTypes.of(stack.getFluid()).getDescription(stack).getString();
+      return stack.getHoverName().getString();
    }
 
    public List<String> getTooltip(FluidStackValueFilter value) {

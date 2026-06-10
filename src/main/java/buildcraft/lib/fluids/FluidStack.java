@@ -9,6 +9,7 @@ package buildcraft.lib.fluids;
 import buildcraft.lib.common.EventHooks;
 import buildcraft.lib.common.MutableDataComponentHolder;
 import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.misc.FluidUtilBC;
 import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -317,7 +318,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public Component getHoverName() {
-      return this.getFluidType().getDescription(this);
+      return FluidUtilBC.getFluidDisplayName(this);
    }
 
    @Override

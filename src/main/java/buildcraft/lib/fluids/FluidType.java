@@ -95,7 +95,7 @@ public class FluidType {
    }
 
    public Component getDescription(FluidStack stack) {
-      return Component.translatable(this.getDescriptionId());
+      return stack != null && !stack.isEmpty() ? stack.getHoverName() : Component.translatable(this.getDescriptionId());
    }
 
    public @Nullable SoundEvent getSound(SoundAction action) {
