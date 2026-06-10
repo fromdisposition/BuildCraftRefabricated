@@ -243,9 +243,11 @@ public class OilGenerator {
             if (rand.nextDouble() <= BCEnergyConfig.largeOilGenProb.get() * effectiveRate) {
                type = OilGenerator.GenType.LARGE;
             } else if (rand.nextDouble() <= BCEnergyConfig.mediumOilGenProb.get() * effectiveRate) {
-               type = OilGenerator.GenType.MEDIUM;
-            } else if (lightOceanBiome && rand.nextDouble() <= BCEnergyConfig.smallOilGenProb.get() * effectiveRate) {
-               type = OilGenerator.GenType.LAKE;
+               if (lightOceanBiome && rand.nextDouble() < 0.5) {
+                  type = OilGenerator.GenType.LAKE;
+               } else {
+                  type = OilGenerator.GenType.MEDIUM;
+               }
             } else {
                if (DEBUG_OILGEN_ALL && log) {
                   BCLog.logger
