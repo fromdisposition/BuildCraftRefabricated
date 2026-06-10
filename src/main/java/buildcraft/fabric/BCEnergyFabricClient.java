@@ -13,7 +13,6 @@ import buildcraft.lib.client.fluid.BcFluidTintUtil;
 import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.client.render.tile.RenderEngine_BC8;
 import buildcraft.lib.engine.TileEngineBase_BC8;
-import buildcraft.lib.misc.FluidUtilBC;
 import java.util.function.BiFunction;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
 import net.minecraft.client.color.block.BlockTintSources;
@@ -33,7 +32,7 @@ public final class BCEnergyFabricClient {
          Material flowMaterial = new Material(BcFluidTintUtil.bakedFlowSpriteId(entry.name()));
          Unbaked model = new Unbaked(stillMaterial, flowMaterial, null, BlockTintSources.constant(-1));
          FluidRenderingRegistry.register(entry.still(), entry.flowing(), model);
-         FluidRenderingRegistry.setBlockTransparency(entry.block(), FluidUtilBC.shouldRenderTranslucent(entry.still()));
+         FluidRenderingRegistry.setBlockTransparency(entry.block(), true);
       }
 
       MenuScreens.register(BCEnergyMenuTypes.ENGINE_STONE, GuiEngineStone_BC8::new);

@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 import org.jspecify.annotations.Nullable;
 
@@ -31,9 +30,8 @@ public final class FluidClientCache {
    }
 
    private static FluidClientCache.Appearance build(FluidStack stack) {
-      Identifier id = FluidUtilBC.getFluidTexture(stack);
-      TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(id);
-      return new FluidClientCache.Appearance(sprite, FluidUtilBC.getFluidColor(stack), FluidUtilBC.shouldRenderTranslucent(stack));
+      TextureAtlasSprite sprite = BcFluidRenderLookup.sprite(stack, BcFluidRenderLookup.SpriteKind.STILL);
+      return new FluidClientCache.Appearance(sprite, BcFluidRenderLookup.tint(stack), BcFluidRenderLookup.translucent(stack));
    }
 
    public static RenderType renderType(FluidClientCache.Appearance appearance) {

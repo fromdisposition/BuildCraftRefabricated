@@ -68,7 +68,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    private long lastMessage;
    private long lastMessageMinus1;
    public transient Fluid renderCacheFluid;
-   public transient Identifier renderCacheSpriteId;
+   public transient net.minecraft.client.renderer.texture.TextureAtlasSprite renderCacheSprite;
    public transient int renderCacheTintR = 255;
    public transient int renderCacheTintG = 255;
    public transient int renderCacheTintB = 255;

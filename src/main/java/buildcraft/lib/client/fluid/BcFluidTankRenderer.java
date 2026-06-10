@@ -35,7 +35,7 @@ public final class BcFluidTankRenderer {
       int overlay
    ) {
       if (!(amount <= 0.0) && capacity > 0 && fluid != null && !fluid.isEmpty()) {
-         float[] rgba = FluidUtilBC.vertexRgba(fluid);
+         float[] rgba = BcFluidRenderLookup.vertexRgba(fluid);
          float r = rgba[0];
          float g = rgba[1];
          float b = rgba[2];

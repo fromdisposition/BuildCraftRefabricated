@@ -9,13 +9,12 @@ package buildcraft.core.client;
 import buildcraft.core.BCCore;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.fluids.SimpleFluidContent;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.client.fluid.BcFluidRenderLookup;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
 public final class FluidShardTintSource implements ItemTintSource {
@@ -31,7 +30,7 @@ public final class FluidShardTintSource implements ItemTintSource {
       if (fluid.isEmpty()) {
          return -1;
       } else {
-         return fluid.getFluid().isSame(Fluids.WATER) ? -12618012 : FluidUtilBC.getFluidColor(fluid);
+         return BcFluidRenderLookup.tint(fluid);
       }
    }
 

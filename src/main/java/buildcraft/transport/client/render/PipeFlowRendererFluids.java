@@ -6,7 +6,7 @@
 
 package buildcraft.transport.client.render;
 
-import buildcraft.lib.client.texture.BcTextureAtlases;
+import buildcraft.lib.client.fluid.BcFluidRenderLookup;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
 import buildcraft.fabric.BCEnergyFluidsFabric;
@@ -20,7 +20,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 
 public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> {
@@ -32,9 +31,8 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       FluidStack forRender = flow.getFluidStackForRender();
       if (forRender != null && !forRender.isEmpty() && bb != null) {
          ensureRenderCache(flow, forRender);
-         Identifier flowTexture = flow.renderCacheSpriteId;
-         if (flowTexture != null) {
-            TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(flowTexture);
+         TextureAtlasSprite sprite = flow.renderCacheSprite;
+         if (sprite != null) {
             float r = flow.renderCacheTintR / 255.0F;
             float g = flow.renderCacheTintG / 255.0F;
             float b = flow.renderCacheTintB / 255.0F;
@@ -154,8 +152,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       Fluid current = fluidStack.getFluid();
       if (current != flow.renderCacheFluid) {
          flow.renderCacheFluid = current;
-         FluidUtilBC.FluidAppearance appearance = FluidUtilBC.appearance(fluidStack, FluidUtilBC.FluidRenderContext.PIPE);
-         flow.renderCacheSpriteId = appearance.texture();
+         flow.renderCacheSprite = BcFluidRenderLookup.sprite(fluidStack, BcFluidRenderLookup.SpriteKind.FLOWING);
          flow.renderCacheEntry = BCEnergyFluidsFabric.findEntry(current);
          flow.renderCacheBcGradient = flow.renderCacheEntry != null;
          if (flow.renderCacheEntry != null) {
@@ -168,13 +165,13 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             flow.renderCacheHeat = -1;
          }
 
-         int color = appearance.tintArgb();
+         int color = BcFluidRenderLookup.tint(fluidStack);
          flow.renderCacheTintR = color >> 16 & 0xFF;
          flow.renderCacheTintG = color >> 8 & 0xFF;
          flow.renderCacheTintB = color & 0xFF;
          int alpha = color >> 24 & 0xFF;
          flow.renderCacheTintA = alpha == 0 ? 255 : alpha;
-         flow.renderCacheTranslucent = FluidUtilBC.shouldRenderTranslucent(fluidStack);
+         flow.renderCacheTranslucent = BcFluidRenderLookup.translucent(fluidStack);
       }
    }
 

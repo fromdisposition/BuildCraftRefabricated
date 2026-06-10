@@ -10,6 +10,7 @@ import buildcraft.factory.block.BlockHeatExchange;
 import buildcraft.factory.tile.TileHeatExchange;
 import buildcraft.lib.client.fluid.BcFluidBerHelper;
 import buildcraft.lib.client.fluid.BcFluidQuadEmitter;
+import buildcraft.lib.client.fluid.BcFluidRenderLookup;
 import buildcraft.lib.client.fluid.FluidClientCache;
 import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
@@ -176,7 +177,7 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
          FluidClientCache.Appearance appearance = FluidClientCache.get(fluid);
          if (appearance != null) {
             TextureAtlasSprite sprite = appearance.sprite();
-            float[] rgba = FluidUtilBC.vertexRgba(fluid);
+            float[] rgba = BcFluidRenderLookup.vertexRgba(fluid);
             float r = rgba[0];
             float g = rgba[1];
             float b = rgba[2];
