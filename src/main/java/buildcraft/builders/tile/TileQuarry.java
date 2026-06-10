@@ -77,6 +77,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -312,7 +313,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
          int minY = this.computeMiningMinY();
          this.miningBox.setMin(new BlockPos(min.getX() + 1, minY, min.getZ() + 1));
          this.miningBox.setMax(new BlockPos(max.getX() - 1, max.getY() - 1, max.getZ() - 1));
-         this.updatePoses();
+         this.updatePoses(false);
          this.setChanged();
          if (this.level != null && !this.level.isClientSide()) {
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
@@ -388,6 +389,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    public void onLoad() {
       if (this.level != null && !this.level.isClientSide()) {
          this.deferredUpdatePoses = true;
+         this.notifyNeighborConnections();
       }
    }
 
@@ -403,6 +405,9 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    public void clearRemoved() {
       super.clearRemoved();
       BCBuildersEventDist.INSTANCE.validateQuarry(this);
+      if (this.level != null && !this.level.isClientSide()) {
+         this.notifyNeighborConnections();
+      }
    }
 
    @Nullable
@@ -440,12 +445,15 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       return Component.translatable("chat.debugger.quarry");
    }
 
-   private void updatePoses() {
+   private void updatePoses(boolean preserveFirstChecked) {
+      boolean wasFirstChecked = preserveFirstChecked && this.firstChecked;
       this.framePoses.clear();
       this.frameBoxPosesCount = 0;
       this.toCheck.clear();
       this.firstCheckedPoses.clear();
-      this.firstChecked = false;
+      if (!preserveFirstChecked) {
+         this.firstChecked = false;
+      }
       this.frameBreakBlockPoses.clear();
       this.framePlaceFramePoses.clear();
       BlockState state = this.level.getBlockState(this.worldPosition);
@@ -456,6 +464,22 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
          this.toCheck.addAll(blocksInArea);
          this.framePoses.addAll(this.getFramePositions());
          ChunkLoaderManager.loadChunksForTile(this);
+      }
+
+      if (preserveFirstChecked) {
+         this.firstChecked = wasFirstChecked;
+      }
+   }
+
+   private void notifyNeighborConnections() {
+      if (this.level == null || this.level.isClientSide()) {
+         return;
+      }
+
+      Block quarryBlock = this.getBlockState().getBlock();
+
+      for (Direction direction : Direction.values()) {
+         this.level.neighborChanged(this.worldPosition.relative(direction), quarryBlock, null);
       }
    }
 
@@ -488,7 +512,8 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
          } else {
             if (this.deferredUpdatePoses) {
                this.deferredUpdatePoses = false;
-               this.updatePoses();
+               this.updatePoses(true);
+               this.notifyNeighborConnections();
             }
 
             if (this.frameBox.isInitialized() && this.miningBox.isInitialized()) {
@@ -1060,9 +1085,11 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
          if (!TileQuarry.this.level.getBlockState(this.breakPos).isAir()) {
             TileQuarry.this.level.destroyBlockProgress(this.breakPos.hashCode(), this.breakPos, (int)(this.power * 9L / this.getTarget()));
             return false;
-         } else {
-            return true;
          }
+
+         TileQuarry.this.level.destroyBlockProgress(this.breakPos.hashCode(), this.breakPos, -1);
+         TileQuarry.this.check(this.breakPos);
+         return true;
       }
 
       @Override
