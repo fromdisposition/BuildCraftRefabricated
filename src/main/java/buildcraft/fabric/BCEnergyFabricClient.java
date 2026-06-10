@@ -15,26 +15,14 @@ import buildcraft.lib.client.render.tile.RenderEngine_BC8;
 import buildcraft.lib.engine.TileEngineBase_BC8;
 import java.util.function.BiFunction;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
-import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRenderHandler;
-import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.client.color.block.BlockTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
-import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.client.renderer.block.FluidModel.Unbaked;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.resources.model.sprite.Material;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public final class BCEnergyFabricClient {
-   private static final FluidVariantRenderHandler BAKED_FLUID = new FluidVariantRenderHandler() {
-      @Override
-      public int getColor(FluidVariant variant, BlockAndTintGetter level, BlockPos pos) {
-         return BcFluidTintUtil.RENDER_TINT_WHITE;
-      }
-   };
-
    private BCEnergyFabricClient() {
    }
 
@@ -42,11 +30,9 @@ public final class BCEnergyFabricClient {
       for (BCEnergyFluidsFabric.FluidEntry entry : BCEnergyFluidsFabric.ALL) {
          Material stillMaterial = new Material(BcFluidTintUtil.bakedStillSpriteId(entry.name()));
          Material flowMaterial = new Material(BcFluidTintUtil.bakedFlowSpriteId(entry.name()));
-         Unbaked model = new Unbaked(stillMaterial, flowMaterial, null, BlockTintSources.constant(BcFluidTintUtil.RENDER_TINT_WHITE));
+         Unbaked model = new Unbaked(stillMaterial, flowMaterial, null, BlockTintSources.constant(-1));
          FluidRenderingRegistry.register(entry.still(), entry.flowing(), model);
          FluidRenderingRegistry.setBlockTransparency(entry.block(), true);
-         FluidVariantRendering.register(entry.still(), BAKED_FLUID);
-         FluidVariantRendering.register(entry.flowing(), BAKED_FLUID);
       }
 
       MenuScreens.register(BCEnergyMenuTypes.ENGINE_STONE, GuiEngineStone_BC8::new);

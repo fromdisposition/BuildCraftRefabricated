@@ -44,14 +44,6 @@ public final class BcFluidTintUtil {
       return heatStillSpriteId(heat).withSuffix("_white");
    }
 
-   public static Identifier worldStillSpriteId(String fluidRegName) {
-      return Identifier.fromNamespaceAndPath("buildcraftenergy", "block/fluids/" + fluidRegName + "_still");
-   }
-
-   public static Identifier worldFlowSpriteId(String fluidRegName) {
-      return Identifier.fromNamespaceAndPath("buildcraftenergy", "block/fluids/" + fluidRegName + "_flowing");
-   }
-
    public static Identifier bakedStillSpriteId(String fluidRegName) {
       return Identifier.fromNamespaceAndPath("buildcraftenergy", "block/fluids/baked/" + fluidRegName);
    }
@@ -81,55 +73,6 @@ public final class BcFluidTintUtil {
             dst.setPixel(x, y, bakeAtlasArgb(src.getPixel(x, y), texLight, texDark));
          }
       }
-
-      makeTileable(dst);
-   }
-
-   public static void makeTileable(NativeImage img) {
-      int w = img.getWidth();
-      int frameH = w;
-      int frames = img.getHeight() / frameH;
-
-      for (int f = 0; f < frames; f++) {
-         int y0 = f * frameH;
-
-         for (int pass = 0; pass < 3; pass++) {
-            for (int x = 0; x < w; x++) {
-               int blended = blendArgb(img.getPixel(x, y0), img.getPixel(x, y0 + frameH - 1));
-               img.setPixel(x, y0, blended);
-               img.setPixel(x, y0 + frameH - 1, blended);
-            }
-
-            for (int y = y0; y < y0 + frameH; y++) {
-               int blended = blendArgb(img.getPixel(0, y), img.getPixel(w - 1, y));
-               img.setPixel(0, y, blended);
-               img.setPixel(w - 1, y, blended);
-            }
-
-            for (int dx = 0; dx < 2; dx++) {
-               for (int dy = 0; dy < 2; dy++) {
-                  int tl = img.getPixel(dx, y0 + dy);
-                  int tr = img.getPixel(w - 1 - dx, y0 + dy);
-                  int bl = img.getPixel(dx, y0 + frameH - 1 - dy);
-                  int br = img.getPixel(w - 1 - dx, y0 + frameH - 1 - dy);
-                  int avg = blendArgb(blendArgb(tl, tr), blendArgb(bl, br));
-
-                  img.setPixel(dx, y0 + dy, avg);
-                  img.setPixel(w - 1 - dx, y0 + dy, avg);
-                  img.setPixel(dx, y0 + frameH - 1 - dy, avg);
-                  img.setPixel(w - 1 - dx, y0 + frameH - 1 - dy, avg);
-               }
-            }
-         }
-      }
-   }
-
-   private static int blendArgb(int a, int b) {
-      int outA = ((a >> 24 & 0xFF) + (b >> 24 & 0xFF)) / 2;
-      int outR = ((a >> 16 & 0xFF) + (b >> 16 & 0xFF)) / 2;
-      int outG = ((a >> 8 & 0xFF) + (b >> 8 & 0xFF)) / 2;
-      int outB = ((a & 0xFF) + (b & 0xFF)) / 2;
-      return outA << 24 | outR << 16 | outG << 8 | outB;
    }
 
    public static int computeAverageGuiTint(int texLight, int texDark, int heat) {

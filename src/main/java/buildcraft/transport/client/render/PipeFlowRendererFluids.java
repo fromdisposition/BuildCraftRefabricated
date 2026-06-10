@@ -7,8 +7,6 @@
 package buildcraft.transport.client.render;
 
 import buildcraft.lib.client.fluid.BcFluidRenderLookup;
-import buildcraft.lib.client.fluid.BcFluidTintUtil;
-import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
 import buildcraft.fabric.BCEnergyFluidsFabric;
@@ -154,12 +152,8 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       Fluid current = fluidStack.getFluid();
       if (current != flow.renderCacheFluid) {
          flow.renderCacheFluid = current;
+         flow.renderCacheSprite = BcFluidRenderLookup.sprite(fluidStack, BcFluidRenderLookup.SpriteKind.FLOWING);
          flow.renderCacheEntry = BCEnergyFluidsFabric.findEntry(current);
-         if (flow.renderCacheEntry != null) {
-            flow.renderCacheSprite = BcTextureAtlases.getBlockSprite(BcFluidTintUtil.bakedFlowSpriteId(flow.renderCacheEntry.name()));
-         } else {
-            flow.renderCacheSprite = BcFluidRenderLookup.sprite(fluidStack, BcFluidRenderLookup.SpriteKind.FLOWING);
-         }
          flow.renderCacheBcGradient = flow.renderCacheEntry != null;
          if (flow.renderCacheEntry != null) {
             flow.renderCacheTexLight = flow.renderCacheEntry.texLight();
