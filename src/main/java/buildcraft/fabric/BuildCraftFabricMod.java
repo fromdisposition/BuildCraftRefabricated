@@ -11,6 +11,7 @@ import buildcraft.lib.marker.MarkerCache;
 import buildcraft.transport.wire.SavedDataWireSystems;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarting;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.EndDataPackReload;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.EndTick;
@@ -31,7 +32,7 @@ public class BuildCraftFabricMod implements ModInitializer {
       BCBuildersFabric.register();
       BCSiliconFabric.register();
       BCRoboticsFabric.register();
-      BCJeiBootstrap.initGameRecipes();
+      ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> BCJeiBootstrap.initGameRecipes());
       BCNetworkingRegistry.registerCommon();
       BCNetworkingRegistry.registerServer();
       BcTransfers.init();

@@ -15,7 +15,8 @@ import buildcraft.silicon.BCSiliconRecipes;
 import buildcraft.silicon.plug.FacadeStateManager;
 
 /**
- * Registers in-memory BC recipe tables before JEI plugin {@code registerRecipes} runs.
+ * Registers in-memory BC recipe tables once registries are ready.
+ * Called on {@code SERVER_STARTING} for gameplay and lazily from JEI {@code registerRecipes} on the client.
  * JEI is optional ({@code compileOnly}); this class has no JEI API dependency.
  */
 public final class BCJeiBootstrap {

@@ -8,6 +8,7 @@ package buildcraft.factory.integration.jei;
 
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IRefineryRecipeManager;
+import buildcraft.fabric.integration.jei.BCJeiBootstrap;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.factory.BCFactoryMenuTypes;
@@ -50,6 +51,7 @@ public class BCFactoryJeiPlugin implements IModPlugin {
    }
 
    public void registerRecipes(IRecipeRegistration registration) {
+      BCJeiBootstrap.initGameRecipes();
       registration.addRecipes(BCJeiRecipeTypes.HEAT_EXCHANGER, enumerateHeatExchangerPairs());
       registration.addRecipes(BCJeiRecipeTypes.DISTILLER, enumerateDistillationRecipes());
    }
