@@ -22,7 +22,8 @@ public record BcFluidWorldProperties(
    boolean swimmable,
    int tickDelay,
    int slopeFindDistance,
-   int dropOff
+   int dropOff,
+   BcFluidClientAppearance clientAppearance
 ) {
    public static final int WATER_DENSITY = 1000;
    public static final int WATER_VISCOSITY = 1000;
@@ -57,6 +58,8 @@ public record BcFluidWorldProperties(
       int baseViscosity,
       int boilPoint,
       int baseSpread,
+      int texLight,
+      int texDark,
       boolean stickyEnabled,
       int stickyFlag,
       boolean flammableEnabled,
@@ -86,6 +89,7 @@ public record BcFluidWorldProperties(
          dropOff = 1;
       }
 
+      BcFluidClientAppearance clientAppearance = BcFluidClientAppearance.compute(baseName, heat, gaseous, texLight, texDark);
       return new BcFluidWorldProperties(
          baseName,
          heat,
@@ -105,7 +109,8 @@ public record BcFluidWorldProperties(
          swimmable,
          tickDelay,
          slopeFindDistance,
-         dropOff
+         dropOff,
+         clientAppearance
       );
    }
 
@@ -118,7 +123,7 @@ public record BcFluidWorldProperties(
          String baseName = FLUID_NAMES[i];
 
          for (int heat = 0; heat < 3; heat++) {
-            BcFluidWorldProperties p = compute(baseName, heat, data[0], data[1], data[2], data[3], true, data[6], true, data[7]);
+            BcFluidWorldProperties p = compute(baseName, heat, data[0], data[1], data[2], data[3], data[4], data[5], true, data[6], true, data[7]);
             sb.append(
                String.format(
                   "%-22s d=%5d v=%4d %s sticky=%s displaces=%s float=%s swim=%s%n",
@@ -146,12 +151,29 @@ public record BcFluidWorldProperties(
          String baseName = FLUID_NAMES[i];
 
          for (int heat = 0; heat < 3; heat++) {
-            BcFluidWorldProperties props = compute(baseName, heat, data[0], data[1], data[2], data[3], true, data[6], true, data[7]);
+            BcFluidWorldProperties props = compute(baseName, heat, data[0], data[1], data[2], data[3], data[4], data[5], true, data[6], true, data[7]);
             if (props.swimmable()) {
                String reg = regName(baseName, heat);
                values.add("buildcraftenergy:" + reg);
                values.add("buildcraftenergy:" + reg + "_flowing");
             }
+         }
+      }
+
+      return values;
+   }
+
+   public static List<String> allFluidTagValues() {
+      List<String> values = new ArrayList<>();
+
+      for (int i = 0; i < FLUID_DATA.length; i++) {
+         int[] data = FLUID_DATA[i];
+         String baseName = FLUID_NAMES[i];
+
+         for (int heat = 0; heat < 3; heat++) {
+            String reg = regName(baseName, heat);
+            values.add("buildcraftenergy:" + reg);
+            values.add("buildcraftenergy:" + reg + "_flowing");
          }
       }
 

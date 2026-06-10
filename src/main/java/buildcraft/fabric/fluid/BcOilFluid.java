@@ -239,6 +239,8 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
       private final int baseSpread;
       private final int stickyFlag;
       private final int flammableFlag;
+      private final int texLight;
+      private final int texDark;
 
       public Holder(
          BcFluidWorldProperties props,
@@ -248,6 +250,8 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
          int baseViscosity,
          int boilPoint,
          int baseSpread,
+         int texLight,
+         int texDark,
          int stickyFlag,
          int flammableFlag
       ) {
@@ -258,6 +262,8 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
          this.baseViscosity = baseViscosity;
          this.boilPoint = boilPoint;
          this.baseSpread = baseSpread;
+         this.texLight = texLight;
+         this.texDark = texDark;
          this.stickyFlag = stickyFlag;
          this.flammableFlag = flammableFlag;
          this.regName = BcFluidWorldProperties.regName(baseName, heat);
@@ -272,6 +278,8 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
             this.baseViscosity,
             this.boilPoint,
             this.baseSpread,
+            this.texLight,
+            this.texDark,
             stickyEnabled,
             this.stickyFlag,
             flammableEnabled,

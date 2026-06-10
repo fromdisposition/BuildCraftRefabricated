@@ -5,7 +5,10 @@
   "mixins": [
     "LevelMixin",
     "BlockEntityMixin",
-    "ShapelessRecipeAccessor"
+    "ShapelessRecipeAccessor",
+    "EntityBcFluidMixin",
+    "LivingEntityBcFluidMixin",
+    "PlayerBcFluidMixin"
   ],
   "client": [
     "client.SpriteSourcesAccessor",
@@ -20,7 +23,9 @@
     "client.GuiGraphicsExtractorTooltipMixin",
     "client.GuiGraphicsExtractorItemTooltipMixin",
     "client.ModelManagerMixin",
-    "client.GameRendererPipMixin"
+    "client.GameRendererPipMixin",
+    "client.FogRendererBcFluidMixin",
+    "client.ScreenEffectRendererBcFluidMixin"
   ],
   "injectors": {
     "defaultRequire": 1

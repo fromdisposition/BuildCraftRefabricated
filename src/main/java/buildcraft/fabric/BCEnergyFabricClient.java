@@ -20,6 +20,7 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.block.FluidModel.Unbaked;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public final class BCEnergyFabricClient {
@@ -30,7 +31,8 @@ public final class BCEnergyFabricClient {
       for (BCEnergyFluidsFabric.FluidEntry entry : BCEnergyFluidsFabric.ALL) {
          Material stillMaterial = new Material(BcFluidTintUtil.bakedStillSpriteId(entry.name()));
          Material flowMaterial = new Material(BcFluidTintUtil.bakedFlowSpriteId(entry.name()));
-         Unbaked model = new Unbaked(stillMaterial, flowMaterial, null, BlockTintSources.constant(-1));
+         Material underwaterMaterial = new Material(Identifier.fromNamespaceAndPath("buildcraftenergy", "block/fluids/" + entry.name() + "_underwater"));
+         Unbaked model = new Unbaked(stillMaterial, flowMaterial, underwaterMaterial, BlockTintSources.constant(-1));
          FluidRenderingRegistry.register(entry.still(), entry.flowing(), model);
          FluidRenderingRegistry.setBlockTransparency(entry.block(), true);
       }

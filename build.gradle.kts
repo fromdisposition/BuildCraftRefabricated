@@ -47,11 +47,12 @@ val notYetOnFabric = listOf<String>()
 
 tasks.register("generateFluidBucketAssets") {
     group = "buildcraft"
-    description = "Regenerate masked bucket-fluid PNGs and Fabric fluid-bucket item JSON."
+    description = "Regenerate bucket-fluid PNGs, underwater overlay PNGs (BOP-style), and fluid-bucket item JSON."
     doLast {
         val heatStill = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_still.png")
         val fluidMask = file("src/main/resources/assets/buildcraftenergy/textures/item/mask/bucket_fluid.png")
         val fluidOutDir = file("src/main/resources/assets/buildcraftenergy/textures/item/bucket_fluid")
+        val underwaterOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids")
         val itemsDir = file("src/main/resources/assets/buildcraftenergy/items")
         val modelsDir = file("src/main/resources/assets/buildcraftenergy/models/item/fluid_buckets")
         require(heatStill.isFile) { "Missing ${heatStill.path} — extract from a built JAR or add the texture." }
@@ -84,7 +85,7 @@ tasks.register("generateFluidBucketAssets") {
         val fluidData = listOf(
             Triple("oil", 0x505050, 0x050505),
             Triple("oil_residue", 0x100F10, 0x421042),
-            Triple("oil_heavy", 0xA08F1F, 0x423520),
+            Triple("oil_heavy", 0xA07A9F, 0x423820),
             Triple("oil_dense", 0x876E77, 0x422424),
             Triple("oil_distilled", 0xE4AF78, 0xB47F00),
             Triple("fuel_dense", 0xFFAF3F, 0xE07F00),
@@ -123,6 +124,21 @@ tasks.register("generateFluidBucketAssets") {
                 }
                 ImageIO.write(icon, "PNG", fluidOutDir.resolve("$fluid.png"))
 
+                val underwater = BufferedImage(frame, frame, BufferedImage.TYPE_INT_ARGB)
+                for (y in 0 until frame) {
+                    for (x in 0 until frame) {
+                        val px = recolor(baseImg.getRGB(x, y), adjLight, adjDark)
+                        val alpha = (px ushr 24) and 0xFF
+                        if (alpha == 0) {
+                            underwater.setRGB(x, y, 0)
+                        } else {
+                            val dimA = alpha / 5
+                            underwater.setRGB(x, y, (dimA shl 24) or (px and 0xFFFFFF))
+                        }
+                    }
+                }
+                ImageIO.write(underwater, "PNG", underwaterOutDir.resolve("${fluid}_underwater.png"))
+
                 val bucket = "${fluid}_bucket"
                 modelsDir.resolve("$bucket.json").writeText(
                     """
@@ -147,7 +163,7 @@ tasks.register("generateFluidBucketAssets") {
                 )
             }
         }
-        logger.lifecycle("Regenerated ${fluidData.size * heats.size} fluid bucket assets + icons")
+        logger.lifecycle("Regenerated ${fluidData.size * heats.size} fluid bucket + underwater overlay assets")
     }
 }
 
@@ -171,6 +187,7 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.processResources {
+    dependsOn("generateFluidBucketAssets")
     val props = mapOf(
         "mod_version" to version,
         "mc_dep_range" to providers.gradleProperty("mc_dep_range").get(),

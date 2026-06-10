@@ -95,6 +95,11 @@
     },
     {
       "type": "buildcraftenergy:fluid_bake"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "block/fluids",
+      "prefix": "block/fluids/"
     }
   ]
 }

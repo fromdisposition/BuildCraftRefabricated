@@ -85,6 +85,8 @@ public final class BCEnergyFluidsFabric {
          baseViscosity,
          boilPoint,
          baseSpread,
+         texLight,
+         texDark,
          BCEnergyConfig.oilIsSticky.get(),
          stickyFlag,
          BCEnergyConfig.enableOilBurn.get(),
@@ -95,7 +97,7 @@ public final class BCEnergyFluidsFabric {
       Identifier id = Identifier.fromNamespaceAndPath("buildcraftenergy", regName);
       boolean gaseous = props.gaseous();
       BcOilFluid.Holder holder = new BcOilFluid.Holder(
-         props, baseName, heat, baseDensity, baseViscosity, boilPoint, baseSpread, stickyFlag, flammableFlag
+         props, baseName, heat, baseDensity, baseViscosity, boilPoint, baseSpread, texLight, texDark, stickyFlag, flammableFlag
       );
       holder.still = BCRegistries.registerFluid("buildcraftenergy", regName, new BcOilFluid.Source(holder));
       holder.flowing = BCRegistries.registerFluid("buildcraftenergy", regName + "_flowing", new BcOilFluid.Flowing(holder));
@@ -129,7 +131,7 @@ public final class BCEnergyFluidsFabric {
       FluidTypes.register(holder.flowing, props.viscosity(), props.density());
       BcFluidAttributesFabric.register(holder.still, holder.flowing, gaseous);
       return new BCEnergyFluidsFabric.FluidEntry(
-         regName, baseName, heat, texLight, texDark, tintColor, holder.still, holder.flowing, holder.block, holder.bucket, gaseous
+         regName, baseName, heat, texLight, texDark, tintColor, holder, holder.still, holder.flowing, holder.block, holder.bucket, gaseous
       );
    }
 
@@ -186,7 +188,18 @@ public final class BCEnergyFluidsFabric {
    }
 
    public record FluidEntry(
-      String name, String baseName, int heat, int texLight, int texDark, int tintColor, Fluid still, Fluid flowing, Block block, Item bucket, boolean gaseous
+      String name,
+      String baseName,
+      int heat,
+      int texLight,
+      int texDark,
+      int tintColor,
+      BcOilFluid.Holder holder,
+      Fluid still,
+      Fluid flowing,
+      Block block,
+      Item bucket,
+      boolean gaseous
    ) {
    }
 }
