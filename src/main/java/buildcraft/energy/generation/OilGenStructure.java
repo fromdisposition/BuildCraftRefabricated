@@ -24,6 +24,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 
 public abstract class OilGenStructure {
    public final Box box;
@@ -94,6 +96,94 @@ public abstract class OilGenStructure {
       }
 
       return new BlockPos(x, minY, z);
+   }
+
+   protected static BlockPos findLakePlacementSurface(LevelAccessor level, int x, int z) {
+      int maxY = level.getMaxY();
+      int minY = level.getMinY();
+
+      for (int y = maxY; y > minY; y--) {
+         BlockPos pos = new BlockPos(x, y, z);
+         BlockState state = level.getBlockState(pos);
+         if (state.isAir()) {
+            continue;
+         }
+
+         FluidState fluidState = level.getFluidState(pos);
+         if (!fluidState.isEmpty() && !fluidState.getType().isSame(Fluids.LAVA)) {
+            return pos;
+         }
+
+         if (!state.canBeReplaced() && BlockUtil.blocksMotion(state)) {
+            if (state.is(BlockTags.FLOWERS)) {
+               continue;
+            }
+
+            return new BlockPos(x, y - 1, z);
+         }
+      }
+
+      return new BlockPos(x, minY, z);
+   }
+
+   protected static boolean isReplaceableLakeFluid(LevelAccessor level, BlockPos pos) {
+      FluidState fluidState = level.getFluidState(pos);
+      return !fluidState.isEmpty() && !fluidState.getType().isSame(Fluids.LAVA);
+   }
+
+   protected static boolean isReplaceableForLake(LevelAccessor level, BlockPos pos) {
+      BlockState state = level.getBlockState(pos);
+      if (state.isAir()) {
+         return true;
+      }
+
+      if (isReplaceableLakeFluid(level, pos)) {
+         return true;
+      }
+
+      if (state.canBeReplaced()) {
+         return true;
+      }
+
+      if (state.is(BlockTags.SAND) || state.is(BlockTags.DIRT) || state.is(BlockTags.FLOWERS)) {
+         return true;
+      }
+
+      return !BlockUtil.blocksMotion(state);
+   }
+
+   protected static boolean hasSolidSupportBelow(LevelAccessor level, BlockPos pos) {
+      BlockPos below = pos.below();
+      return BlockUtil.blocksMotion(level.getBlockState(below));
+   }
+
+   protected static void placeLakeOilColumn(LevelAccessor level, int x, int z, int depth) {
+      BlockPos surface = findLakePlacementSurface(level, x, z);
+      if (!isReplaceableForLake(level, surface.above())) {
+         return;
+      }
+
+      if (surface.getY() + 2 < level.getMaxY() && !level.getBlockState(surface.above(2)).isAir()) {
+         return;
+      }
+
+      if (!isReplaceableLakeFluid(level, surface) && !hasSolidSupportBelow(level, surface)) {
+         return;
+      }
+
+      setOil(level, surface);
+      if (!level.getBlockState(surface.above()).isAir()) {
+         level.setBlock(surface.above(), Blocks.AIR.defaultBlockState(), 2);
+      }
+
+      for (int d = 1; d < depth; d++) {
+         BlockPos below = surface.below(d);
+         if (!isReplaceableLakeFluid(level, below) && !hasSolidSupportBelow(level, below)) {
+            return;
+         }
+
+         setOil(level, below);
+      }
    }
 
    protected static BlockPos clearTreesAndFindGround(LevelAccessor level, BlockPos baseTop, Box chunkBox) {
@@ -277,16 +367,7 @@ public abstract class OilGenStructure {
             for (int z = intersect.min().getZ(); z <= intersect.max().getZ(); z++) {
                int pz = z - this.box.min().getZ();
                if (this.pattern[px][pz]) {
-                  BlockPos upper = findWorldSurfaceTop(level, x, z);
-                  if (this.canReplaceForOil(level, upper)) {
-                     for (int y = 0; y < 5; y++) {
-                        level.setBlock(upper.above(y), Blocks.AIR.defaultBlockState(), 2);
-                     }
-
-                     for (int y = 0; y < this.depth; y++) {
-                        this.setOilIfCanReplace(level, upper.below(y));
-                     }
-                  }
+                  placeLakeOilColumn(level, x, z, this.depth);
                }
             }
          }
@@ -324,7 +405,7 @@ public abstract class OilGenStructure {
       IS_FOR_LAKE {
          @Override
          public boolean canReplace(LevelAccessor level, BlockPos pos) {
-            return ALWAYS.canReplace(level, pos);
+            return isReplaceableForLake(level, pos);
          }
       };
 
