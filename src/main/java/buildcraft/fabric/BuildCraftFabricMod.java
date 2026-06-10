@@ -23,7 +23,7 @@ import net.minecraft.server.level.ServerLevel;
 public class BuildCraftFabricMod implements ModInitializer {
    public void onInitialize() {
       BCFabricConfig.load();
-      ExternalEnergyCompat.isEcosystemPresent();
+      ExternalEnergyCompat.init();
       BCReloadFabric.initCommon();
       BCCore.register();
       BCCoreFabric.register();

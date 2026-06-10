@@ -42,6 +42,8 @@ public final class QuarryFrameChecker {
                checked++;
             }
          }
+
+         return;
       }
 
       while (checked < limit && !toCheck.isEmpty()) {

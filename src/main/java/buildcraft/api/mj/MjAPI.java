@@ -7,7 +7,6 @@
 package buildcraft.api.mj;
 
 import buildcraft.lib.BCLibConfig;
-import buildcraft.lib.fabric.ExternalEnergyCompat;
 import java.text.DecimalFormat;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,7 +50,7 @@ public class MjAPI {
 
    /** True when another mod in the pack exposes Team Reborn {@link #EXTERNAL_ENERGY_UNIT}. */
    public static boolean isExternalEnergyEcosystemPresent() {
-      return ExternalEnergyCompat.isEcosystemPresent();
+      return BCLibConfig.externalEnergyEcosystemPresent.get();
    }
 
    /**

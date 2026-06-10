@@ -1,468 +1,178 @@
 # BuildCraft Refabricated
 
-**Fabric port of BuildCraft for Minecraft 26.1.2**
-
-**Repository:** [github.com/fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)  
-**Issues:** [github.com/fromdisposition/BuildCraftRefabricated/issues](https://github.com/fromdisposition/BuildCraftRefabricated/issues)
+Unofficial **Fabric** port of BuildCraft for **Minecraft 26.1.2** — pipes, engines, quarries, oil, gates, and automation in one JAR.
 
 | | |
 |---|---|
 | **Mod ID** | `buildcraftrefabricated` |
 | **Version** | `26.1.2-1` |
-| **Platform** | Fabric Loader ≥ 0.19.2 |
-| **Minecraft** | 26.1.2 |
+| **Platform** | Fabric Loader ≥ 0.19.2, Fabric API |
 | **Java** | 25+ |
 | **License** | [MPL-2.0](LICENSE) |
 
-BuildCraft Refabricated extends Minecraft with pipes, engines, quarries, gates, oil processing, auto-crafting, and the rest of the classic BuildCraft automation toolkit. This is the **unofficial Fabric port** for **Minecraft 26.1.2**, developed and published from **[fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)**.
+**Repository:** [github.com/fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)  
+**Issues:** [github.com/fromdisposition/BuildCraftRefabricated/issues](https://github.com/fromdisposition/BuildCraftRefabricated/issues)
 
-The modern 26.1.2 gameplay code traces back to **[legoj15's NeoForge port](https://github.com/legoj15/BuildCraft)** (NeoForge, not Fabric). **This repository** is where that tree is migrated to Fabric and maintained: native Fabric Transfer API interop (`BcTransfers`), BC 8.0-faithful fluid rendering, pipe/attachment fixes, transactional transfer cleanup, and release work all land here.
-
----
-
-## Table of contents
-
-1. [What this mod is](#what-this-mod-is)
-2. [Repository and development](#repository-and-development)
-3. [Lineage and attribution](#lineage-and-attribution)
-4. [License](#license)
-5. [Requirements and installation](#requirements-and-installation)
-6. [BC 8.0.x compatibility matrix](#bc-80x-compatibility-matrix)
-7. [Fabric port improvements](#fabric-port-improvements)
-8. [Transfer API interoperability](#transfer-api-interoperability)
-9. [Known limitations](#known-limitations)
-10. [Building from source](#building-from-source)
-11. [Reporting issues](#reporting-issues)
-12. [Links and references](#links-and-references)
+Gameplay code traces to [legoj15's NeoForge 26.1.2 port](https://github.com/legoj15/BuildCraft), adapted here for Fabric Transfer API and Team Reborn Energy (`E`) interop.
 
 ---
 
-## What this mod is
+## Modules
 
-BuildCraft Refabricated ships as a **single Fabric mod** that bundles every module that BC 8 distributed as separate Forge JARs:
-
-| Module | Package | Contents (summary) |
-|--------|---------|-------------------|
-| **Core** | `buildcraft.core` | Landmarks, volume boxes, marker tools, map location, list mod, springs, creative/redstone engines; robot goggles WIP (dev-only) |
-| **Lib** | `buildcraft.lib` | Shared GUI, tiles, transfer system, client rendering, mixins, guide infrastructure |
-| **Energy** | `buildcraft.energy` | Stone/iron/FE engines, dynamo, oil & fuel fluids (3 heat tiers), buckets, worldgen |
-| **Transport** | `buildcraft.transport` | Item, fluid, MJ, and RF pipes; pluggables; wire systems; filtered buffer |
-| **Factory** | `buildcraft.factory` | Tank, pump, flood gate, distiller, heat exchange, chute, auto workbench (items), mining well; fluid auto workbench WIP (dev-only) |
-| **Builders** | `buildcraft.builders` | Quarry, filler, architect table, builder, blueprints, schematics |
-| **Silicon** | `buildcraft.silicon` | Assembly/integration/advanced crafting tables, lasers, gates, facades, lenses |
-| **Robotics** | `buildcraft.robotics` | Zone planner, deployable robots, docking stations, requester (see matrix for gaps) |
-| **Fabric adapter** | `buildcraft.fabric` | Registries, networking, config, client events, module bootstrap |
-
-**Entry points:**
-
-- Server/common: `buildcraft.fabric.BuildCraftFabricMod`
-- Client: `buildcraft.fabric.BuildCraftFabricClient`
-
-This is **not** a byte-for-byte clone of every BC 8 behaviour. Minecraft 26.1.2 differs from 1.12.2 in recipes, components, rendering, and entity APIs. The goal is **ideological continuation** of BuildCraft — pipe logic, MJ network, oil ecosystem, quarry automation — with honest engineering for Fabric and modern MC.
+| Package | Role |
+|---------|------|
+| `buildcraft.core` | Markers, volume boxes, list mod, springs |
+| `buildcraft.lib` | GUI, tiles, transfer, rendering, guide |
+| `buildcraft.energy` | Engines, oil/fuel fluids, worldgen |
+| `buildcraft.transport` | Item/fluid/MJ/E pipes, pluggables, wires |
+| `buildcraft.factory` | Tank, pump, distiller, auto workbench, mining well |
+| `buildcraft.builders` | Quarry, filler, builder, architect table |
+| `buildcraft.silicon` | Laser tables, gates, facades |
+| `buildcraft.robotics` | Zone planner, robots, docking stations |
+| `buildcraft.fabric` | Registries, config, networking, bootstrap |
 
 ---
 
-## Repository and development
+## BC 8.0.x parity
 
-All source, issues, and releases for this Fabric port live in **[fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)**.
+Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2). Legend: **DONE** · **WIP** · **—** (n/a).
 
-### Clone
+### Core
+
+| Feature | Status |
+|---------|--------|
+| Landmark / path markers | DONE |
+| Volume box system | DONE |
+| List mod | DONE |
+| Creative / redstone engines | DONE |
+| Oil springs | DONE |
+| Paintbrush | DONE |
+| Map location | DONE |
+| Robot goggles | WIP |
+| Engine tester | WIP |
+
+### Transport
+
+| Feature | Status |
+|---------|--------|
+| Item pipes | DONE |
+| Fluid pipes | DONE |
+| MJ power pipes | DONE |
+| E (Team Reborn) pipes | DONE |
+| Pipe behaviours & pluggables | DONE |
+| Gates, facades, lenses, pulsar | DONE |
+| Wire systems | DONE |
+| Filtered buffer | DONE |
+
+### Energy
+
+| Feature | Status |
+|---------|--------|
+| Stone / creative engines | DONE |
+| Iron (combustion) engine | DONE |
+| Oil / fuel / residue fluids | DONE |
+| Fluid buckets & worldgen | DONE |
+| E↔MJ bridge blocks (engine / dynamo) | DONE |
+
+### Factory
+
+| Feature | Status |
+|---------|--------|
+| Tank, pump, flood gate | DONE |
+| Distiller, heat exchange, chute | DONE |
+| Auto workbench (items) | DONE |
+| Mining well | DONE |
+| Auto workbench (fluids) | WIP |
+
+### Builders
+
+| Feature | Status |
+|---------|--------|
+| Quarry | DONE |
+| Filler (+ planner addon) | DONE |
+| Architect table, builder | DONE |
+| Electronic library, replacer | DONE |
+
+### Silicon
+
+| Feature | Status |
+|---------|--------|
+| Assembly / integration / advanced crafting tables | DONE |
+| Programming / charging / stamping tables | DONE |
+| Lasers | DONE |
+| Gates & silicon pluggables | DONE |
+
+### Robotics
+
+| Feature | Status |
+|---------|--------|
+| Zone planner | DONE |
+| Deployable robots | DONE |
+| Docking stations | DONE |
+| Requester | DONE |
+
+### Lib
+
+| Feature | Status |
+|---------|--------|
+| MJ API & statements | DONE |
+| Fabric Transfer interop (`BcTransfers`) | DONE |
+| Guide book | WIP |
+| Forge caps | — |
+
+---
+
+## Energy interop
+
+Internal logic uses **MJ**. By default (`MJ_AUTOCONVERT_RF`):
+
+- BC machines accept **Team Reborn E** when conversion is enabled.
+- UI shows **E** when another `team_reborn_energy` mod (e.g. Tech Reborn) is in the pack; otherwise **MJ**.
+- `MJ_ONLY` — MJ only, no E. `DISPLAY_RF` — always show E.
+
+Config: `config/buildcraft/buildcraftrefabricated-common.json` → `powerMode`, `mjRfConversion`.
+
+---
+
+## Build
+
+**JDK 25** required.
 
 ```bash
 git clone https://github.com/fromdisposition/BuildCraftRefabricated.git
 cd BuildCraftRefabricated
+./gradlew build          # Unix / macOS
+gradlew.bat build        # Windows
 ```
 
-### Git remotes
-
-| Remote | URL | Purpose |
-|--------|-----|---------|
-| **origin** | `https://github.com/fromdisposition/BuildCraftRefabricated.git` | This repository — commit and push here |
-
-Optional — NeoForge reference tree for comparison or cherry-picks:
-
-```bash
-git remote add upstream https://github.com/legoj15/BuildCraft.git
-```
-
-### Typical workflow
-
-```bash
-git add -A
-git commit -m "describe your change"
-git push -u origin 26.1.2
-```
-
-Default branch for this repository is **`26.1.2`**. Active fixes may land on **`fixed`** first and merge into `26.1.2`.
+Output: `build/libs/BCRefabricated-26.1.2-1.jar`
 
 ---
 
-## Lineage and attribution
+## Install
 
-```
-Original BuildCraft (SpaceToad, BuildCraft Team)
-        │
-        ▼
-BuildCraft 8.0.x (Forge 1.12.2 — original mechanics & content)
-        │
-        ▼
-BuildCraft unofficial — NeoForge 26.1.2 (legoj15)
-        │   https://github.com/legoj15/BuildCraft
-        ▼
-BuildCraft Refabricated — Fabric 26.1.2 (fromdisposition — this repository)
-        https://github.com/fromdisposition/BuildCraftRefabricated
-```
-
-- **Original BuildCraft** — Created by SpaceToad and the BuildCraft Team. Pipes, MJ, engines, quarries, and the automation philosophy behind the mod. Licensed under [MPL-2.0](LICENSE).
-- **BuildCraft 8.0.x** — Last major classic line (Forge, Minecraft 1.12.2). The [compatibility matrix](#bc-80x-compatibility-matrix) compares **this Fabric build** against BC 8.0.x **gameplay**.
-- **BuildCraft unofficial — [legoj15](https://github.com/legoj15) NeoForge 26.1.2** — Modern community port on **NeoForge** ([legoj15/BuildCraft](https://github.com/legoj15/BuildCraft)): unified mod JAR, BC 8 modules brought to 26.1.2, attachment-style capabilities, registries, networking, and most gameplay code. **Not Fabric.** This tree is the **primary code source** adapted into the Fabric build below.
-- **BuildCraft Refabricated — [fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated) (this repo)** — **The Fabric port.** Source of truth for the Fabric build: `buildcraft.fabric.*`, `BcTransfers` / Fabric Transfer API wiring, fluid pipe rendering, interop, and ongoing maintenance.
-
-**Credits:** SpaceToad and the BuildCraft Team (original mod); **[legoj15](https://github.com/legoj15)** (NeoForge 26.1.2 port — major code source); **[fromdisposition](https://github.com/fromdisposition)** (Fabric 26.1.2 port — maintainer of this repository).
+1. Fabric Loader for Minecraft 26.1.2
+2. Fabric API in `mods/`
+3. BuildCraft Refabricated JAR in `mods/`
+4. Optional: JEI
 
 ---
 
-## License
+## Known gaps
 
-This project is licensed under the **[Mozilla Public License 2.0](LICENSE)** (MPL-2.0), consistent with upstream BuildCraft.
-
-In short:
-
-- MPL-licensed source files remain under MPL when modified.
-- Modifications to MPL files must be distributed under MPL.
-- You may combine MPL code with other code in a larger work under different terms, as described in the [MPL FAQ](https://www.mozilla.org/en-US/MPL/2.0/FAQ/).
-
-Some files under `buildcraft.lib.attachments` and related packages carry **NeoForged LGPL-2.1** headers from upstream porting work. Those files remain under their stated upstream license where applicable.
+- Not a byte-for-byte BC 8 clone — modern MC APIs differ from 1.12.2.
+- MJ pipes stay BC-internal; cross-mod energy uses Team Reborn `E` API.
+- Guide book incomplete; some dev-only blocks behind `-Dbuildcraft.dev=true`.
+- Wood pipe + MJ required for passive extraction (BC design).
 
 ---
 
-## Requirements and installation
+## Credits
 
-### Runtime
-
-| Requirement | Version |
-|-------------|---------|
-| Minecraft | **26.1.2** |
-| Fabric Loader | **≥ 0.19.2** |
-| Fabric API | Required (`fabric-api` 0.150.0+26.1.2 or compatible) |
-| Team Reborn Energy API | Bundled with the mod JAR (`teamreborn:energy` ≥ 5.0.0) |
-| Java | **25+** |
-
-### Optional
-
-- **JEI** (Just Enough Items) — suggested in `fabric.mod.json`; recipe viewers for engines and assembly table.
-
-### Install
-
-1. Install Fabric Loader for Minecraft 26.1.2.
-2. Place **Fabric API** and the BuildCraft Refabricated JAR in your `mods` folder.
-3. Launch the game.
-
-Pre-built JARs are produced by `./gradlew build` (see [Building from source](#building-from-source)).
+- **SpaceToad & BuildCraft Team** — original mod ([MPL-2.0](LICENSE))
+- **[legoj15](https://github.com/legoj15)** — NeoForge 26.1.2 port
+- **[fromdisposition](https://github.com/fromdisposition)** — Fabric port & maintenance
 
 ---
 
-## BC 8.0.x compatibility matrix
-
-This table lists gameplay features from **BuildCraft 8.0.x** on **Forge 1.12.2** and
-their status in **BuildCraft Refabricated** on **Fabric 26.1.2** (this repository).
-The **BC 8.0.x** column is the historical baseline. The **Fabric 26.1.2** column is
-the current port status in this build.
-
-✅ done · 🚧 WIP (present with gaps) · ❌ TODO (significant scope missing) · ➖ n/a (not applicable).
-**DONE** in **Notes** means parity for normal gameplay.
-
-|                              | BC 8.0.x       | Fabric 26.1.2  | Notes |
-| ---------------------------- | -------------- | -------------- | ----- |
-| **Core** (`buildcraft.core`) |                |                |       |
-| Landmark / path markers      | ✅             | ✅             | DONE — path/volume markers, connector, client render |
-| Volume box system            | ✅             | ✅             | DONE — saved data, client sync, filler/architect integration; `volume_box` is creative-only (no survival recipe), same as BC 8 |
-| List mod                     | ✅             | ✅             | DONE — GUI + NBT, survival recipe; pipes/robots/gates filter by list. Builder/filler resource matching uses exact stack merge (`canMerge`), not list substitution — same as BC 8 |
-| Creative engine              | ✅             | ✅             | DONE  |
-| Engine tester (dev)          | ✅             | 🚧             | `BlockPowerConsumerTester` registered only with `-Dbuildcraft.dev=true` |
-| Oil springs                  | ✅             | ✅             | DONE — `BlockSpring` + `TileSpringOil` liquid generation |
-| Paintbrush (pipes & blocks)  | ✅             | ✅             | DONE — colours pipes and vanilla paintable blocks |
-| Map location                 | ✅             | ✅             | DONE — survival item, zone planner map export |
-| Robot goggles                | ✅             | 🚧             | WIP — code exists; registers only with `-Dbuildcraft.dev=true` (zone overlay still polishing) |
-| **Transport** (`buildcraft.transport`) |      |                |       |
-| Item pipes                   | ✅             | ✅             | DONE — smooth client item interpolation |
-| Fluid pipes                  | ✅             | ✅             | DONE — dyed waterproofing band via runtime mask tint (no atlas `dye_replace`) |
-| MJ power pipes               | ✅             | ✅             | DONE  |
-| RF / Redstone Flux pipes     | ✅             | ✅             | DONE — `PipeFlowRedstoneFlux`, Team Reborn `EnergyStorage` neighbour transfer; optional `disableRfPipe` config |
-| Pipe behaviours              | ✅             | ✅             | DONE  |
-| Pipe pluggables              | ✅             | ✅             | DONE  |
-| Silicon pipe pluggables      | ✅             | ✅             | DONE — facade, lens, gate, pulsar, timer, light sensor |
-| Wire systems                 | ✅             | ✅             | DONE — `WireManager`, `SavedDataWireSystems`, gate/pipe payload sync |
-| Filtered buffer              | ✅             | ✅             | DONE  |
-| Passive fluid pull (non-wood)| ➖             | ➖             | By BC design — wood pipe + MJ only |
-| **Energy** (`buildcraft.energy`) |            |                |       |
-| Stone engine (solid fuel)    | ✅             | ✅             | DONE  |
-| Iron engine (liquid fuel)    | ✅             | 🚧             | Combustion loop works; non-output faces use combined fuel/coolant/residue storage (see limitation #10) |
-| Redstone / creative engines  | ✅             | ✅             | DONE  |
-| FE engine + Dynamo MJ        | ✅             | ✅             | DONE — `TileEngineRF`, `TileDynamoMJ`; `MJ_ONLY` gates MJ-machine RF bridge only |
-| Oil / fuel / residue fluids  | ✅             | ✅             | DONE  |
-| BC fluid buckets             | ✅             | ✅             | DONE  |
-| Oil spring worldgen          | ✅             | ✅             | DONE  |
-| Engine iron GUI              | ✅             | ✅             | DONE — fuel/coolant/residue tanks (BC 8.0.1+) |
-| **Factory** (`buildcraft.factory`) |          |                |       |
-| Tank (multi-column)          | ✅             | ✅             | DONE  |
-| Pump                         | ✅             | ✅             | DONE  |
-| Flood gate                   | ✅             | ✅             | DONE  |
-| Distiller                    | ✅             | ✅             | DONE  |
-| Heat exchange                | ✅             | ✅             | DONE  |
-| Chute                        | ✅             | ✅             | DONE  |
-| Auto workbench (items)       | ✅             | ✅             | DONE  |
-| Auto workbench (fluids)      | ❌             | 🚧             | WIP — BC 8.0 never shipped this block (commented out in source); Fabric prototype registers only with `-Dbuildcraft.dev=true` |
-| Mining well                  | ✅             | ✅             | DONE — MJ vertical mining, tube extension, drop routing; halts on dense fluids (lava/oil) |
-| **Builders** (`buildcraft.builders`) |        |                |       |
-| Quarry                       | ✅             | ✅             | DONE — frame build, strip-mine to bedrock, MJ, chunkloading, item output; skips fluids, drill passes through (not a pump) |
-| Filler (+ planner addon)     | ✅             | ✅             | DONE — `TileFiller`, pattern registry, planner addon GUI |
-| Architect table              | ✅             | ✅             | DONE — blueprint/schematic scan and output |
-| Builder                      | ✅             | ✅             | DONE — blueprint/template build, fluid tanks, MJ |
-| Electronic library, replacer | ✅             | ✅             | DONE — snapshot download/upload, schematic replace |
-| **Silicon** (`buildcraft.silicon`) |          |                |       |
-| Assembly table               | ✅             | ✅             | DONE — laser-powered assembly, JEI plugin |
-| Integration table            | ✅             | ✅             | DONE — integration recipes, laser target |
-| Advanced crafting table      | ✅             | ✅             | DONE — blueprint crafting, laser target |
-| Laser(s)                     | ✅             | ✅             | DONE — cone scan, MJ delivery to laser tables |
-| Gates (pipe pluggable)       | ✅             | ✅             | DONE — triggers/actions via `GateLogic`, wire-input polling, wire power wake |
-| Facades, lenses, pulsar, etc.| ✅             | ✅             | DONE — pluggables, item models, bakers |
-| **Robotics** (`buildcraft.robotics`) |        |                |       |
-| Zone planner                 | ✅             | ✅             | DONE — survival block, GUI, map export to map location |
-| Deployable robots            | ✅             | ✅             | DONE — `EntityRobot` + AI boards; empty shell via `robot.json` (iron + redstone chipset + diamond chipsets) |
-| Robot docking stations       | ✅             | ✅             | DONE — pipe pluggable + docking station pipe |
-| Requester                    | ✅             | ✅             | DONE  |
-| **Lib / shared** (`buildcraft.lib`) |         |                |       |
-| Guide book                   | ✅             | 🚧             | `GuiGuide` works; 164 pages under `assets/buildcraft/compat/`; robotics = `zone_planner.md` only; missing entries auto-stub as WIP |
-| Statements / triggers        | ✅             | ✅             | DONE — core, transport, builders, silicon statements + gate resolution |
-| MJ API (`MjAPI`)             | ✅             | ✅             | DONE  |
-| Forge fluid/item caps        | ✅             | ➖             | Replaced by attachments + Fabric Transfer API |
-| Fabric fluid/item interop    | ➖             | ✅             | DONE  |
-
----
-
-## Fabric port improvements
-
-The items below are **Fabric-port and maintenance work** in [BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated), on top of the NeoForge-derived 26.1.2 base (and relative to classic BC 8.0.x on Forge 1.12.2). Everything listed is code-backed, not aspirational.
-
-### Platform and distribution
-
-- **Single mod JAR** instead of BC8's separate Core / Transport / Energy / Factory / Builders / Silicon / Robotics modules.
-- **Minecraft 26.1.2** with Fabric Loader, Fabric API, and Java 25.
-- **Deferred and runtime registries** via `buildcraft.fabric.registry.*` and `BCRegistries` for blocks, items, fluids, block entities, and data components.
-- **Unified JSON config** (`buildcraftrefabricated-common.json` via `BCFabricConfig`) covering core, lib, energy, factory, and transport settings; reloadable on datapack reload.
-- **Custom Fabric networking** (`BuildCraftFabricNetworking`) for pipe items, payloads, wire systems, and landing effects.
-
-### Transfer system (Fabric-native)
-
-BC8 used Forge `IFluidHandler` / `IItemHandler`. This port uses **Fabric Transfer API** (`Storage<T>`, `Transaction`) end-to-end. Legacy Forge handler bridges and `FabricTransferBridge` are removed.
-
-**Core entry points** (`buildcraft.lib.fabric.transfer`):
-
-| Class | Role |
-|-------|------|
-| `BcTransfers` | `FluidStorage.SIDED` / `ItemStorage.SIDED` / `EnergyStorage.SIDED` lookup; registers vanilla + BC fallbacks at init |
-| `FluidStorageOps` / `TransferCommits` / `EnergyStorageOps` | Shared simulate→commit helpers (fluid mB, items, FE) |
-| `ItemFluidLookup` | `FluidStorage.ITEM` on stacks (buckets, cells, gate parameters) |
-| `TriggerFluidChecks` / `TriggerItemChecks` | Gate trigger predicates over Fabric storages |
-| `SidedFluidStorages` | Insert-only / extract-only sided wrappers for factory tiles |
-| `FabricDeferredCommit` | Deferred commit for transactional pipe item inject |
-
-**Conversion:** `TransferConvert` maps Fabric droplets ↔ BC millibuckets (81 droplets = 1 mB).
-
-**MJ power** (wooden/stone engines, MJ pipes, `TriggerPower`) remains on the BC MJ capability graph — parallel to Team Reborn `EnergyStorage` used by RF pipes and autoconversion.
-
-### Pipe transport (current)
-
-| Area | Implementation | Key files |
-|------|----------------|-----------|
-| Neighbor resolution | Pluggable → block (`BcTransfers`) → neighbor pipe flow | `PipeNeighborStorageAccess`, `PipeNeighbor*Access` |
-| Item pipes | `PipeNeighborTransfers` probe/extract; `PipeItemInjectStorage` for external insert | `PipeFlowItems.java` |
-| Fluid pipes | `FluidStorageOps` + `FluidPipeMovement` scratch reuse | `PipeFlowFluids.java` |
-| RF pipes | `BcTransfers.energy()` → `EnergyStorageOps` | `PipeFlowRedstoneFlux.java` |
-| Gate triggers | Direct `BcTransfers` + `Trigger*Checks` / `ItemFluidLookup` | `CoreTriggerProvider.java` |
-| Client render | Batched BER submits, shared `PipeFlowRendererEnergy` for MJ+FE | `RenderPipeHolder.java` |
-
-### Fluid rendering (BC 8.0 visual fidelity)
-
-BC8 used `AtlasSpriteFluid` on 1.12.2. The Fabric port reimplements that look on modern vertex consumers:
-
-| Component | Role |
-|-----------|------|
-| `FluidUtilBC.FluidRenderContext` | Centralized render context (world/BER/GUI vs pipe recolor) |
-| `FluidUtilBC.FluidAppearance` / `vertexRgba()` | Single appearance API for tint and alpha |
-| `BcFluidTintUtil` | Heat-template bake and per-vertex pipe recolor |
-| `BcFluidBakeSpriteSource` | Atlas-stitched baked still/flow sprites for world/BER/GUI |
-| `BcHeatWhiteSpriteSource` | White pipe sprites with `.mcmeta` animation metadata copied into `SpriteContents` |
-| `BcFluidQuadEmitter` | 16×16 subdivided quads with per-vertex heat gradient in pipes |
-| `BcFluidGuiDrawer` | Shared tiled GUI tank drawing |
-| `BcFluidQuadEmitter.emitTankQuad` / `emitTankHorizontal` | Deduped BER tank rendering |
-| `BCEnergyFabricClient` | `FluidRenderingRegistry` registration with baked sprites |
-
-**Pipe fluid UV fix:** face-grid `(u,v)` converted to sprite `normalizedU/V(tu,tv)` so heat gradients align correctly on pipe faces.
-
-### Pipe dye bands and blocks atlas
-
-BC8 baked ~350 dyed fluid-pipe sprites via `dye_replace` into the blocks atlas. The Fabric port replaces that with **runtime vertex tint**:
-
-| Area | Change | Key files |
-|------|--------|-----------|
-| Atlas | Removed `buildcraftlib:dye_replace` entries and `DyeReplaceSpriteSource` (~350 fewer stitched sprites) | `blocks.json`, `BCSpriteSourcesFabric.java` |
-| World pipes | BER mask overlay tints the waterproofing band; fluid pipes use alpha 255 (opaque dye), other colourable pipes keep alpha 76 | `RenderPipeHolder.java`, `PipeBaseModelGenStandard.generateMaskMutable` |
-| Item pipes | Overlay quads coplanar with base model; fluid item tint alpha `0xFF` | `PipeItemModel.java` |
-| Item travel | Client-side simulation when items are in transit (no choppy BER animation) | `PipeFlowItems.hasClientSimulationWork()` |
-
-### Code hygiene (recent cleanup)
-
-- Removed `DyeReplaceSpriteSource` and all `dye_replace` atlas sources; pipe dye bands use mask + vertex colour instead.
-- Fixed item pipe client interpolation (`hasClientSimulationWork` no longer skips the client).
-- Removed empty `PipeFlowRendererItems` stub; colour overlay quads moved to `PipeItemColourQuads`.
-- Removed unused `IFluidHandlerAdv` imports from `PipeFlowFluids`, `FluidUtilBC`, `IFlowFluid`.
-- Removed dead method `getFirstNonEmptySet()` from `PipeFlowItems`.
-- Bucket attachment dedup: `AttachmentHooks` skips `buildcraftenergy` namespace buckets already registered in `BCEnergyFabric`.
-- AUDIT cleanup: removed dead lib filters/stubs, merged `PipeNeighborEnergyTransfers` into `EnergyStorageOps`, cached pipe item/fluid sided storage, `BigInteger`→`long` in power distribution, `FluidPipeMovement` scratch reuse, simplified `TileBuilder` inventory transactor, updated transfer interop docs (`BcTransfers` not legacy bridge).
-- AUDIT phase 2: block lookups call `BcTransfers` directly (slim `TriggerTransferAccess`), removed `PipePluggableTransferAccess`, `SidedFluidStorages` uses Fabric insert/extract-only wrappers, shared `ArrayStackOrListFilter` in lib, `RenderPipeHolder` caches item models per tick.
-- AUDIT phase 3: shared `TransferCommits` + `FluidStorageOps` fluid MB helpers, slim `PipeNeighborTransfers`, removed `TriggerTransferAccess` (call sites use `ItemFluidLookup` / `BcTransfers` + trigger checks), pooled item-pipe routing events in `PipeFlowItems`, batched `RenderPipeHolder` cutout submits.
-- AUDIT phase 4: full item/fluid pipe event pooling, dead code removal (`PipeHolderCapabilityRouting`, `IFluidTank`, unused API), `PipeNeighborStorageAccess`, fluid ops call `FluidStorageOps` directly, `saturate*` via `TransferCommits`, merged MJ/FE flow renderer, README transfer docs updated.
-
----
-
-## Transfer API interoperability
-
-Reference for mod developers connecting to BuildCraft on Fabric. Interop is wired through native Fabric/Team Reborn sided lookups (`BcTransfers` → `FluidStorage.SIDED` / `ItemStorage.SIDED` / `EnergyStorage.SIDED`), with vanilla and BC item-fluid fallbacks registered at init.
-
-| Resource | BC entry point | Fabric API | Direction |
-|----------|----------------|------------|-----------|
-| Block fluids | `BcTransfers.fluid()` / tile `getSidedFluidStorage()` | `FluidStorage.SIDED` | **Both ways** |
-| Block items | `BcTransfers.item()` / tile `getSidedItemStorage()` | `ItemStorage.SIDED` | **Both ways** |
-| Item fluids (buckets, cells) | `ItemFluidNativeFallbacks` | `FluidStorage.ITEM` | **Both ways** |
-| Block energy (RF) | `BcTransfers.energy()` / `MjEnergyStorage` | `EnergyStorage.SIDED` (Team Reborn) | **BC → Fabric** when RF autoconversion enabled |
-| MJ power | `MjAPI.CAP_RECEIVER` / `CAP_CONNECTOR` / `CAP_PASSIVE_PROVIDER` | — | BC internal only |
-| RF pipes | `PipeFlowRedstoneFlux` | `EnergyStorage.SIDED` on `PIPE_HOLDER` | **Both ways** with Team Reborn API mods |
-
-### What works without custom compat code
-
-- Fabric fluid tanks, hoppers, pipes → BC fluid pipes, tanks, pump, engines (via sided fluid storage).
-- Fabric item automation → BC item pipes, chests, machines (bidirectional via `PipeItemInjectStorage` / sided item storage).
-- Fabric fluid container items → BC diamond fluid filter, tank GUI fill/drain, `isFluidContainerItem()`.
-- BC buckets and fluid shards → visible to other mods querying `FluidStorage.ITEM`.
-
-### What does not bridge
-
-- External **MJ** mods — BC MJ API only.
-- **MJ↔RF conversion** on BC machines — requires disabling `MJ_ONLY` and enabling RF autoconversion in config; off by default.
-- Item pipe **nested transaction rollback** — `PipeItemInjectStorage` can leave partial state if a nested Fabric transaction aborts mid-flow.
-
----
-
-## Known limitations
-
-Honest list of current gaps and design constraints:
-
-1. **Maintenance scope** — Focus is bugfixes and port stability, not major new features.
-2. **Not Minecraft 1.12.2** — Recipes, components, redstone, entities, and the mod ecosystem differ from BC8.
-3. **RF/MJ energy interop gated by config** — Team Reborn `EnergyStorage` is bundled and wired for RF pipes and several machines; external mods using the same API can interact when RF autoconversion is enabled. MJ pipes remain BC-internal; `MJ_ONLY` is the default.
-4. **Fluid bridge granularity** — Cross-mod fluid moves truncate to whole millibuckets (81 Fabric droplets = 1 mB).
-5. **Wood pipe required for extraction** — Cobble/gold/iron fluid and item pipes do not passively drain neighbours; wood + MJ is by BC design.
-6. **Multi-tank fluid extract** — Unfiltered external fluid pulls may return the first tank view in iteration order, not a merged multi-tank handler.
-7. **Robotics board integration** — Empty `buildcraftrobotics:robot` shell is craftable (`robot.json`); programmed boards still require programming table → integration table → docking station deploy.
-8. **Guide book content incomplete** — 164 pages load; robotics guide has only `zone_planner.md`; several silicon tables (e.g. programming table) also lack writeups; missing entries auto-stub as WIP.
-9. **Dev-only / WIP content** — With `-Dbuildcraft.dev=true`: engine power tester, **robot goggles** (zone overlay WIP), **auto workbench (fluids)** (BC 8 never released it), **decorated paper/leather** (placeholder textures). Survival keeps decorated destroy/blueprint/template/laser, map location, and item auto workbench. Creative engine is always available.
-10. **Engine explosion default** — `canEnginesExplode` defaults to `false`; BC 8 commonly used `true`.
-11. **RF autoconversion off by default** — Config `MJ_ONLY`; enabling RF↔MJ conversion exposes `EnergyStorage` on BC machines and is required for cross-mod RF tank/engine interop beyond RF pipes.
-12. **Pipe flow transactions** — Pipe internals mutate immediately; nested transaction rollback does not fully undo travelling items (especially `PipeItemInjectStorage`).
-13. **MJ loss particles** — Engine spark effects are no-op (`NullaryEffectManager`); gameplay MJ loss still applies.
-
----
-
-## Building from source
-
-### Prerequisites
-
-- **JDK 25**
-- **Git**
-
-Gradle wrapper is included; a separate Gradle install is optional.
-
-### Commands
-
-From a clone of [BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated):
-
-```bash
-./gradlew build        # Unix / macOS
-gradlew.bat build      # Windows
-```
-
-On success, `build/libs/` contains:
-
-- `BCRefabricated-{version}.jar` — release mod JAR (e.g. `BCRefabricated-26.1.2-1.jar`)
-- `BCRefabricated-{version}-sources.jar` — sources (optional)
-
-Copy the release JAR into your Minecraft `mods` folder manually (or use `gradlew runClient` for a dev instance).
-
-### Project layout
-
-```
-BuildCraftRefabricated/              ← repository root (clone of this repo)
-├── src/main/java/buildcraft/        ← mod source (api, core, lib, modules, fabric)
-├── src/main/resources/
-│   ├── assets/                      ← BC textures, models (per-module namespaces)
-│   │   ├── buildcraft/lang/         ← master lang file (BC 8.0.x layout)
-│   │   ├── buildcraft/compat/       ← guide scripts and pages
-│   │   ├── buildcraft*/models/compat/ ← variable engine models (core, energy, lib)
-│   │   └── buildcraftbuilders/compat/ ← builder snapshot rules (BC 8.0.x layout)
-│   ├── data/                        ← recipes, tags, loot tables (per-module)
-│   │   ├── buildcraft*/advancement/ ← advancement tree split by BC module
-│   │   └── buildcraft*/compat/      ← guide book scripts (core + lib)
-│   ├── fabric.mod.json              ← Fabric mod metadata
-│   ├── buildcraft.mixins.json       ← mixin config
-│   └── buildcraft.accesswidener     ← access widener (Fabric port)
-├── gradle/ + gradlew*
-├── gradle.properties
-├── build.gradle.kts
-├── settings.gradle.kts
-├── LICENSE
-└── README.md
-```
-
-Gitignored (local only): `build/`, `.gradle/`, `run/`, `misc/`, `scripts/`, `.github/`, IDE folders.
-
-Parity labels describe how closely **this Fabric 26.1.2 build** ([BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)) matches classic **BC 8.0.x** on Forge 1.12.2.
-
----
-
-## Reporting issues
-
-Please [open an issue](https://github.com/fromdisposition/BuildCraftRefabricated/issues) if you encounter unexpected behaviour.
-
-For crashes or bugs, include:
-
-- Confirmation the issue is caused by **BuildCraft Refabricated** (interactions with other mods are valid reports).
-- At least one of:
-  - A **crash report** or relevant **log excerpt**
-  - **Steps to reproduce** ("What were you doing when it happened?")
-  - **Screenshots or video** demonstrating the problem
-- **Mod version** — e.g. `26.1.2-1`; if built from source, link to the commit or tree.
-- **Other mods** in use, especially rendering/performance mods (Sodium, Iris, etc.) — very helpful for reproduction.
-
-Check existing issues before filing. Duplicate fluid-tank tooltips and similar BC8-era bugs may already be tracked.
-
----
-
-## Links and references
-
-| Resource | URL |
-|----------|-----|
-| **Source & releases** | https://github.com/fromdisposition/BuildCraftRefabricated |
-| **Bug reports & feature requests** | https://github.com/fromdisposition/BuildCraftRefabricated/issues |
-| **Maintainer** | https://github.com/fromdisposition |
-| **Official BuildCraft (GitHub)** | https://github.com/BuildCraft/BuildCraft |
-| NeoForge 26.1.2 upstream (legoj15) | https://github.com/legoj15/BuildCraft |
-| Original BuildCraft (website, MPL-2.0) | https://www.mod-buildcraft.com |
-| MPL-2.0 license text | https://www.mozilla.org/MPL/2.0/ |
-| Fabric Transfer API (fluids) | https://wiki.fabricmc.net/tutorial:transfer-api-fluids |
-| Fabric Transfer API (fluid items) | https://wiki.fabricmc.net/tutorial:transfer-api_fluid-containing-items |
-
----
-
-*BuildCraft Refabricated — [fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated) — unofficial Fabric port; original mod by [BuildCraft/BuildCraft](https://github.com/BuildCraft/BuildCraft).*
+*BuildCraft Refabricated — unofficial Fabric port. Original mod by [BuildCraft/BuildCraft](https://github.com/BuildCraft/BuildCraft).*

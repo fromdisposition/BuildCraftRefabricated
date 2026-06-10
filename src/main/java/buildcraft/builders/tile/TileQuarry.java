@@ -9,6 +9,7 @@ package buildcraft.builders.tile;
 import buildcraft.api.core.BCDebugging;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.mj.MjAPI;
+import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.mj.MjBattery;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.api.tiles.IHasWork;
@@ -115,6 +116,8 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    private boolean advancementGranted = false;
    long lastFullSpeedTick = Long.MIN_VALUE;
    private boolean deferredUpdatePoses = false;
+   private boolean deferredNeighborNotify = false;
+   private boolean deferredChunkLoad = false;
    private List<AABB> collisionBoxes = ImmutableList.of();
    private Vec3 collisionDrillPos;
    private final EntityQuarryRig[] rigs = new EntityQuarryRig[3];
@@ -368,12 +371,14 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       if (this.shouldBeFrame(blockPos)) {
          if (!this.level.getBlockState(blockPos).is(BCBuildersBlocks.FRAME)) {
             if (this.canIgnoreInFrameBox(blockPos)) {
-               this.frameBreakBlockPoses.add(blockPos);
+               if (this.canMine(blockPos)) {
+                  this.frameBreakBlockPoses.add(blockPos);
+               }
             } else {
                this.framePlaceFramePoses.add(blockPos);
             }
          }
-      } else if (this.canIgnoreInFrameBox(blockPos)) {
+      } else if (this.canIgnoreInFrameBox(blockPos) && this.canMine(blockPos)) {
          this.frameBreakBlockPoses.add(blockPos);
       }
 
@@ -389,7 +394,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    public void onLoad() {
       if (this.level != null && !this.level.isClientSide()) {
          this.deferredUpdatePoses = true;
-         this.notifyNeighborConnections();
+         this.deferredNeighborNotify = true;
       }
    }
 
@@ -406,7 +411,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       super.clearRemoved();
       BCBuildersEventDist.INSTANCE.validateQuarry(this);
       if (this.level != null && !this.level.isClientSide()) {
-         this.notifyNeighborConnections();
+         this.deferredNeighborNotify = true;
       }
    }
 
@@ -448,26 +453,63 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    private void updatePoses(boolean preserveFirstChecked) {
       boolean wasFirstChecked = preserveFirstChecked && this.firstChecked;
       this.framePoses.clear();
-      this.frameBoxPosesCount = 0;
-      this.toCheck.clear();
-      this.firstCheckedPoses.clear();
-      if (!preserveFirstChecked) {
-         this.firstChecked = false;
-      }
       this.frameBreakBlockPoses.clear();
       this.framePlaceFramePoses.clear();
+      if (!wasFirstChecked) {
+         this.frameBoxPosesCount = 0;
+         this.toCheck.clear();
+         this.firstCheckedPoses.clear();
+         if (!preserveFirstChecked) {
+            this.firstChecked = false;
+         }
+      }
+
       BlockState state = this.level.getBlockState(this.worldPosition);
       if (state.is(BCBuildersBlocks.QUARRY) && this.frameBox.isInitialized()) {
-         List<BlockPos> blocksInArea = this.frameBox.getBlocksInArea();
-         blocksInArea.sort(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(this.worldPosition::distSqr)));
-         this.frameBoxPosesCount = blocksInArea.size();
-         this.toCheck.addAll(blocksInArea);
-         this.framePoses.addAll(this.getFramePositions());
-         ChunkLoaderManager.loadChunksForTile(this);
+         if (wasFirstChecked) {
+            this.framePoses.addAll(this.getFramePositions());
+
+            for (BlockPos edgePos : this.framePoses) {
+               this.check(edgePos);
+            }
+
+            this.deferredChunkLoad = true;
+         } else {
+            List<BlockPos> blocksInArea = this.frameBox.getBlocksInArea();
+            blocksInArea.sort(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(this.worldPosition::distSqr)));
+            this.frameBoxPosesCount = blocksInArea.size();
+            this.toCheck.addAll(blocksInArea);
+            this.framePoses.addAll(this.getFramePositions());
+            ChunkLoaderManager.loadChunksForTile(this);
+         }
       }
 
       if (preserveFirstChecked) {
          this.firstChecked = wasFirstChecked;
+      }
+   }
+
+   private void advancePastNonWorkableBlocks() {
+      if (this.boxIterator == null) {
+         return;
+      }
+
+      while (this.boxIterator.hasNext()) {
+         BlockPos current = this.boxIterator.getCurrent();
+         if (!this.canMoveThrough(current) && this.canMine(current) && this.canMoveDownTo(current)) {
+            break;
+         }
+
+         this.boxIterator.advance();
+      }
+   }
+
+   private void advanceMiningIteratorPast(BlockPos pos) {
+      if (this.boxIterator != null && pos != null && this.boxIterator.hasNext()) {
+         BlockPos current = this.boxIterator.getCurrent();
+         if (current != null && current.equals(pos)) {
+            this.boxIterator.advance();
+         }
       }
    }
 
@@ -479,7 +521,14 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       Block quarryBlock = this.getBlockState().getBlock();
 
       for (Direction direction : Direction.values()) {
-         this.level.neighborChanged(this.worldPosition.relative(direction), quarryBlock, null);
+         BlockPos adjPos = this.worldPosition.relative(direction);
+         BlockEntity be = this.level.getBlockEntity(adjPos);
+         if (be instanceof IPipeHolder holder && holder.getPipe() != null) {
+            holder.getPipe().markForUpdate();
+            holder.wakePipe();
+         }
+
+         this.level.neighborChanged(adjPos, quarryBlock, null);
       }
    }
 
@@ -513,7 +562,16 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
             if (this.deferredUpdatePoses) {
                this.deferredUpdatePoses = false;
                this.updatePoses(true);
+            }
+
+            if (this.deferredNeighborNotify) {
+               this.deferredNeighborNotify = false;
                this.notifyNeighborConnections();
+            }
+
+            if (this.deferredChunkLoad) {
+               this.deferredChunkLoad = false;
+               ChunkLoaderManager.loadChunksForTile(this);
             }
 
             if (this.frameBox.isInitialized() && this.miningBox.isInitialized()) {
@@ -588,6 +646,8 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
                            this.drillPos = null;
                            this.currentTask = new TileQuarry.TaskBreakBlock(blockPos);
                            sendUpdate = true;
+                        } else {
+                           this.frameBreakBlockPoses.remove(blockPos);
                         }
 
                         this.check(blockPos);
@@ -614,30 +674,12 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
 
                         if (this.boxIterator == null || this.drillPos == null) {
                            this.boxIterator = this.createBoxIterator();
-
-                           while (
-                              (
-                                    this.canMoveThrough(this.boxIterator.getCurrent())
-                                       || !this.canMine(this.boxIterator.getCurrent())
-                                       || !this.canMoveDownTo(this.boxIterator.getCurrent())
-                                 )
-                                 && this.boxIterator.advance() != null
-                           ) {
-                           }
-
+                           this.advancePastNonWorkableBlocks();
                            this.drillPos = Vec3.atLowerCornerOf(this.miningBox.closestInsideTo(this.worldPosition));
                         }
 
                         if (this.boxIterator != null && this.boxIterator.hasNext()) {
-                           while (
-                              (
-                                    this.canMoveThrough(this.boxIterator.getCurrent())
-                                       || !this.canMine(this.boxIterator.getCurrent())
-                                       || !this.canMoveDownTo(this.boxIterator.getCurrent())
-                                 )
-                                 && this.boxIterator.advance() != null
-                           ) {
-                           }
+                           this.advancePastNonWorkableBlocks();
 
                            if (this.boxIterator.hasNext()) {
                               boolean found = false;
@@ -1089,6 +1131,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
 
          TileQuarry.this.level.destroyBlockProgress(this.breakPos.hashCode(), this.breakPos, -1);
          TileQuarry.this.check(this.breakPos);
+         TileQuarry.this.advanceMiningIteratorPast(this.breakPos);
          return true;
       }
 
@@ -1096,6 +1139,9 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       protected boolean finish(long added, long target) {
          TileQuarry.this.blockPercentSoFar += (double)added / target;
          if (!TileQuarry.this.canMine(this.breakPos)) {
+            TileQuarry.this.level.destroyBlockProgress(this.breakPos.hashCode(), this.breakPos, -1);
+            TileQuarry.this.check(this.breakPos);
+            TileQuarry.this.advanceMiningIteratorPast(this.breakPos);
             return true;
          }
 
@@ -1113,8 +1159,10 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
             }
 
             TileQuarry.this.check(this.breakPos);
+            TileQuarry.this.advanceMiningIteratorPast(this.breakPos);
             return result.isPresent();
          } else {
+            TileQuarry.this.advanceMiningIteratorPast(this.breakPos);
             return false;
          }
       }

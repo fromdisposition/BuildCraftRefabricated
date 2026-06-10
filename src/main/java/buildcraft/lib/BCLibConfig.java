@@ -18,6 +18,7 @@ public final class BCLibConfig {
    public static final BCLibConfig.ChunkLoaderLevel CHUNK_LOADING_LEVEL = BCLibConfig.ChunkLoaderLevel.SELF_TILES;
    public static final BCLibConfig.EnumValue<BCLibConfig.PowerMode> powerMode = new BCLibConfig.EnumValue<>(POWER_MODE);
    public static final BCLibConfig.EnumValue<BCLibConfig.ColorBlindMode> colorBlindMode = new BCLibConfig.EnumValue<>(COLOR_BLIND_MODE);
+   public static final BCLibConfig.BooleanValue externalEnergyEcosystemPresent = new BCLibConfig.BooleanValue(false);
    public static final BCLibConfig.DoubleValue mjRfConversionAmount = new BCLibConfig.DoubleValue(0.1);
    public static final BCLibConfig.BooleanValue canEnginesExplode = new BCLibConfig.BooleanValue(false);
    public static final BCLibConfig.BooleanValue useColouredLabels = new BCLibConfig.BooleanValue(true);
