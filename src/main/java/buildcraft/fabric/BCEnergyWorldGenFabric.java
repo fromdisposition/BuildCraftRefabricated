@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Set;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents.Load;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.EndTick;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,15 +24,17 @@ import net.minecraft.world.level.saveddata.SavedDataType;
 
 public final class BCEnergyWorldGenFabric {
    private static final Identifier ADVANCEMENT_FINE_RICHES = Identifier.parse("buildcraftenergy:fine_riches");
+   private static final int FINE_RICHES_SCAN_RADIUS = 3;
+   private static final int FINE_RICHES_TICK_STRIDE = 20;
 
    private BCEnergyWorldGenFabric() {
    }
 
    public static void init() {
       if (BCCoreConfig.worldGen.get() && BCEnergyConfig.enableOilGeneration.get()) {
-         ServerChunkEvents.CHUNK_LOAD.register((Load)(serverLevel, chunk, newChunk) -> {
+         ServerChunkEvents.CHUNK_LOAD.register((serverLevel, chunk, newChunk) -> {
             ChunkPos chunkPos = chunk.getPos();
-            BCEnergyWorldGenFabric.OilGenSavedData data = BCEnergyWorldGenFabric.OilGenSavedData.getOrCreate(serverLevel);
+            OilGenSavedData data = OilGenSavedData.getOrCreate(serverLevel);
             if (!data.hasGenerated(chunkPos)) {
                OilGenerator.generateForChunk(serverLevel, PositionUtil.chunkX(chunkPos), PositionUtil.chunkZ(chunkPos));
                data.markGenerated(chunkPos);
@@ -45,7 +45,7 @@ public final class BCEnergyWorldGenFabric {
          BCLog.logger.info("[energy.oilgen] Oil generation is disabled by config.");
       }
 
-      ServerTickEvents.END_SERVER_TICK.register((EndTick)server -> {
+      ServerTickEvents.END_SERVER_TICK.register(server -> {
          for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             onPlayerTick(player);
          }
@@ -53,44 +53,62 @@ public final class BCEnergyWorldGenFabric {
    }
 
    private static void onPlayerTick(ServerPlayer player) {
-      if (player.tickCount % 20 == 0) {
-         if (player.level() instanceof ServerLevel level) {
-            if (OilGenerator.canGenerateOilIn(level)) {
-               ChunkPos current = player.chunkPosition();
-               int cx = PositionUtil.chunkX(current);
-               int cz = PositionUtil.chunkZ(current);
-               if (OilGenerator.isOilDesignBiomeAt(level, cx, cz)) {
-                  for (int dx = -3; dx <= 3; dx++) {
-                     for (int dz = -3; dz <= 3; dz++) {
-                        if (OilGenerator.wouldGenerateOilForOriginChunk(level, cx + dx, cz + dz)) {
-                           AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_FINE_RICHES);
-                           return;
-                        }
-                     }
-                  }
-               }
+      if (player.tickCount % FINE_RICHES_TICK_STRIDE != 0) {
+         return;
+      }
+
+      if (!(player.level() instanceof ServerLevel level) || !OilGenerator.canGenerateOilIn(level)) {
+         return;
+      }
+
+      ChunkPos current = player.chunkPosition();
+      int cx = PositionUtil.chunkX(current);
+      int cz = PositionUtil.chunkZ(current);
+      if (!OilGenerator.isOilDesignBiomeAt(level, cx, cz)) {
+         return;
+      }
+
+      for (int dx = -FINE_RICHES_SCAN_RADIUS; dx <= FINE_RICHES_SCAN_RADIUS; dx++) {
+         for (int dz = -FINE_RICHES_SCAN_RADIUS; dz <= FINE_RICHES_SCAN_RADIUS; dz++) {
+            if (OilGenerator.wouldGenerateOilForOriginChunk(level, cx + dx, cz + dz)) {
+               AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_FINE_RICHES);
+               return;
             }
          }
       }
    }
 
    public static final class OilGenSavedData extends SavedData {
-      private static final String DATA_NAME = "buildcraft_oil_gen";
+      private static final int CURRENT_VERSION = 2;
+      private int version;
       private final Set<Long> generatedChunks;
-      private static final Codec<BCEnergyWorldGenFabric.OilGenSavedData> CODEC = RecordCodecBuilder.create(
-         instance -> instance.group(Codec.LONG.listOf().optionalFieldOf("chunks", List.of()).forGetter(d -> new ArrayList<>(d.generatedChunks)))
-            .apply(instance, BCEnergyWorldGenFabric.OilGenSavedData::new)
+      private static final Codec<OilGenSavedData> CODEC = RecordCodecBuilder.create(
+         instance -> instance.group(
+               Codec.INT.optionalFieldOf("version", 0).forGetter(data -> data.version),
+               Codec.LONG.listOf().optionalFieldOf("chunks", List.of()).forGetter(data -> new ArrayList<>(data.generatedChunks))
+            )
+            .apply(instance, OilGenSavedData::fromCodec)
       );
-      public static final SavedDataType<BCEnergyWorldGenFabric.OilGenSavedData> TYPE = new SavedDataType<>(
-         Identifier.fromNamespaceAndPath("buildcraftenergy", "oil_gen"), BCEnergyWorldGenFabric.OilGenSavedData::new, CODEC, DataFixTypes.LEVEL
+      public static final SavedDataType<OilGenSavedData> TYPE = new SavedDataType<>(
+         Identifier.fromNamespaceAndPath("buildcraftenergy", "oil_gen"), OilGenSavedData::new, CODEC, DataFixTypes.LEVEL
       );
 
       public OilGenSavedData() {
-         this.generatedChunks = new HashSet<>();
+         this(CURRENT_VERSION, List.of());
       }
 
-      private OilGenSavedData(List<Long> chunks) {
+      private static OilGenSavedData fromCodec(int version, List<Long> chunks) {
+         return new OilGenSavedData(version, chunks);
+      }
+
+      private OilGenSavedData(int version, List<Long> chunks) {
+         this.version = version;
          this.generatedChunks = new HashSet<>(chunks);
+         if (this.version < CURRENT_VERSION) {
+            this.generatedChunks.clear();
+            this.version = CURRENT_VERSION;
+            this.setDirty();
+         }
       }
 
       public boolean hasGenerated(ChunkPos pos) {
@@ -102,8 +120,8 @@ public final class BCEnergyWorldGenFabric {
          this.setDirty();
       }
 
-      public static BCEnergyWorldGenFabric.OilGenSavedData getOrCreate(ServerLevel level) {
-         return (BCEnergyWorldGenFabric.OilGenSavedData)level.getDataStorage().computeIfAbsent(TYPE);
+      public static OilGenSavedData getOrCreate(ServerLevel level) {
+         return level.getDataStorage().computeIfAbsent(TYPE);
       }
    }
 }
