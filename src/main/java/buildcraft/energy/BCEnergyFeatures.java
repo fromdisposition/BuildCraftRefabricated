@@ -1,14 +1,14 @@
 package buildcraft.energy;
 
-import buildcraft.core.BCCoreBlocks;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.energy.gen.OilDepositFeature;
+import buildcraft.energy.generation.OilGenerator;
 import buildcraft.fabric.BCRegistries;
 import buildcraft.lib.misc.AdvancementUtil;
+import buildcraft.lib.misc.PositionUtil;
 import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -16,6 +16,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.GenerationStep.Decoration;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
@@ -23,6 +24,8 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 public final class BCEnergyFeatures {
    private static final Identifier ADVANCEMENT_FINE_RICHES = Identifier.parse("buildcraftenergy:fine_riches");
+   private static final int FINE_RICHES_SCAN_RADIUS = 3;
+   private static final int FINE_RICHES_TICK_STRIDE = 20;
    public static final ResourceKey<PlacedFeature> OIL_DEPOSIT_PLACED = ResourceKey.create(
       Registries.PLACED_FEATURE, BCRegistries.id("buildcraftenergy", "oil_deposit")
    );
@@ -51,24 +54,26 @@ public final class BCEnergyFeatures {
    }
 
    private static void tryUnlockFineRiches(ServerPlayer player) {
-      if (player.tickCount % 20 != 0 || !(player.level() instanceof ServerLevel level)) {
+      if (player.tickCount % FINE_RICHES_TICK_STRIDE != 0 || !(player.level() instanceof ServerLevel level)) {
          return;
       }
 
-      BlockPos center = player.blockPosition();
-      for (int dx = -32; dx <= 32; dx += 8) {
-         for (int dz = -32; dz <= 32; dz += 8) {
-            BlockPos sample = center.offset(dx, 0, dz);
-            Identifier biomeId = Identifier.parse(level.getBiome(sample).getRegisteredName());
-            if (!BCEnergyConfig.getRichSurfaceDepositBiomes().contains(biomeId)) {
-               continue;
-            }
+      if (!OilGenerator.canGenerateOilIn(level)) {
+         return;
+      }
 
-            for (int dy = -8; dy <= 8; dy++) {
-               if (level.getBlockState(sample.offset(0, dy, 0)).is(BCCoreBlocks.SPRING_OIL)) {
-                  AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_FINE_RICHES);
-                  return;
-               }
+      ChunkPos current = player.chunkPosition();
+      int cx = PositionUtil.chunkX(current);
+      int cz = PositionUtil.chunkZ(current);
+      if (!OilGenerator.isOilDesignBiomeAt(level, cx, cz)) {
+         return;
+      }
+
+      for (int dx = -FINE_RICHES_SCAN_RADIUS; dx <= FINE_RICHES_SCAN_RADIUS; dx++) {
+         for (int dz = -FINE_RICHES_SCAN_RADIUS; dz <= FINE_RICHES_SCAN_RADIUS; dz++) {
+            if (OilGenerator.wouldGenerateOilForOriginChunk(level, cx + dx, cz + dz)) {
+               AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_FINE_RICHES);
+               return;
             }
          }
       }
