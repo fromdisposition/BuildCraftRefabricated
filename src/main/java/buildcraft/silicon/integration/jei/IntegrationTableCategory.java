@@ -7,7 +7,7 @@
 package buildcraft.silicon.integration.jei;
 
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
-import buildcraft.lib.integration.jei.JeiPowerText;
+import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.silicon.BCSiliconItems;
 import java.util.List;
 import mezz.jei.api.gui.builder.IIngredientAcceptor;
@@ -24,21 +24,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public class IntegrationTableCategory extends AbstractRecipeCategory<IntegrationRecipeJei> {
-   private static final int TEX_U = 0;
-   private static final int TEX_V = 18;
-   private static final int TEX_W = 160;
-   private static final int TEX_H = 72;
-   private static final int SLOT_Y_SHIFT = -TEX_V;
-   private static final int[][] RING_POS = shiftY(
-      new int[][]{{19, 24}, {44, 24}, {69, 24}, {19, 49}, {69, 49}, {19, 74}, {44, 74}, {69, 74}}
-   );
-   private static final int CENTER_X = 44;
-   private static final int CENTER_Y = 49 + SLOT_Y_SHIFT;
-   private static final int OUTPUT_X = 138;
-   private static final int OUTPUT_Y = 49 + SLOT_Y_SHIFT;
-   private static final int POWER_Y = TEX_H + 2;
-   private static final int WIDTH = TEX_W;
-   private static final int HEIGHT = TEX_H + 12;
+   private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/integration_table.png");
+   private static final int BG_U = 0, BG_V = 18, BG_W = 160, BG_H = 72;
+   private static final int CENTER_X = 44, CENTER_Y = 31, OUTPUT_X = 138, OUTPUT_Y = 31;
+   private static final int[][] RING = {{19, 6}, {44, 6}, {69, 6}, {19, 31}, {69, 31}, {19, 56}, {44, 56}, {69, 56}};
    private final IDrawable background;
 
    public IntegrationTableCategory(IGuiHelper guiHelper) {
@@ -46,15 +35,15 @@ public class IntegrationTableCategory extends AbstractRecipeCategory<Integration
          BCJeiRecipeTypes.INTEGRATION,
          Component.translatable("gui.jei.category.buildcraft.integration_table"),
          guiHelper.createDrawableItemLike(BCSiliconItems.INTEGRATION_TABLE),
-         WIDTH,
-         HEIGHT
+         BG_W,
+         JeiCategoryDraw.cardH(BG_H)
       );
-      this.background = guiHelper.createDrawable(Identifier.parse("buildcraftsilicon:textures/gui/integration_table.png"), TEX_U, TEX_V, TEX_W, TEX_H);
+      this.background = guiHelper.createDrawable(TEX, BG_U, BG_V, BG_W, BG_H);
    }
 
    public void draw(IntegrationRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
-      JeiPowerText.drawRightAligned(graphics, "gui.jei.category.buildcraft.integration_table.power", recipe.microJoules(), WIDTH, POWER_Y);
+      JeiCategoryDraw.mjPower(graphics, "gui.jei.category.buildcraft.integration_table.power", recipe.microJoules(), BG_W, BG_H);
    }
 
    public void setRecipe(IRecipeLayoutBuilder builder, IntegrationRecipeJei recipe, IFocusGroup focuses) {
@@ -62,23 +51,12 @@ public class IntegrationTableCategory extends AbstractRecipeCategory<Integration
       IRecipeSlotBuilder outputBuilder = (IRecipeSlotBuilder)builder.addOutputSlot(OUTPUT_X, OUTPUT_Y).setOutputSlotBackground().addItemStacks(List.of(recipe.output()));
       List<ItemStack> ring = recipe.ring();
 
-      for (int i = 0; i < RING_POS.length; i++) {
+      for (int i = 0; i < RING.length; i++) {
          if (i < ring.size() && !ring.get(i).isEmpty()) {
-            builder.addInputSlot(RING_POS[i][0], RING_POS[i][1]).addItemStacks(List.of(ring.get(i)));
+            builder.addInputSlot(RING[i][0], RING[i][1]).addItemStacks(List.of(ring.get(i)));
          }
       }
 
       builder.createFocusLink(new IIngredientAcceptor[]{centerBuilder, outputBuilder});
-   }
-
-   private static int[][] shiftY(int[][] positions) {
-      int[][] shifted = new int[positions.length][2];
-
-      for (int i = 0; i < positions.length; i++) {
-         shifted[i][0] = positions[i][0];
-         shifted[i][1] = positions[i][1] + SLOT_Y_SHIFT;
-      }
-
-      return shifted;
    }
 }

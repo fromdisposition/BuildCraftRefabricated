@@ -15,7 +15,6 @@ import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.BCSiliconMenuTypes;
 import buildcraft.silicon.container.ContainerAdvancedCraftingTable;
 import buildcraft.fabric.integration.jei.BCJeiBootstrap;
-import buildcraft.fabric.integration.jei.BCJeiBootstrap;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.silicon.gui.GuiAdvancedCraftingTable;
 import buildcraft.silicon.gui.GuiAssemblyTable;
@@ -31,7 +30,6 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -65,7 +63,7 @@ public class BCSiliconJeiPlugin implements IModPlugin {
    public void registerCategories(IRecipeCategoryRegistration registration) {
       IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
       registration.addRecipeCategories(
-         new IRecipeCategory[]{new AssemblyTableCategory(guiHelper), new IntegrationTableCategory(guiHelper), new ProgrammingTableCategory(guiHelper)}
+         new AssemblyTableCategory(guiHelper), new IntegrationTableCategory(guiHelper), new ProgrammingTableCategory(guiHelper)
       );
    }
 

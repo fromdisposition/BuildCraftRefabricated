@@ -21,7 +21,6 @@ import java.util.List;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -45,9 +44,9 @@ public class BCEnergyJeiPlugin implements IModPlugin {
 
    public void registerCategories(IRecipeCategoryRegistration registration) {
       IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
-      registration.addRecipeCategories(new IRecipeCategory[]{new CombustionFuelCategory(guiHelper)});
-      registration.addRecipeCategories(new IRecipeCategory[]{new CombustionCoolantCategory(guiHelper)});
-      registration.addRecipeCategories(new IRecipeCategory[]{new StirlingFuelCategory(guiHelper)});
+      registration.addRecipeCategories(
+         new CombustionFuelCategory(guiHelper), new CombustionCoolantCategory(guiHelper), new StirlingFuelCategory(guiHelper)
+      );
    }
 
    public void registerRecipes(IRecipeRegistration registration) {

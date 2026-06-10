@@ -6,8 +6,8 @@
 
 package buildcraft.silicon.integration.jei;
 
-import buildcraft.lib.integration.jei.JeiPowerText;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
+import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.silicon.BCSiliconItems;
 import java.util.List;
 import mezz.jei.api.gui.builder.IIngredientAcceptor;
@@ -24,18 +24,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipeJei> {
-   private static final int TEX_U = 3;
-   private static final int TEX_V = 27;
-   private static final int TEX_W = 89;
-   private static final int TEX_H = 74;
-   private static final int SLOT_X = 5;
-   private static final int SLOT_Y = 9;
-   private static final int MAX_INPUT_SLOTS = 12;
-   private static final int OUTPUT_X = 105;
-   private static final int OUTPUT_Y = 9;
-   private static final int POWER_Y = TEX_H + 2;
-   private static final int WIDTH = 129;
-   private static final int HEIGHT = TEX_H + 12;
+   private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/assembly_table.png");
+   private static final int BG_U = 3, BG_V = 27, BG_W = 89, BG_H = 74;
+   private static final int CARD_W = 129;
+   private static final int INPUT_X = 5, INPUT_Y = 9, OUTPUT_X = 105, OUTPUT_Y = 9;
    private final IDrawable background;
 
    public AssemblyTableCategory(IGuiHelper guiHelper) {
@@ -43,30 +35,26 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
          BCJeiRecipeTypes.ASSEMBLY,
          Component.translatable("gui.jei.category.buildcraft.assembly_table"),
          guiHelper.createDrawableItemLike(BCSiliconItems.ASSEMBLY_TABLE),
-         WIDTH,
-         HEIGHT
+         CARD_W,
+         JeiCategoryDraw.cardH(BG_H)
       );
-      this.background = guiHelper.createDrawable(Identifier.parse("buildcraftsilicon:textures/gui/assembly_table.png"), TEX_U, TEX_V, TEX_W, TEX_H);
+      this.background = guiHelper.createDrawable(TEX, BG_U, BG_V, BG_W, BG_H);
    }
 
    public void draw(AssemblyRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
-      JeiPowerText.drawRightAligned(graphics, "gui.jei.category.buildcraft.assembly_table.power", recipe.microJoules(), TEX_W, POWER_Y);
+      JeiCategoryDraw.mjPower(graphics, "gui.jei.category.buildcraft.assembly_table.power", recipe.microJoules(), BG_W, BG_H);
    }
 
    public void setRecipe(IRecipeLayoutBuilder builder, AssemblyRecipeJei recipe, IFocusGroup focuses) {
       List<List<ItemStack>> inputs = recipe.inputSlots();
-      int inputCount = Math.min(inputs.size(), MAX_INPUT_SLOTS);
+      int inputCount = Math.min(inputs.size(), 12);
       IRecipeSlotBuilder[] inputSlotBuilders = new IRecipeSlotBuilder[inputCount];
 
       for (int i = 0; i < inputCount; i++) {
          List<ItemStack> slot = inputs.get(i);
          if (!slot.isEmpty()) {
-            int col = i % 3;
-            int row = i / 3;
-            int x = SLOT_X + col * 18;
-            int y = SLOT_Y + row * 18;
-            inputSlotBuilders[i] = (IRecipeSlotBuilder)builder.addInputSlot(x, y).addItemStacks(slot);
+            inputSlotBuilders[i] = (IRecipeSlotBuilder)builder.addInputSlot(INPUT_X + i % 3 * 18, INPUT_Y + i / 3 * 18).addItemStacks(slot);
          }
       }
 

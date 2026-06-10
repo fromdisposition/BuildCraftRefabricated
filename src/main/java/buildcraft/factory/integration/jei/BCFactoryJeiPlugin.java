@@ -26,7 +26,6 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.recipe.category.IRecipeCategory;
 import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -46,8 +45,7 @@ public class BCFactoryJeiPlugin implements IModPlugin {
 
    public void registerCategories(IRecipeCategoryRegistration registration) {
       IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
-      registration.addRecipeCategories(new IRecipeCategory[]{new HeatExchangerCategory(guiHelper)});
-      registration.addRecipeCategories(new IRecipeCategory[]{new DistillerCategory(guiHelper)});
+      registration.addRecipeCategories(new HeatExchangerCategory(guiHelper), new DistillerCategory(guiHelper));
    }
 
    public void registerRecipes(IRecipeRegistration registration) {

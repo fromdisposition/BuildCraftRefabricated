@@ -64,7 +64,7 @@ public final class IntegrationRecipeCollector {
          for (EnumGateModifier modifier : EnumGateModifier.VALUES) {
             for (EnumGateLogic logic : EnumGateLogic.VALUES) {
                ItemStack center = BCSiliconItems.PLUG_GATE.getStack(new GateVariant(logic, material, modifier));
-               addIfValid(recipe, recipeId + ":" + material.tag + "_" + logic.tag + "_" + modifier.tag, center, ringWith(0, chipset), out);
+               addIfValid(recipe, recipeId + ":" + material.tag + "_" + logic.tag + "_" + modifier.tag, center, ring(chipset), out);
             }
          }
       }
@@ -85,12 +85,12 @@ public final class IntegrationRecipeCollector {
 
       for (DyeColor color : DyeColor.values()) {
          ItemStack wire = new ItemStack(BCTransportItems.WIRE_ITEMS.get(color));
-         addIfValid(recipe, recipeId + ":blocker:" + color.getName(), center, ringWith(wire, new ItemStack(BCTransportItems.PLUG_BLOCKER)), out);
+         addIfValid(recipe, recipeId + ":blocker:" + color.getName(), center, ring(wire, new ItemStack(BCTransportItems.PLUG_BLOCKER)), out);
 
          for (int i = 0; i < addCandidates.size(); i++) {
             FacadeBlockStateInfo info = addCandidates.get(i);
             ItemStack addFacade = BCSiliconItems.PLUG_FACADE.createItemStack(FacadeInstance.createSingle(info, false));
-            addIfValid(recipe, recipeId + ":facade:" + color.getName() + ":" + i, center, ringWith(wire, addFacade), out);
+            addIfValid(recipe, recipeId + ":facade:" + color.getName() + ":" + i, center, ring(wire, addFacade), out);
          }
       }
    }
@@ -100,7 +100,7 @@ public final class IntegrationRecipeCollector {
 
       for (BCBoardNBT board : BCBoardNBT.REGISTRY.values()) {
          ItemStack boardStack = ItemRedstoneBoard.createStack(board);
-         addIfValid(recipe, recipeId + ":" + board.getID(), center, ringWith(0, boardStack), out);
+         addIfValid(recipe, recipeId + ":" + board.getID(), center, ring(boardStack), out);
       }
    }
 
@@ -130,33 +130,31 @@ public final class IntegrationRecipeCollector {
       return list;
    }
 
-   private static List<ItemStack> emptyRing() {
-      return new ArrayList<>(Collections.nCopies(RING_SIZE, ItemStack.EMPTY));
-   }
+   private static List<ItemStack> ring(ItemStack... stacks) {
+      List<ItemStack> ring = new ArrayList<>(Collections.nCopies(RING_SIZE, ItemStack.EMPTY));
 
-   private static List<ItemStack> ringWith(int index, ItemStack stack) {
-      List<ItemStack> ring = emptyRing();
-      ring.set(index, stack);
-      return ring;
-   }
+      for (int i = 0; i < stacks.length && i < RING_SIZE; i++) {
+         if (!stacks[i].isEmpty()) {
+            ring.set(i, stacks[i]);
+         }
+      }
 
-   private static List<ItemStack> ringWith(ItemStack first, ItemStack second) {
-      List<ItemStack> ring = emptyRing();
-      ring.set(0, first);
-      ring.set(1, second);
       return ring;
    }
 
    private static List<ItemStack> copyRing(List<ItemStack> ring) {
-      List<ItemStack> copy = emptyRing();
+      List<ItemStack> copy = ring();
 
       for (int i = 0; i < RING_SIZE; i++) {
-         ItemStack stack = ring.get(i);
-         if (!stack.isEmpty()) {
-            copy.set(i, stack.copy());
+         if (!ring.get(i).isEmpty()) {
+            copy.set(i, ring.get(i).copy());
          }
       }
 
       return copy;
+   }
+
+   private static List<ItemStack> ring() {
+      return new ArrayList<>(Collections.nCopies(RING_SIZE, ItemStack.EMPTY));
    }
 }

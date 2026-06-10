@@ -7,7 +7,7 @@
 package buildcraft.silicon.integration.jei;
 
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
-import buildcraft.lib.integration.jei.JeiPowerText;
+import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.tile.TileProgrammingTable;
 import java.util.List;
@@ -24,20 +24,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
 public class ProgrammingTableCategory extends AbstractRecipeCategory<ProgrammingRecipeJei> {
-   private static final int TEX_U = 0;
-   private static final int TEX_V = 18;
-   private static final int TEX_W = 154;
-   private static final int TEX_H = 76;
-   private static final int SLOT_Y_SHIFT = -TEX_V;
-   private static final int INPUT_X = 8;
-   private static final int INPUT_Y = 36 + SLOT_Y_SHIFT;
-   private static final int OPTIONS_X = 43;
-   private static final int OPTIONS_Y = 36 + SLOT_Y_SHIFT;
-   private static final int OUTPUT_X = 8;
-   private static final int OUTPUT_Y = 90 + SLOT_Y_SHIFT;
-   private static final int POWER_Y = TEX_H + 2;
-   private static final int WIDTH = TEX_W;
-   private static final int HEIGHT = TEX_H + 12;
+   private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/programming_table.png");
+   private static final int BG_U = 0, BG_V = 18, BG_W = 154, BG_H = 76;
+   private static final int INPUT_X = 8, INPUT_Y = 18, OPTIONS_X = 43, OPTIONS_Y = 18, OUTPUT_X = 8, OUTPUT_Y = 72;
    private final IDrawable background;
 
    public ProgrammingTableCategory(IGuiHelper guiHelper) {
@@ -45,15 +34,15 @@ public class ProgrammingTableCategory extends AbstractRecipeCategory<Programming
          BCJeiRecipeTypes.PROGRAMMING,
          Component.translatable("gui.jei.category.buildcraft.programming_table"),
          guiHelper.createDrawableItemLike(BCSiliconItems.PROGRAMMING_TABLE),
-         WIDTH,
-         HEIGHT
+         BG_W,
+         JeiCategoryDraw.cardH(BG_H)
       );
-      this.background = guiHelper.createDrawable(Identifier.parse("buildcraftsilicon:textures/gui/programming_table.png"), TEX_U, TEX_V, TEX_W, TEX_H);
+      this.background = guiHelper.createDrawable(TEX, BG_U, BG_V, BG_W, BG_H);
    }
 
    public void draw(ProgrammingRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
-      JeiPowerText.drawRightAligned(graphics, "gui.jei.category.buildcraft.programming_table.power", recipe.microJoules(), WIDTH, POWER_Y);
+      JeiCategoryDraw.mjPower(graphics, "gui.jei.category.buildcraft.programming_table.power", recipe.microJoules(), BG_W, BG_H);
    }
 
    public void setRecipe(IRecipeLayoutBuilder builder, ProgrammingRecipeJei recipe, IFocusGroup focuses) {
