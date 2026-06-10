@@ -7,6 +7,7 @@
 package buildcraft.energy.client.gui;
 
 import buildcraft.core.BCCoreItems;
+import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjRfConversion;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.container.ContainerEngineRF;
@@ -82,7 +83,11 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
                   List<String> lines = new ArrayList<>();
                   lines.add(LocaleUtil.localize("buildcraft.gui.rf_engine.upgrade_types"));
                   TileEngineRF.initUpgrades();
-                  String unitLabel = LocaleUtil.localize(BCEnergyConfig.rfFeKey("buildcraft.gui.rf_engine.upgrade_rate_unit"));
+                  String unitLabel = LocaleUtil.localize(
+                     MjAPI.displaysExternalEnergyUnits()
+                        ? "buildcraft.gui.rf_engine.upgrade_rate_unit"
+                        : "buildcraft.gui.rf_engine.upgrade_rate_unit_mj"
+                  );
 
                   long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
 
@@ -105,7 +110,10 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
                String rf = LocaleUtil.localizeRfFlow(rfPerTick);
                String mj = LocaleUtil.localizeMjFlow(mjPerTick);
                String conversion = LocaleUtil.localize(BCEnergyConfig.rfFeKey("buildcraft.help.rf_engine.battery"), rf, mj);
-               ElementHelpInfo help = ElementHelpInfo.preTranslated(BCEnergyConfig.rfFeKey("buildcraft.help.rf_engine.battery.title"), -13391309, conversion);
+               String titleKey = MjAPI.displaysExternalEnergyUnits()
+                  ? "buildcraft.help.rf_engine.battery.title"
+                  : "buildcraft.help.rf_engine.battery.title_mj";
+               ElementHelpInfo help = ElementHelpInfo.preTranslated(titleKey, -13391309, conversion);
                elements.add(help.target(this));
             }
 
@@ -114,7 +122,7 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
                if (this.contains(GuiEngineRF.this.mainGui.mouse)) {
                   int current = ((ContainerEngineRF)GuiEngineRF.this.menu).getSyncedFeStored();
                   int max = 10000;
-                  tooltips.add(new ToolTip(current + " / " + max + " FE"));
+                  tooltips.add(new ToolTip(LocaleUtil.localizeExternalBuffer(current, max)));
                }
             }
          });

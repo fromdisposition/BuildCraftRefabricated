@@ -299,7 +299,7 @@ public final class BCFabricConfig {
       core.addProperty("networkUpdateRate", 10);
       root.add("core", core);
       JsonObject lib = new JsonObject();
-      lib.addProperty("powerMode", "MJ_ONLY");
+      lib.addProperty("powerMode", "MJ_AUTOCONVERT_RF");
       lib.addProperty("colorBlindMode", "AUTO");
       lib.addProperty("mjRfConversion", 0.1);
       lib.addProperty("canEnginesExplode", false);

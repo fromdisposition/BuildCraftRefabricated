@@ -4,17 +4,22 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import org.jspecify.annotations.Nullable;
 import team.reborn.energy.api.EnergyStorage;
 
 public final class MjEnergyStorage extends SnapshotParticipant<Long> implements EnergyStorage {
-   private final MjBattery battery;
+   private final MjPowerCell cell;
 
-   public MjEnergyStorage(MjBattery battery) {
-      this.battery = battery;
+   public MjEnergyStorage(MjPowerCell cell) {
+      this.cell = cell;
    }
 
-   public static MjEnergyStorage createIfRfEnabled(MjBattery battery) {
-      return MjAPI.isRfAutoConversionEnabled() ? new MjEnergyStorage(battery) : null;
+   public static @Nullable MjEnergyStorage createIfRfEnabled(MjBattery battery) {
+      return createIfRfEnabled(new MjBatteryPowerCell(battery));
+   }
+
+   public static @Nullable MjEnergyStorage createIfRfEnabled(MjPowerCell cell) {
+      return MjAPI.isRfAutoConversionEnabled() ? new MjEnergyStorage(cell) : null;
    }
 
    private static long mjPerRf() {
@@ -35,7 +40,7 @@ public final class MjEnergyStorage extends SnapshotParticipant<Long> implements 
          return 0L;
       }
 
-      long space = this.battery.getCapacity() - this.battery.getStored();
+      long space = this.cell.getCapacity() - this.cell.getStored();
       if (space <= 0L) {
          return 0L;
       }
@@ -47,7 +52,7 @@ public final class MjEnergyStorage extends SnapshotParticipant<Long> implements 
       }
 
       this.updateSnapshots(transaction);
-      this.battery.addPower(acceptedRf * mjpr, false);
+      this.cell.addPower(acceptedRf * mjpr, false);
       return acceptedRf;
    }
 
@@ -65,32 +70,32 @@ public final class MjEnergyStorage extends SnapshotParticipant<Long> implements 
          return 0L;
       }
 
-      long maxRfByStored = this.battery.getStored() / mjpr;
+      long maxRfByStored = this.cell.getStored() / mjpr;
       long extractRf = Math.min(maxAmount, maxRfByStored);
       if (extractRf <= 0L) {
          return 0L;
       }
 
       this.updateSnapshots(transaction);
-      this.battery.extractPower(0L, extractRf * mjpr);
+      this.cell.extractPower(0L, extractRf * mjpr);
       return extractRf;
    }
 
    public long getAmount() {
       long mjpr = mjPerRf();
-      return mjpr <= 0L ? 0L : this.battery.getStored() / mjpr;
+      return mjpr <= 0L ? 0L : this.cell.getStored() / mjpr;
    }
 
    public long getCapacity() {
       long mjpr = mjPerRf();
-      return mjpr <= 0L ? 0L : this.battery.getCapacity() / mjpr;
+      return mjpr <= 0L ? 0L : this.cell.getCapacity() / mjpr;
    }
 
    protected Long createSnapshot() {
-      return this.battery.getStored();
+      return this.cell.getStored();
    }
 
    protected void readSnapshot(Long snapshot) {
-      this.battery.setStored(snapshot);
+      this.cell.setStored(snapshot);
    }
 }

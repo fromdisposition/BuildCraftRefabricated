@@ -46,6 +46,11 @@ public class MjAPI {
       return BCLibConfig.powerMode.get().autoconvert;
    }
 
+   public static boolean displaysExternalEnergyUnits() {
+      BCLibConfig.PowerMode mode = BCLibConfig.powerMode.get();
+      return mode.autoconvert && mode.displayExternal;
+   }
+
    private static long getMjValue() {
       return 1000000L;
    }

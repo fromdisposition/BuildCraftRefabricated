@@ -11,7 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 
 public final class BCLibConfig {
-   public static final BCLibConfig.PowerMode POWER_MODE = BCLibConfig.PowerMode.MJ_ONLY;
+   public static final BCLibConfig.PowerMode POWER_MODE = BCLibConfig.PowerMode.MJ_AUTOCONVERT_RF;
    public static final BCLibConfig.ColorBlindMode COLOR_BLIND_MODE = BCLibConfig.ColorBlindMode.AUTO;
    public static final BCLibConfig.TimeGap DISPLAY_TIME_GAP = BCLibConfig.TimeGap.SECONDS;
    public static final BCLibConfig.RenderRotation ROTATE_TRAVELING_ITEMS = BCLibConfig.RenderRotation.ENABLED;
@@ -124,14 +124,16 @@ public final class BCLibConfig {
    }
 
    public enum PowerMode {
-      MJ_ONLY(false),
-      MJ_AUTOCONVERT_RF(true),
-      DISPLAY_RF(true);
+      MJ_ONLY(false, false),
+      MJ_AUTOCONVERT_RF(true, false),
+      DISPLAY_RF(true, true);
 
       public final boolean autoconvert;
+      public final boolean displayExternal;
 
-      PowerMode(boolean autoconvert) {
+      PowerMode(boolean autoconvert, boolean displayExternal) {
          this.autoconvert = autoconvert;
+         this.displayExternal = displayExternal;
       }
    }
 

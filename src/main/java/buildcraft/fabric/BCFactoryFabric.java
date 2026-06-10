@@ -5,6 +5,7 @@ import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.BCFactoryBlocks;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.factory.BCFactoryMenuTypes;
+import buildcraft.factory.tile.TileAutoWorkbenchBase;
 import buildcraft.factory.tile.TileAutoWorkbenchFluids;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.factory.tile.TileChute;
@@ -103,6 +104,18 @@ public final class BCFactoryFabric {
             (blockEntity, direction) -> blockEntity instanceof TileDistiller_BC8 distiller ? distiller.getSidedEnergyStorage() : null,
             BCFactoryBlockEntities.DISTILLER
          );
+      EnergyStorage.SIDED
+         .registerForBlockEntity(
+            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchBase workbench ? workbench.getSidedEnergyStorage() : null,
+            BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS
+         );
+      if (BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS != null) {
+         EnergyStorage.SIDED
+            .registerForBlockEntity(
+               (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchBase workbench ? workbench.getSidedEnergyStorage() : null,
+               BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
+            );
+      }
    }
 
    private static void registerMjCapabilities() {

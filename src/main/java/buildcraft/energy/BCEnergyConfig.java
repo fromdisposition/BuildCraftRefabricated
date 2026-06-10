@@ -83,7 +83,7 @@ public class BCEnergyConfig {
    }
 
    public static String rfFeKey(String baseKey) {
-      return useRfNaming.get() ? baseKey + ".rf" : baseKey;
+      return baseKey;
    }
 
    public static Set<Identifier> getForceExcessiveOilBiomes() {

@@ -11,9 +11,12 @@ import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjRedstoneReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.tiles.IHasWork;
+import buildcraft.lib.fabric.transfer.MjEnergyStorage;
+import buildcraft.lib.fabric.transfer.MjPowerCell;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.tile.BcBlockEntity;
+import org.jspecify.annotations.Nullable;
 import buildcraft.lib.tile.ItemHandlerFiltered;
 import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;
@@ -112,6 +115,41 @@ public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHa
 
    public IMjRedstoneReceiver getMjReceiver() {
       return this.mjReceiver;
+   }
+
+   public @Nullable MjEnergyStorage getSidedEnergyStorage() {
+      return MjEnergyStorage.createIfRfEnabled(new MjPowerCell() {
+         @Override
+         public long getStored() {
+            return TileAutoWorkbenchBase.this.powerStored;
+         }
+
+         @Override
+         public void setStored(long microJoules) {
+            TileAutoWorkbenchBase.this.setPowerStored(Math.max(0L, Math.min(microJoules, POWER_REQUIRED)));
+         }
+
+         @Override
+         public long getCapacity() {
+            return POWER_REQUIRED;
+         }
+
+         @Override
+         public long addPower(long microJoules, boolean simulate) {
+            return TileAutoWorkbenchBase.this.mjReceiver.receivePower(microJoules, simulate);
+         }
+
+         @Override
+         public long extractPower(long min, long max) {
+            if (TileAutoWorkbenchBase.this.powerStored < min) {
+               return 0L;
+            }
+
+            long extracting = Math.min(TileAutoWorkbenchBase.this.powerStored, max);
+            TileAutoWorkbenchBase.this.setPowerStored(TileAutoWorkbenchBase.this.powerStored - extracting);
+            return extracting;
+         }
+      });
    }
 
    public double getProgress(float partialTicks) {

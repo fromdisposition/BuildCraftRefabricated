@@ -15,10 +15,12 @@ import buildcraft.silicon.tile.TileAssemblyTable;
 import buildcraft.silicon.tile.TileChargingTable;
 import buildcraft.silicon.tile.TileIntegrationTable;
 import buildcraft.silicon.tile.TileLaser;
+import buildcraft.silicon.tile.TileLaserTableBase;
 import buildcraft.silicon.tile.TilePackager;
 import buildcraft.silicon.tile.TileProgrammingTable;
 import buildcraft.silicon.tile.TileStampingTable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import team.reborn.energy.api.EnergyStorage;
 
 public final class BCSiliconFabric {
@@ -45,6 +47,12 @@ public final class BCSiliconFabric {
          .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TileLaser laser ? laser.getSidedEnergyStorage() : null, BCSiliconBlockEntities.LASER
          );
+      registerLaserTableEnergy(BCSiliconBlockEntities.ASSEMBLY_TABLE);
+      registerLaserTableEnergy(BCSiliconBlockEntities.ADVANCED_CRAFTING_TABLE);
+      registerLaserTableEnergy(BCSiliconBlockEntities.INTEGRATION_TABLE);
+      registerLaserTableEnergy(BCSiliconBlockEntities.CHARGING_TABLE);
+      registerLaserTableEnergy(BCSiliconBlockEntities.PROGRAMMING_TABLE);
+      registerLaserTableEnergy(BCSiliconBlockEntities.STAMPING_TABLE);
       ItemStorage.SIDED
          .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TileAssemblyTable table ? table.getSidedItemStorage(direction) : null,
@@ -79,6 +87,13 @@ public final class BCSiliconFabric {
          .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TilePackager packager ? packager.getSidedItemStorage(direction) : null,
             BCSiliconBlockEntities.PACKAGER
+         );
+   }
+
+   private static void registerLaserTableEnergy(BlockEntityType<? extends TileLaserTableBase> type) {
+      EnergyStorage.SIDED
+         .registerForBlockEntity(
+            (blockEntity, direction) -> blockEntity instanceof TileLaserTableBase table ? table.getSidedEnergyStorage() : null, type
          );
    }
 

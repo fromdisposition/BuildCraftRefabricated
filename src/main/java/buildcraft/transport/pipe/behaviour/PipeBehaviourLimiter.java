@@ -18,6 +18,7 @@ import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventPower;
 import buildcraft.api.transport.pipe.PipeEventRedstoneFlux;
 import buildcraft.lib.misc.EntityUtil;
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
@@ -116,8 +117,8 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
             limit = (int)((transferInfo.transferPerTick >> this.limitShift) / MjAPI.MJ);
          }
 
-         String key = "chat.pipe." + (isRf ? "rf" : "power") + ".iron.mode";
-         MessageUtil.sendOverlayMessage(player, Component.translatable(key, new Object[]{limit}));
+         String limitLabel = isRf ? LocaleUtil.localizeRfFlow(limit) : LocaleUtil.localizeMjFlow(limit * MjAPI.MJ);
+         MessageUtil.sendOverlayMessage(player, Component.translatable("chat.pipe.power.limit.mode", limitLabel));
          this.requestReconfigure();
       }
 

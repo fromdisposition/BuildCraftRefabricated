@@ -80,7 +80,7 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    @Nullable
    public EnergyStorage getSidedEnergyStorage(@Nullable Direction direction) {
-      return direction != null && direction == this.getOrientation() ? this.energyStorage : null;
+      return direction != null && direction == this.getOrientation() && MjAPI.isRfAutoConversionEnabled() ? this.energyStorage : null;
    }
 
    public int getCurrentFe() {

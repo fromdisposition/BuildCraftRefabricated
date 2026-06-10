@@ -58,7 +58,8 @@ public abstract class ActionPowerLimit extends BCStatement implements IActionInt
             max = pipeInfo.transferPerTick >> this.limitShift;
          }
 
-         return String.format(LocaleUtil.localize("gate.action.pipe.rf_limit"), max);
+         int rate = max instanceof Integer value ? value : 0;
+         return LocaleUtil.localize("gate.action.pipe.limit", LocaleUtil.localizeRfFlow(rate));
       } else {
          PipeApi.PowerTransferInfo pipeInfo = PipeApi.powerTransferData.get(pipe);
          Object max;
@@ -70,7 +71,8 @@ public abstract class ActionPowerLimit extends BCStatement implements IActionInt
             max = (int)((pipeInfo.transferPerTick >> this.limitShift) / MjAPI.MJ);
          }
 
-         return String.format(LocaleUtil.localize("gate.action.pipe.power_limit"), max);
+         int rate = max instanceof Integer value ? value : 0;
+         return LocaleUtil.localize("gate.action.pipe.limit", LocaleUtil.localizeMjFlow((long)rate * MjAPI.MJ));
       }
    }
 

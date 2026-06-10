@@ -28,7 +28,7 @@ public final class LocaleUtil {
          return "";
       }
 
-      if (BCLibConfig.powerMode.get() == BCLibConfig.PowerMode.DISPLAY_RF) {
+      if (MjAPI.displaysExternalEnergyUnits()) {
          return localizeRf((int)(microMj / MjAPI.getRfConversion().mjPerRf));
       }
 
@@ -40,7 +40,7 @@ public final class LocaleUtil {
          return "";
       }
 
-      if (BCLibConfig.powerMode.get() == BCLibConfig.PowerMode.DISPLAY_RF) {
+      if (MjAPI.displaysExternalEnergyUnits()) {
          return localizeRfFlow((int)(microMjPerTick / MjAPI.getRfConversion().mjPerRf));
       }
 
@@ -53,22 +53,47 @@ public final class LocaleUtil {
       return String.format("%.1f", heat);
    }
 
-   public static String localizeRfFlow(int fePerTick) {
+   public static String localizeRfFlow(int ePerTick) {
       if (BCCoreConfig.hidePower.get()) {
          return "";
       }
 
-      int scaled = (int)BCLibConfig.displayTimeGap.get().convertTicksToGap(fePerTick);
-      String suffix = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? " FE/s" : " FE/t";
+      if (!MjAPI.displaysExternalEnergyUnits()) {
+         return localizeMjFlow(ePerTick * MjAPI.getRfConversion().mjPerRf);
+      }
+
+      int scaled = (int)BCLibConfig.displayTimeGap.get().convertTicksToGap(ePerTick);
+      String suffix = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? " E/s" : " E/t";
       return scaled + suffix;
    }
 
-   public static String localizeRf(int rf) {
+   public static String localizeRf(int e) {
       if (BCCoreConfig.hidePower.get()) {
          return "";
       }
 
-      return rf + " FE";
+      if (!MjAPI.displaysExternalEnergyUnits()) {
+         return localizeMj(e * MjAPI.getRfConversion().mjPerRf);
+      }
+
+      return e + " E";
+   }
+
+   public static String localizeExternalBuffer(int currentE, int maxE) {
+      if (BCCoreConfig.hidePower.get()) {
+         return "";
+      }
+
+      if (!MjAPI.isRfAutoConversionEnabled()) {
+         return localizeMj(0L) + " / " + localizeMj(0L);
+      }
+
+      if (MjAPI.displaysExternalEnergyUnits()) {
+         return currentE + " / " + maxE + " E";
+      }
+
+      long mjPerE = MjAPI.getRfConversion().mjPerRf;
+      return localizeMj(currentE * mjPerE) + " / " + localizeMj(maxE * mjPerE);
    }
 
    public static String localizeFluidFlow(int mbPerTick) {
