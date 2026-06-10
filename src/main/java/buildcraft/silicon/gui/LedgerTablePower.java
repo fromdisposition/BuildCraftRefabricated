@@ -28,7 +28,7 @@ public class LedgerTablePower extends Ledger_Neptune {
       this.tile = tile;
       this.title = "gui.power";
       this.appendText(LocaleUtil.localize("gui.assemblyCurrentRequired") + ":", -5591112).setDropShadow(true);
-      this.appendText(() -> LocaleUtil.localizeMj(tile.getTarget()), -16777216);
+      this.appendText(() -> LocaleUtil.localizeMj(tile.getRemainingRequiredPower()), -16777216);
       this.appendText(LocaleUtil.localize("gui.stored") + ":", -5591112).setDropShadow(true);
       this.appendText(() -> LocaleUtil.localizeMj(tile.power), -16777216);
       this.appendText(LocaleUtil.localize("gui.assemblyRate") + ":", -5591112).setDropShadow(true);

@@ -23,6 +23,8 @@ public class AverageLong {
    public void clear() {
       this.data = new long[this.precise];
       this.pos = 0;
+      this.averageRaw = 0L;
+      this.tickValue = 0L;
    }
 
    public double getAverage() {

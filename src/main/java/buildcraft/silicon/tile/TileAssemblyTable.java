@@ -10,6 +10,7 @@ import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.recipes.AssemblyRecipe;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.InventoryUtil;
+import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.recipe.AssemblyRecipeRegistry;
 import buildcraft.lib.tile.ItemHandlerManager;
@@ -38,6 +39,8 @@ public class TileAssemblyTable extends TileLaserTableBase {
    private static final int RESCAN_INTERVAL = 100;
    public final ItemHandlerSimple inv = this.itemManager.addInvHandler("inv", 12, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
    public SortedMap<TileAssemblyTable.AssemblyInstruction, EnumAssemblyRecipeState> recipesStates = new TreeMap<>();
+   public long syncedTarget;
+   private long lastSyncedTarget = -1L;
    private long lastInvSignature = Long.MIN_VALUE;
    private int rescanCooldown;
 
@@ -163,7 +166,25 @@ public class TileAssemblyTable extends TileLaserTableBase {
 
    @Override
    public long getTarget() {
+      if (this.level != null && this.level.isClientSide()) {
+         return this.syncedTarget;
+      }
+
       return Optional.ofNullable(this.getActiveRecipe()).map(instruction -> instruction.recipe.getRequiredMicroJoulesFor(instruction.output)).orElse(0L);
+   }
+
+   private void syncClientTarget() {
+      if (this.level != null && !this.level.isClientSide()) {
+         long target = Optional.ofNullable(this.getActiveRecipe())
+            .map(instruction -> instruction.recipe.getRequiredMicroJoulesFor(instruction.output))
+            .orElse(0L);
+         if (target != this.lastSyncedTarget) {
+            this.syncedTarget = target;
+            this.lastSyncedTarget = target;
+            this.setChanged();
+            MessageUtil.sendUpdateToTrackingPlayers(this);
+         }
+      }
    }
 
    @Override
@@ -184,6 +205,8 @@ public class TileAssemblyTable extends TileLaserTableBase {
          }
       }
 
+      this.syncClientTarget();
+
       if (this.getTarget() > 0L) {
          if (this.getOwner() != null) {
             AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.getLevel(), ADVANCEMENT);
@@ -198,6 +221,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
                   this.power -= target;
                   this.setChanged();
                   this.activateNextRecipe();
+                  this.syncClientTarget();
                }
             }
          }
@@ -207,6 +231,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
    @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
+      output.putLong("synced_target", this.syncedTarget);
       CompoundTag wrapper = new CompoundTag();
       ListTag recipesStatesTag = new ListTag();
       this.recipesStates.forEach((instruction, state) -> {
@@ -229,6 +254,8 @@ public class TileAssemblyTable extends TileLaserTableBase {
    @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
+      this.syncedTarget = input.getLongOr("synced_target", 0L);
+      this.lastSyncedTarget = this.syncedTarget;
       this.recipesStates.clear();
       input.read("recipes_states", CompoundTag.CODEC).ifPresent(wrapper -> wrapper.getList("entries").ifPresent(recipesStatesTag -> {
          for (int i = 0; i < recipesStatesTag.size(); i++) {

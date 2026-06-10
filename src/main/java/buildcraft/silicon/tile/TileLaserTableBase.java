@@ -44,6 +44,11 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
 
    public abstract long getTarget();
 
+   public long getRemainingRequiredPower() {
+      long target = this.getTarget();
+      return target <= 0L ? 0L : Math.max(0L, target - this.power);
+   }
+
    protected int getLaserBufferMultiplier() {
       return 1;
    }
