@@ -32,7 +32,10 @@ public class BuildCraftFabricMod implements ModInitializer {
       BCBuildersFabric.register();
       BCSiliconFabric.register();
       BCRoboticsFabric.register();
-      ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> BCJeiBootstrap.initEnergyRecipes());
+      ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> {
+         BCJeiBootstrap.initSiliconRecipes();
+         BCJeiBootstrap.initEnergyRecipes();
+      });
       BCNetworkingRegistry.registerCommon();
       BCNetworkingRegistry.registerServer();
       BcTransfers.init();
