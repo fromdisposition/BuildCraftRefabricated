@@ -37,6 +37,7 @@ public abstract class BcBlockEntity extends BlockEntity {
    private final Set<Player> usingPlayers = new HashSet<>();
    @Nullable
    private GameProfile owner;
+   private boolean deferredPipeNeighborNotify = false;
 
    public BcBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
       super(type, pos, state);
@@ -115,6 +116,17 @@ public abstract class BcBlockEntity extends BlockEntity {
          }
 
          this.level.neighborChanged(adjPos, block, null);
+      }
+   }
+
+   protected void schedulePipeNeighborNotify() {
+      this.deferredPipeNeighborNotify = true;
+   }
+
+   protected void flushPipeNeighborNotify() {
+      if (this.deferredPipeNeighborNotify) {
+         this.deferredPipeNeighborNotify = false;
+         this.notifyPipeNeighborConnections();
       }
    }
 

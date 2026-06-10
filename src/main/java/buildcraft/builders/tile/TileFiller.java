@@ -32,12 +32,15 @@ import buildcraft.builders.snapshot.TemplateBuilder;
 import buildcraft.core.marker.volume.Lock;
 import buildcraft.core.marker.volume.VolumeBox;
 import buildcraft.core.marker.volume.WorldSavedDataVolumeBoxes;
+import buildcraft.lib.chunkload.ChunkLoaderManager;
+import buildcraft.lib.chunkload.IChunkLoadingTile;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.NBTUtilBC;
+import buildcraft.lib.misc.PositionUtil;
 import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.statement.FullStatement;
@@ -49,14 +52,17 @@ import buildcraft.lib.transfer.neighbor.NeighborTransfers;
 import com.mojang.authlib.GameProfile;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -91,6 +97,7 @@ public class TileFiller
    IHasWork,
    ITileForTemplateBuilder,
    IBlockEntityLoadHook,
+   IChunkLoadingTile,
    MenuProvider,
    BlockEntityExtendedMenu {
    public static final int INV_SIZE = 27;
@@ -101,7 +108,7 @@ public class TileFiller
    public boolean inverted = false;
    private boolean finished = false;
    private byte lockedTicks = 0;
-   private boolean deferredNeighborNotify = false;
+   private boolean deferredChunkLoad = false;
    private IControllable.Mode mode = IControllable.Mode.ON;
    public final Box box = new Box();
    public AddonFillerPlanner addon;
@@ -143,6 +150,9 @@ public class TileFiller
    public void setRemoved() {
       super.setRemoved();
       BCBuildersEventDist.INSTANCE.invalidateFiller(this);
+      if (this.level != null && !this.level.isClientSide()) {
+         ChunkLoaderManager.releaseChunksFor(this);
+      }
    }
 
    public void clearRemoved() {
@@ -153,8 +163,41 @@ public class TileFiller
    @Override
    public void onLoad() {
       if (this.level != null && !this.level.isClientSide()) {
-         this.deferredNeighborNotify = true;
+         this.schedulePipeNeighborNotify();
+         if (this.box.isInitialized()) {
+            this.deferredChunkLoad = true;
+         }
       }
+   }
+
+   @Nullable
+   @Override
+   public IChunkLoadingTile.LoadType getLoadType() {
+      return IChunkLoadingTile.LoadType.SOFT;
+   }
+
+   @Nullable
+   @Override
+   public Set<ChunkPos> getChunksToLoad() {
+      if (!this.box.isInitialized()) {
+         return null;
+      }
+
+      Set<ChunkPos> chunkPoses = new HashSet<>();
+      ChunkPos minChunkPos = PositionUtil.chunkContaining(this.box.min());
+      ChunkPos maxChunkPos = PositionUtil.chunkContaining(this.box.max());
+      int minX = PositionUtil.chunkX(minChunkPos);
+      int maxX = PositionUtil.chunkX(maxChunkPos);
+      int minZ = PositionUtil.chunkZ(minChunkPos);
+      int maxZ = PositionUtil.chunkZ(maxChunkPos);
+
+      for (int x = minX; x <= maxX; x++) {
+         for (int z = minZ; z <= maxZ; z++) {
+            chunkPoses.add(new ChunkPos(x, z));
+         }
+      }
+
+      return chunkPoses;
    }
 
    @Override
@@ -231,6 +274,10 @@ public class TileFiller
       if (this.getTemplateBuildingInfo() != null && this.builder != null) {
          this.builder.updateSnapshot();
       }
+
+      if (this.level != null && !this.level.isClientSide() && this.box.isInitialized()) {
+         this.deferredChunkLoad = true;
+      }
    }
 
    public void tick() {
@@ -242,9 +289,10 @@ public class TileFiller
                b.clientTick();
             }
          } else {
-            if (this.deferredNeighborNotify) {
-               this.deferredNeighborNotify = false;
-               this.notifyPipeNeighborConnections();
+            this.flushPipeNeighborNotify();
+            if (this.deferredChunkLoad) {
+               this.deferredChunkLoad = false;
+               ChunkLoaderManager.loadChunksForTile(this);
             }
 
             this.battery.tick(this.level, this.worldPosition);

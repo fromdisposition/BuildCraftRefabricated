@@ -279,6 +279,10 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          isDone = false;
       }
 
+      long stored = this.tile.getBattery().getStored();
+      long max = stored <= 0L
+         ? 0L
+         : Math.min((long)((double)MAX_POWER_PER_TICK * stored / (this.tile.getBattery().getCapacity() * 2L)), MAX_POWER_PER_TICK);
       if (this.tile.canExcavate()) {
          IntOpenHashSet breakTasksIndexes = new IntOpenHashSet(this.breakTasks.size());
 
@@ -292,13 +296,15 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             isDone = false;
          }
 
-         Arrays.stream(blocks)
-            .mapToObj(this::indexToPos)
-            .filter(this::shouldBreakQueueAcceptFluid)
-            .sorted(Comparator.comparingInt(this::breakPriorityTier))
-            .map(blockPos -> new BreakTask(blockPos, 0L))
-            .limit(16 - this.breakTasks.size())
-            .forEach(this.breakTasks::add);
+         if (max > 0L) {
+            Arrays.stream(blocks)
+               .mapToObj(this::indexToPos)
+               .filter(this::shouldBreakQueueAcceptFluid)
+               .sorted(Comparator.comparingInt(this::breakPriorityTier))
+               .map(blockPos -> new BreakTask(blockPos, 0L))
+               .limit(16 - this.breakTasks.size())
+               .forEach(this.breakTasks::add);
+         }
       } else {
          this.leftToBreak = 0;
       }
@@ -320,30 +326,28 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             isDone = false;
          }
 
-         Arrays.stream(blocks)
-            .filter(i -> {
-               if (this.requiredCache[i] != 0) {
-                  return this.requiredCache[i] == 1;
-               }
+         if (max > 0L) {
+            Arrays.stream(blocks)
+               .filter(i -> {
+                  if (this.requiredCache[i] != 0) {
+                     return this.requiredCache[i] == 1;
+                  }
 
-               boolean has = this.hasEnoughToPlaceItems(this.indexToPos(i));
-               this.requiredCache[i] = (byte)(has ? 1 : 2);
-               return has;
-            })
-            .mapToObj(this::indexToPos)
-            .filter(pos -> clearStillMopping ? this.isAllowedDuringFluidMop(pos) : !replaceFragileGated || !this.isFragileSchematicAt(pos))
-            .filter(this::isReadyToPlace)
-            .limit(16 - this.placeTasks.size())
-            .filter(this::canPlace)
-            .map(blockPos -> new PlaceTask(blockPos, this.getToPlaceItems(blockPos), 0L))
-            .filter(placeTaskx -> placeTaskx.items != null)
-            .forEach(this.placeTasks::add);
+                  boolean has = this.hasEnoughToPlaceItems(this.indexToPos(i));
+                  this.requiredCache[i] = (byte)(has ? 1 : 2);
+                  return has;
+               })
+               .mapToObj(this::indexToPos)
+               .filter(pos -> clearStillMopping ? this.isAllowedDuringFluidMop(pos) : !replaceFragileGated || !this.isFragileSchematicAt(pos))
+               .filter(this::isReadyToPlace)
+               .limit(16 - this.placeTasks.size())
+               .filter(this::canPlace)
+               .map(blockPos -> new PlaceTask(blockPos, this.getToPlaceItems(blockPos), 0L))
+               .filter(placeTaskx -> placeTaskx.items != null)
+               .forEach(this.placeTasks::add);
+         }
       }
 
-      long stored = this.tile.getBattery().getStored();
-      long max = stored <= 0L
-         ? 0L
-         : Math.min((long)((double)MAX_POWER_PER_TICK * stored / (this.tile.getBattery().getCapacity() * 2L)), MAX_POWER_PER_TICK);
       if (!this.breakTasks.isEmpty()) {
          Iterator<SnapshotBuilder<T>.BreakTask> iteratorx = this.breakTasks.iterator();
 

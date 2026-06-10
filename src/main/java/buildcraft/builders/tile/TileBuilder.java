@@ -117,7 +117,6 @@ public class TileBuilder
    private long bigStructureCellsBuilt = 0L;
    private boolean pavingTheWayGranted = false;
    private boolean startOfSomethingBigGranted = false;
-   private boolean deferredNeighborNotify = false;
    private ItemStack invSnapshot = ItemStack.EMPTY;
    private final ItemHandlerSimple resourceInventory = new ItemHandlerSimple(27, (handler, slot, before, after) -> this.onResourcesChanged());
    private final SingleFluidTank[] tanks = new SingleFluidTank[]{
@@ -145,7 +144,7 @@ public class TileBuilder
    @Override
    public void onLoad() {
       if (this.level != null && !this.level.isClientSide()) {
-         this.deferredNeighborNotify = true;
+         this.schedulePipeNeighborNotify();
       }
    }
 
@@ -213,10 +212,7 @@ public class TileBuilder
                b.clientTick();
             }
          } else {
-            if (this.deferredNeighborNotify) {
-               this.deferredNeighborNotify = false;
-               this.notifyPipeNeighborConnections();
-            }
+            this.flushPipeNeighborNotify();
 
             if (this.snapshot == null && !this.invSnapshot.isEmpty() && this.invSnapshot.getItem() instanceof ItemSnapshot) {
                Snapshot.Header header = ItemSnapshot.getHeader(this.invSnapshot);

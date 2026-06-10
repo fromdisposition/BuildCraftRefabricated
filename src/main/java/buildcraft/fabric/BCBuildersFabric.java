@@ -102,5 +102,8 @@ public final class BCBuildersFabric {
       MjBlockCapabilities.registerReceiver(BCBuildersBlockEntities.QUARRY, (quarry, direction) -> quarry.getMjReceiver());
       MjBlockCapabilities.registerReceiver(BCBuildersBlockEntities.FILLER, (filler, direction) -> filler.getMjReceiver());
       MjBlockCapabilities.registerReceiver(BCBuildersBlockEntities.BUILDER, (builder, direction) -> builder.getMjReceiver());
+      MjBlockCapabilities.registerConnector(BCBuildersBlockEntities.QUARRY, (quarry, direction) -> quarry.getMjReceiver());
+      MjBlockCapabilities.registerConnector(BCBuildersBlockEntities.FILLER, (filler, direction) -> filler.getMjReceiver());
+      MjBlockCapabilities.registerConnector(BCBuildersBlockEntities.BUILDER, (builder, direction) -> builder.getMjReceiver());
    }
 }

@@ -229,6 +229,9 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    public void onLoad() {
       if (this.pipe != null) {
          this.pipe.onLoad();
+         if (this.level != null && !this.level.isClientSide()) {
+            this.wakePipe();
+         }
       }
 
       this.refreshClientModel();
@@ -635,12 +638,12 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
          boolean newIsEmitter = with instanceof IWireEmitter;
          if (oldWasEmitter || newIsEmitter) {
             SavedDataWireSystems wireSystems = SavedDataWireSystems.get(this.level);
-            wireSystems.rebuildWireSystemsAround(this);
+            wireSystems.scheduleWireRebuild(this);
 
             for (Direction dir : Direction.values()) {
                IPipe neighbour = this.getNeighbourPipe(dir);
                if (neighbour != null) {
-                  wireSystems.rebuildWireSystemsAround(neighbour.getHolder());
+                  wireSystems.scheduleWireRebuild(neighbour.getHolder());
                }
             }
          }

@@ -51,6 +51,7 @@ public class SavedDataWireSystems extends SavedData {
    private final Map<WireSystem.WireElement, List<WireSystem>> elementsToWireSystemsIndex = new HashMap<>();
    private final Map<ChunkPos, Set<WireSystem>> chunkToWireSystems = new HashMap<>();
    private final Set<Integer> removedNetworkIds = new HashSet<>();
+   private final Set<BlockPos> pendingRebuilds = new HashSet<>();
 
    public SavedDataWireSystems(@Nullable ServerLevel level) {
       this.world = level;
@@ -264,6 +265,27 @@ public class SavedDataWireSystems extends SavedData {
          .forEach(this::buildAndAddWireSystem);
    }
 
+   public void scheduleWireRebuild(IPipeHolder holder) {
+      if (holder.getWireManager() instanceof WireManager wireManager && !wireManager.parts.isEmpty()) {
+         this.pendingRebuilds.add(holder.getPipePos().immutable());
+      }
+   }
+
+   private void flushPendingRebuilds() {
+      if (this.pendingRebuilds.isEmpty()) {
+         return;
+      }
+
+      List<BlockPos> toRebuild = new ArrayList<>(this.pendingRebuilds);
+      this.pendingRebuilds.clear();
+
+      for (BlockPos pos : toRebuild) {
+         if (this.world != null && this.world.getBlockEntity(pos) instanceof IPipeHolder holder) {
+            this.rebuildWireSystemsAround(holder);
+         }
+      }
+   }
+
    public IWireEmitter getEmitter(WireSystem.WireElement element) {
       if (element.type == WireSystem.WireElement.Type.EMITTER_SIDE) {
          if (!this.emittersCache.containsKey(element)
@@ -284,6 +306,7 @@ public class SavedDataWireSystems extends SavedData {
    }
 
    public void tick() {
+      this.flushPendingRebuilds();
       if (this.structureChanged || !this.changedSystems.isEmpty() || !this.systemsNeedingPowerUpdate.isEmpty()) {
          Profiler.get().push("buildcraft:wire_sync");
 

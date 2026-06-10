@@ -38,7 +38,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    protected double lastLength = 0.0;
    private int offset;
    protected boolean isComplete = false;
-   private boolean deferredNeighborNotify = false;
    protected final MjBattery battery = new MjBattery(this.getBatteryCapacity());
 
    public TileMiner(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -50,11 +49,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    protected abstract IMjReceiver createMjReceiver();
 
    public void serverTick() {
-      if (this.deferredNeighborNotify) {
-         this.deferredNeighborNotify = false;
-         this.notifyPipeNeighborConnections();
-      }
-
+      this.flushPipeNeighborNotify();
       this.battery.tick(this.getLevel(), this.getBlockPos());
       if (this.getLevel().getGameTime() % 10L == this.offset) {
          this.setChanged();
@@ -82,7 +77,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       if (this.level != null && this.level.isClientSide()) {
          TubeRenderer.addMiner(this);
       } else if (this.level != null) {
-         this.deferredNeighborNotify = true;
+         this.schedulePipeNeighborNotify();
       }
    }
 
@@ -147,7 +142,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
 
    @Override
    public boolean hasWork() {
-      return !this.isComplete();
+      return !this.isComplete() && this.battery.getStored() > 0L;
    }
 
    public int getWantedLength() {

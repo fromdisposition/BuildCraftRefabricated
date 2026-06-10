@@ -350,8 +350,16 @@ public final class Pipe implements IPipe, IDebuggable {
    private void refreshWireSystems() {
       IWireManager wireManager = this.holder.getWireManager();
       wireManager.updateBetweens(false);
+      SavedDataWireSystems wireSystems = SavedDataWireSystems.get(this.holder.getPipeWorld());
       if (wireManager.hasParts()) {
-         SavedDataWireSystems.get(this.holder.getPipeWorld()).rebuildWireSystemsAround(this.holder);
+         wireSystems.scheduleWireRebuild(this.holder);
+      }
+
+      for (Direction face : Direction.values()) {
+         IPipe neighbour = this.holder.getNeighbourPipe(face);
+         if (neighbour != null) {
+            wireSystems.scheduleWireRebuild(neighbour.getHolder());
+         }
       }
    }
 
