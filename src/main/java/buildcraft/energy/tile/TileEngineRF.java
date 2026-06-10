@@ -114,10 +114,13 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    @Override
    protected void engineUpdate() {
-      this.pullFeFromNeighbors();
+      if (MjAPI.isRfAutoConversionEnabled()) {
+         this.pullFeFromNeighbors();
+      }
+
       this.currentOutput = 0L;
       int currentFe = this.getCurrentFe();
-      if (currentFe > 0 && this.isRedstonePowered) {
+      if (MjAPI.isRfAutoConversionEnabled() && currentFe > 0 && this.isRedstonePowered) {
          long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
          if (mjPerRf != 0L) {
             int maxFe = this.getFeConsumptionRate();

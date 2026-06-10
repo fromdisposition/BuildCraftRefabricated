@@ -63,7 +63,8 @@ public final class LocaleUtil {
       }
 
       int scaled = (int)BCLibConfig.displayTimeGap.get().convertTicksToGap(ePerTick);
-      String suffix = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? " E/s" : " E/t";
+      String unit = MjAPI.EXTERNAL_ENERGY_UNIT;
+      String suffix = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? " " + unit + "/s" : " " + unit + "/t";
       return scaled + suffix;
    }
 
@@ -76,7 +77,7 @@ public final class LocaleUtil {
          return localizeMj(e * MjAPI.getRfConversion().mjPerRf);
       }
 
-      return e + " E";
+      return e + " " + MjAPI.EXTERNAL_ENERGY_UNIT;
    }
 
    public static String localizeExternalBuffer(int currentE, int maxE) {
@@ -89,7 +90,7 @@ public final class LocaleUtil {
       }
 
       if (MjAPI.displaysExternalEnergyUnits()) {
-         return currentE + " / " + maxE + " E";
+         return currentE + " / " + maxE + " " + MjAPI.EXTERNAL_ENERGY_UNIT;
       }
 
       long mjPerE = MjAPI.getRfConversion().mjPerRf;

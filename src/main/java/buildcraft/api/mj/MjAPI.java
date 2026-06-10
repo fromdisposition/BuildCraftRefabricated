@@ -17,6 +17,8 @@ import net.minecraft.world.phys.Vec3;
 public class MjAPI {
    public static final long ONE_MINECRAFT_JOULE = getMjValue();
    public static final long MJ = ONE_MINECRAFT_JOULE;
+   /** Team Reborn / RebornCore {@code PowerSystem.ABBREVIATION} — cable unit label, not MJ. */
+   public static final String EXTERNAL_ENERGY_UNIT = "E";
    public static final DecimalFormat MJ_DISPLAY_FORMAT = new DecimalFormat("#,##0.##");
    public static IMjEffectManager EFFECT_MANAGER = MjAPI.NullaryEffectManager.INSTANCE;
    @Nonnull

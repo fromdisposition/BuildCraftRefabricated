@@ -7,6 +7,7 @@
 package buildcraft.silicon.tile;
 
 import buildcraft.api.mj.ILaserTarget;
+import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.IngredientStack;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.lib.fabric.transfer.MjEnergyStorage;
@@ -134,7 +135,11 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
          @Override
          public long getCapacity() {
             long target = TileLaserTableBase.this.getTarget();
-            return target <= 0L ? 0L : target * TileLaserTableBase.this.getLaserBufferMultiplier();
+            if (target > 0L) {
+               return target * TileLaserTableBase.this.getLaserBufferMultiplier();
+            }
+
+            return MjAPI.MJ * TileLaserTableBase.this.getLaserBufferMultiplier();
          }
 
          @Override

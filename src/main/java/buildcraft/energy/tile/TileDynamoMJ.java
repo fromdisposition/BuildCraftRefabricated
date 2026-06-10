@@ -134,10 +134,13 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    @Override
    protected void engineUpdate() {
-      this.sendFeToReceiver();
+      if (MjAPI.isRfAutoConversionEnabled()) {
+         this.sendFeToReceiver();
+      }
+
       this.currentOutput = 0L;
       long mjStored = this.mjBattery.getStored();
-      if (mjStored > 0L) {
+      if (MjAPI.isRfAutoConversionEnabled() && mjStored > 0L) {
          if (this.isRedstonePowered) {
             long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
             if (mjPerRf == 0L) {
@@ -181,7 +184,7 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    @Nullable
    public EnergyStorage getFeReceiver(Direction side) {
-      if (this.level == null) {
+      if (this.level == null || !MjAPI.isRfAutoConversionEnabled()) {
          return null;
       }
 
