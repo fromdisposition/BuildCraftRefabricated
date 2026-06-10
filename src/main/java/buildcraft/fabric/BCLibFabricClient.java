@@ -30,7 +30,7 @@ public final class BCLibFabricClient {
       BCReloadFabric.initClient();
       registerColorBlindAutoWatcher();
       AdvDebugRenderer.register();
-      GuiConfigManager.init(GamePaths.BUILDCRAFT_CONFIG_DIR.resolve("buildcraftrefabricated-gui_state.json"));
+      GuiConfigManager.init(GamePaths.BUILDCRAFT_CONFIG_DIR.resolve("buildcraftrefabricated-gui-state.json"));
       ResourceLoader clientResources = ResourceLoader.get(PackType.CLIENT_RESOURCES);
       clientResources.registerReloadListener(
          Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_heat_templates"),
