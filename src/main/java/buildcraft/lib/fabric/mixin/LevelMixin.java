@@ -3,6 +3,7 @@ package buildcraft.lib.fabric.mixin;
 import buildcraft.lib.block.LocalBlockUpdateNotifier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,9 +23,15 @@ public abstract class LevelMixin {
    }
 
    private void buildcraft$finishSetBlock(BlockPos pos, BlockState newState, int flags, boolean success) {
-      if (success) {
-         Level level = (Level)(Object)this;
-         LocalBlockUpdateNotifier.onLevelBlockStateChanged(level, pos, newState, newState, flags);
+      if (!success) {
+         return;
       }
+
+      Level level = (Level)(Object)this;
+      if (level instanceof WorldGenLevel) {
+         return;
+      }
+
+      LocalBlockUpdateNotifier.onLevelBlockStateChanged(level, pos, newState, newState, flags);
    }
 }

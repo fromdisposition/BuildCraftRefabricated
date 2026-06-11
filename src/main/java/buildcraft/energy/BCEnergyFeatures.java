@@ -41,9 +41,6 @@ public final class BCEnergyFeatures {
 
       if (BCCoreConfig.worldGen.get() && BCEnergyConfig.enableOilGeneration.get()) {
          BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(), Decoration.UNDERGROUND_DECORATION, OIL_DEPOSIT_PLACED);
-         if (BCEnergyConfig.enableNetherOilGeneration.get()) {
-            BiomeModifications.addFeature(BiomeSelectors.foundInTheNether(), Decoration.UNDERGROUND_DECORATION, OIL_DEPOSIT_PLACED);
-         }
 
          ServerTickEvents.END_SERVER_TICK.register(server -> {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {

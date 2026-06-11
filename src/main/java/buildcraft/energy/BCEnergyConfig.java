@@ -23,20 +23,18 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue useRfNaming = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue useFullUnitNames = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableOilGeneration = new BCCoreConfig.BooleanValue(true);
-   public static final BCCoreConfig.BooleanValue enableNetherOilGeneration = new BCCoreConfig.BooleanValue(true);
-   public static final BCCoreConfig.DoubleValue netherOilGenRateMultiplier = new BCCoreConfig.DoubleValue(4.0);
    public static final BCCoreConfig.DoubleValue oilWellGenerationRate = new BCCoreConfig.DoubleValue(1.0);
    public static final BCCoreConfig.BooleanValue enableOilSpouts = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue spawnOilSprings = new BCCoreConfig.BooleanValue(true);
-   public static final BCCoreConfig.IntValue finiteSpoutMinHeight = new BCCoreConfig.IntValue(7);
-   public static final BCCoreConfig.IntValue finiteSpoutMaxHeight = new BCCoreConfig.IntValue(10);
-   public static final BCCoreConfig.IntValue largeSpoutMinHeight = new BCCoreConfig.IntValue(13);
+   public static final BCCoreConfig.IntValue finiteSpoutMinHeight = new BCCoreConfig.IntValue(6);
+   public static final BCCoreConfig.IntValue finiteSpoutMaxHeight = new BCCoreConfig.IntValue(12);
+   public static final BCCoreConfig.IntValue largeSpoutMinHeight = new BCCoreConfig.IntValue(10);
    public static final BCCoreConfig.IntValue largeSpoutMaxHeight = new BCCoreConfig.IntValue(20);
    public static final BCCoreConfig.DoubleValue mediumOilGenProb = new BCCoreConfig.DoubleValue(0.001);
    public static final BCCoreConfig.DoubleValue largeOilGenProb = new BCCoreConfig.DoubleValue(4.0E-4);
    public static final BCCoreConfig.DoubleValue smallOilGenProb = new BCCoreConfig.DoubleValue(0.02);
    public static final BCCoreConfig.StringListValue forceExcessiveOilBiomes = new BCCoreConfig.StringListValue(List.of());
-   /** Land biomes that use the rich spring / surface-pool path. BC 8.0 does not list vanilla oceans here. */
+   /** Biomes flagged for oil-themed world design (advancements); BC 8.0 spawn rolls do not special-case these. */
    public static final BCCoreConfig.StringListValue richSurfaceDepositBiomes = new BCCoreConfig.StringListValue(
       List.of("minecraft:desert", "minecraft:badlands", "minecraft:wooded_badlands")
    );

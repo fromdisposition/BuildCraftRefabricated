@@ -168,13 +168,6 @@ public final class BCEnergyFluidsFabric {
    }
 
    public static BlockState oilSourceBlockStateForLevel(Level level) {
-      if (level != null && level.dimension() == Level.NETHER && BCEnergyConfig.enableNetherOilGeneration.get()) {
-         Fluid searing = findFluid("oil", 2);
-         if (searing != null) {
-            return searing.defaultFluidState().createLegacyBlock();
-         }
-      }
-
       return OIL_COOL != null ? sourceBlockState(OIL_COOL) : null;
    }
 

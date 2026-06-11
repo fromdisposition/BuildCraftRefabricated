@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.LiquidBlock;
@@ -42,6 +43,10 @@ public class BlockSpring extends Block implements EntityBlock {
    }
 
    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
+      if (level instanceof WorldGenLevel) {
+         return;
+      }
+
       super.onPlace(state, level, pos, oldState, isMoving);
       level.scheduleTick(pos, this, this.springType.tickRate);
       if (!level.isClientSide() && level instanceof ServerLevel server) {

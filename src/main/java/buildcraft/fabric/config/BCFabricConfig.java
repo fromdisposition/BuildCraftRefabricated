@@ -228,8 +228,6 @@ public final class BCFabricConfig {
          BCEnergyConfig.useRfNaming.set(bool(energy, "useRfNaming", BCEnergyConfig.useRfNaming.get()));
          BCEnergyConfig.useFullUnitNames.set(bool(energy, "useFullUnitNames", BCEnergyConfig.useFullUnitNames.get()));
          BCEnergyConfig.enableOilGeneration.set(bool(energy, "enableOilGeneration", BCEnergyConfig.enableOilGeneration.get()));
-         BCEnergyConfig.enableNetherOilGeneration.set(bool(energy, "enableNetherOilGeneration", BCEnergyConfig.enableNetherOilGeneration.get()));
-         BCEnergyConfig.netherOilGenRateMultiplier.set(doubleVal(energy, "netherOilGenRateMultiplier", BCEnergyConfig.netherOilGenRateMultiplier.get()));
          BCEnergyConfig.oilWellGenerationRate.set(doubleVal(energy, "oilWellGenerationRate", BCEnergyConfig.oilWellGenerationRate.get()));
          BCEnergyConfig.enableOilSpouts.set(bool(energy, "enableOilSpouts", BCEnergyConfig.enableOilSpouts.get()));
          BCEnergyConfig.spawnOilSprings.set(bool(energy, "spawnOilSprings", BCEnergyConfig.spawnOilSprings.get()));
@@ -327,14 +325,12 @@ public final class BCFabricConfig {
       energy.addProperty("useRfNaming", false);
       energy.addProperty("useFullUnitNames", true);
       energy.addProperty("enableOilGeneration", true);
-      energy.addProperty("enableNetherOilGeneration", true);
-      energy.addProperty("netherOilGenRateMultiplier", 4.0);
       energy.addProperty("oilWellGenerationRate", 1.0);
       energy.addProperty("enableOilSpouts", true);
       energy.addProperty("spawnOilSprings", true);
-      energy.addProperty("finiteSpoutMinHeight", 7);
-      energy.addProperty("finiteSpoutMaxHeight", 10);
-      energy.addProperty("largeSpoutMinHeight", 13);
+      energy.addProperty("finiteSpoutMinHeight", 6);
+      energy.addProperty("finiteSpoutMaxHeight", 12);
+      energy.addProperty("largeSpoutMinHeight", 10);
       energy.addProperty("largeSpoutMaxHeight", 20);
       energy.addProperty("mediumOilGenProb", 0.1);
       energy.addProperty("largeOilGenProb", 0.04);
