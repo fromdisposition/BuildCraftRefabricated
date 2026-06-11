@@ -18,7 +18,6 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 public final class OilStructureSpawnConditions {
    public enum Tier {
       NORMAL,
-      RICH,
       PATCH_DESERT,
       PATCH_OCEAN;
 
@@ -58,7 +57,6 @@ public final class OilStructureSpawnConditions {
       }
       return switch (tier) {
          case NORMAL -> biome.is(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
-         case RICH -> biome.is(BCEnergyBiomeTags.OIL_SPAWN_RICH);
          case PATCH_DESERT -> biome.is(BCEnergyBiomeTags.OIL_PATCH_DESERT);
          case PATCH_OCEAN -> biome.is(BCEnergyBiomeTags.OIL_PATCH_OCEAN);
       };

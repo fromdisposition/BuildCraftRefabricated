@@ -28,7 +28,6 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
       Biomes.DEEP_LUKEWARM_OCEAN,
       Biomes.WARM_OCEAN
    );
-   private static final List<ResourceKey<Biome>> RICH = PATCH_DESERT;
    private static final Set<ResourceKey<Biome>> NON_OVERWORLD = Set.of(
       Biomes.THE_VOID,
       Biomes.THE_END,
@@ -42,6 +41,7 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
       Biomes.SOUL_SAND_VALLEY,
       Biomes.BASALT_DELTAS
    );
+   private static final Set<ResourceKey<Biome>> EXCLUDED = Set.of(Biomes.THE_VOID, Biomes.RIVER);
 
    BCEnergyBiomeTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
       super(output, Registries.BIOME, registriesFuture);
@@ -49,7 +49,6 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
 
    @Override
    protected void addTags(HolderLookup.Provider provider) {
-      builder(BCEnergyBiomeTags.OIL_RICH_BIOME).add(PATCH_DESERT.toArray(ResourceKey[]::new));
       builder(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME).add(Biomes.THE_VOID, Biomes.RIVER);
       builder(BCEnergyBiomeTags.OIL_DESIGN_BIOME)
          .add(PATCH_DESERT.toArray(ResourceKey[]::new))
@@ -61,26 +60,15 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
       Set<ResourceKey<Biome>> patchKeys = new HashSet<>();
       patchKeys.addAll(PATCH_DESERT);
       patchKeys.addAll(PATCH_OCEAN);
-      Set<ResourceKey<Biome>> richKeys = new HashSet<>(RICH);
-      Set<ResourceKey<Biome>> excludedKeys = Set.of(Biomes.THE_VOID, Biomes.RIVER);
 
       var normalSpawn = builder(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
-      var richSpawn = builder(BCEnergyBiomeTags.OIL_SPAWN_RICH);
       HolderLookup.RegistryLookup<Biome> biomes = provider.lookupOrThrow(Registries.BIOME);
       for (Holder.Reference<Biome> biome : biomes.listElements().toList()) {
          ResourceKey<Biome> key = biome.key();
-         if (NON_OVERWORLD.contains(key) || excludedKeys.contains(key)) {
+         if (NON_OVERWORLD.contains(key) || EXCLUDED.contains(key) || patchKeys.contains(key)) {
             continue;
          }
-
-         boolean patch = patchKeys.contains(key);
-         boolean richBiome = richKeys.contains(key);
-         if (richBiome && !patch) {
-            richSpawn.add(key);
-         }
-         if (!richBiome && !patch) {
-            normalSpawn.add(key);
-         }
+         normalSpawn.add(key);
       }
    }
 }

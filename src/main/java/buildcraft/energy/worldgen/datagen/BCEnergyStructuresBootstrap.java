@@ -37,14 +37,6 @@ final class BCEnergyStructuresBootstrap {
       registerTier(
          context,
          biomes,
-         BCEnergyStructures.OIL_DEPOSIT_RICH,
-         pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.RICH_START),
-         BCEnergyBiomeTags.OIL_SPAWN_RICH,
-         OilStructureSpawnConditions.Tier.RICH
-      );
-      registerTier(
-         context,
-         biomes,
          BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT,
          pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_DESERT_START),
          BCEnergyBiomeTags.OIL_PATCH_DESERT,

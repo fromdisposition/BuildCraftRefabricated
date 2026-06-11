@@ -30,18 +30,6 @@ final class BCEnergyStructureSetsBootstrap {
          )
       );
       context.register(
-         BCEnergyStructures.OIL_DEPOSIT_RICH_SET,
-         new StructureSet(
-            structures.getOrThrow(BCEnergyStructures.OIL_DEPOSIT_RICH),
-            new RandomSpreadStructurePlacement(
-               OilStructureDefaults.RICH_SPACING,
-               OilStructureDefaults.RICH_SEPARATION,
-               RandomSpreadType.LINEAR,
-               OilStructureDefaults.RICH_SALT
-            )
-         )
-      );
-      context.register(
          BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT_SET,
          new StructureSet(
             structures.getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT),

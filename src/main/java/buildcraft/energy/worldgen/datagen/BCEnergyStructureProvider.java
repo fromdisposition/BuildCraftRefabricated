@@ -41,15 +41,11 @@ public final class BCEnergyStructureProvider implements DataProvider {
          }
 
          Structure normal = registry.lookupOrThrow(Registries.STRUCTURE).getOrThrow(BCEnergyStructures.OIL_DEPOSIT_NORMAL).value();
-         Structure rich = registry.lookupOrThrow(Registries.STRUCTURE).getOrThrow(BCEnergyStructures.OIL_DEPOSIT_RICH).value();
          Structure patchDesert = registry.lookupOrThrow(Registries.STRUCTURE).getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT).value();
          Structure patchOcean = registry.lookupOrThrow(Registries.STRUCTURE).getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN).value();
 
          StructureTemplatePool normalPool = registry.lookupOrThrow(Registries.TEMPLATE_POOL)
             .getOrThrow(BCEnergyTemplatePoolsBootstrap.NORMAL_START)
-            .value();
-         StructureTemplatePool richPool = registry.lookupOrThrow(Registries.TEMPLATE_POOL)
-            .getOrThrow(BCEnergyTemplatePoolsBootstrap.RICH_START)
             .value();
          StructureTemplatePool patchDesertPool = registry.lookupOrThrow(Registries.TEMPLATE_POOL)
             .getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_DESERT_START)
@@ -61,9 +57,6 @@ public final class BCEnergyStructureProvider implements DataProvider {
          StructureSet normalSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
             .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_NORMAL_SET)
             .value();
-         StructureSet richSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
-            .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_RICH_SET)
-            .value();
          StructureSet patchDesertSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
             .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT_SET)
             .value();
@@ -74,9 +67,6 @@ public final class BCEnergyStructureProvider implements DataProvider {
          List<CompletableFuture<?>> saves = new ArrayList<>();
          saves.add(
             DataProvider.saveStable(cache, registry, Structure.DIRECT_CODEC, normal, dataRoot.resolve("worldgen/structure/oil_deposit_normal.json"))
-         );
-         saves.add(
-            DataProvider.saveStable(cache, registry, Structure.DIRECT_CODEC, rich, dataRoot.resolve("worldgen/structure/oil_deposit_rich.json"))
          );
          saves.add(
             DataProvider.saveStable(
@@ -91,11 +81,6 @@ public final class BCEnergyStructureProvider implements DataProvider {
          saves.add(
             DataProvider.saveStable(
                cache, registry, StructureTemplatePool.DIRECT_CODEC, normalPool, dataRoot.resolve("worldgen/template_pool/oil_deposit_normal/start.json")
-            )
-         );
-         saves.add(
-            DataProvider.saveStable(
-               cache, registry, StructureTemplatePool.DIRECT_CODEC, richPool, dataRoot.resolve("worldgen/template_pool/oil_deposit_rich/start.json")
             )
          );
          saves.add(
@@ -119,11 +104,6 @@ public final class BCEnergyStructureProvider implements DataProvider {
          saves.add(
             DataProvider.saveStable(
                cache, registry, StructureSet.DIRECT_CODEC, normalSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_normal.json")
-            )
-         );
-         saves.add(
-            DataProvider.saveStable(
-               cache, registry, StructureSet.DIRECT_CODEC, richSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_rich.json")
             )
          );
          saves.add(

@@ -9,11 +9,6 @@ public final class OilStructureDefaults {
    public static final int NORMAL_SEPARATION = 8;
    public static final int NORMAL_SALT = 0x5046_B4_E4;
 
-   /** Tuned toward BC rarity_filter chance 333 (~0.3%/chunk). */
-   public static final int RICH_SPACING = 18;
-   public static final int RICH_SEPARATION = 6;
-   public static final int RICH_SALT = 0x5046_B4_E5;
-
    /** Tuned toward BC rarity_filter chance 50 (~2%/chunk). */
    public static final int PATCH_SPACING = 7;
    public static final int PATCH_SEPARATION = 3;
