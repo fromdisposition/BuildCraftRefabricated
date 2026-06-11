@@ -218,36 +218,80 @@ public final class BCFabricConfig {
       }
    }
 
-   private static void applyOilSpawnConfig(JsonObject energy) {
-      if (!energy.has("oilSpawnChancePercentNormal") && (energy.has("largeOilGenProb") || energy.has("mediumOilGenProb"))) {
-         double large = percentVal(energy, "largeOilGenProb", BCEnergyConfig.largeOilGenProb.get()) * 100.0;
-         double medium = percentVal(energy, "mediumOilGenProb", BCEnergyConfig.mediumOilGenProb.get()) * 100.0;
-         BCEnergyConfig.oilSpawnChancePercentNormal.set(large + medium);
-      } else {
-         BCEnergyConfig.oilSpawnChancePercentNormal.set(spawnPercent(energy, "oilSpawnChancePercentNormal", BCEnergyConfig.oilSpawnChancePercentNormal.get()));
-      }
-
-      if (!energy.has("oilSpawnChancePercentRich") && energy.has("smallOilGenProb")) {
-         BCEnergyConfig.oilSpawnChancePercentRich.set(percentVal(energy, "smallOilGenProb", BCEnergyConfig.smallOilGenProb.get()) * 100.0);
-      } else {
-         BCEnergyConfig.oilSpawnChancePercentRich.set(spawnPercent(energy, "oilSpawnChancePercentRich", BCEnergyConfig.oilSpawnChancePercentRich.get()));
-      }
-
+   private static void applyOilSpawnConfig(JsonObject generator) {
+      BCEnergyConfig.oilSpawnChancePercentNormal.set(spawnPercent(generator, "oilSpawnChancePercentNormal", BCEnergyConfig.oilSpawnChancePercentNormal.get()));
+      BCEnergyConfig.oilSpawnChancePercentRich.set(spawnPercent(generator, "oilSpawnChancePercentRich", BCEnergyConfig.oilSpawnChancePercentRich.get()));
       BCEnergyConfig.oilSpawnChancePercentOilPatch.set(
-         spawnPercent(energy, "oilSpawnChancePercentOilPatch", BCEnergyConfig.oilSpawnChancePercentOilPatch.get())
+         spawnPercent(generator, "oilSpawnChancePercentOilPatch", BCEnergyConfig.oilSpawnChancePercentOilPatch.get())
       );
-
-      BCEnergyConfig.oilTypeWeightLarge.set(intVal(energy, "oilTypeWeightLarge", BCEnergyConfig.oilTypeWeightLarge.get()));
-      BCEnergyConfig.oilTypeWeightMedium.set(intVal(energy, "oilTypeWeightMedium", BCEnergyConfig.oilTypeWeightMedium.get()));
-      BCEnergyConfig.oilTypeWeightLake.set(intVal(energy, "oilTypeWeightLake", BCEnergyConfig.oilTypeWeightLake.get()));
-      BCEnergyConfig.oilGenerationMultiplier.set(
-         doubleVal(
-            energy,
-            "oilGenerationMultiplier",
-            doubleVal(energy, "oilWellGenerationRate", BCEnergyConfig.oilGenerationMultiplier.get())
-         )
-      );
+      BCEnergyConfig.oilTypeWeightLarge.set(intVal(generator, "oilTypeWeightLarge", BCEnergyConfig.oilTypeWeightLarge.get()));
+      BCEnergyConfig.oilTypeWeightMedium.set(intVal(generator, "oilTypeWeightMedium", BCEnergyConfig.oilTypeWeightMedium.get()));
+      BCEnergyConfig.oilTypeWeightLake.set(intVal(generator, "oilTypeWeightLake", BCEnergyConfig.oilTypeWeightLake.get()));
+      BCEnergyConfig.oilGenerationMultiplier.set(doubleVal(generator, "oilGenerationMultiplier", BCEnergyConfig.oilGenerationMultiplier.get()));
       BCEnergyConfig.oilWellGenerationRate.set(BCEnergyConfig.oilGenerationMultiplier.get());
+   }
+
+   private static void applyOilGeneratorConfig(JsonObject generator) {
+      if (generator == null) {
+         return;
+      }
+
+      BCEnergyConfig.enableOilOnWater.set(bool(generator, "enableOilOnWater", BCEnergyConfig.enableOilOnWater.get()));
+      BCEnergyConfig.enableOilOceanBiome.set(bool(generator, "enableOilOceanBiome", BCEnergyConfig.enableOilOceanBiome.get()));
+      BCEnergyConfig.enableOilDesertBiome.set(bool(generator, "enableOilDesertBiome", BCEnergyConfig.enableOilDesertBiome.get()));
+      BCEnergyConfig.oilOceanPatchChance.set(percentVal(generator, "oilOceanPatchChance", BCEnergyConfig.oilOceanPatchChance.get()));
+      BCEnergyConfig.oilDesertPatchChance.set(percentVal(generator, "oilDesertPatchChance", BCEnergyConfig.oilDesertPatchChance.get()));
+      applyOilSpawnConfig(generator);
+      BCEnergyConfig.enableOilGeneration.set(bool(generator, "enableOilGeneration", BCEnergyConfig.enableOilGeneration.get()));
+      BCEnergyConfig.enableOilSpouts.set(bool(generator, "enableOilSpouts", BCEnergyConfig.enableOilSpouts.get()));
+      BCEnergyConfig.spawnOilSprings.set(bool(generator, "spawnOilSprings", BCEnergyConfig.spawnOilSprings.get()));
+      BCEnergyConfig.smallSpoutMinHeight.set(intVal(generator, "smallSpoutMinHeight", BCEnergyConfig.smallSpoutMinHeight.get()));
+      BCEnergyConfig.smallSpoutMaxHeight.set(intVal(generator, "smallSpoutMaxHeight", BCEnergyConfig.smallSpoutMaxHeight.get()));
+      BCEnergyConfig.largeSpoutMinHeight.set(intVal(generator, "largeSpoutMinHeight", BCEnergyConfig.largeSpoutMinHeight.get()));
+      BCEnergyConfig.largeSpoutMaxHeight.set(intVal(generator, "largeSpoutMaxHeight", BCEnergyConfig.largeSpoutMaxHeight.get()));
+
+      if (generator.has("forceExcessiveOilBiomes")) {
+         BCEnergyConfig.forceExcessiveOilBiomes.set(stringList(generator.getAsJsonArray("forceExcessiveOilBiomes")));
+      }
+
+      if (generator.has("richSurfaceDepositBiomes")) {
+         BCEnergyConfig.richSurfaceDepositBiomes.set(stringList(generator.getAsJsonArray("richSurfaceDepositBiomes")));
+      }
+
+      if (generator.has("surfaceDepositBiomes")) {
+         BCEnergyConfig.surfaceDepositBiomes.set(stringList(generator.getAsJsonArray("surfaceDepositBiomes")));
+      }
+
+      if (generator.has("standardSurfaceDepositBiomes")) {
+         BCEnergyConfig.standardSurfaceDepositBiomes.set(stringList(generator.getAsJsonArray("standardSurfaceDepositBiomes")));
+      }
+
+      if (generator.has("mountainousSurfaceDepositBiomes")) {
+         BCEnergyConfig.mountainousSurfaceDepositBiomes.set(stringList(generator.getAsJsonArray("mountainousSurfaceDepositBiomes")));
+      }
+
+      if (generator.has("excludedBiomes")) {
+         BCEnergyConfig.excludedBiomes.set(stringList(generator.getAsJsonArray("excludedBiomes")));
+      }
+
+      if (generator.has("excludedDimensions")) {
+         BCEnergyConfig.excludedDimensions.set(stringList(generator.getAsJsonArray("excludedDimensions")));
+      }
+
+      String biomeMode = string(generator, "biomeListMode", BCEnergyConfig.biomeListMode.get().name());
+      String dimMode = string(generator, "dimensionListMode", BCEnergyConfig.dimensionListMode.get().name());
+
+      try {
+         BCEnergyConfig.biomeListMode.set(BCEnergyConfig.ListMode.valueOf(biomeMode));
+      } catch (IllegalArgumentException ignored) {
+         LOGGER.warn("Unknown biomeListMode '{}'", biomeMode);
+      }
+
+      try {
+         BCEnergyConfig.dimensionListMode.set(BCEnergyConfig.ListMode.valueOf(dimMode));
+      } catch (IllegalArgumentException ignored) {
+         LOGGER.warn("Unknown dimensionListMode '{}'", dimMode);
+      }
    }
 
    /** Spawn chances in config are plain percents (0.1 = 0.1%, 4 = 4%). */
@@ -259,78 +303,11 @@ public final class BCFabricConfig {
       if (energy != null) {
          BCEnergyConfig.enableRfEngine.set(bool(energy, "enableRfEngine", BCEnergyConfig.enableRfEngine.get()));
          BCEnergyConfig.enableMjDynamo.set(bool(energy, "enableMjDynamo", BCEnergyConfig.enableMjDynamo.get()));
-         BCEnergyConfig.enableOilOnWater.set(bool(energy, "enableOilOnWater", BCEnergyConfig.enableOilOnWater.get()));
-         BCEnergyConfig.enableOilOceanBiome.set(bool(energy, "enableOilOceanBiome", BCEnergyConfig.enableOilOceanBiome.get()));
-         BCEnergyConfig.enableOilDesertBiome.set(bool(energy, "enableOilDesertBiome", BCEnergyConfig.enableOilDesertBiome.get()));
-         BCEnergyConfig.oilOceanPatchChance.set(percentVal(energy, "oilOceanPatchChance", BCEnergyConfig.oilOceanPatchChance.get()));
-         BCEnergyConfig.oilDesertPatchChance.set(percentVal(energy, "oilDesertPatchChance", BCEnergyConfig.oilDesertPatchChance.get()));
-         applyOilSpawnConfig(energy);
          BCEnergyConfig.oilIsSticky.set(bool(energy, "oilIsSticky", BCEnergyConfig.oilIsSticky.get()));
          BCEnergyConfig.enableOilBurn.set(bool(energy, "enableOilBurn", BCEnergyConfig.enableOilBurn.get()));
          BCEnergyConfig.useRfNaming.set(bool(energy, "useRfNaming", BCEnergyConfig.useRfNaming.get()));
          BCEnergyConfig.useFullUnitNames.set(bool(energy, "useFullUnitNames", BCEnergyConfig.useFullUnitNames.get()));
-         BCEnergyConfig.enableOilGeneration.set(bool(energy, "enableOilGeneration", BCEnergyConfig.enableOilGeneration.get()));
-         BCEnergyConfig.enableOilSpouts.set(bool(energy, "enableOilSpouts", BCEnergyConfig.enableOilSpouts.get()));
-         BCEnergyConfig.spawnOilSprings.set(bool(energy, "spawnOilSprings", BCEnergyConfig.spawnOilSprings.get()));
-         BCEnergyConfig.smallSpoutMinHeight.set(
-            intVal(
-               energy,
-               "smallSpoutMinHeight",
-               intVal(energy, "finiteSpoutMinHeight", BCEnergyConfig.smallSpoutMinHeight.get())
-            )
-         );
-         BCEnergyConfig.smallSpoutMaxHeight.set(
-            intVal(
-               energy,
-               "smallSpoutMaxHeight",
-               intVal(energy, "finiteSpoutMaxHeight", BCEnergyConfig.smallSpoutMaxHeight.get())
-            )
-         );
-         BCEnergyConfig.largeSpoutMinHeight.set(intVal(energy, "largeSpoutMinHeight", BCEnergyConfig.largeSpoutMinHeight.get()));
-         BCEnergyConfig.largeSpoutMaxHeight.set(intVal(energy, "largeSpoutMaxHeight", BCEnergyConfig.largeSpoutMaxHeight.get()));
-
-         if (energy.has("forceExcessiveOilBiomes")) {
-            BCEnergyConfig.forceExcessiveOilBiomes.set(stringList(energy.getAsJsonArray("forceExcessiveOilBiomes")));
-         }
-
-         if (energy.has("richSurfaceDepositBiomes")) {
-            BCEnergyConfig.richSurfaceDepositBiomes.set(stringList(energy.getAsJsonArray("richSurfaceDepositBiomes")));
-         }
-
-         if (energy.has("surfaceDepositBiomes")) {
-            BCEnergyConfig.surfaceDepositBiomes.set(stringList(energy.getAsJsonArray("surfaceDepositBiomes")));
-         }
-
-         if (energy.has("standardSurfaceDepositBiomes")) {
-            BCEnergyConfig.standardSurfaceDepositBiomes.set(stringList(energy.getAsJsonArray("standardSurfaceDepositBiomes")));
-         }
-
-         if (energy.has("mountainousSurfaceDepositBiomes")) {
-            BCEnergyConfig.mountainousSurfaceDepositBiomes.set(stringList(energy.getAsJsonArray("mountainousSurfaceDepositBiomes")));
-         }
-
-         if (energy.has("excludedBiomes")) {
-            BCEnergyConfig.excludedBiomes.set(stringList(energy.getAsJsonArray("excludedBiomes")));
-         }
-
-         if (energy.has("excludedDimensions")) {
-            BCEnergyConfig.excludedDimensions.set(stringList(energy.getAsJsonArray("excludedDimensions")));
-         }
-
-         String biomeMode = string(energy, "biomeListMode", BCEnergyConfig.biomeListMode.get().name());
-         String dimMode = string(energy, "dimensionListMode", BCEnergyConfig.dimensionListMode.get().name());
-
-         try {
-            BCEnergyConfig.biomeListMode.set(BCEnergyConfig.ListMode.valueOf(biomeMode));
-         } catch (IllegalArgumentException ignored) {
-            LOGGER.warn("Unknown biomeListMode '{}'", biomeMode);
-         }
-
-         try {
-            BCEnergyConfig.dimensionListMode.set(BCEnergyConfig.ListMode.valueOf(dimMode));
-         } catch (IllegalArgumentException ignored) {
-            LOGGER.warn("Unknown dimensionListMode '{}'", dimMode);
-         }
+         applyOilGeneratorConfig(energy.has("generator") ? energy.getAsJsonObject("generator") : null);
       }
    }
 
@@ -368,43 +345,45 @@ public final class BCFabricConfig {
       JsonObject energy = new JsonObject();
       energy.addProperty("enableRfEngine", false);
       energy.addProperty("enableMjDynamo", false);
-      energy.addProperty("enableOilOnWater", true);
-      energy.addProperty("enableOilOceanBiome", true);
-      energy.addProperty("enableOilDesertBiome", true);
-      energy.addProperty("oilOceanPatchChance", 2.5);
-      energy.addProperty("oilDesertPatchChance", 8.0);
-      energy.addProperty("oilSpawnChancePercentNormal", 0.12);
-      energy.addProperty("oilSpawnChancePercentRich", 0.25);
-      energy.addProperty("oilSpawnChancePercentOilPatch", 2.0);
-      energy.addProperty("oilTypeWeightLarge", 20);
-      energy.addProperty("oilTypeWeightMedium", 60);
-      energy.addProperty("oilTypeWeightLake", 20);
-      energy.addProperty("oilGenerationMultiplier", 1.0);
       energy.addProperty("oilIsSticky", false);
       energy.addProperty("enableOilBurn", true);
       energy.addProperty("useRfNaming", false);
       energy.addProperty("useFullUnitNames", true);
-      energy.addProperty("enableOilGeneration", true);
-      energy.addProperty("enableOilSpouts", true);
-      energy.addProperty("spawnOilSprings", true);
-      energy.addProperty("smallSpoutMinHeight", 6);
-      energy.addProperty("smallSpoutMaxHeight", 12);
-      energy.addProperty("largeSpoutMinHeight", 10);
-      energy.addProperty("largeSpoutMaxHeight", 20);
-      energy.add("forceExcessiveOilBiomes", GSON.toJsonTree(List.of("buildcraftenergy:oil_desert", "buildcraftenergy:oil_ocean")));
-      energy.add("richSurfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getRichSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
-      energy.add("surfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
-      energy.add(
+      JsonObject generator = new JsonObject();
+      generator.addProperty("enableOilGeneration", true);
+      generator.addProperty("enableOilOnWater", true);
+      generator.addProperty("enableOilOceanBiome", true);
+      generator.addProperty("enableOilDesertBiome", true);
+      generator.addProperty("enableOilSpouts", true);
+      generator.addProperty("spawnOilSprings", true);
+      generator.addProperty("oilOceanPatchChance", 2.5);
+      generator.addProperty("oilDesertPatchChance", 8.0);
+      generator.addProperty("oilSpawnChancePercentNormal", 0.12);
+      generator.addProperty("oilSpawnChancePercentRich", 0.25);
+      generator.addProperty("oilSpawnChancePercentOilPatch", 2.0);
+      generator.addProperty("oilTypeWeightLarge", 20);
+      generator.addProperty("oilTypeWeightMedium", 60);
+      generator.addProperty("oilTypeWeightLake", 20);
+      generator.addProperty("oilGenerationMultiplier", 1.0);
+      generator.addProperty("smallSpoutMinHeight", 6);
+      generator.addProperty("smallSpoutMaxHeight", 12);
+      generator.addProperty("largeSpoutMinHeight", 10);
+      generator.addProperty("largeSpoutMaxHeight", 20);
+      generator.add("forceExcessiveOilBiomes", GSON.toJsonTree(List.of("buildcraftenergy:oil_desert", "buildcraftenergy:oil_ocean")));
+      generator.add("richSurfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getRichSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
+      generator.add("surfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
+      generator.add(
          "standardSurfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getStandardSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList())
       );
-      energy.add(
+      generator.add(
          "mountainousSurfaceDepositBiomes",
          GSON.toJsonTree(BCEnergyConfig.getMountainousSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList())
       );
-      energy.add("excludedBiomes", GSON.toJsonTree(BCEnergyConfig.getExcludedBiomes().stream().map(id -> id.toString()).sorted().toList()));
-      energy.add("excludedDimensions", GSON.toJsonTree(BCEnergyConfig.getExcludedDimensions().stream().map(id -> id.toString()).sorted().toList()));
-      energy.addProperty("biomeListMode", "BLACKLIST");
-      energy.addProperty("dimensionListMode", "BLACKLIST");
+      generator.add("excludedBiomes", GSON.toJsonTree(BCEnergyConfig.getExcludedBiomes().stream().map(id -> id.toString()).sorted().toList()));
+      generator.add("excludedDimensions", GSON.toJsonTree(BCEnergyConfig.getExcludedDimensions().stream().map(id -> id.toString()).sorted().toList()));
+      generator.addProperty("biomeListMode", "BLACKLIST");
+      generator.addProperty("dimensionListMode", "BLACKLIST");
+      energy.add("generator", generator);
       root.add("energy", energy);
       JsonObject factory = new JsonObject();
       factory.addProperty("pumpsConsumeWater", false);
