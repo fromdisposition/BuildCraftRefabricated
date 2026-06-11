@@ -14,6 +14,8 @@ import java.util.Random;
  * <p>Well template Y convention ({@link OilWellProjectionProcessor}):
  * y=0 surface oil, y&gt;0 spout; underground geometry uses template Y below surface (gravity projection).
  * Bedrock spring uses {@link OilStructureDefaults#SPRING_TEMPLATE_Y} and is pinned to {@code minY} after gravity.
+ * Shaft/connector/spout width follows BC 8.0 {@code createTube}/{@code Spout}: medium radius 0 (1 block),
+ * large radius 1 (3×3 cylinder).
  */
 public final class OilStructureTemplateBuilder {
    private static final String OIL_BLOCK = "buildcraftenergy:oil";
@@ -82,15 +84,11 @@ public final class OilStructureTemplateBuilder {
       }
 
       int shaftTop = sphereCenterY - sphereRadius - 1;
-      for (int y = OilStructureDefaults.SPRING_TEMPLATE_Y + 1; y <= shaftTop; y++) {
-         blocks.add(new StructureNbtWriter.BlockEntry(center, y, center, OIL_BLOCK));
-      }
+      blitShaftColumn(blocks, center, OilStructureDefaults.SPRING_TEMPLATE_Y + 1, shaftTop, spoutRadius);
 
       int sphereTop = sphereCenterY + sphereRadius;
       // Stops before y=0 (surface film); y=-1 is shaft only, not a second surface layer.
-      for (int y = sphereTop + 1; y < 0; y++) {
-         blocks.add(new StructureNbtWriter.BlockEntry(center, y, center, OIL_BLOCK));
-      }
+      blitShaftColumn(blocks, center, sphereTop + 1, -1, spoutRadius);
 
       if (surfaceSpoutHeight > 0) {
          blitSurfaceSpout(blocks, center, surfaceSpoutHeight, spoutRadius);
@@ -107,6 +105,18 @@ public final class OilStructureTemplateBuilder {
          OilStructureDefaults.TEMPLATE_SIZE,
          blocks
       );
+   }
+
+   private static void blitShaftColumn(
+      List<StructureNbtWriter.BlockEntry> blocks,
+      int center,
+      int yFrom,
+      int yTo,
+      int shaftRadius
+   ) {
+      for (int y = yFrom; y <= yTo; y++) {
+         writeCylinderY(blocks, center, y, center, shaftRadius);
+      }
    }
 
    private static void blitSurfaceSpout(List<StructureNbtWriter.BlockEntry> blocks, int center, int height, int maxRadius) {
