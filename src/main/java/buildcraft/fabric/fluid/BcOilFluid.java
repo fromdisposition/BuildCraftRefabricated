@@ -1,5 +1,6 @@
 package buildcraft.fabric.fluid;
 
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,12 +30,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsHost {
-   /** Vanilla {@link Fluids#WATER} spread tuning for non-gaseous BC liquids. */
-   private static final int WATER_TICK_DELAY = 5;
-   private static final int WATER_DROP_OFF = 1;
-   private static final int WATER_SLOPE_FIND_DISTANCE = 4;
-
    protected final BcOilFluid.Holder holder;
+   private Map<Direction, FluidState> spreadCache;
 
    protected BcOilFluid(BcOilFluid.Holder holder) {
       this.holder = holder;
@@ -52,6 +49,14 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
 
    int spreadDelay(ServerLevel level, BlockPos pos, FluidState oldState, FluidState newState) {
       return super.getSpreadDelay(level, pos, oldState, newState);
+   }
+
+   private void clearSpreadCache() {
+      this.spreadCache = null;
+   }
+
+   public void invalidateSpreadCache() {
+      this.clearSpreadCache();
    }
 
    public Fluid getFlowing() {
@@ -79,16 +84,16 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
    }
 
    public int getSlopeFindDistance(LevelReader level) {
-      return this.holder.props.gaseous() ? this.holder.props.slopeFindDistance() : WATER_SLOPE_FIND_DISTANCE;
+      return this.holder.props.slopeFindDistance();
    }
 
    @Override
    public int getDropOff(LevelReader level) {
-      return this.holder.props.gaseous() ? this.holder.props.dropOff() : WATER_DROP_OFF;
+      return this.holder.props.dropOff();
    }
 
    public int getTickDelay(LevelReader level) {
-      return this.holder.props.gaseous() ? this.holder.props.tickDelay() : WATER_TICK_DELAY;
+      return this.holder.props.tickDelay();
    }
 
    public BlockState createLegacyBlock(FluidState state) {
@@ -104,19 +109,11 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
    }
 
    public boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluid, Direction direction) {
-      if (state.getType().isSame(this)) {
-         return true;
-      }
-
-      if (!state.isEmpty()) {
-         if (BcFluidUtil.isVanillaWater(state) && !this.holder.props.gaseous()) {
-            return this.holder.props.floatsOnWater() || this.holder.props.displacesWater();
-         }
-
+      if (BcFluidUtil.isVanillaWater(state)) {
          return false;
       }
 
-      return level.getBlockState(pos).canBeReplaced(fluid);
+      return !state.isEmpty() && !this.isSame(state.getType()) ? false : this.isSame(fluid);
    }
 
    public Optional<SoundEvent> getPickupSound() {
@@ -128,9 +125,11 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
    }
 
    public void tick(ServerLevel level, BlockPos pos, BlockState state, FluidState fluidState) {
+      this.clearSpreadCache();
       if (this.holder.props.gaseous()) {
          BcGaseousFluidPhysics.tick(this, level, pos, state, fluidState);
       } else {
+         BcLiquidFluidPhysics.tickBeforeVanilla(this, level, pos);
          super.tick(level, pos, state, fluidState);
       }
    }
@@ -149,17 +148,44 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
          return;
       }
 
-      super.spreadTo(level, pos, state, direction, target);
+      if (BcLiquidFluidPhysics.blocksSpreadInto(state, state.getFluidState())) {
+         return;
+      }
+
+      if (!BcLiquidFluidPhysics.displacesWaterAt(this, state, level, pos, target)) {
+         super.spreadTo(level, pos, state, direction, target);
+      }
    }
 
    @Override
    public Map<Direction, FluidState> getSpread(ServerLevel level, BlockPos pos, BlockState state) {
-      return this.holder.props.gaseous() ? BcGaseousFluidPhysics.getSpread(this, level, pos, state) : super.getSpread(level, pos, state);
+      if (this.spreadCache != null) {
+         return this.spreadCache;
+      }
+
+      Map<Direction, FluidState> result;
+      if (this.holder.props.gaseous()) {
+         result = BcGaseousFluidPhysics.getSpread(this, level, pos, state);
+      } else {
+         Map<Direction, FluidState> map = new EnumMap<>(super.getSpread(level, pos, state));
+         result = BcLiquidFluidPhysics.enhanceSpread(this, level, pos, state, map);
+      }
+
+      this.spreadCache = result;
+      return result;
    }
 
    @Override
    public FluidState getNewLiquid(ServerLevel level, BlockPos pos, BlockState state) {
-      return this.holder.props.gaseous() ? BcGaseousFluidPhysics.getNewLiquid(this, level, pos, state) : super.getNewLiquid(level, pos, state);
+      if (this.holder.props.gaseous()) {
+         return BcGaseousFluidPhysics.getNewLiquid(this, level, pos, state);
+      }
+
+      if (BcFluidUtil.isVanillaWater(state.getFluidState())) {
+         return Fluids.EMPTY.defaultFluidState();
+      }
+
+      return super.getNewLiquid(level, pos, state);
    }
 
    public float getHeight(FluidState fluidState, BlockGetter level, BlockPos pos) {
@@ -265,6 +291,13 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
             this.flammableFlag
          );
          this.props = newProps;
+         if (this.still instanceof BcOilFluid stillFluid) {
+            stillFluid.invalidateSpreadCache();
+         }
+
+         if (this.flowing instanceof BcOilFluid flowingFluid) {
+            flowingFluid.invalidateSpreadCache();
+         }
 
          if (this.still != null && this.flowing != null) {
             buildcraft.lib.fluids.FluidTypes.register(this.still, newProps.viscosity(), newProps.density());

@@ -21,12 +21,11 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.FluidState;
 
 public final class OilGenStructure {
    private static final int SURFACE_BOX_Y_MARGIN = 8;
    private static final int OCEAN_SPREAD_CLEAR_HEIGHT = 5;
-   private static final int GEN_FLAGS = 0;
+   private static final int GEN_FLAGS = 2;
 
    private OilGenStructure() {
    }
@@ -38,15 +37,6 @@ public final class OilGenStructure {
       }
 
       level.setBlock(pos, oil, GEN_FLAGS);
-      primeFluidTick(level, pos, oil);
-   }
-
-   private static void primeFluidTick(LevelAccessor level, BlockPos pos, BlockState state) {
-      FluidState fluid = state.getFluidState();
-      if (!fluid.isEmpty()) {
-         // Match vanilla behavior: newly placed fluid gets a near-immediate scheduled update tick.
-         level.scheduleTick(pos, fluid.getType(), 1);
-      }
    }
 
    public static BlockPos findTerrainUpper(LevelAccessor level, int x, int z) {
