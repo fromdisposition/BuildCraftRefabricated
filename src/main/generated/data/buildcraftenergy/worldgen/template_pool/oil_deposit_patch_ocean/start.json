@@ -2,7 +2,7 @@
   "elements": [
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_well_large",
         "processors": "buildcraftenergy:oil_well_large",
         "projection": "rigid"
@@ -11,7 +11,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_well_large_s",
         "processors": "buildcraftenergy:oil_well_large_s",
         "projection": "rigid"
@@ -20,7 +20,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_well_large_m",
         "processors": "buildcraftenergy:oil_well_large_m",
         "projection": "rigid"
@@ -29,7 +29,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_well_large_l",
         "processors": "buildcraftenergy:oil_well_large_l",
         "projection": "rigid"
@@ -38,7 +38,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_well_medium",
         "processors": "buildcraftenergy:oil_well_medium",
         "projection": "rigid"
@@ -47,7 +47,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_well_medium_l",
         "processors": "buildcraftenergy:oil_well_medium_l",
         "projection": "rigid"
@@ -56,7 +56,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_well_medium_alt",
         "processors": "buildcraftenergy:oil_well_medium_alt",
         "projection": "rigid"
@@ -65,7 +65,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_well_medium_s",
         "processors": "buildcraftenergy:oil_well_medium_s",
         "projection": "rigid"
@@ -74,7 +74,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_lake_patch",
         "processors": "buildcraftenergy:oil_surface_gravity",
         "projection": "rigid"
@@ -83,7 +83,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_lake_patch_b",
         "processors": "buildcraftenergy:oil_surface_gravity",
         "projection": "rigid"
@@ -92,7 +92,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_lake_patch_c",
         "processors": "buildcraftenergy:oil_surface_gravity",
         "projection": "rigid"
@@ -101,7 +101,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_lake_patch_d",
         "processors": "buildcraftenergy:oil_surface_gravity",
         "projection": "rigid"
@@ -110,7 +110,7 @@
     },
     {
       "element": {
-        "element_type": "minecraft:single_pool_element",
+        "element_type": "buildcraftenergy:oil_deposit",
         "location": "buildcraftenergy:oil_lake_patch_e",
         "processors": "buildcraftenergy:oil_surface_gravity",
         "projection": "rigid"

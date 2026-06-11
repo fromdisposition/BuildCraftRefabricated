@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.StructureType;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElementType;
 
 public final class BCEnergyStructures {
    public static final ResourceKey<Structure> OIL_DEPOSIT_NORMAL = ResourceKey.create(
@@ -31,6 +32,7 @@ public final class BCEnergyStructures {
    );
 
    public static StructureType<OilDepositStructure> OIL_DEPOSIT_TYPE;
+   public static StructurePoolElementType<OilDepositPoolElement> OIL_DEPOSIT_POOL_ELEMENT;
 
    private BCEnergyStructures() {
    }
@@ -41,6 +43,14 @@ public final class BCEnergyStructures {
             BuiltInRegistries.STRUCTURE_TYPE,
             BCRegistries.id("buildcraftenergy", "oil_deposit"),
             () -> OilDepositStructure.CODEC
+         );
+      }
+
+      if (OIL_DEPOSIT_POOL_ELEMENT == null) {
+         OIL_DEPOSIT_POOL_ELEMENT = Registry.register(
+            BuiltInRegistries.STRUCTURE_POOL_ELEMENT,
+            BCRegistries.id("buildcraftenergy", "oil_deposit"),
+            () -> OilDepositPoolElement.CODEC
          );
       }
    }

@@ -6,6 +6,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
+import buildcraft.energy.worldgen.structure.OilDepositPoolElement;
 import buildcraft.fabric.BCRegistries;
 import net.minecraft.data.worldgen.Pools;
 import net.minecraft.resources.ResourceKey;
@@ -103,13 +104,13 @@ final class BCEnergyTemplatePoolsBootstrap {
       String template,
       ResourceKey<StructureProcessorList> processorKey
    ) {
-      return StructurePoolElement.single("buildcraftenergy:" + template, processors.getOrThrow(processorKey));
+      return OilDepositPoolElement.of("buildcraftenergy:" + template, processors.getOrThrow(processorKey));
    }
 
    private static Function<StructureTemplatePool.Projection, ? extends StructurePoolElement> lake(
       Holder<StructureProcessorList> surfaceGravity,
       String template
    ) {
-      return StructurePoolElement.single("buildcraftenergy:" + template, surfaceGravity);
+      return OilDepositPoolElement.of("buildcraftenergy:" + template, surfaceGravity);
    }
 }
