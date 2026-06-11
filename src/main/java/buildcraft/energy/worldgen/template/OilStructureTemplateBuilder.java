@@ -12,8 +12,8 @@ import java.util.Random;
  * Builds oil deposit NBT templates for jigsaw pools.
  *
  * <p>Well template Y convention ({@link OilWellProjectionProcessor}):
- * y=0 surface oil, y&gt;0 spout, connector y in (sphereTop+1..-1) follows terrain, sphere/shaft use fixed
- * {@code minY + sphere_center_offset} via {@link OilStructureDefaults#SPHERE_TEMPLATE_CENTER_Y}.
+ * y=0 surface oil, y&gt;0 spout; underground geometry uses template Y below surface (gravity projection).
+ * Bedrock spring uses {@link OilStructureDefaults#SPRING_TEMPLATE_Y} and is pinned to {@code minY} after gravity.
  */
 public final class OilStructureTemplateBuilder {
    private static final String OIL_BLOCK = "buildcraftenergy:oil";

@@ -1,6 +1,5 @@
 package buildcraft.energy.worldgen.datagen;
 
-import buildcraft.energy.worldgen.core.OilStructureDefaults;
 import buildcraft.energy.worldgen.processor.OilWellProjectionProcessor;
 import buildcraft.energy.worldgen.processor.WaterSpringBedrockProcessor;
 import buildcraft.fabric.BCRegistries;
@@ -20,14 +19,14 @@ public final class BCEnergyProcessorListsBootstrap {
       Registries.PROCESSOR_LIST, BCRegistries.id("buildcraftenergy", "water_spring_bedrock")
    );
 
-   public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM_S = wellKey("oil_well_medium_s", 20, 4);
-   public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM_ALT = wellKey("oil_well_medium_alt", 24, 5);
-   public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM = wellKey("oil_well_medium", 26, 6);
-   public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM_L = wellKey("oil_well_medium_l", 28, 7);
-   public static final ResourceKey<StructureProcessorList> OIL_WELL_LARGE_S = wellKey("oil_well_large_s", 24, 10);
-   public static final ResourceKey<StructureProcessorList> OIL_WELL_LARGE_M = wellKey("oil_well_large_m", 27, 12);
-   public static final ResourceKey<StructureProcessorList> OIL_WELL_LARGE = wellKey("oil_well_large", 28, 14);
-   public static final ResourceKey<StructureProcessorList> OIL_WELL_LARGE_L = wellKey("oil_well_large_l", 29, 16);
+   public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM_S = wellKey("oil_well_medium_s");
+   public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM_ALT = wellKey("oil_well_medium_alt");
+   public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM = wellKey("oil_well_medium");
+   public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM_L = wellKey("oil_well_medium_l");
+   public static final ResourceKey<StructureProcessorList> OIL_WELL_LARGE_S = wellKey("oil_well_large_s");
+   public static final ResourceKey<StructureProcessorList> OIL_WELL_LARGE_M = wellKey("oil_well_large_m");
+   public static final ResourceKey<StructureProcessorList> OIL_WELL_LARGE = wellKey("oil_well_large");
+   public static final ResourceKey<StructureProcessorList> OIL_WELL_LARGE_L = wellKey("oil_well_large_l");
 
    public static final List<ResourceKey<StructureProcessorList>> ALL = List.of(
       OIL_SURFACE_GRAVITY,
@@ -45,8 +44,14 @@ public final class BCEnergyProcessorListsBootstrap {
    private BCEnergyProcessorListsBootstrap() {
    }
 
-   private static ResourceKey<StructureProcessorList> wellKey(String id, int sphereCenterOffset, int sphereRadius) {
+   private static ResourceKey<StructureProcessorList> wellKey(String id) {
       return ResourceKey.create(Registries.PROCESSOR_LIST, BCRegistries.id("buildcraftenergy", id));
+   }
+
+   private static StructureProcessorList wellProcessors() {
+      return new StructureProcessorList(
+         List.of(new GravityProcessor(Heightmap.Types.WORLD_SURFACE_WG, -1), new OilWellProjectionProcessor())
+      );
    }
 
    static void bootstrap(BootstrapContext<StructureProcessorList> context) {
@@ -56,27 +61,14 @@ public final class BCEnergyProcessorListsBootstrap {
       );
       context.register(WATER_SPRING_BEDROCK, new StructureProcessorList(List.of(new WaterSpringBedrockProcessor())));
 
-      registerWell(context, OIL_WELL_MEDIUM_S, 20, 4);
-      registerWell(context, OIL_WELL_MEDIUM_ALT, 24, 5);
-      registerWell(context, OIL_WELL_MEDIUM, 26, 6);
-      registerWell(context, OIL_WELL_MEDIUM_L, 28, 7);
-      registerWell(context, OIL_WELL_LARGE_S, 24, 10);
-      registerWell(context, OIL_WELL_LARGE_M, 27, 12);
-      registerWell(context, OIL_WELL_LARGE, 28, 14);
-      registerWell(context, OIL_WELL_LARGE_L, 29, 16);
-   }
-
-   private static void registerWell(
-      BootstrapContext<StructureProcessorList> context,
-      ResourceKey<StructureProcessorList> key,
-      int sphereCenterOffset,
-      int sphereRadius
-   ) {
-      context.register(
-         key,
-         new StructureProcessorList(
-            List.of(new OilWellProjectionProcessor(sphereCenterOffset, sphereRadius, OilStructureDefaults.SPHERE_TEMPLATE_CENTER_Y))
-         )
-      );
+      StructureProcessorList wells = wellProcessors();
+      context.register(OIL_WELL_MEDIUM_S, wells);
+      context.register(OIL_WELL_MEDIUM_ALT, wells);
+      context.register(OIL_WELL_MEDIUM, wells);
+      context.register(OIL_WELL_MEDIUM_L, wells);
+      context.register(OIL_WELL_LARGE_S, wells);
+      context.register(OIL_WELL_LARGE_M, wells);
+      context.register(OIL_WELL_LARGE, wells);
+      context.register(OIL_WELL_LARGE_L, wells);
    }
 }

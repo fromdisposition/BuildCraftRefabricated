@@ -1,9 +1,12 @@
 {
   "processors": [
     {
-      "processor_type": "buildcraftenergy:oil_well_projection",
-      "sphere_center_offset": 29,
-      "sphere_radius": 16
+      "heightmap": "WORLD_SURFACE_WG",
+      "offset": -1,
+      "processor_type": "minecraft:gravity"
+    },
+    {
+      "processor_type": "buildcraftenergy:oil_well_projection"
     }
   ]
 }
