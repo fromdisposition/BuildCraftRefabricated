@@ -3,10 +3,11 @@ package buildcraft.energy.worldgen.integration;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.worldgen.BCEnergyWorldgen;
-import buildcraft.energy.worldgen.core.BCEnergyBiomeTags;
+import buildcraft.energy.worldgen.structure.OilStructureSpawnConditions;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.Biome;
 
 public final class FineRichesTracker {
@@ -33,7 +34,8 @@ public final class FineRichesTracker {
       }
 
       Holder<Biome> biome = player.level().getBiome(player.blockPosition());
-      if (!biome.is(BCEnergyBiomeTags.OIL_DESIGN_BIOME)) {
+      ChunkPos chunkPos = player.chunkPosition();
+      if (!OilStructureSpawnConditions.isRichOilSlice(biome, chunkPos)) {
          return;
       }
 

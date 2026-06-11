@@ -9,12 +9,11 @@ public final class BCEnergyBiomeTags {
    public static final TagKey<Biome> OIL_EXCLUDED_BIOME = TagKey.create(
       Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_excluded_biome")
    );
-   public static final TagKey<Biome> OIL_DESIGN_BIOME = TagKey.create(
-      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_design_biome")
-   );
+   /** Vanilla ocean biomes eligible for per-chunk patch-tier slicing ({@code oilOceanPatchChancePercent}). */
    public static final TagKey<Biome> OIL_PATCH_OCEAN = TagKey.create(
       Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_patch_ocean")
    );
+   /** Desert/badlands eligible for per-chunk rich-tier slicing ({@code oilDesertRichChancePercent}). */
    public static final TagKey<Biome> OIL_PATCH_DESERT = TagKey.create(
       Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_patch_desert")
    );

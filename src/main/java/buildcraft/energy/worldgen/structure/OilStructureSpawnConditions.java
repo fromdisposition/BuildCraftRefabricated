@@ -50,6 +50,30 @@ public final class OilStructureSpawnConditions {
       return tierMatches(context, biome, tier);
    }
 
+   /**
+    * True when this chunk uses the rich desert or ocean patch tier (same roll as structure spawn).
+    * Used for the Fine Riches advancement — not every desert/ocean biome, only the sliced subset.
+    */
+   public static boolean isRichOilSlice(Holder<Biome> biome, ChunkPos chunkPos) {
+      if (biome.is(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME)) {
+         return false;
+      }
+
+      boolean desert = biome.is(BCEnergyBiomeTags.OIL_PATCH_DESERT);
+      boolean ocean = biome.is(BCEnergyBiomeTags.OIL_PATCH_OCEAN);
+      if (!desert && !ocean) {
+         return false;
+      }
+
+      int roll = chunkRoll(chunkPos);
+      int desertRichCutoff = clampPercent(BCEnergyConfig.oilDesertRichChancePercent.get());
+      int oceanPatchCutoff = clampPercent(BCEnergyConfig.oilOceanPatchChancePercent.get());
+      if (desert && roll < desertRichCutoff) {
+         return true;
+      }
+      return ocean && BCEnergyConfig.enableOilOnWater.get() && roll < oceanPatchCutoff;
+   }
+
    private static boolean tierMatches(Structure.GenerationContext context, Holder<Biome> biome, Tier tier) {
       if (biome.is(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME)) {
          return false;

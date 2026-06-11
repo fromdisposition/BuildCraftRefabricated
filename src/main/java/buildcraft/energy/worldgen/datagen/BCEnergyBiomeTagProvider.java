@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
@@ -52,10 +51,6 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
    @Override
    protected void addTags(HolderLookup.Provider provider) {
       builder(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME).add(Biomes.THE_VOID, Biomes.RIVER);
-      builder(BCEnergyBiomeTags.OIL_DESIGN_BIOME)
-         .add(PATCH_DESERT.toArray(ResourceKey[]::new))
-         .addOptional(ResourceKey.create(Registries.BIOME, Identifier.parse("buildcraftenergy:oil_ocean")))
-         .addOptional(ResourceKey.create(Registries.BIOME, Identifier.parse("buildcraftenergy:oil_desert")));
       builder(BCEnergyBiomeTags.OIL_PATCH_OCEAN).add(PATCH_OCEAN.toArray(ResourceKey[]::new));
       builder(BCEnergyBiomeTags.OIL_PATCH_DESERT).add(PATCH_DESERT.toArray(ResourceKey[]::new));
 
