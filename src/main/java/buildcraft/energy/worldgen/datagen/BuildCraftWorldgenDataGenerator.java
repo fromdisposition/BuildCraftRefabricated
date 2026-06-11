@@ -1,5 +1,6 @@
 package buildcraft.energy.worldgen.datagen;
 
+import buildcraft.energy.worldgen.structure.BCEnergyStructureProcessorTypes;
 import buildcraft.energy.worldgen.structure.BCEnergyStructures;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
@@ -10,6 +11,7 @@ public final class BuildCraftWorldgenDataGenerator implements DataGeneratorEntry
    @Override
    public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
       BCEnergyStructures.registerStructureType();
+      BCEnergyStructureProcessorTypes.register();
       FabricDataGenerator.Pack pack = fabricDataGenerator.createPack();
       pack.addProvider(BCEnergyStructureProvider::new);
       pack.addProvider(BCEnergyBiomeTagProvider::new);

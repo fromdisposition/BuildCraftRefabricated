@@ -3,6 +3,8 @@ package buildcraft.energy.worldgen.datagen;
 import buildcraft.energy.worldgen.structure.BCEnergyStructures;
 import buildcraft.energy.worldgen.structure.OilStructureTemplateBuilder;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.core.HolderLookup;
@@ -10,6 +12,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -67,59 +70,87 @@ public final class BCEnergyStructureProvider implements DataProvider {
          StructureSet patchOceanSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
             .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN_SET)
             .value();
-         StructureProcessorList oceanFloorProcessors = registry.lookupOrThrow(Registries.PROCESSOR_LIST)
-            .getOrThrow(BCEnergyProcessorListsBootstrap.OIL_OCEAN_FLOOR)
-            .value();
 
-         return CompletableFuture.allOf(
-            DataProvider.saveStable(cache, registry, Structure.DIRECT_CODEC, normal, dataRoot.resolve("worldgen/structure/oil_deposit_normal.json")),
-            DataProvider.saveStable(cache, registry, Structure.DIRECT_CODEC, rich, dataRoot.resolve("worldgen/structure/oil_deposit_rich.json")),
+         List<CompletableFuture<?>> saves = new ArrayList<>();
+         saves.add(
+            DataProvider.saveStable(cache, registry, Structure.DIRECT_CODEC, normal, dataRoot.resolve("worldgen/structure/oil_deposit_normal.json"))
+         );
+         saves.add(
+            DataProvider.saveStable(cache, registry, Structure.DIRECT_CODEC, rich, dataRoot.resolve("worldgen/structure/oil_deposit_rich.json"))
+         );
+         saves.add(
             DataProvider.saveStable(
                cache, registry, Structure.DIRECT_CODEC, patchDesert, dataRoot.resolve("worldgen/structure/oil_deposit_patch_desert.json")
-            ),
+            )
+         );
+         saves.add(
             DataProvider.saveStable(
                cache, registry, Structure.DIRECT_CODEC, patchOcean, dataRoot.resolve("worldgen/structure/oil_deposit_patch_ocean.json")
-            ),
+            )
+         );
+         saves.add(
             DataProvider.saveStable(
                cache, registry, StructureTemplatePool.DIRECT_CODEC, normalPool, dataRoot.resolve("worldgen/template_pool/oil_deposit_normal/start.json")
-            ),
+            )
+         );
+         saves.add(
             DataProvider.saveStable(
                cache, registry, StructureTemplatePool.DIRECT_CODEC, richPool, dataRoot.resolve("worldgen/template_pool/oil_deposit_rich/start.json")
-            ),
+            )
+         );
+         saves.add(
             DataProvider.saveStable(
                cache,
                registry,
                StructureTemplatePool.DIRECT_CODEC,
                patchDesertPool,
                dataRoot.resolve("worldgen/template_pool/oil_deposit_patch_desert/start.json")
-            ),
+            )
+         );
+         saves.add(
             DataProvider.saveStable(
                cache,
                registry,
                StructureTemplatePool.DIRECT_CODEC,
                patchOceanPool,
                dataRoot.resolve("worldgen/template_pool/oil_deposit_patch_ocean/start.json")
-            ),
-            DataProvider.saveStable(
-               cache, registry, StructureSet.DIRECT_CODEC, normalSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_normal.json")
-            ),
-            DataProvider.saveStable(
-               cache, registry, StructureSet.DIRECT_CODEC, richSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_rich.json")
-            ),
-            DataProvider.saveStable(
-               cache, registry, StructureSet.DIRECT_CODEC, patchDesertSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_patch_desert.json")
-            ),
-            DataProvider.saveStable(
-               cache, registry, StructureSet.DIRECT_CODEC, patchOceanSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_patch_ocean.json")
-            ),
-            DataProvider.saveStable(
-               cache,
-               registry,
-               StructureProcessorType.DIRECT_CODEC,
-               oceanFloorProcessors,
-               dataRoot.resolve("worldgen/processor_list/oil_ocean_floor.json")
             )
          );
+         saves.add(
+            DataProvider.saveStable(
+               cache, registry, StructureSet.DIRECT_CODEC, normalSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_normal.json")
+            )
+         );
+         saves.add(
+            DataProvider.saveStable(
+               cache, registry, StructureSet.DIRECT_CODEC, richSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_rich.json")
+            )
+         );
+         saves.add(
+            DataProvider.saveStable(
+               cache, registry, StructureSet.DIRECT_CODEC, patchDesertSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_patch_desert.json")
+            )
+         );
+         saves.add(
+            DataProvider.saveStable(
+               cache, registry, StructureSet.DIRECT_CODEC, patchOceanSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_patch_ocean.json")
+            )
+         );
+
+         for (ResourceKey<StructureProcessorList> processorKey : BCEnergyProcessorListsBootstrap.ALL) {
+            StructureProcessorList processors = registry.lookupOrThrow(Registries.PROCESSOR_LIST).getOrThrow(processorKey).value();
+            saves.add(
+               DataProvider.saveStable(
+                  cache,
+                  registry,
+                  StructureProcessorType.DIRECT_CODEC,
+                  processors,
+                  dataRoot.resolve("worldgen/processor_list/" + processorKey.identifier().getPath() + ".json")
+               )
+            );
+         }
+
+         return CompletableFuture.allOf(saves.toArray(CompletableFuture[]::new));
       });
    }
 

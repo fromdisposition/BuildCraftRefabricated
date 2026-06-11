@@ -9,8 +9,9 @@ import java.util.Random;
 /**
  * Builds oil deposit NBT templates for jigsaw pools.
  *
- * <p>Template Y convention (processed by vanilla {@code terrain_matching} / {@code GravityProcessor}):
- * y=0 is the surface oil layer, y&lt;0 is underground, y&gt;0 is the surface spout fountain.
+ * <p>Well template Y convention ({@link buildcraft.energy.worldgen.structure.processor.OilWellProjectionProcessor}):
+ * y=0 surface oil, y&gt;0 spout, connector y in (sphereTop+1..-1) follows terrain, sphere/shaft use fixed
+ * {@code minY + sphere_center_offset} via {@link OilStructureDefaults#SPHERE_TEMPLATE_CENTER_Y}.
  */
 public final class OilStructureTemplateBuilder {
    private static final String OIL_BLOCK = "buildcraftenergy:oil";
@@ -26,15 +27,15 @@ public final class OilStructureTemplateBuilder {
       writeLake(structuresDir.resolve("oil_lake_patch_d.nbt"), 0x51AF1004L, 6, 30);
       writeLake(structuresDir.resolve("oil_lake_patch_e.nbt"), 0x51AF1005L, 6, 42);
 
-      writeWell(structuresDir.resolve("oil_well_medium_s.nbt"), 2, 5, 4, 32, 6, 0, false);
-      writeWell(structuresDir.resolve("oil_well_medium_alt.nbt"), 2, 9, 5, 33, 8, 0, false);
-      writeWell(structuresDir.resolve("oil_well_medium.nbt"), 2, 11, 6, 34, 10, 0, false);
-      writeWell(structuresDir.resolve("oil_well_medium_l.nbt"), 2, 14, 7, 34, 12, 0, false);
+      writeWell(structuresDir.resolve("oil_well_medium_s.nbt"), 2, 5, 4, 6, 0, false);
+      writeWell(structuresDir.resolve("oil_well_medium_alt.nbt"), 2, 9, 5, 8, 0, false);
+      writeWell(structuresDir.resolve("oil_well_medium.nbt"), 2, 11, 6, 10, 0, false);
+      writeWell(structuresDir.resolve("oil_well_medium_l.nbt"), 2, 14, 7, 12, 0, false);
 
-      writeWell(structuresDir.resolve("oil_well_large_s.nbt"), 4, 28, 10, 38, 12, 1, true);
-      writeWell(structuresDir.resolve("oil_well_large_m.nbt"), 4, 31, 12, 39, 14, 1, true);
-      writeWell(structuresDir.resolve("oil_well_large.nbt"), 4, 35, 14, 40, 18, 1, true);
-      writeWell(structuresDir.resolve("oil_well_large_l.nbt"), 4, 42, 16, 42, 20, 1, true);
+      writeWell(structuresDir.resolve("oil_well_large_s.nbt"), 4, 28, 10, 12, 1, true);
+      writeWell(structuresDir.resolve("oil_well_large_m.nbt"), 4, 31, 12, 14, 1, true);
+      writeWell(structuresDir.resolve("oil_well_large.nbt"), 4, 35, 14, 18, 1, true);
+      writeWell(structuresDir.resolve("oil_well_large_l.nbt"), 4, 42, 16, 20, 1, true);
    }
 
    private static void writeLake(Path path, long seed, int lakeRadius, int tendrilRadius) throws IOException {
@@ -55,7 +56,6 @@ public final class OilStructureTemplateBuilder {
       int lakeRadius,
       int tendrilRadius,
       int sphereRadius,
-      int sphereDepth,
       int surfaceSpoutHeight,
       int spoutRadius,
       boolean withSpring
@@ -66,7 +66,7 @@ public final class OilStructureTemplateBuilder {
       blitSurfacePattern(blocks, pattern, 2);
 
       int center = OilStructureDefaults.TEMPLATE_CENTER;
-      int sphereCenterY = -sphereDepth;
+      int sphereCenterY = OilStructureDefaults.SPHERE_TEMPLATE_CENTER_Y;
       for (int dx = -sphereRadius; dx <= sphereRadius; dx++) {
          for (int dy = -sphereRadius; dy <= sphereRadius; dy++) {
             for (int dz = -sphereRadius; dz <= sphereRadius; dz++) {
@@ -77,9 +77,8 @@ public final class OilStructureTemplateBuilder {
          }
       }
 
-      int shaftBottom = -sphereDepth - 14;
       int shaftTop = sphereCenterY - sphereRadius - 1;
-      for (int y = shaftBottom; y <= shaftTop; y++) {
+      for (int y = OilStructureDefaults.SPRING_TEMPLATE_Y + 1; y <= shaftTop; y++) {
          blocks.add(new OilStructureNbtWriter.BlockEntry(center, y, center, OIL_BLOCK));
       }
 
@@ -93,13 +92,13 @@ public final class OilStructureTemplateBuilder {
       }
 
       if (withSpring) {
-         blocks.add(new OilStructureNbtWriter.BlockEntry(center, shaftBottom - 1, center, SPRING_BLOCK));
+         blocks.add(new OilStructureNbtWriter.BlockEntry(center, OilStructureDefaults.SPRING_TEMPLATE_Y, center, SPRING_BLOCK));
       }
 
       OilStructureNbtWriter.write(
          path,
          OilStructureDefaults.TEMPLATE_SIZE,
-         OilStructureNbtWriter.computeSizeY(blocks, sphereDepth + surfaceSpoutHeight + 20),
+         OilStructureNbtWriter.computeSizeY(blocks, 64),
          OilStructureDefaults.TEMPLATE_SIZE,
          blocks
       );

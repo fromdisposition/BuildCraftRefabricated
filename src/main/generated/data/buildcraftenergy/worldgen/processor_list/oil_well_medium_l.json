@@ -1,0 +1,9 @@
+{
+  "processors": [
+    {
+      "processor_type": "buildcraftenergy:oil_well_projection",
+      "sphere_center_offset": 28,
+      "sphere_radius": 7
+    }
+  ]
+}

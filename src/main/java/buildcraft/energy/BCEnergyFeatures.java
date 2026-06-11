@@ -20,6 +20,7 @@ public final class BCEnergyFeatures {
 
    public static void register() {
       BCEnergyStructures.registerStructureType();
+      buildcraft.energy.worldgen.structure.BCEnergyStructureProcessorTypes.register();
       FineRichesTracker.register();
    }
 }

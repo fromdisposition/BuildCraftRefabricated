@@ -4,10 +4,8 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_well_large",
-        "processors": {
-          "processors": []
-        },
-        "projection": "terrain_matching"
+        "processors": "buildcraftenergy:oil_well_large",
+        "projection": "rigid"
       },
       "weight": 8
     },
@@ -15,10 +13,8 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_well_large_s",
-        "processors": {
-          "processors": []
-        },
-        "projection": "terrain_matching"
+        "processors": "buildcraftenergy:oil_well_large_s",
+        "projection": "rigid"
       },
       "weight": 6
     },
@@ -26,10 +22,8 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_well_large_m",
-        "processors": {
-          "processors": []
-        },
-        "projection": "terrain_matching"
+        "processors": "buildcraftenergy:oil_well_large_m",
+        "projection": "rigid"
       },
       "weight": 6
     },
@@ -37,10 +31,8 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_well_medium",
-        "processors": {
-          "processors": []
-        },
-        "projection": "terrain_matching"
+        "processors": "buildcraftenergy:oil_well_medium",
+        "projection": "rigid"
       },
       "weight": 20
     },
@@ -48,10 +40,8 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_well_medium_l",
-        "processors": {
-          "processors": []
-        },
-        "projection": "terrain_matching"
+        "processors": "buildcraftenergy:oil_well_medium_l",
+        "projection": "rigid"
       },
       "weight": 15
     },
@@ -59,10 +49,8 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_well_medium_alt",
-        "processors": {
-          "processors": []
-        },
-        "projection": "terrain_matching"
+        "processors": "buildcraftenergy:oil_well_medium_alt",
+        "projection": "rigid"
       },
       "weight": 12
     },
@@ -70,10 +58,8 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_well_medium_s",
-        "processors": {
-          "processors": []
-        },
-        "projection": "terrain_matching"
+        "processors": "buildcraftenergy:oil_well_medium_s",
+        "projection": "rigid"
       },
       "weight": 13
     }
