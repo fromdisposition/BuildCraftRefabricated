@@ -16,7 +16,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -144,7 +143,7 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
 
    @Override
    public void spreadTo(LevelAccessor level, BlockPos pos, BlockState state, Direction direction, FluidState target) {
-      if (level instanceof WorldGenLevel) {
+      if (!(level instanceof ServerLevel)) {
          return;
       }
 

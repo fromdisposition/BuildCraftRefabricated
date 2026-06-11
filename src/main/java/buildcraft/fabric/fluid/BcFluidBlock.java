@@ -1,8 +1,8 @@
 package buildcraft.fabric.fluid;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,7 +16,7 @@ public class BcFluidBlock extends LiquidBlock {
 
    @Override
    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-      if (level instanceof WorldGenLevel) {
+      if (!(level instanceof ServerLevel)) {
          return;
       }
 

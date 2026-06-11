@@ -2,8 +2,8 @@ package buildcraft.lib.fabric.mixin;
 
 import buildcraft.lib.block.LocalBlockUpdateNotifier;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,7 +28,7 @@ public abstract class LevelMixin {
       }
 
       Level level = (Level)(Object)this;
-      if (level instanceof WorldGenLevel) {
+      if (!(level instanceof ServerLevel)) {
          return;
       }
 
