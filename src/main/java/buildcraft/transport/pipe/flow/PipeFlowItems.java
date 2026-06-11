@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
@@ -54,15 +54,15 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    private final PipeFlowItems.PipeExtractJournal extractJournal = new PipeFlowItems.PipeExtractJournal();
    @SuppressWarnings("unchecked")
    private final Storage<ItemVariant>[] itemStorages = (Storage<ItemVariant>[])new Storage<?>[6];
-   private @Nullable PipeEventItem.ReachCenter routingReachCenter;
-   private @Nullable PipeEventItem.SideCheck routingSideCheck;
-   private @Nullable PipeEventItem.TryBounce routingTryBounce;
-   private @Nullable PipeEventItem.ModifySpeed routingModifySpeed;
-   private @Nullable PipeEventItem.ItemEntry routingItemEntry;
-   private @Nullable PipeEventItem.Split routingSplit;
-   private @Nullable PipeEventItem.FindDest routingFindDest;
-   private @Nullable PipeEventItem.TryInsert routingTryInsert;
-   private @Nullable PipeEventItem.ReachEnd routingReachEnd;
+   private PipeEventItem.@Nullable ReachCenter routingReachCenter;
+   private PipeEventItem.@Nullable SideCheck routingSideCheck;
+   private PipeEventItem.@Nullable TryBounce routingTryBounce;
+   private PipeEventItem.@Nullable ModifySpeed routingModifySpeed;
+   private PipeEventItem.@Nullable ItemEntry routingItemEntry;
+   private PipeEventItem.@Nullable Split routingSplit;
+   private PipeEventItem.@Nullable FindDest routingFindDest;
+   private PipeEventItem.@Nullable TryInsert routingTryInsert;
+   private PipeEventItem.@Nullable ReachEnd routingReachEnd;
 
    public PipeFlowItems(IPipe pipe) {
       super(pipe);

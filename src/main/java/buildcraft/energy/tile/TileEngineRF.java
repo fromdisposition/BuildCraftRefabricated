@@ -24,7 +24,7 @@ import buildcraft.lib.tile.ItemHandlerSimple;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;

@@ -8,7 +8,7 @@ package buildcraft.transport.net;
 
 import buildcraft.lib.net.BcPacketDistributor;
 import buildcraft.lib.net.PlayerBatchQueue;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;

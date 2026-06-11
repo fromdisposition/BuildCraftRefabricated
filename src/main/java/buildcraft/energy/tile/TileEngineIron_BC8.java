@@ -6,6 +6,7 @@
 
 package buildcraft.energy.tile;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.fuels.BuildcraftFuelRegistry;
 import buildcraft.api.fuels.IFuel;
@@ -24,7 +25,7 @@ import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.transfer.fabric.TransferConvert;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -393,7 +394,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
       if (!fluidId.isEmpty()) {
          Identifier id = Identifier.tryParse(fluidId);
          if (id != null) {
-            Fluid fluid = (Fluid)BuiltInRegistries.FLUID.getValue(id);
+            Fluid fluid = Mc26Compat.getFluid(id);
             if (fluid != null && fluid != Fluids.EMPTY) {
                int amount = input.getIntOr(amountKey, 0);
                if (amount > 0) {

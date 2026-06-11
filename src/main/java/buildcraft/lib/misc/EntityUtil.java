@@ -7,7 +7,7 @@
 package buildcraft.lib.misc;
 
 import buildcraft.api.tools.IToolWrench;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;

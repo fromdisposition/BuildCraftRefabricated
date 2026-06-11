@@ -8,7 +8,7 @@ package buildcraft.lib.misc.collect;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class TypedMapDirect<V> implements TypedMap<V> {
    private final Map<Class<?>, V> internalMap = new HashMap<>();

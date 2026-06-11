@@ -6,7 +6,7 @@
 
 package buildcraft.lib.misc.collect;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class OrderedEnumMap<E extends Enum<E>> {
    private final byte[] indexes;

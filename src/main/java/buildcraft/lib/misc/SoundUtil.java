@@ -8,7 +8,7 @@ package buildcraft.lib.misc;
 
 import buildcraft.lib.common.SoundActions;
 import buildcraft.lib.fluids.FluidStack;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;

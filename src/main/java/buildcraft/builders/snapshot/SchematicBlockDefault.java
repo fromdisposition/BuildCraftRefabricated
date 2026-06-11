@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.SchematicBlockContext;
@@ -23,7 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -612,7 +613,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
          this.tileRotation = Rotation.NONE;
       }
 
-      this.placeBlock = (Block)BuiltInRegistries.BLOCK.getValue(Identifier.parse(nbt.getStringOr("placeBlock", "")));
+      this.placeBlock = Mc26Compat.getBlock(Identifier.parse(nbt.getStringOr("placeBlock", "")));
       NBTUtilBC.readCompoundList(nbt.get("updateBlockOffsets")).map(NBTUtilBC::readBlockPos).forEach(this.updateBlockOffsets::add);
       NBTUtilBC.readStringList(nbt.get("canBeReplacedWithBlocks"))
          .map(Identifier::parse)

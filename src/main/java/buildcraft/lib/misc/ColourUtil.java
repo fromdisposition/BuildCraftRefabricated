@@ -7,7 +7,7 @@
 package buildcraft.lib.misc;
 
 import buildcraft.lib.BCLibConfig;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;

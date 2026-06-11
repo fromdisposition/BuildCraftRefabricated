@@ -9,7 +9,7 @@ package buildcraft.lib.integration.jei;
 import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.misc.RegistryKeyUtil;
 import java.util.Optional;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;

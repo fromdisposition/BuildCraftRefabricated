@@ -9,7 +9,7 @@ package buildcraft.transport.pipe.flow;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.Direction;

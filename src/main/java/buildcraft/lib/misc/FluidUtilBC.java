@@ -16,7 +16,7 @@ import buildcraft.lib.transfer.fluid.FluidUtil;
 import buildcraft.lib.transfer.neighbor.NeighborTransfers;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;

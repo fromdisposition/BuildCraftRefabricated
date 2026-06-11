@@ -7,7 +7,7 @@
 package buildcraft.transport.pipe.flow;
 
 import buildcraft.api.transport.pipe.PipeFlow;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;

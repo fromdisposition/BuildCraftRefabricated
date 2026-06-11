@@ -7,20 +7,19 @@
 package buildcraft.energy.generation;
 
 import buildcraft.energy.BCEnergyConfig;
-import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.data.Box;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
- * Fast slice-only renderer for {@link OilDepositPlan}. Only writes into the decorating chunk bounds.
+ * Renders one chunk slice of an {@link OilDepositPlan}.
+ * Order: surface tendril → spring tube → underground sphere → geyser → spring block.
  */
 public final class OilSliceRenderer {
-   private static final int GEN_FLAGS = 0;
    private static final int OCEAN_SPREAD_CLEAR_HEIGHT = 5;
 
    private OilSliceRenderer() {
@@ -35,24 +34,59 @@ public final class OilSliceRenderer {
       boolean placed = false;
       boolean ownerSlice = sliceChunkX == plan.ownerChunkX && sliceChunkZ == plan.ownerChunkZ;
 
-      // BC 8.0: underground pool and spring feed before surface tendrils; spring tile last.
+      placed |= renderSurfacePattern(level, plan, sliceBounds);
+
       if (plan.wellY != null && plan.wellRadius != null) {
          if (plan.hasSpring && plan.springPos != null && ownerSlice) {
             placed |= renderSpringTube(level, plan, sliceBounds);
          }
-
          placed |= renderSphere(level, plan.anchorX, plan.wellY, plan.anchorZ, plan.wellRadius, sliceBounds);
-
-         if (BCEnergyConfig.enableOilSpouts.get()) {
+         if (BCEnergyConfig.enableOilSpouts.get() && plan.spoutSegmentHeight > 0) {
             placed |= renderSpout(level, plan, sliceBounds);
          }
-
          if (plan.hasSpring && plan.springPos != null && ownerSlice) {
             placed |= renderSpring(level, plan);
          }
       }
 
-      placed |= renderTendril(level, plan, sliceBounds);
+      return placed;
+   }
+
+   private static boolean renderSurfacePattern(WorldGenLevel level, OilDepositPlan plan, Box sliceBounds) {
+      Box patternBox = OilGenStructure.surfacePatternBounds(plan.patternStart, plan.surfacePattern, plan.surfaceCenterY);
+      Box intersect = patternBox.getIntersect(sliceBounds);
+      if (intersect == null) {
+         return false;
+      }
+
+      boolean placed = false;
+      int originX = plan.patternStart.getX();
+      int originZ = plan.patternStart.getZ();
+
+      for (int x = intersect.min().getX(); x <= intersect.max().getX(); x++) {
+         int px = x - originX;
+         for (int z = intersect.min().getZ(); z <= intersect.max().getZ(); z++) {
+            int pz = z - originZ;
+            if (!isPatternSet(plan.surfacePattern, px, pz)) {
+               continue;
+            }
+
+            BlockPos surface = OilGenStructure.resolvePatternColumn(level, plan.type, plan.surfacePlacement, x, z, plan.surfaceCenterY);
+            if (surface == null) {
+               continue;
+            }
+
+            int clear = plan.surfacePlacement == OilDepositPlan.SurfacePlacement.FLAT_LAND
+               ? OilGenStructure.landSpreadClearHeight()
+               : OCEAN_SPREAD_CLEAR_HEIGHT;
+            clearSpreadSpaceAbove(level, surface, clear);
+
+            if (placeOilIfInSlice(level, surface, sliceBounds)) {
+               placed = true;
+            }
+         }
+      }
+
       return placed;
    }
 
@@ -62,43 +96,7 @@ public final class OilSliceRenderer {
       return new Box(new BlockPos(baseX, level.getMinY(), baseZ), new BlockPos(baseX + 15, level.getMaxY(), baseZ + 15));
    }
 
-   private static boolean renderTendril(WorldGenLevel level, OilDepositPlan plan, Box sliceBounds) {
-      Box tendrilBox = OilGenStructure.tendrilBounds(plan.patternStart, plan.tendrilPattern, plan.tendrilDepth, plan.surfaceCenterY);
-      Box intersect = tendrilBox.getIntersect(sliceBounds);
-      if (intersect == null) {
-         return false;
-      }
-
-      boolean placed = false;
-      int patternOriginX = plan.patternStart.getX();
-      int patternOriginZ = plan.patternStart.getZ();
-
-      for (int x = intersect.min().getX(); x <= intersect.max().getX(); x++) {
-         int px = x - patternOriginX;
-
-         for (int z = intersect.min().getZ(); z <= intersect.max().getZ(); z++) {
-            int pz = z - patternOriginZ;
-            if (!isPatternSet(plan.tendrilPattern, px, pz)) {
-               continue;
-            }
-
-            BlockPos upper = OilGenStructure.findTerrainUpper(level, x, z);
-            clearSpreadSpaceAbove(level, upper, OCEAN_SPREAD_CLEAR_HEIGHT);
-
-            for (int y = 0; y < plan.tendrilDepth; y++) {
-               if (placeOilIfInSlice(level, upper.below(y), sliceBounds)) {
-                  placed = true;
-               }
-            }
-         }
-      }
-
-      return placed;
-   }
-
-   private static boolean renderSphere(
-      WorldGenLevel level, int centerX, int centerY, int centerZ, int radius, Box sliceBounds
-   ) {
+   private static boolean renderSphere(WorldGenLevel level, int centerX, int centerY, int centerZ, int radius, Box sliceBounds) {
       double radiusSq = radius * radius + 0.01;
       int minX = Math.max(sliceBounds.min().getX(), centerX - radius);
       int maxX = Math.min(sliceBounds.max().getX(), centerX + radius);
@@ -108,24 +106,18 @@ public final class OilSliceRenderer {
       int maxZ = Math.min(sliceBounds.max().getZ(), centerZ + radius);
 
       boolean placed = false;
-
       for (int y = minY; y <= maxY; y++) {
          int dy = y - centerY;
-
          for (int x = minX; x <= maxX; x++) {
             int dx = x - centerX;
-
             for (int z = minZ; z <= maxZ; z++) {
                int dz = z - centerZ;
-               if (dx * dx + dy * dy + dz * dz <= radiusSq) {
-                  if (placeOilIfInSlice(level, new BlockPos(x, y, z), sliceBounds)) {
-                     placed = true;
-                  }
+               if (dx * dx + dy * dy + dz * dz <= radiusSq && placeOilIfInSlice(level, new BlockPos(x, y, z), sliceBounds)) {
+                  placed = true;
                }
             }
          }
       }
-
       return placed;
    }
 
@@ -145,22 +137,17 @@ public final class OilSliceRenderer {
       int maxY = Math.min(sliceBounds.max().getY(), baseY + length);
 
       boolean placed = false;
-
       for (int y = minY; y <= maxY; y++) {
          for (int x = minX; x <= maxX; x++) {
             int dx = x - centerX;
-
             for (int z = minZ; z <= maxZ; z++) {
                int dz = z - centerZ;
-               if (dx * dx + dz * dz <= radiusSq) {
-                  if (placeOilIfInSlice(level, new BlockPos(x, y, z), sliceBounds)) {
-                     placed = true;
-                  }
+               if (dx * dx + dz * dz <= radiusSq && placeOilIfInSlice(level, new BlockPos(x, y, z), sliceBounds)) {
+                  placed = true;
                }
             }
          }
       }
-
       return placed;
    }
 
@@ -169,26 +156,25 @@ public final class OilSliceRenderer {
          return false;
       }
 
-      int anchorChunkX = plan.anchorX >> 4;
-      int anchorChunkZ = plan.anchorZ >> 4;
-      int sliceChunkX = sliceBounds.min().getX() >> 4;
-      int sliceChunkZ = sliceBounds.min().getZ() >> 4;
-      if (anchorChunkX != sliceChunkX || anchorChunkZ != sliceChunkZ) {
+      if ((plan.anchorX >> 4) != (sliceBounds.min().getX() >> 4) || (plan.anchorZ >> 4) != (sliceBounds.min().getZ() >> 4)) {
          return false;
       }
 
-      BlockPos start = new BlockPos(plan.anchorX, plan.wellY, plan.anchorZ);
-      boolean placed = false;
-      BlockPos worldTop = resolveSpoutSurface(level, start);
-      int tubeLen = Math.max(0, worldTop.getY() - start.getY());
-      placed |= renderVerticalTube(level, plan.anchorX, start.getY(), plan.anchorZ, tubeLen, plan.spoutRadius, sliceBounds);
+      Holder<Biome> biome = level.getBiome(new BlockPos(plan.anchorX, plan.wellY, plan.anchorZ));
+      BlockPos surface = OilGenStructure.resolveSpoutEmergence(level, biome, plan.anchorX, plan.anchorZ);
+      if (surface == null) {
+         return false;
+      }
 
-      BlockPos base = worldTop;
+      boolean placed = false;
+      int tubeLen = Math.max(0, surface.getY() - plan.wellY);
+      placed |= renderVerticalTube(level, plan.anchorX, plan.wellY, plan.anchorZ, tubeLen, plan.spoutRadius, sliceBounds);
+
+      BlockPos base = surface;
       for (int r = plan.spoutRadius; r >= 0; r--) {
          placed |= renderVerticalTube(level, base.getX(), base.getY(), base.getZ(), plan.spoutSegmentHeight, r, sliceBounds);
          base = base.offset(0, plan.spoutSegmentHeight, 0);
       }
-
       return placed;
    }
 
@@ -196,37 +182,16 @@ public final class OilSliceRenderer {
       if (plan.wellY == null) {
          return false;
       }
-
       int tubeBase = level.getMinY() + 2;
-      int tubeLen = Math.max(0, plan.wellY - tubeBase);
-      return renderVerticalTube(level, plan.anchorX, tubeBase, plan.anchorZ, tubeLen, plan.spoutRadius, sliceBounds);
+      return renderVerticalTube(level, plan.anchorX, tubeBase, plan.anchorZ, Math.max(0, plan.wellY - tubeBase), plan.spoutRadius, sliceBounds);
    }
 
    private static boolean renderSpring(WorldGenLevel level, OilDepositPlan plan) {
       if (plan.springPos == null) {
          return false;
       }
-
       OilGenerator.createSpring(plan.springPos).generate(level, plan.estimatedSourceCount);
       return true;
-   }
-
-   private static BlockPos resolveSpoutSurface(LevelAccessor level, BlockPos start) {
-      int topY = level.getMaxY();
-      if (level instanceof WorldGenLevel wg) {
-         // Match BC 8.0 semantics: stop at first non-air fluid/solid from world surface downward.
-         topY = Math.min(topY, wg.getHeight(Heightmap.Types.WORLD_SURFACE, start.getX(), start.getZ()));
-      }
-
-      for (int y = topY; y >= start.getY(); y--) {
-         BlockPos probe = new BlockPos(start.getX(), y, start.getZ());
-         BlockState state = level.getBlockState(probe);
-         if (!state.isAir() && (BlockUtil.getFluidWithFlowing(state.getBlock()) != null || BlockUtil.blocksMotion(state))) {
-            return probe;
-         }
-      }
-
-      return start;
    }
 
    private static void clearSpreadSpaceAbove(WorldGenLevel level, BlockPos surface, int height) {
@@ -234,7 +199,7 @@ public final class OilSliceRenderer {
          BlockPos above = surface.above(y);
          BlockState state = level.getBlockState(above);
          if (state.isAir() || state.canBeReplaced()) {
-            level.setBlock(above, Blocks.AIR.defaultBlockState(), GEN_FLAGS);
+            level.setBlock(above, Blocks.AIR.defaultBlockState(), OilGenStructure.GEN_FLAGS);
          }
       }
    }
@@ -243,7 +208,6 @@ public final class OilSliceRenderer {
       if (!sliceBounds.contains(pos)) {
          return false;
       }
-
       OilGenStructure.setOil(level, pos);
       return true;
    }

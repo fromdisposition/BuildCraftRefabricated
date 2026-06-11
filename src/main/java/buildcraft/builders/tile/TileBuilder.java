@@ -6,6 +6,7 @@
 
 package buildcraft.builders.tile;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.api.core.IPathProvider;
 import buildcraft.api.enums.EnumOptionalSnapshotType;
 import buildcraft.api.enums.EnumSnapshotType;
@@ -50,7 +51,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -527,7 +528,7 @@ public class TileBuilder
          if (!fluidId.isEmpty()) {
             Identifier id = Identifier.tryParse(fluidId);
             if (id != null) {
-               Fluid fluid = (Fluid)BuiltInRegistries.FLUID.getValue(id);
+               Fluid fluid = Mc26Compat.getFluid(id);
                if (fluid != null && fluid != Fluids.EMPTY) {
                   int amount = input.getIntOr("tank_" + i + "_amount", 0);
                   if (amount > 0) {

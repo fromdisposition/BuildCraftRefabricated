@@ -23,6 +23,7 @@ import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.fabric.BCEnergyFluidsFabric;
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluids.FluidStack;
@@ -34,7 +35,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -79,10 +80,10 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    public transient int renderCacheTexLight;
    public transient int renderCacheTexDark;
    public transient int renderCacheHeat;
-   private @Nullable PipeEventFluid.SideCheck routingFluidSideCheck;
-   private @Nullable PipeEventFluid.PreMoveToCentre routingPreMove;
-   private @Nullable PipeEventFluid.OnMoveToCentre routingOnMove;
-   private @Nullable PipeEventFluid.TryInsert routingTryInsert;
+   private PipeEventFluid.@Nullable SideCheck routingFluidSideCheck;
+   private PipeEventFluid.@Nullable PreMoveToCentre routingPreMove;
+   private PipeEventFluid.@Nullable OnMoveToCentre routingOnMove;
+   private PipeEventFluid.@Nullable TryInsert routingTryInsert;
    private final FluidPipeMovement.Host fluidMovementHost = new FluidPipeMovement.Host() {
       @Override
       public PipeFlowFluids flow() {
@@ -245,7 +246,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          String fluidId = nbt.getStringOr("fluid_id", "");
          if (!fluidId.isEmpty()) {
             Identifier fluidRL = Identifier.parse(fluidId);
-            Fluid fluid = (Fluid)BuiltInRegistries.FLUID.getValue(fluidRL);
+            Fluid fluid = Mc26Compat.getFluid(fluidRL);
             if (fluid != null && fluid != Fluids.EMPTY) {
                this.setFluid(new FluidStack(fluid, 1000));
             } else {
@@ -291,7 +292,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          String fluidId = nbt.getStringOr("fluid_id", "");
          if (!fluidId.isEmpty()) {
             Identifier fluidRL = Identifier.parse(fluidId);
-            Fluid fluid = (Fluid)BuiltInRegistries.FLUID.getValue(fluidRL);
+            Fluid fluid = Mc26Compat.getFluid(fluidRL);
             if (fluid != null && fluid != Fluids.EMPTY) {
                this.currentFluid = new FluidStack(fluid, 1000);
             } else {
@@ -722,7 +723,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          if (buffer.readBoolean()) {
             String fluidId = buffer.readUtf();
             Identifier fluidRL = Identifier.parse(fluidId);
-            Fluid fluid = (Fluid)BuiltInRegistries.FLUID.getValue(fluidRL);
+            Fluid fluid = Mc26Compat.getFluid(fluidRL);
             if (fluid != null && fluid != Fluids.EMPTY) {
                this.currentFluid = new FluidStack(fluid, 1000);
             }

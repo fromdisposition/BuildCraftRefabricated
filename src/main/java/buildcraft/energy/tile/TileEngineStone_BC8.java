@@ -6,6 +6,7 @@
 
 package buildcraft.energy.tile;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.MjAPI;
@@ -17,7 +18,7 @@ import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.transfer.handler.ItemStackResourceHandler;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
@@ -218,7 +219,7 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
       if (!fuelId.isEmpty()) {
          Identifier id = Identifier.tryParse(fuelId);
          if (id != null) {
-            Item item = (Item)BuiltInRegistries.ITEM.getValue(id);
+            Item item = Mc26Compat.getItem(id);
             int count = input.getIntOr("fuelCount", 1);
             if (item != null && item != Items.AIR) {
                this.fuelStack = new ItemStack(item, count);

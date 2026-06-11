@@ -6,6 +6,7 @@
 
 package buildcraft.transport.net;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
@@ -18,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -175,7 +176,7 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
          ItemStack stack;
          if (compact) {
             Identifier id = Identifier.parse(buf.readUtf());
-            Item item = (Item)BuiltInRegistries.ITEM.getValue(id);
+            Item item = Mc26Compat.getItem(id);
             stack = item == null ? ItemStack.EMPTY : new ItemStack(item);
          } else {
             stack = (ItemStack)ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);

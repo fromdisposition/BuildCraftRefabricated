@@ -1,5 +1,6 @@
 package buildcraft.fabric.fluid;
 
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -16,7 +17,24 @@ public class BcFluidBlock extends LiquidBlock {
 
    @Override
    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-      if (!(level instanceof ServerLevel)) {
+      // #region agent log
+      OilFluidDebugLog.log(
+         "BcFluidBlock.java:onPlace",
+         "oil block placed",
+         "H1",
+         Map.of(
+            "levelClass",
+            level.getClass().getSimpleName(),
+            "clientSide",
+            level.isClientSide(),
+            "isServerLevel",
+            level instanceof ServerLevel,
+            "pos",
+            pos.toShortString()
+         )
+      );
+      // #endregion
+      if (level.isClientSide()) {
          return;
       }
 

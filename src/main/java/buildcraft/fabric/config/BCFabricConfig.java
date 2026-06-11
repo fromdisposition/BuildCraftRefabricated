@@ -318,8 +318,8 @@ public final class BCFabricConfig {
       JsonObject energy = new JsonObject();
       energy.addProperty("enableRfEngine", false);
       energy.addProperty("enableMjDynamo", false);
-      energy.addProperty("enableOilOceanBiome", true);
-      energy.addProperty("enableOilDesertBiome", true);
+      energy.addProperty("enableOilOceanBiome", false);
+      energy.addProperty("enableOilDesertBiome", false);
       energy.addProperty("oilIsSticky", false);
       energy.addProperty("enableOilBurn", true);
       energy.addProperty("useRfNaming", false);

@@ -60,7 +60,7 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -413,9 +413,8 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       }
    }
 
-   @Nullable
    @Override
-   public IChunkLoadingTile.LoadType getLoadType() {
+   public IChunkLoadingTile.@Nullable LoadType getLoadType() {
       return IChunkLoadingTile.LoadType.HARD;
    }
 

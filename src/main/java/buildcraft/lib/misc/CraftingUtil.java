@@ -8,7 +8,7 @@ package buildcraft.lib.misc;
 
 import buildcraft.lib.tile.ItemHandlerSimple;
 import java.util.List;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.item.ItemStack;

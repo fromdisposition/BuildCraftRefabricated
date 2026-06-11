@@ -26,7 +26,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -49,8 +49,7 @@ public class TileElectronicLibrary extends BcBlockEntity implements MenuProvider
    public final ItemHandlerSimple invUpIn = this.itemManager
       .addInvHandler("upIn", 1, (slot, stack) -> stack.getItem() instanceof ItemSnapshot, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
    public final ItemHandlerSimple invUpOut = this.itemManager.addInvHandler("upOut", 1, ItemHandlerManager.EnumAccess.EXTRACT, EnumPipePart.VALUES);
-   @Nullable
-   public Snapshot.Key selected = null;
+   public Snapshot.@Nullable Key selected = null;
    public int progressDown = -1;
    public int progressUp = -1;
    private final Set<Player> watchingPlayers = new HashSet<>();

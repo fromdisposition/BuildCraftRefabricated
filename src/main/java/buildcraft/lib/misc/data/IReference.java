@@ -7,7 +7,7 @@
 package buildcraft.lib.misc.data;
 
 import buildcraft.api.core.IConvertable;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface IReference<T> {
    T get();

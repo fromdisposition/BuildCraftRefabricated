@@ -17,8 +17,8 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue oilIsSticky = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue enableRfEngine = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue enableMjDynamo = new BCCoreConfig.BooleanValue(false);
-   public static final BCCoreConfig.BooleanValue enableOilOceanBiome = new BCCoreConfig.BooleanValue(true);
-   public static final BCCoreConfig.BooleanValue enableOilDesertBiome = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue enableOilOceanBiome = new BCCoreConfig.BooleanValue(false);
+   public static final BCCoreConfig.BooleanValue enableOilDesertBiome = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue enableOilBurn = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue useRfNaming = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue useFullUnitNames = new BCCoreConfig.BooleanValue(true);
@@ -78,20 +78,11 @@ public class BCEnergyConfig {
    }
 
    public static Set<Identifier> getForceExcessiveOilBiomes() {
-      Set<Identifier> biomes = forceExcessiveOilBiomes.get().stream().<Identifier>map(Identifier::parse).collect(Collectors.toCollection(HashSet::new));
-      if (enableOilOceanBiome.get()) {
-         biomes.add(Identifier.parse("buildcraftenergy:oil_ocean"));
-      }
-
-      if (enableOilDesertBiome.get()) {
-         biomes.add(Identifier.parse("buildcraftenergy:oil_desert"));
-      }
-
-      return biomes;
+      return forceExcessiveOilBiomes.get().stream().<Identifier>map(Identifier::parse).collect(Collectors.toCollection(HashSet::new));
    }
 
    public static Set<Identifier> getSurfaceDepositBiomes() {
-      return surfaceDepositBiomes.get().stream().<Identifier>map(Identifier::parse).collect(Collectors.toSet());
+      return surfaceDepositBiomes.get().stream().<Identifier>map(Identifier::parse).collect(Collectors.toCollection(HashSet::new));
    }
 
    public static Set<Identifier> getRichSurfaceDepositBiomes() {

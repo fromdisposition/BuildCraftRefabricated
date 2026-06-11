@@ -9,7 +9,7 @@ package buildcraft.builders.snapshot;
 import buildcraft.lib.net.BcPacketDistributor;
 import buildcraft.lib.sync.ClientKeyedCache;
 import java.util.Arrays;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 
 public enum ClientArchitectPreviews {

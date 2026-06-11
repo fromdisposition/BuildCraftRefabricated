@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import org.apache.commons.lang3.tuple.Pair;
@@ -184,7 +184,7 @@ public class GlobalSavedDataSnapshots {
    }
 
    @Nullable
-   public Snapshot getSnapshot(@Nullable Snapshot.Key key) {
+   public Snapshot getSnapshot(Snapshot.@Nullable Key key) {
       return key == null ? null : this.snapshotsCache.getUnchecked(key).orElse(null);
    }
 

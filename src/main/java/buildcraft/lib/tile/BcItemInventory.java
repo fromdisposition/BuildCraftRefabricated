@@ -6,6 +6,7 @@
 
 package buildcraft.lib.tile;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.lib.inventory.AbstractInvItemTransactor;
 import buildcraft.lib.misc.INBTSerializable;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -415,7 +416,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
             String idStr = itemNbt.getString("id").orElse("");
             Identifier id = Identifier.tryParse(idStr);
             if (id != null) {
-               Item item = (Item)BuiltInRegistries.ITEM.getValue(id);
+               Item item = Mc26Compat.getItem(id);
                int count = itemNbt.getInt("count").orElse(1);
                if (item != null && item != Items.AIR) {
                   stack = new ItemStack(item, count);

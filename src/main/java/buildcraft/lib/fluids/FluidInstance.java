@@ -17,6 +17,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluid;
 
 public interface FluidInstance extends TypedInstance<Fluid>, DataComponentGetter {
@@ -29,7 +30,7 @@ public interface FluidInstance extends TypedInstance<Fluid>, DataComponentGetter
    StreamCodec<RegistryFriendlyByteBuf, Holder<Fluid>> FLUID_HOLDER_STREAM_CODEC = ByteBufCodecs.holderRegistry(Registries.FLUID);
    Codec<Holder<Fluid>> FLUID_HOLDER_CODEC_WITH_BOUND_COMPONENTS = FLUID_HOLDER_CODEC.validate(
       fluid -> !fluid.areComponentsBound()
-         ? DataResult.error(() -> "Fluid " + fluid.getRegisteredName() + " does not have components yet")
+         ? DataResult.error(() -> "Fluid " + Mc26Compat.registryId(fluid).map(Identifier::toString).orElse("unknown") + " does not have components yet")
          : DataResult.success(fluid)
    );
 

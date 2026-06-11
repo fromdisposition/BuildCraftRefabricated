@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.fabric.loader.FabricModResources;
 import buildcraft.lib.misc.JsonUtil;
 import com.google.common.cache.CacheBuilder;
@@ -105,7 +106,7 @@ public class RulesLoader {
                      base -> {
                         boolean complex = base.contains("[");
                         Identifier blockId = Identifier.parse(complex ? base.substring(0, base.indexOf("[")) : base);
-                        Block block = (Block)BuiltInRegistries.BLOCK.getValue(blockId);
+                        Block block = Mc26Compat.getBlock(blockId);
                         return block == blockState.getBlock()
                            && (
                               !complex

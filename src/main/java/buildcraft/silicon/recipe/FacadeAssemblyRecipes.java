@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.recipe;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.AssemblyRecipe;
 import buildcraft.api.recipes.IngredientStack;
@@ -133,7 +134,7 @@ public class FacadeAssemblyRecipes extends AssemblyRecipe implements IRecipeView
    }
 
    private static ItemStack baseRequirementStack() {
-      Item pipe = (Item)BuiltInRegistries.ITEM.getValue(Identifier.parse("buildcrafttransport:pipe_structure"));
+      Item pipe = Mc26Compat.getItem(Identifier.parse("buildcrafttransport:pipe_structure"));
       return pipe == Items.AIR ? new ItemStack(Items.COBBLESTONE_WALL) : new ItemStack(pipe, 3);
    }
 

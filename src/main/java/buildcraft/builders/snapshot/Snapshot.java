@@ -16,7 +16,7 @@ import buildcraft.lib.misc.data.Box;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -252,8 +252,7 @@ public abstract class Snapshot {
 
    public static class Key {
       public final byte[] hash;
-      @Nullable
-      public final Snapshot.Header header;
+      public final Snapshot.@Nullable Header header;
 
       public Key() {
          this.hash = new byte[0];
@@ -265,7 +264,7 @@ public abstract class Snapshot {
          this.header = oldKey.header;
       }
 
-      public Key(Snapshot.Key oldKey, @Nullable Snapshot.Header header) {
+      public Key(Snapshot.Key oldKey, Snapshot.@Nullable Header header) {
          this.hash = oldKey.hash;
          this.header = header;
       }

@@ -8,7 +8,7 @@ package buildcraft.lib.tile;
 
 import buildcraft.lib.fabric.transfer.FabricItemStorageProvider;
 import buildcraft.lib.misc.INBTSerializable;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.nbt.CompoundTag;

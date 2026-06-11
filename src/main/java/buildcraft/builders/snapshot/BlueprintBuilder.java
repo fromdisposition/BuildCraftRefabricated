@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.ISchematicEntity;
@@ -286,7 +287,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                   return FluidStack.EMPTY;
                }
 
-               Fluid fluid = (Fluid)BuiltInRegistries.FLUID.getValue(id);
+               Fluid fluid = Mc26Compat.getFluid(id);
                return fluid != null && fluid != Fluids.EMPTY ? new FluidStack(fluid, amount) : FluidStack.EMPTY;
             } else {
                return FluidStack.EMPTY;

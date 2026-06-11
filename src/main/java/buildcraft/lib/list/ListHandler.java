@@ -6,6 +6,7 @@
 
 package buildcraft.lib.list;
 
+import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.api.lists.ListMatchHandler;
 import buildcraft.api.lists.ListRegistry;
 import buildcraft.lib.misc.NBTUtilBC;
@@ -283,7 +284,7 @@ public final class ListHandler {
                         int count = itemTag.getInt("count").orElse(1);
                         Identifier id = Identifier.tryParse(itemId);
                         if (id != null) {
-                           Item item = (Item)BuiltInRegistries.ITEM.getValue(id);
+                           Item item = Mc26Compat.getItem(id);
                            if (item != null && item != Items.AIR) {
                               line.stacks.set(i, new ItemStack(item, count));
                            }

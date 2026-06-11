@@ -12,8 +12,8 @@ import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
 /**
- * Vanilla {@link Feature} hook for oil deposits. Geometry is defined in {@link buildcraft.energy.generation.OilGenStructure};
- * {@link OilGenerator} uses BC 8.0 slice placement: owner chunk at center, geometry clipped per decorating chunk.
+ * Fabric feature entry: one invocation per overworld chunk during {@code UNDERGROUND_DECORATION}.
+ * Delegates to {@link OilGenerator#placeForChunk} with the chunk center as origin.
  */
 public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
    public OilDepositFeature(Codec<NoneFeatureConfiguration> codec) {
@@ -34,6 +34,6 @@ public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
       int chunkX = context.origin().getX() >> 4;
       int chunkZ = context.origin().getZ() >> 4;
       BlockPos chunkAnchor = new BlockPos(OilGenerator.chunkCenterBlockX(chunkX), 0, OilGenerator.chunkCenterBlockZ(chunkZ));
-      return OilGenerator.placeForChunk(level, chunkAnchor, context.random());
+      return OilGenerator.placeForChunk(level, chunkAnchor);
    }
 }

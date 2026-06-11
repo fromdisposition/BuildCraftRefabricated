@@ -3,7 +3,7 @@ package buildcraft.lib.fabric;
 import com.mojang.serialization.DynamicOps;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
+import java.util.Optional;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -12,21 +12,50 @@ import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.ComposterBlock;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import org.jspecify.annotations.Nullable;
 
 public final class Mc26Compat {
    private static final Map<Fluid, Item> FLUID_BUCKET_CACHE = new IdentityHashMap<>();
+   private static final Identifier UNKNOWN_BIOME = Identifier.parse("minecraft:plains");
 
    private Mc26Compat() {
+   }
+
+   public static Identifier biomeId(Holder<Biome> biome) {
+      return registryId(biome).orElse(UNKNOWN_BIOME);
+   }
+
+   public static Optional<Identifier> registryId(Holder<?> holder) {
+      return holder.unwrapKey().map(ResourceKey::identifier);
+   }
+
+   @Nullable
+   public static Fluid getFluid(Identifier id) {
+      return BuiltInRegistries.FLUID.get(id).map(Holder::value).orElse(null);
+   }
+
+   @Nullable
+   public static Item getItem(Identifier id) {
+      return BuiltInRegistries.ITEM.get(id).map(Holder::value).orElse(null);
+   }
+
+   @Nullable
+   public static Block getBlock(Identifier id) {
+      return BuiltInRegistries.BLOCK.get(id).map(Holder::value).orElse(null);
    }
 
    public static Fluid bucketFluid(BucketItem bucket) {

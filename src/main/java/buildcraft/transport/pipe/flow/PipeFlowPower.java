@@ -26,7 +26,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.function.ToLongFunction;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.AxisDirection;
 import net.minecraft.nbt.CompoundTag;

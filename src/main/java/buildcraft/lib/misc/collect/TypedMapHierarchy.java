@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class TypedMapHierarchy<V> implements TypedMap<V> {
    private final Map<Class<?>, TypedMapHierarchy.Node<?>> nodes = new HashMap<>();
@@ -34,8 +34,7 @@ public class TypedMapHierarchy<V> implements TypedMap<V> {
       node.setValue(value);
    }
 
-   @Nullable
-   private TypedMapHierarchy.Node<?> getNode(Class<?> clazz) {
+   private TypedMapHierarchy.@Nullable Node<?> getNode(Class<?> clazz) {
       return this.nodes.get(clazz);
    }
 

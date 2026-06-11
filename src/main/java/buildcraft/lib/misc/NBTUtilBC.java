@@ -13,7 +13,7 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -164,7 +164,7 @@ public class NBTUtilBC {
             return ItemStack.EMPTY;
          } else {
             Identifier itemId = Identifier.parse(idStr);
-            Item item = (Item)BuiltInRegistries.ITEM.getValue(itemId);
+            Item item = Mc26Compat.getItem(itemId);
             if (item != null && item != Items.AIR) {
                int count = nbt.getIntOr("count", 1);
                return new ItemStack(item, count);

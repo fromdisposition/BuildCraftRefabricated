@@ -9,7 +9,7 @@ package buildcraft.lib.misc;
 import buildcraft.api.core.IBox;
 import buildcraft.lib.misc.data.Box;
 import java.util.Collection;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
