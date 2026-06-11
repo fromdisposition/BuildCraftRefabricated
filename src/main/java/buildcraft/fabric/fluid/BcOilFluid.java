@@ -144,16 +144,6 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
 
    @Override
    public void spreadTo(LevelAccessor level, BlockPos pos, BlockState state, Direction direction, FluidState target) {
-      // #region agent log
-      if (level instanceof ServerLevel serverLevel && serverLevel.getGameTime() % 200 == 0L) {
-         OilFluidDebugLog.log(
-            "BcOilFluid.java:spreadTo",
-            "oil spread attempt",
-            "H2",
-            Map.of("levelClass", level.getClass().getSimpleName(), "pos", pos.toShortString(), "dir", direction.name())
-         );
-      }
-      // #endregion
       if (BcLiquidFluidPhysics.blocksSpreadInto(state, state.getFluidState())) {
          return;
       }

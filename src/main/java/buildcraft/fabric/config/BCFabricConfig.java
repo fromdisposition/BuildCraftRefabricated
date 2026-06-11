@@ -231,8 +231,20 @@ public final class BCFabricConfig {
          BCEnergyConfig.oilWellGenerationRate.set(doubleVal(energy, "oilWellGenerationRate", BCEnergyConfig.oilWellGenerationRate.get()));
          BCEnergyConfig.enableOilSpouts.set(bool(energy, "enableOilSpouts", BCEnergyConfig.enableOilSpouts.get()));
          BCEnergyConfig.spawnOilSprings.set(bool(energy, "spawnOilSprings", BCEnergyConfig.spawnOilSprings.get()));
-         BCEnergyConfig.finiteSpoutMinHeight.set(intVal(energy, "finiteSpoutMinHeight", BCEnergyConfig.finiteSpoutMinHeight.get()));
-         BCEnergyConfig.finiteSpoutMaxHeight.set(intVal(energy, "finiteSpoutMaxHeight", BCEnergyConfig.finiteSpoutMaxHeight.get()));
+         BCEnergyConfig.smallSpoutMinHeight.set(
+            intVal(
+               energy,
+               "smallSpoutMinHeight",
+               intVal(energy, "finiteSpoutMinHeight", BCEnergyConfig.smallSpoutMinHeight.get())
+            )
+         );
+         BCEnergyConfig.smallSpoutMaxHeight.set(
+            intVal(
+               energy,
+               "smallSpoutMaxHeight",
+               intVal(energy, "finiteSpoutMaxHeight", BCEnergyConfig.smallSpoutMaxHeight.get())
+            )
+         );
          BCEnergyConfig.largeSpoutMinHeight.set(intVal(energy, "largeSpoutMinHeight", BCEnergyConfig.largeSpoutMinHeight.get()));
          BCEnergyConfig.largeSpoutMaxHeight.set(intVal(energy, "largeSpoutMaxHeight", BCEnergyConfig.largeSpoutMaxHeight.get()));
          BCEnergyConfig.mediumOilGenProb.set(percentVal(energy, "mediumOilGenProb", BCEnergyConfig.mediumOilGenProb.get()));
@@ -318,8 +330,8 @@ public final class BCFabricConfig {
       JsonObject energy = new JsonObject();
       energy.addProperty("enableRfEngine", false);
       energy.addProperty("enableMjDynamo", false);
-      energy.addProperty("enableOilOceanBiome", false);
-      energy.addProperty("enableOilDesertBiome", false);
+      energy.addProperty("enableOilOceanBiome", true);
+      energy.addProperty("enableOilDesertBiome", true);
       energy.addProperty("oilIsSticky", false);
       energy.addProperty("enableOilBurn", true);
       energy.addProperty("useRfNaming", false);
@@ -328,14 +340,14 @@ public final class BCFabricConfig {
       energy.addProperty("oilWellGenerationRate", 1.0);
       energy.addProperty("enableOilSpouts", true);
       energy.addProperty("spawnOilSprings", true);
-      energy.addProperty("finiteSpoutMinHeight", 6);
-      energy.addProperty("finiteSpoutMaxHeight", 12);
+      energy.addProperty("smallSpoutMinHeight", 6);
+      energy.addProperty("smallSpoutMaxHeight", 12);
       energy.addProperty("largeSpoutMinHeight", 10);
       energy.addProperty("largeSpoutMaxHeight", 20);
       energy.addProperty("mediumOilGenProb", 0.1);
       energy.addProperty("largeOilGenProb", 0.04);
       energy.addProperty("smallOilGenProb", 2.0);
-      energy.add("forceExcessiveOilBiomes", GSON.toJsonTree(List.of()));
+      energy.add("forceExcessiveOilBiomes", GSON.toJsonTree(List.of("buildcraftenergy:oil_desert", "buildcraftenergy:oil_ocean")));
       energy.add("richSurfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getRichSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
       energy.add("surfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
       energy.add(

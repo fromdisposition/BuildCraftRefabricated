@@ -17,8 +17,8 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue oilIsSticky = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue enableRfEngine = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue enableMjDynamo = new BCCoreConfig.BooleanValue(false);
-   public static final BCCoreConfig.BooleanValue enableOilOceanBiome = new BCCoreConfig.BooleanValue(false);
-   public static final BCCoreConfig.BooleanValue enableOilDesertBiome = new BCCoreConfig.BooleanValue(false);
+   public static final BCCoreConfig.BooleanValue enableOilOceanBiome = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue enableOilDesertBiome = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableOilBurn = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue useRfNaming = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue useFullUnitNames = new BCCoreConfig.BooleanValue(true);
@@ -26,14 +26,18 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.DoubleValue oilWellGenerationRate = new BCCoreConfig.DoubleValue(1.0);
    public static final BCCoreConfig.BooleanValue enableOilSpouts = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue spawnOilSprings = new BCCoreConfig.BooleanValue(true);
-   public static final BCCoreConfig.IntValue finiteSpoutMinHeight = new BCCoreConfig.IntValue(6);
-   public static final BCCoreConfig.IntValue finiteSpoutMaxHeight = new BCCoreConfig.IntValue(12);
+   public static final BCCoreConfig.IntValue smallSpoutMinHeight = new BCCoreConfig.IntValue(6);
+   public static final BCCoreConfig.IntValue smallSpoutMaxHeight = new BCCoreConfig.IntValue(12);
+   public static final BCCoreConfig.IntValue finiteSpoutMinHeight = smallSpoutMinHeight;
+   public static final BCCoreConfig.IntValue finiteSpoutMaxHeight = smallSpoutMaxHeight;
    public static final BCCoreConfig.IntValue largeSpoutMinHeight = new BCCoreConfig.IntValue(10);
    public static final BCCoreConfig.IntValue largeSpoutMaxHeight = new BCCoreConfig.IntValue(20);
    public static final BCCoreConfig.DoubleValue mediumOilGenProb = new BCCoreConfig.DoubleValue(0.001);
    public static final BCCoreConfig.DoubleValue largeOilGenProb = new BCCoreConfig.DoubleValue(4.0E-4);
    public static final BCCoreConfig.DoubleValue smallOilGenProb = new BCCoreConfig.DoubleValue(0.02);
-   public static final BCCoreConfig.StringListValue forceExcessiveOilBiomes = new BCCoreConfig.StringListValue(List.of());
+   public static final BCCoreConfig.StringListValue forceExcessiveOilBiomes = new BCCoreConfig.StringListValue(
+      List.of("buildcraftenergy:oil_desert", "buildcraftenergy:oil_ocean")
+   );
    /** Biomes flagged for oil-themed world design (advancements); BC 8.0 spawn rolls do not special-case these. */
    public static final BCCoreConfig.StringListValue richSurfaceDepositBiomes = new BCCoreConfig.StringListValue(
       List.of("minecraft:desert", "minecraft:badlands", "minecraft:wooded_badlands")

@@ -9,6 +9,7 @@ import buildcraft.energy.BCEnergyFeatures;
 import buildcraft.energy.BCEnergyFluids;
 import buildcraft.energy.BCEnergyItems;
 import buildcraft.energy.BCEnergyMenuTypes;
+import buildcraft.energy.BCEnergyWorldGen;
 import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
 import buildcraft.energy.tile.TileEngineRF;
@@ -33,6 +34,7 @@ public final class BCEnergyFabric {
       registerNativeTransfer();
       EnumSpring.OIL.liquidBlock = BCEnergyFluidsFabric.sourceBlockState(BCEnergyFluidsFabric.OIL_COOL);
       applySpringOilConfig();
+      BCEnergyWorldGen.init();
       BCEnergyFeatures.register();
    }
 
@@ -40,6 +42,7 @@ public final class BCEnergyFabric {
       BCEnergyFluidsFabric.reapplyConfigProperties();
       BCEnergyFluids.refreshSnapshot();
       applySpringOilConfig();
+      BCEnergyWorldGen.init();
    }
 
    private static void applySpringOilConfig() {

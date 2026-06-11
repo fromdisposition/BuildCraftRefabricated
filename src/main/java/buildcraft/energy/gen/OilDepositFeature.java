@@ -33,7 +33,7 @@ public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
 
       int chunkX = context.origin().getX() >> 4;
       int chunkZ = context.origin().getZ() >> 4;
-      BlockPos chunkAnchor = new BlockPos(OilGenerator.chunkCenterBlockX(chunkX), 0, OilGenerator.chunkCenterBlockZ(chunkZ));
+      BlockPos chunkAnchor = new BlockPos((chunkX << 4) + 8, 0, (chunkZ << 4) + 8);
       return OilGenerator.placeForChunk(level, chunkAnchor);
    }
 }
