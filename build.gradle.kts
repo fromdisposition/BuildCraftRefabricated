@@ -216,6 +216,10 @@ java {
     targetCompatibility = JavaVersion.VERSION_25
 }
 
+tasks.named<Jar>("sourcesJar") {
+    dependsOn("runDatagen")
+}
+
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
