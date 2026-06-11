@@ -1,5 +1,7 @@
 package buildcraft.energy.generation;
 
+import buildcraft.core.BCCoreConfig;
+import buildcraft.energy.BCEnergyConfig;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.PositionUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -32,6 +34,10 @@ public final class FineRichesTracker {
       }
 
       if (hasFineRiches(player)) {
+         return;
+      }
+
+      if (!BCCoreConfig.worldGen.get() || !BCEnergyConfig.enableOilGeneration.get()) {
          return;
       }
 

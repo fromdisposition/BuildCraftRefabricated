@@ -9,20 +9,15 @@ package buildcraft.energy.generation;
 import buildcraft.api.core.BCDebugging;
 import buildcraft.api.core.BCLog;
 import buildcraft.core.BCCoreBlocks;
-import buildcraft.energy.BCEnergyConfig;
 import buildcraft.lib.fabric.Mc26Compat;
-import buildcraft.lib.misc.RandUtil;
-import buildcraft.lib.misc.RegistryKeyUtil;
 import buildcraft.lib.misc.data.Box;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.ChunkPos;
@@ -33,7 +28,6 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
 
 public final class OilGenerator {
-   private static final long MAGIC_GEN_NUMBER = 0xD0_46_B4_E4_0C_7D_07_CFL;
    /** BC 8.0 scans ±5 chunks so overlapping wells are stitched into the decorating chunk. */
    private static final int MAX_CHUNK_RADIUS = 5;
    /** Max horizontal reach: tendril radius 44 + in-chunk offset 8. */
@@ -58,7 +52,7 @@ public final class OilGenerator {
       if (level.getChunkSource().getGenerator() instanceof FlatLevelSource) {
          return false;
       }
-      return !isDimensionExcluded(level.dimension());
+      return !OilGenSettings.current().isDimensionExcluded(level.dimension());
    }
 
    public static boolean isOilDesignBiome(Identifier biomeId) {
@@ -160,17 +154,14 @@ public final class OilGenerator {
 
    private static List<OilGenStructure> computeStructures(LevelAccessor level, int cx, int cz, boolean log, OilGenSettings config) {
       long seed = level instanceof ServerLevel serverLevel ? serverLevel.getSeed() : level instanceof WorldGenLevel wg ? wg.getSeed() : 0L;
-      Random rand = RandUtil.createRandomForChunk(seed, cx, cz, MAGIC_GEN_NUMBER);
+      BcChunkRandom rand = BcChunkRandom.forOilOriginChunk(seed, cx, cz);
       int x = cx * 16 + 8 + rand.nextInt(16);
       int z = cz * 16 + 8 + rand.nextInt(16);
       Holder<Biome> biome = resolveBiome(level, x, z);
       Identifier vanillaBiomeId = biomeId(biome);
-      Identifier biomeId = vanillaBiomeId;
-      if (level instanceof WorldGenLevel worldGenLevel) {
-         biomeId = OilBiomePatches.effectiveBiomeId(worldGenLevel.getLevel(), x, z, biome, biomeId);
-      } else if (level instanceof ServerLevel serverLevel) {
-         biomeId = OilBiomePatches.effectiveBiomeId(serverLevel, x, z, biome, biomeId);
-      }
+      OilPatchSampler.Sample biomeSample = sampleBiome(level, x, z, biome, vanillaBiomeId);
+      Identifier biomeId = biomeSample.effectiveBiomeId();
+      OilPatchKind patchKind = biomeSample.patchKind();
 
       if (config.isBiomeExcluded(biomeId)) {
          if (DEBUG_OILGEN_BASIC && log) {
@@ -186,11 +177,11 @@ public final class OilGenerator {
          return List.of();
       }
 
-      if (!config.enableOilOnWater() && OilSpawnRoll.isOceanOil(biome, biomeId)) {
+      if (!config.enableOilOnWater() && OilSpawnRoll.isOceanOil(biome, patchKind)) {
          return List.of();
       }
 
-      OilSpawnRoll.Tier tier = OilSpawnRoll.resolveTier(biomeId, vanillaBiomeId, config);
+      OilSpawnRoll.Tier tier = OilSpawnRoll.resolveTier(patchKind, vanillaBiomeId, biomeId, config);
       double spawnChance = OilSpawnRoll.spawnChanceFraction(tier, config);
       if (rand.nextDouble() >= spawnChance) {
          if (DEBUG_OILGEN_ALL && log) {
@@ -288,7 +279,7 @@ public final class OilGenerator {
       return new OilGenStructure.Sphere(center, radius, OilGenStructure.ReplaceType.ALWAYS);
    }
 
-   static OilGenStructure createTendril(BlockPos center, int lakeRadius, int radius, Random rand) {
+   static OilGenStructure createTendril(BlockPos center, int lakeRadius, int radius, BcChunkRandom rand) {
       BlockPos start = center.offset(-radius, 0, -radius);
       int diameter = radius * 2 + 1;
       boolean[][] pattern = new boolean[diameter][diameter];
@@ -321,7 +312,7 @@ public final class OilGenerator {
       return OilGenStructure.PatternTerrainHeight.create(start, OilGenStructure.ReplaceType.ALWAYS, pattern, depth);
    }
 
-   private static void fillPatternIfProba(Random rand, float proba, int x, int z, boolean[][] pattern) {
+   private static void fillPatternIfProba(BcChunkRandom rand, float proba, int x, int z, boolean[][] pattern) {
       if (rand.nextFloat() <= proba) {
          pattern[x][z] = isSet(pattern, x, z - 1)
             | isSet(pattern, x, z + 1)
@@ -351,11 +342,6 @@ public final class OilGenerator {
          && target.min().getZ() <= extMaxZ;
    }
 
-   private static boolean isDimensionExcluded(ResourceKey<Level> dimKey) {
-      boolean inList = BCEnergyConfig.getExcludedDimensions().contains(RegistryKeyUtil.id(dimKey));
-      return BCEnergyConfig.dimensionListMode.get() == BCEnergyConfig.ListMode.BLACKLIST ? inList : !inList;
-   }
-
    private static Identifier biomeId(Holder<Biome> biome) {
       return Mc26Compat.biomeId(biome);
    }
@@ -377,6 +363,18 @@ public final class OilGenerator {
          return worldGenLevel.getUncachedNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(0), QuartPos.fromBlock(z));
       }
       return level.getBiome(new BlockPos(x, 0, z));
+   }
+
+   private static OilPatchSampler.Sample sampleBiome(
+      LevelAccessor level, int x, int z, Holder<Biome> biome, Identifier vanillaBiomeId
+   ) {
+      if (level instanceof WorldGenLevel worldGenLevel) {
+         return OilPatchSampler.sample(worldGenLevel.getLevel(), x, z, biome, vanillaBiomeId);
+      }
+      if (level instanceof ServerLevel serverLevel) {
+         return OilPatchSampler.sample(serverLevel, x, z, biome, vanillaBiomeId);
+      }
+      return new OilPatchSampler.Sample(vanillaBiomeId, OilPatchKind.NONE);
    }
 
 }

@@ -31,6 +31,9 @@
       "buildcraft.energy.integration.jei.BCEnergyJeiPlugin",
       "buildcraft.factory.integration.jei.BCFactoryJeiPlugin",
       "buildcraft.silicon.integration.jei.BCSiliconJeiPlugin"
+    ],
+    "fabric-datagen": [
+      "buildcraft.energy.generation.datagen.BuildCraftDataGenerator"
     ]
   },
   "mixins": [

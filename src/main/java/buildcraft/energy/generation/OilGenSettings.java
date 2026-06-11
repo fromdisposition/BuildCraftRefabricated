@@ -1,9 +1,12 @@
 package buildcraft.energy.generation;
 
 import buildcraft.energy.BCEnergyConfig;
+import buildcraft.lib.misc.RegistryKeyUtil;
 import java.util.HashSet;
 import java.util.Set;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 
 record OilGenSettings(
    Set<Identifier> richBiomes,
@@ -11,6 +14,8 @@ record OilGenSettings(
    Set<Identifier> designBiomes,
    Set<Identifier> excludedBiomes,
    boolean biomeListIsBlacklist,
+   Set<Identifier> excludedDimensions,
+   boolean dimensionListIsBlacklist,
    double spawnChancePercentNormal,
    double spawnChancePercentRich,
    double spawnChancePercentOilPatch,
@@ -59,6 +64,11 @@ record OilGenSettings(
       return designBiomes.contains(biomeId);
    }
 
+   boolean isDimensionExcluded(ResourceKey<Level> dimension) {
+      boolean inList = excludedDimensions.contains(RegistryKeyUtil.id(dimension));
+      return dimensionListIsBlacklist ? inList : !inList;
+   }
+
    private static OilGenSettings capture() {
       Set<Identifier> design = new HashSet<>(BCEnergyConfig.getForceExcessiveOilBiomes());
       design.add(OilBiomePatches.OIL_OCEAN);
@@ -71,6 +81,8 @@ record OilGenSettings(
          design,
          BCEnergyConfig.getExcludedBiomes(),
          BCEnergyConfig.biomeListMode.get() == BCEnergyConfig.ListMode.BLACKLIST,
+         BCEnergyConfig.getExcludedDimensions(),
+         BCEnergyConfig.dimensionListMode.get() == BCEnergyConfig.ListMode.BLACKLIST,
          BCEnergyConfig.oilSpawnChancePercentNormal.get(),
          BCEnergyConfig.oilSpawnChancePercentRich.get(),
          BCEnergyConfig.oilSpawnChancePercentOilPatch.get(),

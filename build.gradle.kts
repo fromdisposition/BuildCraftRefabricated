@@ -24,6 +24,12 @@ loom {
     }
 }
 
+fabricApi {
+    configureDataGeneration {
+        client = true
+    }
+}
+
 // Loader-specific hooks live in buildcraft.lib.fabric.* and buildcraft.fabric.*
 
 dependencies {

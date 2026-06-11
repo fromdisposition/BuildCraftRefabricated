@@ -1,5 +1,5 @@
 package buildcraft.energy.generation;
-import java.util.Random;
+
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BiomeTags;
@@ -23,12 +23,12 @@ final class OilSpawnRoll {
    private OilSpawnRoll() {
    }
 
-   static boolean isOceanOil(Holder<Biome> biome, Identifier effectiveBiome) {
-      return biome.is(BiomeTags.IS_OCEAN) || OilBiomePatches.OIL_OCEAN.equals(effectiveBiome);
+   static boolean isOceanOil(Holder<Biome> biome, OilPatchKind patchKind) {
+      return biome.is(BiomeTags.IS_OCEAN) || patchKind == OilPatchKind.OCEAN;
    }
 
-   static Tier resolveTier(Identifier effectiveBiome, Identifier vanillaBiome, OilGenSettings config) {
-      if (OilBiomePatches.OIL_OCEAN.equals(effectiveBiome) || OilBiomePatches.OIL_DESERT.equals(effectiveBiome)) {
+   static Tier resolveTier(OilPatchKind patchKind, Identifier vanillaBiome, Identifier effectiveBiome, OilGenSettings config) {
+      if (patchKind.isPatch()) {
          return Tier.OIL_PATCH;
       }
       if (config.richBiomes().contains(vanillaBiome) || config.richBiomes().contains(effectiveBiome)) {
@@ -59,7 +59,7 @@ final class OilSpawnRoll {
       LAKE
    }
 
-   static DepositType rollDepositType(Random rand, Tier tier, OilGenSettings config) {
+   static DepositType rollDepositType(BcChunkRandom rand, Tier tier, OilGenSettings config) {
       int large = Math.max(0, config.typeWeightLarge());
       int medium = Math.max(0, config.typeWeightMedium());
       int lake = tier == Tier.NORMAL ? 0 : Math.max(0, config.typeWeightLake());
