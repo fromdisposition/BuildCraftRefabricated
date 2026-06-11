@@ -41,7 +41,7 @@ final class BCEnergyStructuresBootstrap {
          biomes,
          BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT,
          pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_DESERT_START),
-         BCEnergyBiomeTags.OIL_PATCH_DESERT,
+         BCEnergyBiomeTags.OIL_DESERT,
          OilStructureSpawnConditions.Tier.PATCH_DESERT
       );
       registerTier(
@@ -49,7 +49,7 @@ final class BCEnergyStructuresBootstrap {
          biomes,
          BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN,
          pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_OCEAN_START),
-         BCEnergyBiomeTags.OIL_PATCH_OCEAN,
+         BCEnergyBiomeTags.OIL_OCEAN,
          OilStructureSpawnConditions.Tier.PATCH_OCEAN
       );
 

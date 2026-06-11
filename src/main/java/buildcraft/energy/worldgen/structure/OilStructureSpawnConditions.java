@@ -59,8 +59,8 @@ public final class OilStructureSpawnConditions {
          return false;
       }
 
-      boolean desert = biome.is(BCEnergyBiomeTags.OIL_PATCH_DESERT);
-      boolean ocean = biome.is(BCEnergyBiomeTags.OIL_PATCH_OCEAN);
+      boolean desert = biome.is(BCEnergyBiomeTags.OIL_DESERT);
+      boolean ocean = biome.is(BCEnergyBiomeTags.OIL_OCEAN);
       if (!desert && !ocean) {
          return false;
       }
@@ -79,8 +79,8 @@ public final class OilStructureSpawnConditions {
          return false;
       }
 
-      boolean desert = biome.is(BCEnergyBiomeTags.OIL_PATCH_DESERT);
-      boolean ocean = biome.is(BCEnergyBiomeTags.OIL_PATCH_OCEAN);
+      boolean desert = biome.is(BCEnergyBiomeTags.OIL_DESERT);
+      boolean ocean = biome.is(BCEnergyBiomeTags.OIL_OCEAN);
       int roll = sectorRoll(context.chunkPos());
       int desertRichCutoff = clampPercent(BCEnergyConfig.oilDesertRichChancePercent.get());
       int oceanPatchCutoff = clampPercent(BCEnergyConfig.oilOceanPatchChancePercent.get());

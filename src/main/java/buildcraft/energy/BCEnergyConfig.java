@@ -26,7 +26,7 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue enableOilSprings = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableWaterSpringGeneration = new BCCoreConfig.BooleanValue(true);
    /** Percent of 8×8-chunk desert sectors that upgrade to rich tier (wells + lakes) on top of normal baseline. */
-   public static final BCCoreConfig.IntValue oilDesertRichChancePercent = new BCCoreConfig.IntValue(30);
+   public static final BCCoreConfig.IntValue oilDesertRichChancePercent = new BCCoreConfig.IntValue(50);
    /** Percent of 8×8-chunk ocean sectors that upgrade to patch tier (wells + lakes) on top of normal baseline. */
    public static final BCCoreConfig.IntValue oilOceanPatchChancePercent = new BCCoreConfig.IntValue(15);
    public static final BCCoreConfig.StringListValue excludedDimensions = new BCCoreConfig.StringListValue(List.of("minecraft:the_nether", "minecraft:the_end"));

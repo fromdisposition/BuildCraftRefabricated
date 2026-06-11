@@ -50,8 +50,8 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
    @Override
    protected void addTags(HolderLookup.Provider provider) {
       builder(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME).add(Biomes.THE_VOID, Biomes.RIVER);
-      builder(BCEnergyBiomeTags.OIL_PATCH_OCEAN).add(PATCH_OCEAN.toArray(ResourceKey[]::new));
-      builder(BCEnergyBiomeTags.OIL_PATCH_DESERT).add(PATCH_DESERT.toArray(ResourceKey[]::new));
+      builder(BCEnergyBiomeTags.OIL_OCEAN).add(PATCH_OCEAN.toArray(ResourceKey[]::new));
+      builder(BCEnergyBiomeTags.OIL_DESERT).add(PATCH_DESERT.toArray(ResourceKey[]::new));
 
       List<ResourceKey<Biome>> normalSpawnBiomes = new ArrayList<>();
       HolderLookup.RegistryLookup<Biome> biomes = provider.lookupOrThrow(Registries.BIOME);

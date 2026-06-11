@@ -9,13 +9,20 @@ public final class BCEnergyBiomeTags {
    public static final TagKey<Biome> OIL_EXCLUDED_BIOME = TagKey.create(
       Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_excluded_biome")
    );
-   /** Vanilla ocean biomes eligible for per-chunk patch-tier slicing ({@code oilOceanPatchChancePercent}). */
-   public static final TagKey<Biome> OIL_PATCH_OCEAN = TagKey.create(
-      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_patch_ocean")
+   /**
+    * Vanilla ocean biomes where oil tier routing applies. Tag membership ≠ rich sector;
+    * rich patch sectors are chosen by {@link buildcraft.energy.worldgen.structure.OilStructureSpawnConditions}
+    * sector roll ({@code oilOceanPatchChancePercent}).
+    */
+   public static final TagKey<Biome> OIL_OCEAN = TagKey.create(
+      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_ocean")
    );
-   /** Desert/badlands eligible for per-chunk rich-tier slicing ({@code oilDesertRichChancePercent}). */
-   public static final TagKey<Biome> OIL_PATCH_DESERT = TagKey.create(
-      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_patch_desert")
+   /**
+    * Desert/badlands where oil tier routing applies. Tag membership ≠ rich sector;
+    * rich sectors use {@code oilDesertRichChancePercent} on 8×8 chunk sectors.
+    */
+   public static final TagKey<Biome> OIL_DESERT = TagKey.create(
+      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_desert")
    );
    /** Overworld minus excluded biomes; base {@code oil_deposit_normal} tier (includes ocean and desert). */
    public static final TagKey<Biome> OIL_SPAWN_NORMAL = TagKey.create(
