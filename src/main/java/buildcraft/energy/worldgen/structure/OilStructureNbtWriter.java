@@ -12,7 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NbtUtils;
 
 /** Writes gzip-compressed structure template NBT files for jigsaw pool elements. */
 public final class OilStructureNbtWriter {
@@ -52,12 +52,18 @@ public final class OilStructureNbtWriter {
 
       Files.createDirectories(path.getParent());
       try (OutputStream output = Files.newOutputStream(path)) {
-         NbtIo.writeCompressed(root, output);
+         NbtIo.writeCompressed(NbtUtils.addCurrentDataVersion(root), output);
       }
    }
 
    public static CompoundTag read(Path path) throws IOException {
       return NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap());
+   }
+
+   public static int computeSizeY(List<BlockEntry> blocks, int fallback) {
+      int minY = blocks.stream().mapToInt(BlockEntry::y).min().orElse(0);
+      int maxY = blocks.stream().mapToInt(BlockEntry::y).max().orElse(0);
+      return Math.max(fallback, maxY - minY + 1);
    }
 
    private static ListTag toIntList(int x, int y, int z) {

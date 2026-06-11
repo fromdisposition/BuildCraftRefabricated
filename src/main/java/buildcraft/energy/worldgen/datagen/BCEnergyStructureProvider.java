@@ -13,6 +13,8 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 
 public final class BCEnergyStructureProvider implements DataProvider {
    private final FabricPackOutput output;
@@ -46,8 +48,11 @@ public final class BCEnergyStructureProvider implements DataProvider {
          StructureTemplatePool richPool = registry.lookupOrThrow(Registries.TEMPLATE_POOL)
             .getOrThrow(BCEnergyTemplatePoolsBootstrap.RICH_START)
             .value();
-         StructureTemplatePool patchPool = registry.lookupOrThrow(Registries.TEMPLATE_POOL)
-            .getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_START)
+         StructureTemplatePool patchDesertPool = registry.lookupOrThrow(Registries.TEMPLATE_POOL)
+            .getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_DESERT_START)
+            .value();
+         StructureTemplatePool patchOceanPool = registry.lookupOrThrow(Registries.TEMPLATE_POOL)
+            .getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_OCEAN_START)
             .value();
 
          StructureSet normalSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
@@ -61,6 +66,9 @@ public final class BCEnergyStructureProvider implements DataProvider {
             .value();
          StructureSet patchOceanSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
             .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN_SET)
+            .value();
+         StructureProcessorList oceanFloorProcessors = registry.lookupOrThrow(Registries.PROCESSOR_LIST)
+            .getOrThrow(BCEnergyProcessorListsBootstrap.OIL_OCEAN_FLOOR)
             .value();
 
          return CompletableFuture.allOf(
@@ -79,7 +87,18 @@ public final class BCEnergyStructureProvider implements DataProvider {
                cache, registry, StructureTemplatePool.DIRECT_CODEC, richPool, dataRoot.resolve("worldgen/template_pool/oil_deposit_rich/start.json")
             ),
             DataProvider.saveStable(
-               cache, registry, StructureTemplatePool.DIRECT_CODEC, patchPool, dataRoot.resolve("worldgen/template_pool/oil_deposit_patch/start.json")
+               cache,
+               registry,
+               StructureTemplatePool.DIRECT_CODEC,
+               patchDesertPool,
+               dataRoot.resolve("worldgen/template_pool/oil_deposit_patch_desert/start.json")
+            ),
+            DataProvider.saveStable(
+               cache,
+               registry,
+               StructureTemplatePool.DIRECT_CODEC,
+               patchOceanPool,
+               dataRoot.resolve("worldgen/template_pool/oil_deposit_patch_ocean/start.json")
             ),
             DataProvider.saveStable(
                cache, registry, StructureSet.DIRECT_CODEC, normalSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_normal.json")
@@ -92,6 +111,13 @@ public final class BCEnergyStructureProvider implements DataProvider {
             ),
             DataProvider.saveStable(
                cache, registry, StructureSet.DIRECT_CODEC, patchOceanSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_patch_ocean.json")
+            ),
+            DataProvider.saveStable(
+               cache,
+               registry,
+               StructureProcessorType.DIRECT_CODEC,
+               oceanFloorProcessors,
+               dataRoot.resolve("worldgen/processor_list/oil_ocean_floor.json")
             )
          );
       });

@@ -17,6 +17,7 @@ public final class BuildCraftWorldgenDataGenerator implements DataGeneratorEntry
 
    @Override
    public void buildRegistry(RegistrySetBuilder registryBuilder) {
+      registryBuilder.add(Registries.PROCESSOR_LIST, BCEnergyProcessorListsBootstrap::bootstrap);
       registryBuilder.add(Registries.TEMPLATE_POOL, BCEnergyTemplatePoolsBootstrap::bootstrap);
       registryBuilder.add(Registries.STRUCTURE, BCEnergyStructuresBootstrap::bootstrap);
       registryBuilder.add(Registries.STRUCTURE_SET, BCEnergyStructureSetsBootstrap::bootstrap);

@@ -8,7 +8,7 @@
   "start_height": {
     "absolute": 0
   },
-  "start_pool": "buildcraftenergy:oil_deposit_patch/start",
+  "start_pool": "buildcraftenergy:oil_deposit_patch_ocean/start",
   "step": "underground_structures",
   "tier": "patch_ocean",
   "use_expansion_hack": false

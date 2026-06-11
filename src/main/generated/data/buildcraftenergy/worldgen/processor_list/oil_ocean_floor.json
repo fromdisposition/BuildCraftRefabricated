@@ -1,0 +1,9 @@
+{
+  "processors": [
+    {
+      "heightmap": "OCEAN_FLOOR_WG",
+      "offset": -1,
+      "processor_type": "minecraft:gravity"
+    }
+  ]
+}

@@ -6,7 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-/** Builds BC 8.0-style oil deposit structure templates as NBT for jigsaw pools. */
+/**
+ * Builds oil deposit NBT templates for jigsaw pools.
+ *
+ * <p>Template Y convention (processed by vanilla {@code terrain_matching} / {@code GravityProcessor}):
+ * y=0 is the surface oil layer, y&lt;0 is underground, y&gt;0 is the surface spout fountain.
+ */
 public final class OilStructureTemplateBuilder {
    private static final String OIL_BLOCK = "buildcraftenergy:oil";
    private static final String SPRING_BLOCK = "buildcraftcore:spring_oil";
@@ -15,20 +20,29 @@ public final class OilStructureTemplateBuilder {
    }
 
    public static void generateAll(Path structuresDir) throws IOException {
-      writePatch(structuresDir.resolve("oil_lake_patch.nbt"), 0x51AF1001L, 6, 32, 2);
-      writePatch(structuresDir.resolve("oil_lake_patch_b.nbt"), 0x51AF1002L, 6, 38, 1);
-      writePatch(structuresDir.resolve("oil_lake_patch_c.nbt"), 0x51AF1003L, 6, 28, 2);
+      writeLake(structuresDir.resolve("oil_lake_patch.nbt"), 0x51AF1001L, 6, 32);
+      writeLake(structuresDir.resolve("oil_lake_patch_b.nbt"), 0x51AF1002L, 6, 38);
+      writeLake(structuresDir.resolve("oil_lake_patch_c.nbt"), 0x51AF1003L, 6, 26);
 
-      writeWell(structuresDir.resolve("oil_well_medium.nbt"), 2, 12, 6, 34, 0, false);
-      writeWell(structuresDir.resolve("oil_well_large.nbt"), 4, 35, 14, 40, 16, true);
-      writeWell(structuresDir.resolve("oil_well_large_alt.nbt"), 4, 42, 11, 38, 12, true);
+      writeWell(structuresDir.resolve("oil_well_medium_s.nbt"), 2, 7, 4, 32, 6, 0, false);
+      writeWell(structuresDir.resolve("oil_well_medium.nbt"), 2, 11, 6, 34, 10, 0, false);
+
+      writeWell(structuresDir.resolve("oil_well_large_s.nbt"), 4, 28, 10, 38, 12, 1, true);
+      writeWell(structuresDir.resolve("oil_well_large.nbt"), 4, 35, 14, 40, 18, 1, true);
+      writeWell(structuresDir.resolve("oil_well_large_l.nbt"), 4, 42, 16, 42, 20, 1, true);
    }
 
-   private static void writePatch(Path path, long seed, int lakeRadius, int tendrilRadius, int depth) throws IOException {
+   private static void writeLake(Path path, long seed, int lakeRadius, int tendrilRadius) throws IOException {
       List<OilStructureNbtWriter.BlockEntry> blocks = new ArrayList<>();
       boolean[][] pattern = bcTendrilPattern(lakeRadius, tendrilRadius, seed);
-      blitSurfacePattern(blocks, pattern, depth);
-      OilStructureNbtWriter.write(path, OilStructureDefaults.TEMPLATE_SIZE, depth, OilStructureDefaults.TEMPLATE_SIZE, blocks);
+      blitSurfacePattern(blocks, pattern, depthFromSeed(seed));
+      OilStructureNbtWriter.write(
+         path,
+         OilStructureDefaults.TEMPLATE_SIZE,
+         OilStructureNbtWriter.computeSizeY(blocks, 4),
+         OilStructureDefaults.TEMPLATE_SIZE,
+         blocks
+      );
    }
 
    private static void writeWell(
@@ -38,10 +52,11 @@ public final class OilStructureTemplateBuilder {
       int sphereRadius,
       int sphereDepth,
       int surfaceSpoutHeight,
+      int spoutRadius,
       boolean withSpring
    ) throws IOException {
       List<OilStructureNbtWriter.BlockEntry> blocks = new ArrayList<>();
-      long seed = tendrilRadius * 31L + lakeRadius * 17L + sphereRadius;
+      long seed = tendrilRadius * 31L + lakeRadius * 17L + sphereRadius * 13L;
       boolean[][] pattern = bcTendrilPattern(lakeRadius, tendrilRadius, seed);
       blitSurfacePattern(blocks, pattern, 2);
 
@@ -57,28 +72,42 @@ public final class OilStructureTemplateBuilder {
          }
       }
 
-      int spoutTop = sphereCenterY + sphereRadius;
-      for (int y = spoutTop + 1; y < 0; y++) {
+      int shaftBottom = -sphereDepth - 14;
+      int shaftTop = sphereCenterY - sphereRadius - 1;
+      for (int y = shaftBottom; y <= shaftTop; y++) {
+         blocks.add(new OilStructureNbtWriter.BlockEntry(center, y, center, OIL_BLOCK));
+      }
+
+      int sphereTop = sphereCenterY + sphereRadius;
+      for (int y = sphereTop + 1; y < 0; y++) {
          blocks.add(new OilStructureNbtWriter.BlockEntry(center, y, center, OIL_BLOCK));
       }
 
       if (surfaceSpoutHeight > 0) {
-         blitSurfaceSpout(blocks, center, surfaceSpoutHeight);
+         blitSurfaceSpout(blocks, center, surfaceSpoutHeight, spoutRadius);
       }
 
-      if (withSpring && net.minecraft.core.registries.BuiltInRegistries.BLOCK.containsKey(net.minecraft.resources.Identifier.parse(SPRING_BLOCK))) {
-         blocks.add(new OilStructureNbtWriter.BlockEntry(center, sphereCenterY - sphereRadius - 1, center, SPRING_BLOCK));
+      if (withSpring) {
+         blocks.add(new OilStructureNbtWriter.BlockEntry(center, shaftBottom - 1, center, SPRING_BLOCK));
       }
 
-      int undergroundDepth = sphereDepth + sphereRadius + 2;
-      OilStructureNbtWriter.write(path, OilStructureDefaults.TEMPLATE_SIZE, undergroundDepth + 2, OilStructureDefaults.TEMPLATE_SIZE, blocks);
+      OilStructureNbtWriter.write(
+         path,
+         OilStructureDefaults.TEMPLATE_SIZE,
+         OilStructureNbtWriter.computeSizeY(blocks, sphereDepth + surfaceSpoutHeight + 20),
+         OilStructureDefaults.TEMPLATE_SIZE,
+         blocks
+      );
    }
 
-   private static void blitSurfaceSpout(List<OilStructureNbtWriter.BlockEntry> blocks, int center, int height) {
-      BlockPosWriter writer = new BlockPosWriter(blocks);
+   private static int depthFromSeed(long seed) {
+      return (seed & 1L) == 0L ? 2 : 1;
+   }
+
+   private static void blitSurfaceSpout(List<OilStructureNbtWriter.BlockEntry> blocks, int center, int height, int maxRadius) {
       for (int h = 1; h <= height; h++) {
-         int radius = h >= height - 2 ? 0 : 1;
-         writeCylinderY(writer, center, h, center, radius);
+         int radius = h >= height - 1 ? 0 : maxRadius;
+         writeCylinderY(blocks, center, h, center, radius);
       }
    }
 
@@ -100,7 +129,7 @@ public final class OilStructureTemplateBuilder {
       }
    }
 
-   /** Port of BC 8.0 {@code OilGenerator.createTendril} pattern fill. */
+   /** Port of BC 8.0 {@code OilGenerator.createTendril}. */
    static boolean[][] bcTendrilPattern(int lakeRadius, int tendrilRadius, long seed) {
       int diameter = tendrilRadius * 2 + 1;
       boolean[][] pattern = new boolean[diameter][diameter];
@@ -153,30 +182,18 @@ public final class OilStructureTemplateBuilder {
       return pattern[x][z];
    }
 
-   private static void writeCylinderY(BlockPosWriter writer, int centerX, int y, int centerZ, int radius) {
+   private static void writeCylinderY(List<OilStructureNbtWriter.BlockEntry> blocks, int centerX, int y, int centerZ, int radius) {
       if (radius <= 0) {
-         writer.add(centerX, y, centerZ, OIL_BLOCK);
+         blocks.add(new OilStructureNbtWriter.BlockEntry(centerX, y, centerZ, OIL_BLOCK));
          return;
       }
       int radiusSq = radius * radius;
       for (int dx = -radius; dx <= radius; dx++) {
          for (int dz = -radius; dz <= radius; dz++) {
             if (dx * dx + dz * dz <= radiusSq) {
-               writer.add(centerX + dx, y, centerZ + dz, OIL_BLOCK);
+               blocks.add(new OilStructureNbtWriter.BlockEntry(centerX + dx, y, centerZ + dz, OIL_BLOCK));
             }
          }
-      }
-   }
-
-   private static final class BlockPosWriter {
-      private final List<OilStructureNbtWriter.BlockEntry> blocks;
-
-      private BlockPosWriter(List<OilStructureNbtWriter.BlockEntry> blocks) {
-         this.blocks = blocks;
-      }
-
-      private void add(int x, int y, int z, String blockId) {
-         this.blocks.add(new OilStructureNbtWriter.BlockEntry(x, y, z, blockId));
       }
    }
 }
