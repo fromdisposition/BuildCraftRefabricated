@@ -43,7 +43,7 @@ public final class BCEnergyFabric {
    }
 
    private static void applySpringConfig() {
-      EnumSpring.OIL.canGen = BCEnergyConfig.spawnOilSprings.get();
+      EnumSpring.OIL.canGen = BCEnergyConfig.enableOilSprings.get();
       BCEnergyConfig.refreshWaterSpringFlag();
    }
 

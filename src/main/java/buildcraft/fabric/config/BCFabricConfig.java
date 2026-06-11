@@ -223,8 +223,8 @@ public final class BCFabricConfig {
 
       BCEnergyConfig.enableOilOnWater.set(bool(generator, "enableOilOnWater", BCEnergyConfig.enableOilOnWater.get()));
       BCEnergyConfig.enableOilGeneration.set(bool(generator, "enableOilGeneration", BCEnergyConfig.enableOilGeneration.get()));
-      BCEnergyConfig.spawnOilSprings.set(bool(generator, "spawnOilSprings", BCEnergyConfig.spawnOilSprings.get()));
-      BCEnergyConfig.worldGenWaterSpring.set(bool(generator, "worldGenWaterSpring", BCEnergyConfig.worldGenWaterSpring.get()));
+      BCEnergyConfig.enableOilSprings.set(bool(generator, "enableOilSprings", BCEnergyConfig.enableOilSprings.get()));
+      BCEnergyConfig.enableWaterSpringGeneration.set(bool(generator, "enableWaterSpringGeneration", BCEnergyConfig.enableWaterSpringGeneration.get()));
       BCEnergyConfig.refreshWaterSpringFlag();
       BCEnergyConfig.oilDesertRichChancePercent.set(clampPercent(intVal(
          generator,
@@ -302,8 +302,8 @@ public final class BCFabricConfig {
       JsonObject generator = new JsonObject();
       generator.addProperty("enableOilGeneration", true);
       generator.addProperty("enableOilOnWater", true);
-      generator.addProperty("spawnOilSprings", true);
-      generator.addProperty("worldGenWaterSpring", true);
+      generator.addProperty("enableOilSprings", true);
+      generator.addProperty("enableWaterSpringGeneration", true);
       generator.addProperty("oilDesertRichChancePercent", BCEnergyConfig.oilDesertRichChancePercent.get());
       generator.addProperty("oilOceanPatchChancePercent", BCEnergyConfig.oilOceanPatchChancePercent.get());
       generator.add("excludedDimensions", GSON.toJsonTree(BCEnergyConfig.getExcludedDimensions().stream().map(id -> id.toString()).sorted().toList()));

@@ -23,8 +23,8 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue useRfNaming = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue useFullUnitNames = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableOilGeneration = new BCCoreConfig.BooleanValue(true);
-   public static final BCCoreConfig.BooleanValue spawnOilSprings = new BCCoreConfig.BooleanValue(true);
-   public static final BCCoreConfig.BooleanValue worldGenWaterSpring = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue enableOilSprings = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue enableWaterSpringGeneration = new BCCoreConfig.BooleanValue(true);
    /** Per-chunk slice of desert biomes that use the rich tier (wells + lakes). */
    public static final BCCoreConfig.IntValue oilDesertRichChancePercent = new BCCoreConfig.IntValue(30);
    /** Per-chunk slice of ocean biomes that use the patch tier (wells + lakes). */
@@ -41,7 +41,7 @@ public class BCEnergyConfig {
    }
 
    public static void refreshWaterSpringFlag() {
-      EnumSpring.WATER.canGen = BCCoreConfig.worldGen.get() && worldGenWaterSpring.get();
+      EnumSpring.WATER.canGen = BCCoreConfig.worldGen.get() && enableWaterSpringGeneration.get();
    }
 
    public enum ListMode {

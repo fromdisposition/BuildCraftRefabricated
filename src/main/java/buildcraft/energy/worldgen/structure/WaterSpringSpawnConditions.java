@@ -14,7 +14,7 @@ public final class WaterSpringSpawnConditions {
    }
 
    public static boolean canSpawn(Structure.GenerationContext context) {
-      if (!BCCoreConfig.worldGen.get() || !BCEnergyConfig.worldGenWaterSpring.get()) {
+      if (!BCCoreConfig.worldGen.get() || !BCEnergyConfig.enableWaterSpringGeneration.get()) {
          return false;
       }
       if (context.chunkGenerator() instanceof FlatLevelSource) {
