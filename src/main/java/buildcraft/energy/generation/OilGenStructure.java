@@ -41,11 +41,12 @@ public final class OilGenStructure {
 
    public static BlockPos findTerrainUpper(LevelAccessor level, int x, int z) {
       if (level instanceof WorldGenLevel wg) {
-         return new BlockPos(x, wg.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
+         // BC 8.0 used the "surface incl. fluids" height, not ocean floor.
+         return new BlockPos(x, wg.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1, z);
       }
 
       if (level instanceof LevelReader reader) {
-         return new BlockPos(x, reader.getHeight(Heightmap.Types.MOTION_BLOCKING, x, z) - 1, z);
+         return new BlockPos(x, reader.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1, z);
       }
 
       for (int y = level.getMaxY(); y > level.getMinY(); y--) {

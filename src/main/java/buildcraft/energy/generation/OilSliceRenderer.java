@@ -203,12 +203,13 @@ public final class OilSliceRenderer {
    }
 
    private static BlockPos resolveSpoutSurface(LevelAccessor level, BlockPos start) {
+      int topY = level.getMaxY();
       if (level instanceof WorldGenLevel wg) {
-         int y = wg.getHeight(Heightmap.Types.MOTION_BLOCKING, start.getX(), start.getZ());
-         return new BlockPos(start.getX(), y, start.getZ());
+         // Match BC 8.0 semantics: stop at first non-air fluid/solid from world surface downward.
+         topY = Math.min(topY, wg.getHeight(Heightmap.Types.WORLD_SURFACE, start.getX(), start.getZ()));
       }
 
-      for (int y = level.getMaxY(); y >= start.getY(); y--) {
+      for (int y = topY; y >= start.getY(); y--) {
          BlockPos probe = new BlockPos(start.getX(), y, start.getZ());
          BlockState state = level.getBlockState(probe);
          if (!state.isAir() && (BlockUtil.getFluidWithFlowing(state.getBlock()) != null || BlockUtil.blocksMotion(state))) {
