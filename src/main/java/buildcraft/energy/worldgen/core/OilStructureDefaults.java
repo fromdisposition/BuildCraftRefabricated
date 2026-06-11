@@ -7,18 +7,23 @@ public final class OilStructureDefaults {
    /** Rich/patch tiers form contiguous 8×8-chunk (128×128 block) sectors. */
    public static final int SLICE_SECTOR_CHUNKS = 8;
 
-   /** Template Y of the surface oil film ({@code GravityProcessor} places it at {@code heightmap - 1}). */
+   /** Surface tendril/spout template Y ({@code GravityProcessor}: {@code heightmap - 1 + templateY}). */
    public static final int SURFACE_TEMPLATE_Y = 0;
-   /**
-    * Deposit body uses literal template Y offsets through gravity ({@code heightmap - 1 + templateY}), so depth
-    * stays fixed below the surface on MC 26.x tall worlds — not world-build-height arithmetic.
-    */
-   public static final int DEPOSIT_MAX_TEMPLATE_Y = 0;
-   public static final int DEPOSIT_MIN_TEMPLATE_Y = -36;
-   /** Sphere center inside the {@code DEPOSIT_MIN_TEMPLATE_Y}..{@code DEPOSIT_MAX_TEMPLATE_Y} band. */
-   public static final int SPHERE_TEMPLATE_CENTER_Y = (DEPOSIT_MAX_TEMPLATE_Y + DEPOSIT_MIN_TEMPLATE_Y) / 2;
-   /** Template Y for bedrock spring marker (pinned to {@code minY} after gravity). */
+
+   /** Fixed overworld Y for the underground deposit body (template Y equals world Y). */
+   public static final int DEPOSIT_MIN_WORLD_Y = -42;
+   public static final int DEPOSIT_MAX_WORLD_Y = -12;
+   public static final int SPHERE_TEMPLATE_CENTER_Y = (DEPOSIT_MIN_WORLD_Y + DEPOSIT_MAX_WORLD_Y) / 2;
+
+   /** Connector from deposit top ({@code DEPOSIT_MAX_WORLD_Y + 1}) up to just below the surface film. */
+   public static final int CONNECTOR_MIN_WORLD_Y = DEPOSIT_MAX_WORLD_Y + 1;
+   /** Upper template bound; processor clips each column at {@code heightmap - 2}. */
+   public static final int CONNECTOR_MAX_WORLD_Y = 319;
+
+   /** Bedrock spring marker (pinned to {@code minY} after gravity). */
    public static final int SPRING_TEMPLATE_Y = -57;
+   public static final int BEDROCK_SHAFT_MIN_WORLD_Y = SPRING_TEMPLATE_Y + 1;
+   public static final int BEDROCK_SHAFT_MAX_WORLD_Y = DEPOSIT_MIN_WORLD_Y - 1;
 
    /** Base seed; each {@link PlacementSet} offsets by ordinal so placement grids stay independent. */
    private static final int BASE_SEED = 0x5046_B4_E4;

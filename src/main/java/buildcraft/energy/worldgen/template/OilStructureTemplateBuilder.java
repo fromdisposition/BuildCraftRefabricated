@@ -12,9 +12,8 @@ import java.util.Random;
  * Builds oil deposit NBT templates for jigsaw pools.
  *
  * <p>Well template Y convention ({@link OilWellProjectionProcessor} + gravity):
- * y=0 surface film, y&gt;0 spout; deposit/shaft use literal template Y ({@code heightmap - 1 + templateY}).
- * The sphere is clipped to template {@code -36..0} so the body always sits under the surface column.
- * Bedrock spring uses {@link OilStructureDefaults#SPRING_TEMPLATE_Y} and is pinned to {@code minY} after gravity.
+ * y&ge;0 surface/spout via gravity; deposit body fixed at world {@code -42..-12}; connector {@code -11..319}
+ * (clipped per column to the surface); bedrock shaft {@code -56..-43} on large wells.
  * Shaft width: BC 8.0 medium radius 0 (1 block), large radius 1 (3×3).
  */
 public final class OilStructureTemplateBuilder {
@@ -73,8 +72,8 @@ public final class OilStructureTemplateBuilder {
 
       int center = OilStructureDefaults.TEMPLATE_CENTER;
       int sphereCenterY = OilStructureDefaults.SPHERE_TEMPLATE_CENTER_Y;
-      int depositMinY = OilStructureDefaults.DEPOSIT_MIN_TEMPLATE_Y;
-      int depositMaxY = OilStructureDefaults.DEPOSIT_MAX_TEMPLATE_Y;
+      int depositMinY = OilStructureDefaults.DEPOSIT_MIN_WORLD_Y;
+      int depositMaxY = OilStructureDefaults.DEPOSIT_MAX_WORLD_Y;
 
       for (int dx = -sphereRadius; dx <= sphereRadius; dx++) {
          for (int dy = -sphereRadius; dy <= sphereRadius; dy++) {
@@ -91,15 +90,22 @@ public final class OilStructureTemplateBuilder {
          }
       }
 
-      int sphereTop = Math.min(sphereCenterY + sphereRadius, depositMaxY);
-      int sphereBottom = Math.max(sphereCenterY - sphereRadius, depositMinY);
-
-      if (sphereTop < depositMaxY) {
-         blitShaftColumn(blocks, center, sphereTop + 1, depositMaxY, spoutRadius);
-      }
+      blitShaftColumn(
+         blocks,
+         center,
+         OilStructureDefaults.CONNECTOR_MIN_WORLD_Y,
+         OilStructureDefaults.CONNECTOR_MAX_WORLD_Y,
+         spoutRadius
+      );
 
       if (withSpring) {
-         blitShaftColumn(blocks, center, OilStructureDefaults.SPRING_TEMPLATE_Y + 1, sphereBottom - 1, spoutRadius);
+         blitShaftColumn(
+            blocks,
+            center,
+            OilStructureDefaults.BEDROCK_SHAFT_MIN_WORLD_Y,
+            OilStructureDefaults.BEDROCK_SHAFT_MAX_WORLD_Y,
+            spoutRadius
+         );
          blocks.add(new StructureNbtWriter.BlockEntry(center, OilStructureDefaults.SPRING_TEMPLATE_Y, center, SPRING_BLOCK));
       }
 
