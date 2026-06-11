@@ -26,28 +26,75 @@ public final class BCEnergyWorldgenProvider implements DataProvider {
       return this.registriesFuture.thenCompose(registry -> {
          Path dataRoot = this.output.getOutputFolder(PackOutput.Target.DATA_PACK).resolve("buildcraftenergy");
 
-         ConfiguredFeature<?, ?> configured = registry.lookupOrThrow(Registries.CONFIGURED_FEATURE)
-            .getOrThrow(BCEnergyWorldgenConfiguredFeatures.OIL_DEPOSIT)
+         ConfiguredFeature<?, ?> configuredNormal = registry.lookupOrThrow(Registries.CONFIGURED_FEATURE)
+            .getOrThrow(BCEnergyWorldgenConfiguredFeatures.OIL_DEPOSIT_NORMAL)
             .value();
-         PlacedFeature placed = registry.lookupOrThrow(Registries.PLACED_FEATURE)
+         ConfiguredFeature<?, ?> configuredRich = registry.lookupOrThrow(Registries.CONFIGURED_FEATURE)
+            .getOrThrow(BCEnergyWorldgenConfiguredFeatures.OIL_DEPOSIT_RICH)
+            .value();
+         ConfiguredFeature<?, ?> configuredPatch = registry.lookupOrThrow(Registries.CONFIGURED_FEATURE)
+            .getOrThrow(BCEnergyWorldgenConfiguredFeatures.OIL_DEPOSIT_PATCH)
+            .value();
+         PlacedFeature placedNormal = registry.lookupOrThrow(Registries.PLACED_FEATURE)
+            .getOrThrow(BCEnergyFeatures.OIL_DEPOSIT_NORMAL_PLACED)
+            .value();
+         PlacedFeature placedRich = registry.lookupOrThrow(Registries.PLACED_FEATURE)
+            .getOrThrow(BCEnergyFeatures.OIL_DEPOSIT_RICH_PLACED)
+            .value();
+         PlacedFeature placedPatch = registry.lookupOrThrow(Registries.PLACED_FEATURE)
             .getOrThrow(BCEnergyFeatures.OIL_DEPOSIT_PLACED)
             .value();
 
-         CompletableFuture<?> configuredSave = DataProvider.saveStable(
+         CompletableFuture<?> configuredNormalSave = DataProvider.saveStable(
             cache,
             registry,
             ConfiguredFeature.DIRECT_CODEC,
-            configured,
-            dataRoot.resolve("worldgen/configured_feature/oil_deposit.json")
+            configuredNormal,
+            dataRoot.resolve("worldgen/configured_feature/oil_deposit_normal.json")
          );
-         CompletableFuture<?> placedSave = DataProvider.saveStable(
+         CompletableFuture<?> configuredRichSave = DataProvider.saveStable(
+            cache,
+            registry,
+            ConfiguredFeature.DIRECT_CODEC,
+            configuredRich,
+            dataRoot.resolve("worldgen/configured_feature/oil_deposit_rich.json")
+         );
+         CompletableFuture<?> configuredPatchSave = DataProvider.saveStable(
+            cache,
+            registry,
+            ConfiguredFeature.DIRECT_CODEC,
+            configuredPatch,
+            dataRoot.resolve("worldgen/configured_feature/oil_deposit_patch.json")
+         );
+         CompletableFuture<?> placedNormalSave = DataProvider.saveStable(
             cache,
             registry,
             PlacedFeature.DIRECT_CODEC,
-            placed,
-            dataRoot.resolve("worldgen/placed_feature/oil_deposit.json")
+            placedNormal,
+            dataRoot.resolve("worldgen/placed_feature/oil_deposit_normal.json")
          );
-         return CompletableFuture.allOf(configuredSave, placedSave);
+         CompletableFuture<?> placedRichSave = DataProvider.saveStable(
+            cache,
+            registry,
+            PlacedFeature.DIRECT_CODEC,
+            placedRich,
+            dataRoot.resolve("worldgen/placed_feature/oil_deposit_rich.json")
+         );
+         CompletableFuture<?> placedPatchSave = DataProvider.saveStable(
+            cache,
+            registry,
+            PlacedFeature.DIRECT_CODEC,
+            placedPatch,
+            dataRoot.resolve("worldgen/placed_feature/oil_deposit_patch.json")
+         );
+         return CompletableFuture.allOf(
+            configuredNormalSave,
+            configuredRichSave,
+            configuredPatchSave,
+            placedNormalSave,
+            placedRichSave,
+            placedPatchSave
+         );
       });
    }
 

@@ -13,8 +13,8 @@
   },
   "parent": "buildcraftcore:root",
   "criteria": {
-    "code_trigger": {
-      "trigger": "minecraft:impossible"
+    "oil_design_biome_nearby": {
+      "trigger": "buildcraftenergy:oil_design_biome_nearby"
     }
   }
 }

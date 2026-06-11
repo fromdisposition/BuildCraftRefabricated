@@ -1,19 +1,16 @@
-package buildcraft.energy.generation;
+package buildcraft.energy.generation.adapter;
 
 import buildcraft.core.BCCoreConfig;
 import buildcraft.energy.BCEnergyConfig;
-import buildcraft.lib.misc.AdvancementUtil;
+import buildcraft.energy.BCEnergyFeatures;
+import buildcraft.energy.generation.core.OilGenerator;
 import buildcraft.lib.misc.PositionUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.resources.Identifier;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 
 public final class FineRichesTracker {
-   private static final Identifier ADVANCEMENT_FINE_RICHES = Identifier.parse("buildcraftenergy:fine_riches");
    private static final int FINE_RICHES_SCAN_RADIUS = 3;
    private static final int FINE_RICHES_TICK_STRIDE = 20;
 
@@ -30,10 +27,6 @@ public final class FineRichesTracker {
 
    private static void tryUnlockFineRiches(ServerPlayer player) {
       if (player.tickCount % FINE_RICHES_TICK_STRIDE != 0 || !(player.level() instanceof ServerLevel level)) {
-         return;
-      }
-
-      if (hasFineRiches(player)) {
          return;
       }
 
@@ -55,20 +48,10 @@ public final class FineRichesTracker {
       for (int dx = -FINE_RICHES_SCAN_RADIUS; dx <= FINE_RICHES_SCAN_RADIUS; dx++) {
          for (int dz = -FINE_RICHES_SCAN_RADIUS; dz <= FINE_RICHES_SCAN_RADIUS; dz++) {
             if (OilGenerator.wouldGenerateOilForOriginChunk(level, cx + dx, cz + dz)) {
-               AdvancementUtil.unlockAdvancement(player, ADVANCEMENT_FINE_RICHES);
+               BCEnergyFeatures.OIL_DESIGN_BIOME_NEARBY.trigger(player);
                return;
             }
          }
       }
-   }
-
-   private static boolean hasFineRiches(ServerPlayer player) {
-      MinecraftServer server = player.level().getServer();
-      if (server == null) {
-         return false;
-      }
-
-      AdvancementHolder holder = server.getAdvancements().get(ADVANCEMENT_FINE_RICHES);
-      return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
    }
 }

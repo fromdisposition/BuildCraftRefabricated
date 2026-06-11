@@ -1,14 +1,17 @@
-package buildcraft.energy.generation;
+package buildcraft.energy.generation.core;
 
 import buildcraft.energy.BCEnergyConfig;
+import buildcraft.energy.generation.adapter.OilDepositFeatureConfiguration;
 import buildcraft.lib.misc.RegistryKeyUtil;
 import java.util.HashSet;
 import java.util.Set;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 
-record OilGenSettings(
+public record OilGenSettings(
    Set<Identifier> richBiomes,
    Set<Identifier> extraRichBiomes,
    Set<Identifier> designBiomes,
@@ -20,6 +23,8 @@ record OilGenSettings(
    double spawnChancePercentRich,
    double spawnChancePercentOilPatch,
    double generationMultiplier,
+   OilDepositFeatureConfiguration.ForcedTier forcedTier,
+   boolean useDatapackSpawnChance,
    int typeWeightLarge,
    int typeWeightMedium,
    int typeWeightLake,
@@ -33,11 +38,19 @@ record OilGenSettings(
    int smallSpoutMinHeight,
    int smallSpoutMaxHeight,
    int largeSpoutMinHeight,
-   int largeSpoutMaxHeight
+   int largeSpoutMaxHeight,
+   int scanRadius,
+   int lakeRadiusLarge,
+   int lakeRadiusMedium,
+   int lakeRadiusLake,
+   int tendrilBaseLarge,
+   int tendrilSpreadLarge,
+   int tendrilBaseMedium,
+   int tendrilSpreadMedium
 ) {
    private static volatile OilGenSettings INSTANCE;
 
-   static OilGenSettings current() {
+   public static OilGenSettings current() {
       OilGenSettings cached = INSTANCE;
       if (cached != null) {
          return cached;
@@ -51,22 +64,66 @@ record OilGenSettings(
       }
    }
 
-   static void invalidate() {
+   public static void invalidate() {
       INSTANCE = null;
    }
 
-   boolean isBiomeExcluded(Identifier biomeId) {
+   public boolean isBiomeExcluded(Holder<Biome> biome, Identifier biomeId) {
       boolean inList = excludedBiomes.contains(biomeId);
-      return biomeListIsBlacklist ? inList : !inList;
+      if (biomeListIsBlacklist) {
+         return inList || biome.is(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME);
+      }
+      return !inList;
    }
 
-   boolean isDesignBiome(Identifier biomeId) {
-      return designBiomes.contains(biomeId);
+   public boolean isDesignBiome(Holder<Biome> biome, Identifier biomeId) {
+      return designBiomes.contains(biomeId) || biome.is(BCEnergyBiomeTags.OIL_DESIGN_BIOME);
    }
 
-   boolean isDimensionExcluded(ResourceKey<Level> dimension) {
+   public boolean isDimensionExcluded(ResourceKey<Level> dimension) {
       boolean inList = excludedDimensions.contains(RegistryKeyUtil.id(dimension));
       return dimensionListIsBlacklist ? inList : !inList;
+   }
+
+   public static OilGenSettings merged(OilDepositFeatureConfiguration featureConfig) {
+      OilGenSettings runtime = current();
+      return new OilGenSettings(
+         runtime.richBiomes(),
+         runtime.extraRichBiomes(),
+         runtime.designBiomes(),
+         runtime.excludedBiomes(),
+         runtime.biomeListIsBlacklist(),
+         runtime.excludedDimensions(),
+         runtime.dimensionListIsBlacklist(),
+         runtime.spawnChancePercentNormal(),
+         runtime.spawnChancePercentRich(),
+         runtime.spawnChancePercentOilPatch(),
+         runtime.generationMultiplier(),
+         featureConfig.forcedTier(),
+         featureConfig.useDatapackSpawnChance(),
+         runtime.typeWeightLarge(),
+         runtime.typeWeightMedium(),
+         runtime.typeWeightLake(),
+         runtime.enableOilOnWater(),
+         runtime.enableOilOceanBiome(),
+         runtime.enableOilDesertBiome(),
+         runtime.oilOceanPatchChance(),
+         runtime.oilDesertPatchChance(),
+         runtime.spawnOilSprings(),
+         runtime.enableOilSpouts(),
+         runtime.smallSpoutMinHeight(),
+         runtime.smallSpoutMaxHeight(),
+         runtime.largeSpoutMinHeight(),
+         runtime.largeSpoutMaxHeight(),
+         featureConfig.scanRadius(),
+         featureConfig.geometryConfig().lakeRadiusLarge(),
+         featureConfig.geometryConfig().lakeRadiusMedium(),
+         featureConfig.geometryConfig().lakeRadiusLake(),
+         featureConfig.geometryConfig().tendrilBaseLarge(),
+         featureConfig.geometryConfig().tendrilSpreadLarge(),
+         featureConfig.geometryConfig().tendrilBaseMedium(),
+         featureConfig.geometryConfig().tendrilSpreadMedium()
+      );
    }
 
    private static OilGenSettings capture() {
@@ -87,6 +144,8 @@ record OilGenSettings(
          BCEnergyConfig.oilSpawnChancePercentRich.get(),
          BCEnergyConfig.oilSpawnChancePercentOilPatch.get(),
          BCEnergyConfig.oilGenerationMultiplier.get(),
+         OilDepositFeatureConfiguration.ForcedTier.AUTO,
+         false,
          BCEnergyConfig.oilTypeWeightLarge.get(),
          BCEnergyConfig.oilTypeWeightMedium.get(),
          BCEnergyConfig.oilTypeWeightLake.get(),
@@ -100,7 +159,15 @@ record OilGenSettings(
          BCEnergyConfig.smallSpoutMinHeight.get(),
          BCEnergyConfig.smallSpoutMaxHeight.get(),
          BCEnergyConfig.largeSpoutMinHeight.get(),
-         BCEnergyConfig.largeSpoutMaxHeight.get()
+         BCEnergyConfig.largeSpoutMaxHeight.get(),
+         OilDepositFeatureConfiguration.DEFAULT.scanRadius(),
+         OilDepositFeatureConfiguration.DEFAULT.geometryConfig().lakeRadiusLarge(),
+         OilDepositFeatureConfiguration.DEFAULT.geometryConfig().lakeRadiusMedium(),
+         OilDepositFeatureConfiguration.DEFAULT.geometryConfig().lakeRadiusLake(),
+         OilDepositFeatureConfiguration.DEFAULT.geometryConfig().tendrilBaseLarge(),
+         OilDepositFeatureConfiguration.DEFAULT.geometryConfig().tendrilSpreadLarge(),
+         OilDepositFeatureConfiguration.DEFAULT.geometryConfig().tendrilBaseMedium(),
+         OilDepositFeatureConfiguration.DEFAULT.geometryConfig().tendrilSpreadMedium()
       );
    }
 }

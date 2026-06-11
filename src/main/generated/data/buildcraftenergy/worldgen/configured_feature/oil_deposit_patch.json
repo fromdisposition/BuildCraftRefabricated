@@ -1,0 +1,39 @@
+{
+  "type": "buildcraftenergy:oil_deposit",
+  "config": {
+    "enable_oil_spouts": true,
+    "forced_tier": "patch",
+    "generation_multiplier": 1.0,
+    "geometry": {
+      "lake_radius_lake": 6,
+      "lake_radius_large": 4,
+      "lake_radius_medium": 2,
+      "tendril_base_large": 25,
+      "tendril_base_medium": 5,
+      "tendril_spread_large": 20,
+      "tendril_spread_medium": 10
+    },
+    "patch_config": {
+      "enable_oil_desert_biome": true,
+      "enable_oil_ocean_biome": true,
+      "enable_oil_on_water": true,
+      "oil_desert_patch_chance": 0.08,
+      "oil_ocean_patch_chance": 0.025
+    },
+    "scan_radius": 5,
+    "spawn_chance_percent_normal": 0.15,
+    "spawn_chance_percent_oil_patch": 2.0,
+    "spawn_chance_percent_rich": 0.3,
+    "spawn_oil_springs": true,
+    "spout_heights": {
+      "large_spout_max_height": 20,
+      "large_spout_min_height": 10,
+      "small_spout_max_height": 12,
+      "small_spout_min_height": 6
+    },
+    "type_weight_lake": 20,
+    "type_weight_large": 20,
+    "type_weight_medium": 60,
+    "use_datapack_spawn_chance": false
+  }
+}

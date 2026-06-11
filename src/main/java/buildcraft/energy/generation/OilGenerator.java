@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.energy.generation;
+package buildcraft.energy.generation.core;
 
 import buildcraft.api.core.BCDebugging;
 import buildcraft.api.core.BCLog;
@@ -28,8 +28,6 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
 
 public final class OilGenerator {
-   /** BC 8.0 scans ±5 chunks so overlapping wells are stitched into the decorating chunk. */
-   private static final int MAX_CHUNK_RADIUS = 5;
    /** Max horizontal reach: tendril radius 44 + in-chunk offset 8. */
    private static final int MAX_HORIZONTAL_REACH = 52;
    public static final boolean DEBUG_OILGEN_BASIC = BCDebugging.shouldDebugLog("energy.oilgen");
@@ -56,7 +54,7 @@ public final class OilGenerator {
    }
 
    public static boolean isOilDesignBiome(Identifier biomeId) {
-      return OilGenSettings.current().isDesignBiome(biomeId);
+      return OilGenSettings.current().designBiomes().contains(biomeId);
    }
 
    public static boolean isOilDesignBiomeAt(Level level, int chunkX, int chunkZ) {
@@ -65,7 +63,7 @@ public final class OilGenerator {
       if (level instanceof ServerLevel serverLevel) {
          Holder<Biome> biome = level.getBiome(new BlockPos(x, 0, z));
          Identifier id = OilBiomePatches.effectiveBiomeId(serverLevel, x, z, biome, biomeId(biome));
-         return isOilDesignBiome(id);
+         return OilGenSettings.current().isDesignBiome(biome, id);
       }
       return isOilDesignBiome(biomeId(level.getBiome(new BlockPos(x, 0, z))));
    }
@@ -81,7 +79,7 @@ public final class OilGenerator {
     * BC 8.0 {@code onPopulatePre} equivalent for Fabric features. {@code origin} is the decorating chunk min corner
     * (vanilla {@link net.minecraft.core.SectionPos#origin()}).
     */
-   public static boolean placeForChunk(WorldGenLevel level, BlockPos origin) {
+   public static boolean placeForChunk(WorldGenLevel level, BlockPos origin, OilGenSettings config) {
       if (!canGenerateOilIn(level.getLevel())) {
          return false;
       }
@@ -92,11 +90,10 @@ public final class OilGenerator {
       BlockPos min = new BlockPos(chunkPos.getMinBlockX() + 8, level.getMinY(), chunkPos.getMinBlockZ() + 8);
       Box box = new Box(min, min.offset(15, level.getMaxY(), 15));
       boolean placed = false;
-      OilGenSettings config = OilGenSettings.current();
       long worldSeed = level.getSeed();
 
-      for (int cdx = -MAX_CHUNK_RADIUS; cdx <= MAX_CHUNK_RADIUS; cdx++) {
-         for (int cdz = -MAX_CHUNK_RADIUS; cdz <= MAX_CHUNK_RADIUS; cdz++) {
+      for (int cdx = -config.scanRadius(); cdx <= config.scanRadius(); cdx++) {
+         for (int cdz = -config.scanRadius(); cdz <= config.scanRadius(); cdz++) {
             int cx = chunkX + cdx;
             int cz = chunkZ + cdz;
             if (!couldStructuresReachBox(cx, cz, box)) {
@@ -163,7 +160,7 @@ public final class OilGenerator {
       Identifier biomeId = biomeSample.effectiveBiomeId();
       OilPatchKind patchKind = biomeSample.patchKind();
 
-      if (config.isBiomeExcluded(biomeId)) {
+      if (config.isBiomeExcluded(biome, biomeId)) {
          if (DEBUG_OILGEN_BASIC && log) {
             BCLog.logger.info(
                "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz
@@ -181,16 +178,21 @@ public final class OilGenerator {
          return List.of();
       }
 
-      OilSpawnRoll.Tier tier = OilSpawnRoll.resolveTier(patchKind, vanillaBiomeId, biomeId, config);
-      double spawnChance = OilSpawnRoll.spawnChanceFraction(tier, config);
-      if (rand.nextDouble() >= spawnChance) {
-         if (DEBUG_OILGEN_ALL && log) {
-            BCLog.logger.info(
-               "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz
-                  + " (tier=" + tier + ", chance=" + spawnChance * 100.0 + "%)"
-            );
-         }
+      OilSpawnRoll.Tier tier = resolveTier(config, biome, patchKind, vanillaBiomeId, biomeId);
+      if (tier == null) {
          return List.of();
+      }
+      if (!(config.useDatapackSpawnChance() && tier != OilSpawnRoll.Tier.OIL_PATCH)) {
+         double spawnChance = OilSpawnRoll.spawnChanceFraction(tier, config);
+         if (rand.nextDouble() >= spawnChance) {
+            if (DEBUG_OILGEN_ALL && log) {
+               BCLog.logger.info(
+                  "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz
+                     + " (tier=" + tier + ", chance=" + spawnChance * 100.0 + "%)"
+               );
+            }
+            return List.of();
+         }
       }
 
       final GenType type = toGenType(OilSpawnRoll.rollDepositType(rand, tier, config));
@@ -205,15 +207,17 @@ public final class OilGenerator {
       List<OilGenStructure> structures = new ArrayList<>();
       int lakeRadius;
       int tendrilRadius;
+      int largeSpread = Math.max(1, config.tendrilSpreadLarge());
+      int mediumSpread = Math.max(1, config.tendrilSpreadMedium());
       if (type == GenType.LARGE) {
-         lakeRadius = 4;
-         tendrilRadius = 25 + rand.nextInt(20);
+         lakeRadius = config.lakeRadiusLarge();
+         tendrilRadius = config.tendrilBaseLarge() + rand.nextInt(largeSpread);
       } else if (type == GenType.LAKE) {
-         lakeRadius = 6;
-         tendrilRadius = 25 + rand.nextInt(20);
+         lakeRadius = config.lakeRadiusLake();
+         tendrilRadius = config.tendrilBaseLarge() + rand.nextInt(largeSpread);
       } else {
-         lakeRadius = 2;
-         tendrilRadius = 5 + rand.nextInt(10);
+         lakeRadius = config.lakeRadiusMedium();
+         tendrilRadius = config.tendrilBaseMedium() + rand.nextInt(mediumSpread);
       }
       structures.add(createTendril(new BlockPos(x, 62, z), lakeRadius, tendrilRadius, rand));
 
@@ -355,6 +359,19 @@ public final class OilGenerator {
          case LARGE -> GenType.LARGE;
          case MEDIUM -> GenType.MEDIUM;
          case LAKE -> GenType.LAKE;
+      };
+   }
+
+   private static OilSpawnRoll.Tier resolveTier(
+      OilGenSettings config, Holder<Biome> biome, OilPatchKind patchKind, Identifier vanillaBiomeId, Identifier effectiveBiomeId
+   ) {
+      return switch (config.forcedTier()) {
+         case AUTO -> OilSpawnRoll.resolveTier(
+            biome.is(BCEnergyBiomeTags.OIL_RICH_BIOME), patchKind, vanillaBiomeId, effectiveBiomeId, config
+         );
+         case NORMAL -> patchKind.isPatch() ? null : OilSpawnRoll.Tier.NORMAL;
+         case RICH -> patchKind.isPatch() ? null : OilSpawnRoll.Tier.RICH;
+         case PATCH -> patchKind.isPatch() ? OilSpawnRoll.Tier.OIL_PATCH : null;
       };
    }
 

@@ -12,6 +12,7 @@ public final class BuildCraftDataGenerator implements DataGeneratorEntrypoint {
       BCEnergyFeatures.registerFeatureType();
       FabricDataGenerator.Pack pack = fabricDataGenerator.createPack();
       pack.addProvider(BCEnergyWorldgenProvider::new);
+      pack.addProvider(BCEnergyBiomeTagProvider::new);
    }
 
    @Override

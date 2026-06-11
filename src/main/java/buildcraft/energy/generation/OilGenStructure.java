@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.energy.generation;
+package buildcraft.energy.generation.core;
 
 import buildcraft.api.core.BCLog;
 import buildcraft.core.BCCoreBlocks;

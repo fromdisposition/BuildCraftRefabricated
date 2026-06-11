@@ -1,4 +1,4 @@
-package buildcraft.energy.generation;
+package buildcraft.energy.generation.core;
 
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
@@ -27,9 +27,12 @@ final class OilSpawnRoll {
       return biome.is(BiomeTags.IS_OCEAN) || patchKind == OilPatchKind.OCEAN;
    }
 
-   static Tier resolveTier(OilPatchKind patchKind, Identifier vanillaBiome, Identifier effectiveBiome, OilGenSettings config) {
+   static Tier resolveTier(boolean richTagMatch, OilPatchKind patchKind, Identifier vanillaBiome, Identifier effectiveBiome, OilGenSettings config) {
       if (patchKind.isPatch()) {
          return Tier.OIL_PATCH;
+      }
+      if (richTagMatch) {
+         return Tier.RICH;
       }
       if (config.richBiomes().contains(vanillaBiome) || config.richBiomes().contains(effectiveBiome)) {
          return Tier.RICH;

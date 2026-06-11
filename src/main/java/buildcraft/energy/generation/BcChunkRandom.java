@@ -1,4 +1,4 @@
-package buildcraft.energy.generation;
+package buildcraft.energy.generation.core;
 
 import buildcraft.lib.misc.RandUtil;
 import java.util.Random;
