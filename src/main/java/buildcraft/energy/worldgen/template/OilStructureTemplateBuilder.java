@@ -91,6 +91,17 @@ public final class OilStructureTemplateBuilder {
          }
       }
 
+      int sphereTop = Math.min(sphereCenterY + sphereRadius, depositMaxY);
+      if (sphereTop + 1 < OilStructureDefaults.CONNECTOR_MIN_WORLD_Y) {
+         blitShaftColumn(
+            blocks,
+            center,
+            sphereTop + 1,
+            OilStructureDefaults.CONNECTOR_MIN_WORLD_Y - 1,
+            spoutRadius
+         );
+      }
+
       blitShaftColumn(
          blocks,
          center,
