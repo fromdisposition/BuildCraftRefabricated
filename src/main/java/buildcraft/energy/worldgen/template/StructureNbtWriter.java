@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtUtils;
 
@@ -54,10 +53,6 @@ public final class StructureNbtWriter {
       try (OutputStream output = Files.newOutputStream(path)) {
          NbtIo.writeCompressed(NbtUtils.addCurrentDataVersion(root), output);
       }
-   }
-
-   public static CompoundTag read(Path path) throws IOException {
-      return NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap());
    }
 
    public static int computeSizeY(List<BlockEntry> blocks, int fallback) {

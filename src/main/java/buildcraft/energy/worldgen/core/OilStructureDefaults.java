@@ -26,11 +26,6 @@ public final class OilStructureDefaults {
    /** Template Y for bedrock spring marker block. */
    public static final int SPRING_TEMPLATE_Y = -57;
 
-   /** BC type_weight_large / medium / lake (20 / 60 / 20). */
-   public static final int WEIGHT_LARGE = 20;
-   public static final int WEIGHT_MEDIUM = 60;
-   public static final int WEIGHT_LAKE = 20;
-
    private OilStructureDefaults() {
    }
 }

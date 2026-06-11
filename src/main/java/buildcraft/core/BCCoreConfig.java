@@ -24,12 +24,6 @@ public final class BCCoreConfig {
    private BCCoreConfig() {
    }
 
-   public static void buildGeneral(Object builder) {
-   }
-
-   public static void buildWorldgen(Object builder) {
-   }
-
    public static final class BooleanValue {
       private boolean value;
 

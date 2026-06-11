@@ -1,6 +1,8 @@
 package buildcraft.energy.worldgen.datagen;
 
 import buildcraft.energy.worldgen.core.BCEnergyBiomeTags;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -59,13 +61,19 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
 
       Set<ResourceKey<Biome>> oceanKeys = new HashSet<>(PATCH_OCEAN);
 
-      var normalSpawn = builder(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
+      List<ResourceKey<Biome>> normalSpawnBiomes = new ArrayList<>();
       HolderLookup.RegistryLookup<Biome> biomes = provider.lookupOrThrow(Registries.BIOME);
       for (Holder.Reference<Biome> biome : biomes.listElements().toList()) {
          ResourceKey<Biome> key = biome.key();
          if (NON_OVERWORLD.contains(key) || EXCLUDED.contains(key) || oceanKeys.contains(key)) {
             continue;
          }
+         normalSpawnBiomes.add(key);
+      }
+      normalSpawnBiomes.sort(Comparator.comparing(key -> key.identifier().toString()));
+
+      var normalSpawn = builder(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
+      for (ResourceKey<Biome> key : normalSpawnBiomes) {
          normalSpawn.add(key);
       }
    }
