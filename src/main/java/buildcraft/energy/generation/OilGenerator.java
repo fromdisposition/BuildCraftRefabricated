@@ -28,7 +28,6 @@ public class OilGenerator {
    public static final int CHUNK_CENTER_OFFSET = 8;
    private static final int OWNER_SCAN_RADIUS = 3;
    private static final int MAX_DEPOSIT_HORIZONTAL_REACH = 60;
-   private static final int BC_SURFACE_TENDRIL_Y = 62;
    private static final long OIL_PLACEMENT_SALT = -0x4F696C4465706F73L;
    private static final int BIOME_SAMPLE_Y = 64;
    private static final double OIL_BIOME_BONUS = 3.0;
@@ -215,7 +214,7 @@ public class OilGenerator {
       BlockPos springPos = null;
 
       if (roll.type != OilDepositPlan.DepositType.LAKE) {
-         wellY = bcWellY(ownerRandom);
+         wellY = bcWellY(level, ownerRandom);
          wellRadius = roll.type == OilDepositPlan.DepositType.LARGE ? 8 + ownerRandom.nextInt(9) : 4 + ownerRandom.nextInt(4);
          SpoutKind kind = roll.type == OilDepositPlan.DepositType.LARGE ? SpoutKind.LARGE : SpoutKind.FINITE;
          spoutRadius = BCEnergyConfig.enableOilSpouts.get() ? kind.radius : 0;
@@ -226,7 +225,7 @@ public class OilGenerator {
          }
       }
 
-      int sourceCount = estimatePlanSourceCount(pattern, tendrilDepth, wellY, wellRadius, spoutSegmentHeight, spoutRadius, hasSpring);
+      int sourceCount = estimatePlanSourceCount(level, pattern, tendrilDepth, wellY, wellRadius, spoutSegmentHeight, spoutRadius, hasSpring);
 
       return new OilDepositPlan(
          ownerChunkX,
@@ -251,6 +250,7 @@ public class OilGenerator {
    }
 
    private static int estimatePlanSourceCount(
+      WorldGenLevel level,
       boolean[][] pattern,
       int tendrilDepth,
       @Nullable Integer wellY,
@@ -264,7 +264,8 @@ public class OilGenerator {
          total += estimateSphereBlocks(wellRadius);
          total += estimateSpoutBlocks(spoutSegmentHeight, spoutRadius);
          if (hasSpring && wellY != null) {
-            total += estimateTubeBlocks(wellY, spoutRadius);
+            int tubeStart = level.getMinY() + 2;
+            total += estimateTubeBlocks(Math.max(0, wellY - tubeStart), spoutRadius);
          }
       }
 
@@ -349,7 +350,7 @@ public class OilGenerator {
             );
       }
 
-      return rollOverworldDeposit(sample, type);
+      return rollOverworldDeposit(level, sample, type);
    }
 
    private static void logNoRoll(int cx, int cz, boolean log) {
@@ -359,8 +360,8 @@ public class OilGenerator {
       }
    }
 
-   private static DepositRoll rollOverworldDeposit(ChunkSample sample, GenType type) {
-      BlockPos surfaceCenter = new BlockPos(sample.x(), BC_SURFACE_TENDRIL_Y, sample.z());
+   private static DepositRoll rollOverworldDeposit(WorldGenLevel level, ChunkSample sample, GenType type) {
+      BlockPos surfaceCenter = OilGenStructure.findTerrainUpper(level, sample.x(), sample.z());
       RandomSource rand = sample.rand();
       int lakeRadius;
       int tendrilRadius;
@@ -378,8 +379,9 @@ public class OilGenerator {
       return new DepositRoll(toDepositType(type), surfaceCenter, lakeRadius, tendrilRadius);
    }
 
-   private static int bcWellY(RandomSource rand) {
-      return 20 + rand.nextInt(10);
+   /** BC 8.0: well center is measured up from bedrock, not sea level. */
+   private static int bcWellY(WorldGenLevel level, RandomSource rand) {
+      return level.getMinY() + 25 + rand.nextInt(10);
    }
 
    private static long decorationSeedForChunk(long worldSeed, int chunkX, int chunkZ) {

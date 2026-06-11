@@ -33,19 +33,26 @@ public final class OilSliceRenderer {
 
       Box sliceBounds = chunkBounds(level, sliceChunkX, sliceChunkZ);
       boolean placed = false;
-      placed |= renderTendril(level, plan, sliceBounds);
+      boolean ownerSlice = sliceChunkX == plan.ownerChunkX && sliceChunkZ == plan.ownerChunkZ;
+
+      // BC 8.0: underground pool and spring feed before surface tendrils; spring tile last.
       if (plan.wellY != null && plan.wellRadius != null) {
+         if (plan.hasSpring && plan.springPos != null && ownerSlice) {
+            placed |= renderSpringTube(level, plan, sliceBounds);
+         }
+
          placed |= renderSphere(level, plan.anchorX, plan.wellY, plan.anchorZ, plan.wellRadius, sliceBounds);
+
          if (BCEnergyConfig.enableOilSpouts.get()) {
             placed |= renderSpout(level, plan, sliceBounds);
          }
 
-         if (plan.hasSpring && plan.springPos != null && sliceChunkX == plan.ownerChunkX && sliceChunkZ == plan.ownerChunkZ) {
-            placed |= renderSpringTube(level, plan, sliceBounds);
+         if (plan.hasSpring && plan.springPos != null && ownerSlice) {
             placed |= renderSpring(level, plan);
          }
       }
 
+      placed |= renderTendril(level, plan, sliceBounds);
       return placed;
    }
 
@@ -190,7 +197,9 @@ public final class OilSliceRenderer {
          return false;
       }
 
-      return renderVerticalTube(level, plan.anchorX, 1, plan.anchorZ, plan.wellY, plan.spoutRadius, sliceBounds);
+      int tubeBase = level.getMinY() + 2;
+      int tubeLen = Math.max(0, plan.wellY - tubeBase);
+      return renderVerticalTube(level, plan.anchorX, tubeBase, plan.anchorZ, tubeLen, plan.spoutRadius, sliceBounds);
    }
 
    private static boolean renderSpring(WorldGenLevel level, OilDepositPlan plan) {

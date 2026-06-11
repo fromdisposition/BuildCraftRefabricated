@@ -116,6 +116,8 @@ public final class BCEnergyFluidsFabric {
                .noLootTable()
                .liquid()
                .sound(SoundType.HONEY_BLOCK)
+               // Vanilla carver/lava path: WorldGenRegion marks postProcess pos, then postProcessGeneration runs fluid tick.
+               .postProcess((state, level, pos) -> pos)
          )
       );
       if (props.flammable()) {
