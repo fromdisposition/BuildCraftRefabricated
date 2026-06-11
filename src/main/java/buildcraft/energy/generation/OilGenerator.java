@@ -86,9 +86,23 @@ public class OilGenerator {
    }
 
    private static ChunkSample sampleAt(WorldGenLevel level, int x, int z, RandomSource random) {
-      Holder<Biome> biome = level.getBiome(new BlockPos(x, BIOME_SAMPLE_Y, z));
+      Holder<Biome> biome = noiseBiomeAt(level, x, BIOME_SAMPLE_Y, z);
       Identifier biomeId = Identifier.parse(biome.getRegisteredName());
       return new ChunkSample(random, x, z, biome, biomeId);
+   }
+
+   /**
+    * Samples the biome straight from the chunk generator's {@link net.minecraft.world.level.biome.BiomeSource}. Unlike
+    * {@link WorldGenLevel#getBiome} this never routes through {@code WorldGenRegion.getChunk}, so it is safe to query for
+    * owner chunks several chunks away from the chunk currently being decorated (those neighbours are not yet available
+    * during the FEATURES step and would otherwise throw "Requested chunk unavailable during world generation").
+    */
+   private static Holder<Biome> noiseBiomeAt(WorldGenLevel level, int x, int y, int z) {
+      ServerLevel server = level.getLevel();
+      var chunkSource = server.getChunkSource();
+      return chunkSource.getGenerator()
+         .getBiomeSource()
+         .getNoiseBiome(x >> 2, y >> 2, z >> 2, chunkSource.randomState().sampler());
    }
 
    public static boolean isOilDesignBiomeAt(Level level, int chunkX, int chunkZ) {
