@@ -58,48 +58,12 @@ final class BCEnergyTemplatePoolsBootstrap {
 
       context.register(
          PATCH_DESERT_START,
-         new StructureTemplatePool(
-            empty,
-            ImmutableList.of(
-               Pair.of(well(processors, "oil_well_large", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE), 8),
-               Pair.of(well(processors, "oil_well_large_s", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE_S), 6),
-               Pair.of(well(processors, "oil_well_large_m", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE_M), 3),
-               Pair.of(well(processors, "oil_well_large_l", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE_L), 3),
-               Pair.of(well(processors, "oil_well_medium", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM), 25),
-               Pair.of(well(processors, "oil_well_medium_l", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_L), 15),
-               Pair.of(well(processors, "oil_well_medium_alt", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_ALT), 12),
-               Pair.of(well(processors, "oil_well_medium_s", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_S), 8),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch"), 10),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_b"), 10),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 10),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_d"), 10),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_e"), 10)
-            ),
-            StructureTemplatePool.Projection.RIGID
-         )
+         new StructureTemplatePool(empty, patchElements(processors, surfaceGravity), StructureTemplatePool.Projection.RIGID)
       );
 
       context.register(
          PATCH_OCEAN_START,
-         new StructureTemplatePool(
-            empty,
-            ImmutableList.of(
-               Pair.of(well(processors, "oil_well_large", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE), 8),
-               Pair.of(well(processors, "oil_well_large_s", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE_S), 6),
-               Pair.of(well(processors, "oil_well_large_m", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE_M), 3),
-               Pair.of(well(processors, "oil_well_large_l", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE_L), 3),
-               Pair.of(well(processors, "oil_well_medium", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM), 25),
-               Pair.of(well(processors, "oil_well_medium_l", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_L), 15),
-               Pair.of(well(processors, "oil_well_medium_alt", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_ALT), 12),
-               Pair.of(well(processors, "oil_well_medium_s", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_S), 8),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch"), 10),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_b"), 10),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 10),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_d"), 10),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_e"), 10)
-            ),
-            StructureTemplatePool.Projection.RIGID
-         )
+         new StructureTemplatePool(empty, patchElements(processors, surfaceGravity), StructureTemplatePool.Projection.RIGID)
       );
 
       context.register(
@@ -114,6 +78,30 @@ final class BCEnergyTemplatePoolsBootstrap {
             ),
             StructureTemplatePool.Projection.RIGID
          )
+      );
+   }
+
+   private static ImmutableList<Pair<Function<StructureTemplatePool.Projection, ? extends StructurePoolElement>, Integer>> patchElements(
+      HolderGetter<StructureProcessorList> processors,
+      Holder<StructureProcessorList> surfaceGravity
+   ) {
+      return ImmutableList.of(
+         Pair.of(well(processors, "oil_well_large", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE), 3),
+         Pair.of(well(processors, "oil_well_large_s", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE_S), 2),
+         Pair.of(well(processors, "oil_well_large_m", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE_M), 2),
+         Pair.of(well(processors, "oil_well_large_l", BCEnergyProcessorListsBootstrap.OIL_WELL_LARGE_L), 2),
+         Pair.of(well(processors, "oil_well_medium", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM), 6),
+         Pair.of(well(processors, "oil_well_medium_l", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_L), 4),
+         Pair.of(well(processors, "oil_well_medium_alt", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_ALT), 3),
+         Pair.of(well(processors, "oil_well_medium_s", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_S), 2),
+         Pair.of(lake(surfaceGravity, "oil_lake_patch"), 12),
+         Pair.of(lake(surfaceGravity, "oil_lake_patch_b"), 12),
+         Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 12),
+         Pair.of(lake(surfaceGravity, "oil_lake_patch_d"), 12),
+         Pair.of(lake(surfaceGravity, "oil_lake_patch_e"), 12),
+         Pair.of(lake(surfaceGravity, "oil_lake_rich_a"), 15),
+         Pair.of(lake(surfaceGravity, "oil_lake_rich_b"), 15),
+         Pair.of(lake(surfaceGravity, "oil_lake_rich_c"), 15)
       );
    }
 

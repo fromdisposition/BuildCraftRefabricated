@@ -69,6 +69,12 @@ public final class BCEnergyStructureProvider implements DataProvider {
          StructureSet patchOceanSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
             .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN_SET)
             .value();
+         StructureSet patchDesertDenseSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
+            .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT_DENSE_SET)
+            .value();
+         StructureSet patchOceanDenseSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
+            .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN_DENSE_SET)
+            .value();
          StructureSet waterSpringSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
             .getOrThrow(BCEnergyStructures.WATER_SPRING_SET)
             .value();
@@ -123,6 +129,24 @@ public final class BCEnergyStructureProvider implements DataProvider {
          saves.add(
             DataProvider.saveStable(
                cache, registry, StructureSet.DIRECT_CODEC, patchOceanSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_patch_ocean.json")
+            )
+         );
+         saves.add(
+            DataProvider.saveStable(
+               cache,
+               registry,
+               StructureSet.DIRECT_CODEC,
+               patchDesertDenseSet,
+               dataRoot.resolve("worldgen/structure_set/oil_deposit_patch_desert_dense.json")
+            )
+         );
+         saves.add(
+            DataProvider.saveStable(
+               cache,
+               registry,
+               StructureSet.DIRECT_CODEC,
+               patchOceanDenseSet,
+               dataRoot.resolve("worldgen/structure_set/oil_deposit_patch_ocean_dense.json")
             )
          );
          saves.add(

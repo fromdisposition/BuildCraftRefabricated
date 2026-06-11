@@ -30,6 +30,12 @@ public final class BCEnergyStructures {
    public static final ResourceKey<StructureSet> OIL_DEPOSIT_PATCH_OCEAN_SET = ResourceKey.create(
       Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_ocean")
    );
+   public static final ResourceKey<StructureSet> OIL_DEPOSIT_PATCH_DESERT_DENSE_SET = ResourceKey.create(
+      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_desert_dense")
+   );
+   public static final ResourceKey<StructureSet> OIL_DEPOSIT_PATCH_OCEAN_DENSE_SET = ResourceKey.create(
+      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_ocean_dense")
+   );
 
    public static final ResourceKey<Structure> WATER_SPRING = ResourceKey.create(
       Registries.STRUCTURE, BCRegistries.id("buildcraftenergy", "water_spring")

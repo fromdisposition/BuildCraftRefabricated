@@ -23,11 +23,14 @@ public final class OilStructureTemplateBuilder {
    }
 
    public static void generateAll(Path structuresDir) throws IOException {
-      writeLake(structuresDir.resolve("oil_lake_patch.nbt"), 0x51AF1001L, 6, 26);
-      writeLake(structuresDir.resolve("oil_lake_patch_b.nbt"), 0x51AF1002L, 6, 32);
-      writeLake(structuresDir.resolve("oil_lake_patch_c.nbt"), 0x51AF1003L, 6, 38);
-      writeLake(structuresDir.resolve("oil_lake_patch_d.nbt"), 0x51AF1004L, 6, 30);
-      writeLake(structuresDir.resolve("oil_lake_patch_e.nbt"), 0x51AF1005L, 6, 42);
+      writeLake(structuresDir.resolve("oil_lake_patch.nbt"), 0x51AF1001L, 8, 30);
+      writeLake(structuresDir.resolve("oil_lake_patch_b.nbt"), 0x51AF1002L, 8, 36);
+      writeLake(structuresDir.resolve("oil_lake_patch_c.nbt"), 0x51AF1003L, 8, 42);
+      writeLake(structuresDir.resolve("oil_lake_patch_d.nbt"), 0x51AF1004L, 8, 34);
+      writeLake(structuresDir.resolve("oil_lake_patch_e.nbt"), 0x51AF1005L, 8, 46);
+      writeLake(structuresDir.resolve("oil_lake_rich_a.nbt"), 0x51AF2001L, 10, 40);
+      writeLake(structuresDir.resolve("oil_lake_rich_b.nbt"), 0x51AF2002L, 10, 44);
+      writeLake(structuresDir.resolve("oil_lake_rich_c.nbt"), 0x51AF2003L, 10, 48);
 
       writeWell(structuresDir.resolve("oil_well_medium_s.nbt"), 2, 5, 4, 6, 0, false);
       writeWell(structuresDir.resolve("oil_well_medium_alt.nbt"), 2, 9, 5, 8, 0, false);
