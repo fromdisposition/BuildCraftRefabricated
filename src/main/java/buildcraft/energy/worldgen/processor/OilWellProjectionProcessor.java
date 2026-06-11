@@ -15,7 +15,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 /**
  * Runs after {@link net.minecraft.world.level.levelgen.structure.templatesystem.GravityProcessor}.
  * Surface tendrils/spouts keep gravity; the deposit and bedrock shaft use fixed world Y; the connector
- * is a fixed bridge from the deposit top up to the terrain-relative shaft ({@code templateY -11..-1}).
+ * is a fixed bridge ({@code template 100+}) from Y {@code -11} up to the terrain-relative shaft ({@code template -11..-1}).
+ * Bridge must be handled before the surface gravity pass-through ({@code templateY >= 0}).
  */
 public final class OilWellProjectionProcessor extends StructureProcessor {
    public static final MapCodec<OilWellProjectionProcessor> CODEC = MapCodec.unit(OilWellProjectionProcessor::new);
@@ -40,8 +41,8 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
          );
       }
 
-      if (templateY >= OilStructureDefaults.SURFACE_TEMPLATE_Y) {
-         return processedBlockInfo;
+      if (isConnectorBridgeTemplateY(templateY)) {
+         return projectConnectorBridge(level, x, z, processedBlockInfo, templateY);
       }
 
       if (isDepositWorldY(templateY)) {
@@ -52,12 +53,12 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
          return fixedY(processedBlockInfo, templateY);
       }
 
-      if (isConnectorBridgeTemplateY(templateY)) {
-         return projectConnectorBridge(level, x, z, processedBlockInfo, templateY);
-      }
-
       if (isConnectorTerrainTemplateY(templateY)) {
          return projectConnectorTerrain(level, x, z, processedBlockInfo, templateY);
+      }
+
+      if (templateY >= OilStructureDefaults.SURFACE_TEMPLATE_Y) {
+         return processedBlockInfo;
       }
 
       return processedBlockInfo;
