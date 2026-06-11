@@ -8,7 +8,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
-import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -32,7 +31,7 @@ final class BCEnergyStructuresBootstrap {
          biomes,
          BCEnergyStructures.OIL_DEPOSIT_NORMAL,
          pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.NORMAL_START),
-         BiomeTags.IS_OVERWORLD,
+         BCEnergyBiomeTags.OIL_SPAWN_NORMAL,
          OilStructureSpawnConditions.Tier.NORMAL
       );
       registerTier(
@@ -40,7 +39,7 @@ final class BCEnergyStructuresBootstrap {
          biomes,
          BCEnergyStructures.OIL_DEPOSIT_RICH,
          pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.RICH_START),
-         BCEnergyBiomeTags.OIL_RICH_BIOME,
+         BCEnergyBiomeTags.OIL_SPAWN_RICH,
          OilStructureSpawnConditions.Tier.RICH
       );
       registerTier(

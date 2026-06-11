@@ -21,6 +21,14 @@ public final class BCEnergyBiomeTags {
    public static final TagKey<Biome> OIL_PATCH_DESERT = TagKey.create(
       Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_patch_desert")
    );
+   /** Overworld minus excluded, rich, and patch tiers (BC normal roll). */
+   public static final TagKey<Biome> OIL_SPAWN_NORMAL = TagKey.create(
+      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_spawn_normal")
+   );
+   /** Rich tier only where rich and patch tags do not overlap (empty with current patch desert list). */
+   public static final TagKey<Biome> OIL_SPAWN_RICH = TagKey.create(
+      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_spawn_rich")
+   );
 
    private BCEnergyBiomeTags() {
    }

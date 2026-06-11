@@ -57,10 +57,8 @@ public final class OilStructureSpawnConditions {
          return false;
       }
       return switch (tier) {
-         case NORMAL -> !biome.is(BCEnergyBiomeTags.OIL_RICH_BIOME)
-            && !biome.is(BCEnergyBiomeTags.OIL_PATCH_OCEAN)
-            && !biome.is(BCEnergyBiomeTags.OIL_PATCH_DESERT);
-         case RICH -> biome.is(BCEnergyBiomeTags.OIL_RICH_BIOME);
+         case NORMAL -> biome.is(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
+         case RICH -> biome.is(BCEnergyBiomeTags.OIL_SPAWN_RICH);
          case PATCH_DESERT -> biome.is(BCEnergyBiomeTags.OIL_PATCH_DESERT);
          case PATCH_OCEAN -> biome.is(BCEnergyBiomeTags.OIL_PATCH_OCEAN);
       };

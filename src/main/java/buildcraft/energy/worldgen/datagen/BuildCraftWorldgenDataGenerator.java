@@ -13,8 +13,8 @@ public final class BuildCraftWorldgenDataGenerator implements DataGeneratorEntry
       BCEnergyStructures.registerStructureType();
       BCEnergyStructureProcessorTypes.register();
       FabricDataGenerator.Pack pack = fabricDataGenerator.createPack();
-      pack.addProvider(BCEnergyStructureProvider::new);
       pack.addProvider(BCEnergyBiomeTagProvider::new);
+      pack.addProvider(BCEnergyStructureProvider::new);
    }
 
    @Override
