@@ -13,7 +13,6 @@ import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.misc.data.Box;
-import java.util.function.Predicate;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
@@ -208,47 +207,6 @@ public abstract class OilGenStructure {
                   int dz = z - this.base.getZ();
                   if (dx * dx + dz * dz <= this.radiusSq) {
                      this.setOilIfCanReplace(level, pos.set(x, y, z));
-                  }
-               }
-            }
-         }
-      }
-
-      @Override
-      public int countOilBlocks() {
-         return this.totalOilBlocks;
-      }
-   }
-
-   public static class GenByPredicate extends OilGenStructure {
-      public final Predicate<BlockPos> predicate;
-      private final int totalOilBlocks;
-
-      public GenByPredicate(Box containingBox, ReplaceType replaceType, Predicate<BlockPos> predicate) {
-         super(containingBox, replaceType);
-         this.predicate = predicate;
-         this.totalOilBlocks = countPredicateBlocks(containingBox, predicate);
-      }
-
-      private static int countPredicateBlocks(Box box, Predicate<BlockPos> predicate) {
-         int count = 0;
-         for (BlockPos pos : BlockPos.betweenClosed(box.min(), box.max())) {
-            if (predicate.test(pos)) {
-               count++;
-            }
-         }
-         return count;
-      }
-
-      @Override
-      protected void generateWithin(LevelAccessor level, Box intersect) {
-         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
-         for (int x = intersect.min().getX(); x <= intersect.max().getX(); x++) {
-            for (int y = intersect.min().getY(); y <= intersect.max().getY(); y++) {
-               for (int z = intersect.min().getZ(); z <= intersect.max().getZ(); z++) {
-                  pos.set(x, y, z);
-                  if (this.predicate.test(pos)) {
-                     this.setOilIfCanReplace(level, pos);
                   }
                }
             }

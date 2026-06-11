@@ -3,7 +3,9 @@ package buildcraft.energy.generation;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.PositionUtil;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
@@ -29,6 +31,10 @@ public final class FineRichesTracker {
          return;
       }
 
+      if (hasFineRiches(player)) {
+         return;
+      }
+
       if (!OilGenerator.canGenerateOilIn(level)) {
          return;
       }
@@ -48,5 +54,15 @@ public final class FineRichesTracker {
             }
          }
       }
+   }
+
+   private static boolean hasFineRiches(ServerPlayer player) {
+      MinecraftServer server = player.level().getServer();
+      if (server == null) {
+         return false;
+      }
+
+      AdvancementHolder holder = server.getAdvancements().get(ADVANCEMENT_FINE_RICHES);
+      return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
    }
 }

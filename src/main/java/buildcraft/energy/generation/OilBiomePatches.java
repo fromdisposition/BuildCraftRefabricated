@@ -1,6 +1,5 @@
 package buildcraft.energy.generation;
 
-import buildcraft.energy.BCEnergyConfig;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -18,16 +17,17 @@ public final class OilBiomePatches {
    }
 
    public static Identifier effectiveBiomeId(ServerLevel level, int x, int z, Holder<Biome> biome, Identifier fallback) {
-      if (BCEnergyConfig.enableOilOnWater.get()
-         && BCEnergyConfig.enableOilOceanBiome.get()
+      OilGenSettings settings = OilGenSettings.current();
+      if (settings.enableOilOnWater()
+         && settings.enableOilOceanBiome()
          && isShallowOcean(biome, fallback)) {
-         double patchChance = clampChance(BCEnergyConfig.oilOceanPatchChance.get());
+         double patchChance = clampChance(settings.oilOceanPatchChance());
          if (sampleNoise(level.getSeed(), x, z, 0.0005) >= 1.0 - patchChance) {
             return OIL_OCEAN;
          }
       }
-      if (BCEnergyConfig.enableOilDesertBiome.get() && isDesertLike(fallback.getPath())) {
-         double patchChance = clampChance(BCEnergyConfig.oilDesertPatchChance.get());
+      if (settings.enableOilDesertBiome() && isDesertLike(fallback.getPath())) {
+         double patchChance = clampChance(settings.oilDesertPatchChance());
          if (sampleNoise(level.getSeed() ^ 0x5EED5EEDL, x, z, 0.001) >= 1.0 - patchChance) {
             return OIL_DESERT;
          }

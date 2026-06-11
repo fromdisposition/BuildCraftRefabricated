@@ -17,6 +17,7 @@ public class SpringFeature extends Feature<NoneFeatureConfiguration> {
       super(codec);
    }
 
+   @Override
    public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
       if (!EnumSpring.WATER.canGen) {
          return false;
