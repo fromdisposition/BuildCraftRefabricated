@@ -1,4 +1,4 @@
-package buildcraft.energy.worldgen.structure;
+package buildcraft.energy.worldgen.template;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,10 +15,10 @@ import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtUtils;
 
 /** Writes gzip-compressed structure template NBT files for jigsaw pool elements. */
-public final class OilStructureNbtWriter {
+public final class StructureNbtWriter {
    public record BlockEntry(int x, int y, int z, String blockId) {}
 
-   private OilStructureNbtWriter() {
+   private StructureNbtWriter() {
    }
 
    public static void write(Path path, int sizeX, int sizeY, int sizeZ, List<BlockEntry> blocks) throws IOException {

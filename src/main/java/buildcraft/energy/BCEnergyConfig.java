@@ -6,6 +6,7 @@
 
 package buildcraft.energy;
 
+import buildcraft.api.enums.EnumSpring;
 import buildcraft.core.BCCoreConfig;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +24,7 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue useFullUnitNames = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableOilGeneration = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue spawnOilSprings = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue worldGenWaterSpring = new BCCoreConfig.BooleanValue(true);
    /** Per-chunk slice of desert biomes that use the rich tier (wells + lakes). */
    public static final BCCoreConfig.IntValue oilDesertRichChancePercent = new BCCoreConfig.IntValue(30);
    /** Per-chunk slice of ocean biomes that use the patch tier (wells + lakes). */
@@ -36,6 +38,10 @@ public class BCEnergyConfig {
 
    public static Set<Identifier> getExcludedDimensions() {
       return excludedDimensions.get().stream().<Identifier>map(Identifier::parse).collect(Collectors.toSet());
+   }
+
+   public static void refreshWaterSpringFlag() {
+      EnumSpring.WATER.canGen = BCCoreConfig.worldGen.get() && worldGenWaterSpring.get();
    }
 
    public enum ListMode {

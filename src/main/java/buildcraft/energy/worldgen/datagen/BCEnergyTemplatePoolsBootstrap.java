@@ -7,6 +7,7 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import buildcraft.energy.worldgen.structure.OilDepositPoolElement;
+import buildcraft.energy.worldgen.structure.WaterSpringPoolElement;
 import buildcraft.fabric.BCRegistries;
 import net.minecraft.data.worldgen.Pools;
 import net.minecraft.resources.ResourceKey;
@@ -24,6 +25,9 @@ final class BCEnergyTemplatePoolsBootstrap {
    );
    static final ResourceKey<StructureTemplatePool> PATCH_OCEAN_START = ResourceKey.create(
       Registries.TEMPLATE_POOL, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_ocean/start")
+   );
+   static final ResourceKey<StructureTemplatePool> WATER_SPRING_START = ResourceKey.create(
+      Registries.TEMPLATE_POOL, BCRegistries.id("buildcraftenergy", "water_spring/start")
    );
 
    private BCEnergyTemplatePoolsBootstrap() {
@@ -93,6 +97,20 @@ final class BCEnergyTemplatePoolsBootstrap {
                Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 4),
                Pair.of(lake(surfaceGravity, "oil_lake_patch_d"), 4),
                Pair.of(lake(surfaceGravity, "oil_lake_patch_e"), 4)
+            ),
+            StructureTemplatePool.Projection.RIGID
+         )
+      );
+
+      context.register(
+         WATER_SPRING_START,
+         new StructureTemplatePool(
+            empty,
+            ImmutableList.of(
+               Pair.of(
+                  WaterSpringPoolElement.of("buildcraftenergy:water_spring", processors.getOrThrow(BCEnergyProcessorListsBootstrap.WATER_SPRING_BEDROCK)),
+                  1
+               )
             ),
             StructureTemplatePool.Projection.RIGID
          )

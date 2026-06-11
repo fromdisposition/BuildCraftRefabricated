@@ -36,7 +36,6 @@ public final class BCCore {
       BCCoreItems.register();
       BCCoreBlockEntities.register();
       BCCoreMenuTypes.register();
-      BCCoreFeatures.register();
       BCCoreCreativeTabs.register();
       BCLib.init();
       preInit();

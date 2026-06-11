@@ -1,7 +1,8 @@
 package buildcraft.energy.worldgen.datagen;
 
 import buildcraft.energy.worldgen.structure.BCEnergyStructures;
-import buildcraft.energy.worldgen.structure.OilStructureDefaults;
+import buildcraft.energy.worldgen.core.OilStructureDefaults;
+import buildcraft.energy.worldgen.core.WaterSpringDefaults;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
@@ -50,6 +51,19 @@ final class BCEnergyStructureSetsBootstrap {
                OilStructureDefaults.OCEAN_PATCH_SEPARATION,
                RandomSpreadType.LINEAR,
                OilStructureDefaults.PATCH_SALT + 2
+            )
+         )
+      );
+
+      context.register(
+         BCEnergyStructures.WATER_SPRING_SET,
+         new StructureSet(
+            structures.getOrThrow(BCEnergyStructures.WATER_SPRING),
+            new RandomSpreadStructurePlacement(
+               WaterSpringDefaults.SPACING,
+               WaterSpringDefaults.SEPARATION,
+               RandomSpreadType.LINEAR,
+               WaterSpringDefaults.SALT
             )
          )
       );

@@ -1,8 +1,8 @@
-package buildcraft.energy.worldgen.adapter;
+package buildcraft.energy.worldgen.integration;
 
 import buildcraft.core.BCCoreConfig;
 import buildcraft.energy.BCEnergyConfig;
-import buildcraft.energy.BCEnergyFeatures;
+import buildcraft.energy.worldgen.BCEnergyWorldgen;
 import buildcraft.energy.worldgen.core.BCEnergyBiomeTags;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.core.Holder;
@@ -37,6 +37,6 @@ public final class FineRichesTracker {
          return;
       }
 
-      BCEnergyFeatures.OIL_DESIGN_BIOME_NEARBY.trigger(player);
+      BCEnergyWorldgen.OIL_DESIGN_BIOME_NEARBY.trigger(player);
    }
 }

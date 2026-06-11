@@ -1,6 +1,6 @@
 package buildcraft.energy.worldgen.datagen;
 
-import buildcraft.energy.worldgen.structure.BCEnergyStructureProcessorTypes;
+import buildcraft.energy.worldgen.processor.BCEnergyStructureProcessorTypes;
 import buildcraft.energy.worldgen.structure.BCEnergyStructures;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;

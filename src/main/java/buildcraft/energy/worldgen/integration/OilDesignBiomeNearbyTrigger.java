@@ -1,4 +1,4 @@
-package buildcraft.energy.worldgen.adapter;
+package buildcraft.energy.worldgen.integration;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

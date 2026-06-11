@@ -31,8 +31,17 @@ public final class BCEnergyStructures {
       Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_ocean")
    );
 
+   public static final ResourceKey<Structure> WATER_SPRING = ResourceKey.create(
+      Registries.STRUCTURE, BCRegistries.id("buildcraftenergy", "water_spring")
+   );
+   public static final ResourceKey<StructureSet> WATER_SPRING_SET = ResourceKey.create(
+      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "water_spring")
+   );
+
    public static StructureType<OilDepositStructure> OIL_DEPOSIT_TYPE;
    public static StructurePoolElementType<OilDepositPoolElement> OIL_DEPOSIT_POOL_ELEMENT;
+   public static StructureType<WaterSpringStructure> WATER_SPRING_TYPE;
+   public static StructurePoolElementType<WaterSpringPoolElement> WATER_SPRING_POOL_ELEMENT;
 
    private BCEnergyStructures() {
    }
@@ -51,6 +60,22 @@ public final class BCEnergyStructures {
             BuiltInRegistries.STRUCTURE_POOL_ELEMENT,
             BCRegistries.id("buildcraftenergy", "oil_deposit"),
             () -> OilDepositPoolElement.CODEC
+         );
+      }
+
+      if (WATER_SPRING_TYPE == null) {
+         WATER_SPRING_TYPE = Registry.register(
+            BuiltInRegistries.STRUCTURE_TYPE,
+            BCRegistries.id("buildcraftenergy", "water_spring"),
+            () -> WaterSpringStructure.CODEC
+         );
+      }
+
+      if (WATER_SPRING_POOL_ELEMENT == null) {
+         WATER_SPRING_POOL_ELEMENT = Registry.register(
+            BuiltInRegistries.STRUCTURE_POOL_ELEMENT,
+            BCRegistries.id("buildcraftenergy", "water_spring"),
+            () -> WaterSpringPoolElement.CODEC
          );
       }
    }

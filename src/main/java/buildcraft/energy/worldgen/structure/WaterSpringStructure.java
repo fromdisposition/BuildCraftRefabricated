@@ -1,6 +1,6 @@
 package buildcraft.energy.worldgen.structure;
 
-import buildcraft.energy.worldgen.core.OilStructureDefaults;
+import buildcraft.energy.worldgen.core.WaterSpringDefaults;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,8 +11,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.WorldGenerationContext;
-import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pools.DimensionPadding;
@@ -22,23 +20,23 @@ import net.minecraft.world.level.levelgen.structure.pools.alias.PoolAliasBinding
 import net.minecraft.world.level.levelgen.structure.pools.alias.PoolAliasLookup;
 import net.minecraft.world.level.levelgen.structure.structures.JigsawStructure;
 import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
+import net.minecraft.world.level.levelgen.heightproviders.HeightProvider;
 
-public final class OilDepositStructure extends Structure {
-   public static final MapCodec<OilDepositStructure> CODEC = RecordCodecBuilder.<OilDepositStructure>mapCodec(
+public final class WaterSpringStructure extends Structure {
+   public static final MapCodec<WaterSpringStructure> CODEC = RecordCodecBuilder.<WaterSpringStructure>mapCodec(
       instance -> instance.group(
          settingsCodec(instance),
-         StructureTemplatePool.CODEC.fieldOf("start_pool").forGetter(OilDepositStructure::startPool),
-         Identifier.CODEC.optionalFieldOf("start_jigsaw_name").forGetter(OilDepositStructure::startJigsawName),
-         Codec.intRange(0, 20).fieldOf("size").forGetter(OilDepositStructure::maxDepth),
-         HeightProvider.CODEC.fieldOf("start_height").forGetter(OilDepositStructure::startHeight),
-         Codec.BOOL.fieldOf("use_expansion_hack").forGetter(OilDepositStructure::useExpansionHack),
-         Heightmap.Types.CODEC.optionalFieldOf("project_start_to_heightmap").forGetter(OilDepositStructure::projectStartToHeightmap),
-         JigsawStructure.MaxDistance.CODEC.fieldOf("max_distance_from_center").forGetter(OilDepositStructure::maxDistanceFromCenter),
-         Codec.list(PoolAliasBinding.CODEC).optionalFieldOf("pool_aliases", List.of()).forGetter(OilDepositStructure::poolAliases),
-         DimensionPadding.CODEC.optionalFieldOf("dimension_padding", DimensionPadding.ZERO).forGetter(OilDepositStructure::dimensionPadding),
-         LiquidSettings.CODEC.optionalFieldOf("liquid_settings", LiquidSettings.APPLY_WATERLOGGING).forGetter(OilDepositStructure::liquidSettings),
-         OilStructureSpawnConditions.Tier.CODEC.fieldOf("tier").forGetter(OilDepositStructure::tier)
-      ).apply(instance, OilDepositStructure::new)
+         StructureTemplatePool.CODEC.fieldOf("start_pool").forGetter(WaterSpringStructure::startPool),
+         Identifier.CODEC.optionalFieldOf("start_jigsaw_name").forGetter(WaterSpringStructure::startJigsawName),
+         Codec.intRange(0, 20).fieldOf("size").forGetter(WaterSpringStructure::maxDepth),
+         HeightProvider.CODEC.fieldOf("start_height").forGetter(WaterSpringStructure::startHeight),
+         Codec.BOOL.fieldOf("use_expansion_hack").forGetter(WaterSpringStructure::useExpansionHack),
+         Heightmap.Types.CODEC.optionalFieldOf("project_start_to_heightmap").forGetter(WaterSpringStructure::projectStartToHeightmap),
+         JigsawStructure.MaxDistance.CODEC.fieldOf("max_distance_from_center").forGetter(WaterSpringStructure::maxDistanceFromCenter),
+         Codec.list(PoolAliasBinding.CODEC).optionalFieldOf("pool_aliases", List.of()).forGetter(WaterSpringStructure::poolAliases),
+         DimensionPadding.CODEC.optionalFieldOf("dimension_padding", DimensionPadding.ZERO).forGetter(WaterSpringStructure::dimensionPadding),
+         LiquidSettings.CODEC.optionalFieldOf("liquid_settings", LiquidSettings.APPLY_WATERLOGGING).forGetter(WaterSpringStructure::liquidSettings)
+      ).apply(instance, WaterSpringStructure::new)
    );
 
    private final Holder<StructureTemplatePool> startPool;
@@ -51,9 +49,8 @@ public final class OilDepositStructure extends Structure {
    private final List<PoolAliasBinding> poolAliases;
    private final DimensionPadding dimensionPadding;
    private final LiquidSettings liquidSettings;
-   private final OilStructureSpawnConditions.Tier tier;
 
-   public OilDepositStructure(
+   public WaterSpringStructure(
       StructureSettings settings,
       Holder<StructureTemplatePool> startPool,
       Optional<Identifier> startJigsawName,
@@ -64,8 +61,7 @@ public final class OilDepositStructure extends Structure {
       JigsawStructure.MaxDistance maxDistanceFromCenter,
       List<PoolAliasBinding> poolAliases,
       DimensionPadding dimensionPadding,
-      LiquidSettings liquidSettings,
-      OilStructureSpawnConditions.Tier tier
+      LiquidSettings liquidSettings
    ) {
       super(settings);
       this.startPool = startPool;
@@ -78,7 +74,6 @@ public final class OilDepositStructure extends Structure {
       this.poolAliases = poolAliases;
       this.dimensionPadding = dimensionPadding;
       this.liquidSettings = liquidSettings;
-      this.tier = tier;
    }
 
    public Holder<StructureTemplatePool> startPool() {
@@ -121,22 +116,16 @@ public final class OilDepositStructure extends Structure {
       return this.liquidSettings;
    }
 
-   public OilStructureSpawnConditions.Tier tier() {
-      return this.tier;
-   }
-
    @Override
    public Optional<GenerationStub> findGenerationPoint(GenerationContext context) {
-      if (!OilStructureSpawnConditions.canSpawn(this.tier, context)) {
+      if (!WaterSpringSpawnConditions.canSpawn(context)) {
          return Optional.empty();
       }
+
       ChunkPos chunkPos = context.chunkPos();
-      int height = this.startHeight.sample(context.random(), new WorldGenerationContext(context.chunkGenerator(), context.heightAccessor()));
-      BlockPos startPos = new BlockPos(
-         chunkPos.getMiddleBlockX() - OilStructureDefaults.TEMPLATE_CENTER,
-         height,
-         chunkPos.getMiddleBlockZ() - OilStructureDefaults.TEMPLATE_CENTER
-      );
+      int x = chunkPos.getMinBlockX() + context.random().nextInt(16);
+      int z = chunkPos.getMinBlockZ() + context.random().nextInt(16);
+      BlockPos startPos = new BlockPos(x, WaterSpringDefaults.SPRING_TEMPLATE_Y, z);
       return JigsawPlacement.addPieces(
          context,
          this.startPool,
@@ -154,6 +143,6 @@ public final class OilDepositStructure extends Structure {
 
    @Override
    public StructureType<?> type() {
-      return BCEnergyStructures.OIL_DEPOSIT_TYPE;
+      return BCEnergyStructures.WATER_SPRING_TYPE;
    }
 }

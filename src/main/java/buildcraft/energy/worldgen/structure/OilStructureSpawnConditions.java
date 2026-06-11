@@ -3,15 +3,13 @@ package buildcraft.energy.worldgen.structure;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.worldgen.core.BCEnergyBiomeTags;
+import buildcraft.energy.worldgen.core.OilStructureDefaults;
+import buildcraft.energy.worldgen.core.WorldgenDimensionFilters;
 import com.mojang.serialization.Codec;
 import java.util.Locale;
-import java.util.Set;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -41,7 +39,7 @@ public final class OilStructureSpawnConditions {
       if (tier == Tier.PATCH_OCEAN && !BCEnergyConfig.enableOilOnWater.get()) {
          return false;
       }
-      if (isDimensionExcluded(context)) {
+      if (WorldgenDimensionFilters.isDimensionExcluded(context)) {
          return false;
       }
 
@@ -90,14 +88,4 @@ public final class OilStructureSpawnConditions {
       return Math.max(0, Math.min(100, value));
    }
 
-   private static boolean isDimensionExcluded(Structure.GenerationContext context) {
-      if (!(context.heightAccessor() instanceof WorldGenLevel worldGenLevel)) {
-         return false;
-      }
-      Level level = worldGenLevel.getLevel();
-      Identifier dimensionId = level.dimension().identifier();
-      Set<Identifier> excluded = BCEnergyConfig.getExcludedDimensions();
-      boolean inList = excluded.contains(dimensionId);
-      return BCEnergyConfig.dimensionListMode.get() == BCEnergyConfig.ListMode.BLACKLIST ? inList : !inList;
-   }
 }

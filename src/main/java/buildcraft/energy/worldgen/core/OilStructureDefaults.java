@@ -1,4 +1,4 @@
-package buildcraft.energy.worldgen.structure;
+package buildcraft.energy.worldgen.core;
 
 public final class OilStructureDefaults {
    public static final int TEMPLATE_SIZE = 91;

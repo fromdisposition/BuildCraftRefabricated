@@ -4,10 +4,12 @@ import buildcraft.energy.worldgen.core.BCEnergyBiomeTags;
 import buildcraft.energy.worldgen.structure.BCEnergyStructures;
 import buildcraft.energy.worldgen.structure.OilDepositStructure;
 import buildcraft.energy.worldgen.structure.OilStructureSpawnConditions;
+import buildcraft.energy.worldgen.structure.WaterSpringStructure;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -49,6 +51,26 @@ final class BCEnergyStructuresBootstrap {
          pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_OCEAN_START),
          BCEnergyBiomeTags.OIL_PATCH_OCEAN,
          OilStructureSpawnConditions.Tier.PATCH_OCEAN
+      );
+
+      context.register(
+         BCEnergyStructures.WATER_SPRING,
+         new WaterSpringStructure(
+            new Structure.StructureSettings.Builder(biomes.getOrThrow(BiomeTags.IS_OVERWORLD))
+               .generationStep(net.minecraft.world.level.levelgen.GenerationStep.Decoration.UNDERGROUND_DECORATION)
+               .terrainAdapation(TerrainAdjustment.NONE)
+               .build(),
+            pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.WATER_SPRING_START),
+            java.util.Optional.empty(),
+            1,
+            ConstantHeight.of(VerticalAnchor.absolute(0)),
+            false,
+            java.util.Optional.empty(),
+            new JigsawStructure.MaxDistance(1),
+            java.util.List.of(),
+            JigsawStructure.DEFAULT_DIMENSION_PADDING,
+            JigsawStructure.DEFAULT_LIQUID_SETTINGS
+         )
       );
    }
 

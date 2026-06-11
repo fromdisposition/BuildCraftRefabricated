@@ -1,7 +1,6 @@
-package buildcraft.energy.worldgen.structure.processor;
+package buildcraft.energy.worldgen.processor;
 
-import buildcraft.energy.worldgen.structure.BCEnergyStructureProcessorTypes;
-import buildcraft.energy.worldgen.structure.OilStructureDefaults;
+import buildcraft.energy.worldgen.core.OilStructureDefaults;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

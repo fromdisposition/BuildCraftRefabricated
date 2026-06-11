@@ -1,7 +1,8 @@
 package buildcraft.energy.worldgen.datagen;
 
 import buildcraft.energy.worldgen.structure.BCEnergyStructures;
-import buildcraft.energy.worldgen.structure.OilStructureTemplateBuilder;
+import buildcraft.energy.worldgen.template.OilStructureTemplateBuilder;
+import buildcraft.energy.worldgen.template.WaterSpringTemplateBuilder;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,11 +37,13 @@ public final class BCEnergyStructureProvider implements DataProvider {
 
          try {
             OilStructureTemplateBuilder.generateAll(structuresDir);
+            WaterSpringTemplateBuilder.generate(structuresDir);
          } catch (java.io.IOException e) {
             return CompletableFuture.failedFuture(e);
          }
 
          Structure normal = registry.lookupOrThrow(Registries.STRUCTURE).getOrThrow(BCEnergyStructures.OIL_DEPOSIT_NORMAL).value();
+         Structure waterSpring = registry.lookupOrThrow(Registries.STRUCTURE).getOrThrow(BCEnergyStructures.WATER_SPRING).value();
          Structure patchDesert = registry.lookupOrThrow(Registries.STRUCTURE).getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT).value();
          Structure patchOcean = registry.lookupOrThrow(Registries.STRUCTURE).getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN).value();
 
@@ -53,6 +56,9 @@ public final class BCEnergyStructureProvider implements DataProvider {
          StructureTemplatePool patchOceanPool = registry.lookupOrThrow(Registries.TEMPLATE_POOL)
             .getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_OCEAN_START)
             .value();
+         StructureTemplatePool waterSpringPool = registry.lookupOrThrow(Registries.TEMPLATE_POOL)
+            .getOrThrow(BCEnergyTemplatePoolsBootstrap.WATER_SPRING_START)
+            .value();
 
          StructureSet normalSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
             .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_NORMAL_SET)
@@ -62,6 +68,9 @@ public final class BCEnergyStructureProvider implements DataProvider {
             .value();
          StructureSet patchOceanSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
             .getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN_SET)
+            .value();
+         StructureSet waterSpringSet = registry.lookupOrThrow(Registries.STRUCTURE_SET)
+            .getOrThrow(BCEnergyStructures.WATER_SPRING_SET)
             .value();
 
          List<CompletableFuture<?>> saves = new ArrayList<>();
@@ -114,6 +123,23 @@ public final class BCEnergyStructureProvider implements DataProvider {
          saves.add(
             DataProvider.saveStable(
                cache, registry, StructureSet.DIRECT_CODEC, patchOceanSet, dataRoot.resolve("worldgen/structure_set/oil_deposit_patch_ocean.json")
+            )
+         );
+         saves.add(
+            DataProvider.saveStable(cache, registry, Structure.DIRECT_CODEC, waterSpring, dataRoot.resolve("worldgen/structure/water_spring.json"))
+         );
+         saves.add(
+            DataProvider.saveStable(
+               cache,
+               registry,
+               StructureTemplatePool.DIRECT_CODEC,
+               waterSpringPool,
+               dataRoot.resolve("worldgen/template_pool/water_spring/start.json")
+            )
+         );
+         saves.add(
+            DataProvider.saveStable(
+               cache, registry, StructureSet.DIRECT_CODEC, waterSpringSet, dataRoot.resolve("worldgen/structure_set/water_spring.json")
             )
          );
 

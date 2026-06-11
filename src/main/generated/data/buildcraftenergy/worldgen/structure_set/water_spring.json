@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 1346811113,
+    "separation": 2,
+    "spacing": 6
+  },
+  "structures": [
+    {
+      "structure": "buildcraftenergy:water_spring",
+      "weight": 1
+    }
+  ]
+}

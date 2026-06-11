@@ -90,13 +90,11 @@ public final class BCFabricConfig {
    private static void applyCore(JsonObject core) {
       if (core != null) {
          BCCoreConfig.worldGen.set(bool(core, "worldGen", BCCoreConfig.worldGen.get()));
-         BCCoreConfig.worldGenWaterSpring.set(bool(core, "worldGenWaterSpring", BCCoreConfig.worldGenWaterSpring.get()));
          BCCoreConfig.hidePower.set(bool(core, "hidePowerValues", BCCoreConfig.hidePower.get()));
          BCCoreConfig.hideFluid.set(bool(core, "hideFluidValues", BCCoreConfig.hideFluid.get()));
          BCCoreConfig.minePlayerProtected.set(bool(core, "minePlayerProtected", BCCoreConfig.minePlayerProtected.get()));
          BCCoreConfig.markerMaxDistance.set(intVal(core, "markerMaxDistance", BCCoreConfig.markerMaxDistance.get()));
          BCCoreConfig.networkUpdateRate.set(intVal(core, "networkUpdateRate", BCCoreConfig.networkUpdateRate.get()));
-         BCCoreConfig.refreshWaterSpringFlag();
       }
    }
 
@@ -226,6 +224,8 @@ public final class BCFabricConfig {
       BCEnergyConfig.enableOilOnWater.set(bool(generator, "enableOilOnWater", BCEnergyConfig.enableOilOnWater.get()));
       BCEnergyConfig.enableOilGeneration.set(bool(generator, "enableOilGeneration", BCEnergyConfig.enableOilGeneration.get()));
       BCEnergyConfig.spawnOilSprings.set(bool(generator, "spawnOilSprings", BCEnergyConfig.spawnOilSprings.get()));
+      BCEnergyConfig.worldGenWaterSpring.set(bool(generator, "worldGenWaterSpring", BCEnergyConfig.worldGenWaterSpring.get()));
+      BCEnergyConfig.refreshWaterSpringFlag();
       BCEnergyConfig.oilDesertRichChancePercent.set(clampPercent(intVal(
          generator,
          "oilDesertRichChancePercent",
@@ -266,7 +266,6 @@ public final class BCFabricConfig {
       JsonObject root = new JsonObject();
       JsonObject core = new JsonObject();
       core.addProperty("worldGen", true);
-      core.addProperty("worldGenWaterSpring", true);
       core.addProperty("hidePowerValues", false);
       core.addProperty("hideFluidValues", false);
       core.addProperty("minePlayerProtected", false);
@@ -304,6 +303,7 @@ public final class BCFabricConfig {
       generator.addProperty("enableOilGeneration", true);
       generator.addProperty("enableOilOnWater", true);
       generator.addProperty("spawnOilSprings", true);
+      generator.addProperty("worldGenWaterSpring", true);
       generator.addProperty("oilDesertRichChancePercent", BCEnergyConfig.oilDesertRichChancePercent.get());
       generator.addProperty("oilOceanPatchChancePercent", BCEnergyConfig.oilOceanPatchChancePercent.get());
       generator.add("excludedDimensions", GSON.toJsonTree(BCEnergyConfig.getExcludedDimensions().stream().map(id -> id.toString()).sorted().toList()));

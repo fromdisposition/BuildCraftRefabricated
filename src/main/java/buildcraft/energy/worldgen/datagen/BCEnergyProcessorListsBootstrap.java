@@ -1,7 +1,8 @@
 package buildcraft.energy.worldgen.datagen;
 
-import buildcraft.energy.worldgen.structure.OilStructureDefaults;
-import buildcraft.energy.worldgen.structure.processor.OilWellProjectionProcessor;
+import buildcraft.energy.worldgen.core.OilStructureDefaults;
+import buildcraft.energy.worldgen.processor.OilWellProjectionProcessor;
+import buildcraft.energy.worldgen.processor.WaterSpringBedrockProcessor;
 import buildcraft.fabric.BCRegistries;
 import java.util.List;
 import net.minecraft.core.registries.Registries;
@@ -15,6 +16,9 @@ public final class BCEnergyProcessorListsBootstrap {
    public static final ResourceKey<StructureProcessorList> OIL_SURFACE_GRAVITY = ResourceKey.create(
       Registries.PROCESSOR_LIST, BCRegistries.id("buildcraftenergy", "oil_surface_gravity")
    );
+   public static final ResourceKey<StructureProcessorList> WATER_SPRING_BEDROCK = ResourceKey.create(
+      Registries.PROCESSOR_LIST, BCRegistries.id("buildcraftenergy", "water_spring_bedrock")
+   );
 
    public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM_S = wellKey("oil_well_medium_s", 20, 4);
    public static final ResourceKey<StructureProcessorList> OIL_WELL_MEDIUM_ALT = wellKey("oil_well_medium_alt", 24, 5);
@@ -27,6 +31,7 @@ public final class BCEnergyProcessorListsBootstrap {
 
    public static final List<ResourceKey<StructureProcessorList>> ALL = List.of(
       OIL_SURFACE_GRAVITY,
+      WATER_SPRING_BEDROCK,
       OIL_WELL_MEDIUM_S,
       OIL_WELL_MEDIUM_ALT,
       OIL_WELL_MEDIUM,
@@ -49,6 +54,7 @@ public final class BCEnergyProcessorListsBootstrap {
          OIL_SURFACE_GRAVITY,
          new StructureProcessorList(List.of(new GravityProcessor(Heightmap.Types.WORLD_SURFACE_WG, -1)))
       );
+      context.register(WATER_SPRING_BEDROCK, new StructureProcessorList(List.of(new WaterSpringBedrockProcessor())));
 
       registerWell(context, OIL_WELL_MEDIUM_S, 20, 4);
       registerWell(context, OIL_WELL_MEDIUM_ALT, 24, 5);

@@ -5,7 +5,7 @@ import buildcraft.api.mj.IMjReceiver;
 import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.BCEnergyBlocks;
 import buildcraft.energy.BCEnergyConfig;
-import buildcraft.energy.BCEnergyFeatures;
+import buildcraft.energy.worldgen.BCEnergyWorldgen;
 import buildcraft.energy.BCEnergyFluids;
 import buildcraft.energy.BCEnergyItems;
 import buildcraft.energy.BCEnergyMenuTypes;
@@ -32,18 +32,19 @@ public final class BCEnergyFabric {
       registerMjCapabilities();
       registerNativeTransfer();
       EnumSpring.OIL.liquidBlock = BCEnergyFluidsFabric.sourceBlockState(BCEnergyFluidsFabric.OIL_COOL);
-      applySpringOilConfig();
-      BCEnergyFeatures.register();
+      applySpringConfig();
+      BCEnergyWorldgen.register();
    }
 
    public static void onConfigReloaded() {
       BCEnergyFluidsFabric.reapplyConfigProperties();
       BCEnergyFluids.refreshSnapshot();
-      applySpringOilConfig();
+      applySpringConfig();
    }
 
-   private static void applySpringOilConfig() {
+   private static void applySpringConfig() {
       EnumSpring.OIL.canGen = BCEnergyConfig.spawnOilSprings.get();
+      BCEnergyConfig.refreshWaterSpringFlag();
    }
 
    private static void registerNativeTransfer() {
