@@ -9,11 +9,13 @@ package buildcraft.energy.generation.core;
 import buildcraft.api.core.BCDebugging;
 import buildcraft.api.core.BCLog;
 import buildcraft.core.BCCoreBlocks;
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.energy.BCEnergyConfig;
+import buildcraft.energy.generation.adapter.OilDepositFeatureConfiguration;
 import buildcraft.lib.misc.data.Box;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.QuartPos;
@@ -21,7 +23,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.biome.Biome;
@@ -50,34 +51,12 @@ public final class OilGenerator {
       if (level.getChunkSource().getGenerator() instanceof FlatLevelSource) {
          return false;
       }
-      return !OilGenSettings.current().isDimensionExcluded(level.dimension());
-   }
-
-   public static boolean isOilDesignBiome(Identifier biomeId) {
-      return OilGenSettings.current().designBiomes().contains(biomeId);
-   }
-
-   public static boolean isOilDesignBiomeAt(Level level, int chunkX, int chunkZ) {
-      int x = chunkX * 16 + 8;
-      int z = chunkZ * 16 + 8;
-      if (level instanceof ServerLevel serverLevel) {
-         Holder<Biome> biome = level.getBiome(new BlockPos(x, 0, z));
-         Identifier id = OilBiomePatches.effectiveBiomeId(serverLevel, x, z, biome, biomeId(biome));
-         return OilGenSettings.current().isDesignBiome(biome, id);
-      }
-      return isOilDesignBiome(biomeId(level.getBiome(new BlockPos(x, 0, z))));
-   }
-
-   public static boolean wouldGenerateOilForOriginChunk(ServerLevel level, int chunkX, int chunkZ) {
-      if (!canGenerateOilIn(level)) {
-         return false;
-      }
-      return !getStructures(level, chunkX, chunkZ).isEmpty();
+      return !isDimensionExcluded(level);
    }
 
    /**
-    * BC 8.0 {@code onPopulatePre} equivalent for Fabric features. {@code origin} is the decorating chunk min corner
-    * (vanilla {@link net.minecraft.core.SectionPos#origin()}).
+    * Fabric feature entry: scan neighbouring origin chunks, cache procedural geometry, and place intersecting structures.
+    * {@code origin} is the decorating chunk min corner (vanilla {@link net.minecraft.core.SectionPos#origin()}).
     */
    public static boolean placeForChunk(WorldGenLevel level, BlockPos origin, OilGenSettings config) {
       if (!canGenerateOilIn(level.getLevel())) {
@@ -89,35 +68,6 @@ public final class OilGenerator {
       ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
       BlockPos min = new BlockPos(chunkPos.getMinBlockX(), level.getMinY(), chunkPos.getMinBlockZ());
       Box box = new Box(min, new BlockPos(chunkPos.getMaxBlockX(), level.getMaxY(), chunkPos.getMaxBlockZ()));
-      // #region agent log
-      {
-         int chunkMinX = chunkPos.getMinBlockX();
-         int chunkMaxX = chunkPos.getMaxBlockX();
-         int chunkMinZ = chunkPos.getMinBlockZ();
-         int chunkMaxZ = chunkPos.getMaxBlockZ();
-         boolean boxCoversFullChunk = box.min().getX() == chunkMinX && box.max().getX() == chunkMaxX
-            && box.min().getZ() == chunkMinZ && box.max().getZ() == chunkMaxZ;
-         if (Math.abs(chunkX) <= 2 && Math.abs(chunkZ) <= 2) {
-            OilGenDebugLog.log(
-               "H1",
-               "OilGenerator.placeForChunk:box",
-               "decorate_box_vs_chunk",
-               java.util.Map.of(
-                  "chunkX", chunkX,
-                  "chunkZ", chunkZ,
-                  "chunkMinX", chunkMinX,
-                  "chunkMaxX", chunkMaxX,
-                  "boxMinX", box.min().getX(),
-                  "boxMaxX", box.max().getX(),
-                  "boxMinZ", box.min().getZ(),
-                  "boxMaxZ", box.max().getZ(),
-                  "boxCoversFullChunk", boxCoversFullChunk,
-                  "runId", "post-fix"
-               )
-            );
-         }
-      }
-      // #endregion
       boolean placed = false;
       long worldSeed = level.getSeed();
 
@@ -129,14 +79,14 @@ public final class OilGenerator {
                continue;
             }
 
-            final boolean logOrigin = cdx == 0 && cdz == 0;
+            final boolean selfOrigin = cdx == 0 && cdz == 0;
             int cacheScope = OilGenCaches.cacheScope(config);
             List<OilGenStructure> structures = OilGenCaches.structure(
                worldSeed,
                cx,
                cz,
                cacheScope,
-               () -> computeStructures(level, cx, cz, logOrigin, config)
+               () -> computeStructures(level, cx, cz, selfOrigin, config)
             );
             if (structures.isEmpty()) {
                continue;
@@ -167,37 +117,19 @@ public final class OilGenerator {
       return placed;
    }
 
-   static List<OilGenStructure> getStructures(LevelAccessor level, int cx, int cz) {
-      return getStructures(level, cx, cz, false);
-   }
-
-   private static List<OilGenStructure> getStructures(LevelAccessor level, int cx, int cz, boolean log) {
-      OilGenSettings config = OilGenSettings.current();
-      if (level instanceof WorldGenLevel worldGenLevel) {
-         long seed = worldGenLevel.getSeed();
-         return OilGenCaches.structure(
-            seed, cx, cz, OilGenCaches.cacheScope(config), () -> computeStructures(level, cx, cz, log, config)
-         );
-      }
-      return computeStructures(level, cx, cz, log, config);
-   }
-
-   private static List<OilGenStructure> computeStructures(LevelAccessor level, int cx, int cz, boolean log, OilGenSettings config) {
+   private static List<OilGenStructure> computeStructures(
+      LevelAccessor level, int cx, int cz, boolean selfOrigin, OilGenSettings config
+   ) {
       long seed = level instanceof ServerLevel serverLevel ? serverLevel.getSeed() : level instanceof WorldGenLevel wg ? wg.getSeed() : 0L;
-      BcChunkRandom rand = BcChunkRandom.forOilOriginChunk(seed, cx, cz);
+      OilOriginRandom rand = OilOriginRandom.forOriginChunk(seed, cx, cz);
       int x = cx * 16 + 8 + rand.nextInt(16);
       int z = cz * 16 + 8 + rand.nextInt(16);
       Holder<Biome> biome = resolveBiome(level, x, z);
-      Identifier vanillaBiomeId = biomeId(biome);
-      OilPatchSampler.Sample biomeSample = sampleBiome(level, x, z, biome, vanillaBiomeId);
-      Identifier biomeId = biomeSample.effectiveBiomeId();
-      OilPatchKind patchKind = biomeSample.patchKind();
 
-      if (config.isBiomeExcluded(biome, biomeId)) {
-         if (DEBUG_OILGEN_BASIC && log) {
+      if (biome.is(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME)) {
+         if (DEBUG_OILGEN_BASIC && selfOrigin) {
             BCLog.logger.info(
-               "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz
-                  + " because the biome we found (" + biomeId + ") is disabled!"
+               "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz + " because the biome is excluded by tag."
             );
          }
          return List.of();
@@ -207,49 +139,19 @@ public final class OilGenerator {
          return List.of();
       }
 
-      if (!config.enableOilOnWater() && OilSpawnRoll.isOceanOil(biome, patchKind)) {
-         return List.of();
-      }
-
-      OilSpawnRoll.Tier tier = resolveTier(config, biome, patchKind, vanillaBiomeId, biomeId);
-      if (tier == null) {
-         return List.of();
-      }
-      // Rarity filter gates the decorating chunk only; neighbor origins in scan still roll per-origin.
-      boolean skipSpawnRoll = config.useDatapackSpawnChance() && log;
-      // #region agent log
-      if (log && Math.abs(cx) <= 2 && Math.abs(cz) <= 2) {
-         OilGenDebugLog.log(
-            "H36",
-            "OilGenerator.computeStructures",
-            "spawn_roll_gate",
-            java.util.Map.of(
-               "originChunkX", cx,
-               "originChunkZ", cz,
-               "tier", tier.name(),
-               "skipSpawnRoll", skipSpawnRoll,
-               "useDatapackSpawnChance", config.useDatapackSpawnChance(),
-               "runId", "post-fix3"
-            )
-         );
-      }
-      // #endregion
-      if (!skipSpawnRoll) {
-         double spawnChance = OilSpawnRoll.spawnChanceFraction(tier, config);
-         if (rand.nextDouble() >= spawnChance) {
-            if (DEBUG_OILGEN_ALL && log) {
-               BCLog.logger.info(
-                  "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz
-                     + " (tier=" + tier + ", chance=" + spawnChance * 100.0 + "%)"
-               );
-            }
-            return List.of();
+      if (!selfOrigin && rand.nextDouble() >= config.neighborSpawnChanceFraction()) {
+         if (DEBUG_OILGEN_ALL && selfOrigin) {
+            BCLog.logger.info(
+               "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz
+                  + " (neighbor gate, chance=" + config.neighborSpawnChanceFraction() * 100.0 + "%)"
+            );
          }
+         return List.of();
       }
 
-      final GenType type = toGenType(OilSpawnRoll.rollDepositType(rand, tier, config));
+      final GenType type = rollDepositType(rand, config);
 
-      if (DEBUG_OILGEN_BASIC && log) {
+      if (DEBUG_OILGEN_BASIC && selfOrigin) {
          BCLog.logger.info(
             "[energy.oilgen] Generating an oil well (" + type.name().toLowerCase(Locale.ROOT)
                + ") in chunk " + cx + ", " + cz + " at " + x + ", " + z
@@ -319,6 +221,25 @@ public final class OilGenerator {
       return structures;
    }
 
+   private static GenType rollDepositType(OilOriginRandom rand, OilGenSettings config) {
+      int large = Math.max(0, config.typeWeightLarge());
+      int medium = Math.max(0, config.typeWeightMedium());
+      int lake = config.forcedTier() == OilDepositFeatureConfiguration.ForcedTier.NORMAL ? 0 : Math.max(0, config.typeWeightLake());
+      int total = large + medium + lake;
+      if (total <= 0) {
+         return GenType.MEDIUM;
+      }
+      int pick = rand.nextInt(total);
+      if (pick < large) {
+         return GenType.LARGE;
+      }
+      pick -= large;
+      if (pick < medium) {
+         return GenType.MEDIUM;
+      }
+      return GenType.LAKE;
+   }
+
    static OilGenStructure createSpout(BlockPos start, int height, int radius) {
       return new OilGenStructure.Spout(start, OilGenStructure.ReplaceType.ALWAYS, radius, height);
    }
@@ -335,7 +256,7 @@ public final class OilGenerator {
       return new OilGenStructure.Sphere(center, radius, OilGenStructure.ReplaceType.ALWAYS);
    }
 
-   static OilGenStructure createTendril(BlockPos center, int lakeRadius, int radius, BcChunkRandom rand) {
+   static OilGenStructure createTendril(BlockPos center, int lakeRadius, int radius, OilOriginRandom rand) {
       BlockPos start = center.offset(-radius, 0, -radius);
       int diameter = radius * 2 + 1;
       boolean[][] pattern = new boolean[diameter][diameter];
@@ -368,7 +289,7 @@ public final class OilGenerator {
       return OilGenStructure.PatternTerrainHeight.create(start, OilGenStructure.ReplaceType.ALWAYS, pattern, depth);
    }
 
-   private static void fillPatternIfProba(BcChunkRandom rand, float proba, int x, int z, boolean[][] pattern) {
+   private static void fillPatternIfProba(OilOriginRandom rand, float proba, int x, int z, boolean[][] pattern) {
       if (rand.nextFloat() <= proba) {
          pattern[x][z] = isSet(pattern, x, z - 1)
             | isSet(pattern, x, z + 1)
@@ -398,33 +319,11 @@ public final class OilGenerator {
          && target.min().getZ() <= extMaxZ;
    }
 
-   private static Identifier biomeId(Holder<Biome> biome) {
-      return Mc26Compat.biomeId(biome);
-   }
-
-   /**
-    * MC 26.1.2: use {@link WorldGenLevel#getUncachedNoiseBiome} during feature placement — see {@code LevelReader#getNoiseBiome}
-    * vs {@link net.minecraft.server.level.WorldGenRegion#getChunk} (throws instead of returning null).
-    */
-   private static GenType toGenType(OilSpawnRoll.DepositType deposit) {
-      return switch (deposit) {
-         case LARGE -> GenType.LARGE;
-         case MEDIUM -> GenType.MEDIUM;
-         case LAKE -> GenType.LAKE;
-      };
-   }
-
-   private static OilSpawnRoll.Tier resolveTier(
-      OilGenSettings config, Holder<Biome> biome, OilPatchKind patchKind, Identifier vanillaBiomeId, Identifier effectiveBiomeId
-   ) {
-      return switch (config.forcedTier()) {
-         case AUTO -> OilSpawnRoll.resolveTier(
-            biome.is(BCEnergyBiomeTags.OIL_RICH_BIOME), patchKind, vanillaBiomeId, effectiveBiomeId, config
-         );
-         case NORMAL -> patchKind.isPatch() ? null : OilSpawnRoll.Tier.NORMAL;
-         case RICH -> patchKind.isPatch() ? null : OilSpawnRoll.Tier.RICH;
-         case PATCH -> patchKind.isPatch() ? OilSpawnRoll.Tier.OIL_PATCH : null;
-      };
+   private static boolean isDimensionExcluded(ServerLevel level) {
+      Identifier dimensionId = level.dimension().identifier();
+      Set<Identifier> excluded = BCEnergyConfig.getExcludedDimensions();
+      boolean inList = excluded.contains(dimensionId);
+      return BCEnergyConfig.dimensionListMode.get() == BCEnergyConfig.ListMode.BLACKLIST ? inList : !inList;
    }
 
    static Holder<Biome> resolveBiome(LevelAccessor level, int x, int z) {
@@ -433,17 +332,4 @@ public final class OilGenerator {
       }
       return level.getBiome(new BlockPos(x, 0, z));
    }
-
-   private static OilPatchSampler.Sample sampleBiome(
-      LevelAccessor level, int x, int z, Holder<Biome> biome, Identifier vanillaBiomeId
-   ) {
-      if (level instanceof WorldGenLevel worldGenLevel) {
-         return OilPatchSampler.sample(worldGenLevel.getLevel(), x, z, biome, vanillaBiomeId);
-      }
-      if (level instanceof ServerLevel serverLevel) {
-         return OilPatchSampler.sample(serverLevel, x, z, biome, vanillaBiomeId);
-      }
-      return new OilPatchSampler.Sample(vanillaBiomeId, OilPatchKind.NONE);
-   }
-
 }

@@ -18,18 +18,27 @@ final class BCEnergyWorldgenPlacedFeatures {
 
    static void bootstrap(BootstrapContext<PlacedFeature> context) {
       HolderGetter<ConfiguredFeature<?, ?>> configuredFeatures = context.lookup(Registries.CONFIGURED_FEATURE);
+      OilDepositFeatureConfiguration defaults = OilDepositFeatureConfiguration.DEFAULT;
       context.register(
          BCEnergyFeatures.OIL_DEPOSIT_NORMAL_PLACED,
          new PlacedFeature(
             configuredFeatures.getOrThrow(BCEnergyWorldgenConfiguredFeatures.OIL_DEPOSIT_NORMAL),
-            List.of(CountPlacement.of(1), RarityFilter.onAverageOnceEvery(chanceToRarity(0.15, 1.0)), BiomeFilter.biome())
+            List.of(
+               CountPlacement.of(1),
+               RarityFilter.onAverageOnceEvery(chanceToRarity(defaults.spawnChancePercentNormal(), defaults.generationMultiplier())),
+               BiomeFilter.biome()
+            )
          )
       );
       context.register(
          BCEnergyFeatures.OIL_DEPOSIT_RICH_PLACED,
          new PlacedFeature(
             configuredFeatures.getOrThrow(BCEnergyWorldgenConfiguredFeatures.OIL_DEPOSIT_RICH),
-            List.of(CountPlacement.of(1), RarityFilter.onAverageOnceEvery(chanceToRarity(0.3, 1.0)), BiomeFilter.biome())
+            List.of(
+               CountPlacement.of(1),
+               RarityFilter.onAverageOnceEvery(chanceToRarity(defaults.spawnChancePercentRich(), defaults.generationMultiplier())),
+               BiomeFilter.biome()
+            )
          )
       );
       context.register(
@@ -38,7 +47,7 @@ final class BCEnergyWorldgenPlacedFeatures {
             configuredFeatures.getOrThrow(BCEnergyWorldgenConfiguredFeatures.OIL_DEPOSIT_PATCH),
             List.of(
                CountPlacement.of(1),
-               RarityFilter.onAverageOnceEvery(chanceToRarity(OilDepositFeatureConfiguration.DEFAULT.spawnChancePercentOilPatch(), 1.0)),
+               RarityFilter.onAverageOnceEvery(chanceToRarity(defaults.spawnChancePercentOilPatch(), defaults.generationMultiplier())),
                BiomeFilter.biome()
             )
          )

@@ -3,15 +3,13 @@ package buildcraft.energy.generation.adapter;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.BCEnergyFeatures;
-import buildcraft.energy.generation.core.OilGenerator;
-import buildcraft.lib.misc.PositionUtil;
+import buildcraft.energy.generation.core.BCEnergyBiomeTags;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.biome.Biome;
 
 public final class FineRichesTracker {
-   private static final int FINE_RICHES_SCAN_RADIUS = 3;
    private static final int FINE_RICHES_TICK_STRIDE = 20;
 
    private FineRichesTracker() {
@@ -26,7 +24,7 @@ public final class FineRichesTracker {
    }
 
    private static void tryUnlockFineRiches(ServerPlayer player) {
-      if (player.tickCount % FINE_RICHES_TICK_STRIDE != 0 || !(player.level() instanceof ServerLevel level)) {
+      if (player.tickCount % FINE_RICHES_TICK_STRIDE != 0) {
          return;
       }
 
@@ -34,24 +32,11 @@ public final class FineRichesTracker {
          return;
       }
 
-      if (!OilGenerator.canGenerateOilIn(level)) {
+      Holder<Biome> biome = player.level().getBiome(player.blockPosition());
+      if (!biome.is(BCEnergyBiomeTags.OIL_DESIGN_BIOME)) {
          return;
       }
 
-      ChunkPos current = player.chunkPosition();
-      int cx = PositionUtil.chunkX(current);
-      int cz = PositionUtil.chunkZ(current);
-      if (!OilGenerator.isOilDesignBiomeAt(level, cx, cz)) {
-         return;
-      }
-
-      for (int dx = -FINE_RICHES_SCAN_RADIUS; dx <= FINE_RICHES_SCAN_RADIUS; dx++) {
-         for (int dz = -FINE_RICHES_SCAN_RADIUS; dz <= FINE_RICHES_SCAN_RADIUS; dz++) {
-            if (OilGenerator.wouldGenerateOilForOriginChunk(level, cx + dx, cz + dz)) {
-               BCEnergyFeatures.OIL_DESIGN_BIOME_NEARBY.trigger(player);
-               return;
-            }
-         }
-      }
+      BCEnergyFeatures.OIL_DESIGN_BIOME_NEARBY.trigger(player);
    }
 }

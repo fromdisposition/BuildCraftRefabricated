@@ -28,37 +28,34 @@ final class BCEnergyWorldgenConfiguredFeatures {
       Feature<OilDepositFeatureConfiguration> oilDeposit = (Feature<OilDepositFeatureConfiguration>) BCEnergyFeatures.OIL_DEPOSIT;
       context.register(
          OIL_DEPOSIT_NORMAL,
-         new ConfiguredFeature<>(oilDeposit, withForcedTier(OilDepositFeatureConfiguration.ForcedTier.NORMAL, true))
+         new ConfiguredFeature<>(oilDeposit, withForcedTier(OilDepositFeatureConfiguration.ForcedTier.NORMAL))
       );
       context.register(
          OIL_DEPOSIT_RICH,
-         new ConfiguredFeature<>(oilDeposit, withForcedTier(OilDepositFeatureConfiguration.ForcedTier.RICH, true))
+         new ConfiguredFeature<>(oilDeposit, withForcedTier(OilDepositFeatureConfiguration.ForcedTier.RICH))
       );
       context.register(
          OIL_DEPOSIT_PATCH,
-         new ConfiguredFeature<>(oilDeposit, withForcedTier(OilDepositFeatureConfiguration.ForcedTier.PATCH, true))
+         new ConfiguredFeature<>(oilDeposit, withForcedTier(OilDepositFeatureConfiguration.ForcedTier.PATCH))
       );
    }
 
-   private static OilDepositFeatureConfiguration withForcedTier(
-      OilDepositFeatureConfiguration.ForcedTier forcedTier, boolean useDatapackSpawnChance
-   ) {
+   private static OilDepositFeatureConfiguration withForcedTier(OilDepositFeatureConfiguration.ForcedTier forcedTier) {
+      OilDepositFeatureConfiguration defaults = OilDepositFeatureConfiguration.DEFAULT;
       return new OilDepositFeatureConfiguration(
-         OilDepositFeatureConfiguration.DEFAULT.scanRadius(),
-         OilDepositFeatureConfiguration.DEFAULT.spawnChancePercentNormal(),
-         OilDepositFeatureConfiguration.DEFAULT.spawnChancePercentRich(),
-         OilDepositFeatureConfiguration.DEFAULT.spawnChancePercentOilPatch(),
-         OilDepositFeatureConfiguration.DEFAULT.generationMultiplier(),
+         defaults.scanRadius(),
+         defaults.spawnChancePercentNormal(),
+         defaults.spawnChancePercentRich(),
+         defaults.spawnChancePercentOilPatch(),
+         defaults.generationMultiplier(),
          forcedTier,
-         useDatapackSpawnChance,
-         OilDepositFeatureConfiguration.DEFAULT.typeWeightLarge(),
-         OilDepositFeatureConfiguration.DEFAULT.typeWeightMedium(),
-         OilDepositFeatureConfiguration.DEFAULT.typeWeightLake(),
-         OilDepositFeatureConfiguration.DEFAULT.patchConfig(),
-         OilDepositFeatureConfiguration.DEFAULT.spawnOilSprings(),
-         OilDepositFeatureConfiguration.DEFAULT.enableOilSpouts(),
-         OilDepositFeatureConfiguration.DEFAULT.spoutHeights(),
-         OilDepositFeatureConfiguration.DEFAULT.geometryConfig()
+         defaults.typeWeightLarge(),
+         defaults.typeWeightMedium(),
+         defaults.typeWeightLake(),
+         defaults.spawnOilSprings(),
+         defaults.enableOilSpouts(),
+         defaults.spoutHeights(),
+         defaults.geometryConfig()
       );
    }
 }

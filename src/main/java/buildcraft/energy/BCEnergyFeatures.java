@@ -19,7 +19,7 @@ import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 /**
- * Registers the oil deposit feature type and adds it to overworld biomes via Fabric biome modifications.
+ * Registers the oil deposit feature type and adds tier-specific placed features to overworld biomes via tags.
  *
  * <p>Runtime enable flags ({@code core.worldGen}, {@code energy.generator.enableOilGeneration}) are enforced in
  * {@link buildcraft.energy.generation.adapter.OilDepositFeature} so config reload does not require re-registering biomes.
@@ -53,26 +53,40 @@ public final class BCEnergyFeatures {
    public static void register() {
       registerFeatureType();
 
+      var notExcluded = BiomeSelectors.foundInOverworld().and(BiomeSelectors.tag(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME).negate());
+      var notPatch = BiomeSelectors.tag(BCEnergyBiomeTags.OIL_PATCH_OCEAN)
+         .or(BiomeSelectors.tag(BCEnergyBiomeTags.OIL_PATCH_DESERT))
+         .negate();
+
       BiomeModifications.create(BCRegistries.id("buildcraftenergy", "oil_deposit_normal"))
          .add(
             ModificationPhase.ADDITIONS,
-            BiomeSelectors.foundInOverworld().and(BiomeSelectors.tag(BCEnergyBiomeTags.OIL_RICH_BIOME).negate()),
+            notExcluded.and(notPatch).and(BiomeSelectors.tag(BCEnergyBiomeTags.OIL_RICH_BIOME).negate()),
             context -> context.getGenerationSettings().addFeature(Decoration.UNDERGROUND_DECORATION, OIL_DEPOSIT_NORMAL_PLACED)
          );
 
       BiomeModifications.create(BCRegistries.id("buildcraftenergy", "oil_deposit_rich"))
          .add(
             ModificationPhase.ADDITIONS,
-            BiomeSelectors.foundInOverworld().and(BiomeSelectors.tag(BCEnergyBiomeTags.OIL_RICH_BIOME)),
+            notExcluded.and(notPatch).and(BiomeSelectors.tag(BCEnergyBiomeTags.OIL_RICH_BIOME)),
             context -> context.getGenerationSettings().addFeature(Decoration.UNDERGROUND_DECORATION, OIL_DEPOSIT_RICH_PLACED)
          );
 
-      BiomeModifications.create(BCRegistries.id("buildcraftenergy", "oil_deposit_patch"))
+      BiomeModifications.create(BCRegistries.id("buildcraftenergy", "oil_deposit_patch_desert"))
          .add(
             ModificationPhase.ADDITIONS,
-            BiomeSelectors.foundInOverworld(),
+            notExcluded.and(BiomeSelectors.tag(BCEnergyBiomeTags.OIL_PATCH_DESERT)),
             context -> context.getGenerationSettings().addFeature(Decoration.UNDERGROUND_DECORATION, OIL_DEPOSIT_PLACED)
          );
+
+      if (BCEnergyConfig.enableOilOnWater.get()) {
+         BiomeModifications.create(BCRegistries.id("buildcraftenergy", "oil_deposit_patch_ocean"))
+            .add(
+               ModificationPhase.ADDITIONS,
+               notExcluded.and(BiomeSelectors.tag(BCEnergyBiomeTags.OIL_PATCH_OCEAN)),
+               context -> context.getGenerationSettings().addFeature(Decoration.UNDERGROUND_DECORATION, OIL_DEPOSIT_PLACED)
+            );
+      }
 
       FineRichesTracker.register();
    }

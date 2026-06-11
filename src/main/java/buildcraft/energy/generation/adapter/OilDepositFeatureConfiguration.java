@@ -11,11 +11,9 @@ public record OilDepositFeatureConfiguration(
    double spawnChancePercentOilPatch,
    double generationMultiplier,
    ForcedTier forcedTier,
-   boolean useDatapackSpawnChance,
    int typeWeightLarge,
    int typeWeightMedium,
    int typeWeightLake,
-   PatchConfig patchConfig,
    boolean spawnOilSprings,
    boolean enableOilSpouts,
    SpoutHeights spoutHeights,
@@ -27,12 +25,10 @@ public record OilDepositFeatureConfiguration(
       0.3,
       2.0,
       1.0,
-      ForcedTier.AUTO,
-      false,
+      ForcedTier.NORMAL,
       20,
       60,
       20,
-      new PatchConfig(true, true, true, 0.025, 0.08),
       true,
       true,
       new SpoutHeights(6, 12, 10, 20),
@@ -46,11 +42,9 @@ public record OilDepositFeatureConfiguration(
       Codec.doubleRange(0.0, 100.0).fieldOf("spawn_chance_percent_oil_patch").forGetter(OilDepositFeatureConfiguration::spawnChancePercentOilPatch),
       Codec.doubleRange(0.0, 64.0).fieldOf("generation_multiplier").forGetter(OilDepositFeatureConfiguration::generationMultiplier),
       ForcedTier.CODEC.fieldOf("forced_tier").forGetter(OilDepositFeatureConfiguration::forcedTier),
-      Codec.BOOL.fieldOf("use_datapack_spawn_chance").forGetter(OilDepositFeatureConfiguration::useDatapackSpawnChance),
       Codec.INT.fieldOf("type_weight_large").forGetter(OilDepositFeatureConfiguration::typeWeightLarge),
       Codec.INT.fieldOf("type_weight_medium").forGetter(OilDepositFeatureConfiguration::typeWeightMedium),
       Codec.INT.fieldOf("type_weight_lake").forGetter(OilDepositFeatureConfiguration::typeWeightLake),
-      PatchConfig.CODEC.fieldOf("patch_config").forGetter(OilDepositFeatureConfiguration::patchConfig),
       Codec.BOOL.fieldOf("spawn_oil_springs").forGetter(OilDepositFeatureConfiguration::spawnOilSprings),
       Codec.BOOL.fieldOf("enable_oil_spouts").forGetter(OilDepositFeatureConfiguration::enableOilSpouts),
       SpoutHeights.CODEC.fieldOf("spout_heights").forGetter(OilDepositFeatureConfiguration::spoutHeights),
@@ -58,7 +52,6 @@ public record OilDepositFeatureConfiguration(
    ).apply(instance, OilDepositFeatureConfiguration::new));
 
    public enum ForcedTier {
-      AUTO,
       NORMAL,
       RICH,
       PATCH;
@@ -67,22 +60,6 @@ public record OilDepositFeatureConfiguration(
          value -> ForcedTier.valueOf(value.toUpperCase()),
          value -> value.name().toLowerCase()
       );
-   }
-
-   public record PatchConfig(
-      boolean enableOilOnWater,
-      boolean enableOilOceanBiome,
-      boolean enableOilDesertBiome,
-      double oilOceanPatchChance,
-      double oilDesertPatchChance
-   ) {
-      static final Codec<PatchConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-         Codec.BOOL.fieldOf("enable_oil_on_water").forGetter(PatchConfig::enableOilOnWater),
-         Codec.BOOL.fieldOf("enable_oil_ocean_biome").forGetter(PatchConfig::enableOilOceanBiome),
-         Codec.BOOL.fieldOf("enable_oil_desert_biome").forGetter(PatchConfig::enableOilDesertBiome),
-         Codec.doubleRange(0.0, 1.0).fieldOf("oil_ocean_patch_chance").forGetter(PatchConfig::oilOceanPatchChance),
-         Codec.doubleRange(0.0, 1.0).fieldOf("oil_desert_patch_chance").forGetter(PatchConfig::oilDesertPatchChance)
-      ).apply(instance, PatchConfig::new));
    }
 
    public record SpoutHeights(

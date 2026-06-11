@@ -25,12 +25,11 @@ final class OilGenCaches {
    }
 
    static int cacheScope(OilGenSettings config) {
-      return config.forcedTier().ordinal() << 1 | (config.useDatapackSpawnChance() ? 1 : 0);
+      return config.forcedTier().ordinal();
    }
 
    static void invalidateAll() {
       cacheGeneration++;
-      OilGenSettings.invalidate();
    }
 
    private static final class StructureCache {
@@ -55,16 +54,6 @@ final class OilGenCaches {
          long key = packKey(chunkX, chunkZ, cacheScope);
          List<OilGenStructure> cached = this.byChunk.get(key);
          if (cached != null) {
-            // #region agent log
-            if (cached.isEmpty() && Math.abs(chunkX) <= 2 && Math.abs(chunkZ) <= 2) {
-               OilGenDebugLog.log(
-                  "H17",
-                  "OilGenCaches.get",
-                  "cache_hit_empty",
-                  java.util.Map.of("originChunkX", chunkX, "originChunkZ", chunkZ, "cacheScope", cacheScope, "runId", "post-fix2")
-               );
-            }
-            // #endregion
             return cached;
          }
 
@@ -78,22 +67,6 @@ final class OilGenCaches {
          } else {
             cached = List.copyOf(computed);
          }
-         // #region agent log
-         if (!computed.isEmpty() && Math.abs(chunkX) <= 2 && Math.abs(chunkZ) <= 2) {
-            OilGenDebugLog.log(
-               "H17",
-               "OilGenCaches.get",
-               "cache_miss_computed",
-               java.util.Map.of(
-                  "originChunkX", chunkX,
-                  "originChunkZ", chunkZ,
-                  "cacheScope", cacheScope,
-                  "structureCount", computed.size(),
-                  "runId", "post-fix2"
-               )
-            );
-         }
-         // #endregion
          this.byChunk.put(key, cached);
          return cached;
       }

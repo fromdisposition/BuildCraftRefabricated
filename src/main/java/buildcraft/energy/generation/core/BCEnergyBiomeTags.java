@@ -15,6 +15,12 @@ public final class BCEnergyBiomeTags {
    public static final TagKey<Biome> OIL_DESIGN_BIOME = TagKey.create(
       Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_design_biome")
    );
+   public static final TagKey<Biome> OIL_PATCH_OCEAN = TagKey.create(
+      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_patch_ocean")
+   );
+   public static final TagKey<Biome> OIL_PATCH_DESERT = TagKey.create(
+      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_patch_desert")
+   );
 
    private BCEnergyBiomeTags() {
    }

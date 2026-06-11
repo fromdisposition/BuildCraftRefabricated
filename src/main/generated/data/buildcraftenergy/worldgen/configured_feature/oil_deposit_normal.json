@@ -13,13 +13,6 @@
       "tendril_spread_large": 20,
       "tendril_spread_medium": 10
     },
-    "patch_config": {
-      "enable_oil_desert_biome": true,
-      "enable_oil_ocean_biome": true,
-      "enable_oil_on_water": true,
-      "oil_desert_patch_chance": 0.08,
-      "oil_ocean_patch_chance": 0.025
-    },
     "scan_radius": 5,
     "spawn_chance_percent_normal": 0.15,
     "spawn_chance_percent_oil_patch": 2.0,
@@ -33,7 +26,6 @@
     },
     "type_weight_lake": 20,
     "type_weight_large": 20,
-    "type_weight_medium": 60,
-    "use_datapack_spawn_chance": true
+    "type_weight_medium": 60
   }
 }

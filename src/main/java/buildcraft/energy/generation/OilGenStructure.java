@@ -57,28 +57,6 @@ public abstract class OilGenStructure {
    private static BlockState cachedOilState;
 
    public static void setOil(LevelAccessor level, BlockPos pos) {
-      // #region agent log
-      if (level instanceof net.minecraft.world.level.WorldGenLevel worldGenLevel) {
-         int lx = Math.floorMod(pos.getX(), 16);
-         int lz = Math.floorMod(pos.getZ(), 16);
-         if ((lx == 0 || lx == 15 || lz == 0 || lz == 15) && !worldGenLevel.ensureCanWrite(pos)) {
-            OilGenDebugLog.log(
-               "H37",
-               "OilGenStructure.setOil",
-               "write_rejected_at_border",
-               java.util.Map.of(
-                  "x", pos.getX(),
-                  "y", pos.getY(),
-                  "z", pos.getZ(),
-                  "localX", lx,
-                  "localZ", lz,
-                  "runId", "post-fix4"
-               )
-            );
-            return;
-         }
-      }
-      // #endregion
       level.setBlock(pos, oilState(), GEN_FLAGS);
    }
 
@@ -242,7 +220,6 @@ public abstract class OilGenStructure {
    }
 
    public static class PatternTerrainHeight extends OilGenStructure {
-      private static final java.util.concurrent.atomic.AtomicInteger BORDER_OIL_LOGS = new java.util.concurrent.atomic.AtomicInteger();
       private final boolean[][] pattern;
       private final int depth;
       private final int totalOilBlocks;
@@ -288,31 +265,7 @@ public abstract class OilGenStructure {
                   level.setBlock(pos.above(y), Blocks.AIR.defaultBlockState(), GEN_FLAGS);
                }
                for (int y = 0; y < this.depth; y++) {
-                  BlockPos oilPos = pos.below(y);
-                  this.setOilIfCanReplace(level, oilPos);
-                  // #region agent log
-                  int lx = Math.floorMod(oilPos.getX(), 16);
-                  int lz = Math.floorMod(oilPos.getZ(), 16);
-                  if ((lx == 0 || lx == 15 || lz == 0 || lz == 15) && BORDER_OIL_LOGS.getAndIncrement() < 40) {
-                     OilGenDebugLog.log(
-                        "H17",
-                        "PatternTerrainHeight.generateWithin",
-                        "surface_oil_on_chunk_border",
-                        java.util.Map.of(
-                           "x", oilPos.getX(),
-                           "y", oilPos.getY(),
-                           "z", oilPos.getZ(),
-                           "localX", lx,
-                           "localZ", lz,
-                           "chunkX", oilPos.getX() >> 4,
-                           "chunkZ", oilPos.getZ() >> 4,
-                           "intersectMinX", intersect.min().getX(),
-                           "intersectMaxX", intersect.max().getX(),
-                           "runId", "post-fix2"
-                        )
-                     );
-                  }
-                  // #endregion
+                  this.setOilIfCanReplace(level, pos.below(y));
                }
             }
          }
