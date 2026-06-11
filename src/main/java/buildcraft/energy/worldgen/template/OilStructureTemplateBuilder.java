@@ -18,6 +18,8 @@ import java.util.Random;
 public final class OilStructureTemplateBuilder {
    private static final String OIL_BLOCK = "buildcraftenergy:oil";
    private static final String SPRING_BLOCK = "buildcraftcore:spring_oil";
+   /** Single-block surface film at template y=0 (wells, lakes, desert and ocean). */
+   private static final int SURFACE_FILM_DEPTH = 1;
 
    private OilStructureTemplateBuilder() {
    }
@@ -43,7 +45,7 @@ public final class OilStructureTemplateBuilder {
    private static void writeLake(Path path, long seed, int lakeRadius, int tendrilRadius) throws IOException {
       List<StructureNbtWriter.BlockEntry> blocks = new ArrayList<>();
       boolean[][] pattern = bcTendrilPattern(lakeRadius, tendrilRadius, seed);
-      blitSurfacePattern(blocks, pattern, depthFromSeed(seed));
+      blitSurfacePattern(blocks, pattern);
       StructureNbtWriter.write(
          path,
          OilStructureDefaults.TEMPLATE_SIZE,
@@ -65,7 +67,7 @@ public final class OilStructureTemplateBuilder {
       List<StructureNbtWriter.BlockEntry> blocks = new ArrayList<>();
       long seed = tendrilRadius * 31L + lakeRadius * 17L + sphereRadius * 13L;
       boolean[][] pattern = bcTendrilPattern(lakeRadius, tendrilRadius, seed);
-      blitSurfacePattern(blocks, pattern, 2);
+      blitSurfacePattern(blocks, pattern);
 
       int center = OilStructureDefaults.TEMPLATE_CENTER;
       int sphereCenterY = OilStructureDefaults.SPHERE_TEMPLATE_CENTER_Y;
@@ -106,10 +108,6 @@ public final class OilStructureTemplateBuilder {
       );
    }
 
-   private static int depthFromSeed(long seed) {
-      return (seed & 1L) == 0L ? 2 : 1;
-   }
-
    private static void blitSurfaceSpout(List<StructureNbtWriter.BlockEntry> blocks, int center, int height, int maxRadius) {
       for (int h = 1; h <= height; h++) {
          int radius = h >= height - 1 ? 0 : maxRadius;
@@ -117,7 +115,7 @@ public final class OilStructureTemplateBuilder {
       }
    }
 
-   private static void blitSurfacePattern(List<StructureNbtWriter.BlockEntry> blocks, boolean[][] pattern, int depth) {
+   private static void blitSurfacePattern(List<StructureNbtWriter.BlockEntry> blocks, boolean[][] pattern) {
       int center = OilStructureDefaults.TEMPLATE_CENTER;
       int half = pattern.length / 2;
       for (int x = 0; x < pattern.length; x++) {
@@ -127,9 +125,8 @@ public final class OilStructureTemplateBuilder {
             }
             int worldX = center - half + x;
             int worldZ = center - half + z;
-            blocks.add(new StructureNbtWriter.BlockEntry(worldX, 0, worldZ, OIL_BLOCK));
-            if (depth >= 2) {
-               blocks.add(new StructureNbtWriter.BlockEntry(worldX, -1, worldZ, OIL_BLOCK));
+            for (int d = 0; d < SURFACE_FILM_DEPTH; d++) {
+               blocks.add(new StructureNbtWriter.BlockEntry(worldX, -d, worldZ, OIL_BLOCK));
             }
          }
       }
