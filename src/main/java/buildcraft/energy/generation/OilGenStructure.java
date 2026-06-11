@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 
 public abstract class OilGenStructure {
+   /** Vanilla fluid features use flag 2 (block update, no neighbour reaction during gen). */
    public static final int GEN_FLAGS = 2;
    public final Box box;
    public final ReplaceType replaceType;
@@ -42,7 +43,7 @@ public abstract class OilGenStructure {
 
    protected abstract void generateWithin(LevelAccessor level, Box intersect);
 
-   protected abstract int countOilBlocks();
+   public abstract int countOilBlocks();
 
    public void setOilIfCanReplace(LevelAccessor level, BlockPos pos) {
       if (this.canReplaceForOil(level, pos)) {
@@ -54,11 +55,28 @@ public abstract class OilGenStructure {
       return this.replaceType.canReplace(level, pos);
    }
 
+   private static BlockState cachedOilState;
+
    public static void setOil(LevelAccessor level, BlockPos pos) {
-      BlockState oil = BCEnergyFluidsFabric.OIL_COOL != null
-         ? BCEnergyFluidsFabric.OIL_COOL.still().defaultFluidState().createLegacyBlock()
-         : BCEnergyFluidsFabric.oilSourceBlockStateForLevel(null);
-      level.setBlock(pos, oil, GEN_FLAGS);
+      level.setBlock(pos, oilState(), GEN_FLAGS);
+   }
+
+   private static BlockState oilState() {
+      BlockState state = cachedOilState;
+      if (state == null) {
+         state = BCEnergyFluidsFabric.OIL_COOL != null
+            ? BCEnergyFluidsFabric.OIL_COOL.still().defaultFluidState().createLegacyBlock()
+            : BCEnergyFluidsFabric.oilSourceBlockStateForLevel(null);
+         cachedOilState = state;
+      }
+      return state;
+   }
+
+   private static double distLowCornerSq(BlockPos origin, int x, int y, int z) {
+      int dx = origin.getX() - x;
+      int dy = origin.getY() - y;
+      int dz = origin.getZ() - z;
+      return dx * dx + dy * dy + dz * dz;
    }
 
    public enum ReplaceType {
@@ -78,44 +96,197 @@ public abstract class OilGenStructure {
       public abstract boolean canReplace(LevelAccessor level, BlockPos pos);
    }
 
-   public static class GenByPredicate extends OilGenStructure {
-      public final Predicate<BlockPos> predicate;
+   /** Filled sphere — slice iteration (~50% fewer tests than brute-force bounding cube). */
+   public static final class Sphere extends OilGenStructure {
+      private final BlockPos center;
+      private final int radius;
+      private final double radiusSq;
+      private final int totalOilBlocks;
 
-      public GenByPredicate(Box containingBox, ReplaceType replaceType, Predicate<BlockPos> predicate) {
-         super(containingBox, replaceType);
-         this.predicate = predicate;
+      public Sphere(BlockPos center, int radius, ReplaceType replaceType) {
+         super(new Box(center.offset(-radius, -radius, -radius), center.offset(radius, radius, radius)), replaceType);
+         this.center = center;
+         this.radius = radius;
+         this.radiusSq = radius * radius + 0.01;
+         this.totalOilBlocks = countSphereBlocks(center, radius, this.radiusSq);
+      }
+
+      private static int countSphereBlocks(BlockPos center, int radius, double radiusSq) {
+         int count = 0;
+         for (int dy = -radius; dy <= radius; dy++) {
+            int y = center.getY() + dy;
+            int xzExtent = xzExtentAtY(dy, radius, radiusSq);
+            for (int dx = -xzExtent; dx <= xzExtent; dx++) {
+               int x = center.getX() + dx;
+               for (int dz = -xzExtent; dz <= xzExtent; dz++) {
+                  int z = center.getZ() + dz;
+                  if (distLowCornerSq(center, x, y, z) <= radiusSq) {
+                     count++;
+                  }
+               }
+            }
+         }
+         return count;
+      }
+
+      private static int xzExtentAtY(int dy, int radius, double radiusSq) {
+         double xzSq = radiusSq - dy * dy;
+         return xzSq <= 0.0 ? 0 : (int)Math.floor(Math.sqrt(xzSq));
       }
 
       @Override
       protected void generateWithin(LevelAccessor level, Box intersect) {
-         for (BlockPos pos : BlockPos.betweenClosed(intersect.min(), intersect.max())) {
-            BlockPos immutable = pos.immutable();
-            if (this.predicate.test(immutable)) {
-               this.setOilIfCanReplace(level, immutable);
+         int minY = Math.max(intersect.min().getY(), this.center.getY() - this.radius);
+         int maxY = Math.min(intersect.max().getY(), this.center.getY() + this.radius);
+         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+         for (int y = minY; y <= maxY; y++) {
+            int dy = y - this.center.getY();
+            int xzExtent = xzExtentAtY(dy, this.radius, this.radiusSq);
+            int minX = Math.max(intersect.min().getX(), this.center.getX() - xzExtent);
+            int maxX = Math.min(intersect.max().getX(), this.center.getX() + xzExtent);
+            int minZ = Math.max(intersect.min().getZ(), this.center.getZ() - xzExtent);
+            int maxZ = Math.min(intersect.max().getZ(), this.center.getZ() + xzExtent);
+            for (int x = minX; x <= maxX; x++) {
+               for (int z = minZ; z <= maxZ; z++) {
+                  if (distLowCornerSq(this.center, x, y, z) <= this.radiusSq) {
+                     this.setOilIfCanReplace(level, pos.set(x, y, z));
+                  }
+               }
             }
          }
       }
 
       @Override
-      protected int countOilBlocks() {
+      public int countOilBlocks() {
+         return this.totalOilBlocks;
+      }
+   }
+
+   /** Vertical cylinder (BC wells use {@link Axis#Y} tubes). */
+   public static final class CylinderY extends OilGenStructure {
+      private final BlockPos base;
+      private final int length;
+      private final int radius;
+      private final int radiusSq;
+      private final int totalOilBlocks;
+
+      public CylinderY(BlockPos base, int length, int radius, ReplaceType replaceType) {
+         super(
+            new Box(
+               base.offset(-radius, 0, -radius),
+               base.offset(radius, length, radius)
+            ),
+            replaceType
+         );
+         this.base = base;
+         this.length = length;
+         this.radius = radius;
+         this.radiusSq = radius * radius;
+         this.totalOilBlocks = countCylinderBlocks(length, radius, this.radiusSq);
+      }
+
+      private static int countCylinderBlocks(int length, int radius, int radiusSq) {
+         if (radius == 0) {
+            return length + 1;
+         }
+         int perSlice = 0;
+         for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+               if (dx * dx + dz * dz <= radiusSq) {
+                  perSlice++;
+               }
+            }
+         }
+         return perSlice * (length + 1);
+      }
+
+      @Override
+      protected void generateWithin(LevelAccessor level, Box intersect) {
+         int minY = Math.max(intersect.min().getY(), this.base.getY());
+         int maxY = Math.min(intersect.max().getY(), this.base.getY() + this.length);
+         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+         for (int y = minY; y <= maxY; y++) {
+            int minX = Math.max(intersect.min().getX(), this.base.getX() - this.radius);
+            int maxX = Math.min(intersect.max().getX(), this.base.getX() + this.radius);
+            int minZ = Math.max(intersect.min().getZ(), this.base.getZ() - this.radius);
+            int maxZ = Math.min(intersect.max().getZ(), this.base.getZ() + this.radius);
+            for (int x = minX; x <= maxX; x++) {
+               int dx = x - this.base.getX();
+               for (int z = minZ; z <= maxZ; z++) {
+                  int dz = z - this.base.getZ();
+                  if (dx * dx + dz * dz <= this.radiusSq) {
+                     this.setOilIfCanReplace(level, pos.set(x, y, z));
+                  }
+               }
+            }
+         }
+      }
+
+      @Override
+      public int countOilBlocks() {
+         return this.totalOilBlocks;
+      }
+   }
+
+   public static class GenByPredicate extends OilGenStructure {
+      public final Predicate<BlockPos> predicate;
+      private final int totalOilBlocks;
+
+      public GenByPredicate(Box containingBox, ReplaceType replaceType, Predicate<BlockPos> predicate) {
+         super(containingBox, replaceType);
+         this.predicate = predicate;
+         this.totalOilBlocks = countPredicateBlocks(containingBox, predicate);
+      }
+
+      private static int countPredicateBlocks(Box box, Predicate<BlockPos> predicate) {
          int count = 0;
-         for (BlockPos pos : BlockPos.betweenClosed(this.box.min(), this.box.max())) {
-            if (this.predicate.test(pos.immutable())) {
+         for (BlockPos pos : BlockPos.betweenClosed(box.min(), box.max())) {
+            if (predicate.test(pos)) {
                count++;
             }
          }
          return count;
+      }
+
+      @Override
+      protected void generateWithin(LevelAccessor level, Box intersect) {
+         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+         for (int x = intersect.min().getX(); x <= intersect.max().getX(); x++) {
+            for (int y = intersect.min().getY(); y <= intersect.max().getY(); y++) {
+               for (int z = intersect.min().getZ(); z <= intersect.max().getZ(); z++) {
+                  pos.set(x, y, z);
+                  if (this.predicate.test(pos)) {
+                     this.setOilIfCanReplace(level, pos);
+                  }
+               }
+            }
+         }
+      }
+
+      @Override
+      public int countOilBlocks() {
+         return this.totalOilBlocks;
       }
    }
 
    public static class PatternTerrainHeight extends OilGenStructure {
       private final boolean[][] pattern;
       private final int depth;
+      private final int totalOilBlocks;
 
       private PatternTerrainHeight(Box containingBox, ReplaceType replaceType, boolean[][] pattern, int depth) {
          super(containingBox, replaceType);
          this.pattern = pattern;
          this.depth = depth;
+         int cells = 0;
+         for (boolean[] row : pattern) {
+            for (boolean cell : row) {
+               if (cell) {
+                  cells++;
+               }
+            }
+         }
+         this.totalOilBlocks = cells * depth;
       }
 
       public static PatternTerrainHeight create(BlockPos start, ReplaceType replaceType, boolean[][] pattern, int depth) {
@@ -126,41 +297,33 @@ public abstract class OilGenStructure {
 
       @Override
       protected void generateWithin(LevelAccessor level, Box intersect) {
+         WorldGenLevel worldGen = level instanceof WorldGenLevel wg ? wg : null;
+         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
          for (int x = intersect.min().getX(); x <= intersect.max().getX(); x++) {
             int px = x - this.box.min().getX();
             for (int z = intersect.min().getZ(); z <= intersect.max().getZ(); z++) {
                int pz = z - this.box.min().getZ();
-               if (!this.pattern[px][pz]) {
+               if (px < 0 || pz < 0 || px >= this.pattern.length || pz >= this.pattern[px].length || !this.pattern[px][pz]) {
                   continue;
                }
-               int topY = level instanceof WorldGenLevel wg
-                  ? wg.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1
-                  : level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
-               BlockPos upper = new BlockPos(x, topY, z);
-               if (!this.canReplaceForOil(level, upper)) {
+               int topY = (worldGen != null ? worldGen : level).getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+               pos.set(x, topY, z);
+               if (!this.canReplaceForOil(level, pos)) {
                   continue;
                }
                for (int y = 0; y < 5; y++) {
-                  level.setBlock(upper.above(y), Blocks.AIR.defaultBlockState(), GEN_FLAGS);
+                  level.setBlock(pos.above(y), Blocks.AIR.defaultBlockState(), GEN_FLAGS);
                }
                for (int y = 0; y < this.depth; y++) {
-                  this.setOilIfCanReplace(level, upper.below(y));
+                  this.setOilIfCanReplace(level, pos.below(y));
                }
             }
          }
       }
 
       @Override
-      protected int countOilBlocks() {
-         int count = 0;
-         for (int x = 0; x < this.pattern.length; x++) {
-            for (int z = 0; z < this.pattern[x].length; z++) {
-               if (this.pattern[x][z]) {
-                  count++;
-               }
-            }
-         }
-         return count * this.depth;
+      public int countOilBlocks() {
+         return this.totalOilBlocks;
       }
    }
 
@@ -185,9 +348,9 @@ public abstract class OilGenStructure {
       protected void generateWithin(LevelAccessor level, Box intersect) {
          this.count = 0;
          int topY = level.getHeight(Heightmap.Types.WORLD_SURFACE, this.start.getX(), this.start.getZ()) - 1;
-         BlockPos worldTop = new BlockPos(this.start.getX(), topY, this.start.getZ());
+         BlockPos.MutableBlockPos worldTop = new BlockPos.MutableBlockPos(this.start.getX(), topY, this.start.getZ());
          for (int y = topY; y >= this.start.getY(); y--) {
-            worldTop = new BlockPos(this.start.getX(), y, this.start.getZ());
+            worldTop.setY(y);
             BlockState state = level.getBlockState(worldTop);
             if (state.isAir()) {
                continue;
@@ -201,19 +364,19 @@ public abstract class OilGenStructure {
          }
 
          OilGenStructure tubeY = OilGenerator.createTube(this.start, worldTop.getY() - this.start.getY(), this.radius, Axis.Y);
-         tubeY.generate(level, tubeY.box);
+         tubeY.generate(level, intersect);
          this.count += tubeY.countOilBlocks();
-         BlockPos base = worldTop;
+         BlockPos base = worldTop.immutable();
          for (int r = this.radius; r >= 0; r--) {
             OilGenStructure struct = OilGenerator.createTube(base, this.height, r, Axis.Y);
-            struct.generate(level, struct.box);
+            struct.generate(level, intersect);
             base = base.offset(0, this.height, 0);
             this.count += struct.countOilBlocks();
          }
       }
 
       @Override
-      protected int countOilBlocks() {
+      public int countOilBlocks() {
          return this.count;
       }
    }
@@ -231,7 +394,7 @@ public abstract class OilGenStructure {
       }
 
       @Override
-      protected int countOilBlocks() {
+      public int countOilBlocks() {
          return 0;
       }
 
@@ -256,10 +419,11 @@ public abstract class OilGenStructure {
          int z = column.getZ();
          int minY = level.getMinY();
          int scanMax = minY + 4;
+         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
          for (int y = minY; y <= scanMax; y++) {
-            BlockPos pos = new BlockPos(x, y, z);
+            pos.set(x, y, z);
             if (level.getBlockState(pos).is(Blocks.BEDROCK)) {
-               return pos;
+               return pos.immutable();
             }
          }
          return null;

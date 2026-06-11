@@ -6,6 +6,7 @@
 
 package buildcraft.core;
 
+import buildcraft.api.enums.EnumSpring;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,10 @@ public final class BCCoreConfig {
    public static final BCCoreConfig.IntValue miningMaxDepth = new BCCoreConfig.IntValue(512);
 
    private BCCoreConfig() {
+   }
+
+   public static void refreshWaterSpringFlag() {
+      EnumSpring.WATER.canGen = worldGen.get() && worldGenWaterSpring.get();
    }
 
    public static void buildGeneral(Object builder) {

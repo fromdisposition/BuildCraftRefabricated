@@ -1,17 +1,13 @@
 package buildcraft.energy;
 
-import java.util.ArrayList;
-import java.util.List;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biome;
 
 /**
- * Fabric adaptation of BC 8.0 oil biome shaping.
- *
- * <p>1.12.2 used GenLayer replacement to inject oil_ocean/oil_desert biomes. Modern versions don't expose that
- * pipeline, so this computes equivalent synthetic biome ids for oil generation rolls.
+ * Synthetic oil_ocean / oil_desert ids for spawn rolls (BC 1.12 GenLayer replacement).
  */
 public final class BCEnergyWorldGen {
    public static final Identifier OIL_OCEAN = Identifier.parse("buildcraftenergy:oil_ocean");
@@ -21,22 +17,39 @@ public final class BCEnergyWorldGen {
    }
 
    public static void init() {
-      ensureLegacyOilBiomeDefaults();
    }
 
    public static Identifier effectiveBiomeId(ServerLevel level, int x, int z, Holder<Biome> biome, Identifier fallback) {
-      String path = fallback.getPath();
-      if (BCEnergyConfig.enableOilOceanBiome.get() && path.contains("ocean")) {
-         if (sampleNoise(level.getSeed(), x, z, 0.0005) >= 0.9) {
+      if (BCEnergyConfig.enableOilOnWater.get()
+         && BCEnergyConfig.enableOilOceanBiome.get()
+         && isShallowOcean(biome, fallback)) {
+         double patchChance = clampChance(BCEnergyConfig.oilOceanPatchChance.get());
+         if (sampleNoise(level.getSeed(), x, z, 0.0005) >= 1.0 - patchChance) {
             return OIL_OCEAN;
          }
       }
-      if (BCEnergyConfig.enableOilDesertBiome.get() && isDesertLike(path)) {
-         if (sampleNoise(level.getSeed() ^ 0x5EED5EEDL, x, z, 0.001) >= 0.7) {
+      if (BCEnergyConfig.enableOilDesertBiome.get() && isDesertLike(fallback.getPath())) {
+         double patchChance = clampChance(BCEnergyConfig.oilDesertPatchChance.get());
+         if (sampleNoise(level.getSeed() ^ 0x5EED5EEDL, x, z, 0.001) >= 1.0 - patchChance) {
             return OIL_DESERT;
          }
       }
       return fallback;
+   }
+
+   private static double clampChance(double chance) {
+      if (chance <= 0.0) {
+         return 0.0;
+      }
+      return Math.min(chance, 1.0);
+   }
+
+   private static boolean isShallowOcean(Holder<Biome> biome, Identifier id) {
+      if (!biome.is(BiomeTags.IS_OCEAN)) {
+         return false;
+      }
+      String path = id.getPath();
+      return !path.contains("deep") && !path.equals("frozen_ocean");
    }
 
    private static boolean isDesertLike(String path) {
@@ -55,24 +68,5 @@ public final class BCEnergyWorldGen {
       h *= 0xc4ceb9fe1a85ec53L;
       h ^= (h >>> 33);
       return (h & 0x1fffffffffffffL) / (double)0x1fffffffffffffL;
-   }
-
-   private static void ensureLegacyOilBiomeDefaults() {
-      if (BCEnergyConfig.enableOilOceanBiome.get()) {
-         appendIfMissing(BCEnergyConfig.surfaceDepositBiomes, OIL_OCEAN.toString());
-         appendIfMissing(BCEnergyConfig.forceExcessiveOilBiomes, OIL_OCEAN.toString());
-      }
-      if (BCEnergyConfig.enableOilDesertBiome.get()) {
-         appendIfMissing(BCEnergyConfig.surfaceDepositBiomes, OIL_DESERT.toString());
-         appendIfMissing(BCEnergyConfig.forceExcessiveOilBiomes, OIL_DESERT.toString());
-      }
-   }
-
-   private static void appendIfMissing(buildcraft.core.BCCoreConfig.StringListValue value, String entry) {
-      List<String> current = new ArrayList<>(value.get());
-      if (!current.contains(entry)) {
-         current.add(entry);
-         value.set(current);
-      }
    }
 }

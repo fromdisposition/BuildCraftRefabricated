@@ -32,6 +32,7 @@ public final class BCCoreFeatures {
       SPRING = (Feature<NoneFeatureConfiguration>)Registry.register(
          BuiltInRegistries.FEATURE, BCRegistries.id("buildcraftcore", "spring"), new SpringFeature(NoneFeatureConfiguration.CODEC)
       );
+      BCCoreConfig.refreshWaterSpringFlag();
       if (BCCoreConfig.worldGen.get() && BCCoreConfig.worldGenWaterSpring.get()) {
          BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(), Decoration.UNDERGROUND_DECORATION, WATER_SPRING_PLACED);
       }

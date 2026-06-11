@@ -12,8 +12,10 @@ import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 
 /**
- * Fabric feature entry: one invocation per overworld chunk during {@code UNDERGROUND_DECORATION}.
- * Delegates to {@link OilGenerator#placeForChunk} with the chunk center as origin.
+ * Fabric feature: one pass per overworld chunk during {@code GenerationStep.Decoration.UNDERGROUND_DECORATION}.
+ *
+ * <p>Matches vanilla {@link Feature#place} — honours {@link WorldGenLevel#ensureCanWrite} and uses the decoration
+ * {@code origin} from {@link net.minecraft.world.level.chunk.ChunkGenerator#applyBiomeDecoration} (chunk min corner).
  */
 public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
    public OilDepositFeature(Codec<NoneFeatureConfiguration> codec) {
@@ -27,13 +29,15 @@ public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
       }
 
       WorldGenLevel level = context.level();
-      if (level.getLevel().getChunkSource().getGenerator() instanceof FlatLevelSource) {
+      BlockPos origin = context.origin();
+      if (!level.ensureCanWrite(origin)) {
          return false;
       }
 
-      int chunkX = context.origin().getX() >> 4;
-      int chunkZ = context.origin().getZ() >> 4;
-      BlockPos chunkAnchor = new BlockPos((chunkX << 4) + 8, 0, (chunkZ << 4) + 8);
-      return OilGenerator.placeForChunk(level, chunkAnchor);
+      if (context.chunkGenerator() instanceof FlatLevelSource) {
+         return false;
+      }
+
+      return OilGenerator.placeForChunk(level, origin);
    }
 }

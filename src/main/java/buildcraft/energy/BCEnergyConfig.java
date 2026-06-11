@@ -17,12 +17,35 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue oilIsSticky = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue enableRfEngine = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue enableMjDynamo = new BCCoreConfig.BooleanValue(false);
+   /** Master switch: oil in ocean biomes and on water (default on). */
+   public static final BCCoreConfig.BooleanValue enableOilOnWater = new BCCoreConfig.BooleanValue(true);
+   /** Synthetic oil_ocean patches inside shallow ocean (only if {@link #enableOilOnWater} is on). */
    public static final BCCoreConfig.BooleanValue enableOilOceanBiome = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableOilDesertBiome = new BCCoreConfig.BooleanValue(true);
+   /** Shallow-ocean columns that become BC oil_ocean patches (percent of shallow ocean area). */
+   public static final BCCoreConfig.DoubleValue oilOceanPatchChance = new BCCoreConfig.DoubleValue(0.025);
+   /** Desert/badlands columns that become BC oil_desert patches (percent of desert area). */
+   public static final BCCoreConfig.DoubleValue oilDesertPatchChance = new BCCoreConfig.DoubleValue(0.08);
+   /** Per-chunk chance (%) — default biomes including ocean. */
+   public static final BCCoreConfig.DoubleValue oilSpawnChancePercentNormal = new BCCoreConfig.DoubleValue(0.12);
+   /** Per-chunk chance (%) — desert, badlands, {@link #richSurfaceDepositBiomes} (small bonus over normal). */
+   public static final BCCoreConfig.DoubleValue oilSpawnChancePercentRich = new BCCoreConfig.DoubleValue(0.25);
+   /** Per-chunk chance (%) — synthetic oil_ocean / oil_desert patches. */
+   public static final BCCoreConfig.DoubleValue oilSpawnChancePercentOilPatch = new BCCoreConfig.DoubleValue(2.0);
+   /** Relative weight when oil spawns: large underground reservoir. */
+   public static final BCCoreConfig.IntValue oilTypeWeightLarge = new BCCoreConfig.IntValue(20);
+   /** Relative weight when oil spawns: medium underground reservoir. */
+   public static final BCCoreConfig.IntValue oilTypeWeightMedium = new BCCoreConfig.IntValue(60);
+   /** Relative weight when oil spawns: surface lake (ocean, rich, oil-patch tiers). */
+   public static final BCCoreConfig.IntValue oilTypeWeightLake = new BCCoreConfig.IntValue(20);
+   /** Global multiplier for all three spawn chance percents (1.0 = default). */
+   public static final BCCoreConfig.DoubleValue oilGenerationMultiplier = new BCCoreConfig.DoubleValue(1.0);
    public static final BCCoreConfig.BooleanValue enableOilBurn = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue useRfNaming = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue useFullUnitNames = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableOilGeneration = new BCCoreConfig.BooleanValue(true);
+   /** @deprecated Use {@link #oilGenerationMultiplier}. */
+   @Deprecated
    public static final BCCoreConfig.DoubleValue oilWellGenerationRate = new BCCoreConfig.DoubleValue(1.0);
    public static final BCCoreConfig.BooleanValue enableOilSpouts = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue spawnOilSprings = new BCCoreConfig.BooleanValue(true);
@@ -32,9 +55,16 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.IntValue finiteSpoutMaxHeight = smallSpoutMaxHeight;
    public static final BCCoreConfig.IntValue largeSpoutMinHeight = new BCCoreConfig.IntValue(10);
    public static final BCCoreConfig.IntValue largeSpoutMaxHeight = new BCCoreConfig.IntValue(20);
+   /** @deprecated Legacy BC keys — migrated to {@link #oilSpawnChancePercentNormal} etc. on load. */
+   @Deprecated
    public static final BCCoreConfig.DoubleValue mediumOilGenProb = new BCCoreConfig.DoubleValue(0.001);
+   /** @deprecated Legacy BC keys — migrated on load. */
+   @Deprecated
    public static final BCCoreConfig.DoubleValue largeOilGenProb = new BCCoreConfig.DoubleValue(4.0E-4);
+   /** @deprecated Legacy BC keys — migrated on load. */
+   @Deprecated
    public static final BCCoreConfig.DoubleValue smallOilGenProb = new BCCoreConfig.DoubleValue(0.02);
+   /** Biomes flagged as oil-themed for advancements / markers (not used for spawn math). */
    public static final BCCoreConfig.StringListValue forceExcessiveOilBiomes = new BCCoreConfig.StringListValue(
       List.of("buildcraftenergy:oil_desert", "buildcraftenergy:oil_ocean")
    );
@@ -42,7 +72,7 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.StringListValue richSurfaceDepositBiomes = new BCCoreConfig.StringListValue(
       List.of("minecraft:desert", "minecraft:badlands", "minecraft:wooded_badlands")
    );
-   /** Biomes with increased oil spawn rate (BC 8.0 default: empty; custom oil biomes are added at runtime). */
+   /** Extra biomes treated as {@code RICH} tier (in addition to {@link #richSurfaceDepositBiomes}). */
    public static final BCCoreConfig.StringListValue surfaceDepositBiomes = new BCCoreConfig.StringListValue(List.of());
    public static final BCCoreConfig.StringListValue standardSurfaceDepositBiomes = new BCCoreConfig.StringListValue(
       List.of(

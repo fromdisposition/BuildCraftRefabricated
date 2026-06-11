@@ -24,10 +24,12 @@ import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.Holder;
+import net.minecraft.core.QuartPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BiomeTags;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.WorldGenLevel;
@@ -36,7 +38,10 @@ import net.minecraft.world.level.levelgen.FlatLevelSource;
 
 public final class OilGenerator {
    private static final long MAGIC_GEN_NUMBER = 0xD0_46_B4_E4_0C_7D_07_CFL;
+   /** BC 8.0 scans ±5 chunks so overlapping wells are stitched into the decorating chunk. */
    private static final int MAX_CHUNK_RADIUS = 5;
+   /** Max horizontal reach: tendril radius 44 + in-chunk offset 8. */
+   private static final int MAX_HORIZONTAL_REACH = 52;
    public static final boolean DEBUG_OILGEN_BASIC = BCDebugging.shouldDebugLog("energy.oilgen");
    public static final boolean DEBUG_OILGEN_ALL = BCDebugging.shouldDebugComplex("energy.oilgen");
 
@@ -50,6 +55,10 @@ public final class OilGenerator {
    private OilGenerator() {
    }
 
+   public static void invalidateCaches() {
+      OilGenCaches.invalidateAll();
+   }
+
    public static boolean canGenerateOilIn(ServerLevel level) {
       if (level.getChunkSource().getGenerator() instanceof FlatLevelSource) {
          return false;
@@ -58,31 +67,31 @@ public final class OilGenerator {
    }
 
    public static boolean isOilDesignBiome(Identifier biomeId) {
-      return BCEnergyConfig.getSurfaceDepositBiomes().contains(biomeId) || BCEnergyConfig.getForceExcessiveOilBiomes().contains(biomeId);
+      return OilGenConfig.current().isDesignBiome(biomeId);
    }
 
    public static boolean isOilDesignBiomeAt(Level level, int chunkX, int chunkZ) {
+      int x = chunkX * 16 + 8;
+      int z = chunkZ * 16 + 8;
       if (level instanceof ServerLevel serverLevel) {
-         Holder<Biome> biome = level.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8));
-         Identifier id = BCEnergyWorldGen.effectiveBiomeId(
-            serverLevel,
-            chunkX * 16 + 8,
-            chunkZ * 16 + 8,
-            biome,
-            biomeId(biome)
-         );
+         Holder<Biome> biome = level.getBiome(new BlockPos(x, 0, z));
+         Identifier id = BCEnergyWorldGen.effectiveBiomeId(serverLevel, x, z, biome, biomeId(biome));
          return isOilDesignBiome(id);
       }
-      return isOilDesignBiome(biomeId(level.getBiome(new BlockPos(chunkX * 16 + 8, 0, chunkZ * 16 + 8))));
+      return isOilDesignBiome(biomeId(level.getBiome(new BlockPos(x, 0, z))));
    }
 
    public static boolean wouldGenerateOilForOriginChunk(ServerLevel level, int chunkX, int chunkZ) {
       if (!canGenerateOilIn(level)) {
          return false;
       }
-      return !getStructures(level, chunkX, chunkZ, false).isEmpty();
+      return !getStructures(level, chunkX, chunkZ).isEmpty();
    }
 
+   /**
+    * BC 8.0 {@code onPopulatePre} equivalent for Fabric features. {@code origin} is the decorating chunk min corner
+    * (vanilla {@link net.minecraft.core.SectionPos#origin()}).
+    */
    public static boolean placeForChunk(WorldGenLevel level, BlockPos origin) {
       if (!canGenerateOilIn(level.getLevel())) {
          return false;
@@ -90,26 +99,42 @@ public final class OilGenerator {
 
       int chunkX = origin.getX() >> 4;
       int chunkZ = origin.getZ() >> 4;
-      int x = chunkX * 16 + 8;
-      int z = chunkZ * 16 + 8;
-      BlockPos min = new BlockPos(x, level.getMinY(), z);
+      ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
+      BlockPos min = new BlockPos(chunkPos.getMinBlockX() + 8, level.getMinY(), chunkPos.getMinBlockZ() + 8);
       Box box = new Box(min, min.offset(15, level.getMaxY(), 15));
       boolean placed = false;
+      OilGenConfig config = OilGenConfig.current();
+      long worldSeed = level.getSeed();
 
       for (int cdx = -MAX_CHUNK_RADIUS; cdx <= MAX_CHUNK_RADIUS; cdx++) {
          for (int cdz = -MAX_CHUNK_RADIUS; cdz <= MAX_CHUNK_RADIUS; cdz++) {
             int cx = chunkX + cdx;
             int cz = chunkZ + cdz;
-            List<OilGenStructure> structures = getStructures(level.getLevel(), cx, cz, cdx == 0 && cdz == 0);
+            if (!couldStructuresReachBox(cx, cz, box)) {
+               continue;
+            }
+
+            final boolean logOrigin = cdx == 0 && cdz == 0;
+            List<OilGenStructure> structures = OilGenCaches.structure(
+               worldSeed,
+               cx,
+               cz,
+               () -> computeStructures(level, cx, cz, logOrigin, config)
+            );
+            if (structures.isEmpty()) {
+               continue;
+            }
+
             OilGenStructure.Spring spring = null;
             for (OilGenStructure struct : structures) {
-               struct.generate(level, box);
                if (struct instanceof OilGenStructure.Spring s) {
                   spring = s;
                }
-               if (struct.box.getIntersect(box) != null) {
-                  placed = true;
+               if (struct.box.getIntersect(box) == null) {
+                  continue;
                }
+               struct.generate(level, box);
+               placed = true;
             }
             if (spring != null && box.contains(spring.pos)) {
                int count = 0;
@@ -130,17 +155,29 @@ public final class OilGenerator {
    }
 
    private static List<OilGenStructure> getStructures(LevelAccessor level, int cx, int cz, boolean log) {
-      long seed = level instanceof ServerLevel serverLevel ? serverLevel.getSeed() : 0L;
+      OilGenConfig config = OilGenConfig.current();
+      if (level instanceof WorldGenLevel worldGenLevel) {
+         long seed = worldGenLevel.getSeed();
+         return OilGenCaches.structure(seed, cx, cz, () -> computeStructures(level, cx, cz, log, config));
+      }
+      return computeStructures(level, cx, cz, log, config);
+   }
+
+   private static List<OilGenStructure> computeStructures(LevelAccessor level, int cx, int cz, boolean log, OilGenConfig config) {
+      long seed = level instanceof ServerLevel serverLevel ? serverLevel.getSeed() : level instanceof WorldGenLevel wg ? wg.getSeed() : 0L;
       Random rand = RandUtil.createRandomForChunk(seed, cx, cz, MAGIC_GEN_NUMBER);
       int x = cx * 16 + 8 + rand.nextInt(16);
       int z = cz * 16 + 8 + rand.nextInt(16);
-      Holder<Biome> biome = level.getBiome(new BlockPos(x, 0, z));
-      Identifier biomeId = biomeId(biome);
-      if (level instanceof ServerLevel serverLevel) {
+      Holder<Biome> biome = resolveBiome(level, x, z);
+      Identifier vanillaBiomeId = biomeId(biome);
+      Identifier biomeId = vanillaBiomeId;
+      if (level instanceof WorldGenLevel worldGenLevel) {
+         biomeId = BCEnergyWorldGen.effectiveBiomeId(worldGenLevel.getLevel(), x, z, biome, biomeId);
+      } else if (level instanceof ServerLevel serverLevel) {
          biomeId = BCEnergyWorldGen.effectiveBiomeId(serverLevel, x, z, biome, biomeId);
       }
 
-      if (isBiomeExcluded(biomeId)) {
+      if (config.isBiomeExcluded(biomeId)) {
          if (DEBUG_OILGEN_BASIC && log) {
             BCLog.logger.info(
                "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz
@@ -154,29 +191,23 @@ public final class OilGenerator {
          return List.of();
       }
 
-      boolean oilBiome = BCEnergyConfig.getSurfaceDepositBiomes().contains(biomeId);
-      double bonus = oilBiome ? 3.0 : 1.0;
-      bonus *= BCEnergyConfig.oilWellGenerationRate.get();
-      if (BCEnergyConfig.getForceExcessiveOilBiomes().contains(biomeId)) {
-         bonus *= 30.0;
+      if (!config.enableOilOnWater && OilSpawnRoll.isOceanOil(biome, biomeId)) {
+         return List.of();
       }
 
-      final GenType type;
-      if (rand.nextDouble() <= BCEnergyConfig.largeOilGenProb.get() * bonus) {
-         type = GenType.LARGE;
-      } else if (rand.nextDouble() <= BCEnergyConfig.mediumOilGenProb.get() * bonus) {
-         type = GenType.MEDIUM;
-      } else if (oilBiome && rand.nextDouble() <= BCEnergyConfig.smallOilGenProb.get() * bonus) {
-         type = GenType.LAKE;
-      } else {
+      OilSpawnRoll.Tier tier = OilSpawnRoll.resolveTier(biomeId, vanillaBiomeId, config);
+      double spawnChance = OilSpawnRoll.spawnChanceFraction(tier, config);
+      if (rand.nextDouble() >= spawnChance) {
          if (DEBUG_OILGEN_ALL && log) {
             BCLog.logger.info(
                "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz
-                  + " because none of the random numbers were above the thresholds for generation"
+                  + " (tier=" + tier + ", chance=" + spawnChance * 100.0 + "%)"
             );
          }
          return List.of();
       }
+
+      final GenType type = toGenType(OilSpawnRoll.rollDepositType(rand, tier, config));
 
       if (DEBUG_OILGEN_BASIC && log) {
          BCLog.logger.info(
@@ -210,16 +241,16 @@ public final class OilGenerator {
          }
          structures.add(createSphere(new BlockPos(x, wellY, z), radius));
 
-         if (BCEnergyConfig.enableOilSpouts.get()) {
+         if (config.enableOilSpouts) {
             int maxHeight;
             int minHeight;
             if (type == GenType.LARGE) {
-               minHeight = BCEnergyConfig.largeSpoutMinHeight.get();
-               maxHeight = BCEnergyConfig.largeSpoutMaxHeight.get();
+               minHeight = config.largeSpoutMinHeight;
+               maxHeight = config.largeSpoutMaxHeight;
                radius = 1;
             } else {
-               minHeight = BCEnergyConfig.smallSpoutMinHeight.get();
-               maxHeight = BCEnergyConfig.smallSpoutMaxHeight.get();
+               minHeight = config.smallSpoutMinHeight;
+               maxHeight = config.smallSpoutMaxHeight;
                radius = 0;
             }
             final int height;
@@ -238,7 +269,7 @@ public final class OilGenerator {
 
          if (type == GenType.LARGE) {
             structures.add(createTube(new BlockPos(x, level.getMinY() + 1, z), wellY, radius, Axis.Y));
-            if (BCCoreBlocks.SPRING_OIL != null) {
+            if (config.spawnOilSprings && BCCoreBlocks.SPRING_OIL != null) {
                structures.add(createSpring(new BlockPos(x, level.getMinY(), z)));
             }
          }
@@ -255,6 +286,9 @@ public final class OilGenerator {
    }
 
    public static OilGenStructure createTube(BlockPos center, int length, int radius, Axis axis) {
+      if (axis == Axis.Y) {
+         return new OilGenStructure.CylinderY(center, length, radius, OilGenStructure.ReplaceType.ALWAYS);
+      }
       int valForAxis = VecUtil.getValue(center, axis);
       BlockPos min = VecUtil.replaceValue(center.offset(-radius, -radius, -radius), axis, valForAxis);
       BlockPos max = VecUtil.replaceValue(center.offset(radius, radius, radius), axis, valForAxis + length);
@@ -265,10 +299,7 @@ public final class OilGenerator {
    }
 
    public static OilGenStructure createSphere(BlockPos center, int radius) {
-      Box box = new Box(center.offset(-radius, -radius, -radius), center.offset(radius, radius, radius));
-      double radiusSq = radius * radius + 0.01;
-      Predicate<BlockPos> tester = p -> p.distSqr(center) <= radiusSq;
-      return new OilGenStructure.GenByPredicate(box, OilGenStructure.ReplaceType.ALWAYS, tester);
+      return new OilGenStructure.Sphere(center, radius, OilGenStructure.ReplaceType.ALWAYS);
    }
 
    public static OilGenStructure createTendril(BlockPos center, int lakeRadius, int radius, Random rand) {
@@ -323,17 +354,43 @@ public final class OilGenerator {
       return pattern[x][z];
    }
 
+   private static boolean couldStructuresReachBox(int cx, int cz, Box target) {
+      int extMinX = cx * 16 - MAX_HORIZONTAL_REACH;
+      int extMaxX = cx * 16 + 15 + MAX_HORIZONTAL_REACH;
+      int extMinZ = cz * 16 - MAX_HORIZONTAL_REACH;
+      int extMaxZ = cz * 16 + 15 + MAX_HORIZONTAL_REACH;
+      return target.max().getX() >= extMinX
+         && target.min().getX() <= extMaxX
+         && target.max().getZ() >= extMinZ
+         && target.min().getZ() <= extMaxZ;
+   }
+
    private static boolean isDimensionExcluded(ResourceKey<Level> dimKey) {
       boolean inList = BCEnergyConfig.getExcludedDimensions().contains(RegistryKeyUtil.id(dimKey));
       return BCEnergyConfig.dimensionListMode.get() == BCEnergyConfig.ListMode.BLACKLIST ? inList : !inList;
    }
 
-   private static boolean isBiomeExcluded(Identifier biomeId) {
-      boolean inList = BCEnergyConfig.getExcludedBiomes().contains(biomeId);
-      return BCEnergyConfig.biomeListMode.get() == BCEnergyConfig.ListMode.BLACKLIST ? inList : !inList;
-   }
-
    private static Identifier biomeId(Holder<Biome> biome) {
       return Mc26Compat.biomeId(biome);
    }
+
+   /**
+    * MC 26.1.2: use {@link WorldGenLevel#getUncachedNoiseBiome} during feature placement — see {@code LevelReader#getNoiseBiome}
+    * vs {@link net.minecraft.server.level.WorldGenRegion#getChunk} (throws instead of returning null).
+    */
+   private static GenType toGenType(OilSpawnRoll.DepositType deposit) {
+      return switch (deposit) {
+         case LARGE -> GenType.LARGE;
+         case MEDIUM -> GenType.MEDIUM;
+         case LAKE -> GenType.LAKE;
+      };
+   }
+
+   static Holder<Biome> resolveBiome(LevelAccessor level, int x, int z) {
+      if (level instanceof WorldGenLevel worldGenLevel) {
+         return worldGenLevel.getUncachedNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(0), QuartPos.fromBlock(z));
+      }
+      return level.getBiome(new BlockPos(x, 0, z));
+   }
+
 }

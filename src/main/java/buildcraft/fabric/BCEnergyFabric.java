@@ -10,6 +10,7 @@ import buildcraft.energy.BCEnergyFluids;
 import buildcraft.energy.BCEnergyItems;
 import buildcraft.energy.BCEnergyMenuTypes;
 import buildcraft.energy.BCEnergyWorldGen;
+import buildcraft.energy.generation.OilGenerator;
 import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
 import buildcraft.energy.tile.TileEngineRF;
@@ -43,6 +44,7 @@ public final class BCEnergyFabric {
       BCEnergyFluids.refreshSnapshot();
       applySpringOilConfig();
       BCEnergyWorldGen.init();
+      OilGenerator.invalidateCaches();
    }
 
    private static void applySpringOilConfig() {
