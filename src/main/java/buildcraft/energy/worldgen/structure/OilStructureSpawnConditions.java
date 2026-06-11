@@ -87,16 +87,19 @@ public final class OilStructureSpawnConditions {
 
       return switch (tier) {
          case NORMAL -> {
-            if (ocean) {
+            if (!biome.is(BCEnergyBiomeTags.OIL_SPAWN_NORMAL)) {
                yield false;
+            }
+            if (ocean) {
+               yield BCEnergyConfig.enableOilOnWater.get() && roll >= oceanPatchCutoff;
             }
             if (desert) {
                yield roll >= desertRichCutoff;
             }
-            yield biome.is(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
+            yield true;
          }
          case PATCH_DESERT -> desert && roll < desertRichCutoff;
-         case PATCH_OCEAN -> ocean && roll < oceanPatchCutoff;
+         case PATCH_OCEAN -> ocean && BCEnergyConfig.enableOilOnWater.get() && roll < oceanPatchCutoff;
       };
    }
 

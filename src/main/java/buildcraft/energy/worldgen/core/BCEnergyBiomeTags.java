@@ -17,7 +17,7 @@ public final class BCEnergyBiomeTags {
    public static final TagKey<Biome> OIL_PATCH_DESERT = TagKey.create(
       Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_patch_desert")
    );
-   /** Overworld minus excluded and oceans; desert stays for normal-tier slices. */
+   /** Overworld minus excluded biomes; base {@code oil_deposit_normal} tier (includes ocean and desert). */
    public static final TagKey<Biome> OIL_SPAWN_NORMAL = TagKey.create(
       Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_spawn_normal")
    );
