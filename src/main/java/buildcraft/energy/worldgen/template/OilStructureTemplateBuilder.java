@@ -12,8 +12,9 @@ import java.util.Random;
  * Builds oil deposit NBT templates for jigsaw pools.
  *
  * <p>Well template Y convention ({@link OilWellProjectionProcessor} + gravity):
- * y&ge;0 surface/spout via gravity; deposit body fixed at world {@code -42..-12}; connector {@code -11..319}
- * (clipped per column to the surface); bedrock shaft {@code -56..-43} on large wells.
+ * y&ge;0 surface/spout via gravity; deposit body fixed at world {@code -42..-12}; connector bridge
+ * ({@code template 100+} &rarr; fixed world Y) then terrain shaft ({@code template -11..-1} &rarr; surface);
+ * bedrock shaft {@code -56..-43} on large wells.
  * Shaft width: BC 8.0 medium radius 0 (1 block), large radius 1 (3×3).
  */
 public final class OilStructureTemplateBuilder {
@@ -93,8 +94,15 @@ public final class OilStructureTemplateBuilder {
       blitShaftColumn(
          blocks,
          center,
-         OilStructureDefaults.CONNECTOR_MIN_WORLD_Y,
-         OilStructureDefaults.CONNECTOR_MAX_WORLD_Y,
+         OilStructureDefaults.CONNECTOR_BRIDGE_TEMPLATE_BASE,
+         OilStructureDefaults.CONNECTOR_BRIDGE_TEMPLATE_BASE + OilStructureDefaults.CONNECTOR_BRIDGE_LAYER_COUNT - 1,
+         spoutRadius
+      );
+      blitShaftColumn(
+         blocks,
+         center,
+         OilStructureDefaults.CONNECTOR_TERRAIN_MIN_TEMPLATE_Y,
+         OilStructureDefaults.CONNECTOR_TERRAIN_MAX_TEMPLATE_Y,
          spoutRadius
       );
 

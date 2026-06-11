@@ -17,8 +17,15 @@ public final class OilStructureDefaults {
 
    /** Connector from deposit top ({@code DEPOSIT_MAX_WORLD_Y + 1}) up to just below the surface film. */
    public static final int CONNECTOR_MIN_WORLD_Y = DEPOSIT_MAX_WORLD_Y + 1;
-   /** Upper template bound; processor clips each column at {@code heightmap - 2}. */
-   public static final int CONNECTOR_MAX_WORLD_Y = 319;
+   /**
+    * Fixed bridge template band ({@code CONNECTOR_MIN_WORLD_Y + (templateY - base)}). Ends where the
+    * terrain-relative shaft begins ({@code heightmap - 1 + CONNECTOR_TERRAIN_MIN_TEMPLATE_Y}).
+    */
+   public static final int CONNECTOR_BRIDGE_TEMPLATE_BASE = 100;
+   public static final int CONNECTOR_BRIDGE_LAYER_COUNT = 320;
+   /** Terrain-relative shaft template band ({@code heightmap - 1 + templateY}), BC-style {@code -11..-1}. */
+   public static final int CONNECTOR_TERRAIN_MIN_TEMPLATE_Y = -11;
+   public static final int CONNECTOR_TERRAIN_MAX_TEMPLATE_Y = -1;
 
    /** Bedrock spring marker (pinned to {@code minY} after gravity). */
    public static final int SPRING_TEMPLATE_Y = -57;

@@ -15,7 +15,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 /**
  * Runs after {@link net.minecraft.world.level.levelgen.structure.templatesystem.GravityProcessor}.
  * Surface tendrils/spouts keep gravity; the deposit and bedrock shaft use fixed world Y; the connector
- * uses literal template Y up to the surface column cap.
+ * is a fixed bridge from the deposit top up to the terrain-relative shaft ({@code templateY -11..-1}).
  */
 public final class OilWellProjectionProcessor extends StructureProcessor {
    public static final MapCodec<OilWellProjectionProcessor> CODEC = MapCodec.unit(OilWellProjectionProcessor::new);
@@ -52,15 +52,45 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
          return fixedY(processedBlockInfo, templateY);
       }
 
-      if (isConnectorWorldY(templateY)) {
-         int connectorTop = surfaceY(level, x, z, -1);
-         if (templateY > connectorTop) {
-            return null;
-         }
-         return fixedY(processedBlockInfo, templateY);
+      if (isConnectorBridgeTemplateY(templateY)) {
+         return projectConnectorBridge(level, x, z, processedBlockInfo, templateY);
+      }
+
+      if (isConnectorTerrainTemplateY(templateY)) {
+         return projectConnectorTerrain(level, x, z, processedBlockInfo, templateY);
       }
 
       return processedBlockInfo;
+   }
+
+   private static StructureTemplate.StructureBlockInfo projectConnectorBridge(
+      final LevelReader level,
+      final int x,
+      final int z,
+      final StructureTemplate.StructureBlockInfo processedBlockInfo,
+      final int templateY
+   ) {
+      int worldY = OilStructureDefaults.CONNECTOR_MIN_WORLD_Y + templateY - OilStructureDefaults.CONNECTOR_BRIDGE_TEMPLATE_BASE;
+      int terrainBottom = surfaceY(level, x, z, OilStructureDefaults.CONNECTOR_TERRAIN_MIN_TEMPLATE_Y);
+      if (worldY >= terrainBottom) {
+         return null;
+      }
+      return fixedY(processedBlockInfo, worldY);
+   }
+
+   private static StructureTemplate.StructureBlockInfo projectConnectorTerrain(
+      final LevelReader level,
+      final int x,
+      final int z,
+      final StructureTemplate.StructureBlockInfo processedBlockInfo,
+      final int templateY
+   ) {
+      int connectorTop = surfaceY(level, x, z, OilStructureDefaults.CONNECTOR_TERRAIN_MAX_TEMPLATE_Y);
+      int worldY = surfaceY(level, x, z, templateY);
+      if (worldY > connectorTop) {
+         return null;
+      }
+      return fixedY(processedBlockInfo, worldY);
    }
 
    private static StructureTemplate.StructureBlockInfo fixedY(
@@ -82,9 +112,14 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
          && templateY <= OilStructureDefaults.BEDROCK_SHAFT_MAX_WORLD_Y;
    }
 
-   static boolean isConnectorWorldY(final int templateY) {
-      return templateY >= OilStructureDefaults.CONNECTOR_MIN_WORLD_Y
-         && templateY <= OilStructureDefaults.CONNECTOR_MAX_WORLD_Y;
+   static boolean isConnectorBridgeTemplateY(final int templateY) {
+      return templateY >= OilStructureDefaults.CONNECTOR_BRIDGE_TEMPLATE_BASE
+         && templateY < OilStructureDefaults.CONNECTOR_BRIDGE_TEMPLATE_BASE + OilStructureDefaults.CONNECTOR_BRIDGE_LAYER_COUNT;
+   }
+
+   static boolean isConnectorTerrainTemplateY(final int templateY) {
+      return templateY >= OilStructureDefaults.CONNECTOR_TERRAIN_MIN_TEMPLATE_Y
+         && templateY <= OilStructureDefaults.CONNECTOR_TERRAIN_MAX_TEMPLATE_Y;
    }
 
    private static int surfaceY(final LevelReader level, final int x, final int z, final int templateY) {
