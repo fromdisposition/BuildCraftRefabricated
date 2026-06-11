@@ -4,7 +4,6 @@ import buildcraft.fabric.BCRegistries;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
@@ -14,15 +13,14 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElementType;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
@@ -70,18 +68,17 @@ public final class OilDepositPoolElement extends SinglePoolElement {
          return false;
       }
 
-      StructureTemplate template = this.template.map(structureTemplateManager::getOrCreate, Function.identity());
-      StructurePlaceSettings settings = this.getSettings(rotation, chunkBB, liquidSettings, keepJigsaws);
-      List<StructureTemplate.StructureBlockInfo> blocks = StructureTemplate.processBlockInfos(
-         level, position, referencePos, settings, template.filterBlocks(BlockPos.ZERO, settings, Blocks.AIR)
-      );
-      for (StructureTemplate.StructureBlockInfo block : blocks) {
-         BlockPos pos = block.pos();
-         if (!chunkBB.isInside(pos)) {
-            continue;
-         }
-         if (OIL_BLOCK_ID.equals(BuiltInRegistries.BLOCK.getKey(block.state().getBlock()))) {
-            level.getChunk(pos).markPosForPostprocessing(pos);
+      // Jigsaw places with update flag 18 (skips WorldGenRegion auto-mark). Scan the chunk slice for
+      // actually placed oil — template lists use wrong anchor (ZERO) and miss processor-moved Y.
+      for (int x = chunkBB.minX(); x <= chunkBB.maxX(); x++) {
+         for (int y = chunkBB.minY(); y <= chunkBB.maxY(); y++) {
+            for (int z = chunkBB.minZ(); z <= chunkBB.maxZ(); z++) {
+               BlockPos pos = new BlockPos(x, y, z);
+               BlockState state = level.getBlockState(pos);
+               if (OIL_BLOCK_ID.equals(BuiltInRegistries.BLOCK.getKey(state.getBlock()))) {
+                  level.getChunk(pos).markPosForPostprocessing(pos);
+               }
+            }
          }
       }
 
