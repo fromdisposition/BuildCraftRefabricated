@@ -9,7 +9,7 @@
         },
         "projection": "terrain_matching"
       },
-      "weight": 20
+      "weight": 8
     },
     {
       "element": {
@@ -20,7 +20,18 @@
         },
         "projection": "terrain_matching"
       },
-      "weight": 10
+      "weight": 6
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "buildcraftenergy:oil_well_large_m",
+        "processors": {
+          "processors": []
+        },
+        "projection": "terrain_matching"
+      },
+      "weight": 6
     },
     {
       "element": {
@@ -31,7 +42,29 @@
         },
         "projection": "terrain_matching"
       },
-      "weight": 60
+      "weight": 20
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "buildcraftenergy:oil_well_medium_l",
+        "processors": {
+          "processors": []
+        },
+        "projection": "terrain_matching"
+      },
+      "weight": 15
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "buildcraftenergy:oil_well_medium_alt",
+        "processors": {
+          "processors": []
+        },
+        "projection": "terrain_matching"
+      },
+      "weight": 12
     },
     {
       "element": {
@@ -42,7 +75,7 @@
         },
         "projection": "terrain_matching"
       },
-      "weight": 20
+      "weight": 13
     }
   ],
   "fallback": "minecraft:empty"

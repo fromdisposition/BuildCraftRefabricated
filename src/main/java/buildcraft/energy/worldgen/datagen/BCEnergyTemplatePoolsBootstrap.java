@@ -1,6 +1,5 @@
 package buildcraft.energy.worldgen.datagen;
 
-import buildcraft.energy.worldgen.structure.OilStructureDefaults;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Holder;
@@ -39,10 +38,13 @@ final class BCEnergyTemplatePoolsBootstrap {
          new StructureTemplatePool(
             empty,
             ImmutableList.of(
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large"), OilStructureDefaults.WEIGHT_LARGE),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_s"), OilStructureDefaults.WEIGHT_LARGE / 2),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium"), OilStructureDefaults.WEIGHT_MEDIUM),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_s"), OilStructureDefaults.WEIGHT_MEDIUM / 3)
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large"), 8),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_s"), 6),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_m"), 6),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium"), 20),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_l"), 15),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_alt"), 12),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_s"), 13)
             ),
             StructureTemplatePool.Projection.TERRAIN_MATCHING
          )
@@ -53,11 +55,19 @@ final class BCEnergyTemplatePoolsBootstrap {
          new StructureTemplatePool(
             empty,
             ImmutableList.of(
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large"), OilStructureDefaults.WEIGHT_LARGE),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_l"), OilStructureDefaults.WEIGHT_LARGE),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_s"), OilStructureDefaults.WEIGHT_LARGE / 2),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium"), OilStructureDefaults.WEIGHT_MEDIUM),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_s"), OilStructureDefaults.WEIGHT_MEDIUM / 2)
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large"), 8),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_s"), 6),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_m"), 3),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_l"), 3),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium"), 25),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_l"), 15),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_alt"), 12),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_s"), 8),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_b"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_c"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_d"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_e"), 4)
             ),
             StructureTemplatePool.Projection.TERRAIN_MATCHING
          )
@@ -68,9 +78,19 @@ final class BCEnergyTemplatePoolsBootstrap {
          new StructureTemplatePool(
             empty,
             ImmutableList.of(
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch"), OilStructureDefaults.WEIGHT_LARGE),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_b"), OilStructureDefaults.WEIGHT_MEDIUM),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_c"), OilStructureDefaults.WEIGHT_LAKE)
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large"), 8),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_s"), 6),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_m"), 3),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_l"), 3),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium"), 25),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_l"), 15),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_alt"), 12),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_s"), 8),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_b"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_c"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_d"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_e"), 4)
             ),
             StructureTemplatePool.Projection.TERRAIN_MATCHING
          )
@@ -81,9 +101,19 @@ final class BCEnergyTemplatePoolsBootstrap {
          new StructureTemplatePool(
             empty,
             ImmutableList.of(
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch"), OilStructureDefaults.WEIGHT_LARGE),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_b"), OilStructureDefaults.WEIGHT_MEDIUM),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_c"), OilStructureDefaults.WEIGHT_LAKE)
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large"), 8),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_s"), 6),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_m"), 3),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_large_l"), 3),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium"), 25),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_l"), 15),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_alt"), 12),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_well_medium_s"), 8),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_b"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_c"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_d"), 4),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_e"), 4)
             ),
             StructureTemplatePool.Projection.TERRAIN_MATCHING
          )
