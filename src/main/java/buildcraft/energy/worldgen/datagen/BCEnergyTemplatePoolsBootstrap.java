@@ -62,7 +62,11 @@ final class BCEnergyTemplatePoolsBootstrap {
          PATCH_START,
          new StructureTemplatePool(
             empty,
-            ImmutableList.of(Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch"), 1)),
+            ImmutableList.of(
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch"), OilStructureDefaults.WEIGHT_LARGE),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_b"), OilStructureDefaults.WEIGHT_MEDIUM),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_c"), OilStructureDefaults.WEIGHT_LAKE)
+            ),
             StructureTemplatePool.Projection.RIGID
          )
       );

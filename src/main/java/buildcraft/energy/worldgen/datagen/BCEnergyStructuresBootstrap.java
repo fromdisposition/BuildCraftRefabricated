@@ -74,15 +74,15 @@ final class BCEnergyStructuresBootstrap {
          new OilDepositStructure(
             new Structure.StructureSettings.Builder(biomes.getOrThrow(biomeTag))
                .generationStep(net.minecraft.world.level.levelgen.GenerationStep.Decoration.UNDERGROUND_STRUCTURES)
-               .terrainAdapation(TerrainAdjustment.BEARD_THIN)
+               .terrainAdapation(TerrainAdjustment.NONE)
                .build(),
             startPool,
             java.util.Optional.empty(),
             1,
             ConstantHeight.of(VerticalAnchor.absolute(0)),
-            true,
+            false,
             java.util.Optional.of(Heightmap.Types.WORLD_SURFACE_WG),
-            new JigsawStructure.MaxDistance(80),
+            new JigsawStructure.MaxDistance(1),
             java.util.List.of(),
             JigsawStructure.DEFAULT_DIMENSION_PADDING,
             JigsawStructure.DEFAULT_LIQUID_SETTINGS,

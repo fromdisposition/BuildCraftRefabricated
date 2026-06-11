@@ -9,7 +9,29 @@
         },
         "projection": "rigid"
       },
-      "weight": 1
+      "weight": 20
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "buildcraftenergy:oil_lake_patch_b",
+        "processors": {
+          "processors": []
+        },
+        "projection": "rigid"
+      },
+      "weight": 60
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "buildcraftenergy:oil_lake_patch_c",
+        "processors": {
+          "processors": []
+        },
+        "projection": "rigid"
+      },
+      "weight": 20
     }
   ],
   "fallback": "minecraft:empty"

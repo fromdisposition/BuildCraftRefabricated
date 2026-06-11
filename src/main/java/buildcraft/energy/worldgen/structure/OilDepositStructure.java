@@ -131,7 +131,11 @@ public final class OilDepositStructure extends Structure {
       }
       ChunkPos chunkPos = context.chunkPos();
       int height = this.startHeight.sample(context.random(), new WorldGenerationContext(context.chunkGenerator(), context.heightAccessor()));
-      BlockPos startPos = new BlockPos(chunkPos.getMinBlockX(), height, chunkPos.getMinBlockZ());
+      BlockPos startPos = new BlockPos(
+         chunkPos.getMiddleBlockX() - OilStructureDefaults.TEMPLATE_CENTER,
+         height,
+         chunkPos.getMiddleBlockZ() - OilStructureDefaults.TEMPLATE_CENTER
+      );
       return JigsawPlacement.addPieces(
          context,
          this.startPool,
