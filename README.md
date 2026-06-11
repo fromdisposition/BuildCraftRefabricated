@@ -5,7 +5,7 @@ Unofficial **Fabric** port of BuildCraft for **Minecraft 26.1.2** — pipes, eng
 | | |
 |---|---|
 | **Mod ID** | `buildcraftrefabricated` |
-| **Version** | `26.1.2-beta-1` |
+| **Version** | `26.1.2-beta-2` |
 | **Platform** | Fabric Loader ≥ 0.19.2, Fabric API |
 | **Java** | 25+ |
 | **License** | [MPL-2.0](LICENSE) |
@@ -145,7 +145,7 @@ cd BuildCraftRefabricated
 gradlew.bat build        # Windows
 ```
 
-Output: `build/libs/BCRefabricated-26.1.2-beta-1.jar`
+Output: `build/libs/BCRefabricated-26.1.2-beta-2.jar`
 
 ---
 

@@ -24,7 +24,7 @@ public final class BuildCraftAPI {
    }
 
    public static String getVersion() {
-      return "26.1.2-beta-1";
+      return "26.1.2-beta-2";
    }
 
    public static IWorldProperty getWorldProperty(String name) {
