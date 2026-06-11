@@ -349,8 +349,8 @@ public final class BCFabricConfig {
       generator.addProperty("spawnOilSprings", true);
       generator.addProperty("oilOceanPatchChance", 2.5);
       generator.addProperty("oilDesertPatchChance", 8.0);
-      generator.addProperty("oilSpawnChancePercentNormal", 0.12);
-      generator.addProperty("oilSpawnChancePercentRich", 0.25);
+      generator.addProperty("oilSpawnChancePercentNormal", 0.15);
+      generator.addProperty("oilSpawnChancePercentRich", 0.3);
       generator.addProperty("oilSpawnChancePercentOilPatch", 2.0);
       generator.addProperty("oilTypeWeightLarge", 20);
       generator.addProperty("oilTypeWeightMedium", 60);

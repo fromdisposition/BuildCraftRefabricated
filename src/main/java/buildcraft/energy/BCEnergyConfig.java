@@ -27,9 +27,9 @@ public class BCEnergyConfig {
    /** Desert/badlands columns that become BC oil_desert patches (percent of desert area). */
    public static final BCCoreConfig.DoubleValue oilDesertPatchChance = new BCCoreConfig.DoubleValue(0.08);
    /** Per-chunk chance (%) — default biomes including ocean. */
-   public static final BCCoreConfig.DoubleValue oilSpawnChancePercentNormal = new BCCoreConfig.DoubleValue(0.12);
+   public static final BCCoreConfig.DoubleValue oilSpawnChancePercentNormal = new BCCoreConfig.DoubleValue(0.15);
    /** Per-chunk chance (%) — desert, badlands, {@link #richSurfaceDepositBiomes} (small bonus over normal). */
-   public static final BCCoreConfig.DoubleValue oilSpawnChancePercentRich = new BCCoreConfig.DoubleValue(0.25);
+   public static final BCCoreConfig.DoubleValue oilSpawnChancePercentRich = new BCCoreConfig.DoubleValue(0.3);
    /** Per-chunk chance (%) — synthetic oil_ocean / oil_desert patches. */
    public static final BCCoreConfig.DoubleValue oilSpawnChancePercentOilPatch = new BCCoreConfig.DoubleValue(2.0);
    /** Relative weight when oil spawns: large underground reservoir. */
