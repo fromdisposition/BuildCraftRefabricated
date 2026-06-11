@@ -30,6 +30,14 @@ fabricApi {
     }
 }
 
+sourceSets {
+    main {
+        resources {
+            srcDir("src/main/generated")
+        }
+    }
+}
+
 // Loader-specific hooks live in buildcraft.lib.fabric.* and buildcraft.fabric.*
 
 dependencies {
@@ -214,6 +222,10 @@ java {
     withSourcesJar()
     sourceCompatibility = JavaVersion.VERSION_25
     targetCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.withType<Jar>().configureEach {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.named<Jar>("sourcesJar") {
