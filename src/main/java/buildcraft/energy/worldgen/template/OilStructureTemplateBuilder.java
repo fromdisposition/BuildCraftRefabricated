@@ -11,11 +11,12 @@ import java.util.Random;
 /**
  * Builds oil deposit NBT templates for jigsaw pools.
  *
- * <p>Well template Y convention ({@link OilWellProjectionProcessor}):
- * y=0 surface oil, y&gt;0 spout; underground geometry uses template Y below surface (gravity projection).
+ * <p>Well template Y convention ({@link OilWellProjectionProcessor} + gravity):
+ * y=0 surface film, y&gt;0 spout, deposit and shaft use {@code heightmap - 1 + templateY}.
+ * The sphere is clipped to {@link OilStructureDefaults#DEPOSIT_MAX_TEMPLATE_Y} through
+ * {@link OilStructureDefaults#DEPOSIT_MIN_TEMPLATE_Y} so tall terrain never pulls the body to the surface.
  * Bedrock spring uses {@link OilStructureDefaults#SPRING_TEMPLATE_Y} and is pinned to {@code minY} after gravity.
- * Shaft/connector/spout width follows BC 8.0 {@code createTube}/{@code Spout}: medium radius 0 (1 block),
- * large radius 1 (3×3 cylinder).
+ * Shaft width: BC 8.0 medium radius 0 (1 block), large radius 1 (3×3).
  */
 public final class OilStructureTemplateBuilder {
    private static final String OIL_BLOCK = "buildcraftenergy:oil";
@@ -73,29 +74,38 @@ public final class OilStructureTemplateBuilder {
 
       int center = OilStructureDefaults.TEMPLATE_CENTER;
       int sphereCenterY = OilStructureDefaults.SPHERE_TEMPLATE_CENTER_Y;
+      int depositMinY = OilStructureDefaults.DEPOSIT_MIN_TEMPLATE_Y;
+      int depositMaxY = OilStructureDefaults.DEPOSIT_MAX_TEMPLATE_Y;
+
       for (int dx = -sphereRadius; dx <= sphereRadius; dx++) {
          for (int dy = -sphereRadius; dy <= sphereRadius; dy++) {
             for (int dz = -sphereRadius; dz <= sphereRadius; dz++) {
-               if (dx * dx + dy * dy + dz * dz <= sphereRadius * sphereRadius) {
-                  blocks.add(new StructureNbtWriter.BlockEntry(center + dx, sphereCenterY + dy, center + dz, OIL_BLOCK));
+               if (dx * dx + dy * dy + dz * dz > sphereRadius * sphereRadius) {
+                  continue;
                }
+               int y = sphereCenterY + dy;
+               if (y < depositMinY || y > depositMaxY) {
+                  continue;
+               }
+               blocks.add(new StructureNbtWriter.BlockEntry(center + dx, y, center + dz, OIL_BLOCK));
             }
          }
       }
 
-      int shaftTop = sphereCenterY - sphereRadius - 1;
-      blitShaftColumn(blocks, center, OilStructureDefaults.SPRING_TEMPLATE_Y + 1, shaftTop, spoutRadius);
+      int sphereTop = Math.min(sphereCenterY + sphereRadius, depositMaxY);
+      int sphereBottom = Math.max(sphereCenterY - sphereRadius, depositMinY);
 
-      int sphereTop = sphereCenterY + sphereRadius;
-      // Stops before y=0 (surface film); y=-1 is shaft only, not a second surface layer.
-      blitShaftColumn(blocks, center, sphereTop + 1, -1, spoutRadius);
-
-      if (surfaceSpoutHeight > 0) {
-         blitSurfaceSpout(blocks, center, surfaceSpoutHeight, spoutRadius);
+      if (sphereTop < depositMaxY) {
+         blitShaftColumn(blocks, center, sphereTop + 1, depositMaxY, spoutRadius);
       }
 
       if (withSpring) {
+         blitShaftColumn(blocks, center, OilStructureDefaults.SPRING_TEMPLATE_Y + 1, sphereBottom - 1, spoutRadius);
          blocks.add(new StructureNbtWriter.BlockEntry(center, OilStructureDefaults.SPRING_TEMPLATE_Y, center, SPRING_BLOCK));
+      }
+
+      if (surfaceSpoutHeight > 0) {
+         blitSurfaceSpout(blocks, center, surfaceSpoutHeight, spoutRadius);
       }
 
       StructureNbtWriter.write(
@@ -114,6 +124,9 @@ public final class OilStructureTemplateBuilder {
       int yTo,
       int shaftRadius
    ) {
+      if (yFrom > yTo) {
+         return;
+      }
       for (int y = yFrom; y <= yTo; y++) {
          writeCylinderY(blocks, center, y, center, shaftRadius);
       }
@@ -137,7 +150,7 @@ public final class OilStructureTemplateBuilder {
             int worldX = center - half + x;
             int worldZ = center - half + z;
             for (int d = 0; d < SURFACE_FILM_DEPTH; d++) {
-               blocks.add(new StructureNbtWriter.BlockEntry(worldX, -d, worldZ, OIL_BLOCK));
+               blocks.add(new StructureNbtWriter.BlockEntry(worldX, OilStructureDefaults.SURFACE_TEMPLATE_Y - d, worldZ, OIL_BLOCK));
             }
          }
       }
