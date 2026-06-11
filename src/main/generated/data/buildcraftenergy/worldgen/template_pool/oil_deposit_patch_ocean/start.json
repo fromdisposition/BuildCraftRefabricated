@@ -4,8 +4,10 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_lake_patch",
-        "processors": "buildcraftenergy:oil_ocean_floor",
-        "projection": "rigid"
+        "processors": {
+          "processors": []
+        },
+        "projection": "terrain_matching"
       },
       "weight": 20
     },
@@ -13,8 +15,10 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_lake_patch_b",
-        "processors": "buildcraftenergy:oil_ocean_floor",
-        "projection": "rigid"
+        "processors": {
+          "processors": []
+        },
+        "projection": "terrain_matching"
       },
       "weight": 60
     },
@@ -22,8 +26,10 @@
       "element": {
         "element_type": "minecraft:single_pool_element",
         "location": "buildcraftenergy:oil_lake_patch_c",
-        "processors": "buildcraftenergy:oil_ocean_floor",
-        "projection": "rigid"
+        "processors": {
+          "processors": []
+        },
+        "projection": "terrain_matching"
       },
       "weight": 20
     }

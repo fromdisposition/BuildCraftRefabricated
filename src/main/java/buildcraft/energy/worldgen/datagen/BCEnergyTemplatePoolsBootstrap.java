@@ -12,7 +12,6 @@ import net.minecraft.data.worldgen.Pools;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 
 final class BCEnergyTemplatePoolsBootstrap {
    static final ResourceKey<StructureTemplatePool> NORMAL_START = ResourceKey.create(
@@ -33,9 +32,7 @@ final class BCEnergyTemplatePoolsBootstrap {
 
    static void bootstrap(BootstrapContext<StructureTemplatePool> context) {
       HolderGetter<StructureTemplatePool> pools = context.lookup(Registries.TEMPLATE_POOL);
-      HolderGetter<StructureProcessorList> processorLists = context.lookup(Registries.PROCESSOR_LIST);
       Holder<StructureTemplatePool> empty = pools.getOrThrow(Pools.EMPTY);
-      Holder<StructureProcessorList> oceanFloor = processorLists.getOrThrow(BCEnergyProcessorListsBootstrap.OIL_OCEAN_FLOOR);
 
       context.register(
          NORMAL_START,
@@ -84,11 +81,11 @@ final class BCEnergyTemplatePoolsBootstrap {
          new StructureTemplatePool(
             empty,
             ImmutableList.of(
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch", oceanFloor), OilStructureDefaults.WEIGHT_LARGE),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_b", oceanFloor), OilStructureDefaults.WEIGHT_MEDIUM),
-               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_c", oceanFloor), OilStructureDefaults.WEIGHT_LAKE)
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch"), OilStructureDefaults.WEIGHT_LARGE),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_b"), OilStructureDefaults.WEIGHT_MEDIUM),
+               Pair.of(StructurePoolElement.single("buildcraftenergy:oil_lake_patch_c"), OilStructureDefaults.WEIGHT_LAKE)
             ),
-            StructureTemplatePool.Projection.RIGID
+            StructureTemplatePool.Projection.TERRAIN_MATCHING
          )
       );
    }
