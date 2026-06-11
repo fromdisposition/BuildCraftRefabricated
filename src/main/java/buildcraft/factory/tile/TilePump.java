@@ -102,7 +102,7 @@ public class TilePump extends TileMiner implements IDebuggable {
       this.paths.clear();
       this.isInfiniteWaterSource = false;
       this.oilSpringPos = null;
-      this.targetPos = this.worldPosition.below();
+      this.targetPos = null;
       int maxDepth = BCCoreConfig.miningMaxDepth.get();
       TilePump.ColumnProbe probeDown = probeDown(this.level, this.worldPosition, maxDepth);
       TilePump.ColumnProbe probeUp = probeUp(this.level, this.worldPosition, maxDepth);
@@ -342,7 +342,7 @@ public class TilePump extends TileMiner implements IDebuggable {
    @Nullable
    @Override
    protected BlockPos getTargetPos() {
-      return this.queue.isEmpty() && this.currentPos == null ? null : this.targetPos;
+      return this.targetPos;
    }
 
    @Override
@@ -350,6 +350,7 @@ public class TilePump extends TileMiner implements IDebuggable {
       if (!this.queueBuilt || this.builtAtRevision != CONFIG_REVISION.get()) {
          this.buildQueue();
          this.queueBuilt = true;
+         this.updateLength();
       }
 
       super.serverTick();
