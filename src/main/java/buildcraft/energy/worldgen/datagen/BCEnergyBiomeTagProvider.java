@@ -57,15 +57,13 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
       builder(BCEnergyBiomeTags.OIL_PATCH_OCEAN).add(PATCH_OCEAN.toArray(ResourceKey[]::new));
       builder(BCEnergyBiomeTags.OIL_PATCH_DESERT).add(PATCH_DESERT.toArray(ResourceKey[]::new));
 
-      Set<ResourceKey<Biome>> patchKeys = new HashSet<>();
-      patchKeys.addAll(PATCH_DESERT);
-      patchKeys.addAll(PATCH_OCEAN);
+      Set<ResourceKey<Biome>> oceanKeys = new HashSet<>(PATCH_OCEAN);
 
       var normalSpawn = builder(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
       HolderLookup.RegistryLookup<Biome> biomes = provider.lookupOrThrow(Registries.BIOME);
       for (Holder.Reference<Biome> biome : biomes.listElements().toList()) {
          ResourceKey<Biome> key = biome.key();
-         if (NON_OVERWORLD.contains(key) || EXCLUDED.contains(key) || patchKeys.contains(key)) {
+         if (NON_OVERWORLD.contains(key) || EXCLUDED.contains(key) || oceanKeys.contains(key)) {
             continue;
          }
          normalSpawn.add(key);

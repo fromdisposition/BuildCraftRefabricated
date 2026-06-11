@@ -34,8 +34,8 @@ final class BCEnergyStructureSetsBootstrap {
          new StructureSet(
             structures.getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT),
             new RandomSpreadStructurePlacement(
-               OilStructureDefaults.PATCH_SPACING,
-               OilStructureDefaults.PATCH_SEPARATION,
+               OilStructureDefaults.RICH_SPACING,
+               OilStructureDefaults.RICH_SEPARATION,
                RandomSpreadType.LINEAR,
                OilStructureDefaults.PATCH_SALT + 1
             )
@@ -46,8 +46,8 @@ final class BCEnergyStructureSetsBootstrap {
          new StructureSet(
             structures.getOrThrow(BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN),
             new RandomSpreadStructurePlacement(
-               OilStructureDefaults.PATCH_SPACING,
-               OilStructureDefaults.PATCH_SEPARATION,
+               OilStructureDefaults.OCEAN_PATCH_SPACING,
+               OilStructureDefaults.OCEAN_PATCH_SEPARATION,
                RandomSpreadType.LINEAR,
                OilStructureDefaults.PATCH_SALT + 2
             )

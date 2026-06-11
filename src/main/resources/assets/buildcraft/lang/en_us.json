@@ -815,6 +815,8 @@
   "buildcraft.configuration.enableOilGeneration": "Enable Oil Generation",
   "buildcraft.configuration.enableOilOnWater": "Enable Oil On Water",
   "buildcraft.configuration.spawnOilSprings": "Spawn Oil Springs",
+  "buildcraft.configuration.oilDesertRichChancePercent": "Desert Rich Tier Slice (%)",
+  "buildcraft.configuration.oilOceanPatchChancePercent": "Ocean Patch Tier Slice (%)",
   "buildcraft.configuration.excludedDimensions": "Excluded Dimensions",
   "buildcraft.configuration.dimensionListMode": "Dimension List Mode",
   "block.buildcraftenergy.engine_rf": "Energy Engine",
