@@ -33,7 +33,7 @@
       "buildcraft.silicon.integration.jei.BCSiliconJeiPlugin"
     ],
     "fabric-datagen": [
-      "buildcraft.energy.generation.datagen.BuildCraftDataGenerator"
+      "buildcraft.energy.worldgen.datagen.BuildCraftWorldgenDataGenerator"
     ]
   },
   "mixins": [
