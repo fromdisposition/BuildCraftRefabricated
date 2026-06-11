@@ -103,7 +103,7 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
          return true;
       }
       int connectorTop = this.sphereTopTemplateY() + 1;
-      return templateY >= connectorTop && templateY < -1;
+      return templateY >= connectorTop && templateY <= -1;
    }
 
    @Override
