@@ -225,7 +225,6 @@ public final class BCFabricConfig {
 
       BCEnergyConfig.enableOilOnWater.set(bool(generator, "enableOilOnWater", BCEnergyConfig.enableOilOnWater.get()));
       BCEnergyConfig.enableOilGeneration.set(bool(generator, "enableOilGeneration", BCEnergyConfig.enableOilGeneration.get()));
-      BCEnergyConfig.enableOilSpouts.set(bool(generator, "enableOilSpouts", BCEnergyConfig.enableOilSpouts.get()));
       BCEnergyConfig.spawnOilSprings.set(bool(generator, "spawnOilSprings", BCEnergyConfig.spawnOilSprings.get()));
 
       if (generator.has("excludedDimensions")) {
@@ -294,7 +293,6 @@ public final class BCFabricConfig {
       JsonObject generator = new JsonObject();
       generator.addProperty("enableOilGeneration", true);
       generator.addProperty("enableOilOnWater", true);
-      generator.addProperty("enableOilSpouts", true);
       generator.addProperty("spawnOilSprings", true);
       generator.add("excludedDimensions", GSON.toJsonTree(BCEnergyConfig.getExcludedDimensions().stream().map(id -> id.toString()).sorted().toList()));
       generator.addProperty("dimensionListMode", "BLACKLIST");

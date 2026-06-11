@@ -12,7 +12,6 @@ public record OilGenSettings(
    int typeWeightLarge,
    int typeWeightMedium,
    int typeWeightLake,
-   boolean spawnOilSprings,
    boolean enableOilSpouts,
    int smallSpoutMinHeight,
    int smallSpoutMaxHeight,
@@ -37,7 +36,6 @@ public record OilGenSettings(
          config.typeWeightLarge(),
          config.typeWeightMedium(),
          config.typeWeightLake(),
-         config.spawnOilSprings(),
          config.enableOilSpouts(),
          config.spoutHeights().smallSpoutMinHeight(),
          config.spoutHeights().smallSpoutMaxHeight(),
@@ -53,7 +51,10 @@ public record OilGenSettings(
       );
    }
 
-   /** Neighbor scan origins still roll per-chunk; the decorating chunk is gated by {@code rarity_filter}. */
+   /**
+    * Neighbour-origin scan gate: mirrors the tier's {@code rarity_filter} chance so stitched deposits do not appear
+    * on every border. The decorating chunk itself skips this roll (already passed {@code rarity_filter}).
+    */
    double neighborSpawnChanceFraction() {
       double percent = switch (this.forcedTier) {
          case NORMAL -> this.spawnChancePercentNormal;

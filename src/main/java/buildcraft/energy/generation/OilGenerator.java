@@ -140,10 +140,10 @@ public final class OilGenerator {
       }
 
       if (!selfOrigin && rand.nextDouble() >= config.neighborSpawnChanceFraction()) {
-         if (DEBUG_OILGEN_ALL && selfOrigin) {
+         if (DEBUG_OILGEN_ALL) {
             BCLog.logger.info(
-               "[energy.oilgen] Not generating oil in chunk " + cx + ", " + cz
-                  + " (neighbor gate, chance=" + config.neighborSpawnChanceFraction() * 100.0 + "%)"
+               "[energy.oilgen] Skipping neighbor origin " + cx + ", " + cz
+                  + " (scan gate, chance=" + config.neighborSpawnChanceFraction() * 100.0 + "%)"
             );
          }
          return List.of();
@@ -213,7 +213,7 @@ public final class OilGenerator {
 
          if (type == GenType.LARGE) {
             structures.add(createTubeY(new BlockPos(x, level.getMinY() + 1, z), wellY, radius));
-            if (config.spawnOilSprings() && BCCoreBlocks.SPRING_OIL != null) {
+            if (BCEnergyConfig.spawnOilSprings.get() && BCCoreBlocks.SPRING_OIL != null) {
                structures.add(createSpring(new BlockPos(x, level.getMinY(), z)));
             }
          }
