@@ -15,8 +15,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProc
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
 /**
- * BC 8.0 well projection: surface tendril/spout/connector follow terrain; sphere and bedrock shaft use
- * {@code minY + sphere_center_offset} (BC {@code wellY = minY + 20 + rand}).
+ * Surface tendril/spout/connector follow terrain; sphere and bedrock shaft use
+ * {@code minY + sphere_center_offset}.
  */
 public final class OilWellProjectionProcessor extends StructureProcessor {
    public static final MapCodec<OilWellProjectionProcessor> CODEC = RecordCodecBuilder.mapCodec(
@@ -103,7 +103,7 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
          return true;
       }
       int connectorTop = this.sphereTopTemplateY() + 1;
-      return templateY >= connectorTop && templateY <= -1;
+      return templateY >= connectorTop && templateY < -1;
    }
 
    @Override

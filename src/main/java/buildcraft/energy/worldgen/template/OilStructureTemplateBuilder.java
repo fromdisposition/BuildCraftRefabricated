@@ -87,7 +87,7 @@ public final class OilStructureTemplateBuilder {
       }
 
       int sphereTop = sphereCenterY + sphereRadius;
-      for (int y = sphereTop + 1; y < 0; y++) {
+      for (int y = sphereTop + 1; y < -1; y++) {
          blocks.add(new StructureNbtWriter.BlockEntry(center, y, center, OIL_BLOCK));
       }
 
