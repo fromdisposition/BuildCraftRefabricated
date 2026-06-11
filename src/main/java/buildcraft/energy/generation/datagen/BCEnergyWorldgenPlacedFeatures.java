@@ -1,6 +1,7 @@
 package buildcraft.energy.generation.datagen;
 
 import buildcraft.energy.BCEnergyFeatures;
+import buildcraft.energy.generation.adapter.OilDepositFeatureConfiguration;
 import java.util.List;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
@@ -35,7 +36,11 @@ final class BCEnergyWorldgenPlacedFeatures {
          BCEnergyFeatures.OIL_DEPOSIT_PLACED,
          new PlacedFeature(
             configuredFeatures.getOrThrow(BCEnergyWorldgenConfiguredFeatures.OIL_DEPOSIT_PATCH),
-            List.of(CountPlacement.of(1), BiomeFilter.biome())
+            List.of(
+               CountPlacement.of(1),
+               RarityFilter.onAverageOnceEvery(chanceToRarity(OilDepositFeatureConfiguration.DEFAULT.spawnChancePercentOilPatch(), 1.0)),
+               BiomeFilter.biome()
+            )
          )
       );
    }

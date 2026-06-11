@@ -34,6 +34,6 @@
     "type_weight_lake": 20,
     "type_weight_large": 20,
     "type_weight_medium": 60,
-    "use_datapack_spawn_chance": false
+    "use_datapack_spawn_chance": true
   }
 }

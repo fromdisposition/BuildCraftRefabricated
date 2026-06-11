@@ -36,7 +36,7 @@ final class BCEnergyWorldgenConfiguredFeatures {
       );
       context.register(
          OIL_DEPOSIT_PATCH,
-         new ConfiguredFeature<>(oilDeposit, withForcedTier(OilDepositFeatureConfiguration.ForcedTier.PATCH, false))
+         new ConfiguredFeature<>(oilDeposit, withForcedTier(OilDepositFeatureConfiguration.ForcedTier.PATCH, true))
       );
    }
 

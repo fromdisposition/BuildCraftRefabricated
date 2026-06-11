@@ -87,8 +87,37 @@ public final class OilGenerator {
       int chunkX = origin.getX() >> 4;
       int chunkZ = origin.getZ() >> 4;
       ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
-      BlockPos min = new BlockPos(chunkPos.getMinBlockX() + 8, level.getMinY(), chunkPos.getMinBlockZ() + 8);
-      Box box = new Box(min, min.offset(15, level.getMaxY(), 15));
+      BlockPos min = new BlockPos(chunkPos.getMinBlockX(), level.getMinY(), chunkPos.getMinBlockZ());
+      Box box = new Box(min, new BlockPos(chunkPos.getMaxBlockX(), level.getMaxY(), chunkPos.getMaxBlockZ()));
+      // #region agent log
+      {
+         int chunkMinX = chunkPos.getMinBlockX();
+         int chunkMaxX = chunkPos.getMaxBlockX();
+         int chunkMinZ = chunkPos.getMinBlockZ();
+         int chunkMaxZ = chunkPos.getMaxBlockZ();
+         boolean boxCoversFullChunk = box.min().getX() == chunkMinX && box.max().getX() == chunkMaxX
+            && box.min().getZ() == chunkMinZ && box.max().getZ() == chunkMaxZ;
+         if (Math.abs(chunkX) <= 2 && Math.abs(chunkZ) <= 2) {
+            OilGenDebugLog.log(
+               "H1",
+               "OilGenerator.placeForChunk:box",
+               "decorate_box_vs_chunk",
+               java.util.Map.of(
+                  "chunkX", chunkX,
+                  "chunkZ", chunkZ,
+                  "chunkMinX", chunkMinX,
+                  "chunkMaxX", chunkMaxX,
+                  "boxMinX", box.min().getX(),
+                  "boxMaxX", box.max().getX(),
+                  "boxMinZ", box.min().getZ(),
+                  "boxMaxZ", box.max().getZ(),
+                  "boxCoversFullChunk", boxCoversFullChunk,
+                  "runId", "post-fix"
+               )
+            );
+         }
+      }
+      // #endregion
       boolean placed = false;
       long worldSeed = level.getSeed();
 
@@ -101,10 +130,12 @@ public final class OilGenerator {
             }
 
             final boolean logOrigin = cdx == 0 && cdz == 0;
+            int cacheScope = OilGenCaches.cacheScope(config);
             List<OilGenStructure> structures = OilGenCaches.structure(
                worldSeed,
                cx,
                cz,
+               cacheScope,
                () -> computeStructures(level, cx, cz, logOrigin, config)
             );
             if (structures.isEmpty()) {
@@ -144,7 +175,9 @@ public final class OilGenerator {
       OilGenSettings config = OilGenSettings.current();
       if (level instanceof WorldGenLevel worldGenLevel) {
          long seed = worldGenLevel.getSeed();
-         return OilGenCaches.structure(seed, cx, cz, () -> computeStructures(level, cx, cz, log, config));
+         return OilGenCaches.structure(
+            seed, cx, cz, OilGenCaches.cacheScope(config), () -> computeStructures(level, cx, cz, log, config)
+         );
       }
       return computeStructures(level, cx, cz, log, config);
    }
@@ -182,7 +215,26 @@ public final class OilGenerator {
       if (tier == null) {
          return List.of();
       }
-      if (!(config.useDatapackSpawnChance() && tier != OilSpawnRoll.Tier.OIL_PATCH)) {
+      // Rarity filter gates the decorating chunk only; neighbor origins in scan still roll per-origin.
+      boolean skipSpawnRoll = config.useDatapackSpawnChance() && log;
+      // #region agent log
+      if (log && Math.abs(cx) <= 2 && Math.abs(cz) <= 2) {
+         OilGenDebugLog.log(
+            "H36",
+            "OilGenerator.computeStructures",
+            "spawn_roll_gate",
+            java.util.Map.of(
+               "originChunkX", cx,
+               "originChunkZ", cz,
+               "tier", tier.name(),
+               "skipSpawnRoll", skipSpawnRoll,
+               "useDatapackSpawnChance", config.useDatapackSpawnChance(),
+               "runId", "post-fix3"
+            )
+         );
+      }
+      // #endregion
+      if (!skipSpawnRoll) {
          double spawnChance = OilSpawnRoll.spawnChanceFraction(tier, config);
          if (rand.nextDouble() >= spawnChance) {
             if (DEBUG_OILGEN_ALL && log) {
