@@ -25,9 +25,9 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue enableOilGeneration = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableOilSprings = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableWaterSpringGeneration = new BCCoreConfig.BooleanValue(true);
-   /** Per-chunk slice of desert biomes that use the rich tier (wells + lakes). */
+   /** Percent of 4×4-chunk desert sectors that use the rich tier (contiguous patch, wells + lakes). */
    public static final BCCoreConfig.IntValue oilDesertRichChancePercent = new BCCoreConfig.IntValue(30);
-   /** Per-chunk slice of ocean biomes that use the patch tier (wells + lakes). */
+   /** Percent of 4×4-chunk ocean sectors that use the patch tier (contiguous patch, wells + lakes). */
    public static final BCCoreConfig.IntValue oilOceanPatchChancePercent = new BCCoreConfig.IntValue(15);
    public static final BCCoreConfig.StringListValue excludedDimensions = new BCCoreConfig.StringListValue(List.of("minecraft:the_nether", "minecraft:the_end"));
    public static final BCCoreConfig.EnumValue<BCEnergyConfig.ListMode> dimensionListMode = new BCCoreConfig.EnumValue<>(BCEnergyConfig.ListMode.BLACKLIST);

@@ -51,8 +51,8 @@ public final class OilStructureSpawnConditions {
    }
 
    /**
-    * True when this chunk uses the rich desert or ocean patch tier (same roll as structure spawn).
-    * Used for the Fine Riches advancement — not every desert/ocean biome, only the sliced subset.
+    * True when this chunk lies in a rich desert or ocean patch sector (same roll as structure spawn).
+    * Used for the Fine Riches advancement — not every desert/ocean biome, only contiguous patch sectors.
     */
    public static boolean isRichOilSlice(Holder<Biome> biome, ChunkPos chunkPos) {
       if (biome.is(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME)) {
@@ -65,7 +65,7 @@ public final class OilStructureSpawnConditions {
          return false;
       }
 
-      int roll = chunkRoll(chunkPos);
+      int roll = sectorRoll(chunkPos);
       int desertRichCutoff = clampPercent(BCEnergyConfig.oilDesertRichChancePercent.get());
       int oceanPatchCutoff = clampPercent(BCEnergyConfig.oilOceanPatchChancePercent.get());
       if (desert && roll < desertRichCutoff) {
@@ -81,7 +81,7 @@ public final class OilStructureSpawnConditions {
 
       boolean desert = biome.is(BCEnergyBiomeTags.OIL_PATCH_DESERT);
       boolean ocean = biome.is(BCEnergyBiomeTags.OIL_PATCH_OCEAN);
-      int roll = chunkRoll(context.chunkPos());
+      int roll = sectorRoll(context.chunkPos());
       int desertRichCutoff = clampPercent(BCEnergyConfig.oilDesertRichChancePercent.get());
       int oceanPatchCutoff = clampPercent(BCEnergyConfig.oilOceanPatchChancePercent.get());
 
@@ -100,11 +100,15 @@ public final class OilStructureSpawnConditions {
       };
    }
 
-   /** Stable per-chunk roll in [0, 99] for tier slicing (independent of structure-set salt). */
-   static int chunkRoll(ChunkPos chunkPos) {
-      long hash = chunkPos.getMiddleBlockX() * 341873128713L
-         + chunkPos.getMiddleBlockZ() * 1327217883L
-         + OilStructureDefaults.CHUNK_ROLL_SALT;
+   /**
+    * Stable sector roll in [0, 99]. All chunks in the same {@link OilStructureDefaults#SLICE_SECTOR_CHUNKS}
+    * sector share one roll so rich/patch tiers form contiguous patches (not a per-chunk checkerboard).
+    */
+   static int sectorRoll(ChunkPos chunkPos) {
+      int sector = OilStructureDefaults.SLICE_SECTOR_CHUNKS;
+      int sectorX = Math.floorDiv(chunkPos.x(), sector);
+      int sectorZ = Math.floorDiv(chunkPos.z(), sector);
+      long hash = sectorX * 341873128713L + sectorZ * 1327217883L + OilStructureDefaults.SLICE_ROLL_SALT;
       return Math.floorMod(hash, 100);
    }
 

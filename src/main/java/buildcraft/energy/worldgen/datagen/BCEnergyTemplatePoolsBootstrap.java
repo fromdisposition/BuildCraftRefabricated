@@ -69,11 +69,11 @@ final class BCEnergyTemplatePoolsBootstrap {
                Pair.of(well(processors, "oil_well_medium_l", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_L), 15),
                Pair.of(well(processors, "oil_well_medium_alt", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_ALT), 12),
                Pair.of(well(processors, "oil_well_medium_s", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_S), 8),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch"), 4),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_b"), 4),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 4),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_d"), 4),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_e"), 4)
+               Pair.of(lake(surfaceGravity, "oil_lake_patch"), 10),
+               Pair.of(lake(surfaceGravity, "oil_lake_patch_b"), 10),
+               Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 10),
+               Pair.of(lake(surfaceGravity, "oil_lake_patch_d"), 10),
+               Pair.of(lake(surfaceGravity, "oil_lake_patch_e"), 10)
             ),
             StructureTemplatePool.Projection.RIGID
          )
@@ -92,11 +92,11 @@ final class BCEnergyTemplatePoolsBootstrap {
                Pair.of(well(processors, "oil_well_medium_l", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_L), 15),
                Pair.of(well(processors, "oil_well_medium_alt", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_ALT), 12),
                Pair.of(well(processors, "oil_well_medium_s", BCEnergyProcessorListsBootstrap.OIL_WELL_MEDIUM_S), 8),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch"), 4),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_b"), 4),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 4),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_d"), 4),
-               Pair.of(lake(surfaceGravity, "oil_lake_patch_e"), 4)
+               Pair.of(lake(surfaceGravity, "oil_lake_patch"), 10),
+               Pair.of(lake(surfaceGravity, "oil_lake_patch_b"), 10),
+               Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 10),
+               Pair.of(lake(surfaceGravity, "oil_lake_patch_d"), 10),
+               Pair.of(lake(surfaceGravity, "oil_lake_patch_e"), 10)
             ),
             StructureTemplatePool.Projection.RIGID
          )

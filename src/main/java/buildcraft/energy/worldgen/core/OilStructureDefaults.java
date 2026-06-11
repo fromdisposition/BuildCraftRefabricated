@@ -9,17 +9,26 @@ public final class OilStructureDefaults {
    public static final int NORMAL_SEPARATION = 8;
    public static final int NORMAL_SALT = 0x5046_B4_E4;
 
-   /** ~1%/chunk on rich-eligible desert slices (see {@code oilDesertRichChancePercent}). */
-   public static final int RICH_SPACING = 10;
-   public static final int RICH_SEPARATION = 4;
+   /**
+    * Rich desert patch sectors ({@code oilDesertRichChancePercent}): ~4%/chunk inside a rich sector
+    * ({@link #SLICE_SECTOR_CHUNKS}×{@link #SLICE_SECTOR_CHUNKS}), ~0.6 deposits per 64×64 block patch.
+    */
+   public static final int RICH_SPACING = 5;
+   public static final int RICH_SEPARATION = 2;
 
-   /** ~2%/chunk on patch-eligible ocean slices (see {@code oilOceanPatchChancePercent}). */
-   public static final int OCEAN_PATCH_SPACING = 7;
-   public static final int OCEAN_PATCH_SEPARATION = 3;
+   /**
+    * Ocean patch sectors ({@code oilOceanPatchChancePercent}): ~6%/chunk inside a patch sector,
+    * ~1 deposit per 64×64 block patch on average.
+    */
+   public static final int OCEAN_PATCH_SPACING = 4;
+   public static final int OCEAN_PATCH_SEPARATION = 2;
    public static final int PATCH_SALT = 0x5046_B4_E6;
 
-   /** Salt for per-chunk desert rich / ocean patch slicing in {@link OilStructureSpawnConditions}. */
-   public static final long CHUNK_ROLL_SALT = 0x5046_B4_E7L;
+   /** Rich/patch tiers apply to contiguous sector blocks, not per-chunk salt (BC oil_ocean patches). */
+   public static final int SLICE_SECTOR_CHUNKS = 4;
+
+   /** Salt for sector slicing in {@link OilStructureSpawnConditions} (independent of structure-set salt). */
+   public static final long SLICE_ROLL_SALT = 0x5046_B4_E7L;
 
    /** Template Y anchor for sphere center in well NBT (paired with {@code OilWellProjectionProcessor}). */
    public static final int SPHERE_TEMPLATE_CENTER_Y = -38;
