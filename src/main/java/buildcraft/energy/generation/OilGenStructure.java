@@ -25,7 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public final class OilGenStructure {
    private static final int SURFACE_BOX_Y_MARGIN = 8;
    private static final int OCEAN_SPREAD_CLEAR_HEIGHT = 5;
-   private static final int GEN_FLAGS = 2;
+   private static final int GEN_FLAGS = 0;
 
    private OilGenStructure() {
    }
