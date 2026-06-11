@@ -12,9 +12,8 @@ import java.util.Random;
  * Builds oil deposit NBT templates for jigsaw pools.
  *
  * <p>Well template Y convention ({@link OilWellProjectionProcessor} + gravity):
- * y=0 surface film, y&gt;0 spout, deposit and shaft use {@code heightmap - 1 + templateY}.
- * The sphere is clipped to {@link OilStructureDefaults#DEPOSIT_MAX_TEMPLATE_Y} through
- * {@link OilStructureDefaults#DEPOSIT_MIN_TEMPLATE_Y} so tall terrain never pulls the body to the surface.
+ * y=0 surface film, y&gt;0 spout; deposit/shaft use literal template Y ({@code heightmap - 1 + templateY}).
+ * The sphere is clipped to template {@code -36..0} so the body always sits under the surface column.
  * Bedrock spring uses {@link OilStructureDefaults#SPRING_TEMPLATE_Y} and is pinned to {@code minY} after gravity.
  * Shaft width: BC 8.0 medium radius 0 (1 block), large radius 1 (3×3).
  */

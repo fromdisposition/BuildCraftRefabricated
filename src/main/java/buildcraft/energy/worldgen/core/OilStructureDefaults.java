@@ -7,12 +7,15 @@ public final class OilStructureDefaults {
    /** Rich/patch tiers form contiguous 8×8-chunk (128×128 block) sectors. */
    public static final int SLICE_SECTOR_CHUNKS = 8;
 
-   /** Template Y of the surface oil film (gravity: {@code heightmap - 1}). */
+   /** Template Y of the surface oil film ({@code GravityProcessor} places it at {@code heightmap - 1}). */
    public static final int SURFACE_TEMPLATE_Y = 0;
-   /** Shallow deposit band below the surface film; gravity keeps depth constant on tall worlds. */
-   public static final int DEPOSIT_MAX_TEMPLATE_Y = -1;
-   public static final int DEPOSIT_MIN_TEMPLATE_Y = -30;
-   /** Sphere center inside the deposit band. */
+   /**
+    * Deposit body uses literal template Y offsets through gravity ({@code heightmap - 1 + templateY}), so depth
+    * stays fixed below the surface on MC 26.x tall worlds — not world-build-height arithmetic.
+    */
+   public static final int DEPOSIT_MAX_TEMPLATE_Y = 0;
+   public static final int DEPOSIT_MIN_TEMPLATE_Y = -36;
+   /** Sphere center inside the {@code DEPOSIT_MIN_TEMPLATE_Y}..{@code DEPOSIT_MAX_TEMPLATE_Y} band. */
    public static final int SPHERE_TEMPLATE_CENTER_Y = (DEPOSIT_MAX_TEMPLATE_Y + DEPOSIT_MIN_TEMPLATE_Y) / 2;
    /** Template Y for bedrock spring marker (pinned to {@code minY} after gravity). */
    public static final int SPRING_TEMPLATE_Y = -57;
