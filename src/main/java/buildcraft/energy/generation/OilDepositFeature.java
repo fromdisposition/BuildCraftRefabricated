@@ -1,12 +1,10 @@
-package buildcraft.energy.gen;
+package buildcraft.energy.generation;
 
 import buildcraft.core.BCCoreConfig;
 import buildcraft.energy.BCEnergyConfig;
-import buildcraft.energy.generation.OilGenerator;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.WorldGenLevel;
-import net.minecraft.world.level.levelgen.FlatLevelSource;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
@@ -14,7 +12,7 @@ import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConf
 /**
  * Fabric feature: one pass per overworld chunk during {@code GenerationStep.Decoration.UNDERGROUND_DECORATION}.
  *
- * <p>Matches vanilla {@link Feature#place} — honours {@link WorldGenLevel#ensureCanWrite} and uses the decoration
+ * <p>Matches vanilla {@link Feature#place} - honours {@link WorldGenLevel#ensureCanWrite} and uses the decoration
  * {@code origin} from {@link net.minecraft.world.level.chunk.ChunkGenerator#applyBiomeDecoration} (chunk min corner).
  */
 public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
@@ -28,13 +26,9 @@ public class OilDepositFeature extends Feature<NoneFeatureConfiguration> {
          return false;
       }
 
-      WorldGenLevel level = context.level();
       BlockPos origin = context.origin();
+      WorldGenLevel level = context.level();
       if (!level.ensureCanWrite(origin)) {
-         return false;
-      }
-
-      if (context.chunkGenerator() instanceof FlatLevelSource) {
          return false;
       }
 

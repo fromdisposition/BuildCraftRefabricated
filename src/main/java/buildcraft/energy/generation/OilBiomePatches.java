@@ -1,5 +1,6 @@
-package buildcraft.energy;
+package buildcraft.energy.generation;
 
+import buildcraft.energy.BCEnergyConfig;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -9,14 +10,11 @@ import net.minecraft.world.level.biome.Biome;
 /**
  * Synthetic oil_ocean / oil_desert ids for spawn rolls (BC 1.12 GenLayer replacement).
  */
-public final class BCEnergyWorldGen {
+public final class OilBiomePatches {
    public static final Identifier OIL_OCEAN = Identifier.parse("buildcraftenergy:oil_ocean");
    public static final Identifier OIL_DESERT = Identifier.parse("buildcraftenergy:oil_desert");
 
-   private BCEnergyWorldGen() {
-   }
-
-   public static void init() {
+   private OilBiomePatches() {
    }
 
    public static Identifier effectiveBiomeId(ServerLevel level, int x, int z, Holder<Biome> biome, Identifier fallback) {
@@ -57,8 +55,8 @@ public final class BCEnergyWorldGen {
    }
 
    private static double sampleNoise(long seed, int x, int z, double scale) {
-      long sx = (long)Math.floor(x * scale * 8192.0);
-      long sz = (long)Math.floor(z * scale * 8192.0);
+      long sx = (long) Math.floor(x * scale * 8192.0);
+      long sz = (long) Math.floor(z * scale * 8192.0);
       long h = seed;
       h ^= sx * 0x9E3779B97F4A7C15L;
       h ^= sz * 0xC2B2AE3D27D4EB4FL;
@@ -67,6 +65,6 @@ public final class BCEnergyWorldGen {
       h ^= (h >>> 33);
       h *= 0xc4ceb9fe1a85ec53L;
       h ^= (h >>> 33);
-      return (h & 0x1fffffffffffffL) / (double)0x1fffffffffffffL;
+      return (h & 0x1fffffffffffffL) / (double) 0x1fffffffffffffL;
    }
 }

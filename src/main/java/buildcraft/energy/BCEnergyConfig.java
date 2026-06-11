@@ -44,26 +44,12 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue useRfNaming = new BCCoreConfig.BooleanValue(false);
    public static final BCCoreConfig.BooleanValue useFullUnitNames = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableOilGeneration = new BCCoreConfig.BooleanValue(true);
-   /** @deprecated Use {@link #oilGenerationMultiplier}. */
-   @Deprecated
-   public static final BCCoreConfig.DoubleValue oilWellGenerationRate = new BCCoreConfig.DoubleValue(1.0);
    public static final BCCoreConfig.BooleanValue enableOilSpouts = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue spawnOilSprings = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.IntValue smallSpoutMinHeight = new BCCoreConfig.IntValue(6);
    public static final BCCoreConfig.IntValue smallSpoutMaxHeight = new BCCoreConfig.IntValue(12);
-   public static final BCCoreConfig.IntValue finiteSpoutMinHeight = smallSpoutMinHeight;
-   public static final BCCoreConfig.IntValue finiteSpoutMaxHeight = smallSpoutMaxHeight;
    public static final BCCoreConfig.IntValue largeSpoutMinHeight = new BCCoreConfig.IntValue(10);
    public static final BCCoreConfig.IntValue largeSpoutMaxHeight = new BCCoreConfig.IntValue(20);
-   /** @deprecated Legacy BC keys — migrated to {@link #oilSpawnChancePercentNormal} etc. on load. */
-   @Deprecated
-   public static final BCCoreConfig.DoubleValue mediumOilGenProb = new BCCoreConfig.DoubleValue(0.001);
-   /** @deprecated Legacy BC keys — migrated on load. */
-   @Deprecated
-   public static final BCCoreConfig.DoubleValue largeOilGenProb = new BCCoreConfig.DoubleValue(4.0E-4);
-   /** @deprecated Legacy BC keys — migrated on load. */
-   @Deprecated
-   public static final BCCoreConfig.DoubleValue smallOilGenProb = new BCCoreConfig.DoubleValue(0.02);
    /** Biomes flagged as oil-themed for advancements / markers (not used for spawn math). */
    public static final BCCoreConfig.StringListValue forceExcessiveOilBiomes = new BCCoreConfig.StringListValue(
       List.of("buildcraftenergy:oil_desert", "buildcraftenergy:oil_ocean")
@@ -74,38 +60,10 @@ public class BCEnergyConfig {
    );
    /** Extra biomes treated as {@code RICH} tier (in addition to {@link #richSurfaceDepositBiomes}). */
    public static final BCCoreConfig.StringListValue surfaceDepositBiomes = new BCCoreConfig.StringListValue(List.of());
-   public static final BCCoreConfig.StringListValue standardSurfaceDepositBiomes = new BCCoreConfig.StringListValue(
-      List.of(
-         "minecraft:jungle", "minecraft:sparse_jungle", "minecraft:bamboo_jungle", "minecraft:ice_spikes", "minecraft:snowy_beach", "minecraft:frozen_river"
-      )
-   );
-   public static final BCCoreConfig.StringListValue mountainousSurfaceDepositBiomes = new BCCoreConfig.StringListValue(
-      List.of(
-         "minecraft:windswept_hills",
-         "minecraft:windswept_gravelly_hills",
-         "minecraft:windswept_forest",
-         "minecraft:jagged_peaks",
-         "minecraft:frozen_peaks",
-         "minecraft:stony_peaks",
-         "minecraft:snowy_slopes",
-         "minecraft:meadow",
-         "minecraft:grove",
-         "minecraft:cherry_grove"
-      )
-   );
    public static final BCCoreConfig.StringListValue excludedBiomes = new BCCoreConfig.StringListValue(List.of("minecraft:the_void", "minecraft:river"));
    public static final BCCoreConfig.EnumValue<BCEnergyConfig.ListMode> biomeListMode = new BCCoreConfig.EnumValue<>(BCEnergyConfig.ListMode.BLACKLIST);
    public static final BCCoreConfig.StringListValue excludedDimensions = new BCCoreConfig.StringListValue(List.of("minecraft:the_nether", "minecraft:the_end"));
    public static final BCCoreConfig.EnumValue<BCEnergyConfig.ListMode> dimensionListMode = new BCCoreConfig.EnumValue<>(BCEnergyConfig.ListMode.BLACKLIST);
-
-   public static void buildWorldgen(Object builder) {
-   }
-
-   public static void buildGeneral(Object builder) {
-   }
-
-   public static void buildDisplay(Object builder) {
-   }
 
    public static String rfFeKey(String baseKey) {
       return baseKey;
@@ -121,14 +79,6 @@ public class BCEnergyConfig {
 
    public static Set<Identifier> getRichSurfaceDepositBiomes() {
       return richSurfaceDepositBiomes.get().stream().<Identifier>map(Identifier::parse).collect(Collectors.toSet());
-   }
-
-   public static Set<Identifier> getStandardSurfaceDepositBiomes() {
-      return standardSurfaceDepositBiomes.get().stream().<Identifier>map(Identifier::parse).collect(Collectors.toSet());
-   }
-
-   public static Set<Identifier> getMountainousSurfaceDepositBiomes() {
-      return mountainousSurfaceDepositBiomes.get().stream().<Identifier>map(Identifier::parse).collect(Collectors.toSet());
    }
 
    public static Set<Identifier> getExcludedBiomes() {

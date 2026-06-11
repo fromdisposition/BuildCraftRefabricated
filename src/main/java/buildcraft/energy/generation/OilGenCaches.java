@@ -24,7 +24,7 @@ final class OilGenCaches {
 
    static void invalidateAll() {
       cacheGeneration++;
-      OilGenConfig.invalidate();
+      OilGenSettings.invalidate();
    }
 
    private static final class StructureCache {

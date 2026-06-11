@@ -64,9 +64,7 @@ public abstract class OilGenStructure {
    private static BlockState oilState() {
       BlockState state = cachedOilState;
       if (state == null) {
-         state = BCEnergyFluidsFabric.OIL_COOL != null
-            ? BCEnergyFluidsFabric.OIL_COOL.still().defaultFluidState().createLegacyBlock()
-            : BCEnergyFluidsFabric.oilSourceBlockStateForLevel(null);
+         state = BCEnergyFluidsFabric.oilSourceBlockStateForLevel(null);
          cachedOilState = state;
       }
       return state;
@@ -84,12 +82,6 @@ public abstract class OilGenStructure {
          @Override
          public boolean canReplace(LevelAccessor level, BlockPos pos) {
             return true;
-         }
-      },
-      IS_FOR_LAKE {
-         @Override
-         public boolean canReplace(LevelAccessor level, BlockPos pos) {
-            return ALWAYS.canReplace(level, pos);
          }
       };
 
@@ -363,12 +355,12 @@ public abstract class OilGenStructure {
             }
          }
 
-         OilGenStructure tubeY = OilGenerator.createTube(this.start, worldTop.getY() - this.start.getY(), this.radius, Axis.Y);
+         OilGenStructure tubeY = OilGenerator.createTubeY(this.start, worldTop.getY() - this.start.getY(), this.radius);
          tubeY.generate(level, intersect);
          this.count += tubeY.countOilBlocks();
          BlockPos base = worldTop.immutable();
          for (int r = this.radius; r >= 0; r--) {
-            OilGenStructure struct = OilGenerator.createTube(base, this.height, r, Axis.Y);
+            OilGenStructure struct = OilGenerator.createTubeY(base, this.height, r);
             struct.generate(level, intersect);
             base = base.offset(0, this.height, 0);
             this.count += struct.countOilBlocks();

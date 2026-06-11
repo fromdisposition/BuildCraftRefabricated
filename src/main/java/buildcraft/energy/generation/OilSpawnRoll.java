@@ -1,6 +1,4 @@
 package buildcraft.energy.generation;
-
-import buildcraft.energy.BCEnergyWorldGen;
 import java.util.Random;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
@@ -26,29 +24,29 @@ final class OilSpawnRoll {
    }
 
    static boolean isOceanOil(Holder<Biome> biome, Identifier effectiveBiome) {
-      return biome.is(BiomeTags.IS_OCEAN) || BCEnergyWorldGen.OIL_OCEAN.equals(effectiveBiome);
+      return biome.is(BiomeTags.IS_OCEAN) || OilBiomePatches.OIL_OCEAN.equals(effectiveBiome);
    }
 
-   static Tier resolveTier(Identifier effectiveBiome, Identifier vanillaBiome, OilGenConfig config) {
-      if (BCEnergyWorldGen.OIL_OCEAN.equals(effectiveBiome) || BCEnergyWorldGen.OIL_DESERT.equals(effectiveBiome)) {
+   static Tier resolveTier(Identifier effectiveBiome, Identifier vanillaBiome, OilGenSettings config) {
+      if (OilBiomePatches.OIL_OCEAN.equals(effectiveBiome) || OilBiomePatches.OIL_DESERT.equals(effectiveBiome)) {
          return Tier.OIL_PATCH;
       }
-      if (config.richBiomes.contains(vanillaBiome) || config.richBiomes.contains(effectiveBiome)) {
+      if (config.richBiomes().contains(vanillaBiome) || config.richBiomes().contains(effectiveBiome)) {
          return Tier.RICH;
       }
-      if (config.extraRichBiomes.contains(vanillaBiome) || config.extraRichBiomes.contains(effectiveBiome)) {
+      if (config.extraRichBiomes().contains(vanillaBiome) || config.extraRichBiomes().contains(effectiveBiome)) {
          return Tier.RICH;
       }
       return Tier.NORMAL;
    }
 
-   static double spawnChanceFraction(Tier tier, OilGenConfig config) {
+   static double spawnChanceFraction(Tier tier, OilGenSettings config) {
       double percent = switch (tier) {
-         case NORMAL -> config.spawnChancePercentNormal;
-         case RICH -> config.spawnChancePercentRich;
-         case OIL_PATCH -> config.spawnChancePercentOilPatch;
+         case NORMAL -> config.spawnChancePercentNormal();
+         case RICH -> config.spawnChancePercentRich();
+         case OIL_PATCH -> config.spawnChancePercentOilPatch();
       };
-      percent *= config.generationMultiplier;
+      percent *= config.generationMultiplier();
       if (percent <= 0.0) {
          return 0.0;
       }
@@ -61,10 +59,10 @@ final class OilSpawnRoll {
       LAKE
    }
 
-   static DepositType rollDepositType(Random rand, Tier tier, OilGenConfig config) {
-      int large = Math.max(0, config.typeWeightLarge);
-      int medium = Math.max(0, config.typeWeightMedium);
-      int lake = tier == Tier.NORMAL ? 0 : Math.max(0, config.typeWeightLake);
+   static DepositType rollDepositType(Random rand, Tier tier, OilGenSettings config) {
+      int large = Math.max(0, config.typeWeightLarge());
+      int medium = Math.max(0, config.typeWeightMedium());
+      int lake = tier == Tier.NORMAL ? 0 : Math.max(0, config.typeWeightLake());
       int total = large + medium + lake;
       if (total <= 0) {
          return DepositType.MEDIUM;

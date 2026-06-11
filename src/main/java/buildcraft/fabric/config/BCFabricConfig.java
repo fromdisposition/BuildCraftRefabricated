@@ -228,7 +228,6 @@ public final class BCFabricConfig {
       BCEnergyConfig.oilTypeWeightMedium.set(intVal(generator, "oilTypeWeightMedium", BCEnergyConfig.oilTypeWeightMedium.get()));
       BCEnergyConfig.oilTypeWeightLake.set(intVal(generator, "oilTypeWeightLake", BCEnergyConfig.oilTypeWeightLake.get()));
       BCEnergyConfig.oilGenerationMultiplier.set(doubleVal(generator, "oilGenerationMultiplier", BCEnergyConfig.oilGenerationMultiplier.get()));
-      BCEnergyConfig.oilWellGenerationRate.set(BCEnergyConfig.oilGenerationMultiplier.get());
    }
 
    private static void applyOilGeneratorConfig(JsonObject generator) {
@@ -260,14 +259,6 @@ public final class BCFabricConfig {
 
       if (generator.has("surfaceDepositBiomes")) {
          BCEnergyConfig.surfaceDepositBiomes.set(stringList(generator.getAsJsonArray("surfaceDepositBiomes")));
-      }
-
-      if (generator.has("standardSurfaceDepositBiomes")) {
-         BCEnergyConfig.standardSurfaceDepositBiomes.set(stringList(generator.getAsJsonArray("standardSurfaceDepositBiomes")));
-      }
-
-      if (generator.has("mountainousSurfaceDepositBiomes")) {
-         BCEnergyConfig.mountainousSurfaceDepositBiomes.set(stringList(generator.getAsJsonArray("mountainousSurfaceDepositBiomes")));
       }
 
       if (generator.has("excludedBiomes")) {
@@ -372,13 +363,6 @@ public final class BCFabricConfig {
       generator.add("forceExcessiveOilBiomes", GSON.toJsonTree(List.of("buildcraftenergy:oil_desert", "buildcraftenergy:oil_ocean")));
       generator.add("richSurfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getRichSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
       generator.add("surfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList()));
-      generator.add(
-         "standardSurfaceDepositBiomes", GSON.toJsonTree(BCEnergyConfig.getStandardSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList())
-      );
-      generator.add(
-         "mountainousSurfaceDepositBiomes",
-         GSON.toJsonTree(BCEnergyConfig.getMountainousSurfaceDepositBiomes().stream().map(id -> id.toString()).sorted().toList())
-      );
       generator.add("excludedBiomes", GSON.toJsonTree(BCEnergyConfig.getExcludedBiomes().stream().map(id -> id.toString()).sorted().toList()));
       generator.add("excludedDimensions", GSON.toJsonTree(BCEnergyConfig.getExcludedDimensions().stream().map(id -> id.toString()).sorted().toList()));
       generator.addProperty("biomeListMode", "BLACKLIST");
