@@ -9,7 +9,6 @@ import buildcraft.factory.client.render.RenderHeatExchange;
 import buildcraft.factory.client.render.RenderMiningWell;
 import buildcraft.factory.client.render.RenderPump;
 import buildcraft.factory.client.render.RenderTank;
-import buildcraft.factory.client.render.TubeRenderer;
 import buildcraft.factory.gui.GuiAutoCraftFluids;
 import buildcraft.factory.gui.GuiAutoCraftItems;
 import buildcraft.factory.gui.GuiChute;
@@ -17,9 +16,6 @@ import buildcraft.factory.gui.GuiDistiller;
 import buildcraft.factory.gui.GuiHeatExchange;
 import buildcraft.factory.gui.GuiTank;
 import buildcraft.lib.client.BCTooltips;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -44,12 +40,6 @@ public final class BCFactoryFabricClient {
       BlockEntityRenderers.register(BCFactoryBlockEntities.PUMP, RenderPump::new);
       BlockEntityRenderers.register(BCFactoryBlockEntities.MINING_WELL, RenderMiningWell::new);
       EntityRenderers.register(BCFactoryEntities.MINER_SHAFT, NoopRenderer::new);
-      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES
-         .register(
-            (AfterTranslucentFeatures)context -> TubeRenderer.onRenderLevel(
-               context.poseStack(), context.levelState().cameraRenderState.pos, Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(false)
-            )
-         );
       registerTooltips();
    }
 

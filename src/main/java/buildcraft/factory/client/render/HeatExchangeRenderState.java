@@ -7,12 +7,13 @@
 package buildcraft.factory.client.render;
 
 import buildcraft.factory.tile.TileHeatExchange;
-import buildcraft.lib.client.render.tile.BcBerState;
 import buildcraft.lib.fluid.stack.FluidStack;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
-public class HeatExchangeRenderState extends BcBerState<TileHeatExchange> {
+public class HeatExchangeRenderState extends BlockEntityRenderState {
+   public float partialTick;
    public boolean render;
    public TileHeatExchange.ExchangeSectionStart section;
    public TileHeatExchange.ExchangeSectionEnd sectionEnd;

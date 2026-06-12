@@ -6,12 +6,11 @@
 
 package buildcraft.factory.client.render;
 
-import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.client.fluid.BcFluidAppearance;
-import buildcraft.lib.client.render.tile.BcBerState;
 import buildcraft.lib.fluid.stack.FluidStack;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 
-public class TankRenderState extends BcBerState<TileTank> {
+public class TankRenderState extends BlockEntityRenderState {
    public boolean hasFluid;
    public BcFluidAppearance appearance;
    public FluidStack fluid;

@@ -20,7 +20,8 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.misc.MessageUtil;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.minecraft.server.level.ServerPlayer;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -192,7 +193,14 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
             this.lastSyncedAmount = currentAmount;
             this.lastSyncedFluid = currentIdentity;
             this.setChanged();
-            MessageUtil.sendUpdateToTrackingPlayers(this);
+            if (this.level instanceof ServerLevel level) {
+               Packet<?> packet = this.getUpdatePacket();
+               if (packet != null) {
+                  for (ServerPlayer player : PlayerLookup.tracking(level, this.getBlockPos())) {
+                     player.connection.send(packet);
+                  }
+               }
+            }
          }
 
          if (this.fluidTank.getAmountMb() >= 1000) {

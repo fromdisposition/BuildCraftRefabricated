@@ -30,7 +30,8 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.LocaleUtil;
-import buildcraft.lib.misc.MessageUtil;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.minecraft.server.level.ServerLevel;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import com.mojang.authlib.GameProfile;
@@ -157,7 +158,14 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
          this.owner = player.getGameProfile();
          this.setChanged();
          if (this.level != null && !this.level.isClientSide()) {
-            MessageUtil.sendUpdateToTrackingPlayers(this);
+            if (this.level instanceof ServerLevel level) {
+               Packet<?> packet = this.getUpdatePacket();
+               if (packet != null) {
+                  for (ServerPlayer trackingPlayer : PlayerLookup.tracking(level, this.getBlockPos())) {
+                     trackingPlayer.connection.send(packet);
+                  }
+               }
+            }
          }
       }
    }
@@ -399,7 +407,14 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
             this.lastSyncedStuck = this.isStuck;
             this.lastSyncedPower = this.powerAvgClient;
             this.setChanged();
-            MessageUtil.sendUpdateToTrackingPlayers(this);
+            if (this.level instanceof ServerLevel level) {
+               Packet<?> packet = this.getUpdatePacket();
+               if (packet != null) {
+                  for (ServerPlayer trackingPlayer : PlayerLookup.tracking(level, this.getBlockPos())) {
+                     trackingPlayer.connection.send(packet);
+                  }
+               }
+            }
          }
       }
    }
@@ -523,9 +538,12 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
          }
       }
 
-      FactoryTileUtils.loadTank(this.tankIn, input, "fluidIn");
-      FactoryTileUtils.loadTank(this.tankGasOut, input, "fluidGasOut");
-      FactoryTileUtils.loadTank(this.tankLiquidOut, input, "fluidLiquidOut");
+      FluidStack fluidIn = input.read("fluidIn", FluidStack.CODEC).orElse(FluidStack.EMPTY);
+      this.tankIn.setContents(fluidIn.isEmpty() ? FluidStack.EMPTY : fluidIn);
+      FluidStack fluidGasOut = input.read("fluidGasOut", FluidStack.CODEC).orElse(FluidStack.EMPTY);
+      this.tankGasOut.setContents(fluidGasOut.isEmpty() ? FluidStack.EMPTY : fluidGasOut);
+      FluidStack fluidLiquidOut = input.read("fluidLiquidOut", FluidStack.CODEC).orElse(FluidStack.EMPTY);
+      this.tankLiquidOut.setContents(fluidLiquidOut.isEmpty() ? FluidStack.EMPTY : fluidLiquidOut);
       this.mjBattery.addPowerChecking(input.getLongOr("mjStored", 0L), false);
       this.distillPower = input.getLongOr("distillPower", 0L);
       this.isActive = input.getBooleanOr("isActive", false);

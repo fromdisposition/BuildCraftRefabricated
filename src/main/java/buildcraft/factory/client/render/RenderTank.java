@@ -6,20 +6,19 @@
 
 package buildcraft.factory.client.render;
 
-
-import buildcraft.lib.fluid.identity.FluidIdentity;
-import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.factory.tile.TileTank;
-import buildcraft.lib.client.fluid.BcFluidTankRenderer;
 import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
-import buildcraft.lib.client.render.tile.BcBerRenderUtil;
-import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
+import buildcraft.lib.client.fluid.BcFluidTankRenderer;
+import buildcraft.lib.fluid.identity.FluidIdentity;
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.fluid.registry.FluidSmoother;
 import buildcraft.lib.fluid.stack.FluidStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -27,8 +26,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.profiling.Profiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
-public class RenderTank extends BcBlockEntityRenderer<TileTank, TankRenderState> {
+public class RenderTank implements BlockEntityRenderer<TileTank, TankRenderState> {
    public RenderTank(Context context) {
    }
 
@@ -37,7 +38,12 @@ public class RenderTank extends BcBlockEntityRenderer<TileTank, TankRenderState>
    }
 
    @Override
-   protected void extract(TileTank tile, TankRenderState state, float partialTick) {
+   public void extractRenderState(TileTank tile, TankRenderState state, float partialTick, Vec3 cameraPos, @Nullable CrumblingOverlay crumblingOverlay) {
+      BlockEntityRenderer.super.extractRenderState(tile, state, partialTick, cameraPos, crumblingOverlay);
+      this.extract(tile, state, partialTick);
+   }
+
+   private void extract(TileTank tile, TankRenderState state, float partialTick) {
       state.hasFluid = false;
       Level level = tile.getLevel();
       if (level == null) {
@@ -84,9 +90,9 @@ public class RenderTank extends BcBlockEntityRenderer<TileTank, TankRenderState>
             return;
          }
 
-         int light = renderState.light;
+         int light = renderState.lightCoords;
          poseStack.pushPose();
-         BcBerRenderUtil.submit(poseStack, collector, BcFluidAppearanceCache.renderType(renderState.appearance), (pose, buffer) -> BcFluidTankRenderer.renderFilledBox(
+         collector.submitCustomGeometry(poseStack, BcFluidAppearanceCache.renderType(renderState.appearance), (pose, buffer) -> BcFluidTankRenderer.renderFilledBox(
             pose,
             buffer,
             renderState.appearance.sprite(),

@@ -20,7 +20,9 @@ import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fabric.transfer.fluid.TankColumnFluidStorage;
 import buildcraft.lib.fluid.registry.FluidSmoother;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.misc.MessageUtil;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -97,7 +99,14 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
                this.lastSyncedAmount = currentAmount;
                this.lastSyncedFluid = currentFluid.isEmpty() ? FluidStack.EMPTY : currentFluid.copyWithAmount(1);
                this.setChanged();
-               MessageUtil.sendUpdateToTrackingPlayers(this);
+               if (this.level instanceof ServerLevel level) {
+                  Packet<?> packet = this.getUpdatePacket();
+                  if (packet != null) {
+                     for (ServerPlayer player : PlayerLookup.tracking(level, this.getBlockPos())) {
+                        player.connection.send(packet);
+                     }
+                  }
+               }
             }
 
             int compLevel = this.getComparatorLevel();

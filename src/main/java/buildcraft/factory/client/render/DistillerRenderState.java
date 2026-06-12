@@ -6,8 +6,23 @@
 
 package buildcraft.factory.client.render;
 
-import buildcraft.factory.tile.TileDistiller;
-import buildcraft.lib.client.render.tile.BcBerState;
+import javax.annotation.Nullable;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.core.Direction;
 
-public class DistillerRenderState extends BcBerState<TileDistiller> {
+public class DistillerRenderState extends BlockEntityRenderState {
+   public float partialTick;
+   public Direction facing;
+   @Nullable
+   public RenderDistiller.TankSizes sizes;
+   @Nullable
+   public DistillerFluidSnapshot fluidIn;
+   @Nullable
+   public DistillerFluidSnapshot fluidGasOut;
+   @Nullable
+   public DistillerFluidSnapshot fluidLiquidOut;
+   public float powerY1;
+   public float powerY2;
+   public int powerTexIndex;
+   public boolean powerTopHalf;
 }

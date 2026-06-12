@@ -11,10 +11,11 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
 import buildcraft.api.tiles.IHasWork;
 import buildcraft.factory.BCFactoryEntities;
-import buildcraft.factory.client.render.TubeRenderer;
 import buildcraft.factory.entity.EntityMinerShaft;
 import buildcraft.lib.fabric.transfer.MjEnergyStorage;
-import buildcraft.lib.misc.MessageUtil;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
 import javax.annotation.Nullable;
@@ -58,7 +59,14 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       this.battery.tick(this.getLevel(), this.getBlockPos());
       if (this.getLevel().getGameTime() % 10L == this.offset) {
          this.setChanged();
-         MessageUtil.sendUpdateToTrackingPlayers(this);
+         if (this.level instanceof ServerLevel level) {
+            Packet<?> packet = this.getUpdatePacket();
+            if (packet != null) {
+               for (ServerPlayer player : PlayerLookup.tracking(level, this.getBlockPos())) {
+                  player.connection.send(packet);
+               }
+            }
+         }
       }
 
       this.mine();
@@ -79,9 +87,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
          this.offset = this.level.getRandom().nextInt(10);
       }
 
-      if (this.level != null && this.level.isClientSide()) {
-         TubeRenderer.addMiner(this);
-      } else if (this.level != null) {
+      if (this.level != null && !this.level.isClientSide()) {
          this.schedulePipeNeighborNotify();
          this.updateShaftCollider();
       }
@@ -149,9 +155,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
 
    public void setRemoved() {
       super.setRemoved();
-      if (this.level != null && this.level.isClientSide()) {
-         TubeRenderer.removeMiner(this);
-      }
    }
 
    protected void updateLength() {
@@ -161,7 +164,14 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
          this.updateShaftCollider();
          this.currentLength = this.wantedLength = newLength;
          this.setChanged();
-         MessageUtil.sendUpdateToTrackingPlayers(this);
+         if (this.level instanceof ServerLevel level) {
+            Packet<?> packet = this.getUpdatePacket();
+            if (packet != null) {
+               for (ServerPlayer player : PlayerLookup.tracking(level, this.getBlockPos())) {
+                  player.connection.send(packet);
+               }
+            }
+         }
       }
    }
 

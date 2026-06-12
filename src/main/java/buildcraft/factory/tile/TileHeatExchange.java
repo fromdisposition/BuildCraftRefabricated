@@ -23,7 +23,8 @@ import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fluid.registry.FluidSmoother;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.BlockDropsUtil;
-import buildcraft.lib.misc.MessageUtil;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.minecraft.server.level.ServerLevel;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import java.util.ArrayDeque;
@@ -416,7 +417,14 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
    private void syncToClient() {
       if (this.level != null && !this.level.isClientSide()) {
          this.setChanged();
-         MessageUtil.sendUpdateToTrackingPlayers(this);
+         if (this.level instanceof ServerLevel level) {
+            Packet<?> packet = this.getUpdatePacket();
+            if (packet != null) {
+               for (ServerPlayer player : PlayerLookup.tracking(level, this.getBlockPos())) {
+                  player.connection.send(packet);
+               }
+            }
+         }
       }
    }
 
@@ -549,8 +557,10 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                s = new TileHeatExchange.ExchangeSectionStart(this);
             }
 
-            FactoryTileUtils.loadTank(s.tankInput, input, "sectionInput");
-            FactoryTileUtils.loadTank(s.tankOutput, input, "sectionOutput");
+            FluidStack sectionInput = input.read("sectionInput", FluidStack.CODEC).orElse(FluidStack.EMPTY);
+            s.tankInput.setContents(sectionInput.isEmpty() ? FluidStack.EMPTY : sectionInput);
+            FluidStack sectionOutput = input.read("sectionOutput", FluidStack.CODEC).orElse(FluidStack.EMPTY);
+            s.tankOutput.setContents(sectionOutput.isEmpty() ? FluidStack.EMPTY : sectionOutput);
             s.containerSlots.deserializeNBT(containerSlotsNbt);
             s.middleCount = input.getIntOr("middleCount", 1);
             s.progress = Math.min(120, input.getIntOr("progress", 0));
@@ -566,8 +576,10 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                e = new TileHeatExchange.ExchangeSectionEnd(this);
             }
 
-            FactoryTileUtils.loadTank(e.tankInput, input, "sectionInput");
-            FactoryTileUtils.loadTank(e.tankOutput, input, "sectionOutput");
+            FluidStack sectionInput = input.read("sectionInput", FluidStack.CODEC).orElse(FluidStack.EMPTY);
+            e.tankInput.setContents(sectionInput.isEmpty() ? FluidStack.EMPTY : sectionInput);
+            FluidStack sectionOutput = input.read("sectionOutput", FluidStack.CODEC).orElse(FluidStack.EMPTY);
+            e.tankOutput.setContents(sectionOutput.isEmpty() ? FluidStack.EMPTY : sectionOutput);
             this.section = e;
          }
       } else if (this.section != null) {

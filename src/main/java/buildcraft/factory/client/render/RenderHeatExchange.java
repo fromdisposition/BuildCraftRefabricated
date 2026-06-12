@@ -13,8 +13,10 @@ import buildcraft.lib.client.fluid.BcFluidBoxQuads;
 import buildcraft.lib.client.fluid.BcFluidRenderLookup;
 import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
-import buildcraft.lib.client.render.tile.BcBerRenderUtil;
-import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 import buildcraft.lib.fluid.stack.FluidStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -36,7 +38,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, HeatExchangeRenderState> {
+public class RenderHeatExchange implements BlockEntityRenderer<TileHeatExchange, HeatExchangeRenderState> {
    private static final Map<Direction, RenderHeatExchange.TankSideData> TANK_SIDES = new EnumMap<>(Direction.class);
    private static final BcFluidBerHelper.TankBounds TANK_BOTTOM = new BcFluidBerHelper.TankBounds(2.0F, 0.0F, 2.0F, 14.0F, 2.0F, 14.0F);
    private static final BcFluidBerHelper.TankBounds TANK_TOP = new BcFluidBerHelper.TankBounds(2.0F, 14.0F, 2.0F, 14.0F, 16.0F, 14.0F);
@@ -49,7 +51,12 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
    }
 
    @Override
-   protected void extract(TileHeatExchange tile, HeatExchangeRenderState state, float partialTick) {
+   public void extractRenderState(TileHeatExchange tile, HeatExchangeRenderState state, float partialTick, Vec3 cameraPos, @Nullable CrumblingOverlay crumblingOverlay) {
+      BlockEntityRenderer.super.extractRenderState(tile, state, partialTick, cameraPos, crumblingOverlay);
+      this.extract(tile, state, partialTick);
+   }
+
+   private void extract(TileHeatExchange tile, HeatExchangeRenderState state, float partialTick) {
       state.render = false;
       if (!tile.isStart()) {
          return;
@@ -117,7 +124,7 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
 
       TileHeatExchange.ExchangeSectionStart section = renderState.section;
       TileHeatExchange.ExchangeSectionEnd sectionEnd = renderState.sectionEnd;
-      int light = renderState.light;
+      int light = renderState.lightCoords;
       poseStack.pushPose();
       float partialTicks = renderState.partialTick;
       BcFluidBerHelper.renderSmoothedFluid(section.smoothedTankInput, TANK_BOTTOM, poseStack, collector, light, partialTicks);
@@ -209,7 +216,10 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
             double flowS = s;
             double flowE = e;
             Direction finalRenderFace = renderFace;
-            BcBerRenderUtil.submitWithPoseStack(poseStack, collector, BcFluidAppearanceCache.renderType(appearance), (stack, buffer) -> {
+            collector.submitCustomGeometry(poseStack, BcFluidAppearanceCache.renderType(appearance), (basePose, buffer) -> {
+               PoseStack stack = new PoseStack();
+               stack.pushPose();
+               stack.last().set(basePose);
                Vec3 segmentDiff = flowDiff;
 
                for (int i = 0; i <= flowE; i++) {

@@ -26,7 +26,6 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.mj.MjRedstoneBatteryReceiver;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;

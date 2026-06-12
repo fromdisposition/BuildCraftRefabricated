@@ -6,32 +6,35 @@
 
 package buildcraft.factory.client.render;
 
-import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.factory.tile.TileDistiller;
+import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.fluid.BcFluidBerHelper;
-import buildcraft.lib.client.render.tile.BcBerRenderUtil;
-import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
+import buildcraft.lib.client.fluid.BcFluidTankRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import java.util.EnumMap;
 import java.util.Map;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
-public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller, DistillerRenderState> {
+public class RenderDistiller implements BlockEntityRenderer<TileDistiller, DistillerRenderState> {
+   private static final Identifier BLOCKS_ATLAS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/blocks.png");
    private static final Map<Direction, RenderDistiller.TankSizes> TANK_SIZES = new EnumMap<>(Direction.class);
    private static final Identifier[] POWER_TEXTURES = new Identifier[]{
       Identifier.parse("buildcraftfactory:block/distiller/power_sprite_a"),
@@ -43,66 +46,116 @@ public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller, Distil
       Identifier.parse("buildcraftfactory:block/distiller/power_sprite_d")
    };
    private static final boolean[] POWER_TOP_HALF = new boolean[]{true, false, true, false, true, false, true};
+   private final TextureAtlasSprite[] powerSprites = new TextureAtlasSprite[POWER_TEXTURES.length];
 
    public RenderDistiller(Context context) {
+      for (int i = 0; i < POWER_TEXTURES.length; i++) {
+         this.powerSprites[i] = context.sprites().get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, POWER_TEXTURES[i]));
+      }
    }
 
    public DistillerRenderState createRenderState() {
       return new DistillerRenderState();
    }
 
-   public void submit(DistillerRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-      TileDistiller tile = renderState.tile;
-      if (tile != null) {
-         Level level = tile.getLevel();
-         if (level != null) {
-            BlockState state = tile.getBlockState();
-            Direction facing = (Direction)state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-            RenderDistiller.TankSizes sizes = TANK_SIZES.get(facing);
-            if (sizes != null) {
-               int light = renderState.light;
-               poseStack.pushPose();
-               float partialTicks = renderState.partialTick;
-               BcFluidBerHelper.renderSmoothedFluid(tile.getSmoothIn(), sizes.tankIn, poseStack, collector, light, partialTicks);
-               BcFluidBerHelper.renderSmoothedFluid(tile.getSmoothGasOut(), sizes.tankGasOut, poseStack, collector, light, partialTicks);
-               BcFluidBerHelper.renderSmoothedFluid(tile.getSmoothLiquidOut(), sizes.tankLiquidOut, poseStack, collector, light, partialTicks);
-               renderPowerCubes(tile, sizes, poseStack, collector, light, partialTicks);
-               poseStack.popPose();
-            }
-         }
-      }
+   @Override
+   public void extractRenderState(TileDistiller tile, DistillerRenderState state, float partialTick, Vec3 cameraPos, @Nullable CrumblingOverlay crumblingOverlay) {
+      BlockEntityRenderer.super.extractRenderState(tile, state, partialTick, cameraPos, crumblingOverlay);
+      this.extract(tile, state, partialTick);
    }
 
-   private static void renderPowerCubes(
-      TileDistiller tile, RenderDistiller.TankSizes sizes, PoseStack poseStack, SubmitNodeCollector collector, int light, float partialTicks
-   ) {
+   private void extract(TileDistiller tile, DistillerRenderState state, float partialTick) {
+      state.partialTick = partialTick;
+      BlockState blockState = tile.getBlockState();
+      state.facing = (Direction)blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+      state.sizes = TANK_SIZES.get(state.facing);
+      state.fluidIn = DistillerFluidSnapshot.from(tile.getSmoothIn(), partialTick);
+      state.fluidGasOut = DistillerFluidSnapshot.from(tile.getSmoothGasOut(), partialTick);
+      state.fluidLiquidOut = DistillerFluidSnapshot.from(tile.getSmoothLiquidOut(), partialTick);
       double prevAnim = tile.getPrevAnimState();
       double curAnim = tile.getAnimState();
-      double animState = prevAnim + (curAnim - prevAnim) * partialTicks;
+      double animState = prevAnim + (curAnim - prevAnim) * partialTick;
       double powerAvg = tile.getPowerAvgVisual();
       double stMod1 = animState - Math.floor(animState);
-      float y1 = (float)(1.0 - Math.abs(stMod1 - 0.5) * 2.0);
+      state.powerY1 = (float)(1.0 - Math.abs(stMod1 - 0.5) * 2.0);
       double st2 = animState <= 0.5 ? 0.0 : animState - 0.5;
       double st2Mod1 = st2 - Math.floor(st2);
-      float y2 = (float)(1.0 - Math.abs(st2Mod1 - 0.5) * 2.0);
-      int texIndex;
+      state.powerY2 = (float)(1.0 - Math.abs(st2Mod1 - 0.5) * 2.0);
       if (powerAvg <= 0.0) {
-         texIndex = 0;
+         state.powerTexIndex = 0;
       } else {
          double frac = Math.min(1.0, powerAvg / TileDistiller.MAX_MJ_PER_TICK);
-         texIndex = Math.max(1, Math.min(6, (int)Math.ceil(frac * 6.0 + 0.35)));
+         state.powerTexIndex = Math.max(1, Math.min(6, (int)Math.ceil(frac * 6.0 + 0.35)));
       }
 
-      TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(POWER_TEXTURES[texIndex]);
-      boolean topHalf = POWER_TOP_HALF[texIndex];
+      state.powerTopHalf = POWER_TOP_HALF[state.powerTexIndex];
+   }
+
+   public void submit(DistillerRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
+      RenderDistiller.TankSizes sizes = renderState.sizes;
+      if (sizes == null) {
+         return;
+      }
+
+      int light = renderState.lightCoords;
+      poseStack.pushPose();
+      renderFluidSnapshot(renderState.fluidIn, sizes.tankIn, poseStack, collector, light);
+      renderFluidSnapshot(renderState.fluidGasOut, sizes.tankGasOut, poseStack, collector, light);
+      renderFluidSnapshot(renderState.fluidLiquidOut, sizes.tankLiquidOut, poseStack, collector, light);
+      renderPowerCubes(renderState, sizes, poseStack, collector, light);
+      poseStack.popPose();
+   }
+
+   private static void renderFluidSnapshot(
+      @Nullable DistillerFluidSnapshot snapshot,
+      BcFluidBerHelper.TankBounds bounds,
+      PoseStack poseStack,
+      SubmitNodeCollector collector,
+      int light
+   ) {
+      if (snapshot == null) {
+         return;
+      }
+
+      float shrink = 0.015625F;
+      float minX = bounds.minX / 16.0F + shrink;
+      float minY = bounds.minY / 16.0F + shrink;
+      float minZ = bounds.minZ / 16.0F + shrink;
+      float maxX = bounds.maxX / 16.0F - shrink;
+      float maxY = bounds.maxY / 16.0F - shrink;
+      float maxZ = bounds.maxZ / 16.0F - shrink;
+      RenderType renderType = BcFluidAppearanceCache.renderType(snapshot.appearance());
+      collector.submitCustomGeometry(poseStack, renderType, (pose, buffer) -> BcFluidTankRenderer.renderFilledBox(
+         pose,
+         buffer,
+         snapshot.appearance().sprite(),
+         minX,
+         minY,
+         minZ,
+         maxX,
+         maxY,
+         maxZ,
+         snapshot.fluid(),
+         snapshot.amount(),
+         snapshot.capacity(),
+         true,
+         true,
+         light,
+         OverlayTexture.NO_OVERLAY
+      ));
+   }
+
+   private void renderPowerCubes(DistillerRenderState renderState, RenderDistiller.TankSizes sizes, PoseStack poseStack, SubmitNodeCollector collector, int light) {
+      TextureAtlasSprite sprite = this.powerSprites[renderState.powerTexIndex];
+      boolean topHalf = renderState.powerTopHalf;
       float r = 1.0F;
       float g = 1.0F;
       float b = 1.0F;
       float a = 1.0F;
       int overlay = OverlayTexture.NO_OVERLAY;
-      BcBerRenderUtil.submit(poseStack, collector, RenderTypes.entityCutout(BcTextureAtlases.BLOCKS_TEXTURE), (pose, buffer) -> {
-         renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerRight, y1, r, g, b, a, light, overlay);
-         renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerLeft, y2, r, g, b, a, light, overlay);
+      collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(BLOCKS_ATLAS_TEXTURE), (pose, buffer) -> {
+         renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerRight, renderState.powerY1, r, g, b, a, light, overlay);
+         renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerLeft, renderState.powerY2, r, g, b, a, light, overlay);
       });
    }
 
