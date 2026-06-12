@@ -75,11 +75,6 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    public transient int renderCacheTintB = 255;
    public transient int renderCacheTintA = 255;
    public transient boolean renderCacheTranslucent;
-   public transient boolean renderCacheBcGradient;
-   public transient BCEnergyFluidsFabric.FluidEntry renderCacheEntry;
-   public transient int renderCacheTexLight;
-   public transient int renderCacheTexDark;
-   public transient int renderCacheHeat;
    private PipeEventFluid.@Nullable SideCheck routingFluidSideCheck;
    private PipeEventFluid.@Nullable PreMoveToCentre routingPreMove;
    private PipeEventFluid.@Nullable OnMoveToCentre routingOnMove;

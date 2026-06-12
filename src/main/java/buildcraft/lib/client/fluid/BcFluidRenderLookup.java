@@ -31,8 +31,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Client fluid sprite/tint lookup.
- * World blocks use pre-baked {@code block/fluids/baked/*} sprites from {@link FluidModel}.
- * Pipes and other vertex-tinted surfaces use shared {@code heat_*_white} templates.
+ * World blocks and pipes use pre-baked {@code block/fluids/baked/*} sprites from {@link FluidModel}.
+ * Vertex-tinted surfaces (tanks, blueprint preview) use shared {@code heat_*_white} templates.
  */
 public final class BcFluidRenderLookup {
    private BcFluidRenderLookup() {
@@ -56,7 +56,12 @@ public final class BcFluidRenderLookup {
       return resolveBakedSprite(fluid, kind);
    }
 
-   /** Pipes/tanks with per-vertex heat template tinting — shared white luminance sprites. */
+   /** Pre-baked still sprite for pipe rendering (color is already in the texture). */
+   public static TextureAtlasSprite pipeSprite(FluidStack stack) {
+      return sprite(stack, SpriteKind.STILL);
+   }
+
+   /** Tanks/BER with per-vertex heat template tinting — shared white luminance sprites. */
    public static TextureAtlasSprite tintSprite(FluidStack stack, SpriteKind kind) {
       if (stack == null || stack.isEmpty()) {
          return missingSprite();
@@ -204,7 +209,15 @@ public final class BcFluidRenderLookup {
    }
 
    public static float[] vertexRgba(FluidStack stack) {
-      int color = tint(stack);
+      return rgbaFromTint(tint(stack));
+   }
+
+   /** Pipe vertex multiply: white for BC baked sprites, Fabric tint for foreign fluids. */
+   public static float[] pipeVertexRgba(FluidStack stack) {
+      return rgbaFromTint(tint(stack));
+   }
+
+   private static float[] rgbaFromTint(int color) {
       float a = (color >> 24 & 0xFF) / 255.0F;
       float r = (color >> 16 & 0xFF) / 255.0F;
       float g = (color >> 8 & 0xFF) / 255.0F;
