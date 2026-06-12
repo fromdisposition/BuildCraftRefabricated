@@ -8,6 +8,8 @@ package buildcraft.transport.client.render;
 
 
 import buildcraft.lib.fluid.meta.FluidAttributes;
+import buildcraft.lib.client.fluid.BcFluidAppearance;
+import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.fluid.BcFluidPipeQuads;
 import buildcraft.lib.client.fluid.BcFluidRenderLookup;
 import buildcraft.api.core.EnumPipePart;
@@ -15,8 +17,8 @@ import buildcraft.api.transport.pipe.IPipeFlowRenderer;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.flow.PipeFlowFluids;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -35,7 +37,8 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
    private static final ThreadLocal<double[]> SCRATCH_AMOUNTS = ThreadLocal.withInitial(() -> new double[7]);
    private static final ThreadLocal<double[]> SCRATCH_BOUNDS = ThreadLocal.withInitial(() -> new double[6]);
 
-   public void render(PipeFlowFluids flow, double x, double y, double z, float partialTicks, VertexConsumer bb, PoseStack poseStack) {
+   @Override
+   public void render(PipeFlowFluids flow, double x, double y, double z, float partialTicks, VertexConsumer bb, Pose pose) {
       FluidStack forRender = flow.getFluidStackForRender();
       if (forRender != null && !forRender.isEmpty() && bb != null) {
          ensureRenderCache(flow, forRender);
@@ -64,6 +67,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                   double cuboidAmount = face.getAxis() == Axis.Y ? 1.0 : amount;
                   double cuboidCapacity = face.getAxis() == Axis.Y ? 1.0 : flow.capacity;
                   renderFluidCuboid(
+                     pose,
                      sprite,
                      bounds[0],
                      bounds[1],
@@ -77,8 +81,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                      faceSkipMask,
                      rgba,
                      packedLight,
-                     bb,
-                     poseStack
+                     bb
                   );
                }
             }
@@ -88,6 +91,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             double horizPos = CENTER_INSET;
             if (horizontal || !vertical) {
                renderFluidCuboid(
+                  pose,
                   sprite,
                   CENTER_INSET,
                   CENTER_INSET,
@@ -101,8 +105,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                   0,
                   rgba,
                   packedLight,
-                  bb,
-                  poseStack
+                  bb
                );
                horizPos += 0.48 * centerAmount / flow.capacity;
                renderedHorizCenter = true;
@@ -116,7 +119,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                double yMax = gas ? 1.0 - horizPos : CENTER_OUTSET;
                int pillarSkipMask = renderedHorizCenter ? 1 << (gas ? Direction.UP.ordinal() : Direction.DOWN.ordinal()) : 0;
                renderFluidCuboid(
-                  sprite, minXZ, yMin, minXZ, maxXZ, yMax, maxXZ, 1.0, 1.0, gas, pillarSkipMask, rgba, packedLight, bb, poseStack
+                  pose, sprite, minXZ, yMin, minXZ, maxXZ, yMax, maxXZ, 1.0, 1.0, gas, pillarSkipMask, rgba, packedLight, bb
                );
             }
          }
@@ -197,13 +200,22 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       Fluid current = fluidStack.getFluid();
       if (current != flow.renderCacheFluid) {
          flow.renderCacheFluid = current;
-         flow.renderCacheSprite = BcFluidRenderLookup.sprite(fluidStack, BcFluidRenderLookup.SpriteKind.STILL);
-         BcFluidRenderLookup.writePipeVertexRgba(fluidStack, flow.renderCacheRgba);
-         flow.renderCacheTranslucent = BcFluidRenderLookup.translucent(fluidStack);
+         BcFluidAppearance appearance = BcFluidAppearanceCache.get(fluidStack);
+         flow.renderCacheAppearance = appearance;
+         if (appearance != null) {
+            flow.renderCacheSprite = appearance.sprite();
+            flow.renderCacheTranslucent = appearance.translucent();
+         } else {
+            flow.renderCacheSprite = BcFluidRenderLookup.sprite(fluidStack, BcFluidRenderLookup.SpriteKind.STILL);
+            flow.renderCacheTranslucent = BcFluidRenderLookup.translucent(fluidStack);
+         }
+
+         BcFluidRenderLookup.writeVertexRgba(fluidStack, flow.renderCacheRgba);
       }
    }
 
    private static void renderFluidCuboid(
+      Pose pose,
       TextureAtlasSprite sprite,
       double minX,
       double minY,
@@ -217,8 +229,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       int skipFaceMask,
       float[] rgba,
       int packedLight,
-      VertexConsumer bb,
-      PoseStack poseStack
+      VertexConsumer bb
    ) {
       if (amount <= 0.0 || capacity <= 0.0) {
          return;
@@ -240,7 +251,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       }
 
       BcFluidPipeQuads.emitPipeCuboid(
-         poseStack.last(), bb, sprite, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, rgba, packedLight
+         pose, bb, sprite, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, rgba, packedLight
       );
    }
 }

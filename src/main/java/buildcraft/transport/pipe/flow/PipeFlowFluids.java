@@ -69,6 +69,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    private long lastMessage;
    private long lastMessageMinus1;
    public transient Fluid renderCacheFluid;
+   public transient buildcraft.lib.client.fluid.BcFluidAppearance renderCacheAppearance;
    public transient net.minecraft.client.renderer.texture.TextureAtlasSprite renderCacheSprite;
    public transient final float[] renderCacheRgba = new float[]{1.0F, 1.0F, 1.0F, 1.0F};
    public transient boolean renderCacheTranslucent;

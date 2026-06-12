@@ -36,11 +36,11 @@ public final class BcFluidPipeQuads {
       float b = rgba[2];
       float a = rgba[3];
       if ((skipFaceMask & 1 << Direction.DOWN.ordinal()) == 0) {
-         emitPipeHorizontal(pose, buffer, sprite, Direction.DOWN, minX, maxX, minZ, maxZ, minY, r, g, b, a, packedLight, overlay);
+         emitPipeHorizontal(pose, buffer, sprite, Direction.DOWN, minX, maxX, maxZ, minZ, minY, r, g, b, a, packedLight, overlay);
       }
 
       if ((skipFaceMask & 1 << Direction.UP.ordinal()) == 0) {
-         emitPipeHorizontal(pose, buffer, sprite, Direction.UP, minX, maxX, minZ, maxZ, maxY, r, g, b, a, packedLight, overlay);
+         emitPipeHorizontal(pose, buffer, sprite, Direction.UP, minX, maxX, maxZ, minZ, maxY, r, g, b, a, packedLight, overlay);
       }
 
       if ((skipFaceMask & 1 << Direction.NORTH.ordinal()) == 0) {

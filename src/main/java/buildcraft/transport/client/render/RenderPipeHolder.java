@@ -6,7 +6,8 @@
 
 package buildcraft.transport.client.render;
 
-import buildcraft.lib.client.texture.BcTextureAtlases;
+import buildcraft.lib.client.fluid.BcFluidAppearance;
+import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.api.transport.pipe.IPipeBehaviourRenderer;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
 import buildcraft.api.transport.pipe.PipeApi;
@@ -270,13 +271,14 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
             RenderType flowType = BCLibRenderTypes.cutoutBlockSheet();
             if (p.flow instanceof PipeFlowFluids fluids) {
                PipeFlowRendererFluids.prepareRenderCache(fluids);
-               flowType = fluids.renderCacheTranslucent
-                  ? BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE)
-                  : BCLibRenderTypes.entityCutout(BcTextureAtlases.BLOCKS_TEXTURE);
+               BcFluidAppearance appearance = fluids.renderCacheAppearance;
+               if (appearance != null) {
+                  flowType = BcFluidAppearanceCache.renderType(appearance);
+               }
             }
 
-            BcBerRenderUtil.submitWithPoseStack(poseStack, collector, flowType, (stack, buffer) -> {
-               renderFlow(p.flow, x, y, z, partialTicks, buffer, stack);
+            BcBerRenderUtil.submit(poseStack, collector, flowType, (pose, buffer) -> {
+               renderFlow(p.flow, x, y, z, partialTicks, buffer, pose);
             });
          }
       }
@@ -291,10 +293,10 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       }
    }
 
-   private static <F extends PipeFlow> void renderFlow(F flow, double x, double y, double z, float partialTicks, VertexConsumer buffer, PoseStack poseStack) {
+   private static <F extends PipeFlow> void renderFlow(F flow, double x, double y, double z, float partialTicks, VertexConsumer buffer, Pose pose) {
       IPipeFlowRenderer<F> renderer = PipeRegistryClient.getFlowRenderer(flow);
       if (renderer != null) {
-         renderer.render(flow, x, y, z, partialTicks, buffer, poseStack);
+         renderer.render(flow, x, y, z, partialTicks, buffer, pose);
       }
    }
 
