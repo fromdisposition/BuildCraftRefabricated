@@ -21,6 +21,8 @@ import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 public class TileMiningWell extends TileMiner {
@@ -126,6 +128,33 @@ public class TileMiningWell extends TileMiner {
       this.currentPos = target;
       this.shaftTipPos = shaftTip;
       this.updateLength();
+   }
+
+   @Override
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      if (this.shaftTipPos != null) {
+         output.putBoolean("hasShaftTipPos", true);
+         output.putInt("shaftTipX", this.shaftTipPos.getX());
+         output.putInt("shaftTipY", this.shaftTipPos.getY());
+         output.putInt("shaftTipZ", this.shaftTipPos.getZ());
+      } else {
+         output.putBoolean("hasShaftTipPos", false);
+      }
+   }
+
+   @Override
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      if (input.getBooleanOr("hasShaftTipPos", false)) {
+         this.shaftTipPos = new BlockPos(
+            input.getIntOr("shaftTipX", 0),
+            input.getIntOr("shaftTipY", 0),
+            input.getIntOr("shaftTipZ", 0)
+         );
+      } else {
+         this.shaftTipPos = null;
+      }
    }
 
    @Override

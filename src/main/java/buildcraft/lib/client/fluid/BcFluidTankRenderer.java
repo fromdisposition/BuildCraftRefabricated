@@ -162,11 +162,11 @@ public final class BcFluidTankRenderer {
          }
 
          if (renderBottom) {
-            BcFluidBoxQuads.emitHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
+            BcFluidBoxQuads.emitHorizontal(pose, buffer, sprite, minX, maxX, minZ, maxZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
          }
 
          if (gaseous && fillRatio < 1.0F && renderBottom) {
-            BcFluidBoxQuads.emitHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
+            BcFluidBoxQuads.emitHorizontal(pose, buffer, sprite, minX, maxX, minZ, maxZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
          }
       }
    }

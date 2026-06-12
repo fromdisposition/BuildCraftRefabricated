@@ -121,7 +121,10 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
          return;
       }
 
-      int tipY = this.getTargetPos() != null ? this.getTargetPos().getY() : this.worldPosition.getY();
+      BlockPos target = this.getTargetPos();
+      int tipY = target != null
+         ? target.getY()
+         : (this.wantedLength > 0 ? this.worldPosition.getY() - this.wantedLength : this.worldPosition.getY());
       AABB box = this.buildShaftCollisionBox(tipY);
       if (box == null) {
          this.discardShaftCollider();
@@ -264,6 +267,10 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
 
       int newWantedLength = input.getIntOr("wantedLength", 0);
       this.wantedLength = newWantedLength;
+      if (this.level != null && this.level.isClientSide()) {
+         this.currentLength = this.lastLength = newWantedLength;
+      }
+
       this.progress = input.getIntOr("progress", 0);
       this.battery.extractPower(0L, Long.MAX_VALUE);
       this.battery.addPowerChecking(input.getLongOr("mjStored", 0L), false);

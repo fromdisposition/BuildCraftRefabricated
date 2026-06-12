@@ -37,7 +37,7 @@ public final class BcFluidBoxQuads {
    ) {
       int overlay = OverlayTexture.NO_OVERLAY;
       if ((skipFaceMask & 1 << Direction.DOWN.ordinal()) == 0) {
-         emitHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, minY, 0.0F, -1.0F, 0.0F, r, g, b, a, packedLight, overlay);
+         emitHorizontal(pose, buffer, sprite, minX, maxX, minZ, maxZ, minY, 0.0F, -1.0F, 0.0F, r, g, b, a, packedLight, overlay);
       }
 
       if ((skipFaceMask & 1 << Direction.UP.ordinal()) == 0) {

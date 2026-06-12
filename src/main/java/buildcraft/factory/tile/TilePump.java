@@ -73,6 +73,7 @@ public class TilePump extends TileMiner implements IDebuggable {
    private final Deque<BlockPos> queue = new ArrayDeque<>();
    private boolean isInfiniteWaterSource;
    private int rebuildDelay = 0;
+   @Nullable
    private BlockPos targetPos;
    @Nullable
    private BlockPos oilSpringPos;
@@ -499,6 +500,15 @@ public class TilePump extends TileMiner implements IDebuggable {
          output.putInt("oilSpringY", this.oilSpringPos.getY());
          output.putInt("oilSpringZ", this.oilSpringPos.getZ());
       }
+
+      if (this.targetPos != null) {
+         output.putBoolean("hasTargetPos", true);
+         output.putInt("targetPosX", this.targetPos.getX());
+         output.putInt("targetPosY", this.targetPos.getY());
+         output.putInt("targetPosZ", this.targetPos.getZ());
+      } else {
+         output.putBoolean("hasTargetPos", false);
+      }
    }
 
    @Override
@@ -510,6 +520,16 @@ public class TilePump extends TileMiner implements IDebuggable {
          this.oilSpringPos = new BlockPos(input.getIntOr("oilSpringX", 0), input.getIntOr("oilSpringY", 0), input.getIntOr("oilSpringZ", 0));
       } else {
          this.oilSpringPos = null;
+      }
+
+      if (input.getBooleanOr("hasTargetPos", false)) {
+         this.targetPos = new BlockPos(
+            input.getIntOr("targetPosX", 0),
+            input.getIntOr("targetPosY", 0),
+            input.getIntOr("targetPosZ", 0)
+         );
+      } else {
+         this.targetPos = null;
       }
 
       if (this.level != null && this.level.isClientSide()) {
