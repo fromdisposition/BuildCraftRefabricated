@@ -10,7 +10,7 @@ import buildcraft.api.transport.IInjectable;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.lib.tile.BcItemInventory;
-import buildcraft.lib.fabric.transfer.fluid.NeighborTransfers;
+import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import buildcraft.transport.pipe.flow.PipeFlowItems;
 import java.util.ArrayList;
 import java.util.Collections;

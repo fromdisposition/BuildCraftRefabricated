@@ -108,34 +108,6 @@ public record BcFluidWorldProperties(
       );
    }
 
-   public static String verificationTable() {
-      StringBuilder sb = new StringBuilder();
-      sb.append("BC fluid world properties (30 variants)\n");
-
-      for (int i = 0; i < FLUID_DATA.length; i++) {
-         int[] data = FLUID_DATA[i];
-         String baseName = FLUID_NAMES[i];
-
-         for (int heat = 0; heat < 3; heat++) {
-            BcFluidWorldProperties p = compute(baseName, heat, data[0], data[1], data[2], data[3], data[4], data[5], true, data[6], true, data[7]);
-            sb.append(
-               String.format(
-                  "%-22s d=%5d v=%4d %s sticky=%s displaces=%s float=%s%n",
-                  regName(baseName, heat),
-                  p.density(),
-                  p.viscosity(),
-                  p.gaseous() ? "GAS    " : "liquid ",
-                  p.sticky(),
-                  p.displacesWater(),
-                  p.floatsOnWater()
-               )
-            );
-         }
-      }
-
-      return sb.toString();
-   }
-
    public static List<String> liquidFluidTagValues() {
       List<String> values = new ArrayList<>();
 

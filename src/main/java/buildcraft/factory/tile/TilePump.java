@@ -7,7 +7,7 @@
 package buildcraft.factory.tile;
 
 
-import buildcraft.lib.fabric.transfer.fluid.NeighborTransfers;
+import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.lib.fluid.meta.FluidAttributes;

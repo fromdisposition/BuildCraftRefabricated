@@ -25,7 +25,7 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.fabric.transfer.fluid.NeighborTransfers;
+import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;

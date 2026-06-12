@@ -48,7 +48,7 @@ import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
 import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.fabric.transfer.fluid.NeighborTransfers;
+import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import com.mojang.authlib.GameProfile;
 import java.util.ArrayDeque;
 import java.util.ArrayList;

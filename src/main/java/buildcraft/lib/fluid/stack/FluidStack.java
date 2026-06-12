@@ -225,10 +225,6 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
       }
    }
 
-   public static boolean matches(FluidStack a, @Nullable FluidStackTemplate b) {
-      return b == null ? a.isEmpty() : a.amount() == b.amount() && isSameFluidSameComponents(a, b);
-   }
-
    public static boolean isSameFluid(FluidStack first, FluidStack second) {
       return first.is(second.getFluid());
    }
@@ -239,14 +235,6 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
       } else {
          return first.isEmpty() && second.isEmpty() ? true : Objects.equals(first.components, second.components);
       }
-   }
-
-   public static boolean isSameFluid(FluidStack a, @Nullable FluidStackTemplate b) {
-      return b == null ? a.isEmpty() : a.is(b.fluid());
-   }
-
-   public static boolean isSameFluidSameComponents(FluidStack a, @Nullable FluidStackTemplate b) {
-      return !a.isEmpty() && b != null ? a.is(b.fluid()) && a.getComponentsPatch().equals(b.components()) : a.isEmpty() == (b == null);
    }
 
    public static MapCodec<FluidStack> lenientOptionalFieldOf(String fieldName) {

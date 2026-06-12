@@ -40,10 +40,6 @@ public record BcFluidAppearance(
       return new BcFluidAppearance(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, sprite, tint, translucent);
    }
 
-   public boolean hasFog() {
-      return this.fogAlpha > 0.0F;
-   }
-
    private static FogFields computeFog(String baseName, int heat, boolean gaseous, int texLight, int texDark) {
       int r = ((texLight >> 16 & 0xFF) + (texDark >> 16 & 0xFF)) / 2;
       int g = ((texLight >> 8 & 0xFF) + (texDark >> 8 & 0xFF)) / 2;

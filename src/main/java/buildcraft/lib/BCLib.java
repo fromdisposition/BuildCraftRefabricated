@@ -11,7 +11,6 @@ import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.lib.fabric.BCLibFakePlayerProvider;
 import buildcraft.lib.fluid.registry.CoolantRegistry;
 import buildcraft.lib.fluid.registry.FuelRegistry;
-import buildcraft.lib.fluid.meta.CauldronFluidContent;
 import buildcraft.lib.recipe.IntegrationRecipeRegistry;
 import buildcraft.lib.recipe.ProgrammingRecipeRegistry;
 import buildcraft.lib.recipe.RefineryRecipeRegistry;
@@ -27,7 +26,6 @@ public final class BCLib {
    public static void init() {
       initApiRegistries();
       BCLibItems.register();
-      CauldronFluidContent.init();
       BCLibFakePlayerProvider.register();
       MigrationRegistry.init();
    }
