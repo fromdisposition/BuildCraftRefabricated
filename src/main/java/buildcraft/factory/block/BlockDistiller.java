@@ -7,15 +7,15 @@
 package buildcraft.factory.block;
 
 import buildcraft.api.blocks.ICustomRotationHandler;
-import buildcraft.api.items.FluidItemDrops;
 import buildcraft.api.tools.IToolWrench;
 import buildcraft.factory.BCFactoryBlockEntities;
-import buildcraft.factory.tile.TileDistiller_BC8;
+import buildcraft.factory.tile.TileDistiller;
 import buildcraft.lib.misc.FluidUtilBC;
 import com.mojang.serialization.MapCodec;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -61,14 +61,14 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
 
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
-      if (level.getBlockEntity(pos) instanceof TileDistiller_BC8 distiller) {
+      if (level.getBlockEntity(pos) instanceof TileDistiller distiller) {
          distiller.onPlacedBy(placer);
       }
    }
 
    @Nullable
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-      return new TileDistiller_BC8(pos, state);
+      return new TileDistiller(pos, state);
    }
 
    @Nullable
@@ -85,32 +85,27 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
    protected InteractionResult useItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
+      if (stack.isEmpty()) {
+         return this.useWithoutItem(state, level, pos, player, hitResult);
+      }
+
       if (stack.getItem() instanceof IToolWrench) {
          if (player.isShiftKeyDown()) {
-            if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileDistiller_BC8 distiller) {
-               player.openMenu(distiller);
-            }
-
+            openMenuOnServer(level, player, pos);
             return InteractionResult.SUCCESS;
          } else {
             return InteractionResult.PASS;
          }
-      } else if (level.getBlockEntity(pos) instanceof TileDistiller_BC8 distiller) {
-         boolean didChange = FluidUtilBC.onTankActivated(player, pos, hand, distiller.getTankIn());
-         if (!didChange) {
-            didChange = FluidUtilBC.onTankActivated(player, pos, hand, distiller.getTankGasOut());
-         }
-
-         if (!didChange) {
-            didChange = FluidUtilBC.onTankActivated(player, pos, hand, distiller.getTankLiquidOut());
-         }
+      } else if (level.getBlockEntity(pos) instanceof TileDistiller distiller) {
+         Storage<FluidVariant> storage = distiller.getSidedFluidStorage(hitResult.getDirection());
+         boolean didChange = storage != null && FluidUtilBC.onTankActivated(player, pos, hand, storage);
 
          if (didChange) {
             return InteractionResult.SUCCESS;
          }
 
-         if (!FluidUtilBC.isFluidContainerInHand(player, hand) && !level.isClientSide()) {
-            player.openMenu(distiller);
+         if (!FluidUtilBC.isFluidContainerInHand(player, hand)) {
+            openMenuOnServer(level, player, pos);
          }
 
          return InteractionResult.SUCCESS;
@@ -131,35 +126,13 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
    }
 
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-      if (!level.isClientSide()) {
-         BlockEntity be = level.getBlockEntity(pos);
-         if (be instanceof TileDistiller_BC8) {
-            player.openMenu((TileDistiller_BC8)be);
-         }
-      }
-
+      openMenuOnServer(level, player, pos);
       return InteractionResult.SUCCESS;
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileDistiller_BC8 distiller) {
-         NonNullList<ItemStack> toDrop = NonNullList.create();
-         FluidItemDrops.addFluidDrops(
-            toDrop, distiller.getTankIn().getFluidStack(), distiller.getTankGasOut().getFluidStack(), distiller.getTankLiquidOut().getFluidStack()
-         );
-
-         for (ItemStack drop : toDrop) {
-            Block.popResource(level, pos, drop);
-         }
-
-         for (int i = 0; i < distiller.containerSlots.getSlots(); i++) {
-            ItemStack slotStack = distiller.containerSlots.getStackInSlot(i);
-            if (!slotStack.isEmpty()) {
-               Block.popResource(level, pos, slotStack);
-            }
-         }
+   private static void openMenuOnServer(Level level, Player player, BlockPos pos) {
+      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileDistiller distiller) {
+         player.openMenu(distiller);
       }
-
-      return super.playerWillDestroy(level, pos, state, player);
    }
 }

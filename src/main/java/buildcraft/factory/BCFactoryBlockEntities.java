@@ -11,7 +11,7 @@ import buildcraft.lib.BCLib;
 import buildcraft.factory.tile.TileAutoWorkbenchFluids;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.factory.tile.TileChute;
-import buildcraft.factory.tile.TileDistiller_BC8;
+import buildcraft.factory.tile.TileDistiller;
 import buildcraft.factory.tile.TileFloodGate;
 import buildcraft.factory.tile.TileHeatExchange;
 import buildcraft.factory.tile.TileMiningWell;
@@ -27,7 +27,7 @@ public final class BCFactoryBlockEntities {
    public static BlockEntityType<TileFloodGate> FLOOD_GATE;
    public static BlockEntityType<TileTank> TANK;
    public static BlockEntityType<TileChute> CHUTE;
-   public static BlockEntityType<TileDistiller_BC8> DISTILLER;
+   public static BlockEntityType<TileDistiller> DISTILLER;
    public static BlockEntityType<TileHeatExchange> HEAT_EXCHANGE;
 
    private BCFactoryBlockEntities() {
@@ -48,7 +48,7 @@ public final class BCFactoryBlockEntities {
       FLOOD_GATE = BCRegistries.registerBlockEntity("buildcraftfactory", "flood_gate", TileFloodGate::new, BCFactoryBlocks.FLOOD_GATE);
       TANK = BCRegistries.registerBlockEntity("buildcraftfactory", "tank", TileTank::new, BCFactoryBlocks.TANK);
       CHUTE = BCRegistries.registerBlockEntity("buildcraftfactory", "chute", TileChute::new, BCFactoryBlocks.CHUTE);
-      DISTILLER = BCRegistries.registerBlockEntity("buildcraftfactory", "distiller", TileDistiller_BC8::new, BCFactoryBlocks.DISTILLER);
+      DISTILLER = BCRegistries.registerBlockEntity("buildcraftfactory", "distiller", TileDistiller::new, BCFactoryBlocks.DISTILLER);
       HEAT_EXCHANGE = BCRegistries.registerBlockEntity("buildcraftfactory", "heat_exchange", TileHeatExchange::new, BCFactoryBlocks.HEAT_EXCHANGE);
    }
 }

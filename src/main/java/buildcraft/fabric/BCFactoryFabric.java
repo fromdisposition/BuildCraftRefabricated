@@ -9,7 +9,7 @@ import buildcraft.factory.tile.TileAutoWorkbenchBase;
 import buildcraft.factory.tile.TileAutoWorkbenchFluids;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.factory.tile.TileChute;
-import buildcraft.factory.tile.TileDistiller_BC8;
+import buildcraft.factory.tile.TileDistiller;
 import buildcraft.factory.tile.TileFloodGate;
 import buildcraft.factory.tile.TileHeatExchange;
 import buildcraft.factory.tile.TileMiner;
@@ -49,7 +49,7 @@ public final class BCFactoryFabric {
          );
       FluidStorage.SIDED
          .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileDistiller_BC8 distiller ? distiller.getSidedFluidStorage(direction) : null,
+            (blockEntity, direction) -> blockEntity instanceof TileDistiller distiller ? distiller.getSidedFluidStorage(direction) : null,
             BCFactoryBlockEntities.DISTILLER
          );
       FluidStorage.SIDED
@@ -101,7 +101,7 @@ public final class BCFactoryFabric {
          );
       EnergyStorage.SIDED
          .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileDistiller_BC8 distiller ? distiller.getSidedEnergyStorage() : null,
+            (blockEntity, direction) -> blockEntity instanceof TileDistiller distiller ? distiller.getSidedEnergyStorage() : null,
             BCFactoryBlockEntities.DISTILLER
          );
       EnergyStorage.SIDED

@@ -24,28 +24,12 @@ public final class FactoryFluidContainers {
       if (!stack.isEmpty() && stack.getCount() == 1) {
          Storage<FluidVariant> hand = ItemFluidLookup.storage(stack);
          if (hand != null) {
-            Transaction tx = Transaction.openOuter();
-
-            try {
+            try (Transaction tx = Transaction.openOuter()) {
                long moved = FluidStorageOps.move(hand, tank, TransferConvert.mbToDroplets(1000L), tx);
                if (moved > 0L) {
                   tx.commit();
                   slots.setStackInSlot(slot, stack);
                }
-            } catch (Throwable var9) {
-               if (tx != null) {
-                  try {
-                     tx.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
-                  }
-               }
-
-               throw var9;
-            }
-
-            if (tx != null) {
-               tx.close();
             }
          }
       }
@@ -56,28 +40,12 @@ public final class FactoryFluidContainers {
       if (!stack.isEmpty() && stack.getCount() == 1) {
          Storage<FluidVariant> hand = ItemFluidLookup.storage(stack);
          if (hand != null) {
-            Transaction tx = Transaction.openOuter();
-
-            try {
+            try (Transaction tx = Transaction.openOuter()) {
                long moved = FluidStorageOps.move(tank, hand, TransferConvert.mbToDroplets(1000L), tx);
                if (moved > 0L) {
                   tx.commit();
                   slots.setStackInSlot(slot, stack);
                }
-            } catch (Throwable var9) {
-               if (tx != null) {
-                  try {
-                     tx.close();
-                  } catch (Throwable var8) {
-                     var9.addSuppressed(var8);
-                  }
-               }
-
-               throw var9;
-            }
-
-            if (tx != null) {
-               tx.close();
             }
          }
       }

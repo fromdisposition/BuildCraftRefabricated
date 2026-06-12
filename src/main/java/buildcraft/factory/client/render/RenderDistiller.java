@@ -7,7 +7,7 @@
 package buildcraft.factory.client.render;
 
 import buildcraft.lib.client.texture.BcTextureAtlases;
-import buildcraft.factory.tile.TileDistiller_BC8;
+import buildcraft.factory.tile.TileDistiller;
 import buildcraft.lib.client.fluid.BcFluidBerHelper;
 import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
@@ -31,7 +31,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller_BC8, DistillerRenderState> {
+public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller, DistillerRenderState> {
    private static final Map<Direction, RenderDistiller.TankSizes> TANK_SIZES = new EnumMap<>(Direction.class);
    private static final Identifier[] POWER_TEXTURES = new Identifier[]{
       Identifier.parse("buildcraftfactory:block/distiller/power_sprite_a"),
@@ -52,7 +52,7 @@ public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller_BC8, Di
    }
 
    public void submit(DistillerRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-      TileDistiller_BC8 tile = renderState.tile;
+      TileDistiller tile = renderState.tile;
       if (tile != null) {
          Level level = tile.getLevel();
          if (level != null) {
@@ -74,23 +74,23 @@ public class RenderDistiller extends BcBlockEntityRenderer<TileDistiller_BC8, Di
    }
 
    private static void renderPowerCubes(
-      TileDistiller_BC8 tile, RenderDistiller.TankSizes sizes, PoseStack poseStack, SubmitNodeCollector collector, int light, float partialTicks
+      TileDistiller tile, RenderDistiller.TankSizes sizes, PoseStack poseStack, SubmitNodeCollector collector, int light, float partialTicks
    ) {
       double prevAnim = tile.getPrevAnimState();
       double curAnim = tile.getAnimState();
       double animState = prevAnim + (curAnim - prevAnim) * partialTicks;
-      long powerAvg = tile.getPowerAvgClient();
+      double powerAvg = tile.getPowerAvgVisual();
       double stMod1 = animState - Math.floor(animState);
       float y1 = (float)(1.0 - Math.abs(stMod1 - 0.5) * 2.0);
       double st2 = animState <= 0.5 ? 0.0 : animState - 0.5;
       double st2Mod1 = st2 - Math.floor(st2);
       float y2 = (float)(1.0 - Math.abs(st2Mod1 - 0.5) * 2.0);
       int texIndex;
-      if (powerAvg <= 0L) {
+      if (powerAvg <= 0.0) {
          texIndex = 0;
       } else {
-         texIndex = (int)(powerAvg * 6L / TileDistiller_BC8.MAX_MJ_PER_TICK);
-         texIndex = Math.max(1, Math.min(texIndex, 6));
+         double frac = Math.min(1.0, powerAvg / TileDistiller.MAX_MJ_PER_TICK);
+         texIndex = Math.max(1, Math.min(6, (int)Math.ceil(frac * 6.0 + 0.35)));
       }
 
       TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(POWER_TEXTURES[texIndex]);

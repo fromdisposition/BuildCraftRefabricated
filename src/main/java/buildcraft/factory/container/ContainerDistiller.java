@@ -7,7 +7,7 @@
 package buildcraft.factory.container;
 
 import buildcraft.factory.BCFactoryMenuTypes;
-import buildcraft.factory.tile.TileDistiller_BC8;
+import buildcraft.factory.tile.TileDistiller;
 import buildcraft.lib.fabric.menu.MenuBlockEntityLookup;
 import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.slot.SlotBase;
@@ -23,16 +23,16 @@ import net.minecraft.world.item.ItemStack;
 
 public class ContainerDistiller extends BcMenu {
    private static final ItemHandlerSimple FALLBACK_SLOTS = createFallbackSlots();
-   public final TileDistiller_BC8 tile;
+   public final TileDistiller tile;
    public final WidgetFluidTank widgetTankIn;
    public final WidgetFluidTank widgetTankGasOut;
    public final WidgetFluidTank widgetTankLiquidOut;
 
    public ContainerDistiller(int containerId, Inventory playerInv, BlockPos pos) {
-      this(containerId, playerInv, MenuBlockEntityLookup.get(playerInv, pos, TileDistiller_BC8.class));
+      this(containerId, playerInv, MenuBlockEntityLookup.get(playerInv, pos, TileDistiller.class));
    }
 
-   public ContainerDistiller(int containerId, Inventory playerInv, TileDistiller_BC8 tile) {
+   public ContainerDistiller(int containerId, Inventory playerInv, TileDistiller tile) {
       super(BCFactoryMenuTypes.DISTILLER, containerId, playerInv.player);
       this.tile = tile;
       ItemHandlerSimple machineSlots = tile != null ? tile.containerSlots : FALLBACK_SLOTS;

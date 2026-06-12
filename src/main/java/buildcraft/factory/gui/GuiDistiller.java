@@ -7,6 +7,7 @@
 package buildcraft.factory.gui;
 
 import buildcraft.factory.container.ContainerDistiller;
+import buildcraft.factory.tile.TileDistiller;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.GuiIcon;
@@ -130,16 +131,13 @@ public class GuiDistiller extends BcScreen<ContainerDistiller> {
    }
 
    private void drawCenterStateOverlay() {
-      if (((ContainerDistiller)this.menu).tile != null) {
-         GuiIcon overlay = null;
-         if (((ContainerDistiller)this.menu).tile.isActive()) {
-            overlay = OVERLAY_RUNNING;
-         } else if (((ContainerDistiller)this.menu).tile.isStuck()) {
-            overlay = OVERLAY_STUCK;
-         }
-
-         if (overlay != null) {
-            overlay.drawAt(this.leftPos + 61, this.topPos + 12);
+      TileDistiller tile = ((ContainerDistiller)this.menu).tile;
+      if (tile != null) {
+         if (tile.isActive()) {
+            double frac = Math.min(1.0, tile.getPowerAvgVisual() / TileDistiller.MAX_MJ_PER_TICK);
+            OVERLAY_RUNNING.drawCutInside(this.leftPos + 61, this.topPos + 12, 36.0, 57.0 * Math.max(0.35, frac));
+         } else if (tile.isStuck()) {
+            OVERLAY_STUCK.drawAt(this.leftPos + 61, this.topPos + 12);
          }
       }
    }

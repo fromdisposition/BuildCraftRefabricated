@@ -25,6 +25,7 @@ import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fluid.FluidSmoother;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.FluidUtilBC;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MessageUtil;
@@ -60,7 +61,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
+public class TileDistiller extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
    public static final long MAX_MJ_PER_TICK = 6L * MjAPI.MJ;
    private static final Identifier ADVANCEMENT_HEATING_AND_DISTILLING = Identifier.parse("buildcraftfactory:heating_and_distilling");
    private static final Identifier ADVANCEMENT_REFINE_AND_REDEFINE = Identifier.parse("buildcraftenergy:refine_and_redefine");
@@ -83,6 +84,7 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
    private long powerAvgClient;
    private double animState;
    private double prevAnimState;
+   private double powerAvgVisual;
    private int lastSyncedIn;
    private int lastSyncedGas;
    private int lastSyncedLiquid;
@@ -93,7 +95,7 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
    private boolean lastSyncedStuck;
    private long lastSyncedPower;
 
-   public TileDistiller_BC8(BlockPos pos, BlockState state) {
+   public TileDistiller(BlockPos pos, BlockState state) {
       super(BCFactoryBlockEntities.DISTILLER, pos, state);
       this.containerSlots.setCallback((handler, slot, bef, aft) -> this.setChanged());
       this.smoothIn = new FluidSmoother(this.tankIn);
@@ -107,6 +109,7 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
       this.powerAvgClient = 0L;
       this.animState = 0.0;
       this.prevAnimState = 0.0;
+      this.powerAvgVisual = 0.0;
       this.lastSyncedIn = -1;
       this.lastSyncedGas = -1;
       this.lastSyncedLiquid = -1;
@@ -193,6 +196,10 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
       return this.powerAvgClient;
    }
 
+   public double getPowerAvgVisual() {
+      return this.powerAvgVisual;
+   }
+
    public double getAnimState() {
       return this.animState;
    }
@@ -206,7 +213,14 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
       this.smoothGasOut.tick();
       this.smoothLiquidOut.tick();
       this.prevAnimState = this.animState;
-      double changeSpeed = this.isActive && MAX_MJ_PER_TICK > 0L ? (double)this.powerAvgClient / MAX_MJ_PER_TICK * 0.06 : 0.01;
+      double targetPower = this.isActive ? (double)this.powerAvgClient : 0.0;
+      double blend = this.isActive ? 0.3 : 0.18;
+      this.powerAvgVisual += (targetPower - this.powerAvgVisual) * blend;
+      if (!this.isActive && this.powerAvgVisual < (double)MjAPI.MJ * 0.1) {
+         this.powerAvgVisual = 0.0;
+      }
+
+      double changeSpeed = this.isActive && MAX_MJ_PER_TICK > 0L ? this.powerAvgVisual / MAX_MJ_PER_TICK * 0.06 : 0.01;
       if (this.isActive) {
          this.animState += changeSpeed;
          if (this.animState >= 1.5) {
@@ -323,12 +337,12 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
                }
 
                long power = this.mjBattery.extractPower(0L, powerLimit);
-               this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((power - this.powerAvgSmoothed) * 0.05);
+               this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((power - this.powerAvgSmoothed) * 0.1);
                this.distillPower += power;
-               this.isActive = power > 0L;
                long powerReq = this.currentRecipe.powerRequired();
-               if (this.distillPower >= powerReq) {
-                  this.isActive = true;
+               boolean crafted = this.distillPower >= powerReq;
+               this.isActive = power > 0L || crafted;
+               if (crafted) {
                   this.distillPower -= powerReq;
                   try (Transaction craftTransaction = Transaction.openOuter()) {
                      this.tankIn.extractInternal(TransferConvert.toVariant(resIn), TransferConvert.mbToDroplets(reqIn.getAmount()), craftTransaction);
@@ -356,11 +370,11 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
 
          this.wasDistillingForAdvancement = distilling;
          if (this.currentRecipe == null || !this.isActive) {
-            this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((0L - this.powerAvgSmoothed) * 0.05);
+            this.powerAvgSmoothed = this.powerAvgSmoothed + (long)((0L - this.powerAvgSmoothed) * 0.1);
          }
 
-         long halfMJ = MjAPI.MJ / 2L;
-         this.powerAvgClient = Math.round((double)this.powerAvgSmoothed / halfMJ) * halfMJ;
+         long mj = MjAPI.MJ;
+         this.powerAvgClient = (this.powerAvgSmoothed / mj) * mj;
          this.powerAvgClient = Math.min(this.powerAvgClient, MAX_MJ_PER_TICK);
          int curIn = this.tankIn.getAmountMb();
          int curGas = this.tankGasOut.getAmountMb();
@@ -405,18 +419,41 @@ public class TileDistiller_BC8 extends BlockEntity implements MenuProvider, Bloc
    }
 
    @Override
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.dropContents(pos);
+      }
+
+      super.preRemoveSideEffects(pos, state);
+   }
+
+   private void dropContents(BlockPos pos) {
+      BlockDropsUtil.dropFluidShards(this.level, pos, this.tankIn, this.tankGasOut, this.tankLiquidOut);
+      this.extractTankContents(this.tankIn);
+      this.extractTankContents(this.tankGasOut);
+      this.extractTankContents(this.tankLiquidOut);
+      BlockDropsUtil.dropItems(this.level, pos, this.containerSlots);
+   }
+
+   private void extractTankContents(SingleFluidTank tank) {
+      if (tank.isEmpty()) {
+         return;
+      }
+
+      FluidStack held = tank.getFluidStack();
+      int amountMb = tank.getAmountMb();
+
+      try (Transaction tx = Transaction.openOuter()) {
+         tank.extract(TransferConvert.toVariant(held), TransferConvert.mbToDroplets(amountMb), tx);
+         tx.commit();
+      }
+   }
+
+   @Override
    public void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
-      if (this.smoothIn != null) {
-         this.smoothIn.getDebugInfo(left, right, side);
-      }
-
-      if (this.smoothGasOut != null) {
-         this.smoothGasOut.getDebugInfo(left, right, side);
-      }
-
-      if (this.smoothLiquidOut != null) {
-         this.smoothLiquidOut.getDebugInfo(left, right, side);
-      }
+      this.smoothIn.getDebugInfo(left, right, side);
+      this.smoothGasOut.getDebugInfo(left, right, side);
+      this.smoothLiquidOut.getDebugInfo(left, right, side);
 
       Direction facing = Direction.WEST;
       if (this.level != null) {
