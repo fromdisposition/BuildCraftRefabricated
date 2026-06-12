@@ -10,9 +10,9 @@ import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
 import buildcraft.api.tiles.IHasWork;
-import buildcraft.core.BCCoreConfig;
-import buildcraft.factory.BCFactoryBlocks;
+import buildcraft.factory.BCFactoryEntities;
 import buildcraft.factory.client.render.TubeRenderer;
+import buildcraft.factory.entity.EntityMinerShaft;
 import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.BcBlockEntity;
@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 
 public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBlockEntityLoadHook {
    protected int progress = 0;
@@ -38,7 +39,8 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    protected double lastLength = 0.0;
    private int offset;
    protected boolean isComplete = false;
-   private boolean tubesCleared = false;
+   @Nullable
+   private EntityMinerShaft shaftCollider;
    protected final MjBattery battery = new MjBattery(this.getBatteryCapacity());
 
    public TileMiner(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -79,81 +81,43 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
          TubeRenderer.addMiner(this);
       } else if (this.level != null) {
          this.schedulePipeNeighborNotify();
+         this.updateShaftCollider();
       }
    }
 
    public void onRemove() {
-      this.removeAllTubesInColumn();
+      this.discardShaftCollider();
    }
 
-   protected void scanAndRemoveTubesInColumn() {
-      if (this.level == null || this.level.isClientSide()) {
-         return;
-      }
-
-      int maxDepth = BCCoreConfig.miningMaxDepth.get();
-      int x = this.worldPosition.getX();
-      int z = this.worldPosition.getZ();
-
-      for (int y = this.worldPosition.getY() - 1; y > this.worldPosition.getY() - maxDepth; y--) {
-         BlockPos blockPos = new BlockPos(x, y, z);
-         if (this.level.getBlockState(blockPos).is(BCFactoryBlocks.TUBE)) {
-            this.level.removeBlock(blockPos, false);
-         }
-      }
-   }
-
-   protected void removeAllTubesInColumn() {
-      if (this.tubesCleared || this.level == null || this.level.isClientSide()) {
-         return;
-      }
-
-      this.tubesCleared = true;
-      this.scanAndRemoveTubesInColumn();
-   }
-
-   protected void removeTubesOutsideTip(int tipY) {
+   protected void updateShaftCollider() {
       if (this.level == null || this.level.isClientSide()) {
          return;
       }
 
       int pumpY = this.worldPosition.getY();
-      int x = this.worldPosition.getX();
-      int z = this.worldPosition.getZ();
-      int minY = pumpY - BCCoreConfig.miningMaxDepth.get();
-
-      for (int y = pumpY - 1; y > minY; y--) {
-         if (y <= tipY) {
-            BlockPos blockPos = new BlockPos(x, y, z);
-            if (this.level.getBlockState(blockPos).is(BCFactoryBlocks.TUBE)) {
-               this.level.removeBlock(blockPos, false);
-            }
-         }
-      }
-   }
-
-   protected void syncMiningTubesToTip(int tipY) {
-      if (this.level == null || this.level.isClientSide()) {
+      int tipY = this.getTargetPos() != null ? this.getTargetPos().getY() : pumpY;
+      if (pumpY - tipY <= 0) {
+         this.discardShaftCollider();
          return;
       }
 
-      int pumpY = this.worldPosition.getY();
       int x = this.worldPosition.getX();
       int z = this.worldPosition.getZ();
-      int minY = pumpY - BCCoreConfig.miningMaxDepth.get();
-
-      for (int y = pumpY - 1; y > minY; y--) {
-         BlockPos blockPos = new BlockPos(x, y, z);
-         BlockState existing = this.level.getBlockState(blockPos);
-         boolean wantTube = y > tipY && !existing.getFluidState().isSource();
-         boolean isTube = existing.is(BCFactoryBlocks.TUBE);
-
-         if (wantTube && !isTube) {
-            this.level.setBlockAndUpdate(blockPos, BCFactoryBlocks.TUBE.defaultBlockState());
-         } else if (!wantTube && isTube) {
-            this.level.removeBlock(blockPos, false);
-         }
+      AABB box = new AABB(x, tipY + 1, z, x + 1, pumpY, z + 1);
+      if (this.shaftCollider == null || this.shaftCollider.isRemoved()) {
+         this.shaftCollider = new EntityMinerShaft(BCFactoryEntities.MINER_SHAFT, this.level);
+         this.level.addFreshEntity(this.shaftCollider);
       }
+
+      this.shaftCollider.setCollisionBox(box);
+   }
+
+   protected void discardShaftCollider() {
+      if (this.shaftCollider != null && !this.shaftCollider.isRemoved()) {
+         this.shaftCollider.discard();
+      }
+
+      this.shaftCollider = null;
    }
 
    public void setRemoved() {
@@ -167,7 +131,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       int newY = this.getTargetPos() != null ? this.getTargetPos().getY() : this.worldPosition.getY();
       int newLength = this.worldPosition.getY() - newY;
       if (newLength != this.wantedLength) {
-         this.syncMiningTubesToTip(newY);
+         this.updateShaftCollider();
          this.currentLength = this.wantedLength = newLength;
          this.setChanged();
          MessageUtil.sendUpdateToTrackingPlayers(this);
@@ -177,7 +141,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    @Override
    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
       if (this.level != null && !this.level.isClientSide()) {
-         this.removeAllTubesInColumn();
+         this.discardShaftCollider();
       }
 
       super.preRemoveSideEffects(pos, state);

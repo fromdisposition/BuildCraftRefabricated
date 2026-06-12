@@ -10,7 +10,6 @@ import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.factory.BCFactoryBlockEntities;
-import buildcraft.factory.BCFactoryBlocks;
 import buildcraft.lib.fluids.FluidTypes;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.InventoryUtil;
@@ -103,7 +102,7 @@ public class TileMiningWell extends TileMiner {
 
             FluidState fluidState = this.level.getFluidState(this.currentPos);
             boolean isPassable = !fluidState.isEmpty() && FluidTypes.of(fluidState.getType()).getViscosity() <= 1000;
-            if (this.level.isEmptyBlock(this.currentPos) || this.level.getBlockState(this.currentPos).is(BCFactoryBlocks.TUBE) || isPassable) {
+            if (this.level.isEmptyBlock(this.currentPos) || isPassable) {
                continue;
             }
          }

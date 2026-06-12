@@ -15,7 +15,6 @@ import buildcraft.core.tile.ITileOilSpring;
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.factory.BCFactoryAttachments;
 import buildcraft.factory.BCFactoryBlockEntities;
-import buildcraft.factory.BCFactoryBlocks;
 import buildcraft.lib.fabric.transfer.SidedFluidStorages;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fluids.FluidStack;
@@ -83,29 +82,6 @@ public class TilePump extends TileMiner implements IDebuggable {
 
    public TilePump(BlockPos pos, BlockState state) {
       super(BCFactoryBlockEntities.PUMP, pos, state);
-   }
-
-   @Override
-   public void onLoad() {
-      super.onLoad();
-      if (this.level != null && !this.level.isClientSide()) {
-         this.scanAndRemoveTubesInColumn();
-      }
-   }
-
-   @Override
-   protected void updateLength() {
-      int newY = this.getTargetPos() != null ? this.getTargetPos().getY() : this.worldPosition.getY();
-      int newLength = this.worldPosition.getY() - newY;
-      if (newLength != this.wantedLength) {
-         if (newLength < this.wantedLength) {
-            this.removeTubesOutsideTip(newY);
-         }
-
-         this.currentLength = this.wantedLength = newLength;
-         this.setChanged();
-         MessageUtil.sendUpdateToTrackingPlayers(this);
-      }
    }
 
    @Override
@@ -229,7 +205,7 @@ public class TilePump extends TileMiner implements IDebuggable {
                return new TilePump.ColumnProbe(firstFluid, firstOil, pos);
             }
 
-            if (!level.isEmptyBlock(pos) && !state.is(BCFactoryBlocks.TUBE)) {
+            if (!level.isEmptyBlock(pos)) {
                break;
             }
          }
@@ -252,11 +228,8 @@ public class TilePump extends TileMiner implements IDebuggable {
             if (firstOil == null && isOil(fluid)) {
                firstOil = pos;
             }
-         } else {
-            BlockState state = level.getBlockState(pos);
-            if (!level.isEmptyBlock(pos) && !state.is(BCFactoryBlocks.TUBE)) {
-               break;
-            }
+         } else if (!level.isEmptyBlock(pos)) {
+            break;
          }
       }
 

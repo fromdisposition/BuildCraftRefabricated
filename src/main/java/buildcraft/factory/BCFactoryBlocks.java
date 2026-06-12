@@ -17,7 +17,6 @@ import buildcraft.factory.block.BlockHeatExchange;
 import buildcraft.factory.block.BlockMiningWell;
 import buildcraft.factory.block.BlockPump;
 import buildcraft.factory.block.BlockTank;
-import buildcraft.factory.block.BlockTube;
 import buildcraft.factory.block.BlockWaterGel;
 import net.minecraft.world.level.block.SoundType;
 
@@ -28,7 +27,6 @@ public final class BCFactoryBlocks {
    public static BlockPump PUMP;
    public static BlockFloodGate FLOOD_GATE;
    public static BlockTank TANK;
-   public static BlockTube TUBE;
    public static BlockChute CHUTE;
    public static BlockDistiller DISTILLER;
    public static BlockHeatExchange HEAT_EXCHANGE;
@@ -59,7 +57,6 @@ public final class BCFactoryBlocks {
       TANK = BCRegistries.registerBlock(
          "buildcraftfactory", "tank", BlockTank::new, p -> p.strength(0.3F).noOcclusion().sound(SoundType.GLASS).requiresCorrectToolForDrops()
       );
-      TUBE = BCRegistries.registerBlock("buildcraftfactory", "tube", BlockTube::new, p -> p.destroyTime(-1.0F).noOcclusion().sound(SoundType.METAL));
       CHUTE = BCRegistries.registerBlock(
          "buildcraftfactory", "chute", BlockChute::new, p -> p.strength(5.0F, 10.0F).noOcclusion().sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
