@@ -7,16 +7,16 @@
 package buildcraft.factory.block;
 
 import buildcraft.api.blocks.ICustomRotationHandler;
-import buildcraft.api.items.FluidItemDrops;
 import buildcraft.api.tools.IToolWrench;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileHeatExchange;
 import buildcraft.lib.misc.FluidUtilBC;
 import com.mojang.serialization.MapCodec;
 import java.util.Locale;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
@@ -71,8 +71,34 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       Direction facing = context.getHorizontalDirection().getOpposite();
+      BlockPos pos = context.getClickedPos();
+      if (chainLengthIfPlaced(context.getLevel(), pos, facing) > TileHeatExchange.MAX_CHAIN_LENGTH) {
+         return null;
+      }
+
       BlockState state = (BlockState)this.defaultBlockState().setValue(FACING, facing);
-      return this.updateConnections(state, context.getLevel(), context.getClickedPos(), facing);
+      return this.updateConnections(state, context.getLevel(), pos, facing);
+   }
+
+   private static int chainLengthIfPlaced(LevelReader level, BlockPos pos, Direction facing) {
+      return 1
+         + countRun(level, pos, facing, facing.getCounterClockWise())
+         + countRun(level, pos, facing, facing.getClockWise());
+   }
+
+   private static int countRun(LevelReader level, BlockPos pos, Direction facing, Direction along) {
+      int count = 0;
+
+      for (int i = 1; ; i++) {
+         BlockState state = level.getBlockState(pos.relative(along, i));
+         if (!(state.getBlock() instanceof BlockHeatExchange) || state.getValue(FACING) != facing) {
+            break;
+         }
+
+         count++;
+      }
+
+      return count;
    }
 
    protected BlockState updateShape(
@@ -123,6 +149,10 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
    protected InteractionResult useItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
+      if (stack.isEmpty()) {
+         return this.useWithoutItem(state, level, pos, player, hitResult);
+      }
+
       if (stack.getItem() instanceof IToolWrench) {
          if (player.isShiftKeyDown()) {
             return (InteractionResult)(level.getBlockEntity(pos) instanceof TileHeatExchange exchange
@@ -132,17 +162,11 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
             return InteractionResult.PASS;
          }
       } else if (level.getBlockEntity(pos) instanceof TileHeatExchange exchange) {
-         TileHeatExchange.ExchangeSection section = exchange.getSection();
-         if (section != null) {
-            boolean didChange = FluidUtilBC.onTankActivated(player, pos, hand, section.tankInput);
-            if (!didChange) {
-               boolean didChangeOutput = FluidUtilBC.onTankActivated(player, pos, hand, section.tankOutput);
-               didChange = didChangeOutput;
-            }
+         Storage<FluidVariant> storage = exchange.getSidedFluidStorage(hitResult.getDirection());
+         boolean didChange = storage != null && FluidUtilBC.onTankActivated(player, pos, hand, storage);
 
-            if (didChange) {
-               return InteractionResult.SUCCESS;
-            }
+         if (didChange) {
+            return InteractionResult.SUCCESS;
          }
 
          return (InteractionResult)(FluidUtilBC.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : openExchangeMenu(level, exchange, player));
@@ -175,30 +199,6 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
       }
 
       return InteractionResult.SUCCESS;
-   }
-
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileHeatExchange exchange) {
-         TileHeatExchange.ExchangeSection section = exchange.getSection();
-         if (section != null) {
-            NonNullList<ItemStack> toDrop = NonNullList.create();
-            FluidItemDrops.addFluidDrops(toDrop, section.tankInput);
-            FluidItemDrops.addFluidDrops(toDrop, section.tankOutput);
-
-            for (ItemStack drop : toDrop) {
-               Block.popResource(level, pos, drop);
-            }
-         }
-
-         for (int i = 0; i < exchange.containerSlots.getSlots(); i++) {
-            ItemStack slotStack = exchange.containerSlots.getStackInSlot(i);
-            if (!slotStack.isEmpty()) {
-               Block.popResource(level, pos, slotStack);
-            }
-         }
-      }
-
-      return super.playerWillDestroy(level, pos, state, player);
    }
 
    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {

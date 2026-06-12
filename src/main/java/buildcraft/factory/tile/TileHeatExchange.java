@@ -6,7 +6,6 @@
 
 package buildcraft.factory.tile;
 
-import buildcraft.api.items.FluidItemDrops;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.api.tiles.IDebuggable;
@@ -20,6 +19,7 @@ import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fluid.FluidSmoother;
 import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.FluidUtilBC;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
@@ -35,7 +35,6 @@ import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -50,7 +49,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
@@ -59,15 +57,19 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 public class TileHeatExchange extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
+   public static final int MAX_CHAIN_LENGTH = 5;
    private static final int[] FLUID_MULT = new int[]{5, 10, 20};
    protected TileHeatExchange.ExchangeSection section;
    private boolean checkNeighbours;
    private int lastSyncHash = 0;
-   public final ItemHandlerSimple containerSlots = new ItemHandlerSimple(4, 1);
 
    public TileHeatExchange(BlockPos pos, BlockState state) {
       super(BCFactoryBlockEntities.HEAT_EXCHANGE, pos, state);
-      this.containerSlots.setCallback((handler, slot, bef, aft) -> this.setChanged());
+   }
+
+   @Nullable
+   public ItemHandlerSimple getContainerSlots() {
+      return this.section instanceof TileHeatExchange.ExchangeSectionStart start ? start.containerSlots : null;
    }
 
    public boolean isStart() {
@@ -180,7 +182,11 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                for (TileHeatExchange tile : exchangers) {
                   tile.removeSection();
                }
-            } else if (exchangers.size() <= 5) {
+            } else if (exchangers.size() > MAX_CHAIN_LENGTH) {
+               for (TileHeatExchange tile : exchangers) {
+                  tile.removeSection();
+               }
+            } else {
                TileHeatExchange.ExchangeSectionStart sectionStart = null;
                TileHeatExchange.ExchangeSectionEnd sectionEnd = null;
 
@@ -189,9 +195,15 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                   if (exchange.section instanceof TileHeatExchange.ExchangeSectionStart existingStart) {
                      if (sectionStart == null) {
                         sectionStart = existingStart;
+                     } else {
+                        exchange.dropOrphanedSection(existingStart);
                      }
-                  } else if (exchange.section instanceof TileHeatExchange.ExchangeSectionEnd existingEnd && sectionEnd == null) {
-                     sectionEnd = existingEnd;
+                  } else if (exchange.section instanceof TileHeatExchange.ExchangeSectionEnd existingEnd) {
+                     if (sectionEnd == null) {
+                        sectionEnd = existingEnd;
+                     } else {
+                        exchange.dropOrphanedSection(existingEnd);
+                     }
                   }
 
                   exchange.section = null;
@@ -249,15 +261,16 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       }
    }
 
+   private void dropOrphanedSection(TileHeatExchange.ExchangeSection orphan) {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.dropSectionContents(this.worldPosition, orphan);
+      }
+   }
+
    private void removeSection() {
       if (this.section != null) {
          if (this.level != null && !this.level.isClientSide()) {
-            NonNullList<ItemStack> toDrop = NonNullList.create();
-            FluidItemDrops.addFluidDrops(toDrop, this.section.tankInput, this.section.tankOutput);
-
-            for (ItemStack drop : toDrop) {
-               Block.popResource(this.level, this.worldPosition, drop);
-            }
+            this.dropSectionContents(this.worldPosition, this.section);
          }
 
          this.section = null;
@@ -357,37 +370,13 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
             Direction next = horizontals[(idx + 1) % 4];
             this.level.setBlock(this.worldPosition, (BlockState)this.getBlockState().setValue(BlockHeatExchange.FACING, next), 3);
          } else {
-            TileHeatExchange.ExchangeSectionStart start = null;
-            TileHeatExchange.ExchangeSectionEnd end = null;
+            Direction opposite = thisFacing.getOpposite();
 
             for (TileHeatExchange exchange : exchangers) {
-               if (exchange.section instanceof TileHeatExchange.ExchangeSectionStart s) {
-                  start = s;
-               } else if (exchange.section instanceof TileHeatExchange.ExchangeSectionEnd e) {
-                  end = e;
-               }
-
-               exchange.section = null;
                this.level
-                  .setBlock(exchange.worldPosition, (BlockState)exchange.getBlockState().setValue(BlockHeatExchange.FACING, thisFacing.getOpposite()), 3);
+                  .setBlock(exchange.worldPosition, (BlockState)exchange.getBlockState().setValue(BlockHeatExchange.FACING, opposite), 3);
                exchange.checkNeighbours = true;
                exchange.setChanged();
-            }
-
-            if (start != null) {
-               TileHeatExchange tile = exchangers.getLast();
-               tile.section = start;
-               start.setTile(tile);
-               tile.setChanged();
-               tile.syncToClient();
-            }
-
-            if (end != null) {
-               TileHeatExchange tile = exchangers.getFirst();
-               tile.section = end;
-               end.setTile(tile);
-               tile.setChanged();
-               tile.syncToClient();
             }
          }
 
@@ -427,6 +416,44 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       if (this.level != null && !this.level.isClientSide()) {
          this.setChanged();
          MessageUtil.sendUpdateToTrackingPlayers(this);
+      }
+   }
+
+   @Override
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.dropContents(pos);
+      }
+
+      super.preRemoveSideEffects(pos, state);
+   }
+
+   private void dropContents(BlockPos pos) {
+      if (this.section != null) {
+         this.dropSectionContents(pos, this.section);
+      }
+   }
+
+   private void dropSectionContents(BlockPos pos, TileHeatExchange.ExchangeSection section) {
+      BlockDropsUtil.dropFluidShards(this.level, pos, section.tankInput, section.tankOutput);
+      this.extractTankContents(section.tankInput);
+      this.extractTankContents(section.tankOutput);
+      if (section instanceof TileHeatExchange.ExchangeSectionStart start) {
+         BlockDropsUtil.dropItems(this.level, pos, start.containerSlots);
+      }
+   }
+
+   private void extractTankContents(SingleFluidTank tank) {
+      if (tank.isEmpty()) {
+         return;
+      }
+
+      FluidStack held = tank.getFluidStack();
+      int amountMb = tank.getAmountMb();
+
+      try (Transaction tx = Transaction.openOuter()) {
+         tank.extract(TransferConvert.toVariant(held), TransferConvert.mbToDroplets(amountMb), tx);
+         tx.commit();
       }
    }
 
@@ -484,7 +511,6 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
-      output.store("containerSlots", CompoundTag.CODEC, this.containerSlots.serializeNBT());
       if (this.section != null) {
          output.putBoolean("hasSection", true);
          output.putBoolean("isStart", this.section instanceof TileHeatExchange.ExchangeSectionStart);
@@ -499,6 +525,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
          }
 
          if (this.section instanceof TileHeatExchange.ExchangeSectionStart s) {
+            output.store("containerSlots", CompoundTag.CODEC, s.containerSlots.serializeNBT());
             output.putInt("middleCount", s.middleCount);
             output.putInt("progress", s.progress);
             output.putInt("progressState", s.progressState.ordinal());
@@ -510,7 +537,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
-      this.containerSlots.deserializeNBT((CompoundTag)input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new));
+      CompoundTag containerSlotsNbt = (CompoundTag)input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new);
       if (input.getBooleanOr("hasSection", false)) {
          boolean isStart = input.getBooleanOr("isStart", true);
          if (isStart) {
@@ -523,7 +550,10 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
             FactoryTileUtils.loadTank(s.tankInput, input, "sectionInput");
             FactoryTileUtils.loadTank(s.tankOutput, input, "sectionOutput");
+            s.containerSlots.deserializeNBT(containerSlotsNbt);
             s.middleCount = input.getIntOr("middleCount", 1);
+            s.progress = Math.min(120, input.getIntOr("progress", 0));
+            s.progressLast = s.progress;
             int stateOrd = input.getIntOr("progressState", 0);
             s.progressState = TileHeatExchange.EnumProgressState.values()[Math.min(stateOrd, TileHeatExchange.EnumProgressState.values().length - 1)];
             this.section = s;
@@ -628,6 +658,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
    }
 
    public static class ExchangeSectionStart extends TileHeatExchange.ExchangeSection {
+      public final ItemHandlerSimple containerSlots = new ItemHandlerSimple(4, 1);
       TileHeatExchange.ExchangeSectionEnd endSection;
       public int middleCount;
       int progress = 0;
@@ -636,6 +667,12 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
       ExchangeSectionStart(TileHeatExchange tile) {
          super(tile, TileHeatExchange.ExchangeSectionStart::isHeatant);
+         this.containerSlots.setCallback((handler, slot, bef, aft) -> {
+            TileHeatExchange host = this.getTile();
+            if (host != null) {
+               host.setChanged();
+            }
+         });
       }
 
       public TileHeatExchange.ExchangeSectionEnd getEndSection() {
@@ -685,28 +722,26 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
       private void processContainerSlots() {
          TileHeatExchange tile = this.getTile();
-         if (tile != null && tile.level != null) {
-            if (tile.level.getGameTime() % 5L == 0L) {
-               if (this.endSection != null) {
-                  drainSlotIntoTank(tile, 0, this.endSection.tankInput);
-               }
-
-               drainSlotIntoTank(tile, 1, this.tankInput);
-               if (this.endSection != null) {
-                  fillSlotFromTank(tile, 2, this.endSection.tankOutput);
-               }
-
-               fillSlotFromTank(tile, 3, this.tankOutput);
+         if (tile != null && tile.level != null && tile.level.getGameTime() % 5L == 0L) {
+            if (this.endSection != null) {
+               drainSlotIntoTank(this.containerSlots, 0, this.endSection.tankInput);
             }
+
+            drainSlotIntoTank(this.containerSlots, 1, this.tankInput);
+            if (this.endSection != null) {
+               fillSlotFromTank(this.containerSlots, 2, this.endSection.tankOutput);
+            }
+
+            fillSlotFromTank(this.containerSlots, 3, this.tankOutput);
          }
       }
 
-      private static void drainSlotIntoTank(TileHeatExchange tile, int slot, SingleFluidTank tank) {
-         FactoryFluidContainers.syncDrainSlot(tile.containerSlots, slot, tank);
+      private static void drainSlotIntoTank(ItemHandlerSimple slots, int slot, SingleFluidTank tank) {
+         FactoryFluidContainers.syncDrainSlot(slots, slot, tank);
       }
 
-      private static void fillSlotFromTank(TileHeatExchange tile, int slot, SingleFluidTank tank) {
-         FactoryFluidContainers.syncFillSlot(tile.containerSlots, slot, tank);
+      private static void fillSlotFromTank(ItemHandlerSimple slots, int slot, SingleFluidTank tank) {
+         FactoryFluidContainers.syncFillSlot(slots, slot, tank);
       }
 
       @Override
@@ -887,29 +922,10 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
       private static int simulateExtract(SingleFluidTank t, @Nullable FluidStack fluid) {
          if (fluid != null && !fluid.isEmpty()) {
-            Transaction tx = Transaction.openOuter();
-
-            int var5;
-            try {
+            try (Transaction tx = Transaction.openOuter()) {
                long moved = t.extractInternal(TransferConvert.toVariant(fluid), TransferConvert.mbToDroplets(fluid.getAmount()), tx);
-               var5 = (int)TransferConvert.dropletsToMb(moved);
-            } catch (Throwable var7) {
-               if (tx != null) {
-                  try {
-                     tx.close();
-                  } catch (Throwable var6) {
-                     var7.addSuppressed(var6);
-                  }
-               }
-
-               throw var7;
+               return (int)TransferConvert.dropletsToMb(moved);
             }
-
-            if (tx != null) {
-               tx.close();
-            }
-
-            return var5;
          } else {
             return 0;
          }
@@ -917,29 +933,10 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
       private static int simulateInsert(SingleFluidTank t, @Nullable FluidStack fluid) {
          if (fluid != null && !fluid.isEmpty()) {
-            Transaction tx = Transaction.openOuter();
-
-            int var5;
-            try {
+            try (Transaction tx = Transaction.openOuter()) {
                long moved = t.insertInternal(TransferConvert.toVariant(fluid), TransferConvert.mbToDroplets(fluid.getAmount()), tx);
-               var5 = (int)TransferConvert.dropletsToMb(moved);
-            } catch (Throwable var7) {
-               if (tx != null) {
-                  try {
-                     tx.close();
-                  } catch (Throwable var6) {
-                     var7.addSuppressed(var6);
-                  }
-               }
-
-               throw var7;
+               return (int)TransferConvert.dropletsToMb(moved);
             }
-
-            if (tx != null) {
-               tx.close();
-            }
-
-            return var5;
          } else {
             return 0;
          }

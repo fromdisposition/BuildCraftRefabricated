@@ -25,19 +25,21 @@ public final class JeiFluids {
       addFluidStack(slot, stack, stack.getAmount());
    }
 
-   public static void addFluidStack(IRecipeSlotBuilder slot, FluidStack stack, long amount) {
-      if (stack != null && !stack.isEmpty()) {
+   public static void addFluidStack(IRecipeSlotBuilder slot, FluidStack stack, long amountMb) {
+      if (stack != null && !stack.isEmpty() && amountMb > 0L) {
          FluidVariant variant = TransferConvert.toVariant(stack);
-         slot.add(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, amount));
+         slot.add(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, TransferConvert.mbToDroplets(amountMb)));
       }
    }
 
    public static Optional<? extends IClickableIngredient<?>> clickableFluidIngredient(
-      IClickableIngredientFactory factory, FluidStack fluid, long amount, int x, int y, int width, int height
+      IClickableIngredientFactory factory, FluidStack fluid, long amountMb, int x, int y, int width, int height
    ) {
-      if (fluid != null && !fluid.isEmpty() && amount > 0L) {
+      if (fluid != null && !fluid.isEmpty() && amountMb > 0L) {
          FluidVariant variant = TransferConvert.toVariant(fluid);
-         return factory.createBuilder(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, amount)).buildWithArea(new Rect2i(x, y, width, height));
+         return factory
+            .createBuilder(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, TransferConvert.mbToDroplets(amountMb)))
+            .buildWithArea(new Rect2i(x, y, width, height));
       } else {
          return Optional.empty();
       }

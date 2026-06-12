@@ -38,7 +38,7 @@ public class ContainerHeatExchange extends BcMenu {
    public ContainerHeatExchange(int containerId, Inventory playerInv, @Nullable TileHeatExchange tile) {
       super(BCFactoryMenuTypes.HEAT_EXCHANGE, containerId, playerInv.player);
       this.tile = tile;
-      ItemHandlerSimple machineSlots = tile != null ? tile.containerSlots : FALLBACK_SLOTS;
+      ItemHandlerSimple machineSlots = tile != null && tile.getContainerSlots() != null ? tile.getContainerSlots() : FALLBACK_SLOTS;
       this.addSlot(new SlotBase(machineSlots, 0, 8, 23));
       this.addSlot(new SlotBase(machineSlots, 1, 8, 64));
       this.addSlot(new SlotBase(machineSlots, 2, 152, 12));
@@ -55,7 +55,7 @@ public class ContainerHeatExchange extends BcMenu {
    @Override
    @Nullable
    protected ItemHandlerSimple getJeiBucketTransferSlots() {
-      return this.tile != null ? this.tile.containerSlots : null;
+      return this.tile != null ? this.tile.getContainerSlots() : null;
    }
 
    @Nullable
