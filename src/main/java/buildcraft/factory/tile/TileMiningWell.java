@@ -21,7 +21,6 @@ import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
@@ -72,17 +71,21 @@ public class TileMiningWell extends TileMiner {
    }
 
    private boolean canBreak() {
-      if (!this.level.isEmptyBlock(this.currentPos) && !BlockUtil.isUnbreakableBlock(this.level, this.currentPos, this.getOwner())) {
-         BlockState state = this.level.getBlockState(this.currentPos);
-         if (state.is(BlockTags.NEEDS_DIAMOND_TOOL)) {
-            return false;
-         }
-
-         Fluid fluid = BlockUtil.getFluidWithFlowing(this.level, this.currentPos);
-         return fluid == null ? true : FluidTypes.of(fluid).getViscosity() <= 1000;
-      } else {
+      if (this.level.isEmptyBlock(this.currentPos) || BlockUtil.isUnbreakableBlock(this.level, this.currentPos, this.getOwner())) {
          return false;
       }
+
+      BlockState state = this.level.getBlockState(this.currentPos);
+      if (state.is(BlockTags.NEEDS_DIAMOND_TOOL)) {
+         return false;
+      }
+
+      return state.getFluidState().isEmpty();
+   }
+
+   private boolean isPassableFluid(BlockPos pos) {
+      FluidState fluidState = this.level.getFluidState(pos);
+      return !fluidState.isEmpty() && FluidTypes.of(fluidState.getType()).getViscosity() <= 1000;
    }
 
    private void nextPos() {
@@ -100,9 +103,7 @@ public class TileMiningWell extends TileMiner {
                return;
             }
 
-            FluidState fluidState = this.level.getFluidState(this.currentPos);
-            boolean isPassable = !fluidState.isEmpty() && FluidTypes.of(fluidState.getType()).getViscosity() <= 1000;
-            if (this.level.isEmptyBlock(this.currentPos) || isPassable) {
+            if (this.level.isEmptyBlock(this.currentPos) || this.isPassableFluid(this.currentPos)) {
                continue;
             }
          }
