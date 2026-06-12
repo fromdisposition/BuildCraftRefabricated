@@ -1,6 +1,5 @@
 package buildcraft.fabric;
 
-import buildcraft.lib.client.sprite.BcFluidBakeSpriteSource;
 import buildcraft.lib.client.sprite.BcHeatWhiteSpriteSource;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
@@ -16,7 +15,6 @@ public final class BCSpriteSourcesFabric {
    private BCSpriteSourcesFabric() {
    }
 
-   
    public static void register() {
    }
 
@@ -24,7 +22,6 @@ public final class BCSpriteSourcesFabric {
       if (!registered) {
          try {
             mapper.put(BcHeatWhiteSpriteSource.ID, BcHeatWhiteSpriteSource.MAP_CODEC);
-            mapper.put(BcFluidBakeSpriteSource.ID, BcFluidBakeSpriteSource.MAP_CODEC);
             registered = true;
          } catch (RuntimeException e) {
             LOGGER.error("Failed to register BuildCraft sprite source types", e);

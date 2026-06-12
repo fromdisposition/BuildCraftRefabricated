@@ -154,7 +154,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       Fluid current = fluidStack.getFluid();
       if (current != flow.renderCacheFluid) {
          flow.renderCacheFluid = current;
-         flow.renderCacheSprite = BcFluidRenderLookup.sprite(fluidStack, BcFluidRenderLookup.SpriteKind.FLOWING);
+         flow.renderCacheSprite = BcFluidRenderLookup.tintSprite(fluidStack, BcFluidRenderLookup.SpriteKind.STILL);
          flow.renderCacheEntry = BCEnergyFluidsFabric.findEntry(current);
          flow.renderCacheBcGradient = flow.renderCacheEntry != null;
          if (flow.renderCacheEntry != null) {

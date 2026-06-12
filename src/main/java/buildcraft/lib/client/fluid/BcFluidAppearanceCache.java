@@ -35,8 +35,8 @@ public final class BcFluidAppearanceCache {
    private static BcFluidAppearance build(FluidStack stack) {
       var sprite = BcFluidRenderLookup.resolveSprite(stack, BcFluidRenderLookup.SpriteKind.STILL);
       int tint = BcFluidRenderLookup.resolveTint(stack);
-      boolean translucent = BcFluidRenderLookup.resolveTranslucent(stack);
       BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(stack.getFluid());
+      boolean translucent = entry != null ? entry.gaseous() : BcFluidRenderLookup.resolveTranslucent(stack);
       return entry != null
          ? BcFluidAppearance.fromEntry(entry, sprite, tint, translucent)
          : BcFluidAppearance.vanilla(sprite, tint, translucent);

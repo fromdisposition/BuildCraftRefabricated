@@ -64,20 +64,26 @@ val notYetOnFabric = listOf<String>()
 
 tasks.register("generateFluidBucketAssets") {
     group = "buildcraft"
-    description = "Regenerate bucket-fluid PNGs, underwater overlay PNGs (BOP-style), and fluid-bucket item JSON."
+    description = "Regenerate fluid block textures, bucket icons, underwater overlays, and bucket item JSON."
     doLast {
         val heatStill = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_still.png")
         val fluidMask = file("src/main/resources/assets/buildcraftenergy/textures/item/mask/bucket_fluid.png")
         val fluidOutDir = file("src/main/resources/assets/buildcraftenergy/textures/item/bucket_fluid")
         val underwaterOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids")
+        val bakedOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/baked")
         val itemsDir = file("src/main/resources/assets/buildcraftenergy/items")
         val modelsDir = file("src/main/resources/assets/buildcraftenergy/models/item/fluid_buckets")
         require(heatStill.isFile) { "Missing ${heatStill.path} — extract from a built JAR or add the texture." }
         require(fluidMask.isFile) { "Missing ${fluidMask.path} (bucket fluid mask)." }
         fluidOutDir.mkdirs()
+        bakedOutDir.mkdirs()
         modelsDir.mkdirs()
 
-        fun recolor(basePixel: Int, light: Int, dark: Int): Int {
+        fun recolor(basePixel: Int, light: Int, dark: Int, gaseous: Boolean = false): Int {
+            val alpha = (basePixel ushr 24) and 0xFF
+            if (alpha == 0) {
+                return 0
+            }
             val wr = (basePixel shr 16) and 0xFF
             val wg = (basePixel shr 8) and 0xFF
             val wb = basePixel and 0xFF
@@ -90,7 +96,18 @@ tasks.register("generateFluidBucketAssets") {
             val outR = (dr * (256 - wr) + lr * wr) / 256
             val outG = (dg * (256 - wg) + lg * wg) / 256
             val outB = (db * (256 - wb) + lb * wb) / 256
-            return (0xFF shl 24) or (outR shl 16) or (outG shl 8) or outB
+            val outA = if (gaseous) (alpha * 0.42).toInt().coerceIn(24, 255) else alpha
+            return (outA shl 24) or (outR shl 16) or (outG shl 8) or outB
+        }
+
+        fun bakeImage(src: BufferedImage, light: Int, dark: Int, gaseous: Boolean): BufferedImage {
+            val out = BufferedImage(src.width, src.height, BufferedImage.TYPE_INT_ARGB)
+            for (y in 0 until src.height) {
+                for (x in 0 until src.width) {
+                    out.setRGB(x, y, recolor(src.getRGB(x, y), light, dark, gaseous))
+                }
+            }
+            return out
         }
 
         val baseImg = ImageIO.read(heatStill)
@@ -114,6 +131,7 @@ tasks.register("generateFluidBucketAssets") {
         val heats = listOf("", "_heat_1", "_heat_2")
 
         for ((base, light, dark) in fluidData) {
+            val gaseous = base == "fuel_gaseous"
             for (heatSuffix in heats) {
                 val fluid = base + heatSuffix
                 val heat = when {
@@ -126,6 +144,23 @@ tasks.register("generateFluidBucketAssets") {
                 val tintB = ((light and 0xFF) + (dark and 0xFF)) / 2 + heat * 0x10
                 val adjLight = (0xFF shl 24) or (minOf(tintR, 0xFF) shl 16) or (minOf(tintG, 0xFF) shl 8) or minOf(tintB, 0xFF)
                 val adjDark = dark
+
+                val heatStillTemplate = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_still.png")
+                val heatFlowTemplate = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png")
+                require(heatStillTemplate.isFile) { "Missing ${heatStillTemplate.path}" }
+                require(heatFlowTemplate.isFile) { "Missing ${heatFlowTemplate.path}" }
+                val stillTemplate = ImageIO.read(heatStillTemplate)
+                val flowTemplate = ImageIO.read(heatFlowTemplate)
+                ImageIO.write(bakeImage(stillTemplate, adjLight, adjDark, gaseous), "PNG", bakedOutDir.resolve("$fluid.png"))
+                ImageIO.write(bakeImage(flowTemplate, adjLight, adjDark, gaseous), "PNG", bakedOutDir.resolve("${fluid}_flow.png"))
+                val stillMcmeta = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_still.png.mcmeta")
+                if (stillMcmeta.isFile) {
+                    stillMcmeta.copyTo(bakedOutDir.resolve("$fluid.png.mcmeta"), overwrite = true)
+                }
+                val flowMcmeta = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png.mcmeta")
+                if (flowMcmeta.isFile) {
+                    flowMcmeta.copyTo(bakedOutDir.resolve("${fluid}_flow.png.mcmeta"), overwrite = true)
+                }
 
                 val icon = BufferedImage(frame, frame, BufferedImage.TYPE_INT_ARGB)
                 for (y in 0 until frame) {
@@ -180,7 +215,7 @@ tasks.register("generateFluidBucketAssets") {
                 )
             }
         }
-        logger.lifecycle("Regenerated ${fluidData.size * heats.size} fluid bucket + underwater overlay assets")
+        logger.lifecycle("Regenerated ${fluidData.size * heats.size} fluid block, bucket, and underwater assets")
     }
 }
 

@@ -44,6 +44,10 @@ public final class BcFluidTintUtil {
       return heatStillSpriteId(heat).withSuffix("_white");
    }
 
+   public static Identifier heatFlowWhiteSpriteId(int heat) {
+      return heatFlowSpriteId(heat).withSuffix("_white");
+   }
+
    public static Identifier bakedStillSpriteId(String fluidRegName) {
       return Identifier.fromNamespaceAndPath("buildcraftenergy", "block/fluids/baked/" + fluidRegName);
    }

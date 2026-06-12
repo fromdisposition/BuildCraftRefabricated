@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.Material.Baked;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
@@ -29,8 +30,9 @@ import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Client fluid sprite/tint lookup. {@link #tint(FluidStack)} is for world and pipe rendering (BC fluids use white atlas tint).
- * {@link #itemMaskTint(FluidStack, BlockAndTintGetter)} is for GUI masks with heat-aware averaging.
+ * Client fluid sprite/tint lookup.
+ * World blocks use pre-baked {@code block/fluids/baked/*} sprites from {@link FluidModel}.
+ * Pipes and other vertex-tinted surfaces use shared {@code heat_*_white} templates.
  */
 public final class BcFluidRenderLookup {
    private BcFluidRenderLookup() {
@@ -41,26 +43,40 @@ public final class BcFluidRenderLookup {
       FLOWING
    }
 
+   /** World / appearance cache — pre-baked colored block sprites. */
    public static TextureAtlasSprite sprite(FluidStack stack, SpriteKind kind) {
       if (stack == null || stack.isEmpty()) {
          return missingSprite();
       }
 
-      BcFluidAppearance appearance = BcFluidAppearanceCache.get(stack);
-      if (appearance != null && kind == SpriteKind.STILL) {
-         return appearance.sprite();
-      }
-
-      return resolveSprite(stack, kind);
+      return resolveBakedSprite(stack.getFluid(), kind);
    }
 
    public static TextureAtlasSprite sprite(Fluid fluid, SpriteKind kind) {
-      BcFluidAppearance appearance = BcFluidAppearanceCache.get(fluid);
-      if (appearance != null && kind == SpriteKind.STILL) {
-         return appearance.sprite();
+      return resolveBakedSprite(fluid, kind);
+   }
+
+   /** Pipes/tanks with per-vertex heat template tinting — shared white luminance sprites. */
+   public static TextureAtlasSprite tintSprite(FluidStack stack, SpriteKind kind) {
+      if (stack == null || stack.isEmpty()) {
+         return missingSprite();
       }
 
-      return resolveSprite(fluid, kind);
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(stack.getFluid());
+      if (entry != null) {
+         return whiteTemplateSprite(entry.heat(), kind);
+      }
+
+      return resolveBakedSprite(stack.getFluid(), kind);
+   }
+
+   public static TextureAtlasSprite tintSprite(Fluid fluid, SpriteKind kind) {
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
+      if (entry != null) {
+         return whiteTemplateSprite(entry.heat(), kind);
+      }
+
+      return resolveBakedSprite(fluid, kind);
    }
 
    private static FluidModel modelFor(Fluid fluid) {
@@ -79,10 +95,14 @@ public final class BcFluidRenderLookup {
    }
 
    static TextureAtlasSprite resolveSprite(FluidStack stack, SpriteKind kind) {
-      return stack != null && !stack.isEmpty() ? resolveSprite(stack.getFluid(), kind) : missingSprite();
+      return stack != null && !stack.isEmpty() ? resolveBakedSprite(stack.getFluid(), kind) : missingSprite();
    }
 
    static TextureAtlasSprite resolveSprite(Fluid fluid, SpriteKind kind) {
+      return resolveBakedSprite(fluid, kind);
+   }
+
+   private static TextureAtlasSprite resolveBakedSprite(Fluid fluid, SpriteKind kind) {
       Fluid canonical = FluidIdentity.canonicalFluid(fluid);
       if (canonical.isSame(Fluids.EMPTY)) {
          return missingSprite();
@@ -92,6 +112,11 @@ public final class BcFluidRenderLookup {
       Baked material = kind == SpriteKind.FLOWING ? model.flowingMaterial() : model.stillMaterial();
       TextureAtlasSprite sprite = material.sprite();
       return sprite != null ? sprite : missingSprite();
+   }
+
+   private static TextureAtlasSprite whiteTemplateSprite(int heat, SpriteKind kind) {
+      Identifier id = kind == SpriteKind.FLOWING ? BcFluidTintUtil.heatFlowWhiteSpriteId(heat) : BcFluidTintUtil.heatStillWhiteSpriteId(heat);
+      return BcTextureAtlases.getBlockSprite(id);
    }
 
    public static int itemMaskTint(FluidStack stack, @Nullable BlockAndTintGetter level) {
@@ -167,6 +192,11 @@ public final class BcFluidRenderLookup {
       Fluid canonical = FluidIdentity.canonicalFluid(fluid);
       if (canonical.isSame(Fluids.EMPTY)) {
          return false;
+      }
+
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(canonical);
+      if (entry != null) {
+         return entry.gaseous();
       }
 
       Block block = canonical.defaultFluidState().createLegacyBlock().getBlock();
