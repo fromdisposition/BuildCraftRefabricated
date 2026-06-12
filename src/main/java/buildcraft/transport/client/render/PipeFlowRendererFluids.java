@@ -41,10 +41,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
          ensureRenderCache(flow, forRender);
          TextureAtlasSprite sprite = flow.renderCacheSprite;
          if (sprite != null) {
-            float r = flow.renderCacheTintR / 255.0F;
-            float g = flow.renderCacheTintG / 255.0F;
-            float b = flow.renderCacheTintB / 255.0F;
-            float a = flow.renderCacheTintA / 255.0F;
+            float[] rgba = flow.renderCacheRgba;
             int packedLight = PipeRenderContext.getPackedLight();
             double[] amounts = SCRATCH_AMOUNTS.get();
             flow.writeAmountsForRender(partialTicks, amounts);
@@ -78,10 +75,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                      cuboidCapacity,
                      gas,
                      faceSkipMask,
-                     r,
-                     g,
-                     b,
-                     a,
+                     rgba,
                      packedLight,
                      bb,
                      poseStack
@@ -105,10 +99,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                   flow.capacity,
                   gas,
                   0,
-                  r,
-                  g,
-                  b,
-                  a,
+                  rgba,
                   packedLight,
                   bb,
                   poseStack
@@ -125,7 +116,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                double yMax = gas ? 1.0 - horizPos : CENTER_OUTSET;
                int pillarSkipMask = renderedHorizCenter ? 1 << (gas ? Direction.UP.ordinal() : Direction.DOWN.ordinal()) : 0;
                renderFluidCuboid(
-                  sprite, minXZ, yMin, minXZ, maxXZ, yMax, maxXZ, 1.0, 1.0, gas, pillarSkipMask, r, g, b, a, packedLight, bb, poseStack
+                  sprite, minXZ, yMin, minXZ, maxXZ, yMax, maxXZ, 1.0, 1.0, gas, pillarSkipMask, rgba, packedLight, bb, poseStack
                );
             }
          }
@@ -173,22 +164,22 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       double overlap = face.getAxisDirection() == AxisDirection.POSITIVE ? FACE_OVERLAP : -FACE_OVERLAP;
       switch (face) {
          case EAST:
-            bounds[3] = 1.0 + overlap;
+            bounds[3] = Math.max(bounds[3], 1.0 + overlap);
             break;
          case WEST:
-            bounds[0] = -overlap;
+            bounds[0] = Math.min(bounds[0], -overlap);
             break;
          case UP:
-            bounds[4] = 1.0 + overlap;
+            bounds[4] = Math.max(bounds[4], 1.0 + overlap);
             break;
          case DOWN:
-            bounds[1] = -overlap;
+            bounds[1] = Math.min(bounds[1], -overlap);
             break;
          case SOUTH:
-            bounds[5] = 1.0 + overlap;
+            bounds[5] = Math.max(bounds[5], 1.0 + overlap);
             break;
          case NORTH:
-            bounds[2] = -overlap;
+            bounds[2] = Math.min(bounds[2], -overlap);
             break;
          default:
             break;
@@ -207,11 +198,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       if (current != flow.renderCacheFluid) {
          flow.renderCacheFluid = current;
          flow.renderCacheSprite = BcFluidRenderLookup.sprite(fluidStack, BcFluidRenderLookup.SpriteKind.STILL);
-         float[] rgba = BcFluidRenderLookup.vertexRgba(fluidStack);
-         flow.renderCacheTintR = (int)(rgba[0] * 255.0F);
-         flow.renderCacheTintG = (int)(rgba[1] * 255.0F);
-         flow.renderCacheTintB = (int)(rgba[2] * 255.0F);
-         flow.renderCacheTintA = (int)(rgba[3] * 255.0F);
+         BcFluidRenderLookup.writePipeVertexRgba(fluidStack, flow.renderCacheRgba);
          flow.renderCacheTranslucent = BcFluidRenderLookup.translucent(fluidStack);
       }
    }
@@ -228,10 +215,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       double capacity,
       boolean gas,
       int skipFaceMask,
-      float r,
-      float g,
-      float b,
-      float a,
+      float[] rgba,
       int packedLight,
       VertexConsumer bb,
       PoseStack poseStack
@@ -256,7 +240,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       }
 
       BcFluidPipeQuads.emitPipeCuboid(
-         poseStack.last(), bb, sprite, null, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, r, g, b, a, packedLight
+         poseStack.last(), bb, sprite, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, rgba, packedLight
       );
    }
 }

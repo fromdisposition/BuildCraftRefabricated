@@ -56,7 +56,7 @@ public final class BcFluidRenderLookup {
       return resolveBakedSprite(fluid, kind);
    }
 
-   /** Pipes/tanks with per-vertex heat template tinting — shared white luminance sprites. */
+   /** Tanks/BER with per-vertex heat template tinting — shared white luminance sprites. */
    public static TextureAtlasSprite tintSprite(FluidStack stack, SpriteKind kind) {
       if (stack == null || stack.isEmpty()) {
          return missingSprite();
@@ -204,16 +204,28 @@ public final class BcFluidRenderLookup {
    }
 
    public static float[] vertexRgba(FluidStack stack) {
-      int color = tint(stack);
-      float a = (color >> 24 & 0xFF) / 255.0F;
-      float r = (color >> 16 & 0xFF) / 255.0F;
-      float g = (color >> 8 & 0xFF) / 255.0F;
-      float b = (color & 0xFF) / 255.0F;
-      if (a <= 0.0F) {
-         a = 1.0F;
-      }
+      float[] out = new float[4];
+      writeVertexRgba(stack, out);
+      return out;
+   }
 
-      return new float[]{r, g, b, a};
+   public static void writeVertexRgba(FluidStack stack, float[] out) {
+      writeVertexRgbaFromTint(tint(stack), out);
+   }
+
+   /** Pipe vertex multiply — skips appearance cache; baked BC fluids stay white. */
+   public static void writePipeVertexRgba(FluidStack stack, float[] out) {
+      writeVertexRgbaFromTint(resolveTint(stack), out);
+   }
+
+   private static void writeVertexRgbaFromTint(int color, float[] out) {
+      out[3] = (color >> 24 & 0xFF) / 255.0F;
+      out[0] = (color >> 16 & 0xFF) / 255.0F;
+      out[1] = (color >> 8 & 0xFF) / 255.0F;
+      out[2] = (color & 0xFF) / 255.0F;
+      if (out[3] <= 0.0F) {
+         out[3] = 1.0F;
+      }
    }
 
    private static TextureAtlasSprite missingSprite() {
