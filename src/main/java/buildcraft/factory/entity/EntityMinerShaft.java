@@ -56,7 +56,7 @@ public class EntityMinerShaft extends Entity {
    }
 
    protected AABB makeBoundingBox(Vec3 position) {
-      return this.buildCollisionBounds(position);
+      return this.getDimensions(this.getPose()).makeBoundingBox(position.x, position.y, position.z);
    }
 
    public boolean canBeCollidedWith(Entity other) {
@@ -87,21 +87,7 @@ public class EntityMinerShaft extends Entity {
       this.entityData.set(SIZE_X, (float)(aabb.maxX - aabb.minX));
       this.entityData.set(SIZE_Y, (float)(aabb.maxY - aabb.minY));
       this.entityData.set(SIZE_Z, (float)(aabb.maxZ - aabb.minZ));
-      this.setPos((aabb.minX + aabb.maxX) / 2.0, (aabb.minY + aabb.maxY) / 2.0, (aabb.minZ + aabb.maxZ) / 2.0);
+      this.setPos((aabb.minX + aabb.maxX) / 2.0, aabb.minY, (aabb.minZ + aabb.maxZ) / 2.0);
       this.refreshDimensions();
-   }
-
-   private AABB buildCollisionBounds(Vec3 position) {
-      float sizeX = this.entityData.get(SIZE_X);
-      float sizeY = this.entityData.get(SIZE_Y);
-      float sizeZ = this.entityData.get(SIZE_Z);
-      if (sizeX <= 0.0F || sizeY <= 0.0F || sizeZ <= 0.0F) {
-         return super.makeBoundingBox(position);
-      }
-
-      float halfX = sizeX / 2.0F;
-      float halfY = sizeY / 2.0F;
-      float halfZ = sizeZ / 2.0F;
-      return new AABB(position.x - halfX, position.y - halfY, position.z - halfZ, position.x + halfX, position.y + halfY, position.z + halfZ);
    }
 }
