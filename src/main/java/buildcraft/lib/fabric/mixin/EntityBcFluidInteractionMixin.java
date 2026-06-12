@@ -24,6 +24,7 @@ public class EntityBcFluidInteractionMixin {
       @SuppressWarnings("unchecked")
       Set<TagKey<Fluid>> tags = new HashSet<>((Set<TagKey<Fluid>>) args.get(0));
       tags.add(BcFluidTags.BC_FLUIDS);
+      tags.add(BcFluidTags.BC_LIQUIDS);
       args.set(0, Set.copyOf(tags));
    }
 }

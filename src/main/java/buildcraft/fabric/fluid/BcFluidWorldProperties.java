@@ -19,7 +19,6 @@ public record BcFluidWorldProperties(
    boolean denseFluid,
    boolean displacesWater,
    boolean floatsOnWater,
-   boolean swimmable,
    int tickDelay,
    int slopeFindDistance,
    int dropOff
@@ -72,7 +71,6 @@ public record BcFluidWorldProperties(
       boolean denseFluid = baseName.contains("oil_heavy") || baseName.contains("oil_dense") || baseName.contains("oil_residue");
       boolean displacesWater = !gaseous && density > 1000;
       boolean floatsOnWater = !gaseous && density > 0 && density < 1000;
-      boolean swimmable = !gaseous;
       int quanta = baseSpread + (baseSpread > 6 ? heat : heat / 2);
       int tickDelay = Math.max(1, viscosity / 200);
       int slopeFindDistance;
@@ -104,7 +102,6 @@ public record BcFluidWorldProperties(
          denseFluid,
          displacesWater,
          floatsOnWater,
-         swimmable,
          tickDelay,
          slopeFindDistance,
          dropOff
@@ -123,15 +120,14 @@ public record BcFluidWorldProperties(
             BcFluidWorldProperties p = compute(baseName, heat, data[0], data[1], data[2], data[3], data[4], data[5], true, data[6], true, data[7]);
             sb.append(
                String.format(
-                  "%-22s d=%5d v=%4d %s sticky=%s displaces=%s float=%s swim=%s%n",
+                  "%-22s d=%5d v=%4d %s sticky=%s displaces=%s float=%s%n",
                   regName(baseName, heat),
                   p.density(),
                   p.viscosity(),
                   p.gaseous() ? "GAS    " : "liquid ",
                   p.sticky(),
                   p.displacesWater(),
-                  p.floatsOnWater(),
-                  p.swimmable()
+                  p.floatsOnWater()
                )
             );
          }
@@ -140,7 +136,7 @@ public record BcFluidWorldProperties(
       return sb.toString();
    }
 
-   public static List<String> swimmableFluidTagValues() {
+   public static List<String> liquidFluidTagValues() {
       List<String> values = new ArrayList<>();
 
       for (int i = 0; i < FLUID_DATA.length; i++) {
@@ -149,7 +145,7 @@ public record BcFluidWorldProperties(
 
          for (int heat = 0; heat < 3; heat++) {
             BcFluidWorldProperties props = compute(baseName, heat, data[0], data[1], data[2], data[3], data[4], data[5], true, data[6], true, data[7]);
-            if (props.swimmable()) {
+            if (!props.gaseous()) {
                String reg = regName(baseName, heat);
                values.add("buildcraftenergy:" + reg);
                values.add("buildcraftenergy:" + reg + "_flowing");
