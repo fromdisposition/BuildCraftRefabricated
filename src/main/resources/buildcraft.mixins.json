@@ -8,7 +8,8 @@
     "ShapelessRecipeAccessor",
     "EntityBcFluidInteractionMixin",
     "EntityFluidInteractionBcMixin",
-    "EntityBcFluidSwimMixin"
+    "EntityBcFluidSwimMixin",
+    "LivingEntityBcFluidMixin"
   ],
   "client": [
     "client.SpriteSourcesAccessor",
