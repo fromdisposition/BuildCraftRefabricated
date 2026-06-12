@@ -89,86 +89,48 @@ fun readAnimationFrameSize(mcmeta: java.io.File): Pair<Int, Int> {
     return width to height
 }
 
-fun grayChannel(pixel: Int): Int = (pixel shr 16) and 0xFF
-
-fun composeGray(lum: Int): Int = 0xFF000000.toInt() or (lum shl 16) or (lum shl 8) or lum
-
-private data class FlowBakePixel(val x: Int, val y: Int, val flowGray: Int, val shapeAlpha: Int)
-
-/** Monotonic luminance remap: same flow gray always maps to the same color (FluidRenderer UV expects this). */
-fun bakeFlowWithStillLuminance(
+/**
+ * Native still-scroll: colors from baked still, water_flow is only the shape mask.
+ * Side faces map sprite U→world horizontal and V→world vertical (FluidRenderer uses flowing left half).
+ * Transpose still sampling so caustics run vertically on walls (stillX←y, stillY←x).
+ * Animate along bake Y (-frame on stillX) so side-face motion runs top→bottom, not left→right.
+ */
+fun bakeFlowFromBakedStillScroll(
+    bakedStill: BufferedImage,
     flowTemplate: BufferedImage,
-    stillTemplate: BufferedImage,
-    flowFrameW: Int,
-    flowFrameH: Int,
     stillFrameW: Int,
     stillFrameH: Int,
-    light: Int,
-    dark: Int,
+    flowFrameW: Int,
+    flowFrameH: Int,
     gaseous: Boolean,
-    recolor: (Int, Int, Int, Boolean, Int) -> Int,
 ): BufferedImage {
     val out = BufferedImage(flowTemplate.width, flowTemplate.height, BufferedImage.TYPE_INT_ARGB)
+    val stillFrames = bakedStill.height / stillFrameH
     val flowFrames = flowTemplate.height / flowFrameH
-    var stillMin = 255
-    var stillMax = 0
-    var stillRefSum = 0
-    var stillRefCount = 0
-    for (sy in 0 until stillFrameH) {
-        for (sx in 0 until stillFrameW) {
-            val stillPx = stillTemplate.getRGB(sx, sy)
-            if ((stillPx ushr 24) and 0xFF > 0) {
-                val gray = grayChannel(stillPx)
-                stillMin = minOf(stillMin, gray)
-                stillMax = maxOf(stillMax, gray)
-                stillRefSum += gray
-                stillRefCount++
-            }
-        }
-    }
-    check(stillRefCount > 0) { "still template frame 0 has no opaque pixels" }
-    val stillRefMean = stillRefSum / stillRefCount
-    val stillSpan = maxOf(1, stillMax - stillMin)
-
-    var globalFlowMin = 255
-    var globalFlowMax = 0
-    val flowPixels = ArrayList<FlowBakePixel>()
+    check(stillFrames > 0) { "baked still has no animation frames" }
     for (frame in 0 until flowFrames) {
+        val stillFrame = 0
         val frameY = frame * flowFrameH
-        for (ly in 0 until flowFrameH) {
-            for (fx in 0 until flowTemplate.width) {
-                val fy = frameY + ly
-                val flowPx = flowTemplate.getRGB(fx, fy)
-                val shapeAlpha = (flowPx ushr 24) and 0xFF
+        for (y in 0 until flowFrameH) {
+            for (x in 0 until flowTemplate.width) {
+                val fy = frameY + y
+                val maskPx = flowTemplate.getRGB(x, fy)
+                val shapeAlpha = (maskPx ushr 24) and 0xFF
                 if (shapeAlpha == 0) {
-                    out.setRGB(fx, fy, 0)
+                    out.setRGB(x, fy, 0)
                     continue
                 }
-                val flowGray = grayChannel(flowPx)
-                globalFlowMin = minOf(globalFlowMin, flowGray)
-                globalFlowMax = maxOf(globalFlowMax, flowGray)
-                flowPixels.add(FlowBakePixel(fx, fy, flowGray, shapeAlpha))
+                val stillX = Math.floorMod(y % stillFrameH - frame, stillFrameH)
+                val stillY = x % stillFrameW
+                val stillPx = bakedStill.getRGB(stillX, stillFrame * stillFrameH + stillY)
+                if ((stillPx ushr 24) and 0xFF == 0) {
+                    out.setRGB(x, fy, 0)
+                    continue
+                }
+                val outA = if (gaseous) (shapeAlpha * 0.42).toInt().coerceIn(24, 255) else 0xFF
+                out.setRGB(x, fy, (outA shl 24) or (stillPx and 0xFFFFFF))
             }
         }
-    }
-    check(flowPixels.isNotEmpty()) { "flow template has no opaque pixels" }
-    val globalFlowSpan = maxOf(1, globalFlowMax - globalFlowMin)
-    var adjustedSum = 0
-    val adjustedGrays = IntArray(flowPixels.size)
-    for (i in flowPixels.indices) {
-        val flowGray = flowPixels[i].flowGray
-        adjustedGrays[i] = stillMin + (flowGray - globalFlowMin) * stillSpan / globalFlowSpan
-        adjustedSum += adjustedGrays[i]
-    }
-    val meanCorrection = stillRefMean - adjustedSum / flowPixels.size
-    for (i in flowPixels.indices) {
-        val pixel = flowPixels[i]
-        val adjustedGray = (adjustedGrays[i] + meanCorrection).coerceIn(0, 255)
-        out.setRGB(
-            pixel.x,
-            pixel.y,
-            recolor(composeGray(adjustedGray), light, dark, gaseous, pixel.shapeAlpha),
-        )
     }
     return out
 }
@@ -197,14 +159,23 @@ fun vanillaWaterToHeatFlow(water: BufferedImage): BufferedImage {
 tasks.register("generateFluidBucketAssets") {
     group = "buildcraft"
     description = "Regenerate fluid block textures, bucket icons, underwater overlays, and bucket item JSON."
+    val heatStill = file("gradle/fluid_assets/heat_still.png")
+    val fluidMask = file("src/main/resources/assets/buildcraftenergy/textures/item/mask/bucket_fluid.png")
+    val fluidOutDir = file("src/main/resources/assets/buildcraftenergy/textures/item/bucket_fluid")
+    val underwaterOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/underwater")
+    val bakedOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/baked")
+    val itemsDir = file("src/main/resources/assets/buildcraftenergy/items")
+    val modelsDir = file("src/main/resources/assets/buildcraftenergy/models/item/fluid_buckets")
+    inputs.file(heatStill)
+    inputs.file(fluidMask)
+    inputs.files((0..2).map { file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_still.png") })
+    inputs.files((0..2).map { file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_still.png.mcmeta") })
+    inputs.files((0..2).map { file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_flow.png.mcmeta") })
+    outputs.dir(bakedOutDir)
+    outputs.dir(underwaterOutDir)
+    outputs.dir(fluidOutDir)
+    outputs.files((0..2).map { file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_flow.png") })
     doLast {
-        val heatStill = file("gradle/fluid_assets/heat_still.png")
-        val fluidMask = file("src/main/resources/assets/buildcraftenergy/textures/item/mask/bucket_fluid.png")
-        val fluidOutDir = file("src/main/resources/assets/buildcraftenergy/textures/item/bucket_fluid")
-        val underwaterOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/underwater")
-        val bakedOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/baked")
-        val itemsDir = file("src/main/resources/assets/buildcraftenergy/items")
-        val modelsDir = file("src/main/resources/assets/buildcraftenergy/models/item/fluid_buckets")
         require(heatStill.isFile) { "Missing ${heatStill.path} — extract from a built JAR or add the texture." }
         require(fluidMask.isFile) { "Missing ${fluidMask.path} (bucket fluid mask)." }
         fluidOutDir.mkdirs()
@@ -300,7 +271,8 @@ tasks.register("generateFluidBucketAssets") {
                 require(heatFlowTemplate.isFile) { "Missing ${heatFlowTemplate.path}" }
                 val stillTemplate = ImageIO.read(heatStillTemplate)
                 val flowTemplate = ImageIO.read(heatFlowTemplate)
-                ImageIO.write(bakeImage(stillTemplate, adjLight, adjDark, gaseous), "PNG", bakedOutDir.resolve("$fluid.png"))
+                val bakedStill = bakeImage(stillTemplate, adjLight, adjDark, gaseous)
+                ImageIO.write(bakedStill, "PNG", bakedOutDir.resolve("$fluid.png"))
                 val stillMcmeta = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_still.png.mcmeta")
                 val flowMcmeta = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png.mcmeta")
                 require(stillMcmeta.isFile) { "Missing ${stillMcmeta.path}" }
@@ -308,17 +280,14 @@ tasks.register("generateFluidBucketAssets") {
                 val (stillFrameW, stillFrameH) = readAnimationFrameSize(stillMcmeta)
                 val (flowFrameW, flowFrameH) = readAnimationFrameSize(flowMcmeta)
                 ImageIO.write(
-                    bakeFlowWithStillLuminance(
+                    bakeFlowFromBakedStillScroll(
+                        bakedStill,
                         flowTemplate,
-                        stillTemplate,
-                        flowFrameW,
-                        flowFrameH,
                         stillFrameW,
                         stillFrameH,
-                        adjLight,
-                        adjDark,
+                        flowFrameW,
+                        flowFrameH,
                         gaseous,
-                        ::recolor,
                     ),
                     "PNG",
                     bakedOutDir.resolve("${fluid}_flow.png"),
@@ -404,6 +373,8 @@ tasks.withType<JavaCompile>().configureEach {
 
 tasks.processResources {
     dependsOn("generateFluidBucketAssets")
+    // Generator mutates src/main/resources; track its outputs so this task never copies stale PNGs.
+    inputs.files(tasks.named("generateFluidBucketAssets").map { it.outputs.files })
     val props = mapOf(
         "mod_version" to version,
         "mc_dep_range" to providers.gradleProperty("mc_dep_range").get(),
@@ -433,6 +404,16 @@ tasks.named<Jar>("sourcesJar") {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+}
+
+/** Always rebuild from scratch so stale build/resources (e.g. regenerated fluid PNGs) never linger in the JAR. */
+tasks.named("clean") {
+    delete(layout.projectDirectory.dir("run"))
+    delete(layout.projectDirectory.dir("run_server"))
+}
+
+tasks.named("build") {
+    dependsOn("clean")
 }
 
 /** Unpack Mojang / Fabric API / Loom artifacts into .gradle/api-explore for local API browsing. */
