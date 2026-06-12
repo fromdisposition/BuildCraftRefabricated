@@ -44,12 +44,7 @@ public final class FluidWorldRenderer {
    }
 
    public static boolean skipWaterVision(LocalPlayer player) {
-      if (player.level() == null) {
-         return false;
-      }
-
-      FluidState fluidState = fluidStateAtEye(player, player.level());
-      return !fluidState.isEmpty() && fluidState.getType().is(BcFluidTags.BC_FLUIDS);
+      return BcFluidUtil.isEyeInBcFluid(player);
    }
 
    public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, MultiBufferSource bufferSource) {

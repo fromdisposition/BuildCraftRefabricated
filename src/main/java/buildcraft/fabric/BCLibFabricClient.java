@@ -3,6 +3,7 @@ package buildcraft.fabric;
 import buildcraft.core.BCUnifiedClientConfig;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
+import buildcraft.lib.client.fluid.BcFluidFogProfiles;
 import buildcraft.lib.client.fluid.BcFluidTintUtil;
 import buildcraft.lib.client.fluid.FluidDisplayNamesClient;
 import buildcraft.lib.client.guide.GuideManager;
@@ -30,6 +31,7 @@ public final class BCLibFabricClient {
 
    public static void init() {
       FluidDisplayNamesClient.register();
+      BcFluidFogProfiles.loadFromClasspath();
       BCReloadFabric.initClient();
       registerColorBlindAutoWatcher();
       AdvDebugRenderer.register();
@@ -45,6 +47,7 @@ public final class BCLibFabricClient {
 
             @Override
             protected void apply(Void prepared, PreparableReloadListener.SharedState state) {
+               BcFluidFogProfiles.reload(state.resourceManager());
                BcFluidTintUtil.reloadTemplates(state.resourceManager());
                BcFluidAppearanceCache.clear();
             }

@@ -5,11 +5,7 @@
   "mixins": [
     "LevelMixin",
     "BlockEntityMixin",
-    "ShapelessRecipeAccessor",
-    "EntityBcFluidInteractionMixin",
-    "EntityFluidInteractionBcMixin",
-    "EntityBcFluidSwimMixin",
-    "LivingEntityBcFluidMixin"
+    "ShapelessRecipeAccessor"
   ],
   "client": [
     "client.SpriteSourcesAccessor",

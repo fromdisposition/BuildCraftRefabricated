@@ -6,8 +6,8 @@ import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.BCEnergyBlocks;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.worldgen.BCEnergyWorldgen;
-import buildcraft.energy.BCEnergyFluids;
 import buildcraft.energy.BCEnergyItems;
+import buildcraft.fabric.fluid.BcFluidEntityInteractions;
 import buildcraft.energy.BCEnergyMenuTypes;
 import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
@@ -24,7 +24,7 @@ public final class BCEnergyFabric {
 
    public static void register() {
       BCEnergyFluidsFabric.register();
-      BCEnergyFluids.refreshSnapshot();
+      BcFluidEntityInteractions.register();
       BCEnergyBlocks.register();
       BCEnergyItems.register();
       BCEnergyBlockEntities.register();
@@ -38,7 +38,6 @@ public final class BCEnergyFabric {
 
    public static void onConfigReloaded() {
       BCEnergyFluidsFabric.reapplyConfigProperties();
-      BCEnergyFluids.refreshSnapshot();
       applySpringConfig();
    }
 

@@ -6,9 +6,9 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 
 /**
- * BC fluid helpers shared by physics mixins and client fog/overlay.
- * Liquids use {@link BcFluidTags#BC_LIQUIDS} for water-like physics; all variants use
- * {@link BcFluidTags#BC_FLUIDS} for detection, fog, and overlay.
+ * BC fluid helpers shared by world physics and client fog/overlay.
+ * Liquids use {@link BcFluidTags#BC_LIQUIDS} via {@link BcFluidEntityInteractions};
+ * all variants use {@link BcFluidTags#BC_FLUIDS} for block-level detection.
  */
 public final class BcFluidUtil {
    private BcFluidUtil() {
@@ -29,14 +29,8 @@ public final class BcFluidUtil {
       return !state.isEmpty() && state.getType().is(BcFluidTags.BC_FLUIDS);
    }
 
-   /** Entity eye is inside any BC fluid tracker or block (fog, overlay, camera). */
+   /** Entity eye is inside a BC fluid (tracker for liquids, block check for gases and edge cases). */
    public static boolean isEyeInBcFluid(Entity entity) {
-      return entity.isEyeInFluid(BcFluidTags.BC_FLUIDS)
-         || entity.isEyeInFluid(BcFluidTags.BC_LIQUIDS)
-         || isBcFluidAtEye(entity);
-   }
-
-   public static boolean isEyeInGaseousBcFluid(Entity entity) {
-      return entity.isEyeInFluid(BcFluidTags.BC_FLUIDS) && !entity.isEyeInFluid(BcFluidTags.BC_LIQUIDS);
+      return entity.isEyeInFluid(BcFluidTags.BC_LIQUIDS) || isBcFluidAtEye(entity);
    }
 }
