@@ -5,6 +5,9 @@
 !/src/**
 !/gradle/
 !/gradle/**
+# Build inputs for generateFluidBucketAssets (not shipped in the mod JAR).
+!/gradle/fluid_assets/
+!/gradle/fluid_assets/**
 
 !/.gitignore
 !/.gitattributes
@@ -21,6 +24,9 @@
 build/
 run/
 run_server/
+
+# Fluid bake outputs under src/ ARE tracked (baked/, underwater/, heat_* templates,
+# bucket_fluid icons). Regenerate via: ./gradlew generateFluidBucketAssets
 
 # IDE / OS
 .idea/

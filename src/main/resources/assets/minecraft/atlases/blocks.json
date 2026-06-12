@@ -76,8 +76,8 @@
     },
     {
       "type": "minecraft:directory",
-      "source": "block/fluids",
-      "prefix": "block/fluids/"
+      "source": "block/fluids/underwater",
+      "prefix": "block/fluids/underwater/"
     }
   ]
 }

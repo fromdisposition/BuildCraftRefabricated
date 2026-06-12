@@ -36,7 +36,7 @@ public final class BCEnergyFabricClient {
       for (BCEnergyFluidsFabric.FluidEntry entry : BCEnergyFluidsFabric.ALL) {
          Material stillMaterial = new Material(BcFluidTintUtil.bakedStillSpriteId(entry.name()));
          Material flowMaterial = new Material(BcFluidTintUtil.bakedFlowSpriteId(entry.name()));
-         Material underwaterMaterial = new Material(Identifier.fromNamespaceAndPath("buildcraftenergy", "block/fluids/" + entry.name() + "_underwater"));
+         Material underwaterMaterial = new Material(Identifier.fromNamespaceAndPath("buildcraftenergy", "block/fluids/underwater/" + entry.name()));
          Unbaked model = new Unbaked(stillMaterial, flowMaterial, underwaterMaterial, BlockTintSources.constant(-1));
          FluidRenderingRegistry.register(entry.still(), entry.flowing(), model);
          FluidRenderingRegistry.setBlockTransparency(entry.block(), true);

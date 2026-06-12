@@ -80,6 +80,94 @@ fun loadVanillaWaterFlow(mcJar: java.io.File): BufferedImage =
         zip.getInputStream(entry).use { stream -> ImageIO.read(stream) }
     }
 
+fun readAnimationFrameSize(mcmeta: java.io.File): Pair<Int, Int> {
+    val text = mcmeta.readText()
+    val width = Regex(""""width"\s*:\s*(\d+)""").find(text)?.groupValues?.get(1)?.toInt()
+        ?: error("animation width missing in ${mcmeta.path}")
+    val height = Regex(""""height"\s*:\s*(\d+)""").find(text)?.groupValues?.get(1)?.toInt()
+        ?: error("animation height missing in ${mcmeta.path}")
+    return width to height
+}
+
+fun grayChannel(pixel: Int): Int = (pixel shr 16) and 0xFF
+
+fun composeGray(lum: Int): Int = 0xFF000000.toInt() or (lum shl 16) or (lum shl 8) or lum
+
+/** Monotonic luminance remap: same flow gray always maps to the same color (FluidRenderer UV expects this). */
+fun bakeFlowWithStillLuminance(
+    flowTemplate: BufferedImage,
+    stillTemplate: BufferedImage,
+    flowFrameW: Int,
+    flowFrameH: Int,
+    stillFrameW: Int,
+    stillFrameH: Int,
+    light: Int,
+    dark: Int,
+    gaseous: Boolean,
+    recolor: (Int, Int, Int, Boolean, Int) -> Int,
+): BufferedImage {
+    val out = BufferedImage(flowTemplate.width, flowTemplate.height, BufferedImage.TYPE_INT_ARGB)
+    val flowFrames = flowTemplate.height / flowFrameH
+    var stillMin = 255
+    var stillMax = 0
+    var stillRefSum = 0
+    var stillRefCount = 0
+    for (sy in 0 until stillFrameH) {
+        for (sx in 0 until stillFrameW) {
+            val stillPx = stillTemplate.getRGB(sx, sy)
+            if ((stillPx ushr 24) and 0xFF > 0) {
+                val gray = grayChannel(stillPx)
+                stillMin = minOf(stillMin, gray)
+                stillMax = maxOf(stillMax, gray)
+                stillRefSum += gray
+                stillRefCount++
+            }
+        }
+    }
+    check(stillRefCount > 0) { "still template frame 0 has no opaque pixels" }
+    val stillRefMean = stillRefSum / stillRefCount
+    val stillSpan = maxOf(1, stillMax - stillMin)
+
+    for (frame in 0 until flowFrames) {
+        val frameY = frame * flowFrameH
+        var flowMin = 255
+        var flowMax = 0
+        val framePixels = ArrayList<Triple<Int, Int, Int>>()
+        for (ly in 0 until flowFrameH) {
+            for (fx in 0 until flowTemplate.width) {
+                val fy = frameY + ly
+                val flowPx = flowTemplate.getRGB(fx, fy)
+                val shapeAlpha = (flowPx ushr 24) and 0xFF
+                if (shapeAlpha == 0) {
+                    out.setRGB(fx, fy, 0)
+                    continue
+                }
+                val flowGray = grayChannel(flowPx)
+                flowMin = minOf(flowMin, flowGray)
+                flowMax = maxOf(flowMax, flowGray)
+                framePixels.add(Triple(fx, fy, flowGray))
+            }
+        }
+        val flowSpan = maxOf(1, flowMax - flowMin)
+        var adjustedSum = 0
+        val adjustedGrays = IntArray(framePixels.size)
+        for (i in framePixels.indices) {
+            val flowGray = framePixels[i].third
+            adjustedGrays[i] = stillMin + (flowGray - flowMin) * stillSpan / flowSpan
+            adjustedSum += adjustedGrays[i]
+        }
+        val meanCorrection = stillRefMean - adjustedSum / framePixels.size
+        for (i in framePixels.indices) {
+            val (fx, fy, _) = framePixels[i]
+            val flowPx = flowTemplate.getRGB(fx, fy)
+            val shapeAlpha = (flowPx ushr 24) and 0xFF
+            val adjustedGray = (adjustedGrays[i] + meanCorrection).coerceIn(0, 255)
+            out.setRGB(fx, fy, recolor(composeGray(adjustedGray), light, dark, gaseous, shapeAlpha))
+        }
+    }
+    return out
+}
+
 fun vanillaWaterToHeatFlow(water: BufferedImage): BufferedImage {
     val out = BufferedImage(water.width, water.height, BufferedImage.TYPE_INT_ARGB)
     for (y in 0 until water.height) {
@@ -105,10 +193,10 @@ tasks.register("generateFluidBucketAssets") {
     group = "buildcraft"
     description = "Regenerate fluid block textures, bucket icons, underwater overlays, and bucket item JSON."
     doLast {
-        val heatStill = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_still.png")
+        val heatStill = file("gradle/fluid_assets/heat_still.png")
         val fluidMask = file("src/main/resources/assets/buildcraftenergy/textures/item/mask/bucket_fluid.png")
         val fluidOutDir = file("src/main/resources/assets/buildcraftenergy/textures/item/bucket_fluid")
-        val underwaterOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids")
+        val underwaterOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/underwater")
         val bakedOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/baked")
         val itemsDir = file("src/main/resources/assets/buildcraftenergy/items")
         val modelsDir = file("src/main/resources/assets/buildcraftenergy/models/item/fluid_buckets")
@@ -116,16 +204,22 @@ tasks.register("generateFluidBucketAssets") {
         require(fluidMask.isFile) { "Missing ${fluidMask.path} (bucket fluid mask)." }
         fluidOutDir.mkdirs()
         bakedOutDir.mkdirs()
+        underwaterOutDir.mkdirs()
         modelsDir.mkdirs()
 
-        fun recolor(basePixel: Int, light: Int, dark: Int, gaseous: Boolean = false): Int {
-            val alpha = (basePixel ushr 24) and 0xFF
-            if (alpha == 0) {
+        fun recolor(
+            lumPixel: Int,
+            light: Int,
+            dark: Int,
+            gaseous: Boolean = false,
+            shapeAlpha: Int = (lumPixel ushr 24) and 0xFF,
+        ): Int {
+            if (shapeAlpha == 0) {
                 return 0
             }
-            val wr = (basePixel shr 16) and 0xFF
-            val wg = (basePixel shr 8) and 0xFF
-            val wb = basePixel and 0xFF
+            val wr = (lumPixel shr 16) and 0xFF
+            val wg = (lumPixel shr 8) and 0xFF
+            val wb = lumPixel and 0xFF
             val lr = (light shr 16) and 0xFF
             val lg = (light shr 8) and 0xFF
             val lb = light and 0xFF
@@ -135,7 +229,7 @@ tasks.register("generateFluidBucketAssets") {
             val outR = (dr * (256 - wr) + lr * wr) / 256
             val outG = (dg * (256 - wg) + lg * wg) / 256
             val outB = (db * (256 - wb) + lb * wb) / 256
-            val outA = if (gaseous) (alpha * 0.42).toInt().coerceIn(24, 255) else alpha
+            val outA = if (gaseous) (shapeAlpha * 0.42).toInt().coerceIn(24, 255) else 0xFF
             return (outA shl 24) or (outR shl 16) or (outG shl 8) or outB
         }
 
@@ -202,15 +296,30 @@ tasks.register("generateFluidBucketAssets") {
                 val stillTemplate = ImageIO.read(heatStillTemplate)
                 val flowTemplate = ImageIO.read(heatFlowTemplate)
                 ImageIO.write(bakeImage(stillTemplate, adjLight, adjDark, gaseous), "PNG", bakedOutDir.resolve("$fluid.png"))
-                ImageIO.write(bakeImage(flowTemplate, adjLight, adjDark, gaseous), "PNG", bakedOutDir.resolve("${fluid}_flow.png"))
                 val stillMcmeta = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_still.png.mcmeta")
-                if (stillMcmeta.isFile) {
-                    stillMcmeta.copyTo(bakedOutDir.resolve("$fluid.png.mcmeta"), overwrite = true)
-                }
                 val flowMcmeta = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png.mcmeta")
-                if (flowMcmeta.isFile) {
-                    flowMcmeta.copyTo(bakedOutDir.resolve("${fluid}_flow.png.mcmeta"), overwrite = true)
-                }
+                require(stillMcmeta.isFile) { "Missing ${stillMcmeta.path}" }
+                require(flowMcmeta.isFile) { "Missing ${flowMcmeta.path}" }
+                val (stillFrameW, stillFrameH) = readAnimationFrameSize(stillMcmeta)
+                val (flowFrameW, flowFrameH) = readAnimationFrameSize(flowMcmeta)
+                ImageIO.write(
+                    bakeFlowWithStillLuminance(
+                        flowTemplate,
+                        stillTemplate,
+                        flowFrameW,
+                        flowFrameH,
+                        stillFrameW,
+                        stillFrameH,
+                        adjLight,
+                        adjDark,
+                        gaseous,
+                        ::recolor,
+                    ),
+                    "PNG",
+                    bakedOutDir.resolve("${fluid}_flow.png"),
+                )
+                stillMcmeta.copyTo(bakedOutDir.resolve("$fluid.png.mcmeta"), overwrite = true)
+                flowMcmeta.copyTo(bakedOutDir.resolve("${fluid}_flow.png.mcmeta"), overwrite = true)
 
                 val icon = BufferedImage(frame, frame, BufferedImage.TYPE_INT_ARGB)
                 for (y in 0 until frame) {
@@ -239,7 +348,7 @@ tasks.register("generateFluidBucketAssets") {
                         }
                     }
                 }
-                ImageIO.write(underwater, "PNG", underwaterOutDir.resolve("${fluid}_underwater.png"))
+                ImageIO.write(underwater, "PNG", underwaterOutDir.resolve("$fluid.png"))
 
                 val bucket = "${fluid}_bucket"
                 modelsDir.resolve("$bucket.json").writeText(

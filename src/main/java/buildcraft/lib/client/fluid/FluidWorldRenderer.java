@@ -84,7 +84,7 @@ public final class FluidWorldRenderer {
          minecraft,
          poseStack,
          bufferSource,
-         Identifier.fromNamespaceAndPath("buildcraftenergy", "textures/block/fluids/" + entry.name() + "_underwater.png"),
+         Identifier.fromNamespaceAndPath("buildcraftenergy", "textures/block/fluids/underwater/" + entry.name() + ".png"),
          appearance.overlayAlpha()
       );
    }
