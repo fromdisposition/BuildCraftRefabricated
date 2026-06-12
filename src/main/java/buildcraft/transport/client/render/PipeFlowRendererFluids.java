@@ -60,7 +60,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
                   horizontal |= flow.pipe.isConnected(face) && amount > 0.0;
                }
 
-               if (amount > 0.0) {
+               if (amount > 0.0 && flow.pipe.isConnected(face)) {
                   double size = ((Pipe)flow.pipe).getConnectedDist(face);
                   double[] bounds = armBounds(face, size, amount, flow.capacity);
                   int faceSkipMask = amounts[centerIdx] > 0.0 ? 1 << face.getOpposite().ordinal() : 0;

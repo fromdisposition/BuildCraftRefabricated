@@ -715,13 +715,15 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             if (fluid != null && fluid != Fluids.EMPTY) {
                this.currentFluid = new FluidStack(fluid, 1000);
             }
+         } else {
+            this.currentFluid = FluidStack.EMPTY;
          }
 
          for (EnumPipePart part : EnumPipePart.VALUES) {
             PipeFlowFluids.Section section = this.sections.get(part);
             if (full || buffer.readBoolean()) {
                section.target = buffer.readShort();
-               if (full) {
+               if (full || section.target == 0) {
                   section.clientAmountLast = section.clientAmountThis = section.target;
                }
             }
@@ -889,13 +891,17 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       boolean tickClient() {
          this.clientAmountLast = this.clientAmountThis;
          if (this.target != this.clientAmountThis) {
-            int delta = this.target - this.clientAmountThis;
-            long msgDelta = PipeFlowFluids.this.lastMessage - PipeFlowFluids.this.lastMessageMinus1;
-            msgDelta = MathUtil.clamp((int)msgDelta, 1, 60);
-            if (Math.abs(delta) < msgDelta) {
-               this.clientAmountThis += delta;
+            if (this.target == 0) {
+               this.clientAmountThis = 0;
             } else {
-               this.clientAmountThis += delta / (int)msgDelta;
+               int delta = this.target - this.clientAmountThis;
+               long msgDelta = PipeFlowFluids.this.lastMessage - PipeFlowFluids.this.lastMessageMinus1;
+               msgDelta = MathUtil.clamp((int)msgDelta, 1, 60);
+               if (Math.abs(delta) < msgDelta) {
+                  this.clientAmountThis += delta;
+               } else {
+                  this.clientAmountThis += delta / (int)msgDelta;
+               }
             }
          }
 
