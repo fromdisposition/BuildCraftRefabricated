@@ -53,7 +53,7 @@ public final class FluidWorldRenderer {
       }
 
       FluidState fluidState = fluidStateAtEye(minecraft.player, minecraft.player.level());
-      if (fluidState.isEmpty() || !fluidState.getType().is(BcFluidTags.BC_FLUIDS)) {
+      if (fluidState.isEmpty() || !fluidState.is(BcFluidTags.BC_FLUIDS)) {
          return;
       }
 

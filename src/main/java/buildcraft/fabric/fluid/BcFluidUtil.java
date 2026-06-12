@@ -26,7 +26,7 @@ public final class BcFluidUtil {
       }
 
       FluidState state = entity.level().getFluidState(BlockPos.containing(entity.getX(), entity.getEyeY(), entity.getZ()));
-      return !state.isEmpty() && state.getType().is(BcFluidTags.BC_FLUIDS);
+      return !state.isEmpty() && state.is(BcFluidTags.BC_FLUIDS);
    }
 
    /** Entity eye is inside a BC fluid (tracker for liquids, block check for gases and edge cases). */

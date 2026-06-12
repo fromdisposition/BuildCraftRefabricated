@@ -174,8 +174,9 @@ class OilWellProjectionProcessorTest {
       }
 
       @Override
+      @SuppressWarnings("deprecation") // LevelReader still declares this; delegate via getChunk until removed
       public boolean hasChunk(int chunkX, int chunkZ) {
-         return false;
+         return this.getChunk(chunkX, chunkZ, ChunkStatus.FULL, false) != null;
       }
 
       @Override
