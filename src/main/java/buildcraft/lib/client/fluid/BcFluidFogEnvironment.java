@@ -1,6 +1,5 @@
 package buildcraft.lib.client.fluid;
 
-import buildcraft.fabric.fluid.BcFluidTags;
 import javax.annotation.Nullable;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
@@ -34,7 +33,7 @@ public final class BcFluidFogEnvironment extends FogEnvironment {
          return false;
       }
 
-      return entity.isEyeInFluid(BcFluidTags.BC_FLUIDS) && FluidWorldRenderer.appearanceAtEye(entity, level) != null;
+      return FluidWorldRenderer.appearanceAtEye(entity, level) != null;
    }
 
    @Override

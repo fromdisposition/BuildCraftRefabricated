@@ -14,9 +14,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * BC liquids live in {@link BcFluidTags#BC_LIQUIDS}, not {@link FluidTags#WATER}.
- * Route tracking to the correct tracker and bridge vanilla WATER queries so drowning,
- * movement slowdown, currents, and swim state match real water without the water tag.
+ * BC liquids are tracked under {@link BcFluidTags#BC_LIQUIDS}; gases use {@link BcFluidTags#BC_FLUIDS}.
+ * Bridge {@link FluidTags#WATER} for swim/drown physics and {@link BcFluidTags#BC_FLUIDS} for fog/overlay
+ * without adding BC fluids to the minecraft water tag.
  */
 @Mixin(EntityFluidInteraction.class)
 public class EntityFluidInteractionBcMixin {
@@ -35,38 +35,61 @@ public class EntityFluidInteractionBcMixin {
    }
 
    @Inject(method = "getFluidHeight", at = @At("RETURN"), cancellable = true)
-   private void buildcraft$waterHeightIncludesBcLiquids(TagKey<Fluid> tag, CallbackInfoReturnable<Double> cir) {
-      if (tag != FluidTags.WATER) {
+   private void buildcraft$bridgeFluidHeight(TagKey<Fluid> tag, CallbackInfoReturnable<Double> cir) {
+      TagKey<Fluid> bcTag = null;
+      if (tag == FluidTags.WATER || tag == BcFluidTags.BC_FLUIDS) {
+         bcTag = BcFluidTags.BC_LIQUIDS;
+      }
+
+      if (bcTag == null) {
          return;
       }
 
       EntityFluidInteraction self = (EntityFluidInteraction)(Object)this;
-      double bcHeight = self.getFluidHeight(BcFluidTags.BC_LIQUIDS);
+      double bcHeight = self.getFluidHeight(bcTag);
       if (bcHeight > cir.getReturnValue()) {
          cir.setReturnValue(bcHeight);
       }
    }
 
    @Inject(method = "isEyeInFluid", at = @At("RETURN"), cancellable = true)
-   private void buildcraft$waterEyeIncludesBcLiquids(TagKey<Fluid> tag, CallbackInfoReturnable<Boolean> cir) {
-      if (tag != FluidTags.WATER || cir.getReturnValue()) {
+   private void buildcraft$bridgeEyeInFluid(TagKey<Fluid> tag, CallbackInfoReturnable<Boolean> cir) {
+      if (cir.getReturnValue()) {
+         return;
+      }
+
+      TagKey<Fluid> bcTag = null;
+      if (tag == FluidTags.WATER || tag == BcFluidTags.BC_FLUIDS) {
+         bcTag = BcFluidTags.BC_LIQUIDS;
+      }
+
+      if (bcTag == null) {
          return;
       }
 
       EntityFluidInteraction self = (EntityFluidInteraction)(Object)this;
-      if (self.isEyeInFluid(BcFluidTags.BC_LIQUIDS)) {
+      if (self.isEyeInFluid(bcTag)) {
          cir.setReturnValue(true);
       }
    }
 
    @Inject(method = "isInFluid", at = @At("RETURN"), cancellable = true)
-   private void buildcraft$waterBodyIncludesBcLiquids(TagKey<Fluid> tag, CallbackInfoReturnable<Boolean> cir) {
-      if (tag != FluidTags.WATER || cir.getReturnValue()) {
+   private void buildcraft$bridgeInFluid(TagKey<Fluid> tag, CallbackInfoReturnable<Boolean> cir) {
+      if (cir.getReturnValue()) {
+         return;
+      }
+
+      TagKey<Fluid> bcTag = null;
+      if (tag == FluidTags.WATER || tag == BcFluidTags.BC_FLUIDS) {
+         bcTag = BcFluidTags.BC_LIQUIDS;
+      }
+
+      if (bcTag == null) {
          return;
       }
 
       EntityFluidInteraction self = (EntityFluidInteraction)(Object)this;
-      if (self.isInFluid(BcFluidTags.BC_LIQUIDS)) {
+      if (self.isInFluid(bcTag)) {
          cir.setReturnValue(true);
       }
    }

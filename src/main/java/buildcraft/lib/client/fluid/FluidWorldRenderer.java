@@ -2,6 +2,7 @@ package buildcraft.lib.client.fluid;
 
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.fabric.fluid.BcFluidTags;
+import buildcraft.fabric.fluid.BcFluidUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
@@ -52,11 +53,15 @@ public final class FluidWorldRenderer {
    }
 
    public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, MultiBufferSource bufferSource) {
-      if (minecraft.player == null || !minecraft.player.isEyeInFluid(BcFluidTags.BC_FLUIDS)) {
+      if (minecraft.player == null || !BcFluidUtil.isEyeInBcFluid(minecraft.player)) {
          return;
       }
 
       FluidState fluidState = fluidStateAtEye(minecraft.player, minecraft.player.level());
+      if (fluidState.isEmpty() || !fluidState.getType().is(BcFluidTags.BC_FLUIDS)) {
+         return;
+      }
+
       BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluidState.getType());
       if (entry == null) {
          return;

@@ -1,6 +1,6 @@
 package buildcraft.lib.fabric.mixin.client;
 
-import buildcraft.fabric.fluid.BcFluidTags;
+import buildcraft.fabric.fluid.BcFluidUtil;
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.material.FogType;
@@ -18,7 +18,7 @@ public class CameraBcFluidMixin {
       }
 
       Entity entity = ((Camera)(Object)this).entity();
-      if (entity != null && entity.isEyeInFluid(BcFluidTags.BC_FLUIDS)) {
+      if (entity != null && BcFluidUtil.isEyeInBcFluid(entity)) {
          cir.setReturnValue(FogType.WATER);
       }
    }
