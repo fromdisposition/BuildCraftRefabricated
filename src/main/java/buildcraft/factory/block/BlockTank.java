@@ -6,19 +6,14 @@
 
 package buildcraft.factory.block;
 
-import buildcraft.api.items.FluidItemDrops;
+import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileTank;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.transfer.fabric.TransferConvert;
-import java.util.List;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.FluidUtilBC;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
@@ -40,7 +35,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
@@ -50,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
    public static final MapCodec<BlockTank> CODEC = simpleCodec(BlockTank::new);
-   public static final BooleanProperty JOINED_BELOW = BooleanProperty.create("joined_below");
+   public static final Property<Boolean> JOINED_BELOW = BuildCraftProperties.JOINED_BELOW;
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftfactory:fluid_storage");
    private static final VoxelShape SHAPE = Block.box(2.0, 0.0, 2.0, 14.0, 16.0, 14.0);
 
@@ -64,7 +58,7 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
    }
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
-      builder.add(new Property[]{JOINED_BELOW});
+      builder.add(JOINED_BELOW);
    }
 
    @Nullable
@@ -100,7 +94,8 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
    }
 
    protected boolean skipRendering(BlockState state, BlockState adjacentState, Direction side) {
-      return side.getAxis() == Axis.Y && adjacentState.getBlock() instanceof ITankBlockConnector ? true : super.skipRendering(state, adjacentState, side);
+      return side.getAxis() == Axis.Y && adjacentState.getBlock() instanceof ITankBlockConnector
+         || super.skipRendering(state, adjacentState, side);
    }
 
    @Nullable
@@ -124,9 +119,9 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
       if (direction == Direction.DOWN) {
          boolean isTankBelow = neighborState.getBlock() instanceof ITankBlockConnector;
          return (BlockState)state.setValue(JOINED_BELOW, isTankBelow);
-      } else {
-         return super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
       }
+
+      return super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
    }
 
    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
@@ -143,16 +138,15 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
          }
 
          return InteractionResult.SUCCESS;
-      } else {
-         return InteractionResult.PASS;
       }
+
+      return InteractionResult.PASS;
    }
 
    protected InteractionResult useItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
-      ItemStack held = player.getItemInHand(hand);
-      if (held.isEmpty()) {
+      if (player.getItemInHand(hand).isEmpty()) {
          return this.useWithoutItem(state, level, pos, player, hitResult);
       }
 
@@ -165,59 +159,15 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
             }
 
             return InteractionResult.SUCCESS;
-         } else {
-            if (!FluidUtilBC.isFluidContainerInHand(player, hand) && !level.isClientSide()) {
-               player.openMenu(tank);
-            }
-
-            return InteractionResult.SUCCESS;
-         }
-      } else {
-         return InteractionResult.PASS;
-      }
-   }
-
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileTank tank) {
-         List<TileTank> column = tank.getTankColumn();
-         FluidStack fluidType = FluidStack.EMPTY;
-         long amountMb = 0L;
-
-         for (TileTank segment : column) {
-            FluidStack held = segment.fluidTank.getFluidStack();
-            if (!held.isEmpty()) {
-               if (fluidType.isEmpty()) {
-                  fluidType = held.copyWithAmount(1);
-               }
-
-               amountMb += segment.fluidTank.getAmountMb();
-            }
          }
 
-         if (!fluidType.isEmpty() && amountMb > 0) {
-            NonNullList<ItemStack> toDrop = NonNullList.create();
-            int dropMb = amountMb > 2147483647L ? Integer.MAX_VALUE : (int)amountMb;
-            FluidItemDrops.addFluidDrops(toDrop, fluidType.copyWithAmount(dropMb));
-
-            for (ItemStack drop : toDrop) {
-               Block.popResource(level, pos, drop);
-            }
+         if (!FluidUtilBC.isFluidContainerInHand(player, hand) && !level.isClientSide()) {
+            player.openMenu(tank);
          }
 
-         try (Transaction tx = Transaction.openOuter()) {
-            for (TileTank segment : column) {
-               FluidStack held = segment.fluidTank.getFluidStack();
-               if (!held.isEmpty()) {
-                  segment.fluidTank.extract(
-                     TransferConvert.toVariant(held), TransferConvert.mbToDroplets(segment.fluidTank.getAmountMb()), tx
-                  );
-               }
-            }
-
-            tx.commit();
-         }
+         return InteractionResult.SUCCESS;
       }
 
-      return super.playerWillDestroy(level, pos, state, player);
+      return InteractionResult.PASS;
    }
 }

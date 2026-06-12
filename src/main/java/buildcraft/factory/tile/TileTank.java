@@ -6,6 +6,7 @@
 
 package buildcraft.factory.tile;
 
+import buildcraft.api.items.FluidItemDrops;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.container.ContainerTank;
@@ -17,15 +18,20 @@ import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.FluidUtilBC;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
+import buildcraft.lib.transfer.fabric.TransferConvert;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup.Provider;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -54,9 +60,20 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
    }
 
    public int getComparatorLevel() {
-      int amount = this.fluidTank.getAmountMb();
-      int cap = this.fluidTank.getCapacityMb();
-      return amount * 14 / cap + (amount > 0 ? 1 : 0);
+      List<TileTank> column = this.getTankColumn();
+      int amountMb = 0;
+      int capacityMb = 0;
+
+      for (TileTank segment : column) {
+         amountMb += segment.fluidTank.getAmountMb();
+         capacityMb += segment.fluidTank.getCapacityMb();
+      }
+
+      if (capacityMb <= 0) {
+         return 0;
+      }
+
+      return amountMb * 14 / capacityMb + (amountMb > 0 ? 1 : 0);
    }
 
    public void serverTick() {
@@ -206,6 +223,50 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
 
    public void requestColumnBalance() {
       this.pendingColumnBalance = true;
+   }
+
+   @Override
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.dropSegmentContents(pos);
+         this.notifyColumnNeighborsOnRemoval();
+      }
+
+      super.preRemoveSideEffects(pos, state);
+   }
+
+   private void dropSegmentContents(BlockPos pos) {
+      if (this.fluidTank.isEmpty()) {
+         return;
+      }
+
+      FluidStack held = this.fluidTank.getFluidStack();
+      int amountMb = this.fluidTank.getAmountMb();
+      NonNullList<ItemStack> toDrop = NonNullList.create();
+      FluidItemDrops.addFluidDrops(toDrop, this.fluidTank);
+
+      for (ItemStack drop : toDrop) {
+         Block.popResource(this.level, pos, drop);
+      }
+
+      try (Transaction tx = Transaction.openOuter()) {
+         this.fluidTank.extract(TransferConvert.toVariant(held), TransferConvert.mbToDroplets(amountMb), tx);
+         tx.commit();
+      }
+   }
+
+   private void notifyColumnNeighborsOnRemoval() {
+      if (this.level == null) {
+         return;
+      }
+
+      if (this.level.getBlockEntity(this.worldPosition.above()) instanceof TileTank above) {
+         above.requestColumnBalance();
+      }
+
+      if (this.level.getBlockEntity(this.worldPosition.below()) instanceof TileTank below) {
+         below.requestColumnBalance();
+      }
    }
 
    protected void saveAdditional(ValueOutput output) {
