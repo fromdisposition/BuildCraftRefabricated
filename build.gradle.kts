@@ -23,6 +23,9 @@ loom {
             sourceSet(sourceSets["main"])
         }
     }
+    runs.configureEach {
+        vmArg("--sun-misc-unsafe-memory-access=allow")
+    }
 }
 
 fabricApi {
@@ -368,6 +371,7 @@ tasks.register("stripUtf8Bom") {
 tasks.withType<JavaCompile>().configureEach {
     dependsOn("stripUtf8Bom")
     options.release.set(25)
+    options.compilerArgs.add("-Xlint:deprecation")
     notYetOnFabric.forEach { exclude(it) }
 }
 
@@ -404,6 +408,7 @@ tasks.named<Jar>("sourcesJar") {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
+    jvmArgs("--sun-misc-unsafe-memory-access=allow")
 }
 
 /** Always rebuild from scratch so stale build/resources (e.g. regenerated fluid PNGs) never linger in the JAR. */

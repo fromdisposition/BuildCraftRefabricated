@@ -18,7 +18,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Con
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.Direction;
@@ -36,7 +35,7 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, Min
    private final TextureAtlasSprite shaftSprite;
 
    public RenderMiningWell(Context context) {
-      this.shaftSprite = context.sprites().get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, SHAFT_TEXTURE));
+      this.shaftSprite = context.sprites().get(new SpriteId(BLOCKS_ATLAS_TEXTURE, SHAFT_TEXTURE));
    }
 
    public MiningWellRenderState createRenderState() {

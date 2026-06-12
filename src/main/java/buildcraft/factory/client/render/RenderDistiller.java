@@ -23,7 +23,6 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.Direction;
@@ -50,7 +49,7 @@ public class RenderDistiller implements BlockEntityRenderer<TileDistiller, Disti
 
    public RenderDistiller(Context context) {
       for (int i = 0; i < POWER_TEXTURES.length; i++) {
-         this.powerSprites[i] = context.sprites().get(new SpriteId(TextureAtlas.LOCATION_BLOCKS, POWER_TEXTURES[i]));
+         this.powerSprites[i] = context.sprites().get(new SpriteId(BLOCKS_ATLAS_TEXTURE, POWER_TEXTURES[i]));
       }
    }
 
