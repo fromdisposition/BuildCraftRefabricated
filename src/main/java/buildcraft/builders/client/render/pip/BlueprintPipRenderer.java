@@ -11,8 +11,9 @@ import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.builders.snapshot.Blueprint;
 import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.builders.snapshot.Template;
-import buildcraft.lib.client.fluid.BcFluidQuadEmitter;
-import buildcraft.lib.client.fluid.FluidClientCache;
+import buildcraft.lib.client.fluid.BcFluidVertexEmitter;
+import buildcraft.lib.client.fluid.BcFluidAppearance;
+import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.model.ModelUtil;
 import buildcraft.lib.client.render.BCLibRenderTypes;
 import buildcraft.lib.fluid.stack.FluidStack;
@@ -366,7 +367,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       FluidState fluidState = entry.fluidState;
       Fluid fluid = fluidState.getType();
       FluidStack stack = new FluidStack(fluid, 1);
-      FluidClientCache.Appearance appearance = FluidClientCache.get(stack);
+      BcFluidAppearance appearance = BcFluidAppearanceCache.get(stack);
       if (appearance != null && appearance.sprite() != null) {
          TextureAtlasSprite sprite = appearance.sprite();
          int tint = appearance.tint();
@@ -379,13 +380,13 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          }
 
          float h = fluidState.isSource() ? 1.0F : Math.max(0.125F, fluidState.getOwnHeight());
-         VertexConsumer vc = this.bufferSource.getBuffer(FluidClientCache.renderType(appearance));
+         VertexConsumer vc = this.bufferSource.getBuffer(BcFluidAppearanceCache.renderType(appearance));
          poseStack.pushPose();
          poseStack.translate(xCell, yCell, zCell);
          Pose pose = poseStack.last();
          int overlay = OverlayTexture.NO_OVERLAY;
          if (!entry.cullTop) {
-            BcFluidQuadEmitter.emitQuadWithAtlasUv(
+            BcFluidVertexEmitter.emitQuadWithAtlasUv(
                pose,
                vc,
                sprite,
@@ -423,7 +424,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          }
 
          if (!entry.cullBottom) {
-            BcFluidQuadEmitter.emitQuadWithAtlasUv(
+            BcFluidVertexEmitter.emitQuadWithAtlasUv(
                pose,
                vc,
                sprite,
@@ -461,7 +462,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          }
 
          if (!entry.cullNorth) {
-            BcFluidQuadEmitter.emitQuadWithAtlasUv(
+            BcFluidVertexEmitter.emitQuadWithAtlasUv(
                pose,
                vc,
                sprite,
@@ -499,7 +500,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          }
 
          if (!entry.cullSouth) {
-            BcFluidQuadEmitter.emitQuadWithAtlasUv(
+            BcFluidVertexEmitter.emitQuadWithAtlasUv(
                pose,
                vc,
                sprite,
@@ -537,7 +538,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          }
 
          if (!entry.cullWest) {
-            BcFluidQuadEmitter.emitQuadWithAtlasUv(
+            BcFluidVertexEmitter.emitQuadWithAtlasUv(
                pose,
                vc,
                sprite,
@@ -575,7 +576,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          }
 
          if (!entry.cullEast) {
-            BcFluidQuadEmitter.emitQuadWithAtlasUv(
+            BcFluidVertexEmitter.emitQuadWithAtlasUv(
                pose,
                vc,
                sprite,

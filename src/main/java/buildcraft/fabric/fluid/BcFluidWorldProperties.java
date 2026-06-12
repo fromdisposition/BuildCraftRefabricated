@@ -22,8 +22,7 @@ public record BcFluidWorldProperties(
    boolean swimmable,
    int tickDelay,
    int slopeFindDistance,
-   int dropOff,
-   BcFluidClientAppearance clientAppearance
+   int dropOff
 ) {
    public static final int WATER_DENSITY = 1000;
    public static final int WATER_VISCOSITY = 1000;
@@ -89,7 +88,6 @@ public record BcFluidWorldProperties(
          dropOff = 1;
       }
 
-      BcFluidClientAppearance clientAppearance = BcFluidClientAppearance.compute(baseName, heat, gaseous, texLight, texDark);
       return new BcFluidWorldProperties(
          baseName,
          heat,
@@ -109,8 +107,7 @@ public record BcFluidWorldProperties(
          swimmable,
          tickDelay,
          slopeFindDistance,
-         dropOff,
-         clientAppearance
+         dropOff
       );
    }
 

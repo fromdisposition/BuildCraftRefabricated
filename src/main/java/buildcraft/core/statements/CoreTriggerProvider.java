@@ -16,7 +16,6 @@ import buildcraft.api.tiles.IHasWork;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.core.BCCoreStatements;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.lib.fabric.transfer.TriggerFluidChecks;
 import buildcraft.lib.fabric.transfer.TriggerItemChecks;
 import java.util.Collection;
 import javax.annotation.Nonnull;

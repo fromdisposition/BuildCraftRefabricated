@@ -8,7 +8,7 @@ package buildcraft.transport.pipe.flow;
 
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.fabric.transfer.FluidVariants;
+import buildcraft.lib.fabric.transfer.fluid.FluidVariants;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;

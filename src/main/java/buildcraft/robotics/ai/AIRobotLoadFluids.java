@@ -10,7 +10,7 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.lib.fabric.transfer.FluidStorageOps;
+import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
 import buildcraft.robotics.path.IFluidFilter;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;

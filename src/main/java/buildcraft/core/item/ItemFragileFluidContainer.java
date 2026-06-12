@@ -6,11 +6,12 @@
 
 package buildcraft.core.item;
 
+
+import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.api.items.IItemFluidShard;
 import buildcraft.core.BCCore;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fluid.stack.SimpleFluidContent;
-import buildcraft.lib.fluid.BcFluids;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.NonNullList;
@@ -30,7 +31,7 @@ public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
       FluidStack fluid = getFluid(stack);
       return fluid.isEmpty()
          ? Component.translatable(this.getDescriptionId() + ".name.empty")
-         : Component.translatable(this.getDescriptionId() + ".name", BcFluids.getFluidDisplayName(fluid));
+         : Component.translatable(this.getDescriptionId() + ".name", FluidDisplayNames.forStack(fluid));
    }
 
    public static void appendTooltipLines(ItemFragileFluidContainer item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {

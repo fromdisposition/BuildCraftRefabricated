@@ -6,8 +6,8 @@
 
 package buildcraft.lib.gui.elem;
 
-import buildcraft.lib.client.fluid.BcFluidGuiDrawer;
-import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
+import buildcraft.lib.client.fluid.FluidGuiRenderer;
+import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BuildCraftGui;
@@ -104,7 +104,7 @@ public class GuiElementFluidTank implements IInteractionElement {
       }
 
       int fillY = y + h - fillHeight;
-      BcFluidGuiDrawer.drawFluidStack(graphics, x, fillY, w, fillHeight, fluid);
+      FluidGuiRenderer.drawFluidStack(graphics, x, fillY, w, fillHeight, fluid);
    }
 
    @Override

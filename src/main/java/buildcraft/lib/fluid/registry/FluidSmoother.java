@@ -6,23 +6,28 @@
 
 package buildcraft.lib.fluid.registry;
 
-import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.List;
+import java.util.function.IntSupplier;
+import java.util.function.Supplier;
 import net.minecraft.core.Direction;
 
 public class FluidSmoother {
-   private final SingleFluidTank tank;
+   private final IntSupplier amountMbSupplier;
+   private final Supplier<FluidStack> fluidSupplier;
+   private final IntSupplier capacityMbSupplier;
    private double displayAmount;
    private double displayAmountPrev;
    private boolean initialized = false;
 
-   public FluidSmoother(SingleFluidTank tank) {
-      this.tank = tank;
+   public FluidSmoother(IntSupplier amountMbSupplier, Supplier<FluidStack> fluidSupplier, IntSupplier capacityMbSupplier) {
+      this.amountMbSupplier = amountMbSupplier;
+      this.fluidSupplier = fluidSupplier;
+      this.capacityMbSupplier = capacityMbSupplier;
    }
 
    public void tick() {
-      int target = this.tank.getAmountMb();
+      int target = this.amountMbSupplier.getAsInt();
       if (!this.initialized) {
          this.displayAmount = target;
          this.displayAmountPrev = target;
@@ -42,7 +47,7 @@ public class FluidSmoother {
    }
 
    public void resetSmoothing() {
-      this.displayAmount = this.tank.getAmountMb();
+      this.displayAmount = this.amountMbSupplier.getAsInt();
       this.displayAmountPrev = this.displayAmount;
       this.initialized = true;
    }
@@ -52,11 +57,11 @@ public class FluidSmoother {
    }
 
    public FluidStack getFluid() {
-      return this.tank.getFluidStack();
+      return this.fluidSupplier.get();
    }
 
    public int getCapacity() {
-      return this.tank.getCapacityMb();
+      return this.capacityMbSupplier.getAsInt();
    }
 
    public double getDisplayAmount() {
@@ -64,12 +69,13 @@ public class FluidSmoother {
    }
 
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
-      String contents = !this.tank.isEmpty() ? "Fluid" : "Empty";
-      left.add("smooth = " + String.format("%.1f", this.displayAmount) + " / " + this.tank.getAmountMb() + " (" + contents + ")");
+      FluidStack fluid = this.fluidSupplier.get();
+      String contents = !fluid.isEmpty() ? "Fluid" : "Empty";
+      left.add("smooth = " + String.format("%.1f", this.displayAmount) + " / " + this.amountMbSupplier.getAsInt() + " (" + contents + ")");
    }
 
    public FluidSmoother.FluidStackInterp getFluidForRender(double partialTicks) {
-      FluidStack fluid = this.tank.getFluidStack();
+      FluidStack fluid = this.fluidSupplier.get();
       return fluid.isEmpty() ? null : new FluidSmoother.FluidStackInterp(fluid, this.getAmount(partialTicks));
    }
 

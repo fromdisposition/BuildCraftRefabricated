@@ -6,13 +6,15 @@
 
 package buildcraft.transport.client.render;
 
+
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.client.fluid.BcFluidRenderLookup;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
 import buildcraft.fabric.BCEnergyFluidsFabric;
-import buildcraft.lib.client.fluid.BcFluidQuadEmitter;
+import buildcraft.lib.client.fluid.BcFluidPipeQuads;
+import buildcraft.lib.client.fluid.BcFluidStaticPipeQuads;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.flow.PipeFlowFluids;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -40,7 +42,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             int packedLight = PipeRenderContext.getPackedLight();
             double[] amounts = SCRATCH_AMOUNTS.get();
             flow.writeAmountsForRender(partialTicks, amounts);
-            boolean gas = BcFluids.isGaseous(forRender.getFluid());
+            boolean gas = FluidAttributes.of(forRender.getFluid()).isLighterThanAir();
             boolean horizontal = false;
             boolean vertical = flow.pipe.isConnected(gas ? Direction.DOWN : Direction.UP);
 
@@ -221,11 +223,11 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
          }
 
          if (entry != null) {
-            BcFluidQuadEmitter.emitPipeCuboid(
+            BcFluidPipeQuads.emitPipeCuboid(
                poseStack.last(), bb, sprite, entry, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, r, g, b, a, packedLight
             );
          } else {
-            BcFluidQuadEmitter.emitStaticPipeCuboid(
+            BcFluidStaticPipeQuads.emitStaticPipeCuboid(
                poseStack.last(), bb, sprite, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, r, g, b, a, packedLight
             );
          }

@@ -1,10 +1,12 @@
-package buildcraft.lib.fabric.transfer;
+package buildcraft.lib.fabric.transfer.fluid;
 
+
+import buildcraft.lib.fluid.identity.FluidIdentity;
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.fabric.transfer.FluidVariants;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -22,7 +24,7 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
 
    public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toStack(resource));
+         FluidStack fluid = FluidIdentity.canonicalFluidStack(FluidVariants.toStack(resource));
          FluidVariant variant = FluidVariants.toVariant(fluid);
          long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
@@ -32,12 +34,12 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
          List<TileTank> tanks = this.owner.getTankColumn();
          for (TileTank tank : tanks) {
             FluidStack current = tank.fluidTank.getFluidStack();
-            if (!current.isEmpty() && !BcFluids.areEquivalentFluidStacks(current.copyWithAmount(1), fluid)) {
+            if (!current.isEmpty() && !FluidIdentity.areEquivalentFluidStacks(current.copyWithAmount(1), fluid)) {
                return 0L;
             }
          }
 
-         boolean gaseous = BcFluids.isGaseous(fluid);
+         boolean gaseous = FluidAttributes.of(fluid.getFluid()).isLighterThanAir();
          long remaining = millibuckets;
          long totalInserted = 0L;
          if (gaseous) {
@@ -74,7 +76,7 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
 
    public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toStack(resource));
+         FluidStack fluid = FluidIdentity.canonicalFluidStack(FluidVariants.toStack(resource));
          long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
             return 0L;
@@ -87,7 +89,7 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
          }
 
          FluidVariant variant = FluidVariants.toVariant(resolved);
-         boolean gaseous = BcFluids.isGaseous(resolved);
+         boolean gaseous = FluidAttributes.of(resolved.getFluid()).isLighterThanAir();
          long remaining = millibuckets;
          long totalExtracted = 0L;
          if (gaseous) {
@@ -155,7 +157,7 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
          FluidStack current = tank.fluidTank.getFluidStack();
          if (!current.isEmpty()) {
             FluidStack identity = current.copyWithAmount(1);
-            if (BcFluids.areEquivalentFluidStacks(identity, candidate)) {
+            if (FluidIdentity.areEquivalentFluidStacks(identity, candidate)) {
                return identity;
             }
          }

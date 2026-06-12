@@ -6,7 +6,7 @@
 
 package buildcraft.lib.gui;
 
-import buildcraft.lib.client.fluid.BcFluidGuiDrawer;
+import buildcraft.lib.client.fluid.FluidGuiRenderer;
 import buildcraft.lib.fluid.stack.FluidStack;
 
 public class GuiFluid implements ISimpleDrawable {
@@ -28,7 +28,7 @@ public class GuiFluid implements ISimpleDrawable {
    @Override
    public void drawAt(double x, double y) {
       if (currentGraphics != null && this.stack != null && !this.stack.isEmpty()) {
-         BcFluidGuiDrawer.drawFluidStack(currentGraphics, (int)x, (int)y, 16, 16, this.stack);
+         FluidGuiRenderer.drawFluidStack(currentGraphics, (int)x, (int)y, 16, 16, this.stack);
       }
    }
 }

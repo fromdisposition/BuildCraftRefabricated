@@ -6,7 +6,7 @@
 
 package buildcraft.api.items;
 
-import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fluid.stack.FluidStack;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;

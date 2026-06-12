@@ -6,16 +6,20 @@
 
 package buildcraft.factory.tile;
 
+
+import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
+import buildcraft.lib.fluid.display.FluidDisplayNames;
+import buildcraft.lib.fluid.identity.FluidIdentity;
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.api.items.FluidItemDrops;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.container.ContainerTank;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import buildcraft.lib.fabric.transfer.SingleFluidTank;
-import buildcraft.lib.fabric.transfer.TankColumnFluidStorage;
+import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
+import buildcraft.lib.fabric.transfer.fluid.TankColumnFluidStorage;
 import buildcraft.lib.fluid.registry.FluidSmoother;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
 import java.util.ArrayDeque;
@@ -48,7 +52,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 public class TileTank extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable, IBlockEntityLoadHook {
    public final SingleFluidTank fluidTank = new SingleFluidTank(16000, SingleFluidTank.TankAccess.OPEN, this::requestColumnBalance);
-   public final FluidSmoother smoothedTank = new FluidSmoother(this.fluidTank);
+   public final FluidSmoother smoothedTank = new FluidSmoother(this.fluidTank::getAmountMb, this.fluidTank::getFluidStack, this.fluidTank::getCapacityMb);
    private int lastComparatorLevel;
    private int lastSyncedAmount = -1;
    private FluidStack lastSyncedFluid = FluidStack.EMPTY;
@@ -89,7 +93,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
             int currentAmount = this.fluidTank.getAmountMb();
             FluidStack currentFluid = this.fluidTank.getFluidStack();
             if (currentAmount != this.lastSyncedAmount
-               || !BcFluids.areEquivalentFluidStacks(currentFluid.isEmpty() ? FluidStack.EMPTY : currentFluid.copyWithAmount(1), this.lastSyncedFluid)) {
+               || !FluidIdentity.areEquivalentFluidStacks(currentFluid.isEmpty() ? FluidStack.EMPTY : currentFluid.copyWithAmount(1), this.lastSyncedFluid)) {
                this.lastSyncedAmount = currentAmount;
                this.lastSyncedFluid = currentFluid.isEmpty() ? FluidStack.EMPTY : currentFluid.copyWithAmount(1);
                this.setChanged();
@@ -115,7 +119,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
    @Override
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
       String contents = !this.fluidTank.isEmpty() ? "Fluid" : "Empty";
-      left.add("fluid = " + BcFluids.getDebugString(this.fluidTank.getFluidStack()));
+      left.add("fluid = " + FluidDisplayNames.debugString(this.fluidTank.getFluidStack()));
       left.add("current = " + this.fluidTank.getAmountMb() + " of " + contents);
       left.add("lastSent = " + this.lastSyncedAmount + " of " + (!this.fluidTank.isEmpty() ? "Something" : "Nothing"));
    }
@@ -147,20 +151,20 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
                FluidStack heldIdentity = held.copyWithAmount(1);
                if (fluid.isEmpty()) {
                   fluid = heldIdentity;
-               } else if (!BcFluids.areEquivalentFluidStacks(fluid, heldIdentity)) {
+               } else if (!FluidIdentity.areEquivalentFluidStacks(fluid, heldIdentity)) {
                   return;
                }
             }
          }
 
          if (!fluid.isEmpty()) {
-            if (BcFluids.isGaseous(fluid)) {
+            if (!fluid.isEmpty() && FluidAttributes.of(fluid.getFluid()).isLighterThanAir()) {
                TileTank prev = null;
 
                for (int i = tanks.size() - 1; i >= 0; i--) {
                   TileTank tile = tanks.get(i);
                   if (prev != null) {
-                     BcFluids.move(tile.fluidTank, prev.fluidTank);
+                     FluidStorageOps.moveReturningStack(tile.fluidTank, prev.fluidTank, Integer.MAX_VALUE);
                   }
 
                   prev = tile;
@@ -170,7 +174,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
 
                for (TileTank tile : tanks) {
                   if (prev != null) {
-                     BcFluids.move(tile.fluidTank, prev.fluidTank);
+                     FluidStorageOps.moveReturningStack(tile.fluidTank, prev.fluidTank, Integer.MAX_VALUE);
                   }
 
                   prev = tile;

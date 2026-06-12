@@ -1,10 +1,11 @@
-package buildcraft.lib.fabric.transfer;
+package buildcraft.lib.fabric.transfer.fluid;
 
+
+import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.core.BCCoreItems;
 import buildcraft.core.item.ItemFragileFluidContainer;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
-import buildcraft.lib.fabric.transfer.FluidVariants;
+
 import java.util.Collections;
 import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
@@ -44,7 +45,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
          if (!stack.isEmpty() && stack.getItem() == BCCoreItems.FRAGILE_FLUID_CONTAINER) {
             FluidStack current = ItemFragileFluidContainer.getFluid(stack);
             FluidStack incoming = FluidVariants.toStack(resource);
-            if (!current.isEmpty() && !BcFluids.areEquivalentFluidStacks(current.copyWithAmount(1), incoming)) {
+            if (!current.isEmpty() && !FluidIdentity.areEquivalentFluidStacks(current.copyWithAmount(1), incoming)) {
                return 0L;
             }
 
@@ -85,7 +86,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
             return 0L;
          }
 
-         if (!resource.isBlank() && !BcFluids.areEquivalentFluidStacks(current.copyWithAmount(1), FluidVariants.toStack(resource))) {
+         if (!resource.isBlank() && !FluidIdentity.areEquivalentFluidStacks(current.copyWithAmount(1), FluidVariants.toStack(resource))) {
             return 0L;
          }
 

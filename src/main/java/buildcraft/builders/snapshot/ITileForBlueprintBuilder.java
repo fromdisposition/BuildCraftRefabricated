@@ -7,7 +7,7 @@
 package buildcraft.builders.snapshot;
 
 import buildcraft.api.inventory.IItemTransactor;
-import buildcraft.lib.fabric.transfer.MultiFluidTankStorage;
+import buildcraft.lib.fabric.transfer.fluid.MultiFluidTankStorage;
 
 public interface ITileForBlueprintBuilder extends ITileForSnapshotBuilder {
    Blueprint.BuildingInfo getBlueprintBuildingInfo();

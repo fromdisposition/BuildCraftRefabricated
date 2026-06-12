@@ -6,7 +6,6 @@
 
 package buildcraft.lib.fluid.stack;
 
-import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.fluid.meta.FluidAttributes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -27,11 +26,11 @@ public interface FluidInstance extends TypedInstance<Fluid>, DataComponentGetter
    String FIELD_COMPONENTS = "components";
    Codec<Holder<Fluid>> FLUID_HOLDER_CODEC = BuiltInRegistries.FLUID
       .holderByNameCodec()
-      .validate(fluid -> Mc26Compat.isEmptyFluid(fluid) ? DataResult.error(() -> "Fluid must not be minecraft:empty") : DataResult.success(fluid));
+      .validate(fluid -> FluidHolders.isEmptyFluid(fluid) ? DataResult.error(() -> "Fluid must not be minecraft:empty") : DataResult.success(fluid));
    StreamCodec<RegistryFriendlyByteBuf, Holder<Fluid>> FLUID_HOLDER_STREAM_CODEC = ByteBufCodecs.holderRegistry(Registries.FLUID);
    Codec<Holder<Fluid>> FLUID_HOLDER_CODEC_WITH_BOUND_COMPONENTS = FLUID_HOLDER_CODEC.validate(
       fluid -> !fluid.areComponentsBound()
-         ? DataResult.error(() -> "Fluid " + Mc26Compat.registryId(fluid).map(Identifier::toString).orElse("unknown") + " does not have components yet")
+         ? DataResult.error(() -> "Fluid " + FluidHolders.registryId(fluid).map(Identifier::toString).orElse("unknown") + " does not have components yet")
          : DataResult.success(fluid)
    );
 

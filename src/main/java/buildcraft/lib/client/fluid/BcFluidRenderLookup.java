@@ -6,11 +6,12 @@
 
 package buildcraft.lib.client.fluid;
 
+
+import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
-import buildcraft.lib.fabric.transfer.FluidVariants;
+import buildcraft.lib.fabric.transfer.fluid.FluidVariants;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -27,6 +28,10 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
+/**
+ * Client fluid sprite/tint lookup. {@link #tint(FluidStack)} is for world and pipe rendering (BC fluids use white atlas tint).
+ * {@link #itemMaskTint(FluidStack, BlockAndTintGetter)} is for GUI masks with heat-aware averaging.
+ */
 public final class BcFluidRenderLookup {
    private BcFluidRenderLookup() {
    }
@@ -37,19 +42,25 @@ public final class BcFluidRenderLookup {
    }
 
    public static TextureAtlasSprite sprite(FluidStack stack, SpriteKind kind) {
-      return stack != null && !stack.isEmpty() ? sprite(stack.getFluid(), kind) : missingSprite();
-   }
-
-   public static TextureAtlasSprite sprite(Fluid fluid, SpriteKind kind) {
-      Fluid canonical = BcFluids.canonicalFluid(fluid);
-      if (canonical.isSame(Fluids.EMPTY)) {
+      if (stack == null || stack.isEmpty()) {
          return missingSprite();
       }
 
-      FluidModel model = modelFor(canonical);
-      Baked material = kind == SpriteKind.FLOWING ? model.flowingMaterial() : model.stillMaterial();
-      TextureAtlasSprite sprite = material.sprite();
-      return sprite != null ? sprite : missingSprite();
+      BcFluidAppearance appearance = BcFluidAppearanceCache.get(stack);
+      if (appearance != null && kind == SpriteKind.STILL) {
+         return appearance.sprite();
+      }
+
+      return resolveSprite(stack, kind);
+   }
+
+   public static TextureAtlasSprite sprite(Fluid fluid, SpriteKind kind) {
+      BcFluidAppearance appearance = BcFluidAppearanceCache.get(fluid);
+      if (appearance != null && kind == SpriteKind.STILL) {
+         return appearance.sprite();
+      }
+
+      return resolveSprite(fluid, kind);
    }
 
    private static FluidModel modelFor(Fluid fluid) {
@@ -63,12 +74,24 @@ public final class BcFluidRenderLookup {
          return -1;
       }
 
-      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(BcFluids.canonicalFluid(stack.getFluid()));
-      if (entry != null) {
-         return BcFluidTintUtil.RENDER_TINT_WHITE;
+      BcFluidAppearance appearance = BcFluidAppearanceCache.get(stack);
+      return appearance != null ? appearance.tint() : resolveTint(stack);
+   }
+
+   static TextureAtlasSprite resolveSprite(FluidStack stack, SpriteKind kind) {
+      return stack != null && !stack.isEmpty() ? resolveSprite(stack.getFluid(), kind) : missingSprite();
+   }
+
+   static TextureAtlasSprite resolveSprite(Fluid fluid, SpriteKind kind) {
+      Fluid canonical = FluidIdentity.canonicalFluid(fluid);
+      if (canonical.isSame(Fluids.EMPTY)) {
+         return missingSprite();
       }
 
-      return fabricTint(stack, null, null);
+      FluidModel model = modelFor(canonical);
+      Baked material = kind == SpriteKind.FLOWING ? model.flowingMaterial() : model.stillMaterial();
+      TextureAtlasSprite sprite = material.sprite();
+      return sprite != null ? sprite : missingSprite();
    }
 
    public static int itemMaskTint(FluidStack stack, @Nullable BlockAndTintGetter level) {
@@ -76,7 +99,7 @@ public final class BcFluidRenderLookup {
          return -1;
       }
 
-      Fluid fluid = BcFluids.canonicalFluid(stack.getFluid());
+      Fluid fluid = FluidIdentity.canonicalFluid(stack.getFluid());
       BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
       if (entry != null) {
          return BcFluidTintUtil.computeAverageGuiTint(entry.texLight(), entry.texDark(), entry.heat());
@@ -110,12 +133,38 @@ public final class BcFluidRenderLookup {
       return alpha == 0 ? 0xFF000000 | color & 0xFFFFFF : color;
    }
 
+   static int resolveTint(FluidStack stack) {
+      if (stack == null || stack.isEmpty()) {
+         return -1;
+      }
+
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(FluidIdentity.canonicalFluid(stack.getFluid()));
+      if (entry != null) {
+         return BcFluidTintUtil.RENDER_TINT_WHITE;
+      }
+
+      return fabricTint(stack, null, null);
+   }
+
    public static boolean translucent(FluidStack stack) {
-      return stack != null && !stack.isEmpty() && translucent(stack.getFluid());
+      if (stack == null || stack.isEmpty()) {
+         return false;
+      }
+
+      BcFluidAppearance appearance = BcFluidAppearanceCache.get(stack);
+      return appearance != null ? appearance.translucent() : resolveTranslucent(stack);
+   }
+
+   static boolean resolveTranslucent(FluidStack stack) {
+      return stack != null && !stack.isEmpty() && resolveTranslucent(stack.getFluid());
    }
 
    public static boolean translucent(Fluid fluid) {
-      Fluid canonical = BcFluids.canonicalFluid(fluid);
+      return resolveTranslucent(fluid);
+   }
+
+   static boolean resolveTranslucent(Fluid fluid) {
+      Fluid canonical = FluidIdentity.canonicalFluid(fluid);
       if (canonical.isSame(Fluids.EMPTY)) {
          return false;
       }

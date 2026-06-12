@@ -15,6 +15,11 @@ import buildcraft.lib.client.render.tile.RenderEngine_BC8;
 import buildcraft.lib.engine.TileEngineBase_BC8;
 import java.util.function.BiFunction;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
+import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRenderHandler;
+import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.core.BlockPos;
 import net.minecraft.client.color.block.BlockTintSources;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.block.FluidModel.Unbaked;
@@ -35,6 +40,14 @@ public final class BCEnergyFabricClient {
          Unbaked model = new Unbaked(stillMaterial, flowMaterial, underwaterMaterial, BlockTintSources.constant(-1));
          FluidRenderingRegistry.register(entry.still(), entry.flowing(), model);
          FluidRenderingRegistry.setBlockTransparency(entry.block(), true);
+         FluidVariantRenderHandler whiteTint = new FluidVariantRenderHandler() {
+            @Override
+            public int getColor(FluidVariant variant, BlockAndTintGetter level, BlockPos pos) {
+               return -1;
+            }
+         };
+         FluidVariantRendering.register(entry.still(), whiteTint);
+         FluidVariantRendering.register(entry.flowing(), whiteTint);
       }
 
       MenuScreens.register(BCEnergyMenuTypes.ENGINE_STONE, GuiEngineStone_BC8::new);

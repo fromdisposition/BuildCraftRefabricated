@@ -6,6 +6,9 @@
 
 package buildcraft.factory.tile;
 
+
+import buildcraft.lib.fluid.display.FluidDisplayNames;
+import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
@@ -20,13 +23,12 @@ import buildcraft.factory.block.BlockDistiller;
 import buildcraft.factory.container.ContainerDistiller;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.MjEnergyStorage;
-import buildcraft.lib.fabric.transfer.SidedFluidStorages;
-import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.lib.fabric.transfer.fluid.SidedFluidStorages;
+import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fluid.registry.FluidSmoother;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.BlockDropsUtil;
-import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.mj.MjBatteryReceiver;
@@ -97,9 +99,9 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
    public TileDistiller(BlockPos pos, BlockState state) {
       super(BCFactoryBlockEntities.DISTILLER, pos, state);
       this.containerSlots.setCallback((handler, slot, bef, aft) -> this.setChanged());
-      this.smoothIn = new FluidSmoother(this.tankIn);
-      this.smoothGasOut = new FluidSmoother(this.tankGasOut);
-      this.smoothLiquidOut = new FluidSmoother(this.tankLiquidOut);
+      this.smoothIn = new FluidSmoother(this.tankIn::getAmountMb, this.tankIn::getFluidStack, this.tankIn::getCapacityMb);
+      this.smoothGasOut = new FluidSmoother(this.tankGasOut::getAmountMb, this.tankGasOut::getFluidStack, this.tankGasOut::getCapacityMb);
+      this.smoothLiquidOut = new FluidSmoother(this.tankLiquidOut::getAmountMb, this.tankLiquidOut::getFluidStack, this.tankLiquidOut::getCapacityMb);
       this.distillPower = 0L;
       this.isActive = false;
       this.isStuck = false;
@@ -306,7 +308,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
             FluidStack outGas = this.currentRecipe.outGas();
             FluidStack resIn = this.tankIn.getFluidStack();
             boolean canExtract = !resIn.isEmpty()
-               && BcFluids.areEquivalentFluidStacks(resIn.copyWithAmount(1), reqIn.copyWithAmount(1))
+               && FluidIdentity.areEquivalentFluidStacks(resIn.copyWithAmount(1), reqIn.copyWithAmount(1))
                && this.tankIn.getAmountMb() >= reqIn.getAmount();
             boolean canFillLiquid;
             boolean canFillGas;
@@ -380,9 +382,9 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
          boolean needsSync = curIn != this.lastSyncedIn
             || curGas != this.lastSyncedGas
             || curLiq != this.lastSyncedLiquid
-            || !BcFluids.areEquivalentFluidStacks(curInFluid, this.lastSyncedInFluid)
-            || !BcFluids.areEquivalentFluidStacks(curGasFluid, this.lastSyncedGasFluid)
-            || !BcFluids.areEquivalentFluidStacks(curLiqFluid, this.lastSyncedLiquidFluid)
+            || !FluidIdentity.areEquivalentFluidStacks(curInFluid, this.lastSyncedInFluid)
+            || !FluidIdentity.areEquivalentFluidStacks(curGasFluid, this.lastSyncedGasFluid)
+            || !FluidIdentity.areEquivalentFluidStacks(curLiqFluid, this.lastSyncedLiquidFluid)
             || this.isActive != this.lastSyncedActive
             || this.isStuck != this.lastSyncedStuck
             || this.powerAvgClient != this.lastSyncedPower;
@@ -404,9 +406,9 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
 
    @Override
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
-      left.add("In = " + BcFluids.getDebugString(this.tankIn.getFluidStack()));
-      left.add("GasOut = " + BcFluids.getDebugString(this.tankGasOut.getFluidStack()));
-      left.add("LiquidOut = " + BcFluids.getDebugString(this.tankLiquidOut.getFluidStack()));
+      left.add("In = " + FluidDisplayNames.debugString(this.tankIn.getFluidStack()));
+      left.add("GasOut = " + FluidDisplayNames.debugString(this.tankGasOut.getFluidStack()));
+      left.add("LiquidOut = " + FluidDisplayNames.debugString(this.tankLiquidOut.getFluidStack()));
       left.add("Battery = " + this.mjBattery.getDebugString());
       left.add("Progress = " + MjAPI.formatMj(this.distillPower));
       left.add("Rate = " + LocaleUtil.localizeMjFlow(this.powerAvgClient));

@@ -7,7 +7,7 @@
 package buildcraft.energy.client.gui;
 
 import buildcraft.energy.container.ContainerEngineIron_BC8;
-import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
+import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.GuiIcon;

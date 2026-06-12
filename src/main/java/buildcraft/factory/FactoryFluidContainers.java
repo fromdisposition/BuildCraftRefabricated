@@ -6,8 +6,8 @@
 
 package buildcraft.factory;
 
-import buildcraft.lib.fabric.transfer.FluidStorageOps;
-import buildcraft.lib.fabric.transfer.ItemFluidLookup;
+import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
+import buildcraft.lib.fabric.transfer.fluid.ItemFluidLookup;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;

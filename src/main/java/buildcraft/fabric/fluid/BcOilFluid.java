@@ -1,5 +1,7 @@
 package buildcraft.fabric.fluid;
 
+
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;

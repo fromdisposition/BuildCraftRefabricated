@@ -1,4 +1,4 @@
-package buildcraft.lib.fabric.transfer;
+package buildcraft.lib.fabric.transfer.fluid;
 
 import java.util.ArrayList;
 import java.util.Iterator;

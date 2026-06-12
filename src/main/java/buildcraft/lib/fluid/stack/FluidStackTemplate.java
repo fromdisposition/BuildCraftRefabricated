@@ -6,7 +6,6 @@
 
 package buildcraft.lib.fluid.stack;
 
-import buildcraft.lib.fabric.Mc26Compat;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -43,7 +42,7 @@ public record FluidStackTemplate(Holder<Fluid> fluid, int amount, DataComponentP
    );
 
    public FluidStackTemplate(Holder<Fluid> fluid, int amount, DataComponentPatch components) {
-      if (!Mc26Compat.isEmptyFluid(fluid) && amount > 0) {
+      if (!FluidHolders.isEmptyFluid(fluid) && amount > 0) {
          this.fluid = fluid;
          this.amount = amount;
          this.components = components;
@@ -57,7 +56,7 @@ public record FluidStackTemplate(Holder<Fluid> fluid, int amount, DataComponentP
    }
 
    public FluidStackTemplate(Fluid fluid, int amount, DataComponentPatch components) {
-      this(Mc26Compat.fluidHolder(fluid), amount, components);
+      this(FluidHolders.fluidHolder(fluid), amount, components);
    }
 
    public FluidStackTemplate(Fluid fluid, int amount) {

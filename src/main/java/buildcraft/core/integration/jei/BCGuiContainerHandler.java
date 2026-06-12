@@ -6,7 +6,7 @@
 
 package buildcraft.core.integration.jei;
 
-import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
+import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.IGuiElement;
 import buildcraft.lib.gui.elem.GuiElementFluidTank;

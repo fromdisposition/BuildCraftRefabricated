@@ -11,7 +11,7 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.fabric.transfer.FluidStorageOps;
+import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;

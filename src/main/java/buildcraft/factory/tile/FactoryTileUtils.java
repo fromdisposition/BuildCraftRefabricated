@@ -6,7 +6,7 @@
 
 package buildcraft.factory.tile;
 
-import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fluid.stack.FluidStack;
 import net.minecraft.world.level.storage.ValueInput;
 

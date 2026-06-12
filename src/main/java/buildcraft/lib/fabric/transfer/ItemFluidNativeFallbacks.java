@@ -1,5 +1,6 @@
 package buildcraft.lib.fabric.transfer;
 
+import buildcraft.lib.fabric.transfer.fluid.FragileFluidContainerStorage;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;

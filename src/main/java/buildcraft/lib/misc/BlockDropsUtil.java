@@ -7,7 +7,7 @@
 package buildcraft.lib.misc;
 
 import buildcraft.api.items.FluidItemDrops;
-import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerSimple;

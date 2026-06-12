@@ -9,13 +9,13 @@ package buildcraft.factory.client.render;
 import buildcraft.factory.block.BlockHeatExchange;
 import buildcraft.factory.tile.TileHeatExchange;
 import buildcraft.lib.client.fluid.BcFluidBerHelper;
-import buildcraft.lib.client.fluid.BcFluidQuadEmitter;
+import buildcraft.lib.client.fluid.BcFluidTankQuads;
 import buildcraft.lib.client.fluid.BcFluidRenderLookup;
-import buildcraft.lib.client.fluid.FluidClientCache;
+import buildcraft.lib.client.fluid.BcFluidAppearance;
+import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
@@ -174,7 +174,7 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
       Vec3 diff, Direction face, PoseStack poseStack, SubmitNodeCollector collector, double s, double e, FluidStack fluid, int point, float partialTicks, int light
    ) {
       if (!fluid.isEmpty()) {
-         FluidClientCache.Appearance appearance = FluidClientCache.get(fluid);
+         BcFluidAppearance appearance = BcFluidAppearanceCache.get(fluid);
          if (appearance != null) {
             TextureAtlasSprite sprite = appearance.sprite();
             float[] rgba = BcFluidRenderLookup.vertexRgba(fluid);
@@ -209,7 +209,7 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
             double flowS = s;
             double flowE = e;
             Direction finalRenderFace = renderFace;
-            BcBerRenderUtil.submitWithPoseStack(poseStack, collector, FluidClientCache.renderType(appearance), (stack, buffer) -> {
+            BcBerRenderUtil.submitWithPoseStack(poseStack, collector, BcFluidAppearanceCache.renderType(appearance), (stack, buffer) -> {
                Vec3 segmentDiff = flowDiff;
 
                for (int i = 0; i <= flowE; i++) {
@@ -410,7 +410,7 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
       int light,
       int overlay
    ) {
-      BcFluidQuadEmitter.emitTankQuad(pose, builder, sprite, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, nx, ny, nz, r, g, b, a, light, overlay);
+      BcFluidTankQuads.emitTankQuad(pose, builder, sprite, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, nx, ny, nz, r, g, b, a, light, overlay);
    }
 
    private static void quadHorizontal(
@@ -432,7 +432,7 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
       int light,
       int overlay
    ) {
-      BcFluidQuadEmitter.emitTankHorizontal(pose, builder, sprite, x1, x2, z1, z2, y, nx, ny, nz, r, g, b, a, light, overlay);
+      BcFluidTankQuads.emitTankHorizontal(pose, builder, sprite, x1, x2, z1, z2, y, nx, ny, nz, r, g, b, a, light, overlay);
    }
 
    static {

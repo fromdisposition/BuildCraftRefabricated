@@ -1,10 +1,11 @@
-package buildcraft.lib.fabric.transfer;
+package buildcraft.lib.fabric.transfer.fluid;
 
+
+import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.lib.common.util.ValueIOSerializable;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.fabric.transfer.FluidVariants;
+
 import com.mojang.serialization.Codec;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -144,7 +145,7 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
 
    private long insertUnchecked(FluidVariant resource, long maxAmount, TransactionContext transaction, boolean applyFilter) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toStack(resource));
+         FluidStack fluid = FluidIdentity.canonicalFluidStack(FluidVariants.toStack(resource));
          if (fluid.isEmpty()) {
             return 0L;
          }
@@ -159,7 +160,7 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
          }
 
          int insertMb = TransferCommits.saturateMb(millibuckets);
-         if (!this.isEmpty() && !BcFluids.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
+         if (!this.isEmpty() && !FluidIdentity.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
             return 0L;
          }
 
@@ -185,8 +186,8 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
 
    private long extractUnchecked(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L && !this.isEmpty()) {
-         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toStack(resource));
-         if (!BcFluids.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
+         FluidStack fluid = FluidIdentity.canonicalFluidStack(FluidVariants.toStack(resource));
+         if (!FluidIdentity.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
             return 0L;
          }
 

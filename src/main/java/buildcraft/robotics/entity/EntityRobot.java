@@ -55,7 +55,7 @@ public class EntityRobot extends EntityRobotBase {
 
    private final MjBattery battery = new MjBattery(MAX_POWER);
    private final ItemStack[] inv = new ItemStack[NB_ITEMS_SLOTS];
-   private final buildcraft.lib.fabric.transfer.SingleFluidTank fluidTank = new buildcraft.lib.fabric.transfer.SingleFluidTank(MAX_FLUID_MB);
+   private final buildcraft.lib.fabric.transfer.fluid.SingleFluidTank fluidTank = new buildcraft.lib.fabric.transfer.fluid.SingleFluidTank(MAX_FLUID_MB);
    private final Set<Integer> unreachableEntities = new HashSet<>();
 
    private RedstoneBoardRobot board;
@@ -326,7 +326,7 @@ public class EntityRobot extends EntityRobotBase {
    }
 
    @Override
-   public buildcraft.lib.fabric.transfer.SingleFluidTank getFluidStorage() {
+   public buildcraft.lib.fabric.transfer.fluid.SingleFluidTank getFluidStorage() {
       return this.fluidTank;
    }
 

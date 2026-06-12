@@ -6,16 +6,20 @@
 
 package buildcraft.factory.tile;
 
+
+import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
+import buildcraft.lib.fluid.display.FluidDisplayNames;
+import buildcraft.lib.fluid.identity.FluidIdentity;
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.block.BlockFloodGate;
-import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
 import com.google.common.collect.ImmutableList;
@@ -117,7 +121,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
             this.paths.put(offset, ImmutableList.of(offset));
          }
 
-         Direction[] directions = BcFluids.isGaseous(fluid.copyWithAmount(1)) ? SEARCH_GASEOUS : SEARCH_NORMAL;
+         Direction[] directions = FluidAttributes.of(fluid.getFluid()).isLighterThanAir() ? SEARCH_GASEOUS : SEARCH_NORMAL;
 
          while (!nextPosesToCheck.isEmpty()) {
             List<BlockPos> nextPosesToCheckCopy = new ArrayList<>(nextPosesToCheck);
@@ -157,7 +161,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
 
       Fluid fluid = BlockUtil.getFluidWithFlowing(this.level, offsetPos);
       return fluid != null
-         && BcFluids.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid())
+         && FluidIdentity.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid())
          && BlockUtil.getFluidWithoutFlowing(this.level.getBlockState(offsetPos)) == null;
    }
 
@@ -167,7 +171,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
       }
 
       Fluid fluid = BlockUtil.getFluid(this.level, offsetPos);
-      return BcFluids.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid());
+      return FluidIdentity.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid());
    }
 
    private boolean canFillThrough(BlockPos pos) {
@@ -176,7 +180,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
       }
 
       Fluid fluid = BlockUtil.getFluidWithFlowing(this.level, pos);
-      return BcFluids.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid());
+      return FluidIdentity.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid());
    }
 
    public void serverTick() {
@@ -184,7 +188,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
          int currentAmount = this.fluidTank.getAmountMb();
          FluidStack currentFluid = this.fluidTank.getFluidStack();
          FluidStack currentIdentity = currentFluid.isEmpty() ? FluidStack.EMPTY : currentFluid.copyWithAmount(1);
-         if (currentAmount != this.lastSyncedAmount || !BcFluids.areEquivalentFluidStacks(currentIdentity, this.lastSyncedFluid)) {
+         if (currentAmount != this.lastSyncedAmount || !FluidIdentity.areEquivalentFluidStacks(currentIdentity, this.lastSyncedFluid)) {
             this.lastSyncedAmount = currentAmount;
             this.lastSyncedFluid = currentIdentity;
             this.setChanged();
@@ -209,7 +213,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
                   if (canFill && this.canFill(currentPos)) {
                      ServerLevel serverLevel = (ServerLevel)this.level;
                      Player fakePlayer = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, this.owner, this.worldPosition);
-                     FluidStack placed = BcFluids.tryPlaceFluid(this.fluidTank, fakePlayer, this.level, InteractionHand.MAIN_HAND, currentPos);
+                     FluidStack placed = FluidStorageInteractions.tryPlaceFluid(this.fluidTank, fakePlayer, this.level, InteractionHand.MAIN_HAND, currentPos);
                      if (!placed.isEmpty()) {
                         if (this.owner != null) {
                            AdvancementUtil.unlockAdvancement(this.owner.id(), this.level, ADVANCEMENT_FLOODING_THE_WORLD);
@@ -337,7 +341,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
 
    @Override
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
-      left.add("fluid = " + BcFluids.getDebugString(this.fluidTank.getFluidStack()));
+      left.add("fluid = " + FluidDisplayNames.debugString(this.fluidTank.getFluidStack()));
       left.add("owner = " + (this.owner != null ? this.owner.name() : "none"));
       left.add("openSides = " + this.openSides.stream().map(Enum::name).collect(Collectors.joining(", ")));
       left.add("delay = " + this.getCurrentDelay());

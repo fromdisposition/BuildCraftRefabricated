@@ -1,4 +1,4 @@
-package buildcraft.lib.fabric.transfer;
+package buildcraft.lib.fabric.transfer.fluid;
 
 import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;

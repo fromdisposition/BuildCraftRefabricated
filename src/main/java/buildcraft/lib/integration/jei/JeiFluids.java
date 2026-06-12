@@ -7,7 +7,7 @@
 package buildcraft.lib.integration.jei;
 
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fabric.transfer.FluidVariants;
+import buildcraft.lib.fabric.transfer.fluid.FluidVariants;
 import java.util.Optional;
 import mezz.jei.api.fabric.constants.FabricTypes;
 import mezz.jei.api.fabric.ingredients.fluids.JeiFluidIngredient;

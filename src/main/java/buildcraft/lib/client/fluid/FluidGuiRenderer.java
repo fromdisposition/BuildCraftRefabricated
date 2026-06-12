@@ -10,16 +10,15 @@ import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
-public final class BcFluidGuiDrawer {
-   private BcFluidGuiDrawer() {
+public final class FluidGuiRenderer {
+   private FluidGuiRenderer() {
    }
 
    public static void drawFluidStack(BCGraphics graphics, int x, int y, int width, int height, FluidStack stack) {
       if (stack != null && !stack.isEmpty()) {
-         FluidClientCache.Appearance appearance = FluidClientCache.get(stack);
+         BcFluidAppearance appearance = BcFluidAppearanceCache.get(stack);
          if (appearance != null && appearance.sprite() != null) {
             drawTiled(graphics, x, y, width, height, appearance.sprite(), appearance.tint());
          }

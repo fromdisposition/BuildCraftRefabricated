@@ -6,10 +6,11 @@
 
 package buildcraft.lib.fluid.registry;
 
+
+import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.api.fuels.IFuel;
 import buildcraft.api.fuels.IFuelManager;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -44,7 +45,7 @@ public enum FuelRegistry implements IFuelManager {
    public IFuel getFuel(FluidStack fluid) {
       if (fluid != null && !fluid.isEmpty()) {
          for (IFuel fuel : this.fuels) {
-            if (FluidStack.isSameFluid(fuel.getFluid(), fluid) || BcFluids.areFluidsEqual(fuel.getFluid().getFluid(), fluid.getFluid())) {
+            if (FluidStack.isSameFluid(fuel.getFluid(), fluid) || FluidIdentity.areFluidsEqual(fuel.getFluid().getFluid(), fluid.getFluid())) {
                return fuel;
             }
          }

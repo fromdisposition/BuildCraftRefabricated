@@ -9,15 +9,12 @@ package buildcraft.lib.fluid.meta;
 import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
@@ -101,10 +98,6 @@ public final class FluidAttributes {
    }
 
    public int getViscosity(FluidStack stack) {
-      return this.getViscosity();
-   }
-
-   public int getViscosity(FluidState state, BlockAndLightGetter getter, BlockPos pos) {
       return this.getViscosity();
    }
 

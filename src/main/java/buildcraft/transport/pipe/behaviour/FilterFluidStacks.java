@@ -6,7 +6,7 @@
 
 package buildcraft.transport.pipe.behaviour;
 
-import buildcraft.lib.fabric.transfer.ItemFluidLookup;
+import buildcraft.lib.fabric.transfer.fluid.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
 import net.minecraft.world.item.ItemStack;
 

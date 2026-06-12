@@ -1,16 +1,15 @@
-package buildcraft.lib.fabric.transfer;
+package buildcraft.lib.fabric.transfer.fluid;
 
+import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fabric.transfer.FluidVariants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import org.jspecify.annotations.Nullable;
 import java.util.function.Predicate;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import org.jspecify.annotations.Nullable;
-
 public final class FluidStorageOps {
    private FluidStorageOps() {
    }
@@ -116,6 +115,37 @@ public final class FluidStorageOps {
          return TransferCommits.saturateMb(FluidVariants.dropletsToMb(inserted));
       } else {
          return 0;
+      }
+   }
+
+   @Nullable
+   public static FluidStack moveReturningStack(Storage<FluidVariant> from, Storage<FluidVariant> to, int maxMb) {
+      if (from != null && to != null) {
+         FluidVariant firstVariant = FluidVariant.blank();
+
+         for (StorageView<FluidVariant> view : from) {
+            if (!view.isResourceBlank() && view.getAmount() > 0L) {
+               firstVariant = (FluidVariant)view.getResource();
+               break;
+            }
+         }
+
+         if (firstVariant.isBlank()) {
+            return null;
+         }
+
+         long maxDroplets = FluidVariants.mbToDroplets(maxMb);
+         try (Transaction transaction = Transaction.openOuter()) {
+            long moved = move(from, to, maxDroplets, transaction);
+            if (moved <= 0L) {
+               return null;
+            }
+
+            transaction.commit();
+            return FluidVariants.toStack(firstVariant, moved);
+         }
+      } else {
+         return null;
       }
    }
 }

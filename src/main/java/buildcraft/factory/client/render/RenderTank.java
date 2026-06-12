@@ -6,14 +6,17 @@
 
 package buildcraft.factory.client.render;
 
+
+import buildcraft.lib.fluid.identity.FluidIdentity;
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.client.fluid.BcFluidTankRenderer;
-import buildcraft.lib.client.fluid.FluidClientCache;
+import buildcraft.lib.client.fluid.BcFluidAppearance;
+import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
 import buildcraft.lib.fluid.registry.FluidSmoother;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
@@ -53,7 +56,7 @@ public class RenderTank extends BcBlockEntityRenderer<TileTank, TankRenderState>
          return;
       }
 
-      FluidClientCache.Appearance appearance = FluidClientCache.get(fluid);
+      BcFluidAppearance appearance = BcFluidAppearanceCache.get(fluid);
       if (appearance == null) {
          return;
       }
@@ -83,7 +86,7 @@ public class RenderTank extends BcBlockEntityRenderer<TileTank, TankRenderState>
 
          int light = renderState.light;
          poseStack.pushPose();
-         BcBerRenderUtil.submit(poseStack, collector, FluidClientCache.renderType(renderState.appearance), (pose, buffer) -> BcFluidTankRenderer.renderFilledBox(
+         BcBerRenderUtil.submit(poseStack, collector, BcFluidAppearanceCache.renderType(renderState.appearance), (pose, buffer) -> BcFluidTankRenderer.renderFilledBox(
             pose,
             buffer,
             renderState.appearance.sprite(),
@@ -121,11 +124,11 @@ public class RenderTank extends BcBlockEntityRenderer<TileTank, TankRenderState>
          FluidStack otherFluid = otherTank.fluidTank.getFluidStack();
          FluidStack thisFluid = tile.fluidTank.getFluidStack();
          if (!otherFluid.isEmpty() && !thisFluid.isEmpty()) {
-            if (!BcFluids.areEquivalentFluidStacks(thisFluid.copyWithAmount(1), otherFluid.copyWithAmount(1))) {
+            if (!FluidIdentity.areEquivalentFluidStacks(thisFluid.copyWithAmount(1), otherFluid.copyWithAmount(1))) {
                return false;
             }
 
-            Direction checkDir = BcFluids.isGaseous(thisFluid.copyWithAmount(1)) ? direction.getOpposite() : direction;
+            Direction checkDir = FluidAttributes.of(thisFluid.getFluid()).isLighterThanAir() ? direction.getOpposite() : direction;
             return otherTank.fluidTank.getAmountMb() >= otherTank.fluidTank.getCapacityMb() || checkDir == Direction.UP;
          } else {
             return false;

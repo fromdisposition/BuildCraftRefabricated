@@ -8,8 +8,7 @@ package buildcraft.lib.fluid.stack;
 
 import buildcraft.lib.common.EventHooks;
 import buildcraft.lib.common.MutableDataComponentHolder;
-import buildcraft.lib.fabric.Mc26Compat;
-import buildcraft.lib.fluid.BcFluids;
+import buildcraft.lib.fluid.display.FluidDisplayNames;
 import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -137,7 +136,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public FluidStack(Fluid fluid, int amount, DataComponentPatch patch) {
-      this(Mc26Compat.fluidHolder(fluid), amount, patch);
+      this(FluidHolders.fluidHolder(fluid), amount, patch);
    }
 
    public FluidStack(Fluid fluid, int amount) {
@@ -189,7 +188,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public Holder<Fluid> typeHolder() {
-      return this.isEmpty() ? Mc26Compat.emptyFluidHolder() : this.fluid;
+      return this.isEmpty() ? FluidHolders.emptyFluidHolder() : this.fluid;
    }
 
    public FluidStack copy() {
@@ -318,7 +317,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public Component getHoverName() {
-      return BcFluids.getFluidDisplayName(this);
+      return FluidDisplayNames.forStack(this);
    }
 
    @Override

@@ -9,7 +9,6 @@ package buildcraft.silicon.client;
 import buildcraft.api.transport.pipe.PipeApiClient;
 import buildcraft.fabric.client.event.ClientPlayerNetworkEvent;
 import buildcraft.fabric.client.event.ModelEvent;
-import buildcraft.lib.client.fluid.FluidClientCache;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.client.model.FacadeItemModel;
 import buildcraft.silicon.client.model.GateItemModel;
@@ -78,7 +77,6 @@ public class BCSiliconClient {
       PlugGateBaker.onModelBake();
       PlugGateRenderer.onModelBake();
       PipeModelCacheAll.clearAll();
-      FluidClientCache.clear();
       PlugBakerSimpleItems.onModelBake();
       cachedBlockStateModels = event.getBakingResult().blockStateModels();
    }

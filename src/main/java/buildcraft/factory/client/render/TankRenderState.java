@@ -7,13 +7,13 @@
 package buildcraft.factory.client.render;
 
 import buildcraft.factory.tile.TileTank;
-import buildcraft.lib.client.fluid.FluidClientCache;
+import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.render.tile.BcBerState;
 import buildcraft.lib.fluid.stack.FluidStack;
 
 public class TankRenderState extends BcBerState<TileTank> {
    public boolean hasFluid;
-   public FluidClientCache.Appearance appearance;
+   public BcFluidAppearance appearance;
    public FluidStack fluid;
    public double amount;
    public int capacity;

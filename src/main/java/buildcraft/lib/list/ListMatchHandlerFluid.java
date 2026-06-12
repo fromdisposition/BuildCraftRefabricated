@@ -7,7 +7,7 @@
 package buildcraft.lib.list;
 
 import buildcraft.api.lists.ListMatchHandler;
-import buildcraft.lib.fabric.transfer.ItemFluidLookup;
+import buildcraft.lib.fabric.transfer.fluid.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.List;
 import javax.annotation.Nonnull;

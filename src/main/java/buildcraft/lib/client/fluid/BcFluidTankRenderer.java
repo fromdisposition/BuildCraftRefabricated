@@ -6,8 +6,9 @@
 
 package buildcraft.lib.client.fluid;
 
+
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.BcFluids;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -41,7 +42,7 @@ public final class BcFluidTankRenderer {
          float b = rgba[2];
          float a = rgba[3];
          float fillRatio = (float)(amount / capacity);
-         boolean gaseous = BcFluids.isGaseous(fluid);
+         boolean gaseous = !fluid.isEmpty() && FluidAttributes.of(fluid.getFluid()).isLighterThanAir();
          float fluidTop;
          float fluidBottom;
          if (gaseous) {
@@ -52,7 +53,7 @@ public final class BcFluidTankRenderer {
             fluidTop = minY + (maxY - minY) * fillRatio;
          }
 
-         BcFluidQuadEmitter.emitTankQuad(
+         BcFluidTankQuads.emitTankQuad(
             pose,
             buffer,
             sprite,
@@ -78,7 +79,7 @@ public final class BcFluidTankRenderer {
             light,
             overlay
          );
-         BcFluidQuadEmitter.emitTankQuad(
+         BcFluidTankQuads.emitTankQuad(
             pose,
             buffer,
             sprite,
@@ -104,7 +105,7 @@ public final class BcFluidTankRenderer {
             light,
             overlay
          );
-         BcFluidQuadEmitter.emitTankQuad(
+         BcFluidTankQuads.emitTankQuad(
             pose,
             buffer,
             sprite,
@@ -130,7 +131,7 @@ public final class BcFluidTankRenderer {
             light,
             overlay
          );
-         BcFluidQuadEmitter.emitTankQuad(
+         BcFluidTankQuads.emitTankQuad(
             pose,
             buffer,
             sprite,
@@ -157,15 +158,15 @@ public final class BcFluidTankRenderer {
             overlay
          );
          if (renderTop) {
-            BcFluidQuadEmitter.emitTankHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidTop, 0.0F, 1.0F, 0.0F, r, g, b, a, light, overlay);
+            BcFluidTankQuads.emitTankHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidTop, 0.0F, 1.0F, 0.0F, r, g, b, a, light, overlay);
          }
 
          if (renderBottom) {
-            BcFluidQuadEmitter.emitTankHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
+            BcFluidTankQuads.emitTankHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
          }
 
          if (gaseous && fillRatio < 1.0F && renderBottom) {
-            BcFluidQuadEmitter.emitTankHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
+            BcFluidTankQuads.emitTankHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
          }
       }
    }

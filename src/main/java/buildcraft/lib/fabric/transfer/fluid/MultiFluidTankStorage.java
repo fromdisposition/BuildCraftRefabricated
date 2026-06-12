@@ -1,7 +1,7 @@
-package buildcraft.lib.fabric.transfer;
+package buildcraft.lib.fabric.transfer.fluid;
 
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fabric.transfer.FluidVariants;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;

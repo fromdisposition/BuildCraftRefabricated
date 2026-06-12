@@ -1,7 +1,5 @@
 package buildcraft.fabric.fluid;
 
-import buildcraft.fabric.BCEnergyFluidsFabric;
-import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -12,27 +10,27 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 
 /**
- * BC custom fluid physics, tags, and client appearance. Identity, transfer, and tank logic live in
- * {@link buildcraft.lib.fluid.BcFluids}; oil heat tiers register via {@link buildcraft.fabric.BCEnergyFluidsFabric}.
+ * BC custom fluid physics, tags, and detection. Identity, transfer, and tank logic live in
+ * {@link BcFluidTags#BC_FLUIDS}; oil heat tiers register via {@link buildcraft.fabric.BCEnergyFluidsFabric}.
  */
 public final class BcFluidUtil {
    private BcFluidUtil() {
    }
 
    /**
-    * True only for vanilla water. BC oil/fuel fluids are also in {@code minecraft:water} for engine compat
-    * (ticks, buckets, entity fluid checks) — use this helper anywhere oil must not be treated as water.
+    * True only for vanilla water. BC oil/fuel use {@link BcFluidTags#BC_FLUIDS} for
+    * entity/render detection — use this helper anywhere oil must not be treated as real water.
     */
    public static boolean isVanillaWater(FluidState state) {
       return !state.isEmpty() && state.getType().isSame(Fluids.WATER);
    }
 
    public static boolean isBcFluid(FluidState state) {
-      return clientAppearance(state) != null;
+      return isBcFluidTag(state);
    }
 
    public static boolean isBcFluid(Fluid fluid) {
-      return clientAppearance(fluid) != null;
+      return fluid != null && !fluid.defaultFluidState().isEmpty() && fluid.is(BcFluidTags.BC_FLUIDS);
    }
 
    public static boolean isBcFluidTag(FluidState state) {
@@ -75,25 +73,5 @@ public final class BcFluidUtil {
       }
 
       return false;
-   }
-
-   @Nullable
-   public static BcFluidClientAppearance clientAppearance(FluidState state) {
-      if (state.isEmpty()) {
-         return null;
-      }
-
-      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(state.getType());
-      return entry == null ? null : entry.holder().props.clientAppearance();
-   }
-
-   @Nullable
-   public static BcFluidClientAppearance clientAppearance(Fluid fluid) {
-      if (fluid == null) {
-         return null;
-      }
-
-      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
-      return entry == null ? null : entry.holder().props.clientAppearance();
    }
 }

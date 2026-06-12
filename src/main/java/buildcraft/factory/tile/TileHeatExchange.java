@@ -6,6 +6,9 @@
 
 package buildcraft.factory.tile;
 
+
+import buildcraft.lib.fluid.display.FluidDisplayNames;
+import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.api.tiles.IDebuggable;
@@ -14,16 +17,15 @@ import buildcraft.factory.FactoryFluidContainers;
 import buildcraft.factory.block.BlockHeatExchange;
 import buildcraft.factory.container.ContainerHeatExchange;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import buildcraft.lib.fabric.transfer.SidedFluidStorages;
-import buildcraft.lib.fabric.transfer.SingleFluidTank;
+import buildcraft.lib.fabric.transfer.fluid.SidedFluidStorages;
+import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fluid.registry.FluidSmoother;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.BlockDropsUtil;
-import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.fabric.transfer.NeighborTransfers;
+import buildcraft.lib.fabric.transfer.fluid.NeighborTransfers;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -600,8 +602,8 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       ExchangeSection(TileHeatExchange tile, Predicate<FluidStack> inputFilter) {
          this.tankInput = new SingleFluidTank(2000, SingleFluidTank.TankAccess.filteredInput(inputFilter::test));
          this.tankOutput = new SingleFluidTank(2000, SingleFluidTank.TankAccess.MACHINE_OUTPUT);
-         this.smoothedTankInput = new FluidSmoother(this.tankInput);
-         this.smoothedTankOutput = new FluidSmoother(this.tankOutput);
+         this.smoothedTankInput = new FluidSmoother(this.tankInput::getAmountMb, this.tankInput::getFluidStack, this.tankInput::getCapacityMb);
+         this.smoothedTankOutput = new FluidSmoother(this.tankOutput::getAmountMb, this.tankOutput::getFluidStack, this.tankOutput::getCapacityMb);
          this.tile = tile;
       }
 
@@ -614,8 +616,8 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       }
 
       void getDebugInfo(List<String> left, List<String> right, Direction side) {
-         left.add("tank_input = " + BcFluids.getDebugString(this.tankInput.getFluidStack()));
-         left.add("tank_output = " + BcFluids.getDebugString(this.tankOutput.getFluidStack()));
+         left.add("tank_input = " + FluidDisplayNames.debugString(this.tankInput.getFluidStack()));
+         left.add("tank_output = " + FluidDisplayNames.debugString(this.tankOutput.getFluidStack()));
       }
 
       void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
@@ -853,7 +855,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
             if (end != null && this.getTile().level != null) {
                Vec3 from = Vec3.atCenterOf(this.getTile().getBlockPos());
                FluidStack c_in_f = end.tankInput.getFluidStack();
-               if (!c_in_f.isEmpty() && BcFluids.areFluidsEqual(c_in_f.getFluid(), Fluids.LAVA)) {
+               if (!c_in_f.isEmpty() && FluidIdentity.areFluidsEqual(c_in_f.getFluid(), Fluids.LAVA)) {
                   Direction facing = this.getTile().getFacing();
                   if (facing != null) {
                      this.spewForth(from, facing.getClockWise(), true);
@@ -862,7 +864,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
                FluidStack h_in_f = this.tankInput.getFluidStack();
                from = Vec3.atCenterOf(end.getTile().getBlockPos());
-               if (!h_in_f.isEmpty() && BcFluids.areFluidsEqual(h_in_f.getFluid(), Fluids.WATER)) {
+               if (!h_in_f.isEmpty() && FluidIdentity.areFluidsEqual(h_in_f.getFluid(), Fluids.WATER)) {
                   this.spewForth(from, Direction.UP, false);
                }
             }

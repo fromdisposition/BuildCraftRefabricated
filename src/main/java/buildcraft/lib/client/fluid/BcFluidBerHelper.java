@@ -51,7 +51,7 @@ public final class BcFluidBerHelper {
          FluidStack fluid = interp.fluid();
          int capacity = smoother.getCapacity();
          if (capacity > 0) {
-            FluidClientCache.Appearance appearance = FluidClientCache.get(fluid);
+            BcFluidAppearance appearance = BcFluidAppearanceCache.get(fluid);
             if (appearance != null) {
                float shrink = 0.015625F;
                float minX = bounds.minX / 16.0F + shrink;
@@ -60,7 +60,7 @@ public final class BcFluidBerHelper {
                float maxX = bounds.maxX / 16.0F - shrink;
                float maxY = bounds.maxY / 16.0F - shrink;
                float maxZ = bounds.maxZ / 16.0F - shrink;
-               RenderType renderType = FluidClientCache.renderType(appearance);
+               RenderType renderType = BcFluidAppearanceCache.renderType(appearance);
                submitter.accept(renderType, (pose, buffer) -> BcFluidTankRenderer.renderFilledBox(
                   pose,
                   buffer,
