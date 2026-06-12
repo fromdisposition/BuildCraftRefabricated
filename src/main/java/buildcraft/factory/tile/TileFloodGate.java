@@ -6,17 +6,20 @@
 
 package buildcraft.factory.tile;
 
+import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.block.BlockFloodGate;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.FluidUtilBC;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
 import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.transfer.fluid.FluidUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.mojang.authlib.GameProfile;
@@ -45,6 +48,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -191,9 +195,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
 
          if (this.fluidTank.getAmountMb() >= 1000) {
             this.tick++;
-            if (this.tick % 16 == 0 && !this.fluidTank.isEmpty() && !this.queue.isEmpty()) {
-               FluidStack res = this.fluidTank.getFluidStack();
-               if (this.fluidTank.getAmountMb() >= 1000) {
+            if (this.tick % 16 == 0 && !this.fluidTank.isEmpty() && !this.queue.isEmpty() && this.fluidTank.getAmountMb() >= 1000) {
                   BlockPos currentPos = this.queue.removeLast();
                   List<BlockPos> path = this.paths.get(currentPos);
                   boolean canFill = true;
@@ -207,46 +209,22 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
                   }
 
                   if (canFill && this.canFill(currentPos)) {
-                     Fluid fluidType = res.getFluid();
-                     BlockState fluidBlock = fluidType.defaultFluidState().createLegacyBlock();
-                     if (!fluidBlock.isAir()) {
-                        if (!BlockUtil.canMachinePlace((ServerLevel)this.level, currentPos, this.owner, this.worldPosition)) {
-                           this.buildQueue();
-                        } else {
-                           this.level.setBlock(currentPos, fluidBlock, 3);
-                           Transaction tx = Transaction.openOuter();
-
-                           try {
-                              this.fluidTank.extract(TransferConvert.toVariant(res), TransferConvert.mbToDroplets(1000L), tx);
-                              tx.commit();
-                           } catch (Throwable var14) {
-                              if (tx != null) {
-                                 try {
-                                    tx.close();
-                                 } catch (Throwable var13) {
-                                    var14.addSuppressed(var13);
-                                 }
-                              }
-
-                              throw var14;
-                           }
-
-                           if (tx != null) {
-                              tx.close();
-                           }
-
-                           if (this.owner != null) {
-                              AdvancementUtil.unlockAdvancement(this.owner.id(), this.level, ADVANCEMENT_FLOODING_THE_WORLD);
-                           }
-
-                           this.delayIndex = 0;
-                           this.tick = 0;
+                     ServerLevel serverLevel = (ServerLevel)this.level;
+                     Player fakePlayer = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, this.owner, this.worldPosition);
+                     FluidStack placed = FluidUtil.tryPlaceFluid(this.fluidTank, fakePlayer, this.level, InteractionHand.MAIN_HAND, currentPos);
+                     if (!placed.isEmpty()) {
+                        if (this.owner != null) {
+                           AdvancementUtil.unlockAdvancement(this.owner.id(), this.level, ADVANCEMENT_FLOODING_THE_WORLD);
                         }
+
+                        this.delayIndex = 0;
+                        this.tick = 0;
+                     } else {
+                        this.buildQueue();
                      }
                   } else {
                      this.buildQueue();
                   }
-               }
             }
 
             if (this.queue.isEmpty() && this.tick >= this.getCurrentDelay()) {
@@ -255,6 +233,30 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
                this.buildQueue();
             }
          }
+      }
+   }
+
+   @Override
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.dropTankContents(pos);
+      }
+
+      super.preRemoveSideEffects(pos, state);
+   }
+
+   private void dropTankContents(BlockPos pos) {
+      if (this.fluidTank.isEmpty()) {
+         return;
+      }
+
+      FluidStack held = this.fluidTank.getFluidStack();
+      int amountMb = this.fluidTank.getAmountMb();
+      BlockDropsUtil.dropFluidShard(this.level, pos, held);
+
+      try (Transaction tx = Transaction.openOuter()) {
+         this.fluidTank.extract(TransferConvert.toVariant(held), TransferConvert.mbToDroplets(amountMb), tx);
+         tx.commit();
       }
    }
 

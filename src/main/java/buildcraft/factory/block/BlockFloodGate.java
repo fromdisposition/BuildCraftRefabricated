@@ -10,9 +10,7 @@ import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.api.tools.IToolWrench;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileFloodGate;
-import buildcraft.lib.misc.BlockDropsUtil;
 import com.mojang.serialization.MapCodec;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -127,14 +125,6 @@ public class BlockFloodGate extends BaseEntityBlock {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
          }
       }
-   }
-
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (level.getBlockEntity(pos) instanceof TileFloodGate floodGate) {
-         BlockDropsUtil.dropFluidShard(level, pos, floodGate.fluidTank.getFluidStack());
-      }
-
-      return super.playerWillDestroy(level, pos, state, player);
    }
 
    static {
