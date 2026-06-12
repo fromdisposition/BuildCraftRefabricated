@@ -112,17 +112,45 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       this.scanAndRemoveTubesInColumn();
    }
 
-   protected void removeTubesAbove(int minInclusiveY) {
+   protected void removeTubesOutsideTip(int tipY) {
       if (this.level == null || this.level.isClientSide()) {
          return;
       }
 
+      int pumpY = this.worldPosition.getY();
       int x = this.worldPosition.getX();
       int z = this.worldPosition.getZ();
+      int minY = pumpY - BCCoreConfig.miningMaxDepth.get();
 
-      for (int y = this.worldPosition.getY() - 1; y >= minInclusiveY; y--) {
+      for (int y = pumpY - 1; y > minY; y--) {
+         if (y <= tipY) {
+            BlockPos blockPos = new BlockPos(x, y, z);
+            if (this.level.getBlockState(blockPos).is(BCFactoryBlocks.TUBE)) {
+               this.level.removeBlock(blockPos, false);
+            }
+         }
+      }
+   }
+
+   protected void syncMiningTubesToTip(int tipY) {
+      if (this.level == null || this.level.isClientSide()) {
+         return;
+      }
+
+      int pumpY = this.worldPosition.getY();
+      int x = this.worldPosition.getX();
+      int z = this.worldPosition.getZ();
+      int minY = pumpY - BCCoreConfig.miningMaxDepth.get();
+
+      for (int y = pumpY - 1; y > minY; y--) {
          BlockPos blockPos = new BlockPos(x, y, z);
-         if (this.level.getBlockState(blockPos).is(BCFactoryBlocks.TUBE)) {
+         BlockState existing = this.level.getBlockState(blockPos);
+         boolean wantTube = y > tipY && !existing.getFluidState().isSource();
+         boolean isTube = existing.is(BCFactoryBlocks.TUBE);
+
+         if (wantTube && !isTube) {
+            this.level.setBlockAndUpdate(blockPos, BCFactoryBlocks.TUBE.defaultBlockState());
+         } else if (!wantTube && isTube) {
             this.level.removeBlock(blockPos, false);
          }
       }
@@ -139,24 +167,10 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       int newY = this.getTargetPos() != null ? this.getTargetPos().getY() : this.worldPosition.getY();
       int newLength = this.worldPosition.getY() - newY;
       if (newLength != this.wantedLength) {
-         if (newLength < this.wantedLength) {
-            this.removeTubesAbove(newY + 1);
-         }
-
-         this.placeMiningTubes(newY);
+         this.syncMiningTubesToTip(newY);
          this.currentLength = this.wantedLength = newLength;
          this.setChanged();
          MessageUtil.sendUpdateToTrackingPlayers(this);
-      }
-   }
-
-   protected void placeMiningTubes(int tipY) {
-      for (int y = this.worldPosition.getY() - 1; y > tipY; y--) {
-         BlockPos blockPos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
-         BlockState existing = this.level.getBlockState(blockPos);
-         if (!existing.getFluidState().isSource()) {
-            this.level.setBlockAndUpdate(blockPos, BCFactoryBlocks.TUBE.defaultBlockState());
-         }
       }
    }
 

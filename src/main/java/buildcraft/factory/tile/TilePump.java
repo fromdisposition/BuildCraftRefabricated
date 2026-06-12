@@ -99,7 +99,7 @@ public class TilePump extends TileMiner implements IDebuggable {
       int newLength = this.worldPosition.getY() - newY;
       if (newLength != this.wantedLength) {
          if (newLength < this.wantedLength) {
-            this.removeTubesAbove(newY + 1);
+            this.removeTubesOutsideTip(newY);
          }
 
          this.currentLength = this.wantedLength = newLength;
