@@ -4,7 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
@@ -51,10 +50,6 @@ public final class BcFluidUtil {
    /** True when any part of the entity fluid-interaction box overlaps a non-gaseous BC liquid. */
    public static boolean touchesBcLiquid(Entity entity) {
       return touchesFluidTag(entity, BcFluidTags.BC_LIQUIDS);
-   }
-
-   public static boolean shouldCrawlSwimInBcLiquid(LivingEntity entity) {
-      return entity.isSprinting() && !entity.isPassenger() && entity.isEyeInFluid(BcFluidTags.BC_LIQUIDS);
    }
 
    public static boolean isEyeInGaseousBcFluid(Entity entity) {
