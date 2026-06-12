@@ -10,10 +10,10 @@ import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.factory.BCFactoryBlockEntities;
-import buildcraft.lib.fluids.FluidTypes;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.InventoryUtil;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
@@ -21,22 +21,34 @@ import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 
 public class TileMiningWell extends TileMiner {
    private boolean shouldCheck = true;
    private int recheckCooldown = 0;
+   @Nullable
+   private BlockPos shaftTipPos;
    private IMjReceiver mjReceiver;
 
    public TileMiningWell(BlockPos pos, BlockState state) {
       super(BCFactoryBlockEntities.MINING_WELL, pos, state);
    }
 
+   @Nullable
+   @Override
+   protected BlockPos getTargetPos() {
+      return this.currentPos != null ? this.currentPos : this.shaftTipPos;
+   }
+
    @Override
    protected void mine() {
-      if (this.currentPos != null && this.canBreak()) {
-         this.shouldCheck = true;
+      if (this.currentPos != null) {
+         if (!this.isMineableSolid(this.currentPos)) {
+            this.progress = 0;
+            this.findNextTarget();
+            return;
+         }
+
          long target = BlockUtil.computeBlockBreakPower(this.level, this.currentPos);
          this.progress = this.progress + (int)this.battery.extractPower(0L, target - this.progress);
          if (this.progress >= target) {
@@ -51,67 +63,69 @@ public class TileMiningWell extends TileMiner {
                });
             }
 
-            this.nextPos();
-         } else if (!this.level.isEmptyBlock(this.currentPos)) {
+            this.findNextTarget();
+         } else {
             this.level.destroyBlockProgress(this.currentPos.hashCode(), this.currentPos, (int)(this.progress * 9 / target));
          }
-      } else if (this.currentPos != null && !this.canBreak()) {
-         this.progress = 0;
-         this.nextPos();
-      } else if (!this.shouldCheck && this.recheckCooldown > 0) {
-         this.recheckCooldown--;
-      } else {
-         this.nextPos();
-         if (this.currentPos == null) {
-            this.shouldCheck = false;
-         }
 
-         this.recheckCooldown = 256;
-      }
-   }
-
-   private boolean canBreak() {
-      if (this.level.isEmptyBlock(this.currentPos) || BlockUtil.isUnbreakableBlock(this.level, this.currentPos, this.getOwner())) {
-         return false;
-      }
-
-      BlockState state = this.level.getBlockState(this.currentPos);
-      if (state.is(BlockTags.NEEDS_DIAMOND_TOOL)) {
-         return false;
-      }
-
-      return state.getFluidState().isEmpty();
-   }
-
-   private boolean isPassableFluid(BlockPos pos) {
-      FluidState fluidState = this.level.getFluidState(pos);
-      return !fluidState.isEmpty() && FluidTypes.of(fluidState.getType()).getViscosity() <= 1000;
-   }
-
-   private void nextPos() {
-      this.currentPos = this.worldPosition;
-
-      while (true) {
-         this.currentPos = this.currentPos.below();
-         if (!this.level.isOutsideBuildHeight(this.currentPos) && this.worldPosition.getY() - this.currentPos.getY() <= BCCoreConfig.miningMaxDepth.get()) {
-            if (this.canBreak()) {
-               if (this.level instanceof ServerLevel serverLevel && !BlockUtil.canMachineBreak(serverLevel, this.currentPos, this.getOwner())) {
-                  continue;
-               }
-
-               this.updateLength();
-               return;
-            }
-
-            if (this.level.isEmptyBlock(this.currentPos) || this.isPassableFluid(this.currentPos)) {
-               continue;
-            }
-         }
-
-         this.currentPos = null;
-         this.updateLength();
          return;
       }
+
+      if (!this.shouldCheck && this.recheckCooldown > 0) {
+         this.recheckCooldown--;
+         return;
+      }
+
+      this.findNextTarget();
+      this.shouldCheck = this.currentPos != null;
+      this.recheckCooldown = 256;
+   }
+
+   private void findNextTarget() {
+      BlockPos scan = this.worldPosition;
+
+      while (true) {
+         scan = scan.below();
+         if (this.level.isOutsideBuildHeight(scan) || this.worldPosition.getY() - scan.getY() > BCCoreConfig.miningMaxDepth.get()) {
+            this.setState(null, null);
+            return;
+         }
+
+         if (this.level.isEmptyBlock(scan)) {
+            continue;
+         }
+
+         if (this.isMineableSolid(scan)) {
+            this.setState(scan, scan);
+            return;
+         }
+
+         this.setState(null, scan);
+         return;
+      }
+   }
+
+   private boolean isMineableSolid(BlockPos pos) {
+      if (this.level.isEmptyBlock(pos)) {
+         return false;
+      }
+
+      BlockState state = this.level.getBlockState(pos);
+      if (!BlockUtil.isSolid(this.level, pos, state) || !state.getFluidState().isEmpty()) {
+         return false;
+      }
+
+      if (BlockUtil.isUnbreakableBlock(this.level, pos, this.getOwner()) || state.is(BlockTags.NEEDS_DIAMOND_TOOL)) {
+         return false;
+      }
+
+      return !(this.level instanceof ServerLevel serverLevel) || BlockUtil.canMachineBreak(serverLevel, pos, this.getOwner());
+   }
+
+   private void setState(@Nullable BlockPos target, @Nullable BlockPos shaftTip) {
+      this.currentPos = target;
+      this.shaftTipPos = shaftTip;
+      this.updateLength();
    }
 
    @Override
