@@ -48,7 +48,7 @@ public class TubeRenderer {
                      Vec3 start = new Vec3(pos.getX() + 0.5, pos.getY() - 0.001, pos.getZ() + 0.5);
                      Vec3 end = new Vec3(pos.getX() + 0.5, pos.getY() - length, pos.getZ() + 0.5);
                      LaserData_BC8.LaserType type = miner instanceof TilePump ? PUMP_TUBE : MINING_WELL_TUBE;
-                     LaserData_BC8 data = new LaserData_BC8(type, start, end, 0.0625, true, false, 0);
+                     LaserData_BC8 data = new LaserData_BC8(type, start, end, TileMiner.SHAFT_RADIUS, true, false, 0);
                      BcLaserRenderer.renderLaserStatic(poseStack, data, cameraPos);
                   }
                }

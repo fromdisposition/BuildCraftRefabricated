@@ -31,6 +31,8 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBlockEntityLoadHook {
+   public static final double SHAFT_RADIUS = 0.0625D;
+   private static final double SHAFT_TOP_INSET = 0.001D;
    protected int progress = 0;
    @Nullable
    protected BlockPos currentPos = null;
@@ -89,21 +91,43 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       this.discardShaftCollider();
    }
 
+   @Nullable
+   protected AABB buildShaftCollisionBox(int tipY) {
+      int pumpY = this.worldPosition.getY();
+      if (pumpY - tipY <= 0) {
+         return null;
+      }
+
+      double centerX = this.worldPosition.getX() + 0.5D;
+      double centerZ = this.worldPosition.getZ() + 0.5D;
+      double minY = tipY;
+      double maxY = pumpY - SHAFT_TOP_INSET;
+      if (maxY <= minY) {
+         return null;
+      }
+
+      return new AABB(
+         centerX - SHAFT_RADIUS,
+         minY,
+         centerZ - SHAFT_RADIUS,
+         centerX + SHAFT_RADIUS,
+         maxY,
+         centerZ + SHAFT_RADIUS
+      );
+   }
+
    protected void updateShaftCollider() {
       if (this.level == null || this.level.isClientSide()) {
          return;
       }
 
-      int pumpY = this.worldPosition.getY();
-      int tipY = this.getTargetPos() != null ? this.getTargetPos().getY() : pumpY;
-      if (pumpY - tipY <= 0) {
+      int tipY = this.getTargetPos() != null ? this.getTargetPos().getY() : this.worldPosition.getY();
+      AABB box = this.buildShaftCollisionBox(tipY);
+      if (box == null) {
          this.discardShaftCollider();
          return;
       }
 
-      int x = this.worldPosition.getX();
-      int z = this.worldPosition.getZ();
-      AABB box = new AABB(x, tipY + 1, z, x + 1, pumpY, z + 1);
       if (this.shaftCollider == null || this.shaftCollider.isRemoved()) {
          this.shaftCollider = new EntityMinerShaft(BCFactoryEntities.MINER_SHAFT, this.level);
          this.level.addFreshEntity(this.shaftCollider);
