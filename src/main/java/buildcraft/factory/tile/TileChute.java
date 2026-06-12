@@ -10,19 +10,29 @@ import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
+import buildcraft.api.transport.IInjectable;
+import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.block.BlockChute;
 import buildcraft.factory.container.ContainerChute;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
+import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fabric.transfer.MjEnergyStorage;
+import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.misc.AdvancementUtil;
-import buildcraft.lib.misc.InventoryUtil;
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.transfer.neighbor.NeighborTransfers;
+import buildcraft.transport.pipe.flow.PipeFlowItems;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import javax.annotation.Nullable;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -43,6 +53,7 @@ import net.minecraft.world.phys.AABB;
 
 public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntityExtendedMenu {
    private static final int PICKUP_MAX = 3;
+   private static final int GRAVITY_PROGRESS = 1000;
    private static final long PROGRESS_TARGET = 100000L;
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftfactory:retired_hopper");
    public final ItemHandlerSimple inv;
@@ -77,6 +88,10 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
          if (this.level.getBlockState(this.worldPosition).getBlock() instanceof BlockChute) {
             this.battery.tick(this.getLevel(), this.getBlockPos());
             Direction currentSide = (Direction)this.level.getBlockState(this.worldPosition).getValue(BlockChute.FACING);
+            if (currentSide == Direction.UP) {
+               this.progress = Math.min((int)PROGRESS_TARGET, this.progress + GRAVITY_PROGRESS);
+            }
+
             this.progress = this.progress + (int)this.battery.extractPower(0L, PROGRESS_TARGET - this.progress);
             if (this.progress >= PROGRESS_TARGET) {
                this.progress = 0;
@@ -90,7 +105,7 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
 
    private void pickupItems(Direction currentSide) {
       AABB aabb = createPickupBox(this.worldPosition, currentSide);
-      int count = 3;
+      int count = PICKUP_MAX;
 
       for (ItemEntity entity : this.level.getEntitiesOfClass(ItemEntity.class, aabb, Entity::isAlive)) {
          ItemStack stack = entity.getItem();
@@ -135,26 +150,88 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
       };
    }
 
-   private void putInNearInventories(Direction currentSide) {
-      for (int ourSlot = 0; ourSlot < this.inv.getSlots(); ourSlot++) {
-         ItemStack inSlot = this.inv.getStackInSlot(ourSlot);
-         if (!inSlot.isEmpty()) {
-            ItemStack oneItem = inSlot.copyWithCount(1);
-            ItemStack leftover = InventoryUtil.addToRandomInjectable(this.level, this.worldPosition, currentSide, oneItem);
-            if (leftover.isEmpty()) {
-               this.inv.extractItem(ourSlot, 1, false);
-               this.grantAdvancement();
-               return;
-            }
+   private void putInNearInventories(Direction facing) {
+      if (!this.hasItemsToExport()) {
+         return;
+      }
 
-            int inserted = NeighborTransfers.insertItemCountShuffled(this.level, this.worldPosition, inSlot, 1, currentSide);
-            if (inserted > 0) {
-               this.inv.extractItem(ourSlot, inserted, false);
-               this.grantAdvancement();
-               return;
-            }
+      List<Direction> sides = new ArrayList<>(5);
+
+      for (Direction side : Direction.values()) {
+         if (side != facing) {
+            sides.add(side);
          }
       }
+
+      Collections.shuffle(sides);
+      boolean didWork = false;
+
+      for (Direction side : sides) {
+         if (this.tryExportOneItem(side)) {
+            didWork = true;
+         }
+      }
+
+      if (didWork) {
+         this.grantAdvancement();
+      }
+   }
+
+   private boolean hasItemsToExport() {
+      for (int slot = 0; slot < this.inv.getSlots(); slot++) {
+         if (!this.inv.getStackInSlot(slot).isEmpty()) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   private boolean tryExportOneItem(Direction side) {
+      BlockPos neighborPos = this.worldPosition.relative(side);
+      Direction neighborFace = side.getOpposite();
+
+      for (int slot = 0; slot < this.inv.getSlots(); slot++) {
+         ItemStack inSlot = this.inv.getStackInSlot(slot);
+         if (inSlot.isEmpty()) {
+            continue;
+         }
+
+         ItemStack one = inSlot.copyWithCount(1);
+         int moved = this.tryInjectIntoPipe(neighborPos, neighborFace, one);
+         if (moved <= 0) {
+            Storage<ItemVariant> storage = BcTransfers.item(this.level, neighborPos, neighborFace);
+            if (storage != null) {
+               moved = TransferCommits.insertItems(storage, one, 1, true);
+            }
+         }
+
+         if (moved > 0) {
+            this.inv.extractItem(slot, moved, false);
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   private int tryInjectIntoPipe(BlockPos neighborPos, Direction neighborFace, ItemStack stack) {
+      if (!(this.level.getBlockEntity(neighborPos) instanceof IPipeHolder holder)) {
+         return 0;
+      }
+
+      IPipe pipe = holder.getPipe();
+      if (pipe == null || !(pipe.getFlow() instanceof PipeFlowItems items)) {
+         return 0;
+      }
+
+      IInjectable injectable = items.getInjectable(neighborFace);
+      if (injectable == null) {
+         return 0;
+      }
+
+      ItemStack leftover = injectable.injectItem(stack, true, neighborFace, null, 0.0);
+      return stack.getCount() - leftover.getCount();
    }
 
    private void grantAdvancement() {
@@ -175,6 +252,15 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
    @Nullable
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerChute(containerId, playerInv, this);
+   }
+
+   @Override
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         BlockDropsUtil.dropTileContents(this.level, pos, this);
+      }
+
+      super.preRemoveSideEffects(pos, state);
    }
 
    @Override

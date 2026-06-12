@@ -12,10 +12,8 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileChute;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.transport.pipe.flow.PipeFlowItems;
 import com.mojang.serialization.MapCodec;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.minecraft.core.BlockPos;
@@ -151,13 +149,5 @@ public class BlockChute extends BaseEntityBlock {
       }
 
       return InteractionResult.SUCCESS;
-   }
-
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (level.getBlockEntity(pos) instanceof TileChute chute) {
-         BlockDropsUtil.dropTileContents(level, pos, chute);
-      }
-
-      return super.playerWillDestroy(level, pos, state, player);
    }
 }
