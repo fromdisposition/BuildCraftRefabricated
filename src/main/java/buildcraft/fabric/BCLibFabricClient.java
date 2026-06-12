@@ -4,7 +4,6 @@ import buildcraft.core.BCUnifiedClientConfig;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.fluid.BcFluidFogProfiles;
-import buildcraft.lib.client.fluid.BcFluidTintUtil;
 import buildcraft.lib.client.fluid.FluidDisplayNamesClient;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.model.ModelHolderRegistry;
@@ -38,7 +37,7 @@ public final class BCLibFabricClient {
       GuiConfigManager.init(GamePaths.BUILDCRAFT_CONFIG_DIR.resolve("buildcraftrefabricated-gui-state.json"));
       ResourceLoader clientResources = ResourceLoader.get(PackType.CLIENT_RESOURCES);
       clientResources.registerReloadListener(
-         Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_heat_templates"),
+         Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_client_profiles"),
          new SimpleReloadListener<Void>() {
             @Override
             protected Void prepare(PreparableReloadListener.SharedState state) {
@@ -48,7 +47,6 @@ public final class BCLibFabricClient {
             @Override
             protected void apply(Void prepared, PreparableReloadListener.SharedState state) {
                BcFluidFogProfiles.reload(state.resourceManager());
-               BcFluidTintUtil.reloadTemplates(state.resourceManager());
                BcFluidAppearanceCache.clear();
             }
          }

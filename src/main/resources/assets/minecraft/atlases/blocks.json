@@ -46,30 +46,6 @@
       "prefix": "block/pump/"
     },
     {
-      "type": "buildcraftenergy:heat_white",
-      "source": "buildcraftenergy:block/fluids/heat_0_still"
-    },
-    {
-      "type": "buildcraftenergy:heat_white",
-      "source": "buildcraftenergy:block/fluids/heat_0_flow"
-    },
-    {
-      "type": "buildcraftenergy:heat_white",
-      "source": "buildcraftenergy:block/fluids/heat_1_still"
-    },
-    {
-      "type": "buildcraftenergy:heat_white",
-      "source": "buildcraftenergy:block/fluids/heat_1_flow"
-    },
-    {
-      "type": "buildcraftenergy:heat_white",
-      "source": "buildcraftenergy:block/fluids/heat_2_still"
-    },
-    {
-      "type": "buildcraftenergy:heat_white",
-      "source": "buildcraftenergy:block/fluids/heat_2_flow"
-    },
-    {
       "type": "minecraft:directory",
       "source": "block/fluids/baked",
       "prefix": "block/fluids/baked/"

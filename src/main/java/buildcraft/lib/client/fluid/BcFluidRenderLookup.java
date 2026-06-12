@@ -22,7 +22,6 @@ import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.Material.Baked;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
@@ -31,8 +30,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Client fluid sprite/tint lookup.
- * World blocks and pipes use pre-baked {@code block/fluids/baked/*} sprites from {@link FluidModel}.
- * Tanks and BER use shared {@code heat_*_white} templates with per-vertex tint.
+ * World blocks, tanks, pipes, and GUI use pre-baked {@code block/fluids/baked/*} sprites from {@link FluidModel}.
+ * BC vertex multiply stays white ({@code -1}) because color is baked into the atlas.
  */
 public final class BcFluidRenderLookup {
    private BcFluidRenderLookup() {
@@ -43,7 +42,6 @@ public final class BcFluidRenderLookup {
       FLOWING
    }
 
-   /** World / appearance cache — pre-baked colored block sprites. */
    public static TextureAtlasSprite sprite(FluidStack stack, SpriteKind kind) {
       if (stack == null || stack.isEmpty()) {
          return missingSprite();
@@ -53,29 +51,6 @@ public final class BcFluidRenderLookup {
    }
 
    public static TextureAtlasSprite sprite(Fluid fluid, SpriteKind kind) {
-      return resolveBakedSprite(fluid, kind);
-   }
-
-   /** Tanks/BER with per-vertex heat template tinting — shared white luminance sprites. */
-   public static TextureAtlasSprite tintSprite(FluidStack stack, SpriteKind kind) {
-      if (stack == null || stack.isEmpty()) {
-         return missingSprite();
-      }
-
-      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(stack.getFluid());
-      if (entry != null) {
-         return whiteTemplateSprite(entry.heat(), kind);
-      }
-
-      return resolveBakedSprite(stack.getFluid(), kind);
-   }
-
-   public static TextureAtlasSprite tintSprite(Fluid fluid, SpriteKind kind) {
-      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
-      if (entry != null) {
-         return whiteTemplateSprite(entry.heat(), kind);
-      }
-
       return resolveBakedSprite(fluid, kind);
    }
 
@@ -112,11 +87,6 @@ public final class BcFluidRenderLookup {
       Baked material = kind == SpriteKind.FLOWING ? model.flowingMaterial() : model.stillMaterial();
       TextureAtlasSprite sprite = material.sprite();
       return sprite != null ? sprite : missingSprite();
-   }
-
-   private static TextureAtlasSprite whiteTemplateSprite(int heat, SpriteKind kind) {
-      Identifier id = kind == SpriteKind.FLOWING ? BcFluidTintUtil.heatFlowWhiteSpriteId(heat) : BcFluidTintUtil.heatStillWhiteSpriteId(heat);
-      return BcTextureAtlases.getBlockSprite(id);
    }
 
    public static int itemMaskTint(FluidStack stack, @Nullable BlockAndTintGetter level) {
@@ -211,11 +181,6 @@ public final class BcFluidRenderLookup {
 
    public static void writeVertexRgba(FluidStack stack, float[] out) {
       writeVertexRgbaFromTint(tint(stack), out);
-   }
-
-   /** Pipe vertex multiply — skips appearance cache; baked BC fluids stay white. */
-   public static void writePipeVertexRgba(FluidStack stack, float[] out) {
-      writeVertexRgbaFromTint(resolveTint(stack), out);
    }
 
    private static void writeVertexRgbaFromTint(int color, float[] out) {

@@ -8,8 +8,6 @@
     "ShapelessRecipeAccessor"
   ],
   "client": [
-    "client.SpriteSourcesAccessor",
-    "client.SpriteSourcesBootstrapMixin",
     "client.ItemTintSourcesBootstrapMixin",
     "client.GhostSlotsInvokerMixin",
     "client.ClientLevelParticleMixin",
