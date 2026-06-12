@@ -7,6 +7,7 @@
 package buildcraft.factory;
 
 import buildcraft.factory.entity.EntityMinerShaft;
+import buildcraft.factory.tile.TileMiner;
 import buildcraft.fabric.BCRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -19,8 +20,11 @@ public final class BCFactoryEntities {
    }
 
    public static void register() {
+      float shaftSize = (float)(TileMiner.SHAFT_RADIUS * 2.0D);
       MINER_SHAFT = BCRegistries.registerEntityType(
-         "buildcraftfactory", "miner_shaft", Builder.of(EntityMinerShaft::new, MobCategory.MISC).sized(1.0F, 1.0F).clientTrackingRange(4).updateInterval(1)
+         "buildcraftfactory",
+         "miner_shaft",
+         Builder.of(EntityMinerShaft::new, MobCategory.MISC).sized(shaftSize, shaftSize).clientTrackingRange(4).updateInterval(1)
       );
    }
 }

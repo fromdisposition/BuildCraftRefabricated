@@ -13,7 +13,9 @@ import net.minecraft.network.syncher.SynchedEntityData.Builder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -46,21 +48,23 @@ public class EntityMinerShaft extends Entity {
       return false;
    }
 
+   @Override
+   public EntityDimensions getDimensions(Pose pose) {
+      float width = this.entityData.get(SIZE_X);
+      float height = this.entityData.get(SIZE_Y);
+      return width > 0.0F && height > 0.0F ? EntityDimensions.scalable(width, height) : super.getDimensions(pose);
+   }
+
    protected AABB makeBoundingBox(Vec3 position) {
-      float halfX = (Float)this.entityData.get(SIZE_X) / 2.0F;
-      float halfY = (Float)this.entityData.get(SIZE_Y) / 2.0F;
-      float halfZ = (Float)this.entityData.get(SIZE_Z) / 2.0F;
-      return halfX <= 0.0F
-         ? super.makeBoundingBox(position)
-         : new AABB(position.x - halfX, position.y - halfY, position.z - halfZ, position.x + halfX, position.y + halfY, position.z + halfZ);
+      return this.buildCollisionBounds(position);
    }
 
    public boolean canBeCollidedWith(Entity other) {
-      return true;
+      return this.entityData.get(SIZE_X) > 0.0F;
    }
 
    public boolean isPickable() {
-      return true;
+      return this.entityData.get(SIZE_X) > 0.0F;
    }
 
    public boolean isPushable() {
@@ -71,10 +75,33 @@ public class EntityMinerShaft extends Entity {
       return false;
    }
 
+   @Override
+   public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
+      super.onSyncedDataUpdated(key);
+      if (key == SIZE_X || key == SIZE_Y || key == SIZE_Z) {
+         this.refreshDimensions();
+      }
+   }
+
    public void setCollisionBox(AABB aabb) {
       this.entityData.set(SIZE_X, (float)(aabb.maxX - aabb.minX));
       this.entityData.set(SIZE_Y, (float)(aabb.maxY - aabb.minY));
       this.entityData.set(SIZE_Z, (float)(aabb.maxZ - aabb.minZ));
       this.setPos((aabb.minX + aabb.maxX) / 2.0, (aabb.minY + aabb.maxY) / 2.0, (aabb.minZ + aabb.maxZ) / 2.0);
+      this.refreshDimensions();
+   }
+
+   private AABB buildCollisionBounds(Vec3 position) {
+      float sizeX = this.entityData.get(SIZE_X);
+      float sizeY = this.entityData.get(SIZE_Y);
+      float sizeZ = this.entityData.get(SIZE_Z);
+      if (sizeX <= 0.0F || sizeY <= 0.0F || sizeZ <= 0.0F) {
+         return super.makeBoundingBox(position);
+      }
+
+      float halfX = sizeX / 2.0F;
+      float halfY = sizeY / 2.0F;
+      float halfZ = sizeZ / 2.0F;
+      return new AABB(position.x - halfX, position.y - halfY, position.z - halfZ, position.x + halfX, position.y + halfY, position.z + halfZ);
    }
 }
