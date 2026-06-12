@@ -55,7 +55,6 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, Min
       state.powerColour = COLOUR_POWER[(int)(percentFilled * (COLOUR_POWER.length - 1))];
       state.statusColour = tile.isComplete() ? -14741477 : -8921737;
       state.shaftLength = tile.getLength(partialTick);
-      state.shaftSegmentLights = MinerShaftBer.computeSegmentLights(tile.getLevel(), tile.getBlockPos(), state.shaftLength);
    }
 
    public void submit(MiningWellRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
@@ -68,7 +67,7 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, Min
 
       if (renderState.shaftLength > 0.0) {
          collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(BLOCKS_ATLAS_TEXTURE), (pose, buffer) -> MinerShaftBer.renderShaft(
-            pose, buffer, this.shaftSprite, (float)renderState.shaftLength, renderState.shaftSegmentLights
+            pose, buffer, renderState.blockPos, this.shaftSprite, (float)renderState.shaftLength
          ));
       }
 

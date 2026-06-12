@@ -14,5 +14,4 @@ public class MiningWellRenderState extends BlockEntityRenderState {
    public int powerColour;
    public int statusColour;
    public double shaftLength;
-   public int[] shaftSegmentLights = new int[0];
 }

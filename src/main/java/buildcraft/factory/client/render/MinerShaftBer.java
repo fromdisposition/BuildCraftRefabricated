@@ -14,13 +14,21 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 
 final class MinerShaftBer {
-   private static final float CAP_HEIGHT = 0.5F;
-   private static final float MIDDLE_HEIGHT = 1.0F;
+   private static final float TEX = 16.0F;
+   private static final float CROSS = 8.0F;
+   private static final float CAP = 8.0F;
+   private static final float MIDDLE = 16.0F;
+   private static final float SCALE = (float)TileMiner.SHAFT_RADIUS;
+   private static final float R = CROSS * 0.5F * SCALE;
+   private static final float Y0 = -0.001F;
+   private static final float C = 0.5F;
 
    private MinerShaftBer() {
    }
@@ -39,102 +47,100 @@ final class MinerShaftBer {
          .closerThan(cameraPos.multiply(1.0, 0.0, 1.0), getViewDistance());
    }
 
-   static int[] computeSegmentLights(Level level, BlockPos pumpPos, double shaftLength) {
-      if (level == null || shaftLength <= 0.0) {
-         return new int[0];
+   static void renderShaft(Pose pose, VertexConsumer buffer, BlockPos blockPos, TextureAtlasSprite sprite, float length) {
+      if (length <= 0.0F) {
+         return;
       }
 
-      int count = (int)Math.ceil(shaftLength) + 1;
-      int[] lights = new int[count];
-
-      for (int i = 0; i < count; i++) {
-         lights[i] = LevelRenderer.getLightCoords(level, pumpPos.below(i));
-      }
-
-      return lights;
-   }
-
-   static void renderShaft(Pose pose, VertexConsumer buffer, TextureAtlasSprite sprite, float length, int[] segmentLights) {
-      float r = (float)TileMiner.SHAFT_RADIUS;
-      float cx = 0.5F;
-      float cz = 0.5F;
-      float yTop = -0.001F;
-      float yBottom = -length;
+      Level level = Minecraft.getInstance().level;
       int overlay = OverlayTexture.NO_OVERLAY;
-      float y = yTop;
-      float capEnd = yTop - CAP_HEIGHT;
-      renderShaftSegment(pose, buffer, sprite, cx, cz, r, y, capEnd, segmentLights, overlay);
-      y = capEnd;
-      float bodyEnd = yBottom + CAP_HEIGHT;
-
-      while (y > bodyEnd + 0.001F) {
-         float segEnd = Math.max(bodyEnd, y - MIDDLE_HEIGHT);
-         renderShaftSegment(pose, buffer, sprite, cx, cz, r, y, segEnd, segmentLights, overlay);
-         y = segEnd;
+      float lengthPx = length / SCALE;
+      float middleWidth = MIDDLE;
+      float lengthForMiddle = Math.max(0.0F, lengthPx - middleWidth);
+      int numMiddle = Mth.floor(lengthForMiddle / middleWidth);
+      if (lengthForMiddle - numMiddle * middleWidth > 0.001F) {
+         numMiddle++;
       }
 
-      renderShaftSegment(pose, buffer, sprite, cx, cz, r, bodyEnd, yBottom, segmentLights, overlay);
+      float startLength = lengthPx - middleWidth * numMiddle;
+      float lx = 0.0F;
+      if (startLength > 0.001F) {
+         float u0 = uvU(sprite, MIDDLE * (1.0F - startLength / middleWidth));
+         sides(pose, buffer, blockPos, level, sprite, lx, lx + startLength, u0, uvU(sprite, MIDDLE), overlay);
+         lx += startLength;
+      }
+
+      for (int i = 0; i < numMiddle; i++) {
+         sides(pose, buffer, blockPos, level, sprite, lx, lx + middleWidth, uvU(sprite, 0.0F), uvU(sprite, MIDDLE), overlay);
+         lx += middleWidth;
+      }
+
+      float bottomY = y(lengthPx);
+      cap(pose, buffer, blockPos, level, sprite, Y0, true, overlay);
+      cap(pose, buffer, blockPos, level, sprite, bottomY, false, overlay);
    }
 
-   private static void renderShaftSegment(
+   private static void sides(
       Pose pose,
       VertexConsumer buffer,
+      BlockPos origin,
+      Level level,
       TextureAtlasSprite sprite,
-      float cx,
-      float cz,
-      float r,
-      float yTop,
-      float yBottom,
-      int[] segmentLights,
+      float lx0,
+      float lx1,
+      float u0,
+      float u1,
       int overlay
    ) {
-      float u0 = spriteU(sprite, 0.0F);
-      float u1 = spriteU(sprite, 8.0F);
-      float v0 = spriteV(sprite, 8.0F);
-      float v1 = spriteV(sprite, 16.0F);
-      if (yTop - yBottom > CAP_HEIGHT + 0.001F) {
-         u0 = spriteU(sprite, 0.0F);
-         u1 = spriteU(sprite, 16.0F);
-         v0 = spriteV(sprite, 0.0F);
-         v1 = spriteV(sprite, 8.0F);
-      }
-
-      int lightTop = lightAt(yTop, segmentLights);
-      int lightBottom = lightAt(yBottom, segmentLights);
-      float xMin = cx - r;
-      float xMax = cx + r;
-      float zMin = cz - r;
-      float zMax = cz + r;
-      shaftFace(
-         pose, buffer, xMin, yTop, zMin, xMax, yTop, zMin, xMax, yBottom, zMin, xMin, yBottom, zMin,
-         0.0F, 0.0F, -1.0F, u0, v0, u1, v0, u1, v1, u0, v1, lightTop, lightBottom, overlay
-      );
-      shaftFace(
-         pose, buffer, xMin, yBottom, zMax, xMax, yBottom, zMax, xMax, yTop, zMax, xMin, yTop, zMax,
-         0.0F, 0.0F, 1.0F, u0, v1, u1, v1, u1, v0, u0, v0, lightBottom, lightTop, overlay
-      );
-      shaftFace(
-         pose, buffer, xMin, yTop, zMax, xMin, yTop, zMin, xMin, yBottom, zMin, xMin, yBottom, zMax,
-         -1.0F, 0.0F, 0.0F, u0, v0, u0, v1, u1, v1, u1, v0, lightTop, lightBottom, overlay
-      );
-      shaftFace(
-         pose, buffer, xMax, yTop, zMin, xMax, yTop, zMax, xMax, yBottom, zMax, xMax, yBottom, zMin,
-         1.0F, 0.0F, 0.0F, u0, v0, u1, v0, u1, v1, u0, v1, lightTop, lightBottom, overlay
-      );
+      float y0 = y(lx0);
+      float y1 = y(lx1);
+      float vs = uvV(sprite, 0.0F);
+      float ve = uvV(sprite, CROSS);
+      float xm = C - R;
+      float xM = C + R;
+      float zm = C - R;
+      float zM = C + R;
+      quad(pose, buffer, origin, level, xm, y0, zm, xM, y0, zm, xM, y1, zm, xm, y1, zm, 0, 0, -1, u0, vs, u0, ve, u1, ve, u1, vs, overlay);
+      quad(pose, buffer, origin, level, xm, y1, zM, xM, y1, zM, xM, y0, zM, xm, y0, zM, 0, 0, 1, u1, vs, u1, ve, u0, ve, u0, vs, overlay);
+      quad(pose, buffer, origin, level, xm, y0, zM, xm, y0, zm, xm, y1, zm, xm, y1, zM, -1, 0, 0, u0, ve, u0, vs, u1, vs, u1, ve, overlay);
+      quad(pose, buffer, origin, level, xM, y0, zm, xM, y0, zM, xM, y1, zM, xM, y1, zm, 1, 0, 0, u0, vs, u0, ve, u1, ve, u1, vs, overlay);
    }
 
-   private static int lightAt(float localY, int[] segmentLights) {
-      if (segmentLights.length == 0) {
-         return 15728880;
-      }
+   private static void cap(Pose pose, VertexConsumer buffer, BlockPos origin, Level level, TextureAtlasSprite sprite, float y, boolean top, int overlay) {
+      float xm = C - R;
+      float xM = C + R;
+      float zm = C - R;
+      float zM = C + R;
+      float u0 = uvU(sprite, 0.0F);
+      float u1 = uvU(sprite, CAP);
+      float v0 = uvV(sprite, CAP);
+      float v1 = uvV(sprite, CAP + CROSS);
 
-      int blockDepth = Math.max(0, (int)Math.ceil(-localY - 0.001F));
-      return segmentLights[Math.min(blockDepth, segmentLights.length - 1)];
+      if (top) {
+         quad(pose, buffer, origin, level, xm, y, zM, xM, y, zM, xM, y, zm, xm, y, zm, 0, 1, 0, u0, v0, u1, v0, u1, v1, u0, v1, overlay);
+      } else {
+         quad(pose, buffer, origin, level, xm, y, zm, xM, y, zm, xM, y, zM, xm, y, zM, 0, -1, 0, u0, v1, u1, v1, u1, v0, u0, v0, overlay);
+      }
    }
 
-   private static void shaftFace(
+   private static float y(float alongPx) {
+      float alongBlocks = alongPx * SCALE;
+      return alongBlocks <= 0.0F ? Y0 : -alongBlocks;
+   }
+
+   private static float uvU(TextureAtlasSprite sprite, float px) {
+      return sprite.getU(px / TEX);
+   }
+
+   private static float uvV(TextureAtlasSprite sprite, float px) {
+      return sprite.getV(px / TEX);
+   }
+
+   private static void quad(
       Pose pose,
       VertexConsumer buffer,
+      BlockPos origin,
+      Level level,
       float x1,
       float y1,
       float z1,
@@ -158,25 +164,48 @@ final class MinerShaftBer {
       float v3,
       float u4,
       float v4,
-      int lightTop,
-      int lightBottom,
       int overlay
    ) {
-      int light1 = y1 >= y3 ? lightTop : lightBottom;
-      int light2 = y2 >= y4 ? lightTop : lightBottom;
-      int light3 = y3 >= y1 ? lightBottom : lightTop;
-      int light4 = y4 >= y2 ? lightBottom : lightTop;
-      buffer.addVertex(pose, x1, y1, z1).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(u1, v1).setOverlay(overlay).setLight(light1).setNormal(pose, nx, ny, nz);
-      buffer.addVertex(pose, x2, y2, z2).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(u2, v2).setOverlay(overlay).setLight(light2).setNormal(pose, nx, ny, nz);
-      buffer.addVertex(pose, x3, y3, z3).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(u3, v3).setOverlay(overlay).setLight(light3).setNormal(pose, nx, ny, nz);
-      buffer.addVertex(pose, x4, y4, z4).setColor(1.0F, 1.0F, 1.0F, 1.0F).setUv(u4, v4).setOverlay(overlay).setLight(light4).setNormal(pose, nx, ny, nz);
+      vertex(pose, buffer, origin, level, x1, y1, z1, u1, v1, nx, ny, nz, overlay);
+      vertex(pose, buffer, origin, level, x2, y2, z2, u2, v2, nx, ny, nz, overlay);
+      vertex(pose, buffer, origin, level, x3, y3, z3, u3, v3, nx, ny, nz, overlay);
+      vertex(pose, buffer, origin, level, x4, y4, z4, u4, v4, nx, ny, nz, overlay);
    }
 
-   private static float spriteU(TextureAtlasSprite sprite, float px) {
-      return sprite.getU0() + (sprite.getU1() - sprite.getU0()) * (px / 16.0F);
+   private static void vertex(
+      Pose pose,
+      VertexConsumer buffer,
+      BlockPos origin,
+      Level level,
+      float x,
+      float y,
+      float z,
+      float u,
+      float v,
+      float nx,
+      float ny,
+      float nz,
+      int overlay
+   ) {
+      buffer.addVertex(pose, x, y, z)
+         .setColor(255, 255, 255, 255)
+         .setUv(u, v)
+         .setOverlay(overlay)
+         .setLight(shaftLight(origin, level, y))
+         .setNormal(pose, nx, ny, nz);
    }
 
-   private static float spriteV(TextureAtlasSprite sprite, float py) {
-      return sprite.getV0() + (sprite.getV1() - sprite.getV0()) * (py / 16.0F);
+   /** Vanilla BER light query: {@link LevelRenderer#getLightCoords} at the block cell center. */
+   private static int shaftLight(BlockPos origin, Level level, float localY) {
+      if (level == null) {
+         return LightCoordsUtil.FULL_BRIGHT;
+      }
+
+      double sampleY = origin.getY() + localY + 0.5D;
+      if (Mth.floor(sampleY) >= origin.getY()) {
+         sampleY = origin.getY() - 0.5D;
+      }
+
+      return LevelRenderer.getLightCoords(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));
    }
 }

@@ -12,6 +12,7 @@ import buildcraft.core.BCCoreConfig;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.InventoryUtil;
+import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -26,8 +27,6 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 public class TileMiningWell extends TileMiner {
-   private boolean shouldCheck = true;
-   private int recheckCooldown = 0;
    @Nullable
    private BlockPos shaftTipPos;
    private IMjReceiver mjReceiver;
@@ -44,67 +43,82 @@ public class TileMiningWell extends TileMiner {
 
    @Override
    protected void mine() {
-      if (this.currentPos != null) {
-         if (!this.isMineableSolid(this.currentPos)) {
-            this.progress = 0;
-            this.findNextTarget();
-            return;
-         }
+      BlockPos previousTarget = this.currentPos;
+      this.syncColumnState();
 
-         long target = BlockUtil.computeBlockBreakPower(this.level, this.currentPos);
-         this.progress = this.progress + (int)this.battery.extractPower(0L, target - this.progress);
-         if (this.progress >= target) {
-            this.progress = 0;
-            this.level.destroyBlockProgress(this.currentPos.hashCode(), this.currentPos, -1);
-            if (this.level instanceof ServerLevel serverLevel) {
-               BlockUtil.breakBlockAndGetDropsWithXp(serverLevel, this.currentPos, new ItemStack(Items.IRON_PICKAXE), this.getOwner()).ifPresent(result -> {
-                  result.drops().forEach(stack -> InventoryUtil.addToBestAcceptor(this.level, this.worldPosition, null, stack));
-                  if (result.xp() > 0) {
-                     ExperienceOrb.award(serverLevel, Vec3.atCenterOf(this.worldPosition), result.xp());
-                  }
-               });
-            }
+      if (previousTarget != null && !Objects.equals(previousTarget, this.currentPos)) {
+         this.progress = 0;
+         this.level.destroyBlockProgress(previousTarget.hashCode(), previousTarget, -1);
+      }
 
-            this.findNextTarget();
-         } else {
-            this.level.destroyBlockProgress(this.currentPos.hashCode(), this.currentPos, (int)(this.progress * 9 / target));
-         }
-
+      if (this.currentPos == null) {
          return;
       }
 
-      if (!this.shouldCheck && this.recheckCooldown > 0) {
-         this.recheckCooldown--;
+      if (!this.isMineableSolid(this.currentPos)) {
+         this.progress = 0;
          return;
       }
 
-      this.findNextTarget();
-      this.shouldCheck = this.currentPos != null;
-      this.recheckCooldown = 256;
+      long target = BlockUtil.computeBlockBreakPower(this.level, this.currentPos);
+      this.progress = this.progress + (int)this.battery.extractPower(0L, target - this.progress);
+      if (this.progress >= target) {
+         this.progress = 0;
+         this.level.destroyBlockProgress(this.currentPos.hashCode(), this.currentPos, -1);
+         if (this.level instanceof ServerLevel serverLevel) {
+            BlockUtil.breakBlockAndGetDropsWithXp(serverLevel, this.currentPos, new ItemStack(Items.IRON_PICKAXE), this.getOwner()).ifPresent(result -> {
+               result.drops().forEach(stack -> InventoryUtil.addToBestAcceptor(this.level, this.worldPosition, null, stack));
+               if (result.xp() > 0) {
+                  ExperienceOrb.award(serverLevel, Vec3.atCenterOf(this.worldPosition), result.xp());
+               }
+            });
+         }
+
+         this.syncColumnState();
+      } else {
+         this.level.destroyBlockProgress(this.currentPos.hashCode(), this.currentPos, (int)(this.progress * 9 / target));
+      }
    }
 
-   private void findNextTarget() {
-      BlockPos scan = this.worldPosition;
+   /**
+    * Scan the well column each tick.
+    * Mine the first iron-pick solid from the top (classic BC behaviour).
+    * Stop with the shaft at non-mineable blocks. Retract when a solid appears in the
+    * open shaft above the current dig face (e.g. a block placed in the nozzle).
+    */
+   private void syncColumnState() {
+      int x = this.worldPosition.getX();
+      int z = this.worldPosition.getZ();
+      int minY = Math.max(this.level.getMinY(), this.worldPosition.getY() - BCCoreConfig.miningMaxDepth.get());
 
-      while (true) {
-         scan = scan.below();
-         if (this.level.isOutsideBuildHeight(scan) || this.worldPosition.getY() - scan.getY() > BCCoreConfig.miningMaxDepth.get()) {
-            this.setState(null, null);
-            return;
-         }
+      BlockPos firstMineable = null;
 
-         if (this.level.isEmptyBlock(scan)) {
+      for (int y = this.worldPosition.getY() - 1; y >= minY; y--) {
+         BlockPos pos = new BlockPos(x, y, z);
+         if (this.level.isEmptyBlock(pos)) {
             continue;
          }
 
-         if (this.isMineableSolid(scan)) {
-            this.setState(scan, scan);
-            return;
+         if (this.isMineableSolid(pos)) {
+            firstMineable = pos;
+            break;
          }
 
-         this.setState(null, scan);
+         this.applyColumnState(null, pos);
          return;
       }
+
+      if (firstMineable == null) {
+         this.applyColumnState(null, null);
+         return;
+      }
+
+      if (this.currentPos != null && firstMineable.getY() > this.currentPos.getY()) {
+         this.applyColumnState(null, firstMineable);
+         return;
+      }
+
+      this.applyColumnState(firstMineable, firstMineable);
    }
 
    private boolean isMineableSolid(BlockPos pos) {
@@ -124,7 +138,12 @@ public class TileMiningWell extends TileMiner {
       return !(this.level instanceof ServerLevel serverLevel) || BlockUtil.canMachineBreak(serverLevel, pos, this.getOwner());
    }
 
-   private void setState(@Nullable BlockPos target, @Nullable BlockPos shaftTip) {
+   private void applyColumnState(@Nullable BlockPos target, @Nullable BlockPos shaftTip) {
+      boolean changed = !Objects.equals(this.currentPos, target) || !Objects.equals(this.shaftTipPos, shaftTip);
+      if (!changed) {
+         return;
+      }
+
       this.currentPos = target;
       this.shaftTipPos = shaftTip;
       this.updateLength();

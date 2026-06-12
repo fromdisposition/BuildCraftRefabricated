@@ -8,13 +8,11 @@ package buildcraft.factory.block;
 
 import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.factory.BCFactoryBlockEntities;
-import buildcraft.factory.tile.TileMiner;
 import buildcraft.factory.tile.TileMiningWell;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -72,13 +70,5 @@ public class BlockMiningWell extends BaseEntityBlock {
       if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileMiningWell well) {
          well.onPlacedBy(placer, stack);
       }
-   }
-
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileMiner miner) {
-         miner.onRemove();
-      }
-
-      return super.playerWillDestroy(level, pos, state, player);
    }
 }
