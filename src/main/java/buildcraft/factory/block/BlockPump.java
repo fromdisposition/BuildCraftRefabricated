@@ -7,13 +7,10 @@
 package buildcraft.factory.block;
 
 import buildcraft.factory.BCFactoryBlockEntities;
-import buildcraft.factory.tile.TileMiner;
 import buildcraft.factory.tile.TilePump;
-import buildcraft.lib.misc.BlockDropsUtil;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -59,17 +56,4 @@ public class BlockPump extends BaseEntityBlock {
       }
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide()) {
-         BlockEntity be = level.getBlockEntity(pos);
-         if (be instanceof TilePump pump) {
-            pump.onRemove();
-            BlockDropsUtil.dropFluidShard(level, pos, pump.fluidTank.getFluidStack());
-         } else if (be instanceof TileMiner miner) {
-            miner.onRemove();
-         }
-      }
-
-      return super.playerWillDestroy(level, pos, state, player);
-   }
 }

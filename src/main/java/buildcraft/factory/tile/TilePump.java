@@ -20,8 +20,10 @@ import buildcraft.lib.fabric.transfer.SidedFluidStorages;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fluids.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.mj.MjRedstoneBatteryReceiver;
 import buildcraft.lib.transfer.fabric.TransferConvert;
@@ -43,11 +45,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.Direction.Plane;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -84,6 +86,38 @@ public class TilePump extends TileMiner implements IDebuggable {
    }
 
    @Override
+   public void onLoad() {
+      super.onLoad();
+      if (this.level != null && !this.level.isClientSide()) {
+         this.scanAndRemoveTubesInColumn();
+      }
+   }
+
+   @Override
+   protected void updateLength() {
+      int newY = this.getTargetPos() != null ? this.getTargetPos().getY() : this.worldPosition.getY();
+      int newLength = this.worldPosition.getY() - newY;
+      if (newLength != this.wantedLength) {
+         if (newLength < this.wantedLength) {
+            this.removeTubesAbove(newY + 1);
+         }
+
+         this.currentLength = this.wantedLength = newLength;
+         this.setChanged();
+         MessageUtil.sendUpdateToTrackingPlayers(this);
+      }
+   }
+
+   @Override
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         BlockDropsUtil.dropFluidShard(this.level, pos, this.fluidTank.getFluidStack());
+      }
+
+      super.preRemoveSideEffects(pos, state);
+   }
+
+   @Override
    protected IMjReceiver createMjReceiver() {
       if (this.mjReceiver == null) {
          this.mjReceiver = new MjRedstoneBatteryReceiver(this.battery);
@@ -113,7 +147,7 @@ public class TilePump extends TileMiner implements IDebuggable {
          seed = oilPos;
          this.oilSpringPos = springPos;
       } else {
-         if (springPos != null) {
+         if (springPos != null && probeDown.firstFluid() == null && probeUp.firstFluid() == null) {
             this.oilSpringPos = springPos;
             return;
          }
@@ -171,8 +205,8 @@ public class TilePump extends TileMiner implements IDebuggable {
    }
 
    private static boolean isOil(Fluid fluid) {
-      Identifier id = BuiltInRegistries.FLUID.getKey(fluid);
-      return id.getNamespace().equals("buildcraftenergy") && (id.getPath().equals("oil") || id.getPath().startsWith("oil_heat_"));
+      String baseName = BCEnergyFluidsFabric.getBaseName(fluid);
+      return baseName != null && baseName.startsWith("oil");
    }
 
    public static TilePump.ColumnProbe probeDown(Level level, BlockPos pumpPos, int maxDepth) {
@@ -232,16 +266,21 @@ public class TilePump extends TileMiner implements IDebuggable {
    private void buildQueue0(Fluid queueFluid, List<BlockPos> nextPosesToCheck, LongSet checked) {
       Direction[] directions = FluidUtilBC.isGaseous(queueFluid) ? SEARCH_GASEOUS : SEARCH_NORMAL;
       boolean isWater = !BCCoreConfig.pumpsConsumeWater.get() && FluidUtilBC.areFluidsEqual(queueFluid, Fluids.WATER);
-      boolean targetPosIsInfinite = isWater && isInfiniteSourceAt(this.level, this.targetPos);
-      this.isInfiniteWaterSource = targetPosIsInfinite;
+      this.isInfiniteWaterSource = isWater && isInfiniteSourceAt(this.level, this.targetPos);
       int maxLengthSquared = BCCoreConfig.pumpMaxDistance.get() * BCCoreConfig.pumpMaxDistance.get();
 
-      boolean stopSearching = false;
+      boolean stopSearching = this.isInfiniteWaterSource;
       while (!nextPosesToCheck.isEmpty() && !stopSearching) {
          List<BlockPos> nextPosesToCheckCopy = new ArrayList<>(nextPosesToCheck);
          nextPosesToCheck.clear();
 
          for (BlockPos posToCheck : nextPosesToCheckCopy) {
+            if (isWater && isInfiniteSourceAt(this.level, posToCheck)) {
+               this.isInfiniteWaterSource = true;
+               stopSearching = true;
+               break;
+            }
+
             for (Direction side : directions) {
                BlockPos offsetPos = posToCheck.relative(side);
                if (!(offsetPos.distSqr(this.targetPos) > maxLengthSquared)) {
@@ -258,14 +297,14 @@ public class TilePump extends TileMiner implements IDebuggable {
                         }
 
                         nextPosesToCheck.add(offsetPos);
+                        if (isWater && isInfiniteSourceAt(this.level, offsetPos)) {
+                           this.isInfiniteWaterSource = true;
+                           stopSearching = true;
+                           break;
+                        }
                      }
                   }
                }
-            }
-
-            if (targetPosIsInfinite) {
-               stopSearching = true;
-               break;
             }
          }
       }
@@ -342,7 +381,12 @@ public class TilePump extends TileMiner implements IDebuggable {
    @Nullable
    @Override
    protected BlockPos getTargetPos() {
-      return this.targetPos;
+      return this.currentPos != null ? this.currentPos : this.targetPos;
+   }
+
+   @Override
+   public boolean isComplete() {
+      return this.currentPos == null && this.rebuildDelay <= 0;
    }
 
    @Override
@@ -395,9 +439,11 @@ public class TilePump extends TileMiner implements IDebuggable {
 
                      this.isInfiniteWaterSource = !BCCoreConfig.pumpsConsumeWater.get()
                         && FluidUtilBC.areFluidsEqual(drain.getFluid(), Fluids.WATER)
-                        && isInfiniteSourceAt(this.level, this.targetPos);
+                        && (isInfiniteSourceAt(this.level, this.currentPos) || isInfiniteSourceAt(this.level, this.targetPos));
                      if (!this.isInfiniteWaterSource) {
-                        BlockUtil.drainBlock(this.level, this.currentPos, true, this.getOwner());
+                        BlockPos drainedPos = this.currentPos;
+                        BlockUtil.drainBlock(this.level, drainedPos, true, this.getOwner());
+                        this.notifyFluidNeighbors(drainedPos);
                         if (isOil(drain.getFluid())) {
                            if (this.getOwner() != null) {
                               AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT_DRAIN_OIL);
@@ -436,6 +482,22 @@ public class TilePump extends TileMiner implements IDebuggable {
       }
    }
 
+   private void notifyFluidNeighbors(BlockPos drainedPos) {
+      if (this.level == null || this.level.isClientSide()) {
+         return;
+      }
+
+      Block pumpBlock = this.getBlockState().getBlock();
+
+      for (Direction dir : Direction.values()) {
+         BlockPos neighbor = drainedPos.relative(dir);
+         BlockState neighborState = this.level.getBlockState(neighbor);
+         if (!neighborState.getFluidState().isEmpty()) {
+            this.level.neighborChanged(neighbor, pumpBlock, null);
+         }
+      }
+   }
+
    @Nullable
    private BlockPos getFirstInvalidPointOnPath(BlockPos from) {
       TilePump.FluidPath path = this.paths.get(from);
@@ -456,6 +518,7 @@ public class TilePump extends TileMiner implements IDebuggable {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.fluidTank.serialize(output);
+      output.putInt("rebuildDelay", this.rebuildDelay);
       if (this.oilSpringPos != null) {
          output.putBoolean("hasOilSpring", true);
          output.putInt("oilSpringX", this.oilSpringPos.getX());
@@ -468,10 +531,15 @@ public class TilePump extends TileMiner implements IDebuggable {
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       this.fluidTank.deserialize(input);
+      this.rebuildDelay = input.getIntOr("rebuildDelay", 0);
       if (input.getBooleanOr("hasOilSpring", false)) {
          this.oilSpringPos = new BlockPos(input.getIntOr("oilSpringX", 0), input.getIntOr("oilSpringY", 0), input.getIntOr("oilSpringZ", 0));
       } else {
          this.oilSpringPos = null;
+      }
+
+      if (this.level != null && this.level.isClientSide()) {
+         this.isComplete = this.isComplete();
       }
    }
 

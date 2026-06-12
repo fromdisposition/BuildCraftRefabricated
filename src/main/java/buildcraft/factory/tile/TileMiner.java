@@ -38,6 +38,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    protected double lastLength = 0.0;
    private int offset;
    protected boolean isComplete = false;
+   private boolean tubesCleared = false;
    protected final MjBattery battery = new MjBattery(this.getBatteryCapacity());
 
    public TileMiner(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -82,13 +83,48 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    }
 
    public void onRemove() {
-      for (int y = this.worldPosition.getY() - 1; y > this.worldPosition.getY() - BCCoreConfig.miningMaxDepth.get(); y--) {
-         BlockPos blockPos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
-         if (!this.level.getBlockState(blockPos).is(BCFactoryBlocks.TUBE)) {
-            break;
-         }
+      this.removeAllTubesInColumn();
+   }
 
-         this.level.removeBlock(blockPos, false);
+   protected void scanAndRemoveTubesInColumn() {
+      if (this.level == null || this.level.isClientSide()) {
+         return;
+      }
+
+      int maxDepth = BCCoreConfig.miningMaxDepth.get();
+      int x = this.worldPosition.getX();
+      int z = this.worldPosition.getZ();
+
+      for (int y = this.worldPosition.getY() - 1; y > this.worldPosition.getY() - maxDepth; y--) {
+         BlockPos blockPos = new BlockPos(x, y, z);
+         if (this.level.getBlockState(blockPos).is(BCFactoryBlocks.TUBE)) {
+            this.level.removeBlock(blockPos, false);
+         }
+      }
+   }
+
+   protected void removeAllTubesInColumn() {
+      if (this.tubesCleared || this.level == null || this.level.isClientSide()) {
+         return;
+      }
+
+      this.tubesCleared = true;
+      this.scanAndRemoveTubesInColumn();
+   }
+
+   protected void removeTubesAbove(int minInclusiveY) {
+      if (this.level == null || this.level.isClientSide()) {
+         return;
+      }
+
+      int x = this.worldPosition.getX();
+      int z = this.worldPosition.getZ();
+
+      for (int y = this.worldPosition.getY() - 1; y >= minInclusiveY; y--) {
+         BlockPos blockPos = new BlockPos(x, y, z);
+         if (this.level.getBlockState(blockPos).is(BCFactoryBlocks.TUBE)) {
+            this.level.removeBlock(blockPos, false);
+         }
       }
    }
 
@@ -103,24 +139,34 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       int newY = this.getTargetPos() != null ? this.getTargetPos().getY() : this.worldPosition.getY();
       int newLength = this.worldPosition.getY() - newY;
       if (newLength != this.wantedLength) {
-         for (int y = this.worldPosition.getY() - 1; y > this.worldPosition.getY() - BCCoreConfig.miningMaxDepth.get(); y--) {
-            BlockPos blockPos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
-            if (!this.level.getBlockState(blockPos).is(BCFactoryBlocks.TUBE)) {
-               break;
-            }
-
-            this.level.removeBlock(blockPos, false);
+         if (newLength < this.wantedLength) {
+            this.removeTubesAbove(newY + 1);
          }
 
-         for (int y = this.worldPosition.getY() - 1; y > newY; y--) {
-            BlockPos blockPos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
-            this.level.setBlockAndUpdate(blockPos, BCFactoryBlocks.TUBE.defaultBlockState());
-         }
-
+         this.placeMiningTubes(newY);
          this.currentLength = this.wantedLength = newLength;
          this.setChanged();
          MessageUtil.sendUpdateToTrackingPlayers(this);
       }
+   }
+
+   protected void placeMiningTubes(int tipY) {
+      for (int y = this.worldPosition.getY() - 1; y > tipY; y--) {
+         BlockPos blockPos = new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
+         BlockState existing = this.level.getBlockState(blockPos);
+         if (!existing.getFluidState().isSource()) {
+            this.level.setBlockAndUpdate(blockPos, BCFactoryBlocks.TUBE.defaultBlockState());
+         }
+      }
+   }
+
+   @Override
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.removeAllTubesInColumn();
+      }
+
+      super.preRemoveSideEffects(pos, state);
    }
 
    @Nullable
