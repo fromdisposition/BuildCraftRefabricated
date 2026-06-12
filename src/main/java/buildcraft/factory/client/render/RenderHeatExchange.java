@@ -9,7 +9,7 @@ package buildcraft.factory.client.render;
 import buildcraft.factory.block.BlockHeatExchange;
 import buildcraft.factory.tile.TileHeatExchange;
 import buildcraft.lib.client.fluid.BcFluidBerHelper;
-import buildcraft.lib.client.fluid.BcFluidTankQuads;
+import buildcraft.lib.client.fluid.BcFluidBoxQuads;
 import buildcraft.lib.client.fluid.BcFluidRenderLookup;
 import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
@@ -410,7 +410,7 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
       int light,
       int overlay
    ) {
-      BcFluidTankQuads.emitTankQuad(pose, builder, sprite, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, nx, ny, nz, r, g, b, a, light, overlay);
+      BcFluidBoxQuads.emitNormalQuad(pose, builder, sprite, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, nx, ny, nz, r, g, b, a, light, overlay);
    }
 
    private static void quadHorizontal(
@@ -432,7 +432,7 @@ public class RenderHeatExchange extends BcBlockEntityRenderer<TileHeatExchange, 
       int light,
       int overlay
    ) {
-      BcFluidTankQuads.emitTankHorizontal(pose, builder, sprite, x1, x2, z1, z2, y, nx, ny, nz, r, g, b, a, light, overlay);
+      BcFluidBoxQuads.emitHorizontal(pose, builder, sprite, x1, x2, z1, z2, y, nx, ny, nz, r, g, b, a, light, overlay);
    }
 
    static {

@@ -53,7 +53,7 @@ public final class BcFluidTankRenderer {
             fluidTop = minY + (maxY - minY) * fillRatio;
          }
 
-         BcFluidTankQuads.emitTankQuad(
+         BcFluidBoxQuads.emitNormalQuad(
             pose,
             buffer,
             sprite,
@@ -79,7 +79,7 @@ public final class BcFluidTankRenderer {
             light,
             overlay
          );
-         BcFluidTankQuads.emitTankQuad(
+         BcFluidBoxQuads.emitNormalQuad(
             pose,
             buffer,
             sprite,
@@ -105,7 +105,7 @@ public final class BcFluidTankRenderer {
             light,
             overlay
          );
-         BcFluidTankQuads.emitTankQuad(
+         BcFluidBoxQuads.emitNormalQuad(
             pose,
             buffer,
             sprite,
@@ -131,7 +131,7 @@ public final class BcFluidTankRenderer {
             light,
             overlay
          );
-         BcFluidTankQuads.emitTankQuad(
+         BcFluidBoxQuads.emitNormalQuad(
             pose,
             buffer,
             sprite,
@@ -158,15 +158,15 @@ public final class BcFluidTankRenderer {
             overlay
          );
          if (renderTop) {
-            BcFluidTankQuads.emitTankHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidTop, 0.0F, 1.0F, 0.0F, r, g, b, a, light, overlay);
+            BcFluidBoxQuads.emitHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidTop, 0.0F, 1.0F, 0.0F, r, g, b, a, light, overlay);
          }
 
          if (renderBottom) {
-            BcFluidTankQuads.emitTankHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
+            BcFluidBoxQuads.emitHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
          }
 
          if (gaseous && fillRatio < 1.0F && renderBottom) {
-            BcFluidTankQuads.emitTankHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
+            BcFluidBoxQuads.emitHorizontal(pose, buffer, sprite, minX, maxX, maxZ, minZ, fluidBottom, 0.0F, -1.0F, 0.0F, r, g, b, a, light, overlay);
          }
       }
    }

@@ -10,7 +10,7 @@ package buildcraft.transport.client.render;
 import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
-import buildcraft.lib.client.fluid.BcFluidPipeQuads;
+import buildcraft.lib.client.fluid.BcFluidBoxQuads;
 import buildcraft.lib.client.fluid.BcFluidRenderLookup;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
@@ -250,7 +250,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
          realMaxY = (float)(minY + (maxY - minY) * height);
       }
 
-      BcFluidPipeQuads.emitPipeCuboid(
+      BcFluidBoxQuads.emitCuboid(
          pose, bb, sprite, realMinX, realMinY, realMinZ, realMaxX, realMaxY, realMaxZ, skipFaceMask, rgba, packedLight
       );
    }
