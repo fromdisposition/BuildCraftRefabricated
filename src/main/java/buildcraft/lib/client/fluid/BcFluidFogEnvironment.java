@@ -29,7 +29,7 @@ public final class BcFluidFogEnvironment extends FogEnvironment {
 
    @Override
    public boolean isApplicable(@Nullable FogType fogType, Entity entity) {
-      if (!(entity.level() instanceof ClientLevel level)) {
+      if (fogType != FogType.WATER || !(entity.level() instanceof ClientLevel level)) {
          return false;
       }
 

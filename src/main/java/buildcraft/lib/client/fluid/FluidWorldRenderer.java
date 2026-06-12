@@ -26,34 +26,47 @@ public final class FluidWorldRenderer {
    }
 
    public static @Nullable BcFluidAppearance appearanceAtEye(Entity entity, Level level) {
-      FluidState fluidState = fluidStateAtEye(entity, level);
-      return fluidState.isEmpty() ? null : BcFluidAppearanceCache.get(fluidState.getType());
+      FluidState fluidState = submergedBcFluidStateAt(entity.getX(), entity.getEyeY(), entity.getZ(), level);
+      return fluidState == null ? null : appearanceForBcFluid(fluidState);
    }
 
    public static @Nullable BcFluidAppearance appearanceAtCamera(Camera camera, ClientLevel level) {
-      FluidState fluidState = level.getFluidState(camera.blockPosition());
-      if (camera.position().y > camera.blockPosition().getY() + fluidState.getHeight(level, camera.blockPosition())) {
-         fluidState = fluidStateAtEye(camera.entity(), level);
+      Entity entity = camera.entity();
+      if (entity == null) {
+         return null;
       }
 
-      return fluidState.isEmpty() ? null : BcFluidAppearanceCache.get(fluidState.getType());
+      BlockPos cameraPos = camera.blockPosition();
+      FluidState atCamera = level.getFluidState(cameraPos);
+      if (BcFluidUtil.isBcFluidState(atCamera)
+         && BcFluidUtil.isSubmergedInBcFluid(level, camera.position().x, camera.position().y, camera.position().z)) {
+         return appearanceForBcFluid(atCamera);
+      }
+
+      return appearanceAtEye(entity, level);
    }
 
    public static FluidState fluidStateAtEye(Entity entity, Level level) {
-      return level.getFluidState(BlockPos.containing(entity.getX(), entity.getEyeY(), entity.getZ()));
+      FluidState submerged = submergedBcFluidStateAt(entity.getX(), entity.getEyeY(), entity.getZ(), level);
+      return submerged != null ? submerged : level.getFluidState(BlockPos.containing(entity.getX(), entity.getEyeY(), entity.getZ()));
    }
 
    public static boolean skipWaterVision(LocalPlayer player) {
-      return BcFluidUtil.isEyeInBcFluid(player);
+      return player.level() != null && appearanceAtEye(player, player.level()) != null;
    }
 
    public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, MultiBufferSource bufferSource) {
-      if (minecraft.player == null || !BcFluidUtil.isEyeInBcFluid(minecraft.player)) {
+      if (minecraft.player == null || minecraft.player.level() == null) {
          return;
       }
 
-      FluidState fluidState = fluidStateAtEye(minecraft.player, minecraft.player.level());
-      if (fluidState.isEmpty() || !fluidState.is(BcFluidTags.BC_FLUIDS)) {
+      FluidState fluidState = submergedBcFluidStateAt(
+         minecraft.player.getX(),
+         minecraft.player.getEyeY(),
+         minecraft.player.getZ(),
+         minecraft.player.level()
+      );
+      if (fluidState == null) {
          return;
       }
 
@@ -62,7 +75,7 @@ public final class FluidWorldRenderer {
          return;
       }
 
-      BcFluidAppearance appearance = BcFluidAppearanceCache.get(fluidState.getType());
+      BcFluidAppearance appearance = appearanceForBcFluid(fluidState);
       if (appearance == null) {
          return;
       }
@@ -74,6 +87,22 @@ public final class FluidWorldRenderer {
          Identifier.fromNamespaceAndPath("buildcraftenergy", "textures/block/fluids/" + entry.name() + "_underwater.png"),
          appearance.overlayAlpha()
       );
+   }
+
+   private static @Nullable FluidState submergedBcFluidStateAt(double x, double sampleY, double z, Level level) {
+      if (!BcFluidUtil.isSubmergedInBcFluid(level, x, sampleY, z)) {
+         return null;
+      }
+
+      return level.getFluidState(BlockPos.containing(x, sampleY, z));
+   }
+
+   private static @Nullable BcFluidAppearance appearanceForBcFluid(FluidState fluidState) {
+      if (!fluidState.is(BcFluidTags.BC_FLUIDS) || BCEnergyFluidsFabric.findEntry(fluidState.getType()) == null) {
+         return null;
+      }
+
+      return BcFluidAppearanceCache.get(fluidState.getType());
    }
 
    private static void renderOverlay(Minecraft minecraft, PoseStack poseStack, MultiBufferSource multiBufferSource, Identifier location, float overlayAlpha) {
