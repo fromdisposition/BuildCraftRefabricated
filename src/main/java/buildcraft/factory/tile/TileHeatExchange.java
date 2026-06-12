@@ -23,8 +23,7 @@ import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.fabric.transfer.FluidVariants;
-import buildcraft.lib.transfer.neighbor.NeighborTransfers;
+import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -452,7 +451,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       int amountMb = tank.getAmountMb();
 
       try (Transaction tx = Transaction.openOuter()) {
-         tank.extract(FluidVariants.toVariant(held), FluidVariants.mbToDroplets(amountMb), tx);
+         tank.extractMb(held, amountMb, tx);
          tx.commit();
       }
    }
@@ -814,23 +813,19 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                               try (Transaction tx = Transaction.openOuter()) {
                                  boolean ok = true;
                                  if (c_out_f != null && !c_out_f.isEmpty()) {
-                                    long n = c_out.insertInternal(FluidVariants.toVariant(c_out_f), FluidVariants.mbToDroplets(c_out_f.getAmount()), tx);
-                                    ok = ok && FluidVariants.dropletsToMb(n) == c_out_f.getAmount();
+                                    ok = ok && c_out.insertMbInternal(c_out_f, c_out_f.getAmount(), tx) == c_out_f.getAmount();
                                  }
 
                                  if (ok && h_out_f != null && !h_out_f.isEmpty()) {
-                                    long n = h_out.insertInternal(FluidVariants.toVariant(h_out_f), FluidVariants.mbToDroplets(h_out_f.getAmount()), tx);
-                                    ok = ok && FluidVariants.dropletsToMb(n) == h_out_f.getAmount();
+                                    ok = ok && h_out.insertMbInternal(h_out_f, h_out_f.getAmount(), tx) == h_out_f.getAmount();
                                  }
 
                                  if (ok) {
-                                    long n = c_in.extractInternal(FluidVariants.toVariant(c_in_f), FluidVariants.mbToDroplets(c_in_f.getAmount()), tx);
-                                    ok = ok && FluidVariants.dropletsToMb(n) == c_in_f.getAmount();
+                                    ok = ok && c_in.extractMbInternal(c_in_f, c_in_f.getAmount(), tx) == c_in_f.getAmount();
                                  }
 
                                  if (ok) {
-                                    long n = h_in.extractInternal(FluidVariants.toVariant(h_in_f), FluidVariants.mbToDroplets(h_in_f.getAmount()), tx);
-                                    ok = ok && FluidVariants.dropletsToMb(n) == h_in_f.getAmount();
+                                    ok = ok && h_in.extractMbInternal(h_in_f, h_in_f.getAmount(), tx) == h_in_f.getAmount();
                                  }
 
                                  if (ok) {
@@ -923,8 +918,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       private static int simulateExtract(SingleFluidTank t, @Nullable FluidStack fluid) {
          if (fluid != null && !fluid.isEmpty()) {
             try (Transaction tx = Transaction.openOuter()) {
-               long moved = t.extractInternal(FluidVariants.toVariant(fluid), FluidVariants.mbToDroplets(fluid.getAmount()), tx);
-               return (int)FluidVariants.dropletsToMb(moved);
+               return t.extractMbInternal(fluid, fluid.getAmount(), tx);
             }
          } else {
             return 0;
@@ -934,8 +928,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       private static int simulateInsert(SingleFluidTank t, @Nullable FluidStack fluid) {
          if (fluid != null && !fluid.isEmpty()) {
             try (Transaction tx = Transaction.openOuter()) {
-               long moved = t.insertInternal(FluidVariants.toVariant(fluid), FluidVariants.mbToDroplets(fluid.getAmount()), tx);
-               return (int)FluidVariants.dropletsToMb(moved);
+               return t.insertMbInternal(fluid, fluid.getAmount(), tx);
             }
          } else {
             return 0;

@@ -28,7 +28,7 @@ import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.MathUtil;
-import buildcraft.lib.fabric.transfer.FluidVariants;
+import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
 import buildcraft.transport.BCTransportStatements;
 import java.io.IOException;
 import java.util.EnumMap;
@@ -425,14 +425,9 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
                return null;
             }
 
-            for (StorageView<FluidVariant> view : storage) {
-               if (!view.isResourceBlank() && view.getAmount() > 0L) {
-                  FluidStack probe = FluidVariants.toFluidStack((FluidVariant)view.getResource());
-                  if (filter.matches(probe)) {
-                     stackFilter = probe;
-                     break;
-                  }
-               }
+            FluidStack probe = FluidStorageSnapshot.identityFrom(storage);
+            if (!probe.isEmpty() && filter.matches(probe)) {
+               stackFilter = probe;
             }
 
             if (stackFilter == null) {
@@ -517,7 +512,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    @Override
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
       boolean isClient = this.pipe.getHolder().getPipeWorld().isClientSide();
-      left.add(" - FluidType = " + (this.currentFluid.isEmpty() ? "empty" : this.currentFluid.getHoverName().getString()));
+      left.add(" - fluid = " + (this.currentFluid.isEmpty() ? "empty" : this.currentFluid.getHoverName().getString()));
 
       for (EnumPipePart part : EnumPipePart.VALUES) {
          PipeFlowFluids.Section section = this.sections.get(part);

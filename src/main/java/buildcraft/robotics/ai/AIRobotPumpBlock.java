@@ -11,7 +11,7 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.fabric.transfer.FluidVariants;
+import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -56,13 +56,12 @@ public class AIRobotPumpBlock extends AIRobot {
       Level world = this.robot.level();
       FluidStack drainable = BlockUtil.drainBlock(world, this.blockToPump, false);
       if (drainable != null && !drainable.isEmpty()) {
-         long droplets = FluidVariants.mbToDroplets(drainable.getAmount());
          try (Transaction transaction = Transaction.openOuter()) {
-            long inserted = this.robot.getFluidStorage().insert(FluidVariants.toVariant(drainable), droplets, transaction);
-            if (inserted >= droplets) {
+            int inserted = FluidStorageOps.insertFluidMb(this.robot.getFluidStorage(), drainable, drainable.getAmount(), transaction);
+            if (inserted >= drainable.getAmount()) {
                transaction.commit();
                BlockUtil.drainBlock(world, this.blockToPump, true);
-               this.pumped += (int) FluidVariants.dropletsToMb(inserted);
+               this.pumped += inserted;
             }
          }
       }

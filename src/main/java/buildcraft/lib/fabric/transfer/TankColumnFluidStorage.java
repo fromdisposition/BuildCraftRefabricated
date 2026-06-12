@@ -22,7 +22,7 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
 
    public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toFluidStack(resource));
+         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toStack(resource));
          FluidVariant variant = FluidVariants.toVariant(fluid);
          long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
@@ -74,7 +74,7 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
 
    public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toFluidStack(resource));
+         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toStack(resource));
          long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
             return 0L;

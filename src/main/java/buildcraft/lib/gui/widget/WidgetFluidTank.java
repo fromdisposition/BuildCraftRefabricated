@@ -18,7 +18,6 @@ import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.Widget_Neptune;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.net.PacketBufferBC;
-import buildcraft.lib.fabric.transfer.FluidVariants;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
@@ -119,9 +118,8 @@ public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
                      Transaction tx = Transaction.openOuter();
 
                      try {
-                        long filled = this.tank
-                           .insert(FluidVariants.toVariant(bucketSnapshot.fluid()), FluidVariants.mbToDroplets(bucketSnapshot.amountMb()), tx);
-                        if (filled > 0L) {
+                        int filled = FluidStorageOps.insertFluidMb(this.tank, bucketSnapshot.fluid(), bucketSnapshot.amountMb(), tx);
+                        if (filled > 0) {
                            tx.commit();
                         }
                      } catch (Throwable var18) {
@@ -145,13 +143,12 @@ public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
 
                   FluidStorageSnapshot snapshot = FluidStorageSnapshot.of(this.tank);
                   if (!snapshot.isEmpty()) {
-                     FluidVariant variant = FluidVariants.toVariant(snapshot.fluid());
-                     long toDrain = FluidVariants.mbToDroplets(Math.min(1000, snapshot.amountMb()));
+                     int toDrain = Math.min(1000, snapshot.amountMb());
                      Transaction tx = Transaction.openOuter();
 
                      try {
-                        long drained = this.tank.extract(variant, toDrain, tx);
-                        if (drained > 0L) {
+                        int drained = FluidStorageOps.extractFluidMb(this.tank, snapshot.fluid(), toDrain, tx);
+                        if (drained > 0) {
                            tx.commit();
                         }
                      } catch (Throwable var19) {
@@ -202,8 +199,8 @@ public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
                      Transaction tx = Transaction.openOuter();
 
                      try {
-                        long filled = this.tank.insert(FluidVariants.toVariant(fluidCoolant), FluidVariants.mbToDroplets(fluidCoolant.getAmount()), tx);
-                        if (filled == FluidVariants.mbToDroplets(fluidCoolant.getAmount())) {
+                        int filled = FluidStorageOps.insertFluidMb(this.tank, fluidCoolant, fluidCoolant.getAmount(), tx);
+                        if (filled == fluidCoolant.getAmount()) {
                            tx.commit();
                            AdvancementUtil.unlockAdvancement(player, Identifier.parse("buildcraftenergy:ice_cool"));
                            if (!isCreative) {

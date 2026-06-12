@@ -22,7 +22,6 @@ import buildcraft.lib.fabric.transfer.CombinedFluidStorage;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
-import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
@@ -113,7 +112,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                         Transaction tx = Transaction.openOuter();
 
                         try {
-                           this.tankFuel.extractInternal(FluidVariants.toVariant(fuel), FluidVariants.mbToDroplets(1L), tx);
+                           this.tankFuel.extractMbInternal(fuel, 1, tx);
                            tx.commit();
                         } catch (Throwable var12) {
                            if (tx != null) {
@@ -140,9 +139,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                               Transaction txx = Transaction.openOuter();
 
                               try {
-                                 long filledDroplets = this.tankResidue
-                                    .insertInternal(FluidVariants.toVariant(residueFluid), FluidVariants.mbToDroplets(residueInt), txx);
-                                 int filled = (int)FluidVariants.dropletsToMb(filledDroplets);
+                                 int filled = this.tankResidue.insertMbInternal(residueFluid, residueInt, txx);
                                  if (filled > 0) {
                                     txx.commit();
                                  }
@@ -182,7 +179,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                try {
                   FluidStack remaining = this.tankFuel.getFluidStack();
                   if (!remaining.isEmpty()) {
-                     this.tankFuel.extractInternal(FluidVariants.toVariant(remaining), FluidVariants.mbToDroplets(10000L), tx);
+                     this.tankFuel.extractMbInternal(remaining, 10000, tx);
                   }
 
                   tx.commit();
@@ -232,7 +229,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                Transaction tx = Transaction.openOuter();
 
                try {
-                  this.tankCoolant.extractInternal(FluidVariants.toVariant(coolRes), FluidVariants.mbToDroplets(coolantAmount), tx);
+                  this.tankCoolant.extractMbInternal(coolRes, coolantAmount, tx);
                   tx.commit();
                } catch (Throwable var14) {
                   if (tx != null) {

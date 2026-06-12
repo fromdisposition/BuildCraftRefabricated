@@ -11,9 +11,7 @@ import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.tile.craft.IFluidCraftSupport;
-import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.List;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.world.item.ItemStack;
 
@@ -56,9 +54,7 @@ public final class FluidWorkbenchCraftSupport implements IFluidCraftSupport {
                continue;
             }
 
-            FluidVariant variant = FluidVariants.toVariant(needed);
-            long drained = tank.extract(variant, FluidVariants.mbToDroplets(mbNeeded), tx);
-            if (drained >= FluidVariants.mbToDroplets(mbNeeded)) {
+            if (tank.extractMb(needed, mbNeeded, tx) >= mbNeeded) {
                tx.commit();
                return required.copyWithCount(1);
             }

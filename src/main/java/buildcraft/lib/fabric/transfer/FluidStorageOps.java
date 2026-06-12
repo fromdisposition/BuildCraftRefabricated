@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import java.util.function.Predicate;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
@@ -42,6 +43,18 @@ public final class FluidStorageOps {
       } else {
          return false;
       }
+   }
+
+   public static int extractFluidMb(Storage<FluidVariant> storage, FluidStack fluid, int maxMillibuckets, TransactionContext transaction) {
+      return fluid != null && !fluid.isEmpty() && maxMillibuckets > 0
+         ? extractFluidMb(storage, FluidVariants.toVariant(fluid), maxMillibuckets, transaction)
+         : 0;
+   }
+
+   public static int insertFluidMb(Storage<FluidVariant> storage, FluidStack fluid, int millibuckets, TransactionContext transaction) {
+      return fluid != null && !fluid.isEmpty() && millibuckets > 0
+         ? insertFluidMb(storage, FluidVariants.toVariant(fluid), millibuckets, transaction)
+         : 0;
    }
 
    public static int extractFluidMb(Storage<FluidVariant> storage, FluidStack fluid, int maxMillibuckets, boolean commit) {
@@ -83,6 +96,18 @@ public final class FluidStorageOps {
       } else {
          return 0;
       }
+   }
+
+   public static int moveMb(Storage<FluidVariant> from, Storage<FluidVariant> to, int maxMb, TransactionContext transaction) {
+      return moveMb(from, to, maxMb, variant -> true, transaction);
+   }
+
+   public static int moveMb(
+      Storage<FluidVariant> from, Storage<FluidVariant> to, int maxMb, Predicate<FluidVariant> filter, TransactionContext transaction
+   ) {
+      return maxMb > 0
+         ? TransferCommits.saturateMb(FluidVariants.dropletsToMb(StorageUtil.move(from, to, filter, FluidVariants.mbToDroplets(maxMb), transaction)))
+         : 0;
    }
 
    public static int insertFluidMb(Storage<FluidVariant> storage, FluidVariant variant, int millibuckets, TransactionContext transaction) {

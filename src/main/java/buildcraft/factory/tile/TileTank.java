@@ -18,7 +18,6 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
-import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -250,7 +249,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
       }
 
       try (Transaction tx = Transaction.openOuter()) {
-         this.fluidTank.extract(FluidVariants.toVariant(held), FluidVariants.mbToDroplets(amountMb), tx);
+         this.fluidTank.extractMb(held, amountMb, tx);
          tx.commit();
       }
    }

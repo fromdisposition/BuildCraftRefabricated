@@ -6,8 +6,9 @@
 
 package buildcraft.lib.misc;
 
-import buildcraft.lib.common.SoundActions;
 import buildcraft.lib.fluid.stack.FluidStack;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
@@ -62,12 +63,26 @@ public class SoundUtil {
    }
 
    public static void playBucketEmpty(Level world, BlockPos pos, FluidStack fluid) {
-      SoundEvent sound = fluid.getFluidAttributes().getSound(SoundActions.BUCKET_EMPTY);
-      world.playSound(null, pos, sound != null ? sound : SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
+      world.playSound(null, pos, bucketEmptySound(fluid.getFluid()), SoundSource.BLOCKS, 1.0F, 1.0F);
    }
 
    public static void playBucketFill(Level world, BlockPos pos, FluidStack fluid) {
-      SoundEvent sound = fluid.getFluidAttributes().getSound(SoundActions.BUCKET_FILL);
-      world.playSound(null, pos, sound != null ? sound : SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
+      world.playSound(null, pos, bucketFillSound(fluid.getFluid()), SoundSource.BLOCKS, 1.0F, 1.0F);
+   }
+
+   private static SoundEvent bucketEmptySound(Fluid fluid) {
+      if (fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA) {
+         return SoundEvents.BUCKET_EMPTY_LAVA;
+      }
+
+      return SoundEvents.BUCKET_EMPTY;
+   }
+
+   private static SoundEvent bucketFillSound(Fluid fluid) {
+      if (fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA) {
+         return SoundEvents.BUCKET_FILL_LAVA;
+      }
+
+      return SoundEvents.BUCKET_FILL;
    }
 }

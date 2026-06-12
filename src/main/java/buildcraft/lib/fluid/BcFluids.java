@@ -10,10 +10,10 @@ import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.meta.FluidTypes;
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.fabric.transfer.FluidVariants;
 import buildcraft.lib.fluid.interaction.FluidInteractions;
-import buildcraft.lib.transfer.neighbor.NeighborTransfers;
+import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import java.util.ArrayList;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -27,6 +27,7 @@ import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -38,11 +39,12 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Single entry point for BuildCraft fluid identity, display, transfer, and container helpers.
- * World/player interactions live in {@link buildcraft.lib.fluid.interaction.FluidInteractions}.
  * Fabric Transfer API conversion is in {@link buildcraft.lib.fabric.transfer.FluidVariants}.
+ * BC custom fluid physics/rendering uses {@link buildcraft.fabric.fluid.BcFluidUtil}, not this class.
  */
 public final class BcFluids {
    private BcFluids() {
@@ -165,7 +167,7 @@ public final class BcFluids {
             }
 
             transaction.commit();
-            return FluidVariants.toFluidStack(firstVariant, moved);
+            return FluidVariants.toStack(firstVariant, moved);
          }
       } else {
          return null;
@@ -186,13 +188,11 @@ public final class BcFluids {
          return fromClient;
       }
 
-      String descriptionId = stack.getDescriptionId();
-      Component fromFluidType = Component.translatable(descriptionId);
-      if (!isUntranslated(fromFluidType, descriptionId)) {
-         return fromFluidType;
-      }
-
       Fluid fluid = canonicalFluid(stack.getFluid());
+      Component fromAttributes = FluidAttributes.displayName(fluid);
+      if (!isUntranslated(fromAttributes, stack.getDescriptionId())) {
+         return fromAttributes;
+      }
       Item bucket = fluid.getBucket();
       if (bucket != null && bucket != Items.AIR) {
          ItemStack bucketStack = new ItemStack(bucket);
@@ -228,7 +228,7 @@ public final class BcFluids {
          }
       }
 
-      return fromFluidType;
+      return fromAttributes;
    }
 
    @Environment(EnvType.CLIENT)
@@ -258,7 +258,7 @@ public final class BcFluids {
    }
 
    public static boolean isGaseous(Fluid fluid) {
-      return fluid != null && !fluid.isSame(Fluids.EMPTY) && FluidTypes.of(fluid).isLighterThanAir();
+      return fluid != null && !fluid.isSame(Fluids.EMPTY) && FluidAttributes.of(fluid).isLighterThanAir();
    }
 
    private static String normalizeFluidPath(String path) {
@@ -297,6 +297,32 @@ public final class BcFluids {
       return world.isClientSide() ? true : FluidInteractions.interactWithFluidStorage(player, hand, pos, storage);
    }
 
+   public static boolean interactWithFluidHandler(Player player, InteractionHand hand, Level level, BlockPos pos, @Nullable Direction side) {
+      return FluidInteractions.interactWithFluidHandler(player, hand, level, pos, side);
+   }
+
+   public static boolean interactWithFluidStorage(Player player, InteractionHand hand, @Nullable BlockPos pos, Storage<FluidVariant> tank) {
+      return FluidInteractions.interactWithFluidStorage(player, hand, pos, tank);
+   }
+
+   public static FluidStack tryPickupFluid(
+      @Nullable Storage<FluidVariant> destination, @Nullable Player player, Level level, BlockPos pos, @Nullable Direction side
+   ) {
+      return FluidInteractions.tryPickupFluid(destination, player, level, pos, side);
+   }
+
+   public static FluidStack tryPlaceFluid(@Nullable Storage<FluidVariant> source, @Nullable Player player, Level level, InteractionHand hand, BlockPos pos) {
+      return FluidInteractions.tryPlaceFluid(source, player, level, hand, pos);
+   }
+
+   public static boolean tryPlaceFluid(FluidStack resource, @Nullable Player player, Level level, InteractionHand hand, BlockPos pos) {
+      return FluidInteractions.tryPlaceFluid(resource, player, level, hand, pos);
+   }
+
+   public static void triggerSoundAndGameEvent(FluidStack stack, Level level, Vec3 position, @Nullable Player player, boolean pickup) {
+      FluidInteractions.triggerSoundAndGameEvent(stack, level, position, player, pickup);
+   }
+
    public static ItemStack getFilledBucket(FluidStack fluidStack) {
       if (fluidStack != null && !fluidStack.isEmpty()) {
          if (fluidStack.getComponents().isEmpty()) {
@@ -314,7 +340,7 @@ public final class BcFluids {
                return new ItemStack(entry.bucket());
             }
 
-            Item bucket = FluidTypes.of(fluid).getBucket(fluidStack);
+            Item bucket = FluidAttributes.of(fluid).getBucket(fluidStack);
             if (bucket != null) {
                return new ItemStack(bucket);
             }

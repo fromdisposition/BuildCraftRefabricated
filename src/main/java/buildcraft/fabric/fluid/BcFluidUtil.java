@@ -11,6 +11,10 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
 
+/**
+ * BC custom fluid physics, tags, and client appearance. Identity, transfer, and tank logic live in
+ * {@link buildcraft.lib.fluid.BcFluids}; oil heat tiers register via {@link buildcraft.fabric.BCEnergyFluidsFabric}.
+ */
 public final class BcFluidUtil {
    private BcFluidUtil() {
    }

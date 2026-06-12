@@ -4,13 +4,8 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.transfer.neighbor;
+package buildcraft.lib.fabric.transfer;
 
-import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.lib.fabric.transfer.FluidStorageOps;
-import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
-import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

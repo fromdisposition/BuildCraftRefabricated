@@ -32,6 +32,20 @@ public record FluidStorageSnapshot(FluidStack fluid, int amountMb, int capacityM
       return new FluidStorageSnapshot(contents, tank.getAmountMb(), tank.getCapacityMb());
    }
 
+   public static FluidStack identityFrom(@Nullable Storage<FluidVariant> storage) {
+      if (storage == null) {
+         return FluidStack.EMPTY;
+      }
+
+      for (StorageView<FluidVariant> view : storage) {
+         if (!view.isResourceBlank() && view.getAmount() > 0L) {
+            return FluidVariants.toStack((FluidVariant)view.getResource());
+         }
+      }
+
+      return FluidStack.EMPTY;
+   }
+
    public static FluidStorageSnapshot of(@Nullable Storage<FluidVariant> storage) {
       if (storage == null) {
          return EMPTY;
@@ -52,7 +66,7 @@ public record FluidStorageSnapshot(FluidStack fluid, int amountMb, int capacityM
          }
       }
 
-      FluidStack fluid = variant.isBlank() ? FluidStack.EMPTY : FluidVariants.toFluidStack(variant, FluidVariants.mbToDroplets(TransferCommits.saturateMb(amountMb)));
+      FluidStack fluid = variant.isBlank() ? FluidStack.EMPTY : FluidVariants.toStack(variant, FluidVariants.mbToDroplets(TransferCommits.saturateMb(amountMb)));
       return new FluidStorageSnapshot(fluid, TransferCommits.saturateMb(amountMb), TransferCommits.saturateMb(capacityMb));
    }
 

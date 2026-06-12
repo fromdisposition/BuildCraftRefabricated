@@ -87,6 +87,32 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
       return this.extractUnchecked(resource, maxAmount, transaction);
    }
 
+   public int insertMb(FluidStack fluid, int maxMb, TransactionContext transaction) {
+      return !this.access.externalInsert() ? 0 : this.insertMbInternal(fluid, maxMb, transaction);
+   }
+
+   public int insertMbInternal(FluidStack fluid, int maxMb, TransactionContext transaction) {
+      if (fluid != null && !fluid.isEmpty() && maxMb > 0) {
+         long droplets = this.insertInternal(FluidVariants.toVariant(fluid), FluidVariants.mbToDroplets(maxMb), transaction);
+         return TransferCommits.saturateMb(FluidVariants.dropletsToMb(droplets));
+      } else {
+         return 0;
+      }
+   }
+
+   public int extractMb(FluidStack fluid, int maxMb, TransactionContext transaction) {
+      return !this.access.externalExtract() ? 0 : this.extractMbInternal(fluid, maxMb, transaction);
+   }
+
+   public int extractMbInternal(FluidStack fluid, int maxMb, TransactionContext transaction) {
+      if (fluid != null && !fluid.isEmpty() && maxMb > 0 && !this.isEmpty()) {
+         long droplets = this.extractInternal(FluidVariants.toVariant(fluid), FluidVariants.mbToDroplets(maxMb), transaction);
+         return TransferCommits.saturateMb(FluidVariants.dropletsToMb(droplets));
+      } else {
+         return 0;
+      }
+   }
+
    @SuppressWarnings("unchecked")
    public Iterator<StorageView<FluidVariant>> iterator() {
       return (Iterator<StorageView<FluidVariant>>)(Iterator<?>)List.of(new SingleFluidTank.SlotView()).iterator();
@@ -118,7 +144,7 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
 
    private long insertUnchecked(FluidVariant resource, long maxAmount, TransactionContext transaction, boolean applyFilter) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toFluidStack(resource));
+         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toStack(resource));
          if (fluid.isEmpty()) {
             return 0L;
          }
@@ -159,7 +185,7 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
 
    private long extractUnchecked(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L && !this.isEmpty()) {
-         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toFluidStack(resource));
+         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toStack(resource));
          if (!BcFluids.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
             return 0L;
          }

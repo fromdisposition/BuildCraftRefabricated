@@ -8,7 +8,6 @@ package buildcraft.lib.fluid.stack;
 
 import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.fluid.meta.FluidAttributes;
-import buildcraft.lib.fluid.meta.FluidTypes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.core.Holder;
@@ -39,7 +38,7 @@ public interface FluidInstance extends TypedInstance<Fluid>, DataComponentGetter
    int amount();
 
    default FluidAttributes getFluidAttributes() {
-      return FluidTypes.of(this.typeHolder());
+      return FluidAttributes.of(this.typeHolder());
    }
 
    default boolean is(FluidAttributes fluidAttributes) {

@@ -37,7 +37,7 @@ public final class ItemFluidLookup {
 
       for (StorageView<FluidVariant> view : storage) {
          if (!view.isResourceBlank() && view.getAmount() > 0L) {
-            return FluidVariants.toFluidStack((FluidVariant)view.getResource(), view.getAmount());
+            return FluidVariants.toStack((FluidVariant)view.getResource(), view.getAmount());
          }
       }
 

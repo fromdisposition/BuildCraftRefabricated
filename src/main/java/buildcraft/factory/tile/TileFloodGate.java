@@ -18,8 +18,6 @@ import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
-import buildcraft.lib.fabric.transfer.FluidVariants;
-import buildcraft.lib.fluid.interaction.FluidInteractions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.mojang.authlib.GameProfile;
@@ -211,7 +209,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
                   if (canFill && this.canFill(currentPos)) {
                      ServerLevel serverLevel = (ServerLevel)this.level;
                      Player fakePlayer = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, this.owner, this.worldPosition);
-                     FluidStack placed = FluidInteractions.tryPlaceFluid(this.fluidTank, fakePlayer, this.level, InteractionHand.MAIN_HAND, currentPos);
+                     FluidStack placed = BcFluids.tryPlaceFluid(this.fluidTank, fakePlayer, this.level, InteractionHand.MAIN_HAND, currentPos);
                      if (!placed.isEmpty()) {
                         if (this.owner != null) {
                            AdvancementUtil.unlockAdvancement(this.owner.id(), this.level, ADVANCEMENT_FLOODING_THE_WORLD);
@@ -255,7 +253,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
       BlockDropsUtil.dropFluidShard(this.level, pos, held);
 
       try (Transaction tx = Transaction.openOuter()) {
-         this.fluidTank.extract(FluidVariants.toVariant(held), FluidVariants.mbToDroplets(amountMb), tx);
+         this.fluidTank.extractMb(held, amountMb, tx);
          tx.commit();
       }
    }

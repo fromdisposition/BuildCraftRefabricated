@@ -1,6 +1,6 @@
 package buildcraft.fabric;
 
-import buildcraft.lib.fluid.meta.FluidTypes;
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.fluid.BcFluids;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributeHandler;
@@ -33,9 +33,7 @@ public final class BcFluidAttributesFabric {
          return Component.empty();
       }
 
-      // Use fluid_type lang keys directly — not BcFluids.getFluidDisplayName(), which calls
-      // FluidVariantRendering.getTooltip() and would recurse back into this getName().
-      return Component.translatable(FluidTypes.descriptionIdFor(variant.getFluid()));
+      return FluidAttributes.displayName(variant.getFluid());
    }
 
    private BcFluidAttributesFabric() {

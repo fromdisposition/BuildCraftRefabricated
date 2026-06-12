@@ -21,18 +21,10 @@ public final class FluidVariants {
    }
 
    public static FluidStack toStack(FluidVariant variant) {
-      return toFluidStack(variant);
-   }
-
-   public static FluidStack toFluidStack(FluidVariant variant) {
       return variant.isBlank() ? FluidStack.EMPTY : new FluidStack(variant.getFluid(), 1, variant.getComponentsPatch());
    }
 
    public static FluidStack toStack(FluidVariant variant, long droplets) {
-      return toFluidStack(variant, droplets);
-   }
-
-   public static FluidStack toFluidStack(FluidVariant variant, long droplets) {
       return !variant.isBlank() && droplets > 0L
          ? new FluidStack(variant.getFluid(), TransferCommits.saturateMb(dropletsToMb(droplets)), variant.getComponentsPatch())
          : FluidStack.EMPTY;

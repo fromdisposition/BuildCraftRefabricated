@@ -7,52 +7,81 @@
 package buildcraft.lib.fluid.meta;
 
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.common.SoundAction;
-import buildcraft.lib.common.SoundActions;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.BlockAndLightGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
-public class FluidAttributes {
+public final class FluidAttributes {
    public static final int BUCKET_VOLUME = 1000;
    public static final FluidAttributes EMPTY = new FluidAttributes(Fluids.EMPTY, 1000, 1000);
-   private static final int WATER_VISCOSITY = 1000;
-   private static final int LAVA_VISCOSITY = 3000;
+   private static final Map<Fluid, FluidAttributes> CACHE = new ConcurrentHashMap<>();
+
    private final Fluid fluid;
    private final String descriptionId;
    private final int viscosity;
    private final int density;
-   private final Map<SoundAction, SoundEvent> sounds = new ConcurrentHashMap<>();
 
-   public FluidAttributes(Fluid fluid) {
+   private FluidAttributes(Fluid fluid) {
       this(fluid, defaultViscosity(fluid), defaultDensity(fluid));
    }
 
-   public FluidAttributes(Fluid fluid, int viscosity, int density) {
+   private FluidAttributes(Fluid fluid, int viscosity, int density) {
       this.fluid = fluid;
       this.viscosity = viscosity;
       this.density = density;
-      this.descriptionId = FluidTypes.descriptionIdFor(fluid);
-      if (fluid == Fluids.WATER || fluid == Fluids.FLOWING_WATER) {
-         this.sounds.put(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL);
-         this.sounds.put(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY);
-      } else if (fluid == Fluids.LAVA || fluid == Fluids.FLOWING_LAVA) {
-         this.sounds.put(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL_LAVA);
-         this.sounds.put(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY_LAVA);
+      this.descriptionId = descriptionIdFor(fluid);
+   }
+
+   public static void register(Fluid fluid, int viscosity, int density) {
+      if (fluid != null && !fluid.isSame(Fluids.EMPTY)) {
+         CACHE.put(fluid, new FluidAttributes(fluid, viscosity, density));
       }
+   }
+
+   public static FluidAttributes of(Fluid fluid) {
+      return fluid != null && !fluid.isSame(Fluids.EMPTY) ? CACHE.computeIfAbsent(fluid, FluidAttributes::new) : EMPTY;
+   }
+
+   public static FluidAttributes of(Holder<Fluid> holder) {
+      return of(holder.value());
+   }
+
+   public static String descriptionIdFor(Fluid fluid) {
+      if (fluid == null || fluid.isSame(Fluids.EMPTY)) {
+         return "block.minecraft.air";
+      }
+
+      Identifier key = BuiltInRegistries.FLUID.getKey(fluid);
+      if (key == null) {
+         return "fluid_type.minecraft.empty";
+      }
+
+      String path = key.getPath();
+      if (path.startsWith("flowing_")) {
+         key = Identifier.fromNamespaceAndPath(key.getNamespace(), path.substring("flowing_".length()));
+      } else if (path.endsWith("_flowing")) {
+         key = Identifier.fromNamespaceAndPath(key.getNamespace(), path.substring(0, path.length() - "_flowing".length()));
+      }
+
+      if ("minecraft".equals(key.getNamespace())) {
+         return key.toLanguageKey("block");
+      }
+
+      return key.toLanguageKey("fluid_type");
+   }
+
+   public static Component displayName(Fluid fluid) {
+      return fluid == null || fluid.isSame(Fluids.EMPTY) ? Component.empty() : Component.translatable(descriptionIdFor(fluid));
    }
 
    private static int defaultViscosity(Fluid fluid) {
@@ -95,36 +124,8 @@ public class FluidAttributes {
       return this.getDescriptionId();
    }
 
-   public Component getDescription(FluidStack stack) {
-      return stack != null && !stack.isEmpty() ? stack.getHoverName() : Component.translatable(this.getDescriptionId());
-   }
-
-   public @Nullable SoundEvent getSound(SoundAction action) {
-      return this.sounds.get(action);
-   }
-
    public @Nullable Item getBucket(FluidStack stack) {
       return this.fluid.getBucket();
-   }
-
-   public boolean canBePlacedInLevel(Level level, BlockPos pos, FluidStack stack) {
-      return !stack.isEmpty() && this.fluid != Fluids.EMPTY;
-   }
-
-   public boolean isVaporizedOnPlacement(Level level, BlockPos pos, FluidStack stack) {
-      return this.fluid == Fluids.WATER && level.dimension() == Level.NETHER;
-   }
-
-   public void onVaporize(@Nullable Player player, Level level, BlockPos pos, FluidStack stack) {
-      level.playSound(player, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F, 2.6F);
-   }
-
-   public BlockState getStateForPlacement(Level level, BlockPos pos, FluidStack stack) {
-      return this.fluid.defaultFluidState().createLegacyBlock();
-   }
-
-   public BlockState getBlockForFluidState(Level level, BlockPos pos, FluidState fluidState) {
-      return fluidState.createLegacyBlock();
    }
 
    @Override

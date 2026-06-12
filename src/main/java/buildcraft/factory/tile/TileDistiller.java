@@ -31,7 +31,6 @@ import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.fabric.transfer.FluidVariants;
 import com.mojang.authlib.GameProfile;
 import java.util.List;
 import java.util.UUID;
@@ -309,18 +308,14 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
             boolean canExtract = !resIn.isEmpty()
                && BcFluids.areEquivalentFluidStacks(resIn.copyWithAmount(1), reqIn.copyWithAmount(1))
                && this.tankIn.getAmountMb() >= reqIn.getAmount();
-            long outLiquidDroplets = FluidVariants.mbToDroplets(outLiquid.getAmount());
-            long outGasDroplets = FluidVariants.mbToDroplets(outGas.getAmount());
-
             boolean canFillLiquid;
             boolean canFillGas;
             try (Transaction liquidCheckTransaction = Transaction.openOuter()) {
-               canFillLiquid = this.tankLiquidOut.insertInternal(FluidVariants.toVariant(outLiquid), outLiquidDroplets, liquidCheckTransaction)
-                  >= outLiquidDroplets;
+               canFillLiquid = this.tankLiquidOut.insertMbInternal(outLiquid, outLiquid.getAmount(), liquidCheckTransaction) >= outLiquid.getAmount();
             }
 
             try (Transaction gasCheckTransaction = Transaction.openOuter()) {
-               canFillGas = this.tankGasOut.insertInternal(FluidVariants.toVariant(outGas), outGasDroplets, gasCheckTransaction) >= outGasDroplets;
+               canFillGas = this.tankGasOut.insertMbInternal(outGas, outGas.getAmount(), gasCheckTransaction) >= outGas.getAmount();
             }
 
             this.isStuck = !canFillLiquid || !canFillGas;
@@ -345,9 +340,9 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
                if (crafted) {
                   this.distillPower -= powerReq;
                   try (Transaction craftTransaction = Transaction.openOuter()) {
-                     this.tankIn.extractInternal(FluidVariants.toVariant(resIn), FluidVariants.mbToDroplets(reqIn.getAmount()), craftTransaction);
-                     this.tankGasOut.insertInternal(FluidVariants.toVariant(outGas), outGasDroplets, craftTransaction);
-                     this.tankLiquidOut.insertInternal(FluidVariants.toVariant(outLiquid), outLiquidDroplets, craftTransaction);
+                     this.tankIn.extractMbInternal(resIn, reqIn.getAmount(), craftTransaction);
+                     this.tankGasOut.insertMbInternal(outGas, outGas.getAmount(), craftTransaction);
+                     this.tankLiquidOut.insertMbInternal(outLiquid, outLiquid.getAmount(), craftTransaction);
                      craftTransaction.commit();
                   }
 
@@ -444,7 +439,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       int amountMb = tank.getAmountMb();
 
       try (Transaction tx = Transaction.openOuter()) {
-         tank.extract(FluidVariants.toVariant(held), FluidVariants.mbToDroplets(amountMb), tx);
+         tank.extractMb(held, amountMb, tx);
          tx.commit();
       }
    }

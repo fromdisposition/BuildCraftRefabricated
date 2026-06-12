@@ -25,7 +25,6 @@ import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.mj.MjRedstoneBatteryReceiver;
-import buildcraft.lib.fabric.transfer.FluidVariants;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.ArrayDeque;
@@ -392,13 +391,11 @@ public class TilePump extends TileMiner implements IDebuggable {
             if (drain != null) {
                BlockPos invalid = this.getFirstInvalidPointOnPath(this.currentPos);
                if (invalid == null && this.canDrain(this.currentPos)) {
-                  FluidStack drainedResource = BcFluids.canonicalFluidStack(drain.copyWithAmount(1));
-                  FluidVariant variant = FluidVariants.toVariant(drainedResource);
+                  FluidStack drainedResource = BcFluids.canonicalFluidStack(drain);
 
                   int inserted;
                   try (Transaction drainTransaction = Transaction.openOuter()) {
-                     long insertedDroplets = this.fluidTank.insert(variant, FluidVariants.mbToDroplets(drain.getAmount()), drainTransaction);
-                     inserted = (int)FluidVariants.dropletsToMb(insertedDroplets);
+                     inserted = this.fluidTank.insertMb(drainedResource, drain.getAmount(), drainTransaction);
                      if (inserted > 0) {
                         drainTransaction.commit();
                      }

@@ -43,7 +43,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
          ItemStack stack = stack(this.context);
          if (!stack.isEmpty() && stack.getItem() == BCCoreItems.FRAGILE_FLUID_CONTAINER) {
             FluidStack current = ItemFragileFluidContainer.getFluid(stack);
-            FluidStack incoming = FluidVariants.toFluidStack(resource);
+            FluidStack incoming = FluidVariants.toStack(resource);
             if (!current.isEmpty() && !BcFluids.areEquivalentFluidStacks(current.copyWithAmount(1), incoming)) {
                return 0L;
             }
@@ -85,7 +85,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
             return 0L;
          }
 
-         if (!resource.isBlank() && !BcFluids.areEquivalentFluidStacks(current.copyWithAmount(1), FluidVariants.toFluidStack(resource))) {
+         if (!resource.isBlank() && !BcFluids.areEquivalentFluidStacks(current.copyWithAmount(1), FluidVariants.toStack(resource))) {
             return 0L;
          }
 

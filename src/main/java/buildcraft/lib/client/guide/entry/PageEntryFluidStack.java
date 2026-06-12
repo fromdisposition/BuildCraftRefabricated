@@ -14,7 +14,6 @@ import buildcraft.lib.client.guide.parts.GuidePart;
 import buildcraft.lib.client.guide.parts.contents.PageLinkFluidStack;
 import buildcraft.lib.client.guide.ref.GuideGroupManager;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.meta.FluidTypes;
 import buildcraft.lib.gui.GuiFluid;
 import buildcraft.lib.gui.ISimpleDrawable;
 import com.google.gson.JsonDeserializationContext;

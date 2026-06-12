@@ -6,14 +6,13 @@
 
 package buildcraft.lib.fluid.interaction;
 
-import buildcraft.lib.common.SoundActions;
 import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.misc.BlockUtil;
+import buildcraft.lib.misc.SoundUtil;
 import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.fabric.transfer.FluidVariants;
 import com.google.common.base.Preconditions;
@@ -27,7 +26,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -99,7 +98,7 @@ public final class FluidInteractions {
             }
 
             transaction.commit();
-            FluidStack movedStack = FluidVariants.toFluidStack(movedVariant, moved);
+            FluidStack movedStack = FluidVariants.toStack(movedVariant, moved);
             playSoundAndGameEvent(movedStack, level, pos, player, pickup);
             return movedStack;
          }
@@ -132,7 +131,7 @@ public final class FluidInteractions {
 
          transaction.commit();
          if (!soundVariant.isBlank()) {
-            playSoundAndGameEvent(FluidVariants.toFluidStack(soundVariant), level, pos, player, pickup);
+            playSoundAndGameEvent(FluidVariants.toStack(soundVariant), level, pos, player, pickup);
          }
 
          return true;
@@ -149,10 +148,10 @@ public final class FluidInteractions {
    }
 
    public static void triggerSoundAndGameEvent(FluidStack stack, Level level, Vec3 position, @Nullable Player player, boolean pickup) {
-      FluidAttributes fluidAttributes = stack.getFluidAttributes();
-      SoundEvent soundEvent = fluidAttributes.getSound(pickup ? SoundActions.BUCKET_FILL : SoundActions.BUCKET_EMPTY);
-      if (soundEvent != null) {
-         level.playSound(null, position.x, position.y, position.z, soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);
+      if (pickup) {
+         SoundUtil.playBucketFill(level, BlockPos.containing(position), stack);
+      } else {
+         SoundUtil.playBucketEmpty(level, BlockPos.containing(position), stack);
       }
 
       level.gameEvent(player, pickup ? GameEvent.FLUID_PICKUP : GameEvent.FLUID_PLACE, position);
@@ -223,13 +222,12 @@ public final class FluidInteractions {
          return FluidStack.EMPTY;
       }
 
-      long bucketDroplets = FluidVariants.mbToDroplets(1000L);
       for (StorageView<FluidVariant> view : source) {
          if (!view.isResourceBlank()) {
-            FluidStack resource = FluidVariants.toFluidStack((FluidVariant)view.getResource());
+            FluidStack resource = FluidVariants.toStack((FluidVariant)view.getResource());
             try (Transaction transaction = Transaction.openOuter()) {
-               long extracted = view.extract((FluidVariant)view.getResource(), bucketDroplets, transaction);
-               if (extracted == bucketDroplets && tryPlaceFluid(resource, player, level, hand, pos)) {
+               long extracted = view.extract((FluidVariant)view.getResource(), FluidVariants.mbToDroplets(1000L), transaction);
+               if (extracted == FluidVariants.mbToDroplets(1000L) && tryPlaceFluid(resource, player, level, hand, pos)) {
                   transaction.commit();
                   return resource.copyWithAmount(1000);
                }
@@ -242,45 +240,44 @@ public final class FluidInteractions {
 
    public static boolean tryPlaceFluid(FluidStack resource, @Nullable Player player, Level level, InteractionHand hand, BlockPos pos) {
       FluidStack stack = resource.copyWithAmount(1000);
-      FluidAttributes fluidAttributes = resource.getFluidAttributes();
-      if (!stack.isEmpty() && fluidAttributes.canBePlacedInLevel(level, pos, stack)) {
-         if (level instanceof ServerLevel serverLevel
-            && player != null
-            && !BlockUtil.canMachinePlace(serverLevel, pos, player.getGameProfile(), player.blockPosition())) {
-            return false;
-         } else {
-            ItemStack handItem = player == null ? ItemStack.EMPTY : player.getItemInHand(hand);
-            BlockPlaceContext context = new BlockPlaceContext(level, player, hand, handItem, new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
-            BlockState destBlockState = level.getBlockState(pos);
-            boolean isDestReplaceable = destBlockState.canBeReplaced(context);
-            boolean canDestContainFluid = destBlockState.getBlock() instanceof LiquidBlockContainer lbc
-               && lbc.canPlaceLiquid(player, level, pos, destBlockState, stack.getFluid());
-            if (!destBlockState.isAir() && !isDestReplaceable && !canDestContainFluid) {
-               return false;
-            }
-
-            if (fluidAttributes.isVaporizedOnPlacement(level, pos, stack)) {
-               fluidAttributes.onVaporize(player, level, pos, stack);
-               return true;
-            }
-
-            if (canDestContainFluid) {
-               LiquidBlockContainer lbc = (LiquidBlockContainer)destBlockState.getBlock();
-               lbc.placeLiquid(level, pos, destBlockState, stack.getFluid().defaultFluidState());
-            } else {
-               if (!level.isClientSide() && isDestReplaceable && !BlockUtil.isLiquid(destBlockState)) {
-                  level.destroyBlock(pos, true);
-               }
-
-               BlockState state = fluidAttributes.getBlockForFluidState(level, pos, stack.getFluid().defaultFluidState());
-               level.setBlock(pos, state, 11);
-            }
-
-            playSoundAndGameEvent(stack, level, pos, player, false);
-            return true;
-         }
-      } else {
+      if (stack.isEmpty() || stack.getFluid().isSame(Fluids.EMPTY)) {
          return false;
       }
+
+      if (level instanceof ServerLevel serverLevel
+         && player != null
+         && !BlockUtil.canMachinePlace(serverLevel, pos, player.getGameProfile(), player.blockPosition())) {
+         return false;
+      }
+
+      ItemStack handItem = player == null ? ItemStack.EMPTY : player.getItemInHand(hand);
+      BlockPlaceContext context = new BlockPlaceContext(level, player, hand, handItem, new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
+      BlockState destBlockState = level.getBlockState(pos);
+      boolean isDestReplaceable = destBlockState.canBeReplaced(context);
+      boolean canDestContainFluid = destBlockState.getBlock() instanceof LiquidBlockContainer lbc
+         && lbc.canPlaceLiquid(player, level, pos, destBlockState, stack.getFluid());
+      if (!destBlockState.isAir() && !isDestReplaceable && !canDestContainFluid) {
+         return false;
+      }
+
+      if (stack.is(Fluids.WATER) && level.dimension() == Level.NETHER) {
+         level.playSound(player, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F, 2.6F);
+         return true;
+      }
+
+      if (canDestContainFluid) {
+         LiquidBlockContainer lbc = (LiquidBlockContainer)destBlockState.getBlock();
+         lbc.placeLiquid(level, pos, destBlockState, stack.getFluid().defaultFluidState());
+      } else {
+         if (!level.isClientSide() && isDestReplaceable && !BlockUtil.isLiquid(destBlockState)) {
+            level.destroyBlock(pos, true);
+         }
+
+         BlockState state = stack.getFluid().defaultFluidState().createLegacyBlock();
+         level.setBlock(pos, state, 11);
+      }
+
+      playSoundAndGameEvent(stack, level, pos, player, false);
+      return true;
    }
 }

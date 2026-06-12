@@ -8,10 +8,6 @@ package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.fabric.transfer.FluidVariants;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.minecraft.world.item.ItemStack;
 
 public final class FilterFluidStacks {
@@ -23,17 +19,6 @@ public final class FilterFluidStacks {
          return FluidStack.EMPTY;
       }
 
-      Storage<FluidVariant> storage = ItemFluidLookup.storage(stack);
-      if (storage == null) {
-         return FluidStack.EMPTY;
-      }
-
-      for (StorageView<FluidVariant> view : storage) {
-         if (!view.isResourceBlank() && view.getAmount() > 0L) {
-            return FluidVariants.toFluidStack((FluidVariant)view.getResource(), view.getAmount());
-         }
-      }
-
-      return FluidStack.EMPTY;
+      return ItemFluidLookup.firstFluid(stack);
    }
 }

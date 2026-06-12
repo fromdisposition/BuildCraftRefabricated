@@ -31,7 +31,7 @@ public final class PipeFluidSectionStorage implements Storage<FluidVariant> {
             return 0L;
          }
 
-         int inserted = this.section.insert(0, FluidVariants.toFluidStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
+         int inserted = this.section.insert(0, FluidVariants.toStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
          return FluidVariants.mbToDroplets(inserted);
       } else {
          return 0L;
@@ -45,7 +45,7 @@ public final class PipeFluidSectionStorage implements Storage<FluidVariant> {
             return 0L;
          }
 
-         int extracted = this.section.extract(0, FluidVariants.toFluidStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
+         int extracted = this.section.extract(0, FluidVariants.toStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
          return FluidVariants.mbToDroplets(extracted);
       } else {
          return 0L;
