@@ -31,8 +31,8 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Client fluid sprite/tint lookup.
- * World blocks use pre-baked {@code block/fluids/baked/*} sprites from {@link FluidModel}.
- * Pipes and other vertex-tinted surfaces use shared {@code heat_*_white} templates.
+ * World blocks and pipes use pre-baked {@code block/fluids/baked/*} sprites from {@link FluidModel}.
+ * Tanks and BER use shared {@code heat_*_white} templates with per-vertex tint.
  */
 public final class BcFluidRenderLookup {
    private BcFluidRenderLookup() {
