@@ -1,4 +1,5 @@
 import java.awt.image.BufferedImage
+import java.util.zip.ZipFile
 import javax.imageio.ImageIO
 
 plugins {
@@ -62,6 +63,44 @@ dependencies {
 // Full Fabric compile target — gameplay modules in progress; guide/script still reference excluded APIs.
 val notYetOnFabric = listOf<String>()
 
+/** Vanilla water_flow uses the UV regions FluidRenderer expects; BC heat templates were authored for legacy SpriteFluidFrozen offsets. */
+fun findMinecraftClientJar(projectDir: java.io.File, mcVersion: String): java.io.File {
+    val tree = projectDir.walkTopDown().maxDepth(6).filter {
+        it.isFile && it.name.startsWith("minecraft-merged-") && it.name.endsWith(".jar")
+            && !it.name.endsWith("-sources.jar") && !it.name.endsWith("-javadoc.jar")
+            && it.parentFile.name == mcVersion
+    }
+    return tree.firstOrNull() ?: error("minecraft-merged jar for $mcVersion not found — run compile first")
+}
+
+fun loadVanillaWaterFlow(mcJar: java.io.File): BufferedImage =
+    ZipFile(mcJar).use { zip ->
+        val entry = zip.getEntry("assets/minecraft/textures/block/water_flow.png")
+            ?: error("water_flow.png not found in $mcJar")
+        zip.getInputStream(entry).use { stream -> ImageIO.read(stream) }
+    }
+
+fun vanillaWaterToHeatFlow(water: BufferedImage): BufferedImage {
+    val out = BufferedImage(water.width, water.height, BufferedImage.TYPE_INT_ARGB)
+    for (y in 0 until water.height) {
+        for (x in 0 until water.width) {
+            val argb = water.getRGB(x, y)
+            val a = argb ushr 24 and 0xFF
+            if (a == 0) {
+                out.setRGB(x, y, 0)
+            } else {
+                val r = argb shr 16 and 0xFF
+                val g = argb shr 8 and 0xFF
+                val b = argb and 0xFF
+                val lum = (r * 77 + g * 150 + b * 29) ushr 8
+                // Water alpha (~180) is only a shape mask; BC liquids bake to fully opaque flow sprites.
+                out.setRGB(x, y, 0xFF000000.toInt() or (lum shl 16) or (lum shl 8) or lum)
+            }
+        }
+    }
+    return out
+}
+
 tasks.register("generateFluidBucketAssets") {
     group = "buildcraft"
     description = "Regenerate fluid block textures, bucket icons, underwater overlays, and bucket item JSON."
@@ -108,6 +147,17 @@ tasks.register("generateFluidBucketAssets") {
                 }
             }
             return out
+        }
+
+        val mcVersion = providers.gradleProperty("minecraft_version").get()
+        val mcJar = findMinecraftClientJar(file(".gradle/loom-cache/minecraftMaven/net/minecraft"), mcVersion)
+        val heatFlowTemplate = vanillaWaterToHeatFlow(loadVanillaWaterFlow(mcJar))
+        for (heat in 0..2) {
+            ImageIO.write(
+                heatFlowTemplate,
+                "PNG",
+                file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png")
+            )
         }
 
         val baseImg = ImageIO.read(heatStill)

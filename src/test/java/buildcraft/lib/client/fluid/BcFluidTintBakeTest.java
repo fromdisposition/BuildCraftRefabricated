@@ -46,6 +46,41 @@ class BcFluidTintBakeTest {
    }
 
    @Test
+   void bakedOilFlowIsFullyOpaque() throws IOException {
+      try (InputStream bakedIn = getClass().getResourceAsStream("/assets/buildcraftenergy/textures/block/fluids/baked/oil_flow.png")) {
+         BufferedImage baked = ImageIO.read(bakedIn);
+         int opaque = 0;
+         int translucent = 0;
+         for (int y = 0; y < baked.getHeight(); y++) {
+            for (int x = 0; x < baked.getWidth(); x++) {
+               int alpha = baked.getRGB(x, y) >>> 24 & 0xFF;
+               if (alpha == 0) {
+                  continue;
+               }
+               if (alpha == 0xFF) {
+                  opaque++;
+               } else {
+                  translucent++;
+               }
+            }
+         }
+         assertEquals(0, translucent, "non-gaseous flow sprites must not inherit water alpha 180");
+         assertEquals(true, opaque > 0);
+      }
+   }
+
+   @Test
+   void bakedFlowMcmetaMatchesVanillaWaterFrametime() throws IOException {
+      try (InputStream in = getClass().getResourceAsStream("/assets/buildcraftenergy/textures/block/fluids/baked/oil_flow.png.mcmeta")) {
+         String mcmeta = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+         assertEquals(true, mcmeta.contains("\"frametime\": 1"), "flow animation should use frametime 1 like vanilla water/TR");
+         assertEquals(true, mcmeta.contains("\"width\": 32"));
+         assertEquals(true, mcmeta.contains("\"height\": 32"));
+         assertEquals(false, mcmeta.contains("interpolate"), "interpolate shader blurs fluid frames");
+      }
+   }
+
+   @Test
    void gradleBakeDiffersFromLegacyRuntimeBakeColors() throws IOException {
       int light = 0x505050;
       int dark = 0x050505;
