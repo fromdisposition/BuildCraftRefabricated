@@ -93,6 +93,8 @@ fun grayChannel(pixel: Int): Int = (pixel shr 16) and 0xFF
 
 fun composeGray(lum: Int): Int = 0xFF000000.toInt() or (lum shl 16) or (lum shl 8) or lum
 
+private data class FlowBakePixel(val x: Int, val y: Int, val flowGray: Int, val shapeAlpha: Int)
+
 /** Monotonic luminance remap: same flow gray always maps to the same color (FluidRenderer UV expects this). */
 fun bakeFlowWithStillLuminance(
     flowTemplate: BufferedImage,
@@ -128,11 +130,11 @@ fun bakeFlowWithStillLuminance(
     val stillRefMean = stillRefSum / stillRefCount
     val stillSpan = maxOf(1, stillMax - stillMin)
 
+    var globalFlowMin = 255
+    var globalFlowMax = 0
+    val flowPixels = ArrayList<FlowBakePixel>()
     for (frame in 0 until flowFrames) {
         val frameY = frame * flowFrameH
-        var flowMin = 255
-        var flowMax = 0
-        val framePixels = ArrayList<Triple<Int, Int, Int>>()
         for (ly in 0 until flowFrameH) {
             for (fx in 0 until flowTemplate.width) {
                 val fy = frameY + ly
@@ -143,27 +145,30 @@ fun bakeFlowWithStillLuminance(
                     continue
                 }
                 val flowGray = grayChannel(flowPx)
-                flowMin = minOf(flowMin, flowGray)
-                flowMax = maxOf(flowMax, flowGray)
-                framePixels.add(Triple(fx, fy, flowGray))
+                globalFlowMin = minOf(globalFlowMin, flowGray)
+                globalFlowMax = maxOf(globalFlowMax, flowGray)
+                flowPixels.add(FlowBakePixel(fx, fy, flowGray, shapeAlpha))
             }
         }
-        val flowSpan = maxOf(1, flowMax - flowMin)
-        var adjustedSum = 0
-        val adjustedGrays = IntArray(framePixels.size)
-        for (i in framePixels.indices) {
-            val flowGray = framePixels[i].third
-            adjustedGrays[i] = stillMin + (flowGray - flowMin) * stillSpan / flowSpan
-            adjustedSum += adjustedGrays[i]
-        }
-        val meanCorrection = stillRefMean - adjustedSum / framePixels.size
-        for (i in framePixels.indices) {
-            val (fx, fy, _) = framePixels[i]
-            val flowPx = flowTemplate.getRGB(fx, fy)
-            val shapeAlpha = (flowPx ushr 24) and 0xFF
-            val adjustedGray = (adjustedGrays[i] + meanCorrection).coerceIn(0, 255)
-            out.setRGB(fx, fy, recolor(composeGray(adjustedGray), light, dark, gaseous, shapeAlpha))
-        }
+    }
+    check(flowPixels.isNotEmpty()) { "flow template has no opaque pixels" }
+    val globalFlowSpan = maxOf(1, globalFlowMax - globalFlowMin)
+    var adjustedSum = 0
+    val adjustedGrays = IntArray(flowPixels.size)
+    for (i in flowPixels.indices) {
+        val flowGray = flowPixels[i].flowGray
+        adjustedGrays[i] = stillMin + (flowGray - globalFlowMin) * stillSpan / globalFlowSpan
+        adjustedSum += adjustedGrays[i]
+    }
+    val meanCorrection = stillRefMean - adjustedSum / flowPixels.size
+    for (i in flowPixels.indices) {
+        val pixel = flowPixels[i]
+        val adjustedGray = (adjustedGrays[i] + meanCorrection).coerceIn(0, 255)
+        out.setRGB(
+            pixel.x,
+            pixel.y,
+            recolor(composeGray(adjustedGray), light, dark, gaseous, pixel.shapeAlpha),
+        )
     }
     return out
 }

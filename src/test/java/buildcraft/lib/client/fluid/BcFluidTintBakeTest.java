@@ -159,7 +159,7 @@ class BcFluidTintBakeTest {
 
    @ParameterizedTest(name = "{0}")
    @MethodSource("everyBakedFluid")
-   void bakedFlowContrastMatchesStill(FluidBakeSpec spec) throws IOException {
+   void bakedFlowContrastMatchesStillOnEveryFrame(FluidBakeSpec spec) throws IOException {
       String stillPath = "/assets/buildcraftenergy/textures/block/fluids/baked/" + spec.regName + ".png";
       String flowPath = "/assets/buildcraftenergy/textures/block/fluids/baked/" + spec.regName + "_flow.png";
       try (InputStream stillIn = getClass().getResourceAsStream(stillPath);
@@ -167,8 +167,39 @@ class BcFluidTintBakeTest {
          BufferedImage still = ImageIO.read(stillIn);
          BufferedImage flow = ImageIO.read(flowIn);
          int stillSpread = rgbSpreadInFrame(still, 16, 0);
-         int flowSpread = rgbSpreadInFrame(flow, 32, 0);
-         assertTrue(flowSpread >= stillSpread / 2, spec.regName + " flow tonal range too flat");
+         int frameCount = flow.getHeight() / 32;
+         for (int frame = 0; frame < frameCount; frame++) {
+            int flowSpread = rgbSpreadInFrame(flow, 32, frame);
+            assertTrue(flowSpread >= stillSpread / 2, spec.regName + " frame " + frame + " tonal range too flat");
+         }
+      }
+   }
+
+   @ParameterizedTest
+   @MethodSource("everyHeatLevel")
+   void bakedFlowLuminanceMapsConsistentlyAcrossAllFrames(int heat) throws IOException {
+      String templatePath = "/assets/buildcraftenergy/textures/block/fluids/heat_" + heat + "_flow.png";
+      String bakedPath = "/assets/buildcraftenergy/textures/block/fluids/baked/oil" + heatSuffix(heat) + "_flow.png";
+      try (InputStream templateIn = getClass().getResourceAsStream(templatePath);
+           InputStream bakedIn = getClass().getResourceAsStream(bakedPath)) {
+         BufferedImage template = ImageIO.read(templateIn);
+         BufferedImage baked = ImageIO.read(bakedIn);
+         HashMap<Integer, Integer> lumToColor = new HashMap<>();
+         for (int y = 0; y < template.getHeight(); y++) {
+            for (int x = 0; x < template.getWidth(); x++) {
+               int templateArgb = template.getRGB(x, y);
+               int bakedArgb = baked.getRGB(x, y);
+               if ((templateArgb >>> 24 & 0xFF) == 0 || (bakedArgb >>> 24 & 0xFF) == 0) {
+                  continue;
+               }
+               int lum = templateArgb >> 16 & 0xFF;
+               int bakedRgb = bakedArgb & 0xFFFFFF;
+               Integer prior = lumToColor.putIfAbsent(lum, bakedRgb);
+               if (prior != null) {
+                  assertEquals(prior.intValue(), bakedRgb, "heat " + heat + " luminance " + lum + " at y=" + y);
+               }
+            }
+         }
       }
    }
 
@@ -200,6 +231,23 @@ class BcFluidTintBakeTest {
                      assertEquals(prior.intValue(), bakedRgb, "heat " + heat + " luminance " + lum);
                   }
                }
+            }
+         }
+      }
+   }
+
+   @ParameterizedTest
+   @MethodSource("everyHeatLevel")
+   void bakedFlowPerFrameAverageRgbTracksGlobalMean(int heat) throws IOException {
+      String bakedPath = "/assets/buildcraftenergy/textures/block/fluids/baked/oil_dense" + heatSuffix(heat) + "_flow.png";
+      try (InputStream bakedIn = getClass().getResourceAsStream(bakedPath)) {
+         BufferedImage baked = ImageIO.read(bakedIn);
+         double[] globalAvg = averageOpaqueRgb(baked);
+         int frameCount = baked.getHeight() / 32;
+         for (int frame = 0; frame < frameCount; frame++) {
+            double[] frameAvg = averageOpaqueRgbInFrame(baked, 32, frame);
+            for (int channel = 0; channel < 3; channel++) {
+               assertEquals(globalAvg[channel], frameAvg[channel], 2.5, "heat " + heat + " frame " + frame);
             }
          }
       }
@@ -319,6 +367,28 @@ class BcFluidTintBakeTest {
          }
       }
       return max - min;
+   }
+
+   private static double[] averageOpaqueRgbInFrame(BufferedImage image, int frameSize, int frameIndex) {
+      long r = 0;
+      long g = 0;
+      long b = 0;
+      int count = 0;
+      int y0 = frameIndex * frameSize;
+      for (int y = y0; y < y0 + frameSize; y++) {
+         for (int x = 0; x < image.getWidth(); x++) {
+            int argb = image.getRGB(x, y);
+            int alpha = argb >>> 24 & 0xFF;
+            if (alpha == 0) {
+               continue;
+            }
+            r += argb >> 16 & 0xFF;
+            g += argb >> 8 & 0xFF;
+            b += argb & 0xFF;
+            count++;
+         }
+      }
+      return new double[] { (double) r / count, (double) g / count, (double) b / count };
    }
 
    private static double[] averageOpaqueRgb(BufferedImage image) {
