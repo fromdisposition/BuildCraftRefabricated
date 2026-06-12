@@ -6,7 +6,7 @@
 
 package buildcraft.api.items;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import javax.annotation.Nullable;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;

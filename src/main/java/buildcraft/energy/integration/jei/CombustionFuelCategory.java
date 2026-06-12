@@ -10,7 +10,7 @@ import buildcraft.api.fuels.IFuel;
 import buildcraft.api.fuels.IFuelManager;
 import buildcraft.energy.BCEnergyItems;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.lib.integration.jei.JeiFluids;
 import buildcraft.lib.misc.LocaleUtil;

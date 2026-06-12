@@ -1,7 +1,7 @@
 package buildcraft.lib.fabric.transfer;
 
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -37,8 +37,8 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
    public int insertMillibuckets(FluidStack fluid, int maxMb, boolean commit) {
       if (!fluid.isEmpty() && maxMb > 0) {
          try (Transaction transaction = Transaction.openOuter()) {
-            FluidVariant variant = TransferConvert.toVariant(fluid);
-            long remaining = TransferConvert.mbToDroplets(maxMb);
+            FluidVariant variant = FluidVariants.toVariant(fluid);
+            long remaining = FluidVariants.mbToDroplets(maxMb);
             int insertedMb = 0;
 
             for (SingleFluidTank tank : this.tanks) {
@@ -47,7 +47,7 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
                }
 
                long moved = tank.insert(variant, remaining, transaction);
-               int movedMb = (int)Math.min(TransferConvert.dropletsToMb(moved), 2147483647L);
+               int movedMb = (int)Math.min(FluidVariants.dropletsToMb(moved), 2147483647L);
                insertedMb += movedMb;
                remaining -= moved;
             }
@@ -66,8 +66,8 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
    public int extractMillibuckets(FluidStack fluid, int maxMb, boolean commit) {
       if (!fluid.isEmpty() && maxMb > 0) {
          try (Transaction transaction = Transaction.openOuter()) {
-            FluidVariant variant = TransferConvert.toVariant(fluid);
-            long remaining = TransferConvert.mbToDroplets(maxMb);
+            FluidVariant variant = FluidVariants.toVariant(fluid);
+            long remaining = FluidVariants.mbToDroplets(maxMb);
             int extractedMb = 0;
 
             for (SingleFluidTank tank : this.tanks) {
@@ -76,7 +76,7 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
                }
 
                long moved = tank.extract(variant, remaining, transaction);
-               int movedMb = (int)Math.min(TransferConvert.dropletsToMb(moved), 2147483647L);
+               int movedMb = (int)Math.min(FluidVariants.dropletsToMb(moved), 2147483647L);
                extractedMb += movedMb;
                remaining -= moved;
             }

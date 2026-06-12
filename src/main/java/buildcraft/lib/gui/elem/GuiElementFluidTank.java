@@ -8,7 +8,7 @@ package buildcraft.lib.gui.elem;
 
 import buildcraft.lib.client.fluid.BcFluidGuiDrawer;
 import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BuildCraftGui;
 import buildcraft.lib.gui.GuiIcon;

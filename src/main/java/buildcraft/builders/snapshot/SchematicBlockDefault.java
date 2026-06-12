@@ -10,7 +10,7 @@ import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.SchematicBlockContext;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import com.mojang.authlib.GameProfile;

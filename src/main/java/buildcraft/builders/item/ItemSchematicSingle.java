@@ -13,7 +13,7 @@ import buildcraft.api.schematics.SchematicBlockContext;
 import buildcraft.builders.BCBuildersItems;
 import buildcraft.builders.snapshot.SchematicBlockManager;
 import buildcraft.core.PaperAdvancement;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.inventory.InventoryWrapper;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.MessageUtil;

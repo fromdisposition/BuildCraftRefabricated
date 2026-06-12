@@ -2,9 +2,9 @@ package buildcraft.lib.fabric.transfer;
 
 import buildcraft.core.BCCoreItems;
 import buildcraft.core.item.ItemFragileFluidContainer;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.Collections;
 import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
@@ -43,14 +43,14 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
          ItemStack stack = stack(this.context);
          if (!stack.isEmpty() && stack.getItem() == BCCoreItems.FRAGILE_FLUID_CONTAINER) {
             FluidStack current = ItemFragileFluidContainer.getFluid(stack);
-            FluidStack incoming = TransferConvert.toFluidStack(resource);
-            if (!current.isEmpty() && !FluidUtilBC.areEquivalentFluidStacks(current.copyWithAmount(1), incoming)) {
+            FluidStack incoming = FluidVariants.toFluidStack(resource);
+            if (!current.isEmpty() && !BcFluids.areEquivalentFluidStacks(current.copyWithAmount(1), incoming)) {
                return 0L;
             }
 
             int capacity = 500;
             int currentMb = current.getAmount();
-            long maxMb = TransferConvert.dropletsToMb(maxAmount);
+            long maxMb = FluidVariants.dropletsToMb(maxAmount);
             int toInsertMb = (int)Math.min(maxMb, capacity - currentMb);
             if (toInsertMb <= 0) {
                return 0L;
@@ -64,7 +64,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
             ItemStack newStack = stack.copy();
             ItemFragileFluidContainer.setFluid(newStack, updated);
             long exchanged = this.context.exchange(ItemVariant.of(newStack), stack.getCount(), transaction);
-            return exchanged > 0L ? TransferConvert.mbToDroplets(toInsertMb) : 0L;
+            return exchanged > 0L ? FluidVariants.mbToDroplets(toInsertMb) : 0L;
          } else {
             return 0L;
          }
@@ -85,11 +85,11 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
             return 0L;
          }
 
-         if (!resource.isBlank() && !FluidUtilBC.areEquivalentFluidStacks(current.copyWithAmount(1), TransferConvert.toFluidStack(resource))) {
+         if (!resource.isBlank() && !BcFluids.areEquivalentFluidStacks(current.copyWithAmount(1), FluidVariants.toFluidStack(resource))) {
             return 0L;
          }
 
-         long maxMb = TransferConvert.dropletsToMb(maxAmount);
+         long maxMb = FluidVariants.dropletsToMb(maxAmount);
          int toExtractMb = (int)Math.min(maxMb, current.getAmount());
          if (toExtractMb <= 0) {
             return 0L;
@@ -100,7 +100,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
          ItemStack newStack = stack.copy();
          ItemFragileFluidContainer.setFluid(newStack, updated);
          long exchanged = this.context.exchange(ItemVariant.of(newStack), stack.getCount(), transaction);
-         return exchanged > 0L ? TransferConvert.mbToDroplets(toExtractMb) : 0L;
+         return exchanged > 0L ? FluidVariants.mbToDroplets(toExtractMb) : 0L;
       } else {
          return 0L;
       }
@@ -113,8 +113,8 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
          return Collections.emptyIterator();
       }
 
-      FluidVariant variant = TransferConvert.toVariant(fluid);
-      long amount = TransferConvert.mbToDroplets(fluid.getAmount());
+      FluidVariant variant = FluidVariants.toVariant(fluid);
+      long amount = FluidVariants.mbToDroplets(fluid.getAmount());
       return Collections.<StorageView<FluidVariant>>singletonList(new SingleView(variant, amount)).iterator();
    }
 
@@ -144,7 +144,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
       }
 
       public long getCapacity() {
-         return TransferConvert.mbToDroplets(500L);
+         return FluidVariants.mbToDroplets(500L);
       }
    }
 }

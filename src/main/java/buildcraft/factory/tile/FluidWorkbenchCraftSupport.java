@@ -8,10 +8,10 @@ package buildcraft.factory.tile;
 
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.tile.craft.IFluidCraftSupport;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.List;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -48,7 +48,7 @@ public final class FluidWorkbenchCraftSupport implements IFluidCraftSupport {
       try {
          for (SingleFluidTank tank : this.tanks) {
             FluidStack held = tank.getFluidStack();
-            if (held.isEmpty() || !FluidUtilBC.areEquivalentFluidStacks(held.copyWithAmount(1), needed.copyWithAmount(1))) {
+            if (held.isEmpty() || !BcFluids.areEquivalentFluidStacks(held.copyWithAmount(1), needed.copyWithAmount(1))) {
                continue;
             }
 
@@ -56,9 +56,9 @@ public final class FluidWorkbenchCraftSupport implements IFluidCraftSupport {
                continue;
             }
 
-            FluidVariant variant = TransferConvert.toVariant(needed);
-            long drained = tank.extract(variant, TransferConvert.mbToDroplets(mbNeeded), tx);
-            if (drained >= TransferConvert.mbToDroplets(mbNeeded)) {
+            FluidVariant variant = FluidVariants.toVariant(needed);
+            long drained = tank.extract(variant, FluidVariants.mbToDroplets(mbNeeded), tx);
+            if (drained >= FluidVariants.mbToDroplets(mbNeeded)) {
                tx.commit();
                return required.copyWithCount(1);
             }
@@ -77,7 +77,7 @@ public final class FluidWorkbenchCraftSupport implements IFluidCraftSupport {
 
       for (SingleFluidTank tank : this.tanks) {
          FluidStack held = tank.getFluidStack();
-         if (!held.isEmpty() && FluidUtilBC.areEquivalentFluidStacks(held.copyWithAmount(1), needed.copyWithAmount(1))) {
+         if (!held.isEmpty() && BcFluids.areEquivalentFluidStacks(held.copyWithAmount(1), needed.copyWithAmount(1))) {
             total += tank.getAmountMb();
          }
       }

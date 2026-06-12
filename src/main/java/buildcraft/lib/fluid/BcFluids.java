@@ -4,15 +4,15 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.misc;
+package buildcraft.lib.fluid;
 
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.fluids.FluidTypes;
-import buildcraft.lib.transfer.fabric.TransferConvert;
-import buildcraft.lib.transfer.fluid.FluidUtil;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.meta.FluidTypes;
+import buildcraft.lib.fabric.transfer.FluidVariants;
+import buildcraft.lib.fluid.interaction.FluidInteractions;
 import buildcraft.lib.transfer.neighbor.NeighborTransfers;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +39,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
-public class FluidUtilBC {
+/**
+ * Single entry point for BuildCraft fluid identity, display, transfer, and container helpers.
+ * World/player interactions live in {@link buildcraft.lib.fluid.interaction.FluidInteractions}.
+ * Fabric Transfer API conversion is in {@link buildcraft.lib.fabric.transfer.FluidVariants}.
+ */
+public final class BcFluids {
+   private BcFluids() {
+   }
+
    public static void pushFluidToNeighbors(Level level, BlockPos pos, Storage<FluidVariant> tank) {
       NeighborTransfers.pushFluidToNeighbors(level, pos, tank);
    }
@@ -149,7 +157,7 @@ public class FluidUtilBC {
             return null;
          }
 
-         long maxDroplets = TransferConvert.mbToDroplets(maxMb);
+         long maxDroplets = FluidVariants.mbToDroplets(maxMb);
          try (Transaction transaction = Transaction.openOuter()) {
             long moved = FluidStorageOps.move(from, to, maxDroplets, transaction);
             if (moved <= 0L) {
@@ -157,7 +165,7 @@ public class FluidUtilBC {
             }
 
             transaction.commit();
-            return TransferConvert.toFluidStack(firstVariant, moved);
+            return FluidVariants.toFluidStack(firstVariant, moved);
          }
       } else {
          return null;
@@ -229,7 +237,7 @@ public class FluidUtilBC {
          return null;
       }
 
-      List<Component> tooltip = FluidVariantRendering.getTooltip(TransferConvert.toVariant(stack));
+      List<Component> tooltip = FluidVariantRendering.getTooltip(FluidVariants.toVariant(stack));
       if (!tooltip.isEmpty()) {
          Component name = tooltip.getFirst();
          if (!isUntranslated(name, stack.getDescriptionId())) {
@@ -246,7 +254,7 @@ public class FluidUtilBC {
    }
 
    public static boolean isGaseous(FluidStack fluid) {
-      return !fluid.isEmpty() && fluid.getFluidType().isLighterThanAir();
+      return !fluid.isEmpty() && fluid.getFluidAttributes().isLighterThanAir();
    }
 
    public static boolean isGaseous(Fluid fluid) {
@@ -286,7 +294,7 @@ public class FluidUtilBC {
       }
 
       Level world = player.level();
-      return world.isClientSide() ? true : FluidUtil.interactWithFluidStorage(player, hand, pos, storage);
+      return world.isClientSide() ? true : FluidInteractions.interactWithFluidStorage(player, hand, pos, storage);
    }
 
    public static ItemStack getFilledBucket(FluidStack fluidStack) {

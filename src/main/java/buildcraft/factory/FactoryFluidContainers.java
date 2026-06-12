@@ -9,7 +9,7 @@ package buildcraft.factory;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -25,7 +25,7 @@ public final class FactoryFluidContainers {
          Storage<FluidVariant> hand = ItemFluidLookup.storage(stack);
          if (hand != null) {
             try (Transaction tx = Transaction.openOuter()) {
-               long moved = FluidStorageOps.move(hand, tank, TransferConvert.mbToDroplets(1000L), tx);
+               long moved = FluidStorageOps.move(hand, tank, FluidVariants.mbToDroplets(1000L), tx);
                if (moved > 0L) {
                   tx.commit();
                   slots.setStackInSlot(slot, stack);
@@ -41,7 +41,7 @@ public final class FactoryFluidContainers {
          Storage<FluidVariant> hand = ItemFluidLookup.storage(stack);
          if (hand != null) {
             try (Transaction tx = Transaction.openOuter()) {
-               long moved = FluidStorageOps.move(tank, hand, TransferConvert.mbToDroplets(1000L), tx);
+               long moved = FluidStorageOps.move(tank, hand, FluidVariants.mbToDroplets(1000L), tx);
                if (moved > 0L) {
                   tx.commit();
                   slots.setStackInSlot(slot, stack);

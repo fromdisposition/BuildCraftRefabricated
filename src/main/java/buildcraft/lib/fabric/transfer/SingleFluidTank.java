@@ -1,10 +1,10 @@
 package buildcraft.lib.fabric.transfer;
 
 import buildcraft.lib.common.util.ValueIOSerializable;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import com.mojang.serialization.Codec;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -118,7 +118,7 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
 
    private long insertUnchecked(FluidVariant resource, long maxAmount, TransactionContext transaction, boolean applyFilter) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         FluidStack fluid = FluidUtilBC.canonicalFluidStack(TransferConvert.toFluidStack(resource));
+         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toFluidStack(resource));
          if (fluid.isEmpty()) {
             return 0L;
          }
@@ -127,13 +127,13 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
             return 0L;
          }
 
-         long millibuckets = TransferConvert.dropletsToMb(maxAmount);
+         long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
             return 0L;
          }
 
          int insertMb = TransferCommits.saturateMb(millibuckets);
-         if (!this.isEmpty() && !FluidUtilBC.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
+         if (!this.isEmpty() && !BcFluids.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
             return 0L;
          }
 
@@ -151,7 +151,7 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
          }
 
          this.notifyContentsChanged();
-         return TransferConvert.mbToDroplets(acceptedMb);
+         return FluidVariants.mbToDroplets(acceptedMb);
       } else {
          return 0L;
       }
@@ -159,12 +159,12 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
 
    private long extractUnchecked(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L && !this.isEmpty()) {
-         FluidStack fluid = FluidUtilBC.canonicalFluidStack(TransferConvert.toFluidStack(resource));
-         if (!FluidUtilBC.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
+         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toFluidStack(resource));
+         if (!BcFluids.areEquivalentFluidStacks(this.getFluidStack(), fluid)) {
             return 0L;
          }
 
-         long millibuckets = TransferConvert.dropletsToMb(maxAmount);
+         long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
             return 0L;
          }
@@ -178,7 +178,7 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
          int remaining = this.getAmountMb() - extractMb;
          this.contents = remaining <= 0 ? FluidStack.EMPTY : this.getFluidStack().copyWithAmount(remaining);
          this.notifyContentsChanged();
-         return TransferConvert.mbToDroplets(extractMb);
+         return FluidVariants.mbToDroplets(extractMb);
       } else {
          return 0L;
       }
@@ -240,15 +240,15 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
       }
 
       public FluidVariant getResource() {
-         return SingleFluidTank.this.isEmpty() ? FluidVariant.blank() : TransferConvert.toVariant(SingleFluidTank.this.getFluidStack());
+         return SingleFluidTank.this.isEmpty() ? FluidVariant.blank() : FluidVariants.toVariant(SingleFluidTank.this.getFluidStack());
       }
 
       public long getAmount() {
-         return TransferConvert.mbToDroplets(SingleFluidTank.this.getAmountMb());
+         return FluidVariants.mbToDroplets(SingleFluidTank.this.getAmountMb());
       }
 
       public long getCapacity() {
-         return TransferConvert.mbToDroplets(SingleFluidTank.this.capacityMb);
+         return FluidVariants.mbToDroplets(SingleFluidTank.this.capacityMb);
       }
    }
 

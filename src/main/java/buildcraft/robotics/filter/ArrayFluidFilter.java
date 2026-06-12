@@ -6,7 +6,7 @@
 
 package buildcraft.robotics.filter;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.robotics.path.IFluidFilter;
 import buildcraft.transport.pipe.behaviour.FilterFluidStacks;
 import net.minecraft.world.item.ItemStack;

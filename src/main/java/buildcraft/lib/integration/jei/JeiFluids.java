@@ -6,8 +6,8 @@
 
 package buildcraft.lib.integration.jei;
 
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.Optional;
 import mezz.jei.api.fabric.constants.FabricTypes;
 import mezz.jei.api.fabric.ingredients.fluids.JeiFluidIngredient;
@@ -27,8 +27,8 @@ public final class JeiFluids {
 
    public static void addFluidStack(IRecipeSlotBuilder slot, FluidStack stack, long amountMb) {
       if (stack != null && !stack.isEmpty() && amountMb > 0L) {
-         FluidVariant variant = TransferConvert.toVariant(stack);
-         slot.add(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, TransferConvert.mbToDroplets(amountMb)));
+         FluidVariant variant = FluidVariants.toVariant(stack);
+         slot.add(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, FluidVariants.mbToDroplets(amountMb)));
       }
    }
 
@@ -36,9 +36,9 @@ public final class JeiFluids {
       IClickableIngredientFactory factory, FluidStack fluid, long amountMb, int x, int y, int width, int height
    ) {
       if (fluid != null && !fluid.isEmpty() && amountMb > 0L) {
-         FluidVariant variant = TransferConvert.toVariant(fluid);
+         FluidVariant variant = FluidVariants.toVariant(fluid);
          return factory
-            .createBuilder(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, TransferConvert.mbToDroplets(amountMb)))
+            .createBuilder(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, FluidVariants.mbToDroplets(amountMb)))
             .buildWithArea(new Rect2i(x, y, width, height));
       } else {
          return Optional.empty();

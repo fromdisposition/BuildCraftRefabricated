@@ -1,7 +1,7 @@
 package buildcraft.lib.fabric.transfer;
 
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -42,7 +42,7 @@ public final class TriggerFluidChecks {
          return false;
       }
 
-      FluidVariant searched = TransferConvert.toVariant(searchedFluid);
+      FluidVariant searched = FluidVariants.toVariant(searchedFluid);
 
       for (StorageView<FluidVariant> view : storage) {
          if (!view.isResourceBlank() && view.getAmount() > 0L && (searched.isBlank() || ((FluidVariant)view.getResource()).equals(searched))) {
@@ -59,8 +59,8 @@ public final class TriggerFluidChecks {
       }
 
       if (!searchedFluid.isEmpty()) {
-         FluidVariant searched = TransferConvert.toVariant(searchedFluid);
-         long oneMb = TransferConvert.mbToDroplets(1L);
+         FluidVariant searched = FluidVariants.toVariant(searchedFluid);
+         long oneMb = FluidVariants.mbToDroplets(1L);
 
          for (StorageView<FluidVariant> view : storage) {
             if (FluidStorageOps.canInsert(view, searched, oneMb)) {
@@ -86,8 +86,8 @@ public final class TriggerFluidChecks {
       }
 
       if (!searchedFluid.isEmpty()) {
-         FluidVariant searched = TransferConvert.toVariant(searchedFluid);
-         long oneMb = TransferConvert.mbToDroplets(1L);
+         FluidVariant searched = FluidVariants.toVariant(searchedFluid);
+         long oneMb = FluidVariants.mbToDroplets(1L);
 
          for (StorageView<FluidVariant> view : storage) {
             if (FluidStorageOps.canInsert(view, searched, oneMb)) {
@@ -115,7 +115,7 @@ public final class TriggerFluidChecks {
          return false;
       }
 
-      FluidVariant searched = TransferConvert.toVariant(searchedFluid);
+      FluidVariant searched = FluidVariants.toVariant(searchedFluid);
 
       for (StorageView<FluidVariant> view : storage) {
          long capacity = view.getCapacity();
@@ -125,7 +125,7 @@ public final class TriggerFluidChecks {
                   return true;
                }
 
-               if (FluidStorageOps.canInsert(view, searched, TransferConvert.mbToDroplets(1L))) {
+               if (FluidStorageOps.canInsert(view, searched, FluidVariants.mbToDroplets(1L))) {
                   return true;
                }
             } else if (searched.isBlank() || ((FluidVariant)view.getResource()).equals(searched)) {

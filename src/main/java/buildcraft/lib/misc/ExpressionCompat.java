@@ -24,9 +24,6 @@ public class ExpressionCompat {
    public static final NodeType<EnumPowerStage> ENUM_POWER_STAGE;
    public static final NodeType<IControllable.Mode> ENUM_CONTROL_MODE;
 
-   public static void setup() {
-   }
-
    static {
       NodeTypes.addType("Axis", ENUM_AXIS);
 

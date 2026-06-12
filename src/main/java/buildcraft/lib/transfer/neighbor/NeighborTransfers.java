@@ -10,7 +10,7 @@ import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.FluidStorageSnapshot;
 import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -130,12 +130,12 @@ public final class NeighborTransfers {
       }
 
       try (Transaction transaction = Transaction.openOuter()) {
-         long moved = FluidStorageOps.move(from, to, TransferConvert.mbToDroplets(maxAmountMb), transaction);
+         long moved = FluidStorageOps.move(from, to, FluidVariants.mbToDroplets(maxAmountMb), transaction);
          if (moved > 0L) {
             transaction.commit();
          }
 
-         return TransferCommits.saturateMb(TransferConvert.dropletsToMb(moved));
+         return TransferCommits.saturateMb(FluidVariants.dropletsToMb(moved));
       }
    }
 }

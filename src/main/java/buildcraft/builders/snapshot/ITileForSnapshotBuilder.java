@@ -8,7 +8,7 @@ package buildcraft.builders.snapshot;
 
 import buildcraft.api.core.IPlayerOwned;
 import buildcraft.api.mj.MjBattery;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;

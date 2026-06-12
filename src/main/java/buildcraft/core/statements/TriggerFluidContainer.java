@@ -17,7 +17,7 @@ import buildcraft.lib.client.sprite.SpriteHolderRegistry;
 import buildcraft.lib.fabric.transfer.TriggerFluidChecks;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.LocaleUtil;
 import java.util.Locale;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;

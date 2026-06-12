@@ -6,7 +6,7 @@
 
 package buildcraft.api.recipes;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Stream;

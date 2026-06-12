@@ -9,7 +9,7 @@ package buildcraft.factory.integration.jei;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryItems;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.integration.jei.FluidContainerAliases;
 import buildcraft.lib.integration.jei.JeiFluids;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;

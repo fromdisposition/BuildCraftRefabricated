@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.fluids;
+package buildcraft.lib.fluid.meta;
 
 import java.util.Collection;
 import java.util.IdentityHashMap;

@@ -11,8 +11,8 @@ import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.client.fluid.BcFluidQuadEmitter;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.flow.PipeFlowFluids;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -40,7 +40,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             int packedLight = PipeRenderContext.getPackedLight();
             double[] amounts = SCRATCH_AMOUNTS.get();
             flow.writeAmountsForRender(partialTicks, amounts);
-            boolean gas = FluidUtilBC.isGaseous(forRender.getFluid());
+            boolean gas = BcFluids.isGaseous(forRender.getFluid());
             boolean horizontal = false;
             boolean vertical = flow.pipe.isConnected(gas ? Direction.DOWN : Direction.UP);
 

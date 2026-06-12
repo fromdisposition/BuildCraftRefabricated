@@ -9,7 +9,7 @@ package buildcraft.core.integration.jei;
 import buildcraft.core.BCCore;
 import buildcraft.core.BCCoreItems;
 import buildcraft.core.item.ItemFragileFluidContainer;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.BcScreen;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;

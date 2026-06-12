@@ -10,7 +10,7 @@ import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.container.ContainerDistiller;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.integration.jei.BucketJeiTransfer;
 import buildcraft.lib.integration.jei.JeiTransferUtil;
 import java.util.Optional;

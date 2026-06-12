@@ -10,7 +10,7 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import buildcraft.robotics.path.IFluidFilter;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -65,12 +65,12 @@ public class AIRobotLoadFluids extends AIRobot {
       }
 
       try (Transaction transaction = Transaction.openOuter()) {
-         long moved = StorageUtil.move(from, to, variant -> filter == null || filter.matches(variant.getFluid()), TransferConvert.mbToDroplets(BUCKET_VOLUME), transaction);
+         long moved = StorageUtil.move(from, to, variant -> filter == null || filter.matches(variant.getFluid()), FluidVariants.mbToDroplets(BUCKET_VOLUME), transaction);
          if (moved > 0L && doMove) {
             transaction.commit();
          }
 
-         return (int) TransferConvert.dropletsToMb(moved);
+         return (int) FluidVariants.dropletsToMb(moved);
       }
    }
 

@@ -10,7 +10,7 @@ import buildcraft.api.blocks.ICustomRotationHandler;
 import buildcraft.api.tools.IToolWrench;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileHeatExchange;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.BcFluids;
 import com.mojang.serialization.MapCodec;
 import java.util.Locale;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -163,13 +163,13 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
          }
       } else if (level.getBlockEntity(pos) instanceof TileHeatExchange exchange) {
          Storage<FluidVariant> storage = exchange.getSidedFluidStorage(hitResult.getDirection());
-         boolean didChange = storage != null && FluidUtilBC.onTankActivated(player, pos, hand, storage);
+         boolean didChange = storage != null && BcFluids.onTankActivated(player, pos, hand, storage);
 
          if (didChange) {
             return InteractionResult.SUCCESS;
          }
 
-         return (InteractionResult)(FluidUtilBC.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : openExchangeMenu(level, exchange, player));
+         return (InteractionResult)(BcFluids.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : openExchangeMenu(level, exchange, player));
       } else {
          return InteractionResult.PASS;
       }

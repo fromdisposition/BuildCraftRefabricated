@@ -10,7 +10,7 @@ import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.PipeEvent;
 import buildcraft.api.transport.pipe.PipeEventFluid;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

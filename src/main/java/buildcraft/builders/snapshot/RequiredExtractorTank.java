@@ -6,7 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import com.mojang.serialization.DataResult;
 import java.util.Collections;
 import java.util.List;

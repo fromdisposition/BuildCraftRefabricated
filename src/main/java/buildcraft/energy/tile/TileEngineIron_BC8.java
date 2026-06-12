@@ -20,9 +20,9 @@ import buildcraft.lib.engine.TileEngineBase_BC8;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.CombinedFluidStorage;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
@@ -113,7 +113,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                         Transaction tx = Transaction.openOuter();
 
                         try {
-                           this.tankFuel.extractInternal(TransferConvert.toVariant(fuel), TransferConvert.mbToDroplets(1L), tx);
+                           this.tankFuel.extractInternal(FluidVariants.toVariant(fuel), FluidVariants.mbToDroplets(1L), tx);
                            tx.commit();
                         } catch (Throwable var12) {
                            if (tx != null) {
@@ -141,8 +141,8 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
 
                               try {
                                  long filledDroplets = this.tankResidue
-                                    .insertInternal(TransferConvert.toVariant(residueFluid), TransferConvert.mbToDroplets(residueInt), txx);
-                                 int filled = (int)TransferConvert.dropletsToMb(filledDroplets);
+                                    .insertInternal(FluidVariants.toVariant(residueFluid), FluidVariants.mbToDroplets(residueInt), txx);
+                                 int filled = (int)FluidVariants.dropletsToMb(filledDroplets);
                                  if (filled > 0) {
                                     txx.commit();
                                  }
@@ -182,7 +182,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                try {
                   FluidStack remaining = this.tankFuel.getFluidStack();
                   if (!remaining.isEmpty()) {
-                     this.tankFuel.extractInternal(TransferConvert.toVariant(remaining), TransferConvert.mbToDroplets(10000L), tx);
+                     this.tankFuel.extractInternal(FluidVariants.toVariant(remaining), FluidVariants.mbToDroplets(10000L), tx);
                   }
 
                   tx.commit();
@@ -232,7 +232,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                Transaction tx = Transaction.openOuter();
 
                try {
-                  this.tankCoolant.extractInternal(TransferConvert.toVariant(coolRes), TransferConvert.mbToDroplets(coolantAmount), tx);
+                  this.tankCoolant.extractInternal(FluidVariants.toVariant(coolRes), FluidVariants.mbToDroplets(coolantAmount), tx);
                   tx.commit();
                } catch (Throwable var14) {
                   if (tx != null) {

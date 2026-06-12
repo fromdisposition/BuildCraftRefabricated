@@ -8,8 +8,8 @@ package buildcraft.core.client;
 
 import buildcraft.core.BCCore;
 import buildcraft.lib.client.fluid.BcFluidRenderLookup;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.fluids.SimpleFluidContent;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.stack.SimpleFluidContent;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.multiplayer.ClientLevel;

@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.fluids;
+package buildcraft.lib.fluid.stack;
 
 import buildcraft.lib.fabric.Mc26Compat;
 import com.mojang.serialization.Codec;

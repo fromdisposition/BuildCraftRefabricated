@@ -6,9 +6,9 @@
 
 package buildcraft.transport.pipe.flow;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -26,13 +26,13 @@ public final class PipeFluidSectionStorage implements Storage<FluidVariant> {
 
    public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         long millibuckets = TransferConvert.dropletsToMb(maxAmount);
+         long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
             return 0L;
          }
 
-         int inserted = this.section.insert(0, TransferConvert.toFluidStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
-         return TransferConvert.mbToDroplets(inserted);
+         int inserted = this.section.insert(0, FluidVariants.toFluidStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
+         return FluidVariants.mbToDroplets(inserted);
       } else {
          return 0L;
       }
@@ -40,13 +40,13 @@ public final class PipeFluidSectionStorage implements Storage<FluidVariant> {
 
    public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         long millibuckets = TransferConvert.dropletsToMb(maxAmount);
+         long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
             return 0L;
          }
 
-         int extracted = this.section.extract(0, TransferConvert.toFluidStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
-         return TransferConvert.mbToDroplets(extracted);
+         int extracted = this.section.extract(0, FluidVariants.toFluidStack(resource), TransferCommits.saturateMb(millibuckets), transaction);
+         return FluidVariants.mbToDroplets(extracted);
       } else {
          return 0L;
       }
@@ -71,15 +71,15 @@ public final class PipeFluidSectionStorage implements Storage<FluidVariant> {
 
       public FluidVariant getResource() {
          FluidStack fluid = PipeFluidSectionStorage.this.section.getFluidStack(0);
-         return fluid.isEmpty() ? FluidVariant.blank() : TransferConvert.toVariant(fluid);
+         return fluid.isEmpty() ? FluidVariant.blank() : FluidVariants.toVariant(fluid);
       }
 
       public long getAmount() {
-         return TransferConvert.mbToDroplets(PipeFluidSectionStorage.this.section.getAmountAsLong(0));
+         return FluidVariants.mbToDroplets(PipeFluidSectionStorage.this.section.getAmountAsLong(0));
       }
 
       public long getCapacity() {
-         return TransferConvert.mbToDroplets(PipeFluidSectionStorage.this.section.getCapacityAsLong(0, PipeFluidSectionStorage.this.section.getFluidStack(0)));
+         return FluidVariants.mbToDroplets(PipeFluidSectionStorage.this.section.getCapacityAsLong(0, PipeFluidSectionStorage.this.section.getFluidStack(0)));
       }
    }
 }

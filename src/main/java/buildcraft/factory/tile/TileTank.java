@@ -13,12 +13,12 @@ import buildcraft.factory.container.ContainerTank;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fabric.transfer.TankColumnFluidStorage;
-import buildcraft.lib.fluid.FluidSmoother;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.registry.FluidSmoother;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.IBlockEntityLoadHook;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,7 +90,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
             int currentAmount = this.fluidTank.getAmountMb();
             FluidStack currentFluid = this.fluidTank.getFluidStack();
             if (currentAmount != this.lastSyncedAmount
-               || !FluidUtilBC.areEquivalentFluidStacks(currentFluid.isEmpty() ? FluidStack.EMPTY : currentFluid.copyWithAmount(1), this.lastSyncedFluid)) {
+               || !BcFluids.areEquivalentFluidStacks(currentFluid.isEmpty() ? FluidStack.EMPTY : currentFluid.copyWithAmount(1), this.lastSyncedFluid)) {
                this.lastSyncedAmount = currentAmount;
                this.lastSyncedFluid = currentFluid.isEmpty() ? FluidStack.EMPTY : currentFluid.copyWithAmount(1);
                this.setChanged();
@@ -116,7 +116,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
    @Override
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
       String contents = !this.fluidTank.isEmpty() ? "Fluid" : "Empty";
-      left.add("fluid = " + FluidUtilBC.getDebugString(this.fluidTank.getFluidStack()));
+      left.add("fluid = " + BcFluids.getDebugString(this.fluidTank.getFluidStack()));
       left.add("current = " + this.fluidTank.getAmountMb() + " of " + contents);
       left.add("lastSent = " + this.lastSyncedAmount + " of " + (!this.fluidTank.isEmpty() ? "Something" : "Nothing"));
    }
@@ -148,20 +148,20 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
                FluidStack heldIdentity = held.copyWithAmount(1);
                if (fluid.isEmpty()) {
                   fluid = heldIdentity;
-               } else if (!FluidUtilBC.areEquivalentFluidStacks(fluid, heldIdentity)) {
+               } else if (!BcFluids.areEquivalentFluidStacks(fluid, heldIdentity)) {
                   return;
                }
             }
          }
 
          if (!fluid.isEmpty()) {
-            if (FluidUtilBC.isGaseous(fluid)) {
+            if (BcFluids.isGaseous(fluid)) {
                TileTank prev = null;
 
                for (int i = tanks.size() - 1; i >= 0; i--) {
                   TileTank tile = tanks.get(i);
                   if (prev != null) {
-                     FluidUtilBC.move(tile.fluidTank, prev.fluidTank);
+                     BcFluids.move(tile.fluidTank, prev.fluidTank);
                   }
 
                   prev = tile;
@@ -171,7 +171,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
 
                for (TileTank tile : tanks) {
                   if (prev != null) {
-                     FluidUtilBC.move(tile.fluidTank, prev.fluidTank);
+                     BcFluids.move(tile.fluidTank, prev.fluidTank);
                   }
 
                   prev = tile;
@@ -250,7 +250,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
       }
 
       try (Transaction tx = Transaction.openOuter()) {
-         this.fluidTank.extract(TransferConvert.toVariant(held), TransferConvert.mbToDroplets(amountMb), tx);
+         this.fluidTank.extract(FluidVariants.toVariant(held), FluidVariants.mbToDroplets(amountMb), tx);
          tx.commit();
       }
    }

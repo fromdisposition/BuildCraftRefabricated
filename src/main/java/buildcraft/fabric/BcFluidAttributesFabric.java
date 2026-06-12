@@ -1,7 +1,7 @@
 package buildcraft.fabric;
 
-import buildcraft.lib.fluids.FluidTypes;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.meta.FluidTypes;
+import buildcraft.lib.fluid.BcFluids;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributeHandler;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
@@ -15,7 +15,7 @@ public final class BcFluidAttributesFabric {
       }
 
       public boolean isLighterThanAir(FluidVariant variant) {
-         return FluidUtilBC.isGaseous(variant.getFluid());
+         return BcFluids.isGaseous(variant.getFluid());
       }
    };
    private static final FluidVariantAttributeHandler LIQUID = new FluidVariantAttributeHandler() {
@@ -33,7 +33,7 @@ public final class BcFluidAttributesFabric {
          return Component.empty();
       }
 
-      // Use fluid_type lang keys directly — not FluidUtilBC.getFluidDisplayName(), which calls
+      // Use fluid_type lang keys directly — not BcFluids.getFluidDisplayName(), which calls
       // FluidVariantRendering.getTooltip() and would recurse back into this getName().
       return Component.translatable(FluidTypes.descriptionIdFor(variant.getFluid()));
    }

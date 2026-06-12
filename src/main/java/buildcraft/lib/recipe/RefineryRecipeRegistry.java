@@ -7,7 +7,7 @@
 package buildcraft.lib.recipe;
 
 import buildcraft.api.recipes.IRefineryRecipeManager;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;

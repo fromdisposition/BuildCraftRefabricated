@@ -9,7 +9,7 @@ package buildcraft.factory.integration.jei;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.container.ContainerHeatExchange;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.integration.jei.BucketJeiTransfer;
 import buildcraft.lib.integration.jei.JeiTransferUtil;
 import java.util.Optional;

@@ -6,7 +6,7 @@
 
 package buildcraft.lib.client.guide.entry;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.Objects;
 import net.minecraft.world.level.material.Fluid;
 

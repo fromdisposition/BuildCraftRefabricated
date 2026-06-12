@@ -7,7 +7,7 @@
 package buildcraft.lib.client.fluid;
 
 import buildcraft.lib.client.texture.BcTextureAtlases;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlas;

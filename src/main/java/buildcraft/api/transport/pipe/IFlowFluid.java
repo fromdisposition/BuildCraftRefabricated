@@ -7,7 +7,7 @@
 package buildcraft.api.transport.pipe;
 
 import buildcraft.api.core.IFluidFilter;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 

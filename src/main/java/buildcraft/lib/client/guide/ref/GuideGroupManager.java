@@ -31,7 +31,7 @@ import buildcraft.lib.client.guide.parts.GuideChapterWithin;
 import buildcraft.lib.client.guide.parts.GuidePart;
 import buildcraft.lib.client.guide.parts.GuidePartGroup;
 import buildcraft.lib.client.guide.parts.GuidePartNewPage;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.ColourUtil;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.silicon.BCSiliconItems;

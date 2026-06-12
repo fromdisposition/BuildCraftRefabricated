@@ -7,8 +7,8 @@
 package buildcraft.lib.client.fluid;
 
 import buildcraft.lib.client.render.tile.BcBerRenderUtil;
-import buildcraft.lib.fluid.FluidSmoother;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.registry.FluidSmoother;
+import buildcraft.lib.fluid.stack.FluidStack;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;

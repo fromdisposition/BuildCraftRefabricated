@@ -12,7 +12,7 @@ import buildcraft.fabric.BCRegistries;
 import buildcraft.lib.BCLib;
 import buildcraft.lib.block.VanillaPaintHandlers;
 import buildcraft.lib.block.VanillaRotationHandlers;
-import buildcraft.lib.fluids.SimpleFluidContent;
+import buildcraft.lib.fluid.stack.SimpleFluidContent;
 import buildcraft.lib.list.VanillaListHandlers;
 import buildcraft.lib.marker.MarkerCache;
 import com.mojang.serialization.Codec;

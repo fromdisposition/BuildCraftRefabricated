@@ -6,7 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import com.google.gson.JsonDeserializer;
 import java.util.Arrays;
 import java.util.Collections;

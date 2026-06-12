@@ -4,7 +4,7 @@ import buildcraft.energy.BCEnergyConfig;
 import buildcraft.fabric.fluid.BcFluidBlock;
 import buildcraft.fabric.fluid.BcFluidWorldProperties;
 import buildcraft.fabric.fluid.BcOilFluid;
-import buildcraft.lib.fluids.FluidTypes;
+import buildcraft.lib.fluid.meta.FluidTypes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;

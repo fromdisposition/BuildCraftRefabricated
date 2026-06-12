@@ -8,7 +8,7 @@ package buildcraft.lib.integration.jei;
 
 import buildcraft.core.BCCoreItems;
 import buildcraft.core.item.ItemFragileFluidContainer;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;

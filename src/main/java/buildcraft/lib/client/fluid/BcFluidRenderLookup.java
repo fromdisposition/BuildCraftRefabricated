@@ -8,9 +8,9 @@ package buildcraft.lib.client.fluid;
 
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.client.texture.BcTextureAtlases;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -41,7 +41,7 @@ public final class BcFluidRenderLookup {
    }
 
    public static TextureAtlasSprite sprite(Fluid fluid, SpriteKind kind) {
-      Fluid canonical = FluidUtilBC.canonicalFluid(fluid);
+      Fluid canonical = BcFluids.canonicalFluid(fluid);
       if (canonical.isSame(Fluids.EMPTY)) {
          return missingSprite();
       }
@@ -63,7 +63,7 @@ public final class BcFluidRenderLookup {
          return -1;
       }
 
-      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(FluidUtilBC.canonicalFluid(stack.getFluid()));
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(BcFluids.canonicalFluid(stack.getFluid()));
       if (entry != null) {
          return BcFluidTintUtil.RENDER_TINT_WHITE;
       }
@@ -76,7 +76,7 @@ public final class BcFluidRenderLookup {
          return -1;
       }
 
-      Fluid fluid = FluidUtilBC.canonicalFluid(stack.getFluid());
+      Fluid fluid = BcFluids.canonicalFluid(stack.getFluid());
       BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluid);
       if (entry != null) {
          return BcFluidTintUtil.computeAverageGuiTint(entry.texLight(), entry.texDark(), entry.heat());
@@ -94,7 +94,7 @@ public final class BcFluidRenderLookup {
    }
 
    private static int fabricTint(FluidStack stack, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos) {
-      FluidVariant variant = TransferConvert.toVariant(stack);
+      FluidVariant variant = FluidVariants.toVariant(stack);
       int color = level != null && pos != null
          ? FluidVariantRendering.getColor(variant, level, pos)
          : FluidVariantRendering.getColor(variant);
@@ -115,7 +115,7 @@ public final class BcFluidRenderLookup {
    }
 
    public static boolean translucent(Fluid fluid) {
-      Fluid canonical = FluidUtilBC.canonicalFluid(fluid);
+      Fluid canonical = BcFluids.canonicalFluid(fluid);
       if (canonical.isSame(Fluids.EMPTY)) {
          return false;
       }

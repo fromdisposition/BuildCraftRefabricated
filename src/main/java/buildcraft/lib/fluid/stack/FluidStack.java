@@ -4,12 +4,12 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.fluids;
+package buildcraft.lib.fluid.stack;
 
 import buildcraft.lib.common.EventHooks;
 import buildcraft.lib.common.MutableDataComponentHolder;
 import buildcraft.lib.fabric.Mc26Compat;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.BcFluids;
 import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -264,7 +264,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public String getDescriptionId() {
-      return this.getFluidType().getDescriptionId(this);
+      return this.getFluidAttributes().getDescriptionId(this);
    }
 
    @Override
@@ -318,7 +318,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public Component getHoverName() {
-      return FluidUtilBC.getFluidDisplayName(this);
+      return BcFluids.getFluidDisplayName(this);
    }
 
    @Override

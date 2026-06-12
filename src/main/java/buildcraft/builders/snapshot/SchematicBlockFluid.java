@@ -9,7 +9,7 @@ package buildcraft.builders.snapshot;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.SchematicBlockContext;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

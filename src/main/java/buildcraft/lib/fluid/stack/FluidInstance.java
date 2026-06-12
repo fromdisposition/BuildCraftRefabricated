@@ -4,9 +4,11 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.fluids;
+package buildcraft.lib.fluid.stack;
 
 import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fluid.meta.FluidAttributes;
+import buildcraft.lib.fluid.meta.FluidTypes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.core.Holder;
@@ -36,11 +38,11 @@ public interface FluidInstance extends TypedInstance<Fluid>, DataComponentGetter
 
    int amount();
 
-   default FluidType getFluidType() {
+   default FluidAttributes getFluidAttributes() {
       return FluidTypes.of(this.typeHolder());
    }
 
-   default boolean is(FluidType fluidType) {
-      return this.getFluidType() == fluidType;
+   default boolean is(FluidAttributes fluidAttributes) {
+      return this.getFluidAttributes() == fluidAttributes;
    }
 }

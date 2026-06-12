@@ -15,7 +15,7 @@ import buildcraft.fabric.integration.jei.BCJeiBootstrap;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.energy.client.gui.GuiEngineIron_BC8;
 import buildcraft.energy.client.gui.GuiEngineStone_BC8;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.ArrayList;
 import java.util.List;
 import mezz.jei.api.IModPlugin;

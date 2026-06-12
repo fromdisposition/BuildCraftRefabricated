@@ -4,8 +4,9 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.fluids;
+package buildcraft.lib.fluid.meta;
 
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.common.SoundAction;
 import buildcraft.lib.common.SoundActions;
 import java.util.Map;
@@ -25,9 +26,9 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
-public class FluidType {
+public class FluidAttributes {
    public static final int BUCKET_VOLUME = 1000;
-   public static final FluidType EMPTY = new FluidType(Fluids.EMPTY, 1000, 1000);
+   public static final FluidAttributes EMPTY = new FluidAttributes(Fluids.EMPTY, 1000, 1000);
    private static final int WATER_VISCOSITY = 1000;
    private static final int LAVA_VISCOSITY = 3000;
    private final Fluid fluid;
@@ -36,11 +37,11 @@ public class FluidType {
    private final int density;
    private final Map<SoundAction, SoundEvent> sounds = new ConcurrentHashMap<>();
 
-   public FluidType(Fluid fluid) {
+   public FluidAttributes(Fluid fluid) {
       this(fluid, defaultViscosity(fluid), defaultDensity(fluid));
    }
 
-   public FluidType(Fluid fluid, int viscosity, int density) {
+   public FluidAttributes(Fluid fluid, int viscosity, int density) {
       this.fluid = fluid;
       this.viscosity = viscosity;
       this.density = density;

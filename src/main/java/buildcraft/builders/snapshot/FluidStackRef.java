@@ -7,7 +7,7 @@
 package buildcraft.builders.snapshot;
 
 import buildcraft.lib.fabric.Mc26Compat;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.Optional;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.IntTag;

@@ -10,7 +10,7 @@ import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.misc.AdvancementUtil;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.BcFluids;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -151,7 +151,7 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
       }
 
       if (level.getBlockEntity(pos) instanceof TileTank tank) {
-         boolean didChange = FluidUtilBC.onTankActivated(player, pos, hand, tank.getColumnFluidStorage());
+         boolean didChange = BcFluids.onTankActivated(player, pos, hand, tank.getColumnFluidStorage());
          if (didChange) {
             if (!level.isClientSide()) {
                tank.balanceTankFluids();
@@ -161,7 +161,7 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
             return InteractionResult.SUCCESS;
          }
 
-         if (!FluidUtilBC.isFluidContainerInHand(player, hand) && !level.isClientSide()) {
+         if (!BcFluids.isFluidContainerInHand(player, hand) && !level.isClientSide()) {
             player.openMenu(tank);
          }
 

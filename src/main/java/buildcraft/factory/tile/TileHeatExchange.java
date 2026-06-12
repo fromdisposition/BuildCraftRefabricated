@@ -17,13 +17,13 @@ import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.SidedFluidStorages;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.lib.fluid.FluidSmoother;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.registry.FluidSmoother;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.BlockDropsUtil;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import buildcraft.lib.transfer.neighbor.NeighborTransfers;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -452,7 +452,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       int amountMb = tank.getAmountMb();
 
       try (Transaction tx = Transaction.openOuter()) {
-         tank.extract(TransferConvert.toVariant(held), TransferConvert.mbToDroplets(amountMb), tx);
+         tank.extract(FluidVariants.toVariant(held), FluidVariants.mbToDroplets(amountMb), tx);
          tx.commit();
       }
    }
@@ -615,8 +615,8 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       }
 
       void getDebugInfo(List<String> left, List<String> right, Direction side) {
-         left.add("tank_input = " + FluidUtilBC.getDebugString(this.tankInput.getFluidStack()));
-         left.add("tank_output = " + FluidUtilBC.getDebugString(this.tankOutput.getFluidStack()));
+         left.add("tank_input = " + BcFluids.getDebugString(this.tankInput.getFluidStack()));
+         left.add("tank_output = " + BcFluids.getDebugString(this.tankOutput.getFluidStack()));
       }
 
       void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
@@ -814,23 +814,23 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                               try (Transaction tx = Transaction.openOuter()) {
                                  boolean ok = true;
                                  if (c_out_f != null && !c_out_f.isEmpty()) {
-                                    long n = c_out.insertInternal(TransferConvert.toVariant(c_out_f), TransferConvert.mbToDroplets(c_out_f.getAmount()), tx);
-                                    ok = ok && TransferConvert.dropletsToMb(n) == c_out_f.getAmount();
+                                    long n = c_out.insertInternal(FluidVariants.toVariant(c_out_f), FluidVariants.mbToDroplets(c_out_f.getAmount()), tx);
+                                    ok = ok && FluidVariants.dropletsToMb(n) == c_out_f.getAmount();
                                  }
 
                                  if (ok && h_out_f != null && !h_out_f.isEmpty()) {
-                                    long n = h_out.insertInternal(TransferConvert.toVariant(h_out_f), TransferConvert.mbToDroplets(h_out_f.getAmount()), tx);
-                                    ok = ok && TransferConvert.dropletsToMb(n) == h_out_f.getAmount();
+                                    long n = h_out.insertInternal(FluidVariants.toVariant(h_out_f), FluidVariants.mbToDroplets(h_out_f.getAmount()), tx);
+                                    ok = ok && FluidVariants.dropletsToMb(n) == h_out_f.getAmount();
                                  }
 
                                  if (ok) {
-                                    long n = c_in.extractInternal(TransferConvert.toVariant(c_in_f), TransferConvert.mbToDroplets(c_in_f.getAmount()), tx);
-                                    ok = ok && TransferConvert.dropletsToMb(n) == c_in_f.getAmount();
+                                    long n = c_in.extractInternal(FluidVariants.toVariant(c_in_f), FluidVariants.mbToDroplets(c_in_f.getAmount()), tx);
+                                    ok = ok && FluidVariants.dropletsToMb(n) == c_in_f.getAmount();
                                  }
 
                                  if (ok) {
-                                    long n = h_in.extractInternal(TransferConvert.toVariant(h_in_f), TransferConvert.mbToDroplets(h_in_f.getAmount()), tx);
-                                    ok = ok && TransferConvert.dropletsToMb(n) == h_in_f.getAmount();
+                                    long n = h_in.extractInternal(FluidVariants.toVariant(h_in_f), FluidVariants.mbToDroplets(h_in_f.getAmount()), tx);
+                                    ok = ok && FluidVariants.dropletsToMb(n) == h_in_f.getAmount();
                                  }
 
                                  if (ok) {
@@ -858,7 +858,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
             if (end != null && this.getTile().level != null) {
                Vec3 from = Vec3.atCenterOf(this.getTile().getBlockPos());
                FluidStack c_in_f = end.tankInput.getFluidStack();
-               if (!c_in_f.isEmpty() && FluidUtilBC.areFluidsEqual(c_in_f.getFluid(), Fluids.LAVA)) {
+               if (!c_in_f.isEmpty() && BcFluids.areFluidsEqual(c_in_f.getFluid(), Fluids.LAVA)) {
                   Direction facing = this.getTile().getFacing();
                   if (facing != null) {
                      this.spewForth(from, facing.getClockWise(), true);
@@ -867,7 +867,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
                FluidStack h_in_f = this.tankInput.getFluidStack();
                from = Vec3.atCenterOf(end.getTile().getBlockPos());
-               if (!h_in_f.isEmpty() && FluidUtilBC.areFluidsEqual(h_in_f.getFluid(), Fluids.WATER)) {
+               if (!h_in_f.isEmpty() && BcFluids.areFluidsEqual(h_in_f.getFluid(), Fluids.WATER)) {
                   this.spewForth(from, Direction.UP, false);
                }
             }
@@ -923,8 +923,8 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       private static int simulateExtract(SingleFluidTank t, @Nullable FluidStack fluid) {
          if (fluid != null && !fluid.isEmpty()) {
             try (Transaction tx = Transaction.openOuter()) {
-               long moved = t.extractInternal(TransferConvert.toVariant(fluid), TransferConvert.mbToDroplets(fluid.getAmount()), tx);
-               return (int)TransferConvert.dropletsToMb(moved);
+               long moved = t.extractInternal(FluidVariants.toVariant(fluid), FluidVariants.mbToDroplets(fluid.getAmount()), tx);
+               return (int)FluidVariants.dropletsToMb(moved);
             }
          } else {
             return 0;
@@ -934,8 +934,8 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       private static int simulateInsert(SingleFluidTank t, @Nullable FluidStack fluid) {
          if (fluid != null && !fluid.isEmpty()) {
             try (Transaction tx = Transaction.openOuter()) {
-               long moved = t.insertInternal(TransferConvert.toVariant(fluid), TransferConvert.mbToDroplets(fluid.getAmount()), tx);
-               return (int)TransferConvert.dropletsToMb(moved);
+               long moved = t.insertInternal(FluidVariants.toVariant(fluid), FluidVariants.mbToDroplets(fluid.getAmount()), tx);
+               return (int)FluidVariants.dropletsToMb(moved);
             }
          } else {
             return 0;

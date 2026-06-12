@@ -4,10 +4,10 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.fluid;
+package buildcraft.lib.fluid.registry;
 
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.List;
 import net.minecraft.core.Direction;
 

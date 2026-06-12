@@ -11,9 +11,9 @@ import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.ISchematicEntity;
 import buildcraft.api.schematics.SchematicEntityContext;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.net.PacketBufferBC;
@@ -124,7 +124,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
    private Stream<ItemStack> getDisplayRequired(List<ItemStack> requiredItems, List<FluidStack> requiredFluids) {
       return Stream.concat(
          requiredItems == null ? Stream.empty() : requiredItems.stream(),
-         requiredFluids == null ? Stream.empty() : requiredFluids.stream().map(fluidStack -> FluidUtilBC.getFilledBucket(fluidStack))
+         requiredFluids == null ? Stream.empty() : requiredFluids.stream().map(fluidStack -> BcFluids.getFilledBucket(fluidStack))
       );
    }
 
@@ -137,7 +137,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                      .extract(extracted -> StackUtil.canMerge(stack, extracted), stack.getCount(), stack.getCount(), true)
                      .isEmpty()
                )
-            && FluidUtilBC.mergeSameFluids(requiredFluids)
+            && BcFluids.mergeSameFluids(requiredFluids)
                .stream()
                .allMatch(stack -> this.tile.getFluidTanks().extractMillibuckets(stack, stack.getAmount(), false) == stack.getAmount())
          ? Optional.of(
@@ -149,11 +149,11 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                               .getInvResources()
                               .extract(extracted -> StackUtil.canMerge(stack, extracted), stack.getCount(), stack.getCount(), simulate)
                         ),
-                     FluidUtilBC.mergeSameFluids(requiredFluids).stream().map(fluidStack -> {
+                     BcFluids.mergeSameFluids(requiredFluids).stream().map(fluidStack -> {
                         int extracted = this.tile.getFluidTanks().extractMillibuckets(fluidStack, fluidStack.getAmount(), !simulate);
                         return new FluidStack(fluidStack.getFluid(), extracted);
                      }).map(fluidStack -> {
-                        ItemStack stack = FluidUtilBC.getFilledBucket(fluidStack);
+                        ItemStack stack = BcFluids.getFilledBucket(fluidStack);
                         CompoundTag fluidTag = new CompoundTag();
                         Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluidStack.getFluid());
                         if (fluidId != null) {

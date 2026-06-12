@@ -1,10 +1,10 @@
 package buildcraft.lib.fabric.transfer;
 
 import buildcraft.factory.tile.TileTank;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -22,9 +22,9 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
 
    public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         FluidStack fluid = FluidUtilBC.canonicalFluidStack(TransferConvert.toFluidStack(resource));
-         FluidVariant variant = TransferConvert.toVariant(fluid);
-         long millibuckets = TransferConvert.dropletsToMb(maxAmount);
+         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toFluidStack(resource));
+         FluidVariant variant = FluidVariants.toVariant(fluid);
+         long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
             return 0L;
          }
@@ -32,19 +32,19 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
          List<TileTank> tanks = this.owner.getTankColumn();
          for (TileTank tank : tanks) {
             FluidStack current = tank.fluidTank.getFluidStack();
-            if (!current.isEmpty() && !FluidUtilBC.areEquivalentFluidStacks(current.copyWithAmount(1), fluid)) {
+            if (!current.isEmpty() && !BcFluids.areEquivalentFluidStacks(current.copyWithAmount(1), fluid)) {
                return 0L;
             }
          }
 
-         boolean gaseous = FluidUtilBC.isGaseous(fluid);
+         boolean gaseous = BcFluids.isGaseous(fluid);
          long remaining = millibuckets;
          long totalInserted = 0L;
          if (gaseous) {
             for (int i = tanks.size() - 1; i >= 0 && remaining > 0L; i--) {
-               long accepted = tanks.get(i).fluidTank.insert(variant, TransferConvert.mbToDroplets(remaining), transaction);
+               long accepted = tanks.get(i).fluidTank.insert(variant, FluidVariants.mbToDroplets(remaining), transaction);
                if (accepted > 0L) {
-                  remaining -= TransferConvert.dropletsToMb(accepted);
+                  remaining -= FluidVariants.dropletsToMb(accepted);
                   totalInserted += accepted;
                }
             }
@@ -54,9 +54,9 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
                   break;
                }
 
-               long accepted = tank.fluidTank.insert(variant, TransferConvert.mbToDroplets(remaining), transaction);
+               long accepted = tank.fluidTank.insert(variant, FluidVariants.mbToDroplets(remaining), transaction);
                if (accepted > 0L) {
-                  remaining -= TransferConvert.dropletsToMb(accepted);
+                  remaining -= FluidVariants.dropletsToMb(accepted);
                   totalInserted += accepted;
                }
             }
@@ -74,8 +74,8 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
 
    public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
-         FluidStack fluid = FluidUtilBC.canonicalFluidStack(TransferConvert.toFluidStack(resource));
-         long millibuckets = TransferConvert.dropletsToMb(maxAmount);
+         FluidStack fluid = BcFluids.canonicalFluidStack(FluidVariants.toFluidStack(resource));
+         long millibuckets = FluidVariants.dropletsToMb(maxAmount);
          if (millibuckets <= 0L) {
             return 0L;
          }
@@ -86,8 +86,8 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
             return 0L;
          }
 
-         FluidVariant variant = TransferConvert.toVariant(resolved);
-         boolean gaseous = FluidUtilBC.isGaseous(resolved);
+         FluidVariant variant = FluidVariants.toVariant(resolved);
+         boolean gaseous = BcFluids.isGaseous(resolved);
          long remaining = millibuckets;
          long totalExtracted = 0L;
          if (gaseous) {
@@ -96,17 +96,17 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
                   break;
                }
 
-               long extracted = tank.fluidTank.extract(variant, TransferConvert.mbToDroplets(remaining), transaction);
+               long extracted = tank.fluidTank.extract(variant, FluidVariants.mbToDroplets(remaining), transaction);
                if (extracted > 0L) {
-                  remaining -= TransferConvert.dropletsToMb(extracted);
+                  remaining -= FluidVariants.dropletsToMb(extracted);
                   totalExtracted += extracted;
                }
             }
          } else {
             for (int i = tanks.size() - 1; i >= 0 && remaining > 0L; i--) {
-               long extracted = tanks.get(i).fluidTank.extract(variant, TransferConvert.mbToDroplets(remaining), transaction);
+               long extracted = tanks.get(i).fluidTank.extract(variant, FluidVariants.mbToDroplets(remaining), transaction);
                if (extracted > 0L) {
-                  remaining -= TransferConvert.dropletsToMb(extracted);
+                  remaining -= FluidVariants.dropletsToMb(extracted);
                   totalExtracted += extracted;
                }
             }
@@ -155,7 +155,7 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
          FluidStack current = tank.fluidTank.getFluidStack();
          if (!current.isEmpty()) {
             FluidStack identity = current.copyWithAmount(1);
-            if (FluidUtilBC.areEquivalentFluidStacks(identity, candidate)) {
+            if (BcFluids.areEquivalentFluidStacks(identity, candidate)) {
                return identity;
             }
          }
@@ -180,15 +180,15 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
       }
 
       public FluidVariant getResource() {
-         return this.snapshot.fluid().isEmpty() ? FluidVariant.blank() : TransferConvert.toVariant(this.snapshot.fluid());
+         return this.snapshot.fluid().isEmpty() ? FluidVariant.blank() : FluidVariants.toVariant(this.snapshot.fluid());
       }
 
       public long getAmount() {
-         return TransferConvert.mbToDroplets(this.snapshot.amountMb());
+         return FluidVariants.mbToDroplets(this.snapshot.amountMb());
       }
 
       public long getCapacity() {
-         return TransferConvert.mbToDroplets(this.snapshot.capacityMb());
+         return FluidVariants.mbToDroplets(this.snapshot.capacityMb());
       }
    }
 }

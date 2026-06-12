@@ -9,7 +9,7 @@ package buildcraft.lib.misc;
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.core.BCCoreConfig;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import com.mojang.authlib.GameProfile;
 import java.util.ArrayList;
 import java.util.Comparator;

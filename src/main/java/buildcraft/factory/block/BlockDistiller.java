@@ -10,7 +10,7 @@ import buildcraft.api.blocks.ICustomRotationHandler;
 import buildcraft.api.tools.IToolWrench;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileDistiller;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.BcFluids;
 import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -98,13 +98,13 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
          }
       } else if (level.getBlockEntity(pos) instanceof TileDistiller distiller) {
          Storage<FluidVariant> storage = distiller.getSidedFluidStorage(hitResult.getDirection());
-         boolean didChange = storage != null && FluidUtilBC.onTankActivated(player, pos, hand, storage);
+         boolean didChange = storage != null && BcFluids.onTankActivated(player, pos, hand, storage);
 
          if (didChange) {
             return InteractionResult.SUCCESS;
          }
 
-         if (!FluidUtilBC.isFluidContainerInHand(player, hand)) {
+         if (!BcFluids.isFluidContainerInHand(player, hand)) {
             openMenuOnServer(level, player, pos);
          }
 

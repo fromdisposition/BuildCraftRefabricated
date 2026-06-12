@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.fluids;
+package buildcraft.lib.fluid.meta;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,22 +15,22 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 public final class FluidTypes {
-   private static final Map<Fluid, FluidType> CACHE = new ConcurrentHashMap<>();
+   private static final Map<Fluid, FluidAttributes> CACHE = new ConcurrentHashMap<>();
 
    private FluidTypes() {
    }
 
    public static void register(Fluid fluid, int viscosity, int density) {
       if (fluid != null && !fluid.isSame(Fluids.EMPTY)) {
-         CACHE.put(fluid, new FluidType(fluid, viscosity, density));
+         CACHE.put(fluid, new FluidAttributes(fluid, viscosity, density));
       }
    }
 
-   public static FluidType of(Fluid fluid) {
-      return fluid != null && !fluid.isSame(Fluids.EMPTY) ? CACHE.computeIfAbsent(fluid, FluidType::new) : FluidType.EMPTY;
+   public static FluidAttributes of(Fluid fluid) {
+      return fluid != null && !fluid.isSame(Fluids.EMPTY) ? CACHE.computeIfAbsent(fluid, FluidAttributes::new) : FluidAttributes.EMPTY;
    }
 
-   public static FluidType of(Holder<Fluid> holder) {
+   public static FluidAttributes of(Holder<Fluid> holder) {
       return of((Fluid)holder.value());
    }
 

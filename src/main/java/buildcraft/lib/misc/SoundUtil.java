@@ -7,7 +7,7 @@
 package buildcraft.lib.misc;
 
 import buildcraft.lib.common.SoundActions;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
@@ -62,12 +62,12 @@ public class SoundUtil {
    }
 
    public static void playBucketEmpty(Level world, BlockPos pos, FluidStack fluid) {
-      SoundEvent sound = fluid.getFluidType().getSound(SoundActions.BUCKET_EMPTY);
+      SoundEvent sound = fluid.getFluidAttributes().getSound(SoundActions.BUCKET_EMPTY);
       world.playSound(null, pos, sound != null ? sound : SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
    }
 
    public static void playBucketFill(Level world, BlockPos pos, FluidStack fluid) {
-      SoundEvent sound = fluid.getFluidType().getSound(SoundActions.BUCKET_FILL);
+      SoundEvent sound = fluid.getFluidAttributes().getSound(SoundActions.BUCKET_FILL);
       world.playSound(null, pos, sound != null ? sound : SoundEvents.BUCKET_FILL, SoundSource.BLOCKS, 1.0F, 1.0F);
    }
 }

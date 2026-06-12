@@ -26,9 +26,9 @@ import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.MathUtil;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import buildcraft.transport.BCTransportStatements;
 import java.io.IOException;
 import java.util.EnumMap;
@@ -427,7 +427,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
             for (StorageView<FluidVariant> view : storage) {
                if (!view.isResourceBlank() && view.getAmount() > 0L) {
-                  FluidStack probe = TransferConvert.toFluidStack((FluidVariant)view.getResource());
+                  FluidStack probe = FluidVariants.toFluidStack((FluidVariant)view.getResource());
                   if (filter.matches(probe)) {
                      stackFilter = probe;
                      break;

@@ -13,7 +13,7 @@ import buildcraft.api.transport.pipe.IItemPipe;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.energy.tile.TileEngineIron_BC8;
 import buildcraft.lib.engine.BlockEngineBase_BC8;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.SoundUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -75,10 +75,10 @@ public class BlockEngineIron_BC8 extends BlockEngineBase_BC8 {
 
             player.swing(hand);
             return InteractionResult.CONSUME;
-         } else if (engine != null && FluidUtilBC.onTankActivated(player, pos, hand, engine.getCombinedFluidStorage())) {
+         } else if (engine != null && BcFluids.onTankActivated(player, pos, hand, engine.getCombinedFluidStorage())) {
             return InteractionResult.SUCCESS;
          } else {
-            return (InteractionResult)(FluidUtilBC.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : this.openGui(state, level, pos, player));
+            return (InteractionResult)(BcFluids.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : this.openGui(state, level, pos, player));
          }
       }
    }

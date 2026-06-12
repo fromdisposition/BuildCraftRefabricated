@@ -4,18 +4,18 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.transfer.fluid;
+package buildcraft.lib.fluid.interaction;
 
 import buildcraft.lib.common.SoundActions;
 import buildcraft.lib.fabric.Mc26Compat;
 import buildcraft.lib.fabric.transfer.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fabric.transfer.ItemFluidLookup;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.fluids.FluidType;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.misc.FluidUtilBC;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fluid.BcFluids;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import com.google.common.base.Preconditions;
 import com.mojang.logging.LogUtils;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
@@ -46,10 +46,10 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
-public final class FluidUtil {
+public final class FluidInteractions {
    private static final Logger LOGGER = LogUtils.getLogger();
 
-   private FluidUtil() {
+   private FluidInteractions() {
    }
 
    public static boolean interactWithFluidHandler(Player player, InteractionHand hand, Level level, BlockPos pos, @Nullable Direction side) {
@@ -99,7 +99,7 @@ public final class FluidUtil {
             }
 
             transaction.commit();
-            FluidStack movedStack = TransferConvert.toFluidStack(movedVariant, moved);
+            FluidStack movedStack = FluidVariants.toFluidStack(movedVariant, moved);
             playSoundAndGameEvent(movedStack, level, pos, player, pickup);
             return movedStack;
          }
@@ -132,7 +132,7 @@ public final class FluidUtil {
 
          transaction.commit();
          if (!soundVariant.isBlank()) {
-            playSoundAndGameEvent(TransferConvert.toFluidStack(soundVariant), level, pos, player, pickup);
+            playSoundAndGameEvent(FluidVariants.toFluidStack(soundVariant), level, pos, player, pickup);
          }
 
          return true;
@@ -149,8 +149,8 @@ public final class FluidUtil {
    }
 
    public static void triggerSoundAndGameEvent(FluidStack stack, Level level, Vec3 position, @Nullable Player player, boolean pickup) {
-      FluidType fluidType = stack.getFluidType();
-      SoundEvent soundEvent = fluidType.getSound(pickup ? SoundActions.BUCKET_FILL : SoundActions.BUCKET_EMPTY);
+      FluidAttributes fluidAttributes = stack.getFluidAttributes();
+      SoundEvent soundEvent = fluidAttributes.getSound(pickup ? SoundActions.BUCKET_FILL : SoundActions.BUCKET_EMPTY);
       if (soundEvent != null) {
          level.playSound(null, position.x, position.y, position.z, soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);
       }
@@ -180,9 +180,9 @@ public final class FluidUtil {
             return FluidStack.EMPTY;
          }
 
-         FluidStack resource = FluidUtilBC.canonicalFluidStack(new FluidStack(fluid, 1));
-         FluidVariant variant = TransferConvert.toVariant(resource);
-         long bucketDroplets = TransferConvert.mbToDroplets(1000L);
+         FluidStack resource = BcFluids.canonicalFluidStack(new FluidStack(fluid, 1));
+         FluidVariant variant = FluidVariants.toVariant(resource);
+         long bucketDroplets = FluidVariants.mbToDroplets(1000L);
          try (Transaction transaction = Transaction.openOuter()) {
             long inserted = destination.insert(variant, bucketDroplets, transaction);
             if (inserted != bucketDroplets || level.getFluidState(pos).getType() != fluid) {
@@ -193,7 +193,7 @@ public final class FluidUtil {
             if (pickedUpStack.getItem() instanceof BucketItem bucket) {
                Fluid bucketFluid = Mc26Compat.bucketFluid(bucket);
                FluidStack extracted = new FluidStack(bucketFluid, 1000);
-               if (!FluidUtilBC.areEquivalentFluidStacks(resource, extracted.copyWithAmount(1))) {
+               if (!BcFluids.areEquivalentFluidStacks(resource, extracted.copyWithAmount(1))) {
                   LOGGER.warn(
                      "Fluid removed without successfully being picked up. Fluid {} at {} in {} matched requested type, but after performing pickup was {}.",
                      new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, level.dimension().identifier(), BuiltInRegistries.FLUID.getKey(bucketFluid)}
@@ -223,10 +223,10 @@ public final class FluidUtil {
          return FluidStack.EMPTY;
       }
 
-      long bucketDroplets = TransferConvert.mbToDroplets(1000L);
+      long bucketDroplets = FluidVariants.mbToDroplets(1000L);
       for (StorageView<FluidVariant> view : source) {
          if (!view.isResourceBlank()) {
-            FluidStack resource = TransferConvert.toFluidStack((FluidVariant)view.getResource());
+            FluidStack resource = FluidVariants.toFluidStack((FluidVariant)view.getResource());
             try (Transaction transaction = Transaction.openOuter()) {
                long extracted = view.extract((FluidVariant)view.getResource(), bucketDroplets, transaction);
                if (extracted == bucketDroplets && tryPlaceFluid(resource, player, level, hand, pos)) {
@@ -242,8 +242,8 @@ public final class FluidUtil {
 
    public static boolean tryPlaceFluid(FluidStack resource, @Nullable Player player, Level level, InteractionHand hand, BlockPos pos) {
       FluidStack stack = resource.copyWithAmount(1000);
-      FluidType fluidType = resource.getFluidType();
-      if (!stack.isEmpty() && fluidType.canBePlacedInLevel(level, pos, stack)) {
+      FluidAttributes fluidAttributes = resource.getFluidAttributes();
+      if (!stack.isEmpty() && fluidAttributes.canBePlacedInLevel(level, pos, stack)) {
          if (level instanceof ServerLevel serverLevel
             && player != null
             && !BlockUtil.canMachinePlace(serverLevel, pos, player.getGameProfile(), player.blockPosition())) {
@@ -259,8 +259,8 @@ public final class FluidUtil {
                return false;
             }
 
-            if (fluidType.isVaporizedOnPlacement(level, pos, stack)) {
-               fluidType.onVaporize(player, level, pos, stack);
+            if (fluidAttributes.isVaporizedOnPlacement(level, pos, stack)) {
+               fluidAttributes.onVaporize(player, level, pos, stack);
                return true;
             }
 
@@ -272,7 +272,7 @@ public final class FluidUtil {
                   level.destroyBlock(pos, true);
                }
 
-               BlockState state = fluidType.getBlockForFluidState(level, pos, stack.getFluid().defaultFluidState());
+               BlockState state = fluidAttributes.getBlockForFluidState(level, pos, stack.getFluid().defaultFluidState());
                level.setBlock(pos, state, 11);
             }
 

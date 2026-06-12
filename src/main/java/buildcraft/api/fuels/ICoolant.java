@@ -6,7 +6,7 @@
 
 package buildcraft.api.fuels;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 
 public interface ICoolant {
    boolean matchesFluid(FluidStack var1);

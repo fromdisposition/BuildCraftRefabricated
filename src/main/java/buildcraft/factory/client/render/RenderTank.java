@@ -11,9 +11,9 @@ import buildcraft.lib.client.fluid.BcFluidTankRenderer;
 import buildcraft.lib.client.fluid.FluidClientCache;
 import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
-import buildcraft.lib.fluid.FluidSmoother;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.registry.FluidSmoother;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
@@ -121,11 +121,11 @@ public class RenderTank extends BcBlockEntityRenderer<TileTank, TankRenderState>
          FluidStack otherFluid = otherTank.fluidTank.getFluidStack();
          FluidStack thisFluid = tile.fluidTank.getFluidStack();
          if (!otherFluid.isEmpty() && !thisFluid.isEmpty()) {
-            if (!FluidUtilBC.areEquivalentFluidStacks(thisFluid.copyWithAmount(1), otherFluid.copyWithAmount(1))) {
+            if (!BcFluids.areEquivalentFluidStacks(thisFluid.copyWithAmount(1), otherFluid.copyWithAmount(1))) {
                return false;
             }
 
-            Direction checkDir = FluidUtilBC.isGaseous(thisFluid.copyWithAmount(1)) ? direction.getOpposite() : direction;
+            Direction checkDir = BcFluids.isGaseous(thisFluid.copyWithAmount(1)) ? direction.getOpposite() : direction;
             return otherTank.fluidTank.getAmountMb() >= otherTank.fluidTank.getCapacityMb() || checkDir == Direction.UP;
          } else {
             return false;

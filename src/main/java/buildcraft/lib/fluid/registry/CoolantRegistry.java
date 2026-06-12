@@ -4,12 +4,12 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.fluid;
+package buildcraft.lib.fluid.registry;
 
 import buildcraft.api.fuels.ICoolant;
 import buildcraft.api.fuels.ICoolantManager;
 import buildcraft.api.fuels.ISolidCoolant;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;

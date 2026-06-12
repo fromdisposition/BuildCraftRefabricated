@@ -6,8 +6,8 @@
 
 package buildcraft.lib.client.fluid;
 
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -41,7 +41,7 @@ public final class BcFluidTankRenderer {
          float b = rgba[2];
          float a = rgba[3];
          float fillRatio = (float)(amount / capacity);
-         boolean gaseous = FluidUtilBC.isGaseous(fluid);
+         boolean gaseous = BcFluids.isGaseous(fluid);
          float fluidTop;
          float fluidBottom;
          if (gaseous) {

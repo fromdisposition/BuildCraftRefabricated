@@ -296,8 +296,8 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
          }
 
          if (this.still != null && this.flowing != null) {
-            buildcraft.lib.fluids.FluidTypes.register(this.still, newProps.viscosity(), newProps.density());
-            buildcraft.lib.fluids.FluidTypes.register(this.flowing, newProps.viscosity(), newProps.density());
+            buildcraft.lib.fluid.meta.FluidTypes.register(this.still, newProps.viscosity(), newProps.density());
+            buildcraft.lib.fluid.meta.FluidTypes.register(this.flowing, newProps.viscosity(), newProps.density());
          }
 
          if (newProps.flammable() && !wasFlammable && this.block != null) {

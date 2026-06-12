@@ -7,7 +7,7 @@
 package buildcraft.api.schematics;
 
 import buildcraft.api.core.InvalidInputDataException;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;

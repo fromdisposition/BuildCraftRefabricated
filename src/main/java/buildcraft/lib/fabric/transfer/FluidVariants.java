@@ -4,24 +4,32 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.transfer.fabric;
+package buildcraft.lib.fabric.transfer;
 
-import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 
-public final class TransferConvert {
-   public static final long DROPLETS_PER_MB = 81L;
+public final class FluidVariants {
+   public static final long DROPLETS_PER_MB = FluidConstants.BUCKET / 1000L;
 
-   private TransferConvert() {
+   private FluidVariants() {
    }
 
    public static FluidVariant toVariant(FluidStack stack) {
       return stack.isEmpty() ? FluidVariant.blank() : FluidVariant.of(stack.getFluid(), stack.getComponentsPatch());
    }
 
+   public static FluidStack toStack(FluidVariant variant) {
+      return toFluidStack(variant);
+   }
+
    public static FluidStack toFluidStack(FluidVariant variant) {
       return variant.isBlank() ? FluidStack.EMPTY : new FluidStack(variant.getFluid(), 1, variant.getComponentsPatch());
+   }
+
+   public static FluidStack toStack(FluidVariant variant, long droplets) {
+      return toFluidStack(variant, droplets);
    }
 
    public static FluidStack toFluidStack(FluidVariant variant, long droplets) {
@@ -31,10 +39,10 @@ public final class TransferConvert {
    }
 
    public static long dropletsToMb(long droplets) {
-      return droplets / 81L;
+      return droplets / DROPLETS_PER_MB;
    }
 
    public static long mbToDroplets(long millibuckets) {
-      return millibuckets * 81L;
+      return millibuckets * DROPLETS_PER_MB;
    }
 }

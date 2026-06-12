@@ -10,7 +10,7 @@ import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.energy.BCEnergyMenuTypes;
 import buildcraft.energy.tile.TileEngineIron_BC8;
 import buildcraft.lib.fabric.menu.MenuBlockEntityLookup;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.widget.WidgetFluidTank;
 import net.minecraft.core.BlockPos;

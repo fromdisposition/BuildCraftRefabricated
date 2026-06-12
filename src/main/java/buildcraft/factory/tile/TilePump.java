@@ -17,15 +17,15 @@ import buildcraft.factory.BCFactoryAttachments;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.lib.fabric.transfer.SidedFluidStorages;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.mj.MjRedstoneBatteryReceiver;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.ArrayDeque;
@@ -132,7 +132,7 @@ public class TilePump extends TileMiner implements IDebuggable {
          BlockPos upFluidPos = probeUp.firstFluid();
          Fluid downFluid = downFluidPos != null ? BlockUtil.getFluidWithFlowing(this.level, downFluidPos) : null;
          Fluid upFluid = upFluidPos != null ? BlockUtil.getFluidWithFlowing(this.level, upFluidPos) : null;
-         if (upFluid != null && FluidUtilBC.isGaseous(upFluid)) {
+         if (upFluid != null && BcFluids.isGaseous(upFluid)) {
             seed = upFluidPos;
          } else if (downFluid != null) {
             seed = downFluidPos;
@@ -237,8 +237,8 @@ public class TilePump extends TileMiner implements IDebuggable {
    }
 
    private void buildQueue0(Fluid queueFluid, List<BlockPos> nextPosesToCheck, LongSet checked) {
-      Direction[] directions = FluidUtilBC.isGaseous(queueFluid) ? SEARCH_GASEOUS : SEARCH_NORMAL;
-      boolean isWater = !BCCoreConfig.pumpsConsumeWater.get() && FluidUtilBC.areFluidsEqual(queueFluid, Fluids.WATER);
+      Direction[] directions = BcFluids.isGaseous(queueFluid) ? SEARCH_GASEOUS : SEARCH_NORMAL;
+      boolean isWater = !BCCoreConfig.pumpsConsumeWater.get() && BcFluids.areFluidsEqual(queueFluid, Fluids.WATER);
       this.isInfiniteWaterSource = isWater && isInfiniteSourceAt(this.level, this.targetPos);
       int maxLengthSquared = BCCoreConfig.pumpMaxDistance.get() * BCCoreConfig.pumpMaxDistance.get();
 
@@ -260,7 +260,7 @@ public class TilePump extends TileMiner implements IDebuggable {
                   boolean isNew = checked.add(offsetPos.asLong());
                   if (isNew) {
                      Fluid fluidAt = BlockUtil.getFluidWithFlowing(this.level, offsetPos);
-                     boolean eq = FluidUtilBC.areFluidsEqual(fluidAt, queueFluid);
+                     boolean eq = BcFluids.areFluidsEqual(fluidAt, queueFluid);
                      if (eq) {
                         TilePump.FluidPath oldPath = this.paths.get(posToCheck);
                         TilePump.FluidPath path = new TilePump.FluidPath(offsetPos, oldPath);
@@ -310,14 +310,14 @@ public class TilePump extends TileMiner implements IDebuggable {
 
    private boolean canDrain(BlockPos blockPos) {
       Fluid fluid = BlockUtil.getFluid(this.level, blockPos);
-      return this.fluidTank.isEmpty() ? fluid != null : FluidUtilBC.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid());
+      return this.fluidTank.isEmpty() ? fluid != null : BcFluids.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid());
    }
 
    public static boolean isInfiniteSourceAt(@Nullable Level level, @Nullable BlockPos pos) {
       if (level != null && pos != null) {
          BlockState below = level.getBlockState(pos.below());
          Fluid fluidBelow = BlockUtil.getFluidWithFlowing(level, pos.below());
-         if (!FluidUtilBC.areFluidsEqual(fluidBelow, Fluids.WATER) && !BlockUtil.isSolid(level, pos.below(), below)) {
+         if (!BcFluids.areFluidsEqual(fluidBelow, Fluids.WATER) && !BlockUtil.isSolid(level, pos.below(), below)) {
             return false;
          }
 
@@ -325,7 +325,7 @@ public class TilePump extends TileMiner implements IDebuggable {
 
          for (Direction dir : Plane.HORIZONTAL) {
             Fluid neighbour = BlockUtil.getFluid(level, pos.relative(dir));
-            if (FluidUtilBC.areFluidsEqual(neighbour, Fluids.WATER)) {
+            if (BcFluids.areFluidsEqual(neighbour, Fluids.WATER)) {
                if (++sources >= 2) {
                   return true;
                }
@@ -371,7 +371,7 @@ public class TilePump extends TileMiner implements IDebuggable {
       }
 
       super.serverTick();
-      FluidUtilBC.pushFluidToNeighbors(this.level, this.worldPosition, this.fluidTank);
+      BcFluids.pushFluidToNeighbors(this.level, this.worldPosition, this.fluidTank);
    }
 
    @Override
@@ -392,13 +392,13 @@ public class TilePump extends TileMiner implements IDebuggable {
             if (drain != null) {
                BlockPos invalid = this.getFirstInvalidPointOnPath(this.currentPos);
                if (invalid == null && this.canDrain(this.currentPos)) {
-                  FluidStack drainedResource = FluidUtilBC.canonicalFluidStack(drain.copyWithAmount(1));
-                  FluidVariant variant = TransferConvert.toVariant(drainedResource);
+                  FluidStack drainedResource = BcFluids.canonicalFluidStack(drain.copyWithAmount(1));
+                  FluidVariant variant = FluidVariants.toVariant(drainedResource);
 
                   int inserted;
                   try (Transaction drainTransaction = Transaction.openOuter()) {
-                     long insertedDroplets = this.fluidTank.insert(variant, TransferConvert.mbToDroplets(drain.getAmount()), drainTransaction);
-                     inserted = (int)TransferConvert.dropletsToMb(insertedDroplets);
+                     long insertedDroplets = this.fluidTank.insert(variant, FluidVariants.mbToDroplets(drain.getAmount()), drainTransaction);
+                     inserted = (int)FluidVariants.dropletsToMb(insertedDroplets);
                      if (inserted > 0) {
                         drainTransaction.commit();
                      }
@@ -411,7 +411,7 @@ public class TilePump extends TileMiner implements IDebuggable {
                      }
 
                      this.isInfiniteWaterSource = !BCCoreConfig.pumpsConsumeWater.get()
-                        && FluidUtilBC.areFluidsEqual(drain.getFluid(), Fluids.WATER)
+                        && BcFluids.areFluidsEqual(drain.getFluid(), Fluids.WATER)
                         && (isInfiniteSourceAt(this.level, this.currentPos) || isInfiniteSourceAt(this.level, this.targetPos));
                      if (!this.isInfiniteWaterSource) {
                         BlockPos drainedPos = this.currentPos;
@@ -525,7 +525,7 @@ public class TilePump extends TileMiner implements IDebuggable {
       left.add("lastLength = " + this.lastLength);
       left.add("isComplete = " + this.isComplete());
       left.add("progress = " + MjAPI.formatMj(this.progress));
-      left.add("fluid = " + FluidUtilBC.getDebugString(this.fluidTank.getFluidStack()));
+      left.add("fluid = " + BcFluids.getDebugString(this.fluidTank.getFluidStack()));
       left.add("queue size = " + this.queue.size());
       left.add("infinite = " + this.isInfiniteWaterSource);
    }
@@ -538,7 +538,7 @@ public class TilePump extends TileMiner implements IDebuggable {
       left.add("currentLength = " + this.currentLength);
       left.add("isComplete = " + this.isComplete());
       left.add("progress = " + MjAPI.formatMj(this.progress));
-      left.add("fluid = " + FluidUtilBC.getDebugString(this.fluidTank.getFluidStack()));
+      left.add("fluid = " + BcFluids.getDebugString(this.fluidTank.getFluidStack()));
       left.add("queue size = " + this.queue.size());
       left.add("infinite = " + this.isInfiniteWaterSource);
    }

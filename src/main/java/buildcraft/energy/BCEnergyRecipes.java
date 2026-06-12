@@ -11,7 +11,7 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.fabric.BCEnergyFluidsFabric;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.MathUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;

@@ -12,7 +12,7 @@ import buildcraft.factory.container.ContainerAutoCraftFluids;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.lib.fabric.transfer.SidedFluidStorages;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;

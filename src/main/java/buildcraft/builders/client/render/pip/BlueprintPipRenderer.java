@@ -15,7 +15,7 @@ import buildcraft.lib.client.fluid.BcFluidQuadEmitter;
 import buildcraft.lib.client.fluid.FluidClientCache;
 import buildcraft.lib.client.model.ModelUtil;
 import buildcraft.lib.client.render.BCLibRenderTypes;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.transport.client.model.ModelPipe;
 import buildcraft.transport.client.model.key.PipeModelKey;
 import com.mojang.blaze3d.buffers.GpuBuffer;

@@ -1,8 +1,8 @@
 package buildcraft.lib.fabric.transfer;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fabric.transfer.TransferCommits;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -42,17 +42,17 @@ public record FluidStorageSnapshot(FluidStack fluid, int amountMb, int capacityM
       long capacityMb = 0L;
 
       for (StorageView<FluidVariant> view : storage) {
-         capacityMb += TransferConvert.dropletsToMb(view.getCapacity());
+         capacityMb += FluidVariants.dropletsToMb(view.getCapacity());
          if (!view.isResourceBlank()) {
             if (variant.isBlank()) {
                variant = (FluidVariant)view.getResource();
             }
 
-            amountMb += TransferConvert.dropletsToMb(view.getAmount());
+            amountMb += FluidVariants.dropletsToMb(view.getAmount());
          }
       }
 
-      FluidStack fluid = variant.isBlank() ? FluidStack.EMPTY : TransferConvert.toFluidStack(variant, TransferConvert.mbToDroplets(TransferCommits.saturateMb(amountMb)));
+      FluidStack fluid = variant.isBlank() ? FluidStack.EMPTY : FluidVariants.toFluidStack(variant, FluidVariants.mbToDroplets(TransferCommits.saturateMb(amountMb)));
       return new FluidStorageSnapshot(fluid, TransferCommits.saturateMb(amountMb), TransferCommits.saturateMb(capacityMb));
    }
 

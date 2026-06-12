@@ -7,8 +7,8 @@
 package buildcraft.lib.client.fluid;
 
 import buildcraft.lib.client.texture.BcTextureAtlases;
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fluid.BcFluids;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -25,7 +25,7 @@ public final class FluidClientCache {
 
    public static FluidClientCache.@Nullable Appearance get(FluidStack stack) {
       return stack != null && !stack.isEmpty() && stack.getFluid() != null
-         ? CACHE.computeIfAbsent(FluidUtilBC.canonicalFluid(stack.getFluid()), f -> build(stack))
+         ? CACHE.computeIfAbsent(BcFluids.canonicalFluid(stack.getFluid()), f -> build(stack))
          : null;
    }
 

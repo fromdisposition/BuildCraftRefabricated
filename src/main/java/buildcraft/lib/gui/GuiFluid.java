@@ -7,7 +7,7 @@
 package buildcraft.lib.gui;
 
 import buildcraft.lib.client.fluid.BcFluidGuiDrawer;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 
 public class GuiFluid implements ISimpleDrawable {
    private final FluidStack stack;

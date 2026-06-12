@@ -16,7 +16,7 @@ import buildcraft.builders.snapshot.EnumFluidHandlingMode;
 import buildcraft.builders.tile.TileBuilder;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.ContainerBCTile;
 import buildcraft.lib.gui.slot.SlotDisplay;
 import buildcraft.lib.gui.widget.WidgetFluidTank;

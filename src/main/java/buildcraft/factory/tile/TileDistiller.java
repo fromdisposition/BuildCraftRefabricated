@@ -22,16 +22,16 @@ import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.fabric.transfer.SidedFluidStorages;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
-import buildcraft.lib.fluid.FluidSmoother;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.registry.FluidSmoother;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.BlockDropsUtil;
-import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.fluid.BcFluids;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.ItemHandlerSimple;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import com.mojang.authlib.GameProfile;
 import java.util.List;
 import java.util.UUID;
@@ -307,20 +307,20 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
             FluidStack outGas = this.currentRecipe.outGas();
             FluidStack resIn = this.tankIn.getFluidStack();
             boolean canExtract = !resIn.isEmpty()
-               && FluidUtilBC.areEquivalentFluidStacks(resIn.copyWithAmount(1), reqIn.copyWithAmount(1))
+               && BcFluids.areEquivalentFluidStacks(resIn.copyWithAmount(1), reqIn.copyWithAmount(1))
                && this.tankIn.getAmountMb() >= reqIn.getAmount();
-            long outLiquidDroplets = TransferConvert.mbToDroplets(outLiquid.getAmount());
-            long outGasDroplets = TransferConvert.mbToDroplets(outGas.getAmount());
+            long outLiquidDroplets = FluidVariants.mbToDroplets(outLiquid.getAmount());
+            long outGasDroplets = FluidVariants.mbToDroplets(outGas.getAmount());
 
             boolean canFillLiquid;
             boolean canFillGas;
             try (Transaction liquidCheckTransaction = Transaction.openOuter()) {
-               canFillLiquid = this.tankLiquidOut.insertInternal(TransferConvert.toVariant(outLiquid), outLiquidDroplets, liquidCheckTransaction)
+               canFillLiquid = this.tankLiquidOut.insertInternal(FluidVariants.toVariant(outLiquid), outLiquidDroplets, liquidCheckTransaction)
                   >= outLiquidDroplets;
             }
 
             try (Transaction gasCheckTransaction = Transaction.openOuter()) {
-               canFillGas = this.tankGasOut.insertInternal(TransferConvert.toVariant(outGas), outGasDroplets, gasCheckTransaction) >= outGasDroplets;
+               canFillGas = this.tankGasOut.insertInternal(FluidVariants.toVariant(outGas), outGasDroplets, gasCheckTransaction) >= outGasDroplets;
             }
 
             this.isStuck = !canFillLiquid || !canFillGas;
@@ -345,9 +345,9 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
                if (crafted) {
                   this.distillPower -= powerReq;
                   try (Transaction craftTransaction = Transaction.openOuter()) {
-                     this.tankIn.extractInternal(TransferConvert.toVariant(resIn), TransferConvert.mbToDroplets(reqIn.getAmount()), craftTransaction);
-                     this.tankGasOut.insertInternal(TransferConvert.toVariant(outGas), outGasDroplets, craftTransaction);
-                     this.tankLiquidOut.insertInternal(TransferConvert.toVariant(outLiquid), outLiquidDroplets, craftTransaction);
+                     this.tankIn.extractInternal(FluidVariants.toVariant(resIn), FluidVariants.mbToDroplets(reqIn.getAmount()), craftTransaction);
+                     this.tankGasOut.insertInternal(FluidVariants.toVariant(outGas), outGasDroplets, craftTransaction);
+                     this.tankLiquidOut.insertInternal(FluidVariants.toVariant(outLiquid), outLiquidDroplets, craftTransaction);
                      craftTransaction.commit();
                   }
 
@@ -385,9 +385,9 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
          boolean needsSync = curIn != this.lastSyncedIn
             || curGas != this.lastSyncedGas
             || curLiq != this.lastSyncedLiquid
-            || !FluidUtilBC.areEquivalentFluidStacks(curInFluid, this.lastSyncedInFluid)
-            || !FluidUtilBC.areEquivalentFluidStacks(curGasFluid, this.lastSyncedGasFluid)
-            || !FluidUtilBC.areEquivalentFluidStacks(curLiqFluid, this.lastSyncedLiquidFluid)
+            || !BcFluids.areEquivalentFluidStacks(curInFluid, this.lastSyncedInFluid)
+            || !BcFluids.areEquivalentFluidStacks(curGasFluid, this.lastSyncedGasFluid)
+            || !BcFluids.areEquivalentFluidStacks(curLiqFluid, this.lastSyncedLiquidFluid)
             || this.isActive != this.lastSyncedActive
             || this.isStuck != this.lastSyncedStuck
             || this.powerAvgClient != this.lastSyncedPower;
@@ -409,9 +409,9 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
 
    @Override
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
-      left.add("In = " + FluidUtilBC.getDebugString(this.tankIn.getFluidStack()));
-      left.add("GasOut = " + FluidUtilBC.getDebugString(this.tankGasOut.getFluidStack()));
-      left.add("LiquidOut = " + FluidUtilBC.getDebugString(this.tankLiquidOut.getFluidStack()));
+      left.add("In = " + BcFluids.getDebugString(this.tankIn.getFluidStack()));
+      left.add("GasOut = " + BcFluids.getDebugString(this.tankGasOut.getFluidStack()));
+      left.add("LiquidOut = " + BcFluids.getDebugString(this.tankLiquidOut.getFluidStack()));
       left.add("Battery = " + this.mjBattery.getDebugString());
       left.add("Progress = " + MjAPI.formatMj(this.distillPower));
       left.add("Rate = " + LocaleUtil.localizeMjFlow(this.powerAvgClient));
@@ -444,7 +444,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       int amountMb = tank.getAmountMb();
 
       try (Transaction tx = Transaction.openOuter()) {
-         tank.extract(TransferConvert.toVariant(held), TransferConvert.mbToDroplets(amountMb), tx);
+         tank.extract(FluidVariants.toVariant(held), FluidVariants.mbToDroplets(amountMb), tx);
          tx.commit();
       }
    }

@@ -1,7 +1,7 @@
 package buildcraft.lib.fabric.transfer;
 
-import buildcraft.lib.fluids.FluidStack;
-import buildcraft.lib.transfer.fabric.TransferConvert;
+import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.fabric.transfer.FluidVariants;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -37,7 +37,7 @@ public final class ItemFluidLookup {
 
       for (StorageView<FluidVariant> view : storage) {
          if (!view.isResourceBlank() && view.getAmount() > 0L) {
-            return TransferConvert.toFluidStack((FluidVariant)view.getResource(), view.getAmount());
+            return FluidVariants.toFluidStack((FluidVariant)view.getResource(), view.getAmount());
          }
       }
 

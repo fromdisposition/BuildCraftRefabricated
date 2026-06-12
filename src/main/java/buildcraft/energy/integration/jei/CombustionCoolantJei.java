@@ -6,7 +6,7 @@
 
 package buildcraft.energy.integration.jei;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import net.minecraft.world.item.ItemStack;
 
 public record CombustionCoolantJei(ItemStack item, FluidStack fluid, float coolingPerMb) {

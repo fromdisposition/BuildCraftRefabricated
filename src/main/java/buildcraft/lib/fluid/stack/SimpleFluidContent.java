@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.fluids;
+package buildcraft.lib.fluid.stack;
 
 import com.mojang.serialization.Codec;
 import java.util.function.Predicate;
@@ -15,6 +15,7 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.tags.TagKey;
+import buildcraft.lib.fluid.meta.FluidAttributes;
 import net.minecraft.world.level.material.Fluid;
 
 public final class SimpleFluidContent implements DataComponentHolder {
@@ -72,12 +73,12 @@ public final class SimpleFluidContent implements DataComponentHolder {
       return this.fluidStack.getAmount();
    }
 
-   public FluidType getFluidType() {
-      return this.fluidStack.getFluidType();
+   public FluidAttributes getFluidAttributes() {
+      return this.fluidStack.getFluidAttributes();
    }
 
-   public boolean is(FluidType fluidType) {
-      return this.fluidStack.is(fluidType);
+   public boolean is(FluidAttributes fluidAttributes) {
+      return this.fluidStack.is(fluidAttributes);
    }
 
    public boolean matches(FluidStack other) {

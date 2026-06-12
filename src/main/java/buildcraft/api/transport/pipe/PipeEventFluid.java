@@ -6,7 +6,7 @@
 
 package buildcraft.api.transport.pipe;
 
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

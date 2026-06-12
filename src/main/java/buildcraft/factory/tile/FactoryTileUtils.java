@@ -7,7 +7,7 @@
 package buildcraft.factory.tile;
 
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import net.minecraft.world.level.storage.ValueInput;
 
 public final class FactoryTileUtils {

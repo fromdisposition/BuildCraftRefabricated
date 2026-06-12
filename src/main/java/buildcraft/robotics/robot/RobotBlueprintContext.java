@@ -15,7 +15,7 @@ import buildcraft.builders.snapshot.SnapshotBuilder;
 import buildcraft.lib.fabric.transfer.MultiFluidTankStorage;
 import buildcraft.lib.fabric.transfer.SingleFluidTank;
 import buildcraft.builders.snapshot.EnumFluidHandlingMode;
-import buildcraft.lib.fluids.FluidStack;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.robotics.entity.EntityRobot;
 import com.mojang.authlib.GameProfile;
 import java.util.List;
