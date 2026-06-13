@@ -63,33 +63,16 @@ public final class WaterSpringPoolElement extends SinglePoolElement {
       LiquidSettings liquidSettings,
       boolean keepJigsaws
    ) {
-      if (!super.place(structureTemplateManager, level, structureManager, generator, position, referencePos, rotation, chunkBB, random, liquidSettings, keepJigsaws)) {
+      int columnX = position.getX();
+      int columnZ = position.getZ();
+      BlockPos bedrock = WaterSpringBedrockProcessor.findBedrock(level, columnX, columnZ);
+      if (bedrock == null) {
          return false;
       }
 
-      // Bedrock processor relocates the 1x1 marker below the template bbox (anchored at Y=0).
-      int columnX = position.getX();
-      int columnZ = position.getZ();
-      boolean foundPlacedSpring = false;
-      for (int y = level.getMinY(); y < level.getMaxY(); y++) {
-         BlockPos pos = new BlockPos(columnX, y, columnZ);
-         if (!level.getBlockState(pos).is(BCCoreBlocks.SPRING_WATER)) {
-            continue;
-         }
-         fillWaterColumn(level, pos);
-         level.getChunk(pos).markPosForPostprocessing(pos);
-         foundPlacedSpring = true;
-      }
-
-      if (!foundPlacedSpring) {
-         BlockPos bedrock = WaterSpringBedrockProcessor.findBedrock(level, columnX, columnZ);
-         if (bedrock != null) {
-            level.setBlock(bedrock, BCCoreBlocks.SPRING_WATER.defaultBlockState(), 2);
-            fillWaterColumn(level, bedrock);
-            level.getChunk(bedrock).markPosForPostprocessing(bedrock);
-         }
-      }
-
+      level.setBlock(bedrock, BCCoreBlocks.SPRING_WATER.defaultBlockState(), 2);
+      fillWaterColumn(level, bedrock);
+      level.getChunk(bedrock).markPosForPostprocessing(bedrock);
       return true;
    }
 
