@@ -4,7 +4,6 @@ import buildcraft.core.BCCoreBlocks;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
@@ -21,7 +20,6 @@ import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElementType;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.LiquidSettings;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
@@ -67,20 +65,16 @@ public final class WaterSpringPoolElement extends SinglePoolElement {
          return false;
       }
 
-      StructureTemplate template = this.template.map(structureTemplateManager::getOrCreate, Function.identity());
-      StructurePlaceSettings settings = this.getSettings(rotation, chunkBB, liquidSettings, keepJigsaws);
-      List<StructureTemplate.StructureBlockInfo> blocks = StructureTemplate.processBlockInfos(
-         level, position, referencePos, settings, template.filterBlocks(BlockPos.ZERO, settings, Blocks.AIR)
-      );
-      for (StructureTemplate.StructureBlockInfo block : blocks) {
-         if (!block.state().is(BCCoreBlocks.SPRING_WATER)) {
+      // Bedrock processor relocates the 1x1 marker below the template bbox (anchored at Y=0).
+      int columnX = position.getX();
+      int columnZ = position.getZ();
+      for (int y = level.getMinY(); y < level.getMaxY(); y++) {
+         BlockPos pos = new BlockPos(columnX, y, columnZ);
+         if (!level.getBlockState(pos).is(BCCoreBlocks.SPRING_WATER)) {
             continue;
          }
-         BlockPos springPos = block.pos();
-         if (!chunkBB.isInside(springPos)) {
-            continue;
-         }
-         fillWaterColumn(level, springPos);
+         fillWaterColumn(level, pos);
+         level.getChunk(pos).markPosForPostprocessing(pos);
       }
 
       return true;
@@ -95,6 +89,7 @@ public final class WaterSpringPoolElement extends SinglePoolElement {
             break;
          }
          level.setBlock(at, Blocks.WATER.defaultBlockState(), 2);
+         level.getChunk(at).markPosForPostprocessing(at);
       }
    }
 
