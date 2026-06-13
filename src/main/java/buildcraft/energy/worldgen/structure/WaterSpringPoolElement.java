@@ -10,6 +10,7 @@ import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.StructureManager;
 import net.minecraft.world.level.WorldGenLevel;
@@ -80,12 +81,21 @@ public final class WaterSpringPoolElement extends SinglePoolElement {
       int x = springPos.getX();
       int z = springPos.getZ();
       int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
-      int maxY = Math.min(surfaceY, level.getMaxY() - 1);
+      int maxY = Math.min(getWaterColumnMaxY(level, x, surfaceY, z), level.getMaxY() - 1);
       for (int y = springPos.getY() + 1; y <= maxY; y++) {
          BlockPos at = new BlockPos(x, y, z);
          level.setBlock(at, Blocks.WATER.defaultBlockState(), 2);
          level.getChunk(at).markPosForPostprocessing(at);
       }
+   }
+
+   private static int getWaterColumnMaxY(WorldGenLevel level, int x, int surfaceY, int z) {
+      BlockPos topSurface = new BlockPos(x, surfaceY - 1, z);
+      if (level.getFluidState(topSurface).is(FluidTags.WATER)) {
+         return surfaceY - 1;
+      }
+
+      return surfaceY;
    }
 
    @Override
