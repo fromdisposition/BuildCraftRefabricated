@@ -354,12 +354,6 @@ public class TilePump extends TileMiner implements IDebuggable {
       this.updateLength();
    }
 
-   /** Pump tube reaches into the fluid block being drained. */
-   @Override
-   protected BlockPos resolveShaftEnd(BlockPos target) {
-      return target;
-   }
-
    @Nullable
    @Override
    protected BlockPos getTargetPos() {
@@ -535,10 +529,6 @@ public class TilePump extends TileMiner implements IDebuggable {
          );
       } else {
          this.targetPos = null;
-      }
-
-      if (this.level != null && this.level.isClientSide()) {
-         this.isComplete = this.isComplete();
       }
    }
 

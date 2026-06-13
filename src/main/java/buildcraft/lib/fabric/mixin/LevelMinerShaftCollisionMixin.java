@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Level.class)
 public abstract class LevelMinerShaftCollisionMixin {
+   /** Entity movement already calls {@code getBlockCollisions} from {@code Entity.collectColliders}. */
    @Inject(
       method = "getBlockCollisions(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;)Ljava/lang/Iterable;",
       at = @At("RETURN"),

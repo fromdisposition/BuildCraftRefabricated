@@ -44,7 +44,7 @@ public final class MinerShaftCollisionRegistry {
       return extra.isEmpty() ? base : Iterables.concat(base, extra);
    }
 
-   public static List<VoxelShape> intersecting(Level level, AABB box) {
+   private static List<VoxelShape> intersecting(Level level, AABB box) {
       Map<BlockPos, VoxelShape> levelShapes = SHAPES.get(level);
       if (levelShapes == null || levelShapes.isEmpty()) {
          return List.of();
@@ -59,17 +59,5 @@ public final class MinerShaftCollisionRegistry {
       }
 
       return hits.isEmpty() ? List.of() : hits;
-   }
-
-   public static List<VoxelShape> intersecting(Level level, AABB box, List<VoxelShape> colliders) {
-      List<VoxelShape> extra = intersecting(level, box);
-      if (extra.isEmpty()) {
-         return colliders;
-      }
-
-      List<VoxelShape> combined = new ArrayList<>(colliders.size() + extra.size());
-      combined.addAll(colliders);
-      combined.addAll(extra);
-      return combined;
    }
 }

@@ -42,7 +42,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    protected double currentLength = 0.0;
    protected double lastLength = 0.0;
    private int offset;
-   protected boolean isComplete = false;
    protected final MjBattery battery = new MjBattery(this.getBatteryCapacity());
 
    public TileMiner(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -102,16 +101,12 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    @Nullable
    protected BlockPos getShaftEndPos() {
       BlockPos target = this.getTargetPos();
-      if (target != null) {
-         return this.resolveShaftEnd(target);
-      }
-
-      return this.wantedLength > 0 ? this.worldPosition.below(this.wantedLength) : null;
+      return target != null ? this.resolveShaftEnd(target) : null;
    }
 
-   /** Mining well: tube stops above the block being broken. */
+   /** Shaft bottom at the target block (well: dig face; pump: fluid cell). */
    protected BlockPos resolveShaftEnd(BlockPos target) {
-      return target.above();
+      return target;
    }
 
    protected int getShaftLengthBlocks() {
@@ -136,10 +131,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       }
 
       MinerShaftCollisionRegistry.set(this.level, this.worldPosition, MinerShaftCollisions.shape(this.worldPosition, length));
-   }
-
-   public void setRemoved() {
-      super.setRemoved();
    }
 
    protected void updateLength() {
@@ -182,7 +173,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    }
 
    public boolean isComplete() {
-      return this.level != null && this.level.isClientSide() ? this.isComplete : this.currentPos == null;
+      return this.currentPos == null;
    }
 
    @Override
@@ -253,10 +244,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
          this.currentPos = new BlockPos(x, y, z);
       } else {
          this.currentPos = null;
-      }
-
-      if (this.level != null && this.level.isClientSide()) {
-         this.isComplete = this.currentPos == null;
       }
 
       int newWantedLength = input.getIntOr("wantedLength", 0);

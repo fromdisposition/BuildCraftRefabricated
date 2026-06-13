@@ -27,8 +27,11 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 public class TileMiningWell extends TileMiner {
+   private static final int IDLE_RESCAN_INTERVAL = 20;
+
    @Nullable
    private BlockPos shaftTipPos;
+   private int idleRescanCooldown;
    private IMjReceiver mjReceiver;
 
    public TileMiningWell(BlockPos pos, BlockState state) {
@@ -80,20 +83,41 @@ public class TileMiningWell extends TileMiner {
       }
    }
 
+   @Override
+   public boolean isComplete() {
+      return this.currentPos == null && this.shaftTipPos == null;
+   }
+
    /**
-    * Scan the well column each tick.
-    * Mine the first iron-pick solid from the top (classic BC behaviour).
-    * Stop with the shaft at non-mineable blocks. Retract when a solid appears in the
-    * open shaft above the current dig face (e.g. a block placed in the nozzle).
+    * Scan the well column.
+    * Top-down, first mineable solid (classic BC). Stop on fluid/unbreakable solids.
+    * Retract when a block appears in the open shaft above the current dig face.
+    * <p>
+    * Scan depth is capped at the shaft anchor (not full {@code miningMaxDepth}) while
+    * a shaft is active. Fully idle wells with an empty column rescan every
+    * {@link #IDLE_RESCAN_INTERVAL} ticks instead of every tick.
     */
    private void syncColumnState() {
+      boolean shaftActive = this.currentPos != null || this.shaftTipPos != null || this.wantedLength > 0;
+      if (!shaftActive) {
+         if (this.idleRescanCooldown > 0) {
+            this.idleRescanCooldown--;
+            return;
+         }
+
+         this.idleRescanCooldown = IDLE_RESCAN_INTERVAL;
+      } else {
+         this.idleRescanCooldown = 0;
+      }
+
       int x = this.worldPosition.getX();
       int z = this.worldPosition.getZ();
-      int minY = Math.max(this.level.getMinY(), this.worldPosition.getY() - BCCoreConfig.miningMaxDepth.get());
+      int configMinY = Math.max(this.level.getMinY(), this.worldPosition.getY() - BCCoreConfig.miningMaxDepth.get());
+      int scanFloorY = this.getColumnScanFloorY(configMinY);
 
       BlockPos firstMineable = null;
 
-      for (int y = this.worldPosition.getY() - 1; y >= minY; y--) {
+      for (int y = this.worldPosition.getY() - 1; y >= scanFloorY; y--) {
          BlockPos pos = new BlockPos(x, y, z);
          if (this.level.isEmptyBlock(pos)) {
             continue;
@@ -119,6 +143,23 @@ public class TileMiningWell extends TileMiner {
       }
 
       this.applyColumnState(firstMineable, firstMineable);
+   }
+
+   private int getColumnScanFloorY(int configMinY) {
+      int floor = configMinY;
+      if (this.currentPos != null) {
+         floor = Math.max(floor, this.currentPos.getY());
+      }
+
+      if (this.shaftTipPos != null) {
+         floor = Math.max(floor, this.shaftTipPos.getY());
+      }
+
+      if (this.wantedLength > 0) {
+         floor = Math.max(floor, this.worldPosition.getY() - this.wantedLength);
+      }
+
+      return floor;
    }
 
    private boolean isMineableSolid(BlockPos pos) {
