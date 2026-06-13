@@ -1,6 +1,7 @@
 package buildcraft.energy.worldgen.structure;
 
 import buildcraft.core.BCCoreBlocks;
+import buildcraft.energy.worldgen.processor.WaterSpringBedrockProcessor;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -15,6 +16,7 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElementType;
@@ -68,6 +70,7 @@ public final class WaterSpringPoolElement extends SinglePoolElement {
       // Bedrock processor relocates the 1x1 marker below the template bbox (anchored at Y=0).
       int columnX = position.getX();
       int columnZ = position.getZ();
+      boolean foundPlacedSpring = false;
       for (int y = level.getMinY(); y < level.getMaxY(); y++) {
          BlockPos pos = new BlockPos(columnX, y, columnZ);
          if (!level.getBlockState(pos).is(BCCoreBlocks.SPRING_WATER)) {
@@ -75,6 +78,16 @@ public final class WaterSpringPoolElement extends SinglePoolElement {
          }
          fillWaterColumn(level, pos);
          level.getChunk(pos).markPosForPostprocessing(pos);
+         foundPlacedSpring = true;
+      }
+
+      if (!foundPlacedSpring) {
+         BlockPos bedrock = WaterSpringBedrockProcessor.findBedrock(level, columnX, columnZ);
+         if (bedrock != null) {
+            level.setBlock(bedrock, BCCoreBlocks.SPRING_WATER.defaultBlockState(), 2);
+            fillWaterColumn(level, bedrock);
+            level.getChunk(bedrock).markPosForPostprocessing(bedrock);
+         }
       }
 
       return true;
@@ -83,11 +96,10 @@ public final class WaterSpringPoolElement extends SinglePoolElement {
    private static void fillWaterColumn(WorldGenLevel level, BlockPos springPos) {
       int x = springPos.getX();
       int z = springPos.getZ();
-      for (int y = springPos.getY() + 2; y < level.getMaxY(); y++) {
+      int surfaceY = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
+      int maxY = Math.min(surfaceY, level.getMaxY() - 1);
+      for (int y = springPos.getY() + 1; y <= maxY; y++) {
          BlockPos at = new BlockPos(x, y, z);
-         if (level.getBlockState(at).isAir()) {
-            break;
-         }
          level.setBlock(at, Blocks.WATER.defaultBlockState(), 2);
          level.getChunk(at).markPosForPostprocessing(at);
       }

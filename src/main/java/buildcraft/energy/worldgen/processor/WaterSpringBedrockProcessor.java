@@ -13,7 +13,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProc
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
-/** Projects the template spring marker onto the first bedrock column in {@code [minY, minY + 4]}. */
+/** Projects the template spring marker onto the top bedrock in {@code [minY, minY + 4]}. */
 public final class WaterSpringBedrockProcessor extends StructureProcessor {
    public static final MapCodec<WaterSpringBedrockProcessor> CODEC = MapCodec.unit(WaterSpringBedrockProcessor::new);
 
@@ -42,7 +42,7 @@ public final class WaterSpringBedrockProcessor extends StructureProcessor {
    @Nullable
    public static BlockPos findBedrock(LevelReader level, int x, int z) {
       int minY = minBuildY(level);
-      for (int y = minY; y <= minY + 4; y++) {
+      for (int y = minY + 4; y >= minY; y--) {
          BlockPos pos = new BlockPos(x, y, z);
          if (level.getBlockState(pos).is(Blocks.BEDROCK)) {
             return pos;
