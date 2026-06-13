@@ -183,7 +183,7 @@ public class BlockUtil {
       }
 
       BlockEntity be = world.getBlockEntity(pos);
-      boolean tierGated = state.requiresCorrectToolForDrops() && !tool.isCorrectToolForDrops(state);
+      boolean tierGated = tool.isEmpty() && state.requiresCorrectToolForDrops();
       List<ItemStack> drops = tierGated ? new ArrayList<>() : new ArrayList<>(Block.getDrops(state, world, pos, be, (Entity)null, tool));
       int xp = 0;
       FluidStack capturedFluid = FluidStack.EMPTY;

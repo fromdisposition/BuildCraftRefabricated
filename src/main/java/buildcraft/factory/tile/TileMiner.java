@@ -133,17 +133,19 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       }
 
       int length = this.getShaftCollisionLengthBlocks();
-      if (length == this.registeredCollisionLength) {
-         return;
-      }
-
-      this.registeredCollisionLength = length;
       AABB box = MinerShaftCollisions.box(this.worldPosition, length);
       if (box == null) {
+         this.registeredCollisionLength = -1;
          this.discardShaftRig();
          return;
       }
 
+      boolean shaftAlive = this.shaftRig != null && !this.shaftRig.isRemoved();
+      if (length == this.registeredCollisionLength && shaftAlive) {
+         return;
+      }
+
+      this.registeredCollisionLength = length;
       this.ensureShaftRig();
       this.shaftRig.setShaftBox(box);
    }
@@ -171,7 +173,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       int newLength = this.getShaftLengthBlocks();
       if (newLength != this.wantedLength) {
          this.wantedLength = newLength;
-         this.updateShaftCollision();
          this.setChanged();
          if (this.level instanceof ServerLevel level) {
             Packet<?> packet = this.getUpdatePacket();
@@ -182,6 +183,8 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
             }
          }
       }
+
+      this.updateShaftCollision();
    }
 
    @Override
