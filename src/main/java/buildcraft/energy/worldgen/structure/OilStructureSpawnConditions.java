@@ -5,6 +5,7 @@ import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.worldgen.core.BCEnergyBiomeTags;
 import buildcraft.energy.worldgen.core.OilStructureDefaults;
 import buildcraft.energy.worldgen.core.WorldgenDimensionFilters;
+import buildcraft.energy.worldgen.core.WorldgenSpawnContext;
 import com.mojang.serialization.Codec;
 import java.util.Locale;
 import net.minecraft.core.Holder;
@@ -30,13 +31,14 @@ public final class OilStructureSpawnConditions {
    }
 
    public static boolean canSpawn(Tier tier, Structure.GenerationContext context) {
-      if (!BCCoreConfig.worldGen.get() || !BCEnergyConfig.enableOilGeneration.get()) {
+      if (WorldgenSpawnContext.isChunkDecoration(context)
+         && (!BCCoreConfig.worldGen.get() || !BCEnergyConfig.enableOilGeneration.get())) {
          return false;
       }
       if (context.chunkGenerator() instanceof FlatLevelSource) {
          return false;
       }
-      if (tier == Tier.PATCH_OCEAN && !BCEnergyConfig.enableOilOnWater.get()) {
+      if (WorldgenSpawnContext.isChunkDecoration(context) && tier == Tier.PATCH_OCEAN && !BCEnergyConfig.enableOilOnWater.get()) {
          return false;
       }
       if (WorldgenDimensionFilters.isDimensionExcluded(context)) {
