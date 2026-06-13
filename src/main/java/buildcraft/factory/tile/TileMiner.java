@@ -104,9 +104,9 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       return target != null ? this.resolveShaftEnd(target) : null;
    }
 
-   /** Shaft bottom at the target block (well: dig face; pump: fluid cell). */
+   /** Default: shaft stops above target. Pump overrides to reach into fluid. */
    protected BlockPos resolveShaftEnd(BlockPos target) {
-      return target;
+      return target.above();
    }
 
    protected int getShaftLengthBlocks() {

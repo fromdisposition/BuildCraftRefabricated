@@ -44,6 +44,12 @@ public class TileMiningWell extends TileMiner {
       return this.currentPos != null ? this.currentPos : this.shaftTipPos;
    }
 
+   /** Shaft stops above the dig face; pump overrides to reach into fluid. */
+   @Override
+   protected BlockPos resolveShaftEnd(BlockPos target) {
+      return target.above();
+   }
+
    @Override
    protected void mine() {
       BlockPos previousTarget = this.currentPos;
@@ -51,7 +57,7 @@ public class TileMiningWell extends TileMiner {
 
       if (previousTarget != null && !Objects.equals(previousTarget, this.currentPos)) {
          this.progress = 0;
-         this.level.destroyBlockProgress(previousTarget.hashCode(), previousTarget, -1);
+         this.clearBreakProgress(previousTarget);
       }
 
       if (this.currentPos == null) {
@@ -60,6 +66,12 @@ public class TileMiningWell extends TileMiner {
 
       if (!this.isMineableSolid(this.currentPos)) {
          this.progress = 0;
+         this.clearBreakProgress(this.currentPos);
+         return;
+      }
+
+      if (this.battery.getStored() <= 0L) {
+         this.clearBreakProgress(this.currentPos);
          return;
       }
 
@@ -67,7 +79,7 @@ public class TileMiningWell extends TileMiner {
       this.progress = this.progress + (int)this.battery.extractPower(0L, target - this.progress);
       if (this.progress >= target) {
          this.progress = 0;
-         this.level.destroyBlockProgress(this.currentPos.hashCode(), this.currentPos, -1);
+         this.clearBreakProgress(this.currentPos);
          if (this.level instanceof ServerLevel serverLevel) {
             BlockUtil.breakBlockAndGetDropsWithXp(serverLevel, this.currentPos, new ItemStack(Items.IRON_PICKAXE), this.getOwner()).ifPresent(result -> {
                result.drops().forEach(stack -> InventoryUtil.addToBestAcceptor(this.level, this.worldPosition, null, stack));
@@ -78,8 +90,16 @@ public class TileMiningWell extends TileMiner {
          }
 
          this.syncColumnState();
-      } else {
+      } else if (this.progress > 0) {
          this.level.destroyBlockProgress(this.currentPos.hashCode(), this.currentPos, (int)(this.progress * 9 / target));
+      } else {
+         this.clearBreakProgress(this.currentPos);
+      }
+   }
+
+   private void clearBreakProgress(BlockPos pos) {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.level.destroyBlockProgress(pos.hashCode(), pos, -1);
       }
    }
 
@@ -219,8 +239,8 @@ public class TileMiningWell extends TileMiner {
 
    @Override
    public void setRemoved() {
-      if (this.level != null && !this.level.isClientSide() && this.currentPos != null) {
-         this.level.destroyBlockProgress(this.currentPos.hashCode(), this.currentPos, -1);
+      if (this.currentPos != null) {
+         this.clearBreakProgress(this.currentPos);
       }
 
       super.setRemoved();

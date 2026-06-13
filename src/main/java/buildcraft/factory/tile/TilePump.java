@@ -361,6 +361,11 @@ public class TilePump extends TileMiner implements IDebuggable {
    }
 
    @Override
+   protected BlockPos resolveShaftEnd(BlockPos target) {
+      return target;
+   }
+
+   @Override
    public boolean isComplete() {
       return this.currentPos == null && this.rebuildDelay <= 0;
    }
