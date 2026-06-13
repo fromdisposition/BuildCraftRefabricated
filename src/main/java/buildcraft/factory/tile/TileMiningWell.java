@@ -55,18 +55,9 @@ public class TileMiningWell extends TileMiner {
    }
 
    @Override
-   public void onLoad() {
-      super.onLoad();
-      if (this.level != null && !this.level.isClientSide()) {
-         this.syncColumnState();
-      }
-   }
-
-   @Override
    protected void mine() {
       BlockPos previousTarget = this.currentPos;
       this.syncColumnState();
-      this.applyShaftChange();
 
       if (previousTarget != null && !Objects.equals(previousTarget, this.currentPos)) {
          this.progress = 0;
@@ -165,7 +156,6 @@ public class TileMiningWell extends TileMiner {
    private void applyShaftChange() {
       this.registeredCollisionLength = -1;
       this.updateLength();
-      this.updateShaftCollision();
    }
 
    private void clearBreakProgress(@Nullable BlockPos pos) {
@@ -219,7 +209,8 @@ public class TileMiningWell extends TileMiner {
          this.shaftTipPos = null;
       }
 
-      this.applyShaftChange();
+      this.wantedLength = this.getShaftLengthBlocks();
+      this.deferredShaftCollision = true;
    }
 
    @Override

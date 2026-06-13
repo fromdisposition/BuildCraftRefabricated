@@ -55,10 +55,16 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    protected abstract IMjReceiver createMjReceiver();
 
    protected int registeredCollisionLength = -1;
+   protected boolean deferredShaftCollision;
    @Nullable
    private EntityMinerShaft shaftRig;
 
    public void serverTick() {
+      if (this.deferredShaftCollision && this.level != null && !this.level.isClientSide()) {
+         this.deferredShaftCollision = false;
+         this.updateShaftCollision();
+      }
+
       this.flushPipeNeighborNotify();
       this.battery.tick(this.getLevel(), this.getBlockPos());
       if (this.getLevel().getGameTime() % 10L == this.offset) {
@@ -93,7 +99,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
 
       if (this.level != null && !this.level.isClientSide()) {
          this.schedulePipeNeighborNotify();
-         this.updateShaftCollision();
+         this.deferredShaftCollision = true;
       }
    }
 
