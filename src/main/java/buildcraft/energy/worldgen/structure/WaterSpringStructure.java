@@ -123,9 +123,11 @@ public final class WaterSpringStructure extends Structure {
       }
 
       ChunkPos chunkPos = context.chunkPos();
-      int x = chunkPos.getMinBlockX() + context.random().nextInt(16);
-      int z = chunkPos.getMinBlockZ() + context.random().nextInt(16);
-      BlockPos startPos = new BlockPos(x, WaterSpringDefaults.SPRING_TEMPLATE_Y, z);
+      BlockPos startPos = new BlockPos(
+         chunkPos.getMiddleBlockX(),
+         WaterSpringDefaults.SPRING_TEMPLATE_Y,
+         chunkPos.getMiddleBlockZ()
+      );
       return JigsawPlacement.addPieces(
          context,
          this.startPool,
