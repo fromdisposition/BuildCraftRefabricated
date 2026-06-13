@@ -10,17 +10,9 @@ import buildcraft.factory.tile.TileMiner;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class MinerShaftCollisions {
    private MinerShaftCollisions() {
-   }
-
-   @Nullable
-   public static VoxelShape shape(BlockPos pumpPos, int lengthBlocks) {
-      AABB box = box(pumpPos, lengthBlocks);
-      return box != null ? Shapes.create(box) : null;
    }
 
    @Nullable

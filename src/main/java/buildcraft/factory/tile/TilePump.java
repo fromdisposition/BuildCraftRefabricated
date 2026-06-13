@@ -535,6 +535,9 @@ public class TilePump extends TileMiner implements IDebuggable {
       } else {
          this.targetPos = null;
       }
+
+      this.wantedLength = this.getShaftLengthBlocks();
+      this.updateShaftCollision();
    }
 
    @Override

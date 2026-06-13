@@ -1,6 +1,7 @@
 package buildcraft.fabric;
 
 import buildcraft.factory.BCFactoryBlockEntities;
+import buildcraft.factory.BCFactoryEntities;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.client.render.RenderDistiller;
@@ -17,6 +18,8 @@ import buildcraft.factory.gui.GuiTank;
 import buildcraft.lib.client.BCTooltips;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.client.renderer.entity.NoopRenderer;
 
 public final class BCFactoryFabricClient {
    private BCFactoryFabricClient() {
@@ -36,6 +39,7 @@ public final class BCFactoryFabricClient {
       BlockEntityRenderers.register(BCFactoryBlockEntities.HEAT_EXCHANGE, RenderHeatExchange::new);
       BlockEntityRenderers.register(BCFactoryBlockEntities.PUMP, RenderPump::new);
       BlockEntityRenderers.register(BCFactoryBlockEntities.MINING_WELL, RenderMiningWell::new);
+      EntityRenderers.register(BCFactoryEntities.MINER_SHAFT, NoopRenderer::new);
       registerTooltips();
    }
 

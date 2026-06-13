@@ -17,21 +17,33 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 
+/** Single-column quarry: one block down, dig or stop on fluid/solid. */
 public class TileMiningWell extends TileMiner {
-   private static final int IDLE_RESCAN_INTERVAL = 20;
+   private static final int NO_FACE = Integer.MIN_VALUE;
+   private static final int RECHECK_INTERVAL = 10;
 
+   private enum FaceState {
+      IDLE,
+      DIGGING,
+      BLOCKED
+   }
+
+   private FaceState faceState = FaceState.IDLE;
+   private int faceY = NO_FACE;
    @Nullable
-   private BlockPos shaftTipPos;
-   private int idleRescanCooldown;
+   private BlockPos breakingPos;
+   @Nullable
+   private TaskBreakBlock currentTask;
+   private boolean hadPower;
    private IMjReceiver mjReceiver;
 
    public TileMiningWell(BlockPos pos, BlockState state) {
@@ -41,209 +53,297 @@ public class TileMiningWell extends TileMiner {
    @Nullable
    @Override
    protected BlockPos getTargetPos() {
-      return this.currentPos != null ? this.currentPos : this.shaftTipPos;
+      return this.hasFace() ? this.columnPos(this.faceY) : null;
    }
 
-   /** Shaft stops above the dig face; pump overrides to reach into fluid. */
    @Override
    protected BlockPos resolveShaftEnd(BlockPos target) {
       return target.above();
    }
 
    @Override
-   protected void mine() {
-      BlockPos previousTarget = this.currentPos;
-      this.syncColumnState();
-
-      if (previousTarget != null && !Objects.equals(previousTarget, this.currentPos)) {
-         this.progress = 0;
-         this.clearBreakProgress(previousTarget);
-      }
-
-      if (this.currentPos == null) {
-         return;
-      }
-
-      if (!this.isMineableSolid(this.currentPos)) {
-         this.progress = 0;
-         this.clearBreakProgress(this.currentPos);
-         return;
-      }
-
-      if (this.battery.getStored() <= 0L) {
-         this.clearBreakProgress(this.currentPos);
-         return;
-      }
-
-      long target = BlockUtil.computeBlockBreakPower(this.level, this.currentPos);
-      this.progress = this.progress + (int)this.battery.extractPower(0L, target - this.progress);
-      if (this.progress >= target) {
-         this.progress = 0;
-         this.clearBreakProgress(this.currentPos);
-         if (this.level instanceof ServerLevel serverLevel) {
-            BlockUtil.breakBlockAndGetDropsWithXp(serverLevel, this.currentPos, new ItemStack(Items.IRON_PICKAXE), this.getOwner()).ifPresent(result -> {
-               result.drops().forEach(stack -> InventoryUtil.addToBestAcceptor(this.level, this.worldPosition, null, stack));
-               if (result.xp() > 0) {
-                  ExperienceOrb.award(serverLevel, Vec3.atCenterOf(this.worldPosition), result.xp());
-               }
-            });
-         }
-
-         this.syncColumnState();
-      } else if (this.progress > 0) {
-         this.level.destroyBlockProgress(this.currentPos.hashCode(), this.currentPos, (int)(this.progress * 9 / target));
-      } else {
-         this.clearBreakProgress(this.currentPos);
-      }
-   }
-
-   private void clearBreakProgress(BlockPos pos) {
-      if (this.level != null && !this.level.isClientSide()) {
-         this.level.destroyBlockProgress(pos.hashCode(), pos, -1);
-      }
+   protected int getShaftCollisionLengthBlocks() {
+      return this.hasFace() ? Math.max(0, this.worldPosition.getY() - this.faceY) : 0;
    }
 
    @Override
    public boolean isComplete() {
-      return this.currentPos == null && this.shaftTipPos == null;
+      return this.faceState == FaceState.IDLE;
    }
 
-   /**
-    * Scan the well column.
-    * Top-down, first mineable solid (classic BC). Stop on fluid/unbreakable solids.
-    * Retract when a block appears in the open shaft above the current dig face.
-    * <p>
-    * Scan depth is capped at the shaft anchor (not full {@code miningMaxDepth}) while
-    * a shaft is active. Fully idle wells with an empty column rescan every
-    * {@link #IDLE_RESCAN_INTERVAL} ticks instead of every tick.
-    */
-   private void syncColumnState() {
-      boolean shaftActive = this.currentPos != null || this.shaftTipPos != null || this.wantedLength > 0;
-      if (!shaftActive) {
-         if (this.idleRescanCooldown > 0) {
-            this.idleRescanCooldown--;
-            return;
-         }
+   @Override
+   public boolean hasWork() {
+      return this.faceState == FaceState.DIGGING && this.battery.getStored() > 0L;
+   }
 
-         this.idleRescanCooldown = IDLE_RESCAN_INTERVAL;
-      } else {
-         this.idleRescanCooldown = 0;
+   @Override
+   protected void mine() {
+      boolean hasPower = this.battery.getStored() > 0L;
+      if (!hasPower) {
+         this.hadPower = false;
+         this.cancelBreakTask();
+         return;
       }
 
-      int x = this.worldPosition.getX();
-      int z = this.worldPosition.getZ();
-      int configMinY = Math.max(this.level.getMinY(), this.worldPosition.getY() - BCCoreConfig.miningMaxDepth.get());
-      int scanFloorY = this.getColumnScanFloorY(configMinY);
+      if (!this.hadPower) {
+         this.hadPower = true;
+         if (this.faceState == FaceState.IDLE) {
+            this.advanceToWork();
+         }
+      }
 
-      BlockPos firstMineable = null;
+      if (this.level.getGameTime() % RECHECK_INTERVAL == this.offset) {
+         this.advanceToWork();
+      }
 
-      for (int y = this.worldPosition.getY() - 1; y >= scanFloorY; y--) {
-         BlockPos pos = new BlockPos(x, y, z);
-         if (this.level.isEmptyBlock(pos)) {
+      if (this.currentTask != null) {
+         long needed = this.currentTask.getTarget() - this.currentTask.power;
+         long added = this.battery.extractPower(0L, Math.max(0L, needed));
+         if (this.currentTask.addPower(added)) {
+            this.currentTask = null;
+         }
+
+         return;
+      }
+
+      if (this.faceState == FaceState.DIGGING) {
+         BlockPos digPos = this.getDigPos();
+         if (digPos != null && this.canMine(digPos)) {
+            this.currentTask = new TaskBreakBlock(digPos);
+         } else {
+            this.advanceToWork();
+         }
+      }
+   }
+
+   /** Top-down: first solid — dig if mineable, else stop. */
+   private void advanceToWork() {
+      int minY = this.computeMinY();
+
+      for (int y = this.worldPosition.getY() - 1; y >= minY; y--) {
+         BlockPos pos = this.columnPos(y);
+         if (this.canPassThrough(pos)) {
             continue;
          }
 
-         if (this.isMineableSolid(pos)) {
-            firstMineable = pos;
-            break;
+         if (!this.canMine(pos)) {
+            this.setBlocked(y);
+            return;
          }
 
-         this.applyColumnState(null, pos);
+         this.setDigging(y);
          return;
       }
 
-      if (firstMineable == null) {
-         this.applyColumnState(null, null);
-         return;
-      }
-
-      if (this.currentPos != null && firstMineable.getY() > this.currentPos.getY()) {
-         this.applyColumnState(null, firstMineable);
-         return;
-      }
-
-      this.applyColumnState(firstMineable, firstMineable);
+      this.setIdle();
    }
 
-   private int getColumnScanFloorY(int configMinY) {
-      int floor = configMinY;
-      if (this.currentPos != null) {
-         floor = Math.max(floor, this.currentPos.getY());
-      }
-
-      if (this.shaftTipPos != null) {
-         floor = Math.max(floor, this.shaftTipPos.getY());
-      }
-
-      if (this.wantedLength > 0) {
-         floor = Math.max(floor, this.worldPosition.getY() - this.wantedLength);
-      }
-
-      return floor;
+   private int computeMinY() {
+      int minY = this.worldPosition.getY() - BCCoreConfig.miningMaxDepth.get();
+      return Math.max(this.level.getMinY(), minY);
    }
 
-   private boolean isMineableSolid(BlockPos pos) {
-      if (this.level.isEmptyBlock(pos)) {
+   private boolean canPassThrough(BlockPos pos) {
+      return this.level.isEmptyBlock(pos);
+   }
+
+   /** Same rules as {@link buildcraft.builders.tile.TileQuarry#canMine}. */
+   private boolean canMine(BlockPos pos) {
+      if (this.level.getBlockState(pos).getDestroySpeed(this.level, pos) < 0.0F) {
          return false;
       }
 
-      BlockState state = this.level.getBlockState(pos);
-      if (!BlockUtil.isSolid(this.level, pos, state) || !state.getFluidState().isEmpty()) {
-         return false;
-      }
-
-      if (BlockUtil.isUnbreakableBlock(this.level, pos, this.getOwner()) || state.is(BlockTags.NEEDS_DIAMOND_TOOL)) {
+      Fluid fluid = BlockUtil.getFluidWithFlowing(this.level, pos);
+      if (fluid != null) {
          return false;
       }
 
       return !(this.level instanceof ServerLevel serverLevel) || BlockUtil.canMachineBreak(serverLevel, pos, this.getOwner());
    }
 
-   private void applyColumnState(@Nullable BlockPos target, @Nullable BlockPos shaftTip) {
-      boolean changed = !Objects.equals(this.currentPos, target) || !Objects.equals(this.shaftTipPos, shaftTip);
-      if (!changed) {
+   private void setIdle() {
+      this.clearBreakingOverlay();
+      this.faceState = FaceState.IDLE;
+      this.faceY = NO_FACE;
+      this.currentPos = null;
+      this.cancelBreakTask();
+      this.applyShaftChange();
+   }
+
+   private void setBlocked(int y) {
+      if (this.faceState != FaceState.BLOCKED || this.faceY != y) {
+         this.clearBreakingOverlay();
+      }
+
+      this.faceState = FaceState.BLOCKED;
+      this.faceY = y;
+      this.currentPos = null;
+      this.cancelBreakTask();
+      this.applyShaftChange();
+   }
+
+   private void setDigging(int y) {
+      if (this.faceState != FaceState.DIGGING || this.faceY != y) {
+         this.clearBreakingOverlay();
+         this.cancelBreakTask();
+      }
+
+      this.faceState = FaceState.DIGGING;
+      this.faceY = y;
+      this.currentPos = this.columnPos(y);
+      this.applyShaftChange();
+   }
+
+   private void cancelBreakTask() {
+      this.currentTask = null;
+      this.progress = 0;
+   }
+
+   private void clearBreakingOverlay() {
+      if (this.breakingPos != null) {
+         this.clearBreakProgress(this.breakingPos);
+         this.breakingPos = null;
+      }
+   }
+
+   private void clearBreakProgress(@Nullable BlockPos pos) {
+      if (this.level != null && !this.level.isClientSide() && pos != null) {
+         this.level.destroyBlockProgress(pos.hashCode(), pos, -1);
+      }
+   }
+
+   private void showBreakProgress(BlockPos pos, int stage) {
+      if (this.level == null || this.level.isClientSide()) {
          return;
       }
 
-      this.currentPos = target;
-      this.shaftTipPos = shaftTip;
+      if (this.breakingPos != null && !this.breakingPos.equals(pos)) {
+         this.clearBreakProgress(this.breakingPos);
+      }
+
+      this.breakingPos = pos;
+      this.level.destroyBlockProgress(pos.hashCode(), pos, stage);
+   }
+
+   private void applyShaftChange() {
       this.updateLength();
+      this.updateShaftCollision();
+   }
+
+   private boolean hasFace() {
+      return this.faceY != NO_FACE;
+   }
+
+   @Nullable
+   private BlockPos getDigPos() {
+      return this.faceState == FaceState.DIGGING && this.hasFace() ? this.columnPos(this.faceY) : null;
+   }
+
+   private BlockPos columnPos(int y) {
+      return new BlockPos(this.worldPosition.getX(), y, this.worldPosition.getZ());
+   }
+
+   private final class TaskBreakBlock {
+      private final BlockPos breakPos;
+      private long power;
+
+      private TaskBreakBlock(BlockPos breakPos) {
+         this.breakPos = breakPos;
+      }
+
+      private long getTarget() {
+         return BlockUtil.computeBlockBreakPower(TileMiningWell.this.level, this.breakPos);
+      }
+
+      private boolean addPower(long microJoules) {
+         this.power += microJoules;
+         long target = this.getTarget();
+         if (this.power < target) {
+            if (!TileMiningWell.this.level.getBlockState(this.breakPos).isAir()) {
+               TileMiningWell.this.showBreakProgress(this.breakPos, (int)(this.power * 9L / target));
+            }
+
+            TileMiningWell.this.progress = (int)this.power;
+            return false;
+         }
+
+         TileMiningWell.this.clearBreakProgress(this.breakPos);
+         TileMiningWell.this.breakingPos = null;
+         TileMiningWell.this.progress = 0;
+         if (!TileMiningWell.this.canMine(this.breakPos)) {
+            TileMiningWell.this.advanceToWork();
+            return true;
+         }
+
+         if (TileMiningWell.this.level instanceof ServerLevel serverLevel) {
+            BlockUtil.breakBlockAndGetDropsWithXp(serverLevel, this.breakPos, new ItemStack(Items.IRON_PICKAXE), TileMiningWell.this.getOwner())
+               .ifPresent(
+                  result -> {
+                     result.drops().forEach(stack -> InventoryUtil.addToBestAcceptor(TileMiningWell.this.level, TileMiningWell.this.worldPosition, null, stack));
+                     if (result.xp() > 0) {
+                        ExperienceOrb.award(serverLevel, Vec3.atCenterOf(TileMiningWell.this.worldPosition), result.xp());
+                     }
+                  }
+               );
+         }
+
+         if (TileMiningWell.this.faceState == FaceState.DIGGING && Objects.equals(TileMiningWell.this.getDigPos(), this.breakPos)) {
+            TileMiningWell.this.faceY--;
+            if (TileMiningWell.this.faceY < TileMiningWell.this.computeMinY()) {
+               TileMiningWell.this.setIdle();
+            } else {
+               TileMiningWell.this.currentPos = TileMiningWell.this.getDigPos();
+               TileMiningWell.this.applyShaftChange();
+            }
+         }
+
+         TileMiningWell.this.advanceToWork();
+         return true;
+      }
    }
 
    @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
-      if (this.shaftTipPos != null) {
-         output.putBoolean("hasShaftTipPos", true);
-         output.putInt("shaftTipX", this.shaftTipPos.getX());
-         output.putInt("shaftTipY", this.shaftTipPos.getY());
-         output.putInt("shaftTipZ", this.shaftTipPos.getZ());
-      } else {
-         output.putBoolean("hasShaftTipPos", false);
+      output.putByte("faceState", (byte)this.faceState.ordinal());
+      output.putBoolean("hasColumnState", true);
+      output.putBoolean("hasFace", this.hasFace());
+      if (this.hasFace()) {
+         output.putInt("faceY", this.faceY);
       }
    }
 
    @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
-      if (input.getBooleanOr("hasShaftTipPos", false)) {
-         this.shaftTipPos = new BlockPos(
-            input.getIntOr("shaftTipX", 0),
-            input.getIntOr("shaftTipY", 0),
-            input.getIntOr("shaftTipZ", 0)
-         );
+      if (input.getBooleanOr("hasColumnState", false)) {
+         int ordinal = input.getByteOr("faceState", input.getByteOr("columnState", (byte)0)) & 0xFF;
+         this.faceState = ordinal < FaceState.values().length ? FaceState.values()[ordinal] : FaceState.IDLE;
+         this.faceY = input.getBooleanOr("hasFace", false) ? input.getIntOr("faceY", NO_FACE) : NO_FACE;
+         if (!input.getBooleanOr("hasFace", false) && input.getBooleanOr("hasAnchor", false)) {
+            this.faceY = input.getIntOr("anchorY", NO_FACE);
+         }
+      } else if (input.getBooleanOr("hasShaftTipPos", false)) {
+         this.faceState = FaceState.BLOCKED;
+         this.faceY = input.getIntOr("shaftTipY", NO_FACE);
+      } else if (this.currentPos != null) {
+         this.faceState = FaceState.DIGGING;
+         this.faceY = this.currentPos.getY();
       } else {
-         this.shaftTipPos = null;
-      }
-   }
-
-   @Override
-   public void setRemoved() {
-      if (this.currentPos != null) {
-         this.clearBreakProgress(this.currentPos);
+         this.faceState = FaceState.IDLE;
+         this.faceY = NO_FACE;
       }
 
-      super.setRemoved();
+      this.currentTask = null;
+      this.breakingPos = null;
+      if (this.faceState == FaceState.DIGGING && this.hasFace()) {
+         this.currentPos = this.columnPos(this.faceY);
+      } else {
+         this.currentPos = null;
+      }
+
+      this.wantedLength = this.getShaftLengthBlocks();
+      this.updateShaftCollision();
    }
 
    @Override

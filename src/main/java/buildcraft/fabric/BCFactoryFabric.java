@@ -3,6 +3,7 @@ package buildcraft.fabric;
 import buildcraft.factory.BCFactoryAttachments;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.BCFactoryBlocks;
+import buildcraft.factory.BCFactoryEntities;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.tile.TileAutoWorkbenchBase;
@@ -35,6 +36,7 @@ public final class BCFactoryFabric {
          BCFactoryFabric::registerMjCapabilities,
          BCFactoryFabric::registerNativeTransfer
       );
+      BCFactoryEntities.register();
       BCFactoryAttachments.register();
    }
 

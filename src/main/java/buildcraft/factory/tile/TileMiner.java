@@ -10,8 +10,9 @@ import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
 import buildcraft.api.tiles.IHasWork;
-import buildcraft.factory.collision.MinerShaftCollisionRegistry;
+import buildcraft.factory.BCFactoryEntities;
 import buildcraft.factory.collision.MinerShaftCollisions;
+import buildcraft.factory.entity.EntityMinerShaft;
 import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.server.level.ServerLevel;
@@ -29,6 +30,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 
 public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBlockEntityLoadHook {
    /** Shaft render scale in blocks per texture pixel row. */
@@ -41,7 +43,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    protected int wantedLength = 0;
    protected double currentLength = 0.0;
    protected double lastLength = 0.0;
-   private int offset;
+   protected int offset;
    protected final MjBattery battery = new MjBattery(this.getBatteryCapacity());
 
    public TileMiner(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -51,6 +53,10 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
    protected abstract void mine();
 
    protected abstract IMjReceiver createMjReceiver();
+
+   protected int registeredCollisionLength = -1;
+   @Nullable
+   private EntityMinerShaft shaftRig;
 
    public void serverTick() {
       this.flushPipeNeighborNotify();
@@ -68,7 +74,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       }
 
       this.mine();
-      this.updateShaftCollision();
    }
 
    public void clientTick() {
@@ -78,8 +83,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       } else {
          this.currentLength = this.currentLength + (this.wantedLength - this.currentLength) / 7.0;
       }
-
-      this.updateShaftCollision();
    }
 
    @Override
@@ -88,7 +91,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
          this.offset = this.level.getRandom().nextInt(10);
       }
 
-      if (this.level != null) {
+      if (this.level != null && !this.level.isClientSide()) {
          this.schedulePipeNeighborNotify();
          this.updateShaftCollision();
       }
@@ -119,18 +122,49 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       return length > 0 ? length : 0;
    }
 
+   /** Collision may extend to the dig face while the renderer stops above it. */
+   protected int getShaftCollisionLengthBlocks() {
+      return this.getShaftLengthBlocks();
+   }
+
    protected void updateShaftCollision() {
-      if (this.level == null) {
+      if (this.level == null || this.level.isClientSide()) {
          return;
       }
 
-      int length = this.getShaftLengthBlocks();
-      if (length <= 0 || MinerShaftCollisions.shape(this.worldPosition, length) == null) {
-         MinerShaftCollisionRegistry.remove(this.level, this.worldPosition);
+      int length = this.getShaftCollisionLengthBlocks();
+      if (length == this.registeredCollisionLength) {
          return;
       }
 
-      MinerShaftCollisionRegistry.set(this.level, this.worldPosition, MinerShaftCollisions.shape(this.worldPosition, length));
+      this.registeredCollisionLength = length;
+      AABB box = MinerShaftCollisions.box(this.worldPosition, length);
+      if (box == null) {
+         this.discardShaftRig();
+         return;
+      }
+
+      this.ensureShaftRig();
+      this.shaftRig.setShaftBox(box);
+   }
+
+   private void ensureShaftRig() {
+      if (this.level == null || this.level.isClientSide()) {
+         return;
+      }
+
+      if (this.shaftRig == null || this.shaftRig.isRemoved()) {
+         this.shaftRig = new EntityMinerShaft(BCFactoryEntities.MINER_SHAFT, this.level);
+         this.level.addFreshEntity(this.shaftRig);
+      }
+   }
+
+   private void discardShaftRig() {
+      if (this.shaftRig != null && !this.shaftRig.isRemoved()) {
+         this.shaftRig.discard();
+      }
+
+      this.shaftRig = null;
    }
 
    protected void updateLength() {
@@ -152,10 +186,8 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
 
    @Override
    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-      if (this.level != null) {
-         MinerShaftCollisionRegistry.remove(this.level, this.worldPosition);
-      }
-
+      this.registeredCollisionLength = -1;
+      this.discardShaftRig();
       super.preRemoveSideEffects(pos, state);
    }
 
@@ -252,5 +284,10 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       this.progress = input.getIntOr("progress", 0);
       this.battery.extractPower(0L, Long.MAX_VALUE);
       this.battery.addPowerChecking(input.getLongOr("mjStored", 0L), false);
+
+      int computedLength = this.getShaftLengthBlocks();
+      if (computedLength != this.wantedLength) {
+         this.wantedLength = computedLength;
+      }
    }
 }
