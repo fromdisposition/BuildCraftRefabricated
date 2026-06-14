@@ -45,7 +45,7 @@ public final class SchematicSingleTooltipOverlay implements ClientTooltipCompone
    public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
       TooltipRenderUtil.extractTooltipBackground(graphics, x, y, PREVIEW_SIZE, PREVIEW_SIZE, null);
       Blueprint synthetic = getOrBuildSynthetic(this.schematic);
-      BlueprintRenderer.renderSnapshot(new BCGraphics(graphics), synthetic, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
+      BlueprintRenderer.renderSnapshotForTooltip(new BCGraphics(graphics), synthetic, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
    }
 
    private static Blueprint getOrBuildSynthetic(ISchematicBlock schematic) {

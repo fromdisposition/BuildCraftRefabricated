@@ -47,7 +47,7 @@ public final class BlueprintTooltipOverlay implements ClientTooltipComponent {
       Snapshot snapshot = ClientSnapshots.INSTANCE.getSnapshot(this.header.key);
       TooltipRenderUtil.extractTooltipBackground(graphics, x, y, PREVIEW_SIZE, PREVIEW_SIZE, null);
       if (snapshot != null) {
-         BlueprintRenderer.renderSnapshot(new BCGraphics(graphics), snapshot, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
+         BlueprintRenderer.renderSnapshotForTooltip(new BCGraphics(graphics), snapshot, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
       }
 
       logOnce(this.header.key, snapshot, x, y);
