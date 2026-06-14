@@ -68,7 +68,10 @@ public class ItemSnapshot extends Item {
       if (header == null) {
          tooltip.add(Component.translatable("item.blueprint.blank").withStyle(ChatFormatting.GRAY));
       } else {
-         tooltip.add(Component.literal(header.name).withStyle(ChatFormatting.GRAY));
+         if (!tooltip.isEmpty()) {
+            tooltip.set(0, Component.literal(header.name));
+         }
+
          if (flag.isAdvanced()) {
             tooltip.add(Component.literal("Hash: " + HashUtil.convertHashToString(header.key.hash)).withStyle(ChatFormatting.GRAY));
             tooltip.add(Component.literal("Date: " + header.created).withStyle(ChatFormatting.GRAY));

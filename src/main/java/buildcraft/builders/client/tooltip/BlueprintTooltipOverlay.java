@@ -18,7 +18,6 @@ import java.util.Set;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,7 +44,6 @@ public final class BlueprintTooltipOverlay implements ClientTooltipComponent {
    @Override
    public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
       Snapshot snapshot = ClientSnapshots.INSTANCE.getSnapshot(this.header.key);
-      TooltipRenderUtil.extractTooltipBackground(graphics, x, y, PREVIEW_SIZE, PREVIEW_SIZE, null);
       if (snapshot != null) {
          BlueprintRenderer.renderSnapshotForTooltip(new BCGraphics(graphics), snapshot, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
       }

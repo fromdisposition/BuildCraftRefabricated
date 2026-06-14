@@ -15,7 +15,6 @@ import javax.annotation.Nullable;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
@@ -43,7 +42,6 @@ public final class SchematicSingleTooltipOverlay implements ClientTooltipCompone
 
    @Override
    public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
-      TooltipRenderUtil.extractTooltipBackground(graphics, x, y, PREVIEW_SIZE, PREVIEW_SIZE, null);
       Blueprint synthetic = getOrBuildSynthetic(this.schematic);
       BlueprintRenderer.renderSnapshotForTooltip(new BCGraphics(graphics), synthetic, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
    }

@@ -194,8 +194,8 @@ public class ItemSchematicSingle extends Item {
          ISchematicBlock schematic = getSchematicSafe(stack);
          if (schematic != null) {
             BlockState state = schematic.getBlockStateForRender();
-            if (state != null) {
-               tooltip.add(state.getBlock().getName().copy().withStyle(ChatFormatting.GRAY));
+            if (state != null && !tooltip.isEmpty()) {
+               tooltip.set(0, state.getBlock().getName());
             }
          }
       }
