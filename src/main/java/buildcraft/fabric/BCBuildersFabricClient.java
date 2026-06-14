@@ -10,6 +10,8 @@ import buildcraft.builders.client.render.RenderFiller;
 import buildcraft.builders.client.render.RenderQuarry;
 import buildcraft.builders.client.tooltip.BlueprintTooltipOverlay;
 import buildcraft.builders.client.tooltip.SchematicSingleTooltipOverlay;
+import buildcraft.builders.tooltip.BlueprintPreviewTooltipComponent;
+import buildcraft.builders.tooltip.SchematicPreviewTooltipComponent;
 import buildcraft.builders.gui.GuiArchitectTable;
 import buildcraft.builders.gui.GuiBuilder;
 import buildcraft.builders.gui.GuiElectronicLibrary;
@@ -18,11 +20,11 @@ import buildcraft.builders.gui.GuiFillerPlanner;
 import buildcraft.builders.gui.GuiReplacer;
 import buildcraft.builders.snapshot.ClientArchitectScans;
 import buildcraft.fabric.client.event.RenderLevelStageEvent;
-import buildcraft.fabric.client.event.RenderTooltipEvent;
 import buildcraft.fabric.client.event.SubmitCustomGeometryEvent;
 import buildcraft.lib.client.BCTooltips;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
+import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
 import net.minecraft.client.Minecraft;
@@ -62,8 +64,15 @@ public final class BCBuildersFabricClient {
       BlockEntityRenderers.register(BCBuildersBlockEntities.QUARRY, RenderQuarry::new);
       BlockEntityRenderers.register(BCBuildersBlockEntities.ARCHITECT, RenderArchitectTable::new);
       BlockEntityRenderers.register(BCBuildersBlockEntities.FILLER, RenderFiller::new);
-      RenderTooltipEvent.Pre.register(BlueprintTooltipOverlay::onPreTooltip);
-      RenderTooltipEvent.Pre.register(SchematicSingleTooltipOverlay::onPreTooltip);
+      ClientTooltipComponentCallback.EVENT.register(component -> {
+         if (component instanceof BlueprintPreviewTooltipComponent preview) {
+            return new BlueprintTooltipOverlay(preview);
+         } else if (component instanceof SchematicPreviewTooltipComponent preview) {
+            return new SchematicSingleTooltipOverlay(preview);
+         }
+
+         return null;
+      });
       BCTooltips.addTooltip(BCBuildersItems.QUARRY, "tip.block.quarry");
    }
 }

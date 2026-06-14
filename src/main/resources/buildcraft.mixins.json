@@ -4,7 +4,6 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "LevelMixin",
-    "BlockEntityMixin",
     "ShapelessRecipeAccessor"
   ],
   "client": [
@@ -12,11 +11,7 @@
     "client.GhostSlotsInvokerMixin",
     "client.ClientLevelParticleMixin",
     "client.LevelRendererMixin",
-    "client.AbstractContainerScreenAccessor",
-    "client.AbstractContainerScreenTooltipMixin",
     "client.GuiGraphicsExtractorAccessor",
-    "client.GuiGraphicsExtractorTooltipMixin",
-    "client.GuiGraphicsExtractorItemTooltipMixin",
     "client.ModelManagerMixin",
     "client.GameRendererPipMixin",
     "client.FogRendererBcFluidMixin",

@@ -12,6 +12,7 @@ import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.SchematicBlockContext;
 import buildcraft.builders.BCBuildersItems;
 import buildcraft.builders.snapshot.SchematicBlockManager;
+import buildcraft.builders.tooltip.SchematicPreviewTooltipComponent;
 import buildcraft.core.PaperAdvancement;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.inventory.InventoryWrapper;
@@ -21,6 +22,7 @@ import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.SoundUtil;
 import buildcraft.lib.misc.StackUtil;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
@@ -39,6 +41,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -196,5 +199,15 @@ public class ItemSchematicSingle extends Item {
             }
          }
       }
+   }
+
+   @Override
+   public Optional<TooltipComponent> getTooltipImage(ItemStack itemStack) {
+      if (!this.used) {
+         return Optional.empty();
+      }
+
+      ISchematicBlock schematic = getSchematicSafe(itemStack);
+      return schematic != null ? Optional.of(new SchematicPreviewTooltipComponent(schematic)) : Optional.empty();
    }
 }

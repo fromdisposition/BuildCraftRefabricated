@@ -25,7 +25,6 @@ import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.net.BcEnvelopeCodec;
-import buildcraft.lib.tile.IBlockEntityLoadHook;
 import buildcraft.silicon.plug.PluggableGate;
 import buildcraft.transport.BCTransportBlockEntities;
 import buildcraft.transport.BCTransportItems;
@@ -82,7 +81,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import team.reborn.energy.api.EnergyStorage;
 
-public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebuggable, IBlockEntityLoadHook {
+public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebuggable {
    private static final Set<TilePipeHolder> GUI_VIEWER_HOLDERS = Collections.newSetFromMap(new WeakHashMap<>());
    private static final AtomicBoolean DISCONNECT_HOOK_REGISTERED = new AtomicBoolean();
    private static final Identifier ADVANCEMENT_PIPE_DREAM = Identifier.parse("buildcrafttransport:pipe_dream");
@@ -225,7 +224,6 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       }
    }
 
-   @Override
    public void onLoad() {
       if (this.pipe != null) {
          this.pipe.onLoad();

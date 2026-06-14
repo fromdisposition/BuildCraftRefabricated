@@ -18,7 +18,6 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import buildcraft.lib.tile.BcBlockEntity;
-import buildcraft.lib.tile.IBlockEntityLoadHook;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup.Provider;
@@ -32,7 +31,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
-public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBlockEntityLoadHook {
+public abstract class TileMiner extends BcBlockEntity implements IHasWork {
    /** Shaft render scale in blocks per texture pixel row. */
    public static final double SHAFT_RADIUS = 0.0625D;
    public static final double SHAFT_CROSS_HALF = SHAFT_RADIUS * 4.0D;
@@ -91,7 +90,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork, IBloc
       }
    }
 
-   @Override
    public void onLoad() {
       if (this.level != null && this.level.getRandom() != null) {
          this.offset = this.level.getRandom().nextInt(10);

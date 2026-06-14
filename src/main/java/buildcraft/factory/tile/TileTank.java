@@ -23,7 +23,6 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import buildcraft.lib.tile.IBlockEntityLoadHook;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,7 +51,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class TileTank extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable, IBlockEntityLoadHook {
+public class TileTank extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
    public final SingleFluidTank fluidTank = new SingleFluidTank(16000, SingleFluidTank.TankAccess.OPEN, this::requestColumnBalance);
    public final FluidSmoother smoothedTank = new FluidSmoother(this.fluidTank::getAmountMb, this.fluidTank::getFluidStack, this.fluidTank::getCapacityMb);
    private int lastComparatorLevel;
@@ -292,7 +291,6 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
       this.pendingColumnBalance = true;
    }
 
-   @Override
    public void onLoad() {
       if (this.level != null && !this.level.isClientSide()) {
          this.pendingColumnBalance = true;

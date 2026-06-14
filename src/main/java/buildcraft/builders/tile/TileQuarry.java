@@ -42,7 +42,6 @@ import buildcraft.lib.misc.data.BoxIterator;
 import buildcraft.lib.misc.data.EnumAxisOrder;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.BcBlockEntity;
-import buildcraft.lib.tile.IBlockEntityLoadHook;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import java.math.BigInteger;
@@ -86,7 +85,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, IChunkLoadingTile, IAdvDebugTarget, IBlockEntityLoadHook {
+public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, IChunkLoadingTile, IAdvDebugTarget {
    public static final boolean DEBUG_QUARRY = BCDebugging.shouldDebugLog("builders.quarry");
    private static final long MAX_POWER_PER_TICK = 512L * MjAPI.MJ;
    private static final Identifier DIGGY_DIGGY_HOLE = Identifier.parse("buildcraftbuilders:diggy_diggy_hole");
@@ -388,7 +387,6 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       }
    }
 
-   @Override
    public void onLoad() {
       if (this.level != null && !this.level.isClientSide()) {
          this.deferredUpdatePoses = true;

@@ -8,67 +8,44 @@ package buildcraft.builders.client.tooltip;
 
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.builders.client.render.BlueprintRenderer;
-import buildcraft.builders.item.ItemSchematicSingle;
 import buildcraft.builders.snapshot.Blueprint;
-import buildcraft.fabric.client.event.RenderTooltipEvent;
+import buildcraft.builders.tooltip.SchematicPreviewTooltipComponent;
 import buildcraft.lib.gui.BCGraphics;
-import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.item.ItemStack;
-import org.joml.Vector2ic;
 
-public final class SchematicSingleTooltipOverlay {
+public final class SchematicSingleTooltipOverlay implements ClientTooltipComponent {
    public static final int PREVIEW_SIZE = 100;
-   private static final int VISIBLE_GAP = 4;
-   private static final int FRAME_PADDING = 3;
    @Nullable
    private static ISchematicBlock cachedSchematic;
    @Nullable
    private static Blueprint cachedSynthetic;
+   private final ISchematicBlock schematic;
 
-   private SchematicSingleTooltipOverlay() {
+   public SchematicSingleTooltipOverlay(SchematicPreviewTooltipComponent component) {
+      this.schematic = component.schematic();
    }
 
-   public static void onPreTooltip(RenderTooltipEvent.Pre event) {
-      ItemStack stack = event.getItemStack();
-      if (stack.getItem() instanceof ItemSchematicSingle schemItem && schemItem.isUsed()) {
-         ISchematicBlock schematic = ItemSchematicSingle.getSchematicSafe(stack);
-         if (schematic != null) {
-            Font font = event.getFont();
-            List<ClientTooltipComponent> components = event.getComponents();
-            if (!components.isEmpty()) {
-               int textWidth = 0;
-               int contentHeight = components.size() == 1 ? -2 : 0;
+   @Override
+   public int getHeight(Font font) {
+      return PREVIEW_SIZE;
+   }
 
-               for (ClientTooltipComponent c : components) {
-                  int w = c.getWidth(font);
-                  if (w > textWidth) {
-                     textWidth = w;
-                  }
+   @Override
+   public int getWidth(Font font) {
+      return PREVIEW_SIZE;
+   }
 
-                  contentHeight += c.getHeight(font);
-               }
-
-               ClientTooltipPositioner positioner = event.getTooltipPositioner();
-               Vector2ic finalPos = positioner.positionTooltip(
-                  event.getScreenWidth(), event.getScreenHeight(), event.getX(), event.getY(), textWidth, contentHeight
-               );
-               int finalX = finalPos.x();
-               int finalY = finalPos.y();
-               int pX = finalX;
-               int pY = finalY + contentHeight + 3 + 4 + 3;
-               TooltipRenderUtil.extractTooltipBackground(event.getGraphics(), pX, pY, 100, 100, null);
-               Blueprint synthetic = getOrBuildSynthetic(schematic);
-               BlueprintRenderer.renderSnapshot(new BCGraphics(event.getGraphics()), synthetic, pX, pY, 100, 100);
-            }
-         }
-      }
+   @Override
+   public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
+      TooltipRenderUtil.extractTooltipBackground(graphics, x, y, PREVIEW_SIZE, PREVIEW_SIZE, null);
+      Blueprint synthetic = getOrBuildSynthetic(this.schematic);
+      BlueprintRenderer.renderSnapshot(new BCGraphics(graphics), synthetic, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
    }
 
    private static Blueprint getOrBuildSynthetic(ISchematicBlock schematic) {

@@ -20,7 +20,6 @@ import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.VolumeUtil;
 import buildcraft.lib.misc.data.AverageLong;
 import buildcraft.lib.mj.MjBatteryReceiver;
-import buildcraft.lib.tile.IBlockEntityLoadHook;
 import buildcraft.silicon.BCSiliconBlockEntities;
 import buildcraft.silicon.BCSiliconBlocks;
 import buildcraft.silicon.block.BlockLaser;
@@ -44,7 +43,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscriber, IDebuggable, IAdvDebugTarget, IBlockEntityLoadHook {
+public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscriber, IDebuggable, IAdvDebugTarget {
    private static final int TARGETING_RANGE = 6;
    private final SafeTimeTracker clientLaserMoveInterval = new SafeTimeTracker(5L, 10L);
    private final SafeTimeTracker serverTargetMoveInterval = new SafeTimeTracker(10L, 20L);
@@ -269,7 +268,6 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       return ClientboundBlockEntityDataPacket.create(this);
    }
 
-   @Override
    public void onLoad() {
       if (this.level != null && this.level.isClientSide()) {
          RenderLaser.addLaser(this);

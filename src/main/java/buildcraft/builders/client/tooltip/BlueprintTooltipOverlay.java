@@ -7,73 +7,50 @@
 package buildcraft.builders.client.tooltip;
 
 import buildcraft.builders.client.render.BlueprintRenderer;
-import buildcraft.builders.item.ItemSnapshot;
 import buildcraft.builders.snapshot.ClientSnapshots;
 import buildcraft.builders.snapshot.Snapshot;
-import buildcraft.fabric.client.event.RenderTooltipEvent;
+import buildcraft.builders.tooltip.BlueprintPreviewTooltipComponent;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.misc.HashUtil;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipPositioner;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
-import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.joml.Vector2ic;
 
-public final class BlueprintTooltipOverlay {
+public final class BlueprintTooltipOverlay implements ClientTooltipComponent {
    private static final Logger LOGGER = LogManager.getLogger("BCBlueprintTooltipOverlay");
    public static final int PREVIEW_SIZE = 100;
-   private static final int VISIBLE_GAP = 4;
-   private static final int FRAME_PADDING = 3;
    private static final Set<String> LOGGED_KEYS = Collections.synchronizedSet(new HashSet<>());
+   private final Snapshot.Header header;
 
-   private BlueprintTooltipOverlay() {
+   public BlueprintTooltipOverlay(BlueprintPreviewTooltipComponent component) {
+      this.header = component.header();
    }
 
-   public static void onPreTooltip(RenderTooltipEvent.Pre event) {
-      ItemStack stack = event.getItemStack();
-      if (stack.getItem() instanceof ItemSnapshot) {
-         Snapshot.Header header = ItemSnapshot.getHeader(stack);
-         if (header != null) {
-            Snapshot snapshot = ClientSnapshots.INSTANCE.getSnapshot(header.key);
-            Font font = event.getFont();
-            List<ClientTooltipComponent> components = event.getComponents();
-            if (!components.isEmpty()) {
-               int textWidth = 0;
-               int contentHeight = components.size() == 1 ? -2 : 0;
+   @Override
+   public int getHeight(Font font) {
+      return PREVIEW_SIZE;
+   }
 
-               for (ClientTooltipComponent c : components) {
-                  int w = c.getWidth(font);
-                  if (w > textWidth) {
-                     textWidth = w;
-                  }
+   @Override
+   public int getWidth(Font font) {
+      return PREVIEW_SIZE;
+   }
 
-                  contentHeight += c.getHeight(font);
-               }
-
-               ClientTooltipPositioner positioner = event.getTooltipPositioner();
-               Vector2ic finalPos = positioner.positionTooltip(
-                  event.getScreenWidth(), event.getScreenHeight(), event.getX(), event.getY(), textWidth, contentHeight
-               );
-               int finalX = finalPos.x();
-               int finalY = finalPos.y();
-               int pX = finalX;
-               int pY = finalY + contentHeight + 3 + 4 + 3;
-               TooltipRenderUtil.extractTooltipBackground(event.getGraphics(), pX, pY, 100, 100, null);
-               if (snapshot != null) {
-                  BlueprintRenderer.renderSnapshot(new BCGraphics(event.getGraphics()), snapshot, pX, pY, 100, 100);
-               }
-
-               logOnce(header.key, snapshot, pX, pY);
-            }
-         }
+   @Override
+   public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
+      Snapshot snapshot = ClientSnapshots.INSTANCE.getSnapshot(this.header.key);
+      TooltipRenderUtil.extractTooltipBackground(graphics, x, y, PREVIEW_SIZE, PREVIEW_SIZE, null);
+      if (snapshot != null) {
+         BlueprintRenderer.renderSnapshot(new BCGraphics(graphics), snapshot, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
       }
+
+      logOnce(this.header.key, snapshot, x, y);
    }
 
    private static void logOnce(Snapshot.Key key, Snapshot snapshot, int pX, int pY) {

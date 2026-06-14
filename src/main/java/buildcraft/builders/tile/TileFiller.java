@@ -45,7 +45,6 @@ import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.tile.BcBlockEntity;
-import buildcraft.lib.tile.IBlockEntityLoadHook;
 import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.lib.fabric.transfer.NeighborTransfers;
@@ -96,7 +95,6 @@ public class TileFiller
    IControllable,
    IHasWork,
    ITileForTemplateBuilder,
-   IBlockEntityLoadHook,
    IChunkLoadingTile,
    MenuProvider,
    BlockEntityExtendedMenu {
@@ -160,7 +158,6 @@ public class TileFiller
       BCBuildersEventDist.INSTANCE.validateFiller(this);
    }
 
-   @Override
    public void onLoad() {
       if (this.level != null && !this.level.isClientSide()) {
          this.schedulePipeNeighborNotify();

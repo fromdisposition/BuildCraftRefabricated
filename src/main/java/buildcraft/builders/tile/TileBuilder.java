@@ -42,7 +42,6 @@ import buildcraft.lib.misc.PositionUtil;
 import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.BcBlockEntity;
-import buildcraft.lib.tile.IBlockEntityLoadHook;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -88,7 +87,6 @@ public class TileBuilder
    IHasWork,
    ITileForTemplateBuilder,
    ITileForBlueprintBuilder,
-   IBlockEntityLoadHook,
    MenuProvider,
    BlockEntityExtendedMenu {
    public static final int RESOURCE_SLOTS = 27;
@@ -142,7 +140,6 @@ public class TileBuilder
       BCBuildersEventDist.INSTANCE.validateBuilder(this);
    }
 
-   @Override
    public void onLoad() {
       if (this.level != null && !this.level.isClientSide()) {
          this.schedulePipeNeighborNotify();

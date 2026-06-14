@@ -22,7 +22,6 @@ import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.BlockUtil;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.server.level.ServerPlayer;
-import buildcraft.lib.tile.IBlockEntityLoadHook;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.mojang.authlib.GameProfile;
@@ -61,7 +60,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEntityLoadHook {
+public class TileFloodGate extends BlockEntity implements IDebuggable {
    private static final Direction[] SEARCH_NORMAL = new Direction[]{Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
    private static final Direction[] SEARCH_GASEOUS = new Direction[]{Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
    private static final int[] REBUILD_DELAYS = new int[]{16, 32, 64, 128, 256};
@@ -315,7 +314,6 @@ public class TileFloodGate extends BlockEntity implements IDebuggable, IBlockEnt
       this.syncOpenSidesToBlockState();
    }
 
-   @Override
    public void onLoad() {
       this.syncOpenSidesToBlockState();
    }

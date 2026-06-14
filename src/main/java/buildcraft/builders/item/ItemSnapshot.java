@@ -8,12 +8,15 @@ package buildcraft.builders.item;
 
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.builders.snapshot.Snapshot;
+import buildcraft.builders.tooltip.BlueprintPreviewTooltipComponent;
 import buildcraft.lib.misc.HashUtil;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -72,5 +75,11 @@ public class ItemSnapshot extends Item {
             tooltip.add(Component.literal("Owner UUID: " + header.owner).withStyle(ChatFormatting.GRAY));
          }
       }
+   }
+
+   @Override
+   public Optional<TooltipComponent> getTooltipImage(ItemStack itemStack) {
+      Snapshot.Header header = getHeader(itemStack);
+      return header != null ? Optional.of(new BlueprintPreviewTooltipComponent(header)) : Optional.empty();
    }
 }
