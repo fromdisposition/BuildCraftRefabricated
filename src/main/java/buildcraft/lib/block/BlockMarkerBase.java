@@ -114,6 +114,7 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileMarker<?> marker) {
+         marker.buildcraft$onAttachedToLevel(level);
          marker.onPlacedBy(placer, stack);
       }
    }

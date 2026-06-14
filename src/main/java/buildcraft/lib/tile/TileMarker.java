@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,8 +44,21 @@ public abstract class TileMarker<C extends MarkerConnection<C>> extends BlockEnt
    }
 
    public void buildcraft$onAttachedToLevel() {
-      if (this.level != null && !this.level.isClientSide()) {
-         this.getLocalCache().loadMarker(this.getBlockPos(), this);
+      this.buildcraft$onAttachedToLevel(this.level);
+   }
+
+   public void buildcraft$onAttachedToLevel(Level level) {
+      if (level != null && !level.isClientSide()) {
+         this.getCache().getSubCache(level).loadMarker(this.getBlockPos(), this);
+      }
+   }
+
+   @Override
+   public void setLevel(Level level) {
+      super.setLevel(level);
+      if (level != null && !level.isClientSide()) {
+         this.chunkUnloading = false;
+         this.buildcraft$onAttachedToLevel(level);
       }
    }
 

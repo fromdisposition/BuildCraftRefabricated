@@ -28,7 +28,7 @@ public final class BCBlockEntityLifecycleEvents {
       ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> {
          onServerLoad(blockEntity);
          if (blockEntity instanceof TileMarker<?> marker) {
-            marker.buildcraft$onAttachedToLevel();
+            marker.buildcraft$onAttachedToLevel(level);
          }
       });
       ServerBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) -> {

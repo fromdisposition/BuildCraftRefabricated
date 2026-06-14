@@ -258,6 +258,9 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
 
       input.read("avg_power", CompoundTag.CODEC).ifPresent(tag -> this.avgPower.readFromNbt(tag, "average_power"));
       this.averageClient = (long)this.avgPower.getAverage();
+      if (this.level != null && this.level.isClientSide()) {
+         this.onClientLoaded();
+      }
    }
 
    public CompoundTag getUpdateTag(Provider registries) {
@@ -270,11 +273,19 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
 
    public void onLoad() {
       if (this.level != null && this.level.isClientSide()) {
-         RenderLaser.addLaser(this);
+         this.onClientLoaded();
       } else if (this.level != null) {
          this.worldHasUpdated = true;
          this.ensureRegistered();
       }
+   }
+
+   public void onClientLoaded() {
+      RenderLaser.addLaser(this);
+   }
+
+   public void onClientUnload() {
+      RenderLaser.removeLaser(this);
    }
 
    public void setRemoved() {
@@ -284,7 +295,7 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       }
 
       if (this.level != null && this.level.isClientSide()) {
-         RenderLaser.removeLaser(this);
+         this.onClientUnload();
       }
    }
 

@@ -18,6 +18,7 @@ public final class BCClientBlockEntityLifecycleEvents {
 
       initialized = true;
       ClientBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> onClientLoad(blockEntity));
+      ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) -> onClientUnload(blockEntity));
    }
 
    private static void onClientLoad(BlockEntity blockEntity) {
@@ -25,6 +26,12 @@ public final class BCClientBlockEntityLifecycleEvents {
          pipeHolder.onLoad();
       } else if (blockEntity instanceof TileLaser laser) {
          laser.onLoad();
+      }
+   }
+
+   private static void onClientUnload(BlockEntity blockEntity) {
+      if (blockEntity instanceof TileLaser laser) {
+         laser.onClientUnload();
       }
    }
 }
