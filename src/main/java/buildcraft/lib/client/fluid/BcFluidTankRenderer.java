@@ -7,7 +7,8 @@
 package buildcraft.lib.client.fluid;
 
 
-import buildcraft.lib.fluid.meta.FluidAttributes;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import buildcraft.lib.fluid.stack.FluidStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
@@ -42,7 +43,7 @@ public final class BcFluidTankRenderer {
          float b = rgba[2];
          float a = rgba[3];
          float fillRatio = (float)(amount / capacity);
-         boolean gaseous = !fluid.isEmpty() && FluidAttributes.of(fluid.getFluid()).isLighterThanAir();
+         boolean gaseous = !fluid.isEmpty() && FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid.getFluid()));
          float fluidTop;
          float fluidBottom;
          if (gaseous) {

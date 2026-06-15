@@ -9,7 +9,7 @@ package buildcraft.silicon.plug;
 import buildcraft.api.mj.IMjRedstoneReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IPipeHolder;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
@@ -225,12 +225,16 @@ public class PluggablePulsar extends PipePluggable {
       return this.manuallyEnabled || this.gateEnabledTicks > 0 || this.gateSinglePulses > 0;
    }
 
-   @PipeEventHandler
    public void onAddActions(PipeEventStatement.AddActionInternalSided event) {
       if (event.side == this.side) {
          event.actions.add(BCSiliconStatements.ACTION_PULSAR_CONSTANT);
          event.actions.add(BCSiliconStatements.ACTION_PULSAR_SINGLE);
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventStatement.AddActionInternalSided.class, this, this::onAddActions);
    }
 
    public KeyPlugSimple getModelRenderKey(Object layer) {

@@ -7,8 +7,8 @@
 package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeBehaviour;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import net.minecraft.nbt.CompoundTag;
 
@@ -24,8 +24,12 @@ public class PipeBehaviourGold extends PipeBehaviour {
       super(pipe, nbt);
    }
 
-   @PipeEventHandler
    public static void modifySpeed(PipeEventItem.ModifySpeed event) {
       event.modifyTo(0.25, 0.07);
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventItem.ModifySpeed.class, this, PipeBehaviourGold::modifySpeed);
    }
 }

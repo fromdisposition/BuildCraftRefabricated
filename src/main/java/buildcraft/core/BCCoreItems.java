@@ -16,7 +16,6 @@ import buildcraft.core.item.ItemPaintbrush_BC8;
 import buildcraft.core.item.ItemVolumeBox;
 import buildcraft.core.item.ItemWrench_Neptune;
 import buildcraft.fabric.BCRegistries;
-import buildcraft.lib.BCLib;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -78,20 +77,7 @@ public class BCCoreItems {
       DECORATED_BLUEPRINT = BCRegistries.registerBlockItem("buildcraftcore", "decorated_blueprint", BCCoreBlocks.DECORATED_BLUEPRINT);
       DECORATED_TEMPLATE = BCRegistries.registerBlockItem("buildcraftcore", "decorated_template", BCCoreBlocks.DECORATED_TEMPLATE);
       MAP_LOCATION = BCRegistries.registerItem("buildcraftcore", "map_location", ItemMapLocation::new, p -> p.stacksTo(1));
-      if (BCLib.DEV) {
-         if (BCCoreBlocks.DECORATED_PAPER != null) {
-            DECORATED_PAPER = BCRegistries.registerBlockItem("buildcraftcore", "decorated_paper", BCCoreBlocks.DECORATED_PAPER);
-         }
-
-         if (BCCoreBlocks.DECORATED_LEATHER != null) {
-            DECORATED_LEATHER = BCRegistries.registerBlockItem("buildcraftcore", "decorated_leather", BCCoreBlocks.DECORATED_LEATHER);
-         }
-
-         GOGGLES = BCRegistries.registerItem("buildcraftcore", "goggles", ItemGoggles::new, p -> p.stacksTo(1).equippable(EquipmentSlot.HEAD));
-         if (BCCoreBlocks.POWER_TESTER != null) {
-            POWER_TESTER = BCRegistries.registerBlockItem("buildcraftcore", "power_tester", BCCoreBlocks.POWER_TESTER);
-         }
-
-      }
+      GOGGLES = BCRegistries.registerItem("buildcraftcore", "goggles", ItemGoggles::new, p -> p.stacksTo(1).equippable(EquipmentSlot.HEAD));
+      POWER_TESTER = BCRegistries.registerBlockItem("buildcraftcore", "power_tester", BCCoreBlocks.POWER_TESTER);
    }
 }

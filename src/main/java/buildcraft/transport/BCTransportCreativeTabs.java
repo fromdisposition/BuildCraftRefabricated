@@ -98,14 +98,14 @@ public final class BCTransportCreativeTabs {
       output.accept(BCTransportItems.PIPE_SANDSTONE_POWER);
       output.accept(BCTransportItems.PIPE_DIAMOND_POWER);
       output.accept(BCTransportItems.PIPE_DIAMOND_WOOD_POWER);
-      output.accept(BCTransportItems.PIPE_WOOD_RF);
-      output.accept(BCTransportItems.PIPE_COBBLE_RF);
-      output.accept(BCTransportItems.PIPE_STONE_RF);
-      output.accept(BCTransportItems.PIPE_QUARTZ_RF);
-      output.accept(BCTransportItems.PIPE_IRON_RF);
-      output.accept(BCTransportItems.PIPE_GOLD_RF);
-      output.accept(BCTransportItems.PIPE_SANDSTONE_RF);
-      output.accept(BCTransportItems.PIPE_DIAMOND_RF);
-      output.accept(BCTransportItems.PIPE_DIAMOND_WOOD_RF);
+      if (BCTransportItems.PIPE_WOOD_RF != null) output.accept(BCTransportItems.PIPE_WOOD_RF);
+      if (BCTransportItems.PIPE_COBBLE_RF != null) output.accept(BCTransportItems.PIPE_COBBLE_RF);
+      if (BCTransportItems.PIPE_STONE_RF != null) output.accept(BCTransportItems.PIPE_STONE_RF);
+      if (BCTransportItems.PIPE_QUARTZ_RF != null) output.accept(BCTransportItems.PIPE_QUARTZ_RF);
+      if (BCTransportItems.PIPE_IRON_RF != null) output.accept(BCTransportItems.PIPE_IRON_RF);
+      if (BCTransportItems.PIPE_GOLD_RF != null) output.accept(BCTransportItems.PIPE_GOLD_RF);
+      if (BCTransportItems.PIPE_SANDSTONE_RF != null) output.accept(BCTransportItems.PIPE_SANDSTONE_RF);
+      if (BCTransportItems.PIPE_DIAMOND_RF != null) output.accept(BCTransportItems.PIPE_DIAMOND_RF);
+      if (BCTransportItems.PIPE_DIAMOND_WOOD_RF != null) output.accept(BCTransportItems.PIPE_DIAMOND_WOOD_RF);
    }
 }

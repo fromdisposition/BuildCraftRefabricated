@@ -18,10 +18,11 @@ import buildcraft.factory.tile.TileMiningWell;
 import buildcraft.factory.tile.TilePump;
 import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.fabric.transfer.AutoProvidingItemStorage;
-import buildcraft.lib.mj.MjBlockCapabilities;
+import buildcraft.api.mj.IMjReadable;
+import buildcraft.api.mj.MjAPI;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import team.reborn.energy.api.EnergyStorage;
+import net.fabricmc.loader.api.FabricLoader;
 
 public final class BCFactoryFabric {
    private BCFactoryFabric() {
@@ -73,68 +74,43 @@ public final class BCFactoryFabric {
             (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchItems workbench ? workbench.getSidedItemStorage(direction) : null,
             BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS
          );
-      if (BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS != null) {
-         ItemStorage.SIDED
-            .registerForBlockEntity(
-               (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedItemStorage(direction) : null,
-               BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
-            );
-         FluidStorage.SIDED
-            .registerForBlockEntity(
-               (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedFluidStorage(direction) : null,
-               BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
-            );
-      }
-      EnergyStorage.SIDED
+      ItemStorage.SIDED
          .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileMiner miner ? miner.getSidedEnergyStorage() : null, BCFactoryBlockEntities.MINING_WELL
+            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedItemStorage(direction) : null,
+            BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
+         );
+      FluidStorage.SIDED
+         .registerForBlockEntity(
+            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedFluidStorage(direction) : null,
+            BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
          );
       ItemStorage.SIDED
          .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TileMiningWell ? AutoProvidingItemStorage.INSTANCE : null, BCFactoryBlockEntities.MINING_WELL
          );
-      EnergyStorage.SIDED
-         .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileMiner miner ? miner.getSidedEnergyStorage() : null, BCFactoryBlockEntities.PUMP
-         );
-      EnergyStorage.SIDED
-         .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileChute chute ? chute.getSidedEnergyStorage() : null, BCFactoryBlockEntities.CHUTE
-         );
-      EnergyStorage.SIDED
-         .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileDistiller distiller ? distiller.getSidedEnergyStorage() : null,
-            BCFactoryBlockEntities.DISTILLER
-         );
-      EnergyStorage.SIDED
-         .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchBase workbench ? workbench.getSidedEnergyStorage() : null,
-            BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS
-         );
-      if (BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS != null) {
-         EnergyStorage.SIDED
-            .registerForBlockEntity(
-               (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchBase workbench ? workbench.getSidedEnergyStorage() : null,
-               BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
-            );
+      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
+         BCFactoryFabricTre.register();
       }
    }
 
    private static void registerMjCapabilities() {
-      MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS, (workbench, direction) -> workbench.getMjReceiver());
-      MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS, (workbench, direction) -> workbench.getMjReceiver());
-      if (BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS != null) {
-         MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS, (workbench, direction) -> workbench.getMjReceiver());
-         MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS, (workbench, direction) -> workbench.getMjReceiver());
-      }
-      MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.MINING_WELL, (miner, direction) -> miner.getMjReceiver());
-      MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.MINING_WELL, (miner, direction) -> miner.getMjReceiver());
-      MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.PUMP, (pump, direction) -> pump.getMjReceiver());
-      MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.PUMP, (pump, direction) -> pump.getMjReceiver());
-      MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.CHUTE, (chute, direction) -> chute.getMjReceiver());
-      MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.CHUTE, (chute, direction) -> chute.getMjReceiver());
-      MjBlockCapabilities.registerReceiver(BCFactoryBlockEntities.DISTILLER, (distiller, direction) -> distiller.getMjReceiver());
-      MjBlockCapabilities.registerConnector(BCFactoryBlockEntities.DISTILLER, (distiller, direction) -> distiller.getMjReceiver());
+      MjAPI.CAP_RECEIVER.registerForBlockEntity((workbench, direction) -> workbench.getMjReceiver(), BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS);
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity((workbench, direction) -> workbench.getMjReceiver(), BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS);
+      MjAPI.CAP_RECEIVER.registerForBlockEntity((workbench, direction) -> workbench.getMjReceiver(), BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS);
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity((workbench, direction) -> workbench.getMjReceiver(), BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS);
+      MjAPI.CAP_RECEIVER.registerForBlockEntity((miner, direction) -> miner.getMjReceiver(), BCFactoryBlockEntities.MINING_WELL);
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity((miner, direction) -> miner.getMjReceiver(), BCFactoryBlockEntities.MINING_WELL);
+      MjAPI.CAP_RECEIVER.registerForBlockEntity((pump, direction) -> pump.getMjReceiver(), BCFactoryBlockEntities.PUMP);
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity((pump, direction) -> pump.getMjReceiver(), BCFactoryBlockEntities.PUMP);
+      MjAPI.CAP_RECEIVER.registerForBlockEntity((chute, direction) -> chute.getMjReceiver(), BCFactoryBlockEntities.CHUTE);
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity((chute, direction) -> chute.getMjReceiver(), BCFactoryBlockEntities.CHUTE);
+      MjAPI.CAP_RECEIVER.registerForBlockEntity((distiller, direction) -> distiller.getMjReceiver(), BCFactoryBlockEntities.DISTILLER);
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity((distiller, direction) -> distiller.getMjReceiver(), BCFactoryBlockEntities.DISTILLER);
+      // MjBatteryReceiver / MjRedstoneBatteryReceiver both implement IMjReadable
+      MjAPI.CAP_READABLE.registerForBlockEntity((chute, direction) -> chute.getMjReceiver() instanceof IMjReadable r ? r : null, BCFactoryBlockEntities.CHUTE);
+      MjAPI.CAP_READABLE.registerForBlockEntity((distiller, direction) -> distiller.getMjReceiver() instanceof IMjReadable r ? r : null, BCFactoryBlockEntities.DISTILLER);
+      MjAPI.CAP_READABLE.registerForBlockEntity((wb, direction) -> wb.getMjReceiver() instanceof IMjReadable r ? r : null, BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS);
+      MjAPI.CAP_READABLE.registerForBlockEntity((wb, direction) -> wb.getMjReceiver() instanceof IMjReadable r ? r : null, BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS);
    }
 
    public static void onConfigReloaded() {

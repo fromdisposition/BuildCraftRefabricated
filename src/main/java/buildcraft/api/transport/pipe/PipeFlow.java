@@ -93,4 +93,7 @@ public abstract class PipeFlow {
    public <T> T getCapability(@Nonnull Object capability, Direction facing) {
       return null;
    }
+
+   public void registerEventHandlers(IPipeEventBus bus) {
+   }
 }

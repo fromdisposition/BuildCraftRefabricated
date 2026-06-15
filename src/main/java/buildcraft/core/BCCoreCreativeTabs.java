@@ -72,6 +72,9 @@ public final class BCCoreCreativeTabs {
 
                if (BCFactoryItems.AUTOWORKBENCH_ITEM != null) {
                   output.accept(BCFactoryItems.AUTOWORKBENCH_ITEM);
+                  if (BCFactoryItems.AUTOWORKBENCH_FLUID != null) {
+                     output.accept(BCFactoryItems.AUTOWORKBENCH_FLUID);
+                  }
                   output.accept(BCFactoryItems.MINING_WELL);
                   output.accept(BCFactoryItems.PUMP);
                   output.accept(BCFactoryItems.FLOOD_GATE);
@@ -95,31 +98,14 @@ public final class BCCoreCreativeTabs {
                output.accept(BCLibItems.GUIDE);
                output.accept(BCLibItems.GUIDE_CONFIG);
                output.accept(ItemGuideNote.withPage(Identifier.parse("buildcraft:block/quarry")));
-               if (BCCore.DEV) {
-                  if (BCCoreItems.GOGGLES != null) {
-                     output.accept(BCCoreItems.GOGGLES);
-                  }
-
-                  if (BCCoreItems.DECORATED_PAPER != null) {
-                     output.accept(BCCoreItems.DECORATED_PAPER);
-                  }
-
-                  if (BCCoreItems.DECORATED_LEATHER != null) {
-                     output.accept(BCCoreItems.DECORATED_LEATHER);
-                  }
-
-                  if (BCFactoryItems.AUTOWORKBENCH_FLUID != null) {
-                     output.accept(BCFactoryItems.AUTOWORKBENCH_FLUID);
-                  }
-
-                  if (BCCoreItems.POWER_TESTER != null) {
-                     output.accept(BCCoreItems.POWER_TESTER);
-                  }
-
-                  if (BCLibItems.DEBUGGER != null) {
-                     output.accept(BCLibItems.DEBUGGER);
-                  }
-
+               if (BCCoreItems.GOGGLES != null) {
+                  output.accept(BCCoreItems.GOGGLES);
+               }
+               if (BCCoreItems.POWER_TESTER != null) {
+                  output.accept(BCCoreItems.POWER_TESTER);
+               }
+               if (BCLibItems.DEBUGGER != null) {
+                  output.accept(BCLibItems.DEBUGGER);
                }
 
                output.accept(BCCoreItems.GEAR_WOOD);

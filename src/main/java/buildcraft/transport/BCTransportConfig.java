@@ -9,38 +9,17 @@ package buildcraft.transport;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeDefinition;
-import buildcraft.lib.config.ConfigSpec;
 
 public class BCTransportConfig {
-   public static ConfigSpec.BooleanValue disableRfPipe;
-   public static ConfigSpec.LongValue mjPerItem;
-   public static ConfigSpec.LongValue mjPerMillibucket;
-   public static ConfigSpec.IntValue basePowerRate;
-   public static ConfigSpec.IntValue baseRfRate;
-   public static ConfigSpec.IntValue baseFlowRate;
-
-   public static void ensureLoaded() {
-      if (basePowerRate == null) {
-         buildGeneral(new ConfigSpec.Builder());
-      }
-   }
-
-   public static void buildGeneral(ConfigSpec.Builder builder) {
-      builder.push("pipes");
-      disableRfPipe = builder.comment("Set true to disable the RF pipe").define("disableRfPipe", false);
-      mjPerItem = builder.comment("MJ cost per item extracted by a wooden pipe. Default: 1 MJ (= 1,000,000 µMJ).")
-         .defineInRange("mjPerItem", 1000000L, 0L, Long.MAX_VALUE);
-      mjPerMillibucket = builder.comment("MJ cost per millibucket extracted by a wooden fluid pipe. Default: 1000 µMJ per mB.")
-         .defineInRange("mjPerMillibucket", 1000L, 0L, Long.MAX_VALUE);
-      basePowerRate = builder.comment("Base multiplier for kinesis pipe transfer rates (MJ). Default: 4.")
-         .defineInRange("basePowerRate", 4, 1, Integer.MAX_VALUE);
-      baseRfRate = builder.comment("Base multiplier for RF pipe transfer rates (RF/t). Default: 40.").defineInRange("baseRfRate", 40, 10, 4000);
-      baseFlowRate = builder.comment("Base multiplier for fluid pipe transfer rates (mB/t). Default: 10.").defineInRange("baseFlowRate", 10, 1, 40);
-      builder.pop();
-   }
+   public static boolean disableRfPipe = false;
+   public static long mjPerItem = 1_000_000L;
+   public static long mjPerMillibucket = 1_000L;
+   public static int basePowerRate = 4;
+   public static int baseRfRate = 40;
+   public static int baseFlowRate = 10;
 
    public static void registerPowerTransferData() {
-      int rate = basePowerRate.get();
+      int rate = basePowerRate;
       powerTransfer(BCTransportPipes.cobblePower, rate, 16, false);
       powerTransfer(BCTransportPipes.stonePower, rate * 2, 32, false);
       powerTransfer(BCTransportPipes.woodPower, rate * 4, 128, true);
@@ -59,8 +38,8 @@ public class BCTransportConfig {
    }
 
    public static void registerRfTransferData() {
-      int rate = baseRfRate.get();
-      if (!disableRfPipe.get()) {
+      int rate = baseRfRate;
+      if (!disableRfPipe) {
          rfTransfer(BCTransportPipes.cobbleRf, rate, false);
          rfTransfer(BCTransportPipes.stoneRf, rate * 2, false);
          rfTransfer(BCTransportPipes.woodRf, rate * 4, true);
@@ -78,7 +57,7 @@ public class BCTransportConfig {
    }
 
    public static void registerFluidTransferData() {
-      int rate = baseFlowRate.get();
+      int rate = baseFlowRate;
       fluidTransfer(BCTransportPipes.cobbleFluid, rate, 10);
       fluidTransfer(BCTransportPipes.woodFluid, rate, 10);
       fluidTransfer(BCTransportPipes.stoneFluid, rate * 2, 10);

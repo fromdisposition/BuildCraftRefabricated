@@ -1,7 +1,6 @@
 package buildcraft.fabric.fluid;
 
 
-import buildcraft.lib.fluid.meta.FluidAttributes;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
@@ -295,11 +294,6 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
 
          if (this.flowing instanceof BcOilFluid flowingFluid) {
             flowingFluid.invalidateSpreadCache();
-         }
-
-         if (this.still != null && this.flowing != null) {
-            buildcraft.lib.fluid.meta.FluidAttributes.register(this.still, newProps.viscosity(), newProps.density());
-            buildcraft.lib.fluid.meta.FluidAttributes.register(this.flowing, newProps.viscosity(), newProps.density());
          }
 
          if (newProps.flammable() && !wasFlammable && this.block != null) {

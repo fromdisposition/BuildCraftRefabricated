@@ -15,7 +15,6 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.tags.TagKey;
-import buildcraft.lib.fluid.meta.FluidAttributes;
 import net.minecraft.world.level.material.Fluid;
 
 public final class SimpleFluidContent implements DataComponentHolder {
@@ -71,14 +70,6 @@ public final class SimpleFluidContent implements DataComponentHolder {
 
    public int getAmount() {
       return this.fluidStack.getAmount();
-   }
-
-   public FluidAttributes getFluidAttributes() {
-      return this.fluidStack.getFluidAttributes();
-   }
-
-   public boolean is(FluidAttributes fluidAttributes) {
-      return this.fluidStack.is(fluidAttributes);
    }
 
    public boolean matches(FluidStack other) {

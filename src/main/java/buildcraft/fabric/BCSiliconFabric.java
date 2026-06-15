@@ -1,6 +1,7 @@
 package buildcraft.fabric;
 
-import buildcraft.lib.mj.MjBlockCapabilities;
+import buildcraft.api.mj.IMjReadable;
+import buildcraft.api.mj.MjAPI;
 import buildcraft.silicon.BCSiliconBlockEntities;
 import buildcraft.silicon.BCSiliconBlocks;
 import buildcraft.silicon.BCSiliconCreativeTabs;
@@ -20,8 +21,7 @@ import buildcraft.silicon.tile.TilePackager;
 import buildcraft.silicon.tile.TileProgrammingTable;
 import buildcraft.silicon.tile.TileStampingTable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import team.reborn.energy.api.EnergyStorage;
+import net.fabricmc.loader.api.FabricLoader;
 
 public final class BCSiliconFabric {
    private BCSiliconFabric() {
@@ -43,16 +43,9 @@ public final class BCSiliconFabric {
    }
 
    private static void registerNativeTransfer() {
-      EnergyStorage.SIDED
-         .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileLaser laser ? laser.getSidedEnergyStorage() : null, BCSiliconBlockEntities.LASER
-         );
-      registerLaserTableEnergy(BCSiliconBlockEntities.ASSEMBLY_TABLE);
-      registerLaserTableEnergy(BCSiliconBlockEntities.ADVANCED_CRAFTING_TABLE);
-      registerLaserTableEnergy(BCSiliconBlockEntities.INTEGRATION_TABLE);
-      registerLaserTableEnergy(BCSiliconBlockEntities.CHARGING_TABLE);
-      registerLaserTableEnergy(BCSiliconBlockEntities.PROGRAMMING_TABLE);
-      registerLaserTableEnergy(BCSiliconBlockEntities.STAMPING_TABLE);
+      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
+         BCSiliconFabricTre.register();
+      }
       ItemStorage.SIDED
          .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TileAssemblyTable table ? table.getSidedItemStorage(direction) : null,
@@ -90,15 +83,9 @@ public final class BCSiliconFabric {
          );
    }
 
-   private static void registerLaserTableEnergy(BlockEntityType<? extends TileLaserTableBase> type) {
-      EnergyStorage.SIDED
-         .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileLaserTableBase table ? table.getSidedEnergyStorage() : null, type
-         );
-   }
-
    private static void registerMjCapabilities() {
-      MjBlockCapabilities.registerReceiver(BCSiliconBlockEntities.LASER, (laser, direction) -> laser.getMjReceiver());
-      MjBlockCapabilities.registerConnector(BCSiliconBlockEntities.LASER, (laser, direction) -> laser.getMjReceiver());
+      MjAPI.CAP_RECEIVER.registerForBlockEntity((laser, direction) -> laser.getMjReceiver(), BCSiliconBlockEntities.LASER);
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity((laser, direction) -> laser.getMjReceiver(), BCSiliconBlockEntities.LASER);
+      MjAPI.CAP_READABLE.registerForBlockEntity((laser, direction) -> laser.getMjReceiver() instanceof IMjReadable r ? r : null, BCSiliconBlockEntities.LASER);
    }
 }

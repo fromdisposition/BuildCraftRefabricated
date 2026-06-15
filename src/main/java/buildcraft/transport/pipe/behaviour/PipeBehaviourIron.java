@@ -8,8 +8,8 @@ package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventFluid;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
@@ -34,7 +34,6 @@ public class PipeBehaviourIron extends PipeBehaviourDirectional {
       return this.pipe.isConnected(dir);
    }
 
-   @PipeEventHandler
    public void sideCheck(PipeEventItem.SideCheck sideCheck) {
       if (this.currentDir == EnumPipePart.CENTER) {
          sideCheck.disallowAll();
@@ -43,7 +42,6 @@ public class PipeBehaviourIron extends PipeBehaviourDirectional {
       }
    }
 
-   @PipeEventHandler
    public void fluidSideCheck(PipeEventFluid.SideCheck sideCheck) {
       if (this.currentDir == EnumPipePart.CENTER) {
          sideCheck.disallowAll();
@@ -52,15 +50,22 @@ public class PipeBehaviourIron extends PipeBehaviourDirectional {
       }
    }
 
-   @PipeEventHandler
    public static void tryBounce(PipeEventItem.TryBounce tryBounce) {
       tryBounce.canBounce = true;
    }
 
-   @PipeEventHandler
    public void fluidInsert(PipeEventFluid.TryInsert insert) {
       if (this.currentDir.face == insert.from) {
          insert.cancel();
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      super.registerEventHandlers(bus);
+      bus.on(PipeEventItem.SideCheck.class, this, this::sideCheck);
+      bus.on(PipeEventFluid.SideCheck.class, this, this::fluidSideCheck);
+      bus.on(PipeEventItem.TryBounce.class, this, PipeBehaviourIron::tryBounce);
+      bus.on(PipeEventFluid.TryInsert.class, this, this::fluidInsert);
    }
 }

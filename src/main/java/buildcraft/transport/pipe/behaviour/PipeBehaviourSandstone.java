@@ -7,8 +7,8 @@
 package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeBehaviour;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -36,8 +36,12 @@ public class PipeBehaviourSandstone extends PipeBehaviour {
       return false;
    }
 
-   @PipeEventHandler
    public static void modifySpeed(PipeEventItem.ModifySpeed event) {
       event.modifyTo(0.01, 0.008);
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventItem.ModifySpeed.class, this, PipeBehaviourSandstone::modifySpeed);
    }
 }

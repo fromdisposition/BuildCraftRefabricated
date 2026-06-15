@@ -13,7 +13,6 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
-import buildcraft.lib.mj.MjBlockCapabilities;
 import buildcraft.transport.tile.TilePipeHolder;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
@@ -65,17 +64,17 @@ public final class PipeNeighborMjAccess {
          BlockPos neighborPos = holder.getPipePos().relative(from);
          Direction querySide = from.getOpposite();
          if (capability == MjAPI.CAP_RECEIVER) {
-            T fromBlock = (T)MjBlockCapabilities.getReceiver(level, neighborPos, querySide);
+            T fromBlock = (T) MjAPI.CAP_RECEIVER.find(level, neighborPos, null, null, querySide);
             if (fromBlock != null) {
                return fromBlock;
             }
          } else if (capability == MjAPI.CAP_CONNECTOR) {
-            T fromBlock = (T)MjBlockCapabilities.getConnector(level, neighborPos, querySide);
+            T fromBlock = (T) MjAPI.CAP_CONNECTOR.find(level, neighborPos, null, null, querySide);
             if (fromBlock != null) {
                return fromBlock;
             }
          } else if (capability == MjAPI.CAP_PASSIVE_PROVIDER) {
-            T fromBlock = (T)MjBlockCapabilities.getPassiveProvider(level, neighborPos, querySide);
+            T fromBlock = (T) MjAPI.CAP_PASSIVE_PROVIDER.find(level, neighborPos, null, null, querySide);
             if (fromBlock != null) {
                return fromBlock;
             }

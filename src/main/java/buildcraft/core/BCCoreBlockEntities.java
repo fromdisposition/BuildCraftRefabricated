@@ -41,7 +41,7 @@ public final class BCCoreBlockEntities {
          ENGINE_CREATIVE = BCRegistries.registerBlockEntity("buildcraftcore", "engine_creative", TileEngineCreative::new, BCCoreBlocks.ENGINE_CREATIVE);
       }
 
-      if (BCCore.DEV && BCCoreBlocks.POWER_TESTER != null) {
+      if (BCCoreBlocks.POWER_TESTER != null) {
          POWER_TESTER = BCRegistries.registerBlockEntity("buildcraftcore", "power_tester", TilePowerConsumerTester::new, BCCoreBlocks.POWER_TESTER);
       }
    }

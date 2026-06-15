@@ -251,7 +251,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public String getDescriptionId() {
-      return this.getFluidAttributes().getDescriptionId(this);
+      return FluidDisplayNames.descriptionIdFor(this.getFluid());
    }
 
    @Override

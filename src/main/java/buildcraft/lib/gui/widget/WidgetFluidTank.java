@@ -14,7 +14,7 @@ import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
 import buildcraft.lib.fabric.transfer.fluid.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.gui.BcMenu;
+import buildcraft.lib.gui.IBcMenu;
 import buildcraft.lib.gui.Widget_Neptune;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.net.PacketBufferBC;
@@ -30,11 +30,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
-public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
+public class WidgetFluidTank extends Widget_Neptune<IBcMenu> {
    private static final byte NET_CLICK = 0;
    private @Nullable Storage<FluidVariant> tank;
 
-   public WidgetFluidTank(BcMenu container, @Nullable Storage<FluidVariant> tank) {
+   public WidgetFluidTank(IBcMenu container, @Nullable Storage<FluidVariant> tank) {
       super(container);
       this.tank = tank;
    }
@@ -92,7 +92,7 @@ public class WidgetFluidTank extends Widget_Neptune<BcMenu> {
 
    private void onGuiClicked() {
       if (this.canAccessTank()) {
-         Player player = this.container.player;
+         Player player = this.container.getPlayer();
          ItemStack held = player.containerMenu.getCarried();
          if (!held.isEmpty()) {
             this.transferStackToTank(player);

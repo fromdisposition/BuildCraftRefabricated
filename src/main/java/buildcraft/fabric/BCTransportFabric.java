@@ -2,7 +2,7 @@ package buildcraft.fabric;
 
 import buildcraft.api.core.EnumHandlerPriority;
 import buildcraft.api.transport.pipe.PipeApi;
-import buildcraft.lib.mj.MjBlockCapabilities;
+import buildcraft.api.mj.MjAPI;
 import buildcraft.transport.BCTransportAttachments;
 import buildcraft.transport.BCTransportBlockEntities;
 import buildcraft.transport.BCTransportBlocks;
@@ -12,6 +12,7 @@ import buildcraft.transport.BCTransportItems;
 import buildcraft.transport.BCTransportMenuTypes;
 import buildcraft.transport.BCTransportPipes;
 import buildcraft.transport.BCTransportPlugs;
+import buildcraft.transport.BCTransportRfPipes;
 import buildcraft.transport.BCTransportRecipeSerializers;
 import buildcraft.transport.BCTransportStatements;
 import buildcraft.transport.net.PipeItemMessageQueue;
@@ -33,15 +34,14 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.EndTick;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.level.ServerLevel;
-import team.reborn.energy.api.EnergyStorage;
 
 public final class BCTransportFabric {
    private BCTransportFabric() {
    }
 
    public static void register() {
-      BCTransportConfig.ensureLoaded();
       BCTransportPipes.preInit();
       BCTransportPlugs.preInit();
       BCTransportStatements.preInit();
@@ -53,7 +53,10 @@ public final class BCTransportFabric {
       BCTransportCreativeTabs.register();
       BCTransportAttachments.register();
       BCTransportConfig.registerPowerTransferData();
-      BCTransportConfig.registerRfTransferData();
+      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
+         BCTransportConfig.registerRfTransferData();
+         BCTransportRfPipes.preInit();
+      }
       BCTransportConfig.registerFluidTransferData();
       initStripesRegistry();
       registerMjCapabilities();
@@ -71,16 +74,18 @@ public final class BCTransportFabric {
    }
 
    private static void registerMjCapabilities() {
-      MjBlockCapabilities.registerReceiver(BCTransportBlockEntities.PIPE_HOLDER, TilePipeHolder::getMjReceiverCapability);
-      MjBlockCapabilities.registerRedstoneReceiver(BCTransportBlockEntities.PIPE_HOLDER, TilePipeHolder::getMjRedstoneReceiverCapability);
-      MjBlockCapabilities.registerConnector(BCTransportBlockEntities.PIPE_HOLDER, TilePipeHolder::getMjConnectorCapability);
+      MjAPI.CAP_RECEIVER.registerForBlockEntity(TilePipeHolder::getMjReceiverCapability, BCTransportBlockEntities.PIPE_HOLDER);
+      MjAPI.CAP_REDSTONE_RECEIVER.registerForBlockEntity(TilePipeHolder::getMjRedstoneReceiverCapability, BCTransportBlockEntities.PIPE_HOLDER);
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity(TilePipeHolder::getMjConnectorCapability, BCTransportBlockEntities.PIPE_HOLDER);
    }
 
    private static void registerNativeTransfer() {
       FluidStorage.SIDED.registerForBlockEntity((tile, side) -> tile.getSidedFluidStorage(side), BCTransportBlockEntities.PIPE_HOLDER);
       ItemStorage.SIDED.registerForBlockEntity((tile, side) -> tile.getSidedItemStorage(side), BCTransportBlockEntities.PIPE_HOLDER);
-      EnergyStorage.SIDED.registerForBlockEntity((tile, side) -> tile.getSidedEnergyStorage(side), BCTransportBlockEntities.PIPE_HOLDER);
       ItemStorage.SIDED.registerForBlockEntity((tile, side) -> tile.getSidedItemStorage(side), BCTransportBlockEntities.FILTERED_BUFFER);
+      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
+         BCTransportFabricTre.register();
+      }
    }
 
    private static void initStripesRegistry() {

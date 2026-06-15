@@ -84,4 +84,7 @@ public abstract class PipeBehaviour {
 
    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
    }
+
+   public void registerEventHandlers(IPipeEventBus bus) {
+   }
 }

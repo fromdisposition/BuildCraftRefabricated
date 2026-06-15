@@ -18,7 +18,7 @@ import buildcraft.core.BCCoreSprites;
 import buildcraft.core.BCCoreStatements;
 import buildcraft.lib.client.sprite.SpriteHolderRegistry;
 import buildcraft.lib.misc.LocaleUtil;
-import buildcraft.lib.mj.MjBlockCapabilities;
+import buildcraft.api.mj.MjAPI;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -66,7 +66,7 @@ public class TriggerPower extends BCStatement implements ITriggerInternal, ITrig
 
       Level level = tile.getLevel();
       if (level != null) {
-         IMjReceiver receiver = MjBlockCapabilities.getReceiver(level, tile.getBlockPos(), face);
+         IMjReceiver receiver = MjAPI.CAP_RECEIVER.find(level, tile.getBlockPos(), null, tile, face);
          if (receiver instanceof IMjReadable) {
             return true;
          }
@@ -81,7 +81,7 @@ public class TriggerPower extends BCStatement implements ITriggerInternal, ITrig
       } else {
          return tile instanceof BlockEntity be
                && be.getLevel() != null
-               && MjBlockCapabilities.getReceiver(be.getLevel(), be.getBlockPos(), side.face) instanceof IMjReadable readable
+               && MjAPI.CAP_RECEIVER.find(be.getLevel(), be.getBlockPos(), null, be, side.face) instanceof IMjReadable readable
             ? readable
             : null;
       }

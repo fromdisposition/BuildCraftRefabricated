@@ -6,8 +6,8 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.IPipeHolder;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
@@ -48,11 +48,15 @@ public class PluggableTimer extends PipePluggable {
       BCTransportAttachments.recordPluggablePlacement(player, BCTransportAttachments.PluggablesPlaced.Kind.TIMER);
    }
 
-   @PipeEventHandler
    public void addInternalTriggers(PipeEventStatement.AddTriggerInternal event) {
       event.triggers.add(BCSiliconStatements.TRIGGER_TIMER_SHORT);
       event.triggers.add(BCSiliconStatements.TRIGGER_TIMER_MEDIUM);
       event.triggers.add(BCSiliconStatements.TRIGGER_TIMER_LONG);
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventStatement.AddTriggerInternal.class, this, this::addInternalTriggers);
    }
 
    public KeyPlugSimple getModelRenderKey(Object layer) {

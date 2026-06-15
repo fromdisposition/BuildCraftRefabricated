@@ -175,6 +175,7 @@
   "itemGroup.buildcraft.main": "BuildCraft",
   "buildcraft.item.nonclean.usage": "%s + %s to clear",
   "tip.block.engine_creative": "Right-click with a wrench to change power output level\nDoes not overheat",
+  "tip.block.power_tester": "Accepts MJ from any side\nUse the wrench (right-click) to read stored / tick stats in chat",
   "tip.block.engine_rf": "Converts E to Minecraft Joules\nDoes not overheat",
   "tip.block.engine_rf.rf": "Converts E to Minecraft Joules\nDoes not overheat",
   "tip.block.mj_dynamo": "Converts Minecraft Joules to E\nDoes not overheat",

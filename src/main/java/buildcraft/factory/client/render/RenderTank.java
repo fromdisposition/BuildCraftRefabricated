@@ -11,7 +11,8 @@ import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.fluid.BcFluidTankRenderer;
 import buildcraft.lib.fluid.identity.FluidIdentity;
-import buildcraft.lib.fluid.meta.FluidAttributes;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import buildcraft.lib.fluid.registry.FluidSmoother;
 import buildcraft.lib.fluid.stack.FluidStack;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -134,7 +135,7 @@ public class RenderTank implements BlockEntityRenderer<TileTank, TankRenderState
                return false;
             }
 
-            Direction checkDir = FluidAttributes.of(thisFluid.getFluid()).isLighterThanAir() ? direction.getOpposite() : direction;
+            Direction checkDir = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(thisFluid.getFluid())) ? direction.getOpposite() : direction;
             return otherTank.fluidTank.getAmountMb() >= otherTank.fluidTank.getCapacityMb() || checkDir == Direction.UP;
          } else {
             return false;

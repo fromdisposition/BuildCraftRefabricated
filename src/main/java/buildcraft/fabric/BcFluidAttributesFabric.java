@@ -1,6 +1,6 @@
 package buildcraft.fabric;
 
-import buildcraft.lib.fluid.meta.FluidAttributes;
+import buildcraft.lib.fluid.display.FluidDisplayNames;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributeHandler;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
@@ -14,7 +14,7 @@ public final class BcFluidAttributesFabric {
       }
 
       public boolean isLighterThanAir(FluidVariant variant) {
-         return FluidAttributes.of(variant.getFluid()).isLighterThanAir();
+         return true;
       }
    };
    private static final FluidVariantAttributeHandler LIQUID = new FluidVariantAttributeHandler() {
@@ -32,7 +32,7 @@ public final class BcFluidAttributesFabric {
          return Component.empty();
       }
 
-      return FluidAttributes.displayName(variant.getFluid());
+      return Component.translatable(FluidDisplayNames.descriptionIdFor(variant.getFluid()));
    }
 
    private BcFluidAttributesFabric() {

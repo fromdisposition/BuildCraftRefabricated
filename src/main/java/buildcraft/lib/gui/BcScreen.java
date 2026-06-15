@@ -17,7 +17,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
-public abstract class BcScreen<C extends BcMenu> extends AbstractContainerScreen<C> {
+public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractContainerMenu & IBcMenu> extends AbstractContainerScreen<C> {
    public final BuildCraftGui mainGui;
 
    public int getGuiLeftPos() {

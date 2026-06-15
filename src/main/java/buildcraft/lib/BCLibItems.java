@@ -26,8 +26,6 @@ public final class BCLibItems {
          "buildcraftlib", "guide_config", props -> new ItemGuide(props, "buildcraftlib:config"), props -> props.stacksTo(1)
       );
       GUIDE_NOTE = BCRegistries.registerItem("buildcraftlib", "guide_note", ItemGuideNote::new, props -> props.stacksTo(1));
-      if (BCLib.DEV) {
-         DEBUGGER = BCRegistries.registerItem("buildcraftlib", "debugger", ItemDebugger::new, props -> props.stacksTo(1));
-      }
+      DEBUGGER = BCRegistries.registerItem("buildcraftlib", "debugger", ItemDebugger::new, props -> props.stacksTo(1));
    }
 }

@@ -11,7 +11,7 @@ import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFaceTex;
@@ -81,22 +81,26 @@ public class PipeBehaviourLapis extends PipeBehaviour {
       }
    }
 
-   @PipeEventHandler
    public void onReachCenter(PipeEventItem.ReachCenter reachCenter) {
       reachCenter.colour = this.colourData.getColour();
    }
 
-   @PipeEventHandler
    public void addPaintActions(PipeEventStatement.AddActionInternal event) {
       Collections.addAll(event.actions, BCTransportStatements.ACTION_PIPE_COLOUR);
    }
 
-   @PipeEventHandler
    public void onPaintActionActivate(PipeEventActionActivate event) {
       if (event.action instanceof ActionPipeColor action && this.colourData.getColour() != action.color) {
          this.colourData.setColour(action.color);
          this.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
          this.pipe.getHolder().scheduleRenderUpdate();
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventItem.ReachCenter.class, this, this::onReachCenter);
+      bus.on(PipeEventStatement.AddActionInternal.class, this, this::addPaintActions);
+      bus.on(PipeEventActionActivate.class, this, this::onPaintActionActivate);
    }
 }

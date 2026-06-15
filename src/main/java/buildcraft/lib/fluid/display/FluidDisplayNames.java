@@ -7,7 +7,6 @@
 package buildcraft.lib.fluid.display;
 
 import buildcraft.lib.fluid.identity.FluidIdentity;
-import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.fluid.stack.FluidStack;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -16,6 +15,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
 public final class FluidDisplayNames {
@@ -28,6 +28,23 @@ public final class FluidDisplayNames {
    private static @Nullable ClientResolver clientResolver;
 
    private FluidDisplayNames() {
+   }
+
+   public static String descriptionIdFor(Fluid fluid) {
+      if (fluid == null || fluid.isSame(Fluids.EMPTY)) {
+         return "block.minecraft.air";
+      }
+      Identifier key = BuiltInRegistries.FLUID.getKey(fluid);
+      if (key == null) {
+         return "fluid_type.minecraft.empty";
+      }
+      String path = key.getPath();
+      if (path.startsWith("flowing_")) {
+         key = Identifier.fromNamespaceAndPath(key.getNamespace(), path.substring("flowing_".length()));
+      } else if (path.endsWith("_flowing")) {
+         key = Identifier.fromNamespaceAndPath(key.getNamespace(), path.substring(0, path.length() - "_flowing".length()));
+      }
+      return "minecraft".equals(key.getNamespace()) ? key.toLanguageKey("block") : key.toLanguageKey("fluid_type");
    }
 
    public static void setClientResolver(@Nullable ClientResolver resolver) {
@@ -51,8 +68,9 @@ public final class FluidDisplayNames {
       }
 
       Fluid fluid = FluidIdentity.canonicalFluid(stack.getFluid());
-      Component fromAttributes = FluidAttributes.displayName(fluid);
-      if (!isUntranslated(fromAttributes, stack.getDescriptionId())) {
+      String descId = descriptionIdFor(fluid);
+      Component fromAttributes = Component.translatable(descId);
+      if (!isUntranslated(fromAttributes, descId)) {
          return fromAttributes;
       }
 

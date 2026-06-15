@@ -12,7 +12,7 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.PipeBehaviour;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.lib.misc.BoundingBoxUtil;
 import buildcraft.lib.misc.VecUtil;
@@ -177,9 +177,13 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
       }
    }
 
-   @PipeEventHandler
    public void onPipeDrop(PipeEventItem.Drop drop) {
       this.entityDropTime.put(drop.getEntity(), this.pipe.getHolder().getPipeWorld().getGameTime() + 20L);
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventItem.Drop.class, this, this::onPipeDrop);
    }
 
    @Override

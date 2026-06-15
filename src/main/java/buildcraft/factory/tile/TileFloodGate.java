@@ -10,7 +10,8 @@ package buildcraft.factory.tile;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
-import buildcraft.lib.fluid.meta.FluidAttributes;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.factory.BCFactoryBlockEntities;
@@ -121,7 +122,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
             this.paths.put(offset, ImmutableList.of(offset));
          }
 
-         Direction[] directions = FluidAttributes.of(fluid.getFluid()).isLighterThanAir() ? SEARCH_GASEOUS : SEARCH_NORMAL;
+         Direction[] directions = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid.getFluid())) ? SEARCH_GASEOUS : SEARCH_NORMAL;
 
          while (!nextPosesToCheck.isEmpty()) {
             List<BlockPos> nextPosesToCheckCopy = new ArrayList<>(nextPosesToCheck);

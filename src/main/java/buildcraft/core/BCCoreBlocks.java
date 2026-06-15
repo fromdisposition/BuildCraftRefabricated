@@ -14,7 +14,6 @@ import buildcraft.core.block.BlockMarkerVolume;
 import buildcraft.core.block.BlockPowerConsumerTester;
 import buildcraft.core.block.BlockSpring;
 import buildcraft.fabric.BCRegistries;
-import buildcraft.lib.BCLib;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 
@@ -67,22 +66,8 @@ public class BCCoreBlocks {
       ENGINE_CREATIVE = BCRegistries.registerBlock(
          "buildcraftcore", "engine_creative", BlockEngineCreative::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
-      if (BCLib.DEV) {
-         DECORATED_PAPER = BCRegistries.registerBlock(
-            "buildcraftcore",
-            "decorated_paper",
-            Block::new,
-            p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
-         );
-         DECORATED_LEATHER = BCRegistries.registerBlock(
-            "buildcraftcore",
-            "decorated_leather",
-            Block::new,
-            p -> p.strength(3.0F).lightLevel(s -> 10).sound(SoundType.METAL).requiresCorrectToolForDrops()
-         );
-         POWER_TESTER = BCRegistries.registerBlock(
-            "buildcraftcore", "power_tester", BlockPowerConsumerTester::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
-         );
-      }
+      POWER_TESTER = BCRegistries.registerBlock(
+         "buildcraftcore", "power_tester", BlockPowerConsumerTester::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+      );
    }
 }

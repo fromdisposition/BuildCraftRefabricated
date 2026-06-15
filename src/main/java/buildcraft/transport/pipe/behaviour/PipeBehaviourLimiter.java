@@ -14,7 +14,7 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventPower;
 import buildcraft.api.transport.pipe.PipeEventRedstoneFlux;
 import buildcraft.lib.misc.EntityUtil;
@@ -66,7 +66,6 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
       buffer.writeByte(this.limitShift);
    }
 
-   @PipeEventHandler
    public void configurePower(PipeEventPower.Configure event) {
       if (this.limitShift == 6) {
          event.disableTransfer();
@@ -75,7 +74,6 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
       }
    }
 
-   @PipeEventHandler
    public void configurePower(PipeEventRedstoneFlux.Configure event) {
       if (this.limitShift == 6) {
          event.disableTransfer();
@@ -84,7 +82,6 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
       }
    }
 
-   @PipeEventHandler
    public void onActionActivate(PipeEventActionActivate event) {
       if (event.action instanceof ActionPowerLimit) {
          this.limitShift = ((ActionPowerLimit)event.action).limitShift;
@@ -135,5 +132,12 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
    @Override
    public int getTextureIndex(Direction face) {
       return 6 - this.limitShift;
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventPower.Configure.class, this, (java.util.function.Consumer<PipeEventPower.Configure>) this::configurePower);
+      bus.on(PipeEventRedstoneFlux.Configure.class, this, (java.util.function.Consumer<PipeEventRedstoneFlux.Configure>) this::configurePower);
+      bus.on(PipeEventActionActivate.class, this, this::onActionActivate);
    }
 }

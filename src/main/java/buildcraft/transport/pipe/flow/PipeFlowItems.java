@@ -11,7 +11,7 @@ import buildcraft.api.transport.IInjectable;
 import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFlow;
@@ -627,10 +627,14 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
       }
    }
 
-   @PipeEventHandler
    public static void addTriggers(PipeEventStatement.AddTriggerInternal event) {
       event.triggers.add(BCTransportStatements.TRIGGER_ITEMS_TRAVERSING);
       event.triggers.add(BCTransportStatements.TRIGGER_PIPE_EMPTY);
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventStatement.AddTriggerInternal.class, this, PipeFlowItems::addTriggers);
    }
 
    public boolean doesContainItems() {

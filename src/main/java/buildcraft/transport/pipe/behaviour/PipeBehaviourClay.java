@@ -7,10 +7,11 @@
 package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeEventFluid;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventItem;
+import java.util.function.Consumer;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 
@@ -23,7 +24,6 @@ public class PipeBehaviourClay extends PipeBehaviour {
       super(pipe, nbt);
    }
 
-   @PipeEventHandler
    public void orderSides(PipeEventItem.SideCheck ordering) {
       for (Direction face : Direction.values()) {
          IPipe.ConnectedType type = this.pipe.getConnectedType(face);
@@ -33,7 +33,6 @@ public class PipeBehaviourClay extends PipeBehaviour {
       }
    }
 
-   @PipeEventHandler
    public void orderSides(PipeEventFluid.SideCheck ordering) {
       for (Direction face : Direction.values()) {
          IPipe.ConnectedType type = this.pipe.getConnectedType(face);
@@ -41,5 +40,11 @@ public class PipeBehaviourClay extends PipeBehaviour {
             ordering.increasePriority(face, 100);
          }
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventItem.SideCheck.class, this, (Consumer<PipeEventItem.SideCheck>) this::orderSides);
+      bus.on(PipeEventFluid.SideCheck.class, this, (Consumer<PipeEventFluid.SideCheck>) this::orderSides);
    }
 }

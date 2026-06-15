@@ -27,9 +27,7 @@ public final class BCFactoryFabricClient {
 
    public static void init() {
       MenuScreens.register(BCFactoryMenuTypes.AUTO_WORKBENCH_ITEMS, GuiAutoCraftItems::new);
-      if (BCFactoryMenuTypes.AUTO_WORKBENCH_FLUIDS != null) {
-         MenuScreens.register(BCFactoryMenuTypes.AUTO_WORKBENCH_FLUIDS, GuiAutoCraftFluids::new);
-      }
+      MenuScreens.register(BCFactoryMenuTypes.AUTO_WORKBENCH_FLUIDS, GuiAutoCraftFluids::new);
       MenuScreens.register(BCFactoryMenuTypes.TANK, GuiTank::new);
       MenuScreens.register(BCFactoryMenuTypes.CHUTE, GuiChute::new);
       MenuScreens.register(BCFactoryMenuTypes.DISTILLER, GuiDistiller::new);
@@ -45,10 +43,7 @@ public final class BCFactoryFabricClient {
 
    private static void registerTooltips() {
       BCTooltips.addTooltip(BCFactoryItems.AUTOWORKBENCH_ITEM, "tip.block.autoworkbench_item");
-      if (BCFactoryItems.AUTOWORKBENCH_FLUID != null) {
-         BCTooltips.addTooltip(BCFactoryItems.AUTOWORKBENCH_FLUID, "tip.block.autoworkbench_fluid");
-         BCTooltips.markDevOnly(BCFactoryItems.AUTOWORKBENCH_FLUID);
-      }
+      BCTooltips.addTooltip(BCFactoryItems.AUTOWORKBENCH_FLUID, "tip.block.autoworkbench_fluid");
       BCTooltips.addTooltip(BCFactoryItems.MINING_WELL, "tip.block.mining_well");
       BCTooltips.addTooltip(BCFactoryItems.PUMP, "tip.block.pump");
       BCTooltips.addTooltip(BCFactoryItems.FLOOD_GATE, "tip.block.flood_gate");

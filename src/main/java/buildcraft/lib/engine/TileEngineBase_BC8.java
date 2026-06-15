@@ -16,10 +16,10 @@ import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.fabric.transfer.BcTransfers;
+import net.fabricmc.loader.api.FabricLoader;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.data.ModelVariableData;
-import buildcraft.lib.mj.MjBlockCapabilities;
 import com.mojang.authlib.GameProfile;
 import java.util.List;
 import java.util.UUID;
@@ -274,16 +274,20 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
          }
 
          if (tile.getClass() != this.getClass()) {
-            IMjReceiver receiver = MjBlockCapabilities.getReceiver(this.level, targetPos, side.getOpposite());
+            IMjReceiver receiver = MjAPI.CAP_RECEIVER.find(this.level, targetPos, null, null, side.getOpposite());
             if (receiver != null && receiver.canConnect(this.getMjConnector()) && this.getMjConnector().canConnect(receiver)) {
                return receiver;
             }
 
-            EnergyStorage feStorage = BcTransfers.energy(this.level, targetPos, side.getOpposite());
-            if (feStorage != null) {
-               IMjReceiver feReceiver = MjToRfAutoConvertor.createReceiver(feStorage);
-               if (feReceiver != null && feReceiver.canConnect(this.getMjConnector())) {
-                  return feReceiver;
+            if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
+               Object feStorage = BcTransfers.energy(this.level, targetPos, side.getOpposite());
+               if (feStorage != null) {
+                  IMjReceiver feReceiver = MjToRfAutoConvertor.createReceiver(
+                     (team.reborn.energy.api.EnergyStorage) feStorage
+                  );
+                  if (feReceiver != null && feReceiver.canConnect(this.getMjConnector())) {
+                     return feReceiver;
+                  }
                }
             }
 

@@ -28,20 +28,17 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.StackedItemContents;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.RecipeBookMenu;
-import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.RecipeBookMenu.PostPlaceAction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.ItemLike;
 
-public abstract class BcMenu extends RecipeBookMenu {
+public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
    public static final int NET_WIDGET = 0;
    public static final int NET_JEI_RECIPE_TRANSFER = 100;
    public static final int NET_GHOST_SLOT_SET = 101;
@@ -98,7 +95,11 @@ public abstract class BcMenu extends RecipeBookMenu {
       }
    }
 
-   void sendWidgetData(Widget_Neptune<?> widget, IPayloadWriter writer) {
+   @Override
+   public Player getPlayer() { return player; }
+
+   @Override
+   public void sendWidgetData(Widget_Neptune<?> widget, IPayloadWriter writer) {
       int widgetId = this.widgets.indexOf(widget);
       if (widgetId == -1) {
          BCLog.logger.warn("[lib.container] sendWidgetData: widget not found! (" + (widget == null ? "null" : widget.getClass()) + ") in " + this.getClass());
@@ -128,19 +129,6 @@ public abstract class BcMenu extends RecipeBookMenu {
             }
          } catch (Exception e) {
             BCLog.logger.warn("[lib.container] Error handling widget data for widget " + widgetId, e);
-         }
-      } else if (id == 100 && !isClient) {
-         Identifier recipeId = Identifier.tryParse(buffer.readUtf());
-         if (recipeId == null) {
-            return;
-         }
-
-         if (this.player.level() instanceof ServerLevel serverLevel) {
-            ResourceKey<Recipe<?>> key = ResourceKey.create(Registries.RECIPE, recipeId);
-            Optional<RecipeHolder<CraftingRecipe>> holder = serverLevel.recipeAccess()
-               .byKey(key)
-               .flatMap(r -> r.value() instanceof CraftingRecipe crafting ? Optional.of(new RecipeHolder<>(r.id(), crafting)) : Optional.empty());
-            holder.ifPresent(recipe -> this.handlePlacement(false, this.player.isCreative(), recipe, serverLevel, this.player.getInventory()));
          }
       } else if (id == 101 && !isClient) {
          int slotIdx = buffer.readUnsignedShort();
@@ -248,16 +236,5 @@ public abstract class BcMenu extends RecipeBookMenu {
 
    public boolean stillValid(Player player) {
       return player.isAlive() && !player.isRemoved();
-   }
-
-   public PostPlaceAction handlePlacement(boolean useMaxItems, boolean isCreative, RecipeHolder<?> recipe, ServerLevel level, Inventory playerInv) {
-      return PostPlaceAction.NOTHING;
-   }
-
-   public void fillCraftSlotsStackedContents(StackedItemContents contents) {
-   }
-
-   public RecipeBookType getRecipeBookType() {
-      return RecipeBookType.CRAFTING;
    }
 }

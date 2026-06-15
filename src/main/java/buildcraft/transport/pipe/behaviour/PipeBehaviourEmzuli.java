@@ -11,8 +11,8 @@ import buildcraft.api.core.IStackFilter;
 import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.StackUtil;
@@ -260,18 +260,23 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
       }
    }
 
-   @PipeEventHandler
    public void addActions(PipeEventStatement.AddActionInternal event) {
       Collections.addAll(event.actions, BCTransportStatements.ACTION_EXTRACTION_PRESET);
    }
 
-   @PipeEventHandler
    @Override
    public void onActionActivate(PipeEventActionActivate event) {
       if (event.action instanceof ActionExtractionPreset preset) {
          this.activeSlots.add(preset.index);
          this.activatedTtl[preset.index.ordinal()] = 2;
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      super.registerEventHandlers(bus);
+      bus.on(PipeEventStatement.AddActionInternal.class, this, this::addActions);
+      bus.on(PipeEventActionActivate.class, this, this::onActionActivate);
    }
 
    public enum SlotIndex {

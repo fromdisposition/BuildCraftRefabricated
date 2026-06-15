@@ -18,7 +18,7 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeEvent;
 import buildcraft.api.transport.pipe.PipeEventFluid;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.core.BCCoreConfig;
@@ -350,10 +350,14 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       return false;
    }
 
-   @PipeEventHandler
    public static void addTriggers(PipeEventStatement.AddTriggerInternal event) {
       event.triggers.add(BCTransportStatements.TRIGGER_FLUIDS_TRAVERSING);
       event.triggers.add(BCTransportStatements.TRIGGER_PIPE_EMPTY);
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventStatement.AddTriggerInternal.class, this, PipeFlowFluids::addTriggers);
    }
 
    @Override

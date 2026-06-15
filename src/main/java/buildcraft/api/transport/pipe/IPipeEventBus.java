@@ -6,8 +6,8 @@
 
 package buildcraft.api.transport.pipe;
 
-public enum PipeEventPriority {
-   PRE,
-   NORMAL,
-   POST;
+import java.util.function.Consumer;
+
+public interface IPipeEventBus {
+   <E extends PipeEvent> void on(Class<E> type, Object source, Consumer<E> handler);
 }

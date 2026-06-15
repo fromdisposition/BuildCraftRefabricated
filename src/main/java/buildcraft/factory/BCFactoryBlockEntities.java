@@ -7,7 +7,6 @@
 package buildcraft.factory;
 
 import buildcraft.fabric.BCRegistries;
-import buildcraft.lib.BCLib;
 import buildcraft.factory.tile.TileAutoWorkbenchFluids;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.factory.tile.TileChute;
@@ -37,12 +36,9 @@ public final class BCFactoryBlockEntities {
       AUTO_WORKBENCH_ITEMS = BCRegistries.registerBlockEntity(
          "buildcraftfactory", "autoworkbench_item", TileAutoWorkbenchItems::new, BCFactoryBlocks.AUTOWORKBENCH_ITEM
       );
-      if (BCLib.DEV && BCFactoryBlocks.AUTOWORKBENCH_FLUID != null) {
-         AUTO_WORKBENCH_FLUIDS = BCRegistries.registerBlockEntity(
-            "buildcraftfactory", "autoworkbench_fluid", TileAutoWorkbenchFluids::new, BCFactoryBlocks.AUTOWORKBENCH_FLUID
-         );
-      }
-
+      AUTO_WORKBENCH_FLUIDS = BCRegistries.registerBlockEntity(
+         "buildcraftfactory", "autoworkbench_fluid", TileAutoWorkbenchFluids::new, BCFactoryBlocks.AUTOWORKBENCH_FLUID
+      );
       MINING_WELL = BCRegistries.registerBlockEntity("buildcraftfactory", "mining_well", TileMiningWell::new, BCFactoryBlocks.MINING_WELL);
       PUMP = BCRegistries.registerBlockEntity("buildcraftfactory", "pump", TilePump::new, BCFactoryBlocks.PUMP);
       FLOOD_GATE = BCRegistries.registerBlockEntity("buildcraftfactory", "flood_gate", TileFloodGate::new, BCFactoryBlocks.FLOOD_GATE);

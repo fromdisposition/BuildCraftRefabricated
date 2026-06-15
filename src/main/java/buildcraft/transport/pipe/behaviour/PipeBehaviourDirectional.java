@@ -12,7 +12,7 @@ import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFaceTex;
 import buildcraft.lib.misc.NBTUtilBC;
@@ -158,7 +158,6 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
       return 0;
    }
 
-   @PipeEventHandler
    public void addInternalActions(PipeEventStatement.AddActionInternal event) {
       for (Direction face : Direction.values()) {
          if (this.canFaceDirection(face)) {
@@ -167,7 +166,6 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
       }
    }
 
-   @PipeEventHandler
    public void onActionActivate(PipeEventActionActivate event) {
       for (Direction face : Direction.values()) {
          if (event.action == BCTransportStatements.ACTION_PIPE_DIRECTION[face.ordinal()]) {
@@ -178,5 +176,11 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
             return;
          }
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventStatement.AddActionInternal.class, this, this::addInternalActions);
+      bus.on(PipeEventActionActivate.class, this, this::onActionActivate);
    }
 }

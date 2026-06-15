@@ -8,6 +8,7 @@ package buildcraft.silicon;
 
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
+import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.silicon.plug.FilterEventHandler;
 import buildcraft.silicon.plug.PluggableFacade;
 import buildcraft.silicon.plug.PluggableGate;
@@ -39,7 +40,7 @@ public class BCSiliconPlugs {
       lens = create("lens", PluggableLens::new, PluggableLens::new);
       lightSensor = createSimple("light_sensor", PluggableLightSensor::new);
       timer = createSimple("timer", PluggableTimer::new);
-      PipeEventBus.registerGlobalHandler(FilterEventHandler.class);
+      PipeEventBus.addGlobalRegistrant(bus -> bus.on(PipeEventItem.SideCheck.class, FilterEventHandler.class, FilterEventHandler::sideCheck));
    }
 
    public static void registerAll() {

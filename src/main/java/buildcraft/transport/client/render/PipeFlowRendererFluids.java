@@ -7,7 +7,8 @@
 package buildcraft.transport.client.render;
 
 
-import buildcraft.lib.fluid.meta.FluidAttributes;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.fluid.BcFluidBoxQuads;
@@ -48,7 +49,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             int packedLight = PipeRenderContext.getPackedLight();
             double[] amounts = SCRATCH_AMOUNTS.get();
             flow.writeAmountsForRender(partialTicks, amounts);
-            boolean gas = FluidAttributes.of(forRender.getFluid()).isLighterThanAir();
+            boolean gas = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(forRender.getFluid()));
             boolean horizontal = false;
             boolean vertical = flow.pipe.isConnected(gas ? Direction.DOWN : Direction.UP);
             int centerIdx = EnumPipePart.CENTER.getIndex();

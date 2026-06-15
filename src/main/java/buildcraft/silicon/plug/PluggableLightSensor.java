@@ -6,8 +6,8 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.IPipeHolder;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
@@ -48,12 +48,16 @@ public class PluggableLightSensor extends PipePluggable {
       BCTransportAttachments.recordPluggablePlacement(player, BCTransportAttachments.PluggablesPlaced.Kind.LIGHT_SENSOR);
    }
 
-   @PipeEventHandler
    public void addInternalTriggers(PipeEventStatement.AddTriggerInternalSided event) {
       if (event.side == this.side) {
          event.triggers.add(BCSiliconStatements.TRIGGER_LIGHT_LOW);
          event.triggers.add(BCSiliconStatements.TRIGGER_LIGHT_HIGH);
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventStatement.AddTriggerInternalSided.class, this, this::addInternalTriggers);
    }
 
    public KeyPlugSimple getModelRenderKey(Object layer) {

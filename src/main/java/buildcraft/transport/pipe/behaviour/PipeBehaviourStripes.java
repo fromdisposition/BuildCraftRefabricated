@@ -18,7 +18,7 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFlow;
@@ -99,7 +99,6 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
       }
    }
 
-   @PipeEventHandler
    public void addInternalActions(PipeEventStatement.AddActionInternal event) {
       for (Direction face : Direction.values()) {
          if (!this.pipe.isConnected(face)) {
@@ -111,7 +110,6 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
       }
    }
 
-   @PipeEventHandler
    public void onActionActivate(PipeEventActionActivate event) {
       for (Direction face : Direction.values()) {
          if (event.action == BCTransportStatements.ACTION_PIPE_DIRECTION[face.ordinal()]) {
@@ -215,7 +213,6 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
       }
    }
 
-   @PipeEventHandler
    public void onDrop(PipeEventItem.Drop event) {
       if (this.direction != null) {
          IPipeHolder holder = this.pipe.getHolder();
@@ -237,6 +234,13 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
             }
          }
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventStatement.AddActionInternal.class, this, this::addInternalActions);
+      bus.on(PipeEventActionActivate.class, this, this::onActionActivate);
+      bus.on(PipeEventItem.Drop.class, this, this::onDrop);
    }
 
    @Override

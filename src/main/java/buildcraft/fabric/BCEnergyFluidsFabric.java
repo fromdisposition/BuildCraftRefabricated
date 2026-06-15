@@ -4,7 +4,6 @@ import buildcraft.energy.BCEnergyConfig;
 import buildcraft.fabric.fluid.BcFluidBlock;
 import buildcraft.fabric.fluid.BcFluidWorldProperties;
 import buildcraft.fabric.fluid.BcOilFluid;
-import buildcraft.lib.fluid.meta.FluidAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -129,8 +128,6 @@ public final class BCEnergyFluidsFabric {
       );
       holder.seal();
       HOLDERS.add(holder);
-      FluidAttributes.register(holder.still, props.viscosity(), props.density());
-      FluidAttributes.register(holder.flowing, props.viscosity(), props.density());
       BcFluidAttributesFabric.register(holder.still, holder.flowing, gaseous);
       return new BCEnergyFluidsFabric.FluidEntry(
          regName, baseName, heat, texLight, texDark, tintColor, holder, holder.still, holder.flowing, holder.block, holder.bucket, gaseous

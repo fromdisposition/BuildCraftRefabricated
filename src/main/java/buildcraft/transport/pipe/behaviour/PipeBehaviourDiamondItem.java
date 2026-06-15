@@ -7,7 +7,7 @@
 package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.api.transport.pipe.IPipe;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.misc.StackUtil;
@@ -27,7 +27,6 @@ public class PipeBehaviourDiamondItem extends PipeBehaviourDiamond {
       super(pipe, nbt);
    }
 
-   @PipeEventHandler
    public void sideCheck(PipeEventItem.SideCheck sideCheck) {
       ItemStack toCompare = sideCheck.stack;
 
@@ -59,7 +58,6 @@ public class PipeBehaviourDiamondItem extends PipeBehaviourDiamond {
       }
    }
 
-   @PipeEventHandler
    public void split(PipeEventItem.Split split) {
       Direction[] allSides = split.getAllPossibleDestinations().toArray(new Direction[0]);
       if (allSides.length != 0 && allSides.length != 1) {
@@ -154,5 +152,11 @@ public class PipeBehaviourDiamondItem extends PipeBehaviourDiamond {
             }
          }
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventItem.SideCheck.class, this, this::sideCheck);
+      bus.on(PipeEventItem.Split.class, this, this::split);
    }
 }

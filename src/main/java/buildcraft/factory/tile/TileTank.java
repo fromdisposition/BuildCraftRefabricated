@@ -10,7 +10,8 @@ package buildcraft.factory.tile;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
-import buildcraft.lib.fluid.meta.FluidAttributes;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import buildcraft.api.items.FluidItemDrops;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.factory.BCFactoryBlockEntities;
@@ -166,7 +167,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
          }
 
          if (!fluid.isEmpty()) {
-            if (!fluid.isEmpty() && FluidAttributes.of(fluid.getFluid()).isLighterThanAir()) {
+            if (!fluid.isEmpty() && FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid.getFluid()))) {
                TileTank prev = null;
 
                for (int i = tanks.size() - 1; i >= 0; i--) {

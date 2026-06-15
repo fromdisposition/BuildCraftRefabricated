@@ -58,7 +58,7 @@ public enum ActionProviderPipes implements IActionProvider {
             Collections.addAll(actions, BCTransportStatements.ACTION_DIAMOND_POWER_LIMIT);
          }
 
-         if (!BCTransportConfig.disableRfPipe.get()) {
+         if (!BCTransportConfig.disableRfPipe) {
             if (def == BCTransportPipes.ironRf) {
                Collections.addAll(actions, BCTransportStatements.ACTION_IRON_RF_LIMIT);
             }

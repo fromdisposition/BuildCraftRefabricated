@@ -6,7 +6,7 @@
 
 package buildcraft.silicon.container;
 
-import buildcraft.lib.gui.ContainerBCTile;
+import buildcraft.lib.gui.ContainerBCTileRecipeBook;
 import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.slot.SlotDisplay;
 import buildcraft.lib.gui.slot.SlotOutput;
@@ -20,14 +20,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.StackedItemContents;
-import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.RecipeBookMenu.PostPlaceAction;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-public class ContainerAdvancedCraftingTable extends ContainerBCTile<TileAdvancedCraftingTable> {
+public class ContainerAdvancedCraftingTable extends ContainerBCTileRecipeBook<TileAdvancedCraftingTable> {
    private final List<Slot> blueprintSlots = new ArrayList<>();
 
    public ContainerAdvancedCraftingTable(int containerId, Inventory playerInv, BlockPos pos) {
@@ -78,25 +75,10 @@ public class ContainerAdvancedCraftingTable extends ContainerBCTile<TileAdvanced
    }
 
    @Override
-   public PostPlaceAction handlePlacement(boolean useMaxItems, boolean isCreative, RecipeHolder<?> recipe, ServerLevel level, Inventory playerInv) {
+   protected void handleRecipeTransfer(RecipeHolder<CraftingRecipe> recipe, ServerLevel level, Inventory playerInv) {
       if (recipe.value() instanceof CraftingRecipe craftingRecipe) {
          CraftingUtil.placeRecipeInBlueprint(craftingRecipe, this.tile.invBlueprint, level);
-         return PostPlaceAction.PLACE_GHOST_RECIPE;
-      } else {
-         return PostPlaceAction.NOTHING;
       }
-   }
-
-   @Override
-   public void fillCraftSlotsStackedContents(StackedItemContents contents) {
-      for (int i = 0; i < this.tile.invMaterials.getSlots(); i++) {
-         contents.accountStack(this.tile.invMaterials.getStackInSlot(i));
-      }
-   }
-
-   @Override
-   public RecipeBookType getRecipeBookType() {
-      return RecipeBookType.CRAFTING;
    }
 
    private static TileAdvancedCraftingTable getTile(Inventory inv, BlockPos pos) {

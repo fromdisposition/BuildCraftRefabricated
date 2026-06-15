@@ -7,8 +7,8 @@
 package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventFluid;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.lib.fluid.stack.FluidStack;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -23,7 +23,6 @@ public class PipeBehaviourDiamondFluid extends PipeBehaviourDiamond {
       super(pipe, nbt);
    }
 
-   @PipeEventHandler
    public void sideCheck(PipeEventFluid.SideCheck sideCheck) {
       FluidStack toCompare = sideCheck.fluid;
 
@@ -56,5 +55,10 @@ public class PipeBehaviourDiamondFluid extends PipeBehaviourDiamond {
             }
          }
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventFluid.SideCheck.class, this, this::sideCheck);
    }
 }

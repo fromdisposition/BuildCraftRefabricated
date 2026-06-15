@@ -6,8 +6,8 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.IPipeHolder;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
@@ -107,7 +107,6 @@ public class PluggableLens extends PipePluggable {
       BCTransportAttachments.recordPluggablePlacement(player, BCTransportAttachments.PluggablesPlaced.Kind.LENS);
    }
 
-   @PipeEventHandler
    public void tryInsert(PipeEventItem.TryInsert tryInsert) {
       if (this.isFilter && tryInsert.from == this.side) {
          DyeColor itemColour = tryInsert.colour;
@@ -117,7 +116,6 @@ public class PluggableLens extends PipePluggable {
       }
    }
 
-   @PipeEventHandler
    public void sideCheck(PipeEventItem.SideCheck event) {
       if (this.isFilter) {
          if (event.colour == this.colour) {
@@ -130,18 +128,24 @@ public class PluggableLens extends PipePluggable {
       }
    }
 
-   @PipeEventHandler
    public void beforeInsert(PipeEventItem.OnInsert event) {
       if (!this.isFilter && event.from == this.side) {
          event.colour = this.colour;
       }
    }
 
-   @PipeEventHandler
    public void reachEnd(PipeEventItem.ReachEnd event) {
       if (!this.isFilter && event.to == this.side) {
          event.colour = this.colour;
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventItem.TryInsert.class, this, this::tryInsert);
+      bus.on(PipeEventItem.SideCheck.class, this, this::sideCheck);
+      bus.on(PipeEventItem.OnInsert.class, this, this::beforeInsert);
+      bus.on(PipeEventItem.ReachEnd.class, this, this::reachEnd);
    }
 
    static {

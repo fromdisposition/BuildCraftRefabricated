@@ -141,4 +141,7 @@ public abstract class PipePluggable {
 
    public void onPlacedBy(Player player) {
    }
+
+   public void registerEventHandlers(buildcraft.api.transport.pipe.IPipeEventBus bus) {
+   }
 }

@@ -9,7 +9,7 @@ package buildcraft.factory.container;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.tile.TileAutoWorkbenchFluids;
 import buildcraft.lib.fabric.menu.MenuBlockEntityLookup;
-import buildcraft.lib.gui.ContainerBCTile;
+import buildcraft.lib.gui.ContainerBCTileRecipeBook;
 import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.slot.SlotDisplay;
 import buildcraft.lib.gui.slot.SlotOutput;
@@ -22,16 +22,13 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.DataSlot;
-import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.RecipeBookMenu.PostPlaceAction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-public class ContainerAutoCraftFluids extends ContainerBCTile<TileAutoWorkbenchFluids> {
+public class ContainerAutoCraftFluids extends ContainerBCTileRecipeBook<TileAutoWorkbenchFluids> {
    private static final ItemHandlerSimple FALLBACK_RESULT = createFallbackHandler(1, false);
    private static final ItemHandlerSimple FALLBACK_BLUEPRINT = createFallbackHandler(4, true);
    private static final ItemHandlerSimple FALLBACK_MATERIAL_FILTER = createFallbackHandler(4, true);
@@ -120,29 +117,10 @@ public class ContainerAutoCraftFluids extends ContainerBCTile<TileAutoWorkbenchF
    }
 
    @Override
-   public PostPlaceAction handlePlacement(boolean useMaxItems, boolean isCreative, RecipeHolder<?> recipe, ServerLevel level, Inventory playerInv) {
-      if (this.tile == null) {
-         return PostPlaceAction.NOTHING;
-      } else if (recipe.value() instanceof CraftingRecipe craftingRecipe) {
+   protected void handleRecipeTransfer(RecipeHolder<CraftingRecipe> recipe, ServerLevel level, Inventory playerInv) {
+      if (this.tile != null && recipe.value() instanceof CraftingRecipe craftingRecipe) {
          CraftingUtil.placeRecipeInBlueprint(craftingRecipe, this.tile.invBlueprint, level);
-         return PostPlaceAction.PLACE_GHOST_RECIPE;
-      } else {
-         return PostPlaceAction.NOTHING;
       }
-   }
-
-   @Override
-   public void fillCraftSlotsStackedContents(StackedItemContents contents) {
-      if (this.tile != null) {
-         for (int i = 0; i < this.tile.invMaterials.getSlots(); i++) {
-            contents.accountStack(this.tile.invMaterials.getStackInSlot(i));
-         }
-      }
-   }
-
-   @Override
-   public RecipeBookType getRecipeBookType() {
-      return RecipeBookType.CRAFTING;
    }
 
    private static ItemHandlerSimple createFallbackHandler(int slots, boolean allowInput) {

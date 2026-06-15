@@ -6,7 +6,7 @@
 
 package buildcraft.lib.integration.jei;
 
-import buildcraft.lib.gui.BcMenu;
+import buildcraft.lib.gui.IBcMenu;
 import buildcraft.lib.misc.RegistryKeyUtil;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
@@ -51,7 +51,7 @@ public class BlueprintTransferHandler<C extends AbstractContainerMenu> implement
          return null;
       }
 
-      if (container instanceof BcMenu bcContainer) {
+      if (container instanceof IBcMenu bcContainer) {
          String recipeIdStr = RegistryKeyUtil.id(recipe.id()).toString();
          bcContainer.sendMessage(100, buf -> buf.writeUtf(recipeIdStr));
       }

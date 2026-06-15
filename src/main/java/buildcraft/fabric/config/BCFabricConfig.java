@@ -72,7 +72,6 @@ public final class BCFabricConfig {
    }
 
    private static void apply(JsonObject root) {
-      BCTransportConfig.ensureLoaded();
       applyCore(root.getAsJsonObject("core"));
       applyLib(root.getAsJsonObject("lib"));
       applyEnergy(root.getAsJsonObject("energy"));
@@ -207,12 +206,12 @@ public final class BCFabricConfig {
 
    private static void applyTransport(JsonObject transport) {
       if (transport != null) {
-         BCTransportConfig.disableRfPipe.set(bool(transport, "disableRfPipe", BCTransportConfig.disableRfPipe.get()));
-         BCTransportConfig.mjPerItem.set(longVal(transport, "mjPerItem", BCTransportConfig.mjPerItem.get()));
-         BCTransportConfig.mjPerMillibucket.set(longVal(transport, "mjPerMillibucket", BCTransportConfig.mjPerMillibucket.get()));
-         BCTransportConfig.basePowerRate.set(intVal(transport, "basePowerRate", BCTransportConfig.basePowerRate.get()));
-         BCTransportConfig.baseRfRate.set(intVal(transport, "baseRfRate", BCTransportConfig.baseRfRate.get()));
-         BCTransportConfig.baseFlowRate.set(intVal(transport, "baseFlowRate", BCTransportConfig.baseFlowRate.get()));
+         BCTransportConfig.disableRfPipe = bool(transport, "disableRfPipe", BCTransportConfig.disableRfPipe);
+         BCTransportConfig.mjPerItem = longVal(transport, "mjPerItem", BCTransportConfig.mjPerItem);
+         BCTransportConfig.mjPerMillibucket = longVal(transport, "mjPerMillibucket", BCTransportConfig.mjPerMillibucket);
+         BCTransportConfig.basePowerRate = intVal(transport, "basePowerRate", BCTransportConfig.basePowerRate);
+         BCTransportConfig.baseRfRate = intVal(transport, "baseRfRate", BCTransportConfig.baseRfRate);
+         BCTransportConfig.baseFlowRate = intVal(transport, "baseFlowRate", BCTransportConfig.baseFlowRate);
       }
    }
 

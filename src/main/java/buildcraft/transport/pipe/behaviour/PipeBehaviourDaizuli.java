@@ -9,8 +9,8 @@ package buildcraft.transport.pipe.behaviour;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
-import buildcraft.api.transport.pipe.PipeEventHandler;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.lib.misc.EntityUtil;
@@ -86,7 +86,6 @@ public class PipeBehaviourDaizuli extends PipeBehaviourDirectional {
       }
    }
 
-   @PipeEventHandler
    public void sideCheck(PipeEventItem.SideCheck sideCheck) {
       if (this.colourData.getColour() == sideCheck.colour) {
          sideCheck.disallowAllExcept(this.currentDir.face);
@@ -95,17 +94,23 @@ public class PipeBehaviourDaizuli extends PipeBehaviourDirectional {
       }
    }
 
-   @PipeEventHandler
    public void addPaintActions(PipeEventStatement.AddActionInternal event) {
       Collections.addAll(event.actions, BCTransportStatements.ACTION_PIPE_COLOUR);
    }
 
-   @PipeEventHandler
    public void onPaintActionActivate(PipeEventActionActivate event) {
       if (event.action instanceof ActionPipeColor action && this.colourData.getColour() != action.color) {
          this.colourData.setColour(action.color);
          this.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
          this.pipe.getHolder().scheduleRenderUpdate();
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      super.registerEventHandlers(bus);
+      bus.on(PipeEventItem.SideCheck.class, this, this::sideCheck);
+      bus.on(PipeEventStatement.AddActionInternal.class, this, this::addPaintActions);
+      bus.on(PipeEventActionActivate.class, this, this::onPaintActionActivate);
    }
 }

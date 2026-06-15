@@ -11,6 +11,14 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
+/**
+ * Fires {@link FabricModelModifyHooks} after the entire baking pass completes so that BC can
+ * replace item and block-state models in batch (pipe models, facade, gate, lens).
+ *
+ * No Fabric API equivalent: {@code ModelLoadingPlugin.modifyModelAfterBake} fires per-model
+ * and has no "after all models applied" stage. This mixin stays until upstream ships such a hook.
+ * {@code require = 0} so it degrades silently if the injection point shifts between MC versions.
+ */
 @Mixin(ModelManager.class)
 public class ModelManagerMixin {
    @Redirect(

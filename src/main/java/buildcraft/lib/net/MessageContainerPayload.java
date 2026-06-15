@@ -8,7 +8,7 @@ package buildcraft.lib.net;
 
 import buildcraft.api.core.BCLog;
 import buildcraft.fabric.network.BCPayloadContext;
-import buildcraft.lib.gui.BcMenu;
+import buildcraft.lib.gui.IBcMenu;
 import java.io.IOException;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -51,7 +51,7 @@ public record MessageContainerPayload(int containerId, int messageId, byte[] pay
       if (openContainer == null) {
          BCLog.logger.warn("[lib.net] Received container message but player has no open container");
       } else if (openContainer.containerId == message.containerId) {
-         if (openContainer instanceof BcMenu bcContainer) {
+         if (openContainer instanceof IBcMenu bcContainer) {
             boolean isClient = player.level().isClientSide();
             if (message.payload != null) {
                if (!isClient && !bcContainer.stillValid(player)) {

@@ -14,7 +14,7 @@ import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeEventFluid;
-import buildcraft.api.transport.pipe.PipeEventHandler;
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventItem;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.lib.fluid.stack.FluidStack;
@@ -43,7 +43,6 @@ public class PipeBehaviourWood extends PipeBehaviourDirectional implements IMjRe
       return dir != null && this.pipe.isConnected(dir) && this.pipe.getConnectedType(dir) == IPipe.ConnectedType.TILE;
    }
 
-   @PipeEventHandler
    public void fluidSideCheck(PipeEventFluid.SideCheck sideCheck) {
       if (this.currentDir.face != null) {
          sideCheck.disallow(this.currentDir.face);
@@ -54,19 +53,19 @@ public class PipeBehaviourWood extends PipeBehaviourDirectional implements IMjRe
       if (power > 0L && this.getCurrentDir() != null) {
          PipeFlow flow = this.pipe.getFlow();
          if (flow instanceof IFlowItems itemFlow) {
-            int maxItems = (int)(power / BCTransportConfig.mjPerItem.get());
+            int maxItems = (int)(power / BCTransportConfig.mjPerItem);
             if (maxItems > 0) {
                int extracted = this.extractItems(itemFlow, this.getCurrentDir(), maxItems, simulate);
                if (extracted > 0) {
-                  return power - extracted * BCTransportConfig.mjPerItem.get();
+                  return power - extracted * BCTransportConfig.mjPerItem;
                }
             }
          } else if (flow instanceof IFlowFluid fluidFlow) {
-            int maxMillibuckets = (int)(power / BCTransportConfig.mjPerMillibucket.get());
+            int maxMillibuckets = (int)(power / BCTransportConfig.mjPerMillibucket);
             if (maxMillibuckets > 0) {
                FluidStack extracted = this.extractFluid(fluidFlow, this.getCurrentDir(), maxMillibuckets, simulate);
                if (extracted != null && !extracted.isEmpty()) {
-                  return power - extracted.getAmount() * BCTransportConfig.mjPerMillibucket.get();
+                  return power - extracted.getAmount() * BCTransportConfig.mjPerMillibucket;
                }
             }
          }
@@ -111,10 +110,16 @@ public class PipeBehaviourWood extends PipeBehaviourDirectional implements IMjRe
       return !(other instanceof PipeBehaviourWood);
    }
 
-   @PipeEventHandler
    public void sideCheck(PipeEventItem.SideCheck sideCheck) {
       if (this.currentDir.face != null) {
          sideCheck.disallow(this.currentDir.face);
       }
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      super.registerEventHandlers(bus);
+      bus.on(PipeEventFluid.SideCheck.class, this, this::fluidSideCheck);
+      bus.on(PipeEventItem.SideCheck.class, this, this::sideCheck);
    }
 }

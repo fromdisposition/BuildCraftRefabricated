@@ -10,7 +10,8 @@ package buildcraft.factory.tile;
 import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
-import buildcraft.lib.fluid.meta.FluidAttributes;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.tiles.IDebuggable;
@@ -135,7 +136,7 @@ public class TilePump extends TileMiner implements IDebuggable {
          BlockPos upFluidPos = probeUp.firstFluid();
          Fluid downFluid = downFluidPos != null ? BlockUtil.getFluidWithFlowing(this.level, downFluidPos) : null;
          Fluid upFluid = upFluidPos != null ? BlockUtil.getFluidWithFlowing(this.level, upFluidPos) : null;
-         if (upFluid != null && FluidAttributes.of(upFluid).isLighterThanAir()) {
+         if (upFluid != null && FluidVariantAttributes.isLighterThanAir(FluidVariant.of(upFluid))) {
             seed = upFluidPos;
          } else if (downFluid != null) {
             seed = downFluidPos;
@@ -240,7 +241,7 @@ public class TilePump extends TileMiner implements IDebuggable {
    }
 
    private void buildQueue0(Fluid queueFluid, List<BlockPos> nextPosesToCheck, LongSet checked) {
-      Direction[] directions = FluidAttributes.of(queueFluid).isLighterThanAir() ? SEARCH_GASEOUS : SEARCH_NORMAL;
+      Direction[] directions = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(queueFluid)) ? SEARCH_GASEOUS : SEARCH_NORMAL;
       boolean isWater = !BCCoreConfig.pumpsConsumeWater.get() && FluidIdentity.areFluidsEqual(queueFluid, Fluids.WATER);
       this.isInfiniteWaterSource = isWater && isInfiniteSourceAt(this.level, this.targetPos);
       int maxLengthSquared = BCCoreConfig.pumpMaxDistance.get() * BCCoreConfig.pumpMaxDistance.get();

@@ -134,18 +134,10 @@ public final class BCTransportItems {
       PIPE_SANDSTONE_POWER = registerPipeItem("pipe_sandstone_power", () -> BCTransportPipes.sandstonePower);
       PIPE_DIAMOND_POWER = registerPipeItem("pipe_diamond_power", () -> BCTransportPipes.diamondPower);
       PIPE_DIAMOND_WOOD_POWER = registerPipeItem("pipe_diamond_wood_power", () -> BCTransportPipes.diaWoodPower);
-      PIPE_WOOD_RF = registerPipeItem("pipe_wood_rf", () -> BCTransportPipes.woodRf);
-      PIPE_COBBLE_RF = registerPipeItem("pipe_cobble_rf", () -> BCTransportPipes.cobbleRf);
-      PIPE_STONE_RF = registerPipeItem("pipe_stone_rf", () -> BCTransportPipes.stoneRf);
-      PIPE_QUARTZ_RF = registerPipeItem("pipe_quartz_rf", () -> BCTransportPipes.quartzRf);
-      PIPE_IRON_RF = registerPipeItem("pipe_iron_rf", () -> BCTransportPipes.ironRf);
-      PIPE_GOLD_RF = registerPipeItem("pipe_gold_rf", () -> BCTransportPipes.goldRf);
-      PIPE_SANDSTONE_RF = registerPipeItem("pipe_sandstone_rf", () -> BCTransportPipes.sandstoneRf);
-      PIPE_DIAMOND_RF = registerPipeItem("pipe_diamond_rf", () -> BCTransportPipes.diamondRf);
-      PIPE_DIAMOND_WOOD_RF = registerPipeItem("pipe_diamond_wood_rf", () -> BCTransportPipes.diaWoodRf);
+      // RF pipe items registered in BCTransportRfPipes.preInit() — only when TRE is loaded
    }
 
-   private static ItemPipeHolder registerPipeItem(String path, Supplier<PipeDefinition> definition) {
+   static ItemPipeHolder registerPipeItem(String path, Supplier<PipeDefinition> definition) {
       return BCRegistries.registerItem(
          "buildcrafttransport", path, props -> new ItemPipeHolder(BCTransportBlocks.PIPE_HOLDER, definition, props).registerWithPipeApi()
       );

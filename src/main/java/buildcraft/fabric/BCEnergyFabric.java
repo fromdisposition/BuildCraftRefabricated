@@ -9,14 +9,13 @@ import buildcraft.energy.worldgen.BCEnergyWorldgen;
 import buildcraft.energy.BCEnergyItems;
 import buildcraft.fabric.fluid.BcFluidEntityInteractions;
 import buildcraft.energy.BCEnergyMenuTypes;
-import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
-import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.energy.tile.TileEngineStone_BC8;
-import buildcraft.lib.mj.MjBlockCapabilities;
+import buildcraft.api.mj.IMjReadable;
+import buildcraft.api.mj.MjAPI;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import team.reborn.energy.api.EnergyStorage;
+import net.fabricmc.loader.api.FabricLoader;
 
 public final class BCEnergyFabric {
    private BCEnergyFabric() {
@@ -57,43 +56,32 @@ public final class BCEnergyFabric {
             (blockEntity, direction) -> blockEntity instanceof TileEngineStone_BC8 engine ? engine.getSidedFuelStorage(direction) : null,
             BCEnergyBlockEntities.ENGINE_STONE
          );
-      if (BCEnergyBlockEntities.ENGINE_FE != null) {
-         EnergyStorage.SIDED
-            .registerForBlockEntity(
-               (blockEntity, direction) -> blockEntity instanceof TileEngineRF engine ? engine.getSidedEnergyStorage(direction) : null,
-               BCEnergyBlockEntities.ENGINE_FE
-            );
-      }
-
-      if (BCEnergyBlockEntities.DYNAMO_MJ != null) {
-         EnergyStorage.SIDED
-            .registerForBlockEntity(
-               (blockEntity, direction) -> blockEntity instanceof TileDynamoMJ dynamo ? dynamo.getSidedEnergyStorage(direction) : null,
-               BCEnergyBlockEntities.DYNAMO_MJ
-            );
+      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
+         BCEnergyFabricTre.register();
       }
    }
 
    private static void registerMjCapabilities() {
-      MjBlockCapabilities.registerConnector(BCEnergyBlockEntities.ENGINE_STONE, (engine, direction) -> engine.getMjConnector());
-      MjBlockCapabilities.registerConnector(BCEnergyBlockEntities.ENGINE_IRON, (engine, direction) -> engine.getMjConnector());
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity((engine, direction) -> engine.getMjConnector(), BCEnergyBlockEntities.ENGINE_STONE);
+      MjAPI.CAP_CONNECTOR.registerForBlockEntity((engine, direction) -> engine.getMjConnector(), BCEnergyBlockEntities.ENGINE_IRON);
       if (BCEnergyBlockEntities.ENGINE_FE != null) {
-         MjBlockCapabilities.registerConnector(
-            BCEnergyBlockEntities.ENGINE_FE, (engine, direction) -> direction != engine.getOrientation() ? null : engine.getMjConnector()
+         MjAPI.CAP_CONNECTOR.registerForBlockEntity(
+            (engine, direction) -> direction != engine.getOrientation() ? null : engine.getMjConnector(), BCEnergyBlockEntities.ENGINE_FE
          );
       }
 
       if (BCEnergyBlockEntities.DYNAMO_MJ != null) {
-         MjBlockCapabilities.registerConnector(
-            BCEnergyBlockEntities.DYNAMO_MJ, (dynamo, direction) -> direction == dynamo.getOrientation() ? null : dynamo.getMjConnector()
+         MjAPI.CAP_CONNECTOR.registerForBlockEntity(
+            (dynamo, direction) -> direction == dynamo.getOrientation() ? null : dynamo.getMjConnector(), BCEnergyBlockEntities.DYNAMO_MJ
          );
-         MjBlockCapabilities.registerReceiver(BCEnergyBlockEntities.DYNAMO_MJ, (dynamo, direction) -> {
+         MjAPI.CAP_RECEIVER.registerForBlockEntity((dynamo, direction) -> {
             if (direction == dynamo.getOrientation()) {
                return null;
             } else {
                return dynamo.getMjConnector() instanceof IMjReceiver receiver ? receiver : null;
             }
-         });
+         }, BCEnergyBlockEntities.DYNAMO_MJ);
+         MjAPI.CAP_READABLE.registerForBlockEntity((dynamo, direction) -> dynamo.getMjReceiver() instanceof IMjReadable r ? r : null, BCEnergyBlockEntities.DYNAMO_MJ);
       }
    }
 }

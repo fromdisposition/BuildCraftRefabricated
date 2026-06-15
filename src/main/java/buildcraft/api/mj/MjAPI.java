@@ -10,7 +10,9 @@ import buildcraft.lib.BCLibConfig;
 import java.text.DecimalFormat;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -21,16 +23,39 @@ public class MjAPI {
    public static final String EXTERNAL_ENERGY_UNIT = "E";
    public static final DecimalFormat MJ_DISPLAY_FORMAT = new DecimalFormat("#,##0.##");
    public static IMjEffectManager EFFECT_MANAGER = MjAPI.NullaryEffectManager.INSTANCE;
+
+   /**
+    * Fabric BlockApiLookup for each MJ interface. Use these to register providers on block
+    * entities and to look up MJ capability on neighboring blocks.
+    *
+    * The same instances double as capability-token constants passed to
+    * {@code PipeFlow.getCapability(Object, Direction)} for internal pipe routing — identity
+    * comparison ({@code capability == MjAPI.CAP_RECEIVER}) still works because
+    * {@link BlockApiLookup} is an {@link Object}.
+    *
+    * Register: {@code MjAPI.CAP_RECEIVER.registerForBlockEntity((be, side) -> ..., MY_TYPE);}
+    * Look up:  {@code MjAPI.CAP_RECEIVER.find(level, pos, null, null, side);}
+    */
    @Nonnull
-   public static final Object CAP_CONNECTOR = new Object();
+   public static final BlockApiLookup<IMjConnector, Direction> CAP_CONNECTOR =
+       BlockApiLookup.get(Identifier.fromNamespaceAndPath("buildcraftrefabricated", "mj_connector"),
+                          IMjConnector.class, Direction.class);
    @Nonnull
-   public static final Object CAP_RECEIVER = new Object();
+   public static final BlockApiLookup<IMjReceiver, Direction> CAP_RECEIVER =
+       BlockApiLookup.get(Identifier.fromNamespaceAndPath("buildcraftrefabricated", "mj_receiver"),
+                          IMjReceiver.class, Direction.class);
    @Nonnull
-   public static final Object CAP_REDSTONE_RECEIVER = new Object();
+   public static final BlockApiLookup<IMjRedstoneReceiver, Direction> CAP_REDSTONE_RECEIVER =
+       BlockApiLookup.get(Identifier.fromNamespaceAndPath("buildcraftrefabricated", "mj_redstone_receiver"),
+                          IMjRedstoneReceiver.class, Direction.class);
    @Nonnull
-   public static final Object CAP_READABLE = new Object();
+   public static final BlockApiLookup<IMjReadable, Direction> CAP_READABLE =
+       BlockApiLookup.get(Identifier.fromNamespaceAndPath("buildcraftrefabricated", "mj_readable"),
+                          IMjReadable.class, Direction.class);
    @Nonnull
-   public static final Object CAP_PASSIVE_PROVIDER = new Object();
+   public static final BlockApiLookup<IMjPassiveProvider, Direction> CAP_PASSIVE_PROVIDER =
+       BlockApiLookup.get(Identifier.fromNamespaceAndPath("buildcraftrefabricated", "mj_passive_provider"),
+                          IMjPassiveProvider.class, Direction.class);
 
    public static String formatMj(long microMj) {
       return formatMjInternal((double)microMj / MJ);

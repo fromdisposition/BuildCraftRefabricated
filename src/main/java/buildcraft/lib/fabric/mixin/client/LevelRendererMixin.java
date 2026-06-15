@@ -25,6 +25,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+/**
+ * Provides two hooks not available through Fabric API:
+ * <ol>
+ *   <li>{@code extractBlockOutline} — fires {@link ExtractBlockOutlineRenderStateEvent} so BC can
+ *       inject custom outline renderers (pipe plug previews) or cancel the vanilla outline.</li>
+ *   <li>{@code renderBlockOutline} — dispatches to those custom renderers, respecting the
+ *       translucent/opaque pass distinction via {@code BlockOutlineRenderState.isTranslucent()}.</li>
+ * </ol>
+ *
+ * Fabric API's {@code WorldRenderEvents.BLOCK_OUTLINE} fires once without a pass discriminator,
+ * making it impossible to correctly split opaque/translucent rendering. Keep this mixin until
+ * Fabric exposes per-pass block-outline callbacks.
+ */
 @Mixin(LevelRenderer.class)
 public abstract class LevelRendererMixin {
    @Unique

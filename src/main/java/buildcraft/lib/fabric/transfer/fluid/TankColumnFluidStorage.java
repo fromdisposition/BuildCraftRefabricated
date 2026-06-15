@@ -2,7 +2,7 @@ package buildcraft.lib.fabric.transfer.fluid;
 
 
 import buildcraft.lib.fluid.identity.FluidIdentity;
-import buildcraft.lib.fluid.meta.FluidAttributes;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fabric.transfer.TransferCommits;
@@ -39,7 +39,7 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
             }
          }
 
-         boolean gaseous = FluidAttributes.of(fluid.getFluid()).isLighterThanAir();
+         boolean gaseous = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid.getFluid()));
          long remaining = millibuckets;
          long totalInserted = 0L;
          if (gaseous) {
@@ -89,7 +89,7 @@ public final class TankColumnFluidStorage implements Storage<FluidVariant> {
          }
 
          FluidVariant variant = FluidVariants.toVariant(resolved);
-         boolean gaseous = FluidAttributes.of(resolved.getFluid()).isLighterThanAir();
+         boolean gaseous = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(resolved.getFluid()));
          long remaining = millibuckets;
          long totalExtracted = 0L;
          if (gaseous) {

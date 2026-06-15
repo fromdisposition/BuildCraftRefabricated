@@ -8,7 +8,6 @@ package buildcraft.lib.fluid.container;
 
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.fluid.identity.FluidIdentity;
-import buildcraft.lib.fluid.meta.FluidAttributes;
 import buildcraft.lib.fluid.stack.FluidStack;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,7 +36,7 @@ public final class FluidContainers {
                return new ItemStack(entry.bucket());
             }
 
-            Item bucket = FluidAttributes.of(fluid).getBucket(fluidStack);
+            Item bucket = fluid.getBucket();
             if (bucket != null) {
                return new ItemStack(bucket);
             }
