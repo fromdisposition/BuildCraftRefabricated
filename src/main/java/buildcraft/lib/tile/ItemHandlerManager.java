@@ -7,7 +7,6 @@
 package buildcraft.lib.tile;
 
 import buildcraft.api.core.EnumPipePart;
-import buildcraft.lib.fabric.transfer.FabricItemStorageProvider;
 import buildcraft.lib.fabric.transfer.ItemStorageResolve;
 import buildcraft.lib.misc.INBTSerializable;
 import buildcraft.lib.misc.InventoryUtil;
@@ -29,7 +28,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
    public final StackChangeCallback callback;
-   private final List<FabricItemStorageProvider> handlersToDrop = new ArrayList<>();
+   private final List<Storage<ItemVariant>> handlersToDrop = new ArrayList<>();
    private final Map<EnumPipePart, ItemHandlerManager.Wrapper> wrappers = new EnumMap<>(EnumPipePart.class);
    private final Map<String, INBTSerializable<CompoundTag>> handlers = new HashMap<>();
 
@@ -41,14 +40,14 @@ public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
       }
    }
 
-   public <T extends INBTSerializable<CompoundTag> & FabricItemStorageProvider> T addInvHandler(
+   public <T extends INBTSerializable<CompoundTag> & Storage<ItemVariant>> T addInvHandler(
       String key, T handler, ItemHandlerManager.EnumAccess access, EnumPipePart... parts
    ) {
       if (parts == null) {
          parts = new EnumPipePart[0];
       }
 
-      FabricItemStorageProvider external = handler;
+      Storage<ItemVariant> external = handler;
       if (access == ItemHandlerManager.EnumAccess.NONE || access == ItemHandlerManager.EnumAccess.PHANTOM) {
          external = null;
          if (parts.length > 0) {
@@ -116,8 +115,8 @@ public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
    }
 
    public void addDrops(NonNullList<ItemStack> toDrop) {
-      for (FabricItemStorageProvider provider : this.handlersToDrop) {
-         if (provider instanceof BcItemInventory inventory) {
+      for (Storage<ItemVariant> storage : this.handlersToDrop) {
+         if (storage instanceof BcItemInventory inventory) {
             InventoryUtil.addAll(inventory, toDrop);
          }
       }
@@ -130,7 +129,7 @@ public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
       }
 
       ItemHandlerManager.Wrapper wrapper = this.wrappers.get(EnumPipePart.fromFacing(facing));
-      return ItemStorageResolve.of(wrapper.combined);
+      return wrapper.combined;
    }
 
    public CompoundTag serializeNBT() {
@@ -160,15 +159,14 @@ public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
    }
 
    private static class Wrapper {
-      private final List<FabricItemStorageProvider> handlers = new ArrayList<>();
-      private FabricItemStorageProvider combined = null;
+      private final List<Storage<ItemVariant>> handlers = new ArrayList<>();
+      private Storage<ItemVariant> combined = null;
 
       public void genWrapper() {
          if (this.handlers.size() == 1) {
             this.combined = this.handlers.get(0);
          } else {
-            FabricItemStorageProvider[] arr = this.handlers.toArray(new FabricItemStorageProvider[0]);
-            this.combined = new CombinedItemStorageProvider(arr);
+            this.combined = ItemStorageResolve.combine(this.handlers);
          }
       }
    }

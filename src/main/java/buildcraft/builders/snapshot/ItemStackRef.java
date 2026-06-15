@@ -6,7 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import java.util.Objects;
 import java.util.Optional;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -31,7 +31,7 @@ public class ItemStackRef {
 
    public ItemStack get(Tag nbt) {
       Identifier itemId = Identifier.parse(((StringTag)this.item.get(nbt).orElseThrow(NullPointerException::new)).value());
-      Item itemObj = Mc26Compat.getItem(itemId);
+      Item itemObj = BcRegistryUtil.getItem(itemId);
       Objects.requireNonNull(itemObj, "Unknown item: " + itemId);
       int count = Optional.ofNullable(this.amount).flatMap(ref -> ref.get(nbt)).<Integer>map(IntTag::value).orElse(1);
       ItemStack itemStack = new ItemStack(itemObj, count);

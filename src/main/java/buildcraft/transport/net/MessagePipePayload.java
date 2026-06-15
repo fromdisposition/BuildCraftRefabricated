@@ -8,12 +8,12 @@ package buildcraft.transport.net;
 
 import buildcraft.api.core.BCLog;
 import buildcraft.api.transport.pipe.IPipeHolder;
+import java.io.IOException;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.net.BcEnvelopeCodec;
 import buildcraft.lib.net.BoundedByteArrays;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.tile.TilePipeHolder;
-import java.io.IOException;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -61,30 +61,26 @@ public record MessagePipePayload(BlockPos pos, int receiverOrdinal, byte[] paylo
          if (world.getBlockEntity(message.pos) instanceof TilePipeHolder holder) {
             try {
                BcEnvelopeCodec.decode(message.payload, buffer -> {
-                  try {
-                     if (message.receiverOrdinal == LEGACY_WIRES_RECEIVER_ORDINAL) {
-                        PipeReceiverPayloadCodec.ignoreLegacyWiresPayload(holder, buffer);
+                  if (message.receiverOrdinal == LEGACY_WIRES_RECEIVER_ORDINAL) {
+                     PipeReceiverPayloadCodec.ignoreLegacyWiresPayload(holder, buffer);
+                  } else {
+                     Pipe pipe = holder.getPipe();
+                     if (message.receiverOrdinal == MULTI_RECEIVER_ORDINAL) {
+                        if (pipe != null) {
+                           PipeReceiverPayloadCodec.readMulti(holder, pipe, buffer);
+                        }
                      } else {
-                        Pipe pipe = holder.getPipe();
-                        if (message.receiverOrdinal == MULTI_RECEIVER_ORDINAL) {
-                           if (pipe != null) {
-                              PipeReceiverPayloadCodec.readMulti(holder, pipe, buffer);
-                           }
-                        } else {
-                           IPipeHolder.PipeMessageReceiver[] receivers = IPipeHolder.PipeMessageReceiver.VALUES;
-                           if (message.receiverOrdinal < 0 || message.receiverOrdinal >= receivers.length) {
-                              BCLog.logger.warn("[transport.net] Invalid pipe message receiver ordinal: " + message.receiverOrdinal);
-                              return;
-                           }
+                        IPipeHolder.PipeMessageReceiver[] receivers = IPipeHolder.PipeMessageReceiver.VALUES;
+                        if (message.receiverOrdinal < 0 || message.receiverOrdinal >= receivers.length) {
+                           BCLog.logger.warn("[transport.net] Invalid pipe message receiver ordinal: " + message.receiverOrdinal);
+                           return;
+                        }
 
-                           IPipeHolder.PipeMessageReceiver receiver = receivers[message.receiverOrdinal];
-                           if (receiver.face != null || pipe != null) {
-                              PipeReceiverPayloadCodec.read(receiver, holder, pipe, buffer);
-                           }
+                        IPipeHolder.PipeMessageReceiver receiver = receivers[message.receiverOrdinal];
+                        if (receiver.face != null || pipe != null) {
+                           PipeReceiverPayloadCodec.read(receiver, holder, pipe, buffer);
                         }
                      }
-                  } catch (IOException e) {
-                     throw new RuntimeException(e);
                   }
                });
             } catch (Exception e) {

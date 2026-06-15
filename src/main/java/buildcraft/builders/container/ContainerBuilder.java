@@ -6,7 +6,7 @@
 
 package buildcraft.builders.container;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.builders.BCBuildersMenuTypes;
@@ -249,7 +249,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
       if (!fluidIdStr.isEmpty() && amount > 0) {
          Identifier fluidId = Identifier.tryParse(fluidIdStr);
          if (fluidId != null) {
-            Fluid fluid = Mc26Compat.getFluid(fluidId);
+            Fluid fluid = BcRegistryUtil.getFluid(fluidId);
             if (fluid != null && fluid != Fluids.EMPTY) {
                handler.setContents(new FluidStack(fluid, amount));
                return;

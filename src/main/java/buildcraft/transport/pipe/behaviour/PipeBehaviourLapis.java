@@ -18,7 +18,7 @@ import buildcraft.api.transport.pipe.PipeFaceTex;
 import buildcraft.lib.misc.EntityUtil;
 import buildcraft.transport.BCTransportStatements;
 import buildcraft.transport.statements.ActionPipeColor;
-import java.io.IOException;
+
 import java.util.Collections;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
@@ -59,8 +59,8 @@ public class PipeBehaviourLapis extends PipeBehaviour {
    }
 
    @Override
-   public void readPayload(FriendlyByteBuf buffer, Object ctx) throws IOException {
-      super.readPayload(buffer, ctx);
+   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) {
+      super.readPayload(buffer, isClientSide);
       this.colourData.readPayload(buffer);
    }
 

@@ -17,7 +17,7 @@ import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFaceTex;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.transport.BCTransportStatements;
-import java.io.IOException;
+
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -63,8 +63,8 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
    }
 
    @Override
-   public void readPayload(FriendlyByteBuf buffer, Object ctx) throws IOException {
-      super.readPayload(buffer, ctx);
+   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) {
+      super.readPayload(buffer, isClientSide);
       int ord = buffer.readUnsignedByte();
       if (ord >= 0 && ord < EnumPipePart.VALUES.length) {
          this.currentDir = EnumPipePart.VALUES[ord];

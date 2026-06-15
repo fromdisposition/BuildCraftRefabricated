@@ -6,7 +6,7 @@
 
 package buildcraft.energy.tile;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.MjAPI;
@@ -77,7 +77,7 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
 
    @Nullable
    public Storage<ItemVariant> getSidedFuelStorage(@Nullable Direction direction) {
-      return direction != null && direction != this.getOrientation() ? this.fuelItemHandler.fabricItemStorage() : null;
+      return direction != null && direction != this.getOrientation() ? this.fuelItemHandler : null;
    }
 
    @Nonnull
@@ -219,7 +219,7 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
       if (!fuelId.isEmpty()) {
          Identifier id = Identifier.tryParse(fuelId);
          if (id != null) {
-            Item item = Mc26Compat.getItem(id);
+            Item item = BcRegistryUtil.getItem(id);
             int count = input.getIntOr("fuelCount", 1);
             if (item != null && item != Items.AIR) {
                this.fuelStack = new ItemStack(item, count);

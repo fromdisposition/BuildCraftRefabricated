@@ -6,14 +6,11 @@
 
 package buildcraft.lib.tile;
 
-import buildcraft.lib.fabric.transfer.FabricItemStorageProvider;
 import buildcraft.lib.misc.INBTSerializable;
 import org.jspecify.annotations.Nullable;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.nbt.CompoundTag;
 
-public class ItemHandlerSimple extends BcItemInventory implements FabricItemStorageProvider, INBTSerializable<CompoundTag> {
+public class ItemHandlerSimple extends BcItemInventory implements INBTSerializable<CompoundTag> {
    public ItemHandlerSimple(int size) {
       super(size);
    }
@@ -30,8 +27,4 @@ public class ItemHandlerSimple extends BcItemInventory implements FabricItemStor
       super(size, checker, insertionFunction, callback);
    }
 
-   @Override
-   public Storage<ItemVariant> fabricItemStorage() {
-      return this;
-   }
 }

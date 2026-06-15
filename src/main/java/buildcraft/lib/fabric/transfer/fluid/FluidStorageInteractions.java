@@ -2,7 +2,7 @@ package buildcraft.lib.fabric.transfer.fluid;
 
 
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.lib.fluid.interaction.FluidBlockPlacement;
@@ -114,7 +114,7 @@ public final class FluidStorageInteractions {
 
             ItemStack pickedUpStack = bucketPickup.pickupBlock(player, level, pos, level.getBlockState(pos));
             if (pickedUpStack.getItem() instanceof BucketItem bucket) {
-               Fluid bucketFluid = Mc26Compat.bucketFluid(bucket);
+               Fluid bucketFluid = BcRegistryUtil.bucketFluid(bucket);
                FluidStack extracted = new FluidStack(bucketFluid, 1000);
                if (!FluidIdentity.areEquivalentFluidStacks(resource, extracted.copyWithAmount(1))) {
                   LOGGER.warn(

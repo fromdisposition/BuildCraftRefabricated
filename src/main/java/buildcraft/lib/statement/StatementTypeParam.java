@@ -7,11 +7,10 @@
 package buildcraft.lib.statement;
 
 import net.minecraft.network.FriendlyByteBuf;
-import buildcraft.api.core.InvalidInputDataException;
+import buildcraft.api.core.BCLog;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.StatementManager;
 import buildcraft.lib.net.PacketBufferBC;
-import java.io.IOException;
 import net.minecraft.nbt.CompoundTag;
 
 public class StatementTypeParam extends StatementType<IStatementParameter> {
@@ -41,12 +40,13 @@ public class StatementTypeParam extends StatementType<IStatementParameter> {
       return nbt;
    }
 
-   public IStatementParameter readFromBuffer(FriendlyByteBuf buffer) throws IOException {
+   public IStatementParameter readFromBuffer(FriendlyByteBuf buffer) {
       if (buffer.readBoolean()) {
          String tag = buffer.readUtf();
          StatementManager.IParamReaderBuf reader = StatementManager.paramsBuf.get(tag);
          if (reader == null) {
-            throw new InvalidInputDataException("Unknown paramater type " + tag);
+            BCLog.logger.warn("[statement] Unknown parameter type '{}'", tag);
+            return null;
          } else {
             return reader.readFromBuf(buffer);
          }

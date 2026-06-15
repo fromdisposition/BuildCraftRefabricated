@@ -6,7 +6,7 @@
 
 package buildcraft.core.marker.volume;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.core.client.BuildCraftLaserManager;
 import buildcraft.lib.client.render.laser.LaserData_BC8;
 import java.util.ArrayList;
@@ -122,7 +122,7 @@ public class Lock {
             }
 
             String blockKey = nbt.getString("block").orElse("minecraft:air");
-            this.block = Mc26Compat.getBlock(Identifier.parse(blockKey));
+            this.block = BcRegistryUtil.getBlock(Identifier.parse(blockKey));
          }
 
          @Override

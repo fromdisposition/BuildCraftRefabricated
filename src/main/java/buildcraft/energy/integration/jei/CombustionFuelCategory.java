@@ -6,9 +6,8 @@
 
 package buildcraft.energy.integration.jei;
 
-import buildcraft.api.fuels.IFuel;
-import buildcraft.api.fuels.IFuelManager;
 import buildcraft.energy.BCEnergyItems;
+import buildcraft.energy.recipe.CombustionFuelRecipe;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.integration.jei.JeiCategoryDraw;
@@ -23,7 +22,7 @@ import mezz.jei.api.recipe.category.AbstractRecipeCategory;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 
-public class CombustionFuelCategory extends AbstractRecipeCategory<IFuel> {
+public class CombustionFuelCategory extends AbstractRecipeCategory<CombustionFuelRecipe> {
    private static final int CARD_W = 176, CARD_H = 66;
    private static final int FUEL_X = 8, FUEL_Y = 4, TANK_W = 16, TANK_H = 40;
    private static final int RESIDUE_X = 32, RESIDUE_Y = 4;
@@ -38,26 +37,26 @@ public class CombustionFuelCategory extends AbstractRecipeCategory<IFuel> {
       );
    }
 
-   public void setRecipe(IRecipeLayoutBuilder builder, IFuel recipe, IFocusGroup focuses) {
-      FluidStack fuel = recipe.getFluid();
-      if (fuel != null && !fuel.isEmpty()) {
+   public void setRecipe(IRecipeLayoutBuilder builder, CombustionFuelRecipe recipe, IFocusGroup focuses) {
+      FluidStack fuel = new FluidStack(recipe.fluid(), 1000);
+      if (!fuel.isEmpty()) {
          IRecipeSlotBuilder fuelSlot = builder.addInputSlot(FUEL_X, FUEL_Y).setFluidRenderer(1000L, false, TANK_W, TANK_H);
          JeiFluids.addFluidStack(fuelSlot, fuel, 1000L);
       }
 
-      if (recipe instanceof IFuelManager.IDirtyFuel dirty) {
-         FluidStack residue = dirty.getResidue();
-         if (residue != null && !residue.isEmpty()) {
+      if (recipe.isDirty()) {
+         FluidStack residue = recipe.getResiduePerBucket();
+         if (!residue.isEmpty()) {
             IRecipeSlotBuilder residueSlot = builder.addOutputSlot(RESIDUE_X, RESIDUE_Y).setFluidRenderer(residue.getAmount(), false, TANK_W, TANK_H);
             JeiFluids.addFluidStack(residueSlot, residue);
          }
       }
    }
 
-   public void draw(IFuel recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
-      JeiCategoryDraw.text(graphics, LocaleUtil.localizeMjFlow(recipe.getPowerPerCycle()), FUEL_X, 48);
+   public void draw(CombustionFuelRecipe recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
+      JeiCategoryDraw.text(graphics, LocaleUtil.localizeMjFlow(recipe.powerPerCycle()), FUEL_X, 48);
       JeiCategoryDraw.text(
-         graphics, LocaleUtil.localize("gui.jei.category.buildcraft.combustion_engine_fuel.burn", recipe.getTotalBurningTime()), FUEL_X, 58
+         graphics, LocaleUtil.localize("gui.jei.category.buildcraft.combustion_engine_fuel.burn", recipe.totalBurningTime()), FUEL_X, 58
       );
    }
 }

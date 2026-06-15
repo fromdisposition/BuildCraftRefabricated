@@ -9,7 +9,6 @@ package buildcraft.silicon.gate;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
-import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.statements.IAction;
 import buildcraft.api.statements.IActionInternal;
 import buildcraft.api.statements.IStatement;
@@ -18,7 +17,6 @@ import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.statement.ActionWrapper;
 import buildcraft.lib.statement.StatementType;
-import java.io.IOException;
 import net.minecraft.nbt.CompoundTag;
 
 public class ActionType extends StatementType<ActionWrapper> {
@@ -63,7 +61,7 @@ public class ActionType extends StatementType<ActionWrapper> {
       return nbt;
    }
 
-   public ActionWrapper readFromBuffer(FriendlyByteBuf buffer) throws IOException {
+   public ActionWrapper readFromBuffer(FriendlyByteBuf buffer) {
       PacketBufferBC bc = BcPayloadBuffers.ensure(buffer);
       if (bc.readBoolean()) {
          String name = bc.readUtf();
@@ -72,7 +70,8 @@ public class ActionType extends StatementType<ActionWrapper> {
          if (statement instanceof IAction) {
             return ActionWrapper.wrap(statement, part.face);
          } else {
-            throw new InvalidInputDataException("Unknown action '" + name + "'");
+            BCLog.logger.warn("[gate.action] Unknown action '{}'", name);
+            return null;
          }
       } else {
          return null;

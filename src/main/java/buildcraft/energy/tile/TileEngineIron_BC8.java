@@ -6,12 +6,12 @@
 
 package buildcraft.energy.tile;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.enums.EnumPowerStage;
-import buildcraft.api.fuels.BuildcraftFuelRegistry;
-import buildcraft.api.fuels.IFuel;
-import buildcraft.api.fuels.IFuelManager;
 import buildcraft.api.mj.IMjConnector;
+import buildcraft.energy.BCEnergyRecipeTypes;
+import buildcraft.energy.recipe.CombustionFuelRecipe;
+import buildcraft.energy.recipe.CoolantRecipe;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.container.ContainerEngineIron_BC8;
@@ -33,7 +33,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -60,7 +62,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
    private boolean lastPowered = false;
    private double burnTime;
    private double residueAmount = 0.0;
-   private IFuel currentFuel;
+   private @Nullable CombustionFuelRecipe currentFuel;
 
    public TileEngineIron_BC8(BlockPos pos, BlockState state) {
       super(BCEnergyBlockEntities.ENGINE_IRON, pos, state);
@@ -85,8 +87,8 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
    protected void burn() {
       if (this.getPowerStage() != EnumPowerStage.OVERHEAT) {
          FluidStack fuel = this.tankFuel.getFluidStack();
-         if (this.currentFuel == null || this.currentFuel.getFluid().getFluid() != fuel.getFluid()) {
-            this.currentFuel = BuildcraftFuelRegistry.fuel.getFuel(fuel);
+         if (this.currentFuel == null || !this.currentFuel.fluid().isSame(fuel.getFluid())) {
+            this.currentFuel = findFuel(fuel.getFluid());
          }
 
          if (!fuel.isEmpty() && this.currentFuel != null) {
@@ -130,12 +132,12 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                            tx.close();
                         }
 
-                        this.burnTime = this.burnTime + this.currentFuel.getTotalBurningTime() / 1000.0;
-                        if (this.currentFuel instanceof IFuelManager.IDirtyFuel dirtyFuel) {
-                           FluidStack residueFluid = dirtyFuel.getResidue().copy();
-                           this.residueAmount = this.residueAmount + residueFluid.getAmount() / 1000.0;
+                        this.burnTime = this.burnTime + this.currentFuel.totalBurningTime() / 1000.0;
+                        if (this.currentFuel.isDirty()) {
+                           this.residueAmount = this.residueAmount + this.currentFuel.residueAmountPer1000Mb() / 1000.0;
                            if (this.residueAmount >= 1.0) {
                               int residueInt = Mth.floor(this.residueAmount);
+                              FluidStack residueFluid = new FluidStack(this.currentFuel.residueFluid(), residueInt);
                               Transaction txx = Transaction.openOuter();
 
                               try {
@@ -164,8 +166,8 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                         }
                      }
 
-                     this.addPower(this.currentFuel.getPowerPerCycle());
-                     this.heat = this.heat + (float)(this.currentFuel.getPowerPerCycle() * 0.0023 / MjAPI.MJ);
+                     this.addPower(this.currentFuel.powerPerCycle());
+                     this.heat = this.heat + (float)(this.currentFuel.powerPerCycle() * 0.0023 / MjAPI.MJ);
                   }
                } else if (this.lastPowered) {
                   this.lastPowered = false;
@@ -222,7 +224,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
          double extraHeat = this.heat - target;
          if (extraHeat > 0.0 && this.tankCoolant.getAmountMb() > 0) {
             FluidStack coolRes = this.tankCoolant.getFluidStack();
-            float coolPerMb = BuildcraftFuelRegistry.coolant.getDegreesPerMb(coolRes.copyWithAmount(1), this.heat);
+            float coolPerMb = getCoolantDegreesPerMb(coolRes.getFluid());
             if (coolPerMb > 0.0F) {
                int coolantAmount = Math.min(40, this.tankCoolant.getAmountMb());
                coolingBuffer += coolantAmount * coolPerMb;
@@ -313,7 +315,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
 
    @Override
    public long getCurrentOutput() {
-      return this.currentFuel == null ? 0L : this.currentFuel.getPowerPerCycle();
+      return this.currentFuel == null ? 0L : this.currentFuel.powerPerCycle();
    }
 
    @Override
@@ -325,19 +327,42 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
       this.power = Math.min(this.power + microMj, this.getMaxPower());
    }
 
+   private @Nullable CombustionFuelRecipe findFuel(Fluid fluid) {
+      if (this.level instanceof ServerLevel sl) {
+         for (RecipeHolder<?> h : sl.recipeAccess().getRecipes()) {
+            if (h.value() instanceof CombustionFuelRecipe r && r.fluid().isSame(fluid)) return r;
+         }
+      }
+      return null;
+   }
+
+   private float getCoolantDegreesPerMb(Fluid fluid) {
+      if (this.level instanceof ServerLevel sl) {
+         for (RecipeHolder<?> h : sl.recipeAccess().getRecipes()) {
+            if (h.value() instanceof CoolantRecipe r && r.matchesFluid(fluid)) return r.degreesCoolingPerMb();
+         }
+      }
+      return 0.0f;
+   }
+
    private boolean isValidFuel(FluidStack fluid) {
-      return BuildcraftFuelRegistry.fuel != null && BuildcraftFuelRegistry.fuel.getFuel(fluid) != null;
+      return findFuel(fluid.getFluid()) != null;
    }
 
    private boolean isValidCoolant(FluidStack fluid) {
-      return BuildcraftFuelRegistry.coolant != null && BuildcraftFuelRegistry.coolant.getCoolant(fluid) != null;
+      if (this.level instanceof ServerLevel sl) {
+         for (RecipeHolder<?> h : sl.recipeAccess().getRecipes()) {
+            if (h.value() instanceof CoolantRecipe r && r.matchesFluid(fluid.getFluid())) return true;
+         }
+      }
+      return false;
    }
 
    private boolean isResidue(FluidStack fluid) {
       if (this.level != null && this.level.isClientSide()) {
          return true;
       } else {
-         return this.currentFuel instanceof IFuelManager.IDirtyFuel dirtyFuel ? FluidStack.isSameFluid(fluid, dirtyFuel.getResidue()) : false;
+         return this.currentFuel != null && this.currentFuel.isDirty() && fluid.getFluid().isSame(this.currentFuel.residueFluid());
       }
    }
 
@@ -391,7 +416,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
       if (!fluidId.isEmpty()) {
          Identifier id = Identifier.tryParse(fluidId);
          if (id != null) {
-            Fluid fluid = Mc26Compat.getFluid(id);
+            Fluid fluid = BcRegistryUtil.getFluid(id);
             if (fluid != null && fluid != Fluids.EMPTY) {
                int amount = input.getIntOr(amountKey, 0);
                if (amount > 0) {

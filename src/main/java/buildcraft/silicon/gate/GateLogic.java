@@ -7,7 +7,6 @@
 package buildcraft.silicon.gate;
 
 import buildcraft.api.core.BCLog;
-import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.gates.IGate;
 import buildcraft.api.statements.IActionExternal;
 import buildcraft.api.statements.IActionInternal;
@@ -37,7 +36,6 @@ import buildcraft.transport.statements.TriggerPipeEmpty;
 import buildcraft.transport.statements.TriggerPipeSignal;
 import buildcraft.transport.wire.SavedDataWireSystems;
 import buildcraft.transport.wire.WireSystem;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -237,13 +235,9 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
       readBoolArray(bc, this.actionOn);
       readBoolArray(bc, this.connections);
 
-      try {
-         for (GateLogic.StatementPair pair : this.statements) {
-            pair.trigger.readFromBuffer(bc);
-            pair.action.readFromBuffer(bc);
-         }
-      } catch (IOException io) {
-         throw new Error(io);
+      for (GateLogic.StatementPair pair : this.statements) {
+         pair.trigger.readFromBuffer(bc);
+         pair.action.readFromBuffer(bc);
       }
 
       boolean on = false;
@@ -269,7 +263,7 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
       }
    }
 
-   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) throws IOException {
+   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) {
       PacketBufferBC bc = BcPayloadBuffers.ensure(buffer);
       int id = bc.readUnsignedByte();
       if (id == NET_ID_CHANGE) {
@@ -279,7 +273,7 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
             GateLogic.StatementPair s = this.statements[slot];
             (isAction ? s.action : s.trigger).readFromBuffer(bc);
          } else {
-            throw new InvalidInputDataException("Slot index out of range! (" + slot + ", must be within " + this.statements.length + ")");
+            BCLog.logger.warn("[gate.logic] Slot index out of range! ({}, must be within {})", slot, this.statements.length);
          }
       } else {
          if (isClientSide) {

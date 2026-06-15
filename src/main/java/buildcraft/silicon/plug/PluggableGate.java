@@ -25,7 +25,6 @@ import buildcraft.silicon.gate.GateLogic;
 import buildcraft.silicon.gate.GateVariant;
 import buildcraft.silicon.item.ItemGateCopier;
 import buildcraft.transport.BCTransportAttachments;
-import java.io.IOException;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
@@ -116,16 +115,16 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
    }
 
    @Override
-   public void writePayload(FriendlyByteBuf buffer, Object side) {
+   public void writePayload(FriendlyByteBuf buffer, Direction face) {
       throw new Error("All messages must have an ID, and we can't just write a payload directly!");
    }
 
    @Override
-   public void readPayload(FriendlyByteBuf b, Object side, Object ctx) throws IOException {
+   public void readPayload(FriendlyByteBuf b, Direction face, boolean isClientSide) {
       PacketBufferBC packetBuffer = BcPayloadBuffers.ensure(b);
       byte id = packetBuffer.readByte();
       if (id == 1) {
-         this.logic.readPayload(packetBuffer, (Boolean)ctx);
+         this.logic.readPayload(packetBuffer, isClientSide);
       }
    }
 

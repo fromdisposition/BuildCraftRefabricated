@@ -11,7 +11,6 @@ import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.lib.misc.data.IReference;
 import buildcraft.lib.net.PacketBufferBC;
-import java.io.IOException;
 import java.util.Arrays;
 import net.minecraft.nbt.CompoundTag;
 
@@ -65,7 +64,7 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
       return nbt;
    }
 
-   public void readFromBuffer(FriendlyByteBuf buffer) throws IOException {
+   public void readFromBuffer(FriendlyByteBuf buffer) {
       if (buffer.readBoolean()) {
          this.statement = this.type.readFromBuffer(buffer);
 

@@ -12,7 +12,6 @@ import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.tile.TilePipeHolder;
-import java.io.IOException;
 import java.util.Set;
 import net.minecraft.network.FriendlyByteBuf;
 
@@ -36,7 +35,7 @@ public final class PipeReceiverPayloadCodec {
             if (pipex != null && pipex.getFlow() != null) {
                buffer.writeBoolean(true);
                buffer.writeShort(1);
-               pipex.getFlow().writePayload(1, buffer, null);
+               pipex.getFlow().writePayload(1, buffer);
             } else {
                buffer.writeBoolean(false);
             }
@@ -51,14 +50,14 @@ public final class PipeReceiverPayloadCodec {
       }
    }
 
-   public static void read(IPipeHolder.PipeMessageReceiver receiver, TilePipeHolder holder, Pipe pipe, FriendlyByteBuf buffer) throws IOException {
+   public static void read(IPipeHolder.PipeMessageReceiver receiver, TilePipeHolder holder, Pipe pipe, FriendlyByteBuf buffer) {
       switch (receiver) {
          case BEHAVIOUR:
             if (buffer.readBoolean()) {
                if (pipe != null) {
                   pipe.readPayload(buffer);
                } else {
-                  throw new IOException("Unexpected pipe behaviour payload without pipe");
+                  BCLog.logger.warn("[transport.net] Unexpected pipe behaviour payload without pipe at {}", holder.getPipePos());
                }
             }
             break;
@@ -70,14 +69,14 @@ public final class PipeReceiverPayloadCodec {
             PipeFlow flow = pipe.getFlow();
             if (flow != null) {
                int id = buffer.readShort();
-               flow.readPayload(id, buffer, null);
+               flow.readPayload(id, buffer);
             }
             break;
          default:
             if (receiver.face != null) {
                PipePluggable plug = holder.getPluggable(receiver.face);
                if (plug != null) {
-                  plug.readPayload(buffer, receiver.face, Boolean.TRUE);
+                  plug.readPayload(buffer, receiver.face, true);
                }
             }
       }
@@ -104,7 +103,7 @@ public final class PipeReceiverPayloadCodec {
       }
    }
 
-   public static void readMulti(TilePipeHolder holder, Pipe pipe, FriendlyByteBuf buffer) throws IOException {
+   public static void readMulti(TilePipeHolder holder, Pipe pipe, FriendlyByteBuf buffer) {
       int mask = buffer.readUnsignedShort();
 
       for (IPipeHolder.PipeMessageReceiver receiver : IPipeHolder.PipeMessageReceiver.VALUES) {

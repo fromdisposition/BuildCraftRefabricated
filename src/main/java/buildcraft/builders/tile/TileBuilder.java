@@ -6,7 +6,7 @@
 
 package buildcraft.builders.tile;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.IPathProvider;
 import buildcraft.api.enums.EnumOptionalSnapshotType;
 import buildcraft.api.enums.EnumSnapshotType;
@@ -153,7 +153,7 @@ public class TileBuilder
    @Nullable
    @Override
    public Storage<ItemVariant> getSidedItemStorage(@Nullable Direction direction) {
-      return direction == null ? null : this.resourceInventory.fabricItemStorage();
+      return direction == null ? null : this.resourceInventory;
    }
 
    @Nullable
@@ -525,7 +525,7 @@ public class TileBuilder
          if (!fluidId.isEmpty()) {
             Identifier id = Identifier.tryParse(fluidId);
             if (id != null) {
-               Fluid fluid = Mc26Compat.getFluid(id);
+               Fluid fluid = BcRegistryUtil.getFluid(id);
                if (fluid != null && fluid != Fluids.EMPTY) {
                   int amount = input.getIntOr("tank_" + i + "_amount", 0);
                   if (amount > 0) {

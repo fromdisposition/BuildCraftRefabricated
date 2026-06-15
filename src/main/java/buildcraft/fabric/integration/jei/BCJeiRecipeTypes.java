@@ -6,10 +6,10 @@
 
 package buildcraft.fabric.integration.jei;
 
-import buildcraft.api.fuels.IFuel;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.energy.integration.jei.CombustionCoolantJei;
 import buildcraft.energy.integration.jei.StirlingFuelJei;
+import buildcraft.energy.recipe.CombustionFuelRecipe;
 import buildcraft.factory.integration.jei.HeatExchangerRecipePair;
 import buildcraft.silicon.integration.jei.AssemblyRecipeJei;
 import buildcraft.silicon.integration.jei.IntegrationRecipeJei;
@@ -20,7 +20,7 @@ public final class BCJeiRecipeTypes {
    public static final IRecipeType<AssemblyRecipeJei> ASSEMBLY = IRecipeType.create("buildcraftsilicon", "assembly_table", AssemblyRecipeJei.class);
    public static final IRecipeType<IntegrationRecipeJei> INTEGRATION = IRecipeType.create("buildcraftsilicon", "integration_table", IntegrationRecipeJei.class);
    public static final IRecipeType<ProgrammingRecipeJei> PROGRAMMING = IRecipeType.create("buildcraftsilicon", "programming_table", ProgrammingRecipeJei.class);
-   public static final IRecipeType<IFuel> COMBUSTION_FUEL = IRecipeType.create("buildcraftenergy", "combustion_engine_fuel", IFuel.class);
+   public static final IRecipeType<CombustionFuelRecipe> COMBUSTION_FUEL = IRecipeType.create("buildcraftenergy", "combustion_engine_fuel", CombustionFuelRecipe.class);
    public static final IRecipeType<CombustionCoolantJei> COMBUSTION_COOLANT = IRecipeType.create(
       "buildcraftenergy", "combustion_engine_coolant", CombustionCoolantJei.class
    );

@@ -7,7 +7,6 @@
 package buildcraft.api.transport.pipe;
 
 import buildcraft.api.core.EnumPipePart;
-import java.io.IOException;
 import javax.annotation.Nonnull;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -38,15 +37,14 @@ public abstract class PipeFlow {
    public void readFromNbt(CompoundTag nbt) {
    }
 
-   public void writePayload(int id, FriendlyByteBuf buffer, Object side) {
+   public void writePayload(int id, FriendlyByteBuf buffer) {
    }
 
-   public void readPayload(int id, FriendlyByteBuf buffer, Object side) throws IOException {
+   public void readPayload(int id, FriendlyByteBuf buffer) {
    }
 
    public void sendPayload(int id) {
-      Object side = this.pipe.getHolder().getPipeWorld().isClientSide() ? null : null;
-      this.sendCustomPayload(id, buf -> this.writePayload(id, buf, side));
+      this.sendCustomPayload(id, buf -> this.writePayload(id, buf));
    }
 
    public final void sendCustomPayload(int id, IPipeHolder.IWriter writer) {

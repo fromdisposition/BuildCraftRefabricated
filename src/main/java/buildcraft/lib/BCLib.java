@@ -6,11 +6,8 @@
 
 package buildcraft.lib;
 
-import buildcraft.api.fuels.BuildcraftFuelRegistry;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.lib.fabric.BCLibFakePlayerProvider;
-import buildcraft.lib.fluid.registry.CoolantRegistry;
-import buildcraft.lib.fluid.registry.FuelRegistry;
 import buildcraft.lib.recipe.IntegrationRecipeRegistry;
 import buildcraft.lib.recipe.ProgrammingRecipeRegistry;
 import buildcraft.lib.recipe.RefineryRecipeRegistry;
@@ -31,14 +28,6 @@ public final class BCLib {
    }
 
    private static void initApiRegistries() {
-      if (BuildcraftFuelRegistry.fuel == null) {
-         BuildcraftFuelRegistry.fuel = FuelRegistry.INSTANCE;
-      }
-
-      if (BuildcraftFuelRegistry.coolant == null) {
-         BuildcraftFuelRegistry.coolant = CoolantRegistry.INSTANCE;
-      }
-
       if (BuildcraftRecipeRegistry.refineryRecipes == null) {
          BuildcraftRecipeRegistry.refineryRecipes = RefineryRecipeRegistry.INSTANCE;
       }

@@ -7,7 +7,6 @@
 package buildcraft.api.transport.pluggable;
 
 import buildcraft.api.transport.pipe.IPipeHolder;
-import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -54,10 +53,10 @@ public abstract class PipePluggable {
    public void writeCreationPayload(FriendlyByteBuf buffer) {
    }
 
-   public void writePayload(FriendlyByteBuf buffer, Object side) {
+   public void writePayload(FriendlyByteBuf buffer, Direction face) {
    }
 
-   public void readPayload(FriendlyByteBuf buffer, Object side, Object ctx) throws IOException {
+   public void readPayload(FriendlyByteBuf buffer, Direction face, boolean isClientSide) {
    }
 
    public final void scheduleNetworkUpdate() {

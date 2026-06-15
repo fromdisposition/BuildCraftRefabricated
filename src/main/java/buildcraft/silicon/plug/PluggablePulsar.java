@@ -18,7 +18,7 @@ import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.BCSiliconStatements;
 import buildcraft.silicon.client.model.key.KeyPlugSimple;
 import buildcraft.transport.BCTransportAttachments;
-import java.io.IOException;
+
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -74,8 +74,8 @@ public class PluggablePulsar extends PipePluggable {
    }
 
    @Override
-   public void readPayload(FriendlyByteBuf buffer, Object side, Object ctx) throws IOException {
-      super.readPayload(buffer, side, ctx);
+   public void readPayload(FriendlyByteBuf buffer, Direction face, boolean isClientSide) {
+      super.readPayload(buffer, face, isClientSide);
       this.readData(buffer);
       if (this.holder.getPipeWorld().isClientSide()) {
          this.holder.scheduleRenderUpdate();
@@ -89,8 +89,8 @@ public class PluggablePulsar extends PipePluggable {
    }
 
    @Override
-   public void writePayload(FriendlyByteBuf buffer, Object side) {
-      super.writePayload(buffer, side);
+   public void writePayload(FriendlyByteBuf buffer, Direction face) {
+      super.writePayload(buffer, face);
       this.writeData(buffer);
    }
 

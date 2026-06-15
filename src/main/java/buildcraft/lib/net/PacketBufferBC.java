@@ -23,12 +23,6 @@ public class PacketBufferBC extends FriendlyByteBuf {
       super(wrapped);
    }
 
-   
-   @Deprecated
-   public static PacketBufferBC asPacketBufferBc(ByteBuf buf) {
-      return BcPayloadBuffers.ensure(buf);
-   }
-
    public static PacketBufferBC write(IPayloadWriter writer) {
       PacketBufferBC buffer = BcPayloadBuffers.create();
       writer.write(buffer);

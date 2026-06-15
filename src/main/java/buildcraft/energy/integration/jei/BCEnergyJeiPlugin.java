@@ -6,11 +6,11 @@
 
 package buildcraft.energy.integration.jei;
 
-import buildcraft.api.fuels.BuildcraftFuelRegistry;
-import buildcraft.api.fuels.ICoolant;
-import buildcraft.api.fuels.IFuel;
-import buildcraft.api.fuels.ISolidCoolant;
 import buildcraft.energy.BCEnergyItems;
+import buildcraft.energy.BCEnergyRecipeTypes;
+import buildcraft.energy.recipe.CombustionFuelRecipe;
+import buildcraft.energy.recipe.CoolantRecipe;
+import buildcraft.energy.recipe.SolidCoolantRecipe;
 import buildcraft.fabric.integration.jei.BCJeiBootstrap;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.energy.client.gui.GuiEngineIron_BC8;
@@ -32,6 +32,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.entity.FuelValues;
 
 @JeiPlugin
@@ -56,43 +57,28 @@ public class BCEnergyJeiPlugin implements IModPlugin {
       registration.addRecipes(BCJeiRecipeTypes.STIRLING_FUEL, collectStirlingFuels());
    }
 
-   private static List<IFuel> collectCombustionFuels() {
-      List<IFuel> fuels = new ArrayList<>();
-      if (BuildcraftFuelRegistry.fuel == null) {
-         return fuels;
-      }
+   private static java.util.Collection<RecipeHolder<?>> allRecipes() {
+      var srv = Minecraft.getInstance().getSingleplayerServer();
+      return srv != null ? srv.getRecipeManager().getRecipes() : java.util.List.of();
+   }
 
-      for (IFuel fuel : BuildcraftFuelRegistry.fuel.getFuels()) {
-         FluidStack fluid = fuel.getFluid();
-         if (fluid != null && !fluid.isEmpty()) {
-            fuels.add(fuel);
-         }
+   private static List<CombustionFuelRecipe> collectCombustionFuels() {
+      List<CombustionFuelRecipe> fuels = new ArrayList<>();
+      for (RecipeHolder<?> h : allRecipes()) {
+         if (h.value() instanceof CombustionFuelRecipe r) fuels.add(r);
       }
-
       return fuels;
    }
 
    private static List<CombustionCoolantJei> collectCoolants() {
       List<CombustionCoolantJei> out = new ArrayList<>();
-      if (BuildcraftFuelRegistry.coolant == null) {
-         return out;
-      }
-
-      for (ICoolant coolant : BuildcraftFuelRegistry.coolant.getCoolants()) {
-         FluidStack rep = coolant.getRepresentativeFluid();
-         if (rep != null && !rep.isEmpty()) {
-            out.add(new CombustionCoolantJei(ItemStack.EMPTY, rep, coolant.getDegreesCoolingPerMB(rep, 1.0F)));
+      for (RecipeHolder<?> h : allRecipes()) {
+         if (h.value() instanceof CoolantRecipe r) {
+            out.add(new CombustionCoolantJei(ItemStack.EMPTY, new FluidStack(r.fluid(), 1000), r.degreesCoolingPerMb()));
+         } else if (h.value() instanceof SolidCoolantRecipe r) {
+            out.add(new CombustionCoolantJei(new ItemStack(r.item()), new FluidStack(r.coolantFluid(), r.coolantAmountPerItem()), 0.0F));
          }
       }
-
-      for (ISolidCoolant solid : BuildcraftFuelRegistry.coolant.getSolidCoolants()) {
-         ItemStack rep = solid.getRepresentativeStack();
-         if (rep != null && !rep.isEmpty()) {
-            FluidStack produced = solid.getFluidFromSolidCoolant(rep);
-            out.add(new CombustionCoolantJei(rep, produced == null ? FluidStack.EMPTY : produced, 0.0F));
-         }
-      }
-
       return out;
    }
 

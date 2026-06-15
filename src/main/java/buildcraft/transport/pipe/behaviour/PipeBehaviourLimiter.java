@@ -23,7 +23,7 @@ import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 import buildcraft.transport.statements.ActionPowerLimit;
-import java.io.IOException;
+
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -58,11 +58,12 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
    }
 
    @Override
-   public void readPayload(FriendlyByteBuf buffer, Object side) throws IOException {
+   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) {
       this.limitShift = buffer.readUnsignedByte();
    }
 
-   public void writePayload(FriendlyByteBuf buffer, Object side) {
+   @Override
+   public void writePayload(FriendlyByteBuf buffer) {
       buffer.writeByte(this.limitShift);
    }
 

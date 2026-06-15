@@ -9,7 +9,7 @@ package buildcraft.builders.snapshot;
 
 import buildcraft.lib.fluid.container.FluidContainers;
 import buildcraft.lib.fluid.identity.FluidIdentity;
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.ISchematicEntity;
@@ -289,7 +289,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                   return FluidStack.EMPTY;
                }
 
-               Fluid fluid = Mc26Compat.getFluid(id);
+               Fluid fluid = BcRegistryUtil.getFluid(id);
                return fluid != null && fluid != Fluids.EMPTY ? new FluidStack(fluid, amount) : FluidStack.EMPTY;
             } else {
                return FluidStack.EMPTY;

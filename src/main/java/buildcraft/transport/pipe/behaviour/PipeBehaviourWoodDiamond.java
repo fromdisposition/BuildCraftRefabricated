@@ -15,7 +15,7 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.transport.container.ContainerDiamondWoodPipe;
-import java.io.IOException;
+
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -77,8 +77,8 @@ public class PipeBehaviourWoodDiamond extends PipeBehaviourWood {
    }
 
    @Override
-   public void readPayload(FriendlyByteBuf buffer, Object ctx) throws IOException {
-      super.readPayload(buffer, ctx);
+   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) {
+      super.readPayload(buffer, isClientSide);
       this.filterMode = PipeBehaviourWoodDiamond.FilterMode.get(buffer.readUnsignedByte());
       this.currentFilter = buffer.readUnsignedByte() % this.filters.getSlots();
       this.filterValid = buffer.readBoolean();

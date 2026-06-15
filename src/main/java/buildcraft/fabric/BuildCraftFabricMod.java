@@ -1,9 +1,16 @@
 package buildcraft.fabric;
 
+import buildcraft.builders.platform.BCBuildersFabric;
 import buildcraft.core.BCCore;
 import buildcraft.core.command.SoundTestCommand;
 import buildcraft.core.marker.volume.WorldSavedDataVolumeBoxes;
+import buildcraft.core.platform.BCCoreFabric;
+import buildcraft.energy.platform.BCEnergyFabric;
 import buildcraft.fabric.config.BCFabricConfig;
+import buildcraft.factory.platform.BCFactoryFabric;
+import buildcraft.robotics.platform.BCRoboticsFabric;
+import buildcraft.silicon.platform.BCSiliconFabric;
+import buildcraft.transport.platform.BCTransportFabric;
 import buildcraft.fabric.integration.jei.BCJeiBootstrap;
 import buildcraft.fabric.network.BCNetworkingRegistry;
 import buildcraft.lib.fabric.BCBlockEntityLifecycleEvents;

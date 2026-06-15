@@ -6,7 +6,7 @@
 
 package buildcraft.silicon.integration.jei;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.AssemblyRecipe;
 import buildcraft.api.recipes.IngredientStack;
@@ -81,7 +81,7 @@ public final class AssemblyRecipeCollector {
    }
 
    private static List<AssemblyRecipeJei> collectFacade(FacadeAssemblyRecipes facade) {
-      Item structurePipe = Mc26Compat.getItem(Identifier.parse("buildcrafttransport:pipe_structure"));
+      Item structurePipe = BcRegistryUtil.getItem(Identifier.parse("buildcrafttransport:pipe_structure"));
       if (structurePipe == Items.AIR) {
          return List.of();
       }

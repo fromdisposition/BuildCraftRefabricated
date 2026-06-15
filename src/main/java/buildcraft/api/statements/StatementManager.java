@@ -6,7 +6,6 @@
 
 package buildcraft.api.statements;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -146,7 +145,7 @@ public final class StatementManager {
 
    @FunctionalInterface
    public interface IParamReaderBuf {
-      IStatementParameter readFromBuf(FriendlyByteBuf var1) throws IOException;
+      IStatementParameter readFromBuf(FriendlyByteBuf var1);
    }
 
    @FunctionalInterface

@@ -27,7 +27,7 @@ import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.InventoryUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.transport.BCTransportStatements;
-import java.io.IOException;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -77,8 +77,8 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
    }
 
    @Override
-   public void readPayload(FriendlyByteBuf buffer, Object ctx) throws IOException {
-      super.readPayload(buffer, ctx);
+   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) {
+      super.readPayload(buffer, isClientSide);
       int dirOrd = buffer.readByte();
       this.direction = dirOrd >= 0 && dirOrd < 6 ? Direction.values()[dirOrd] : null;
    }

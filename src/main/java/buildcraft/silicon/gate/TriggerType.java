@@ -9,7 +9,6 @@ package buildcraft.silicon.gate;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
-import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.ITrigger;
 import buildcraft.api.statements.ITriggerInternal;
@@ -18,7 +17,6 @@ import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.statement.StatementType;
 import buildcraft.lib.statement.TriggerWrapper;
-import java.io.IOException;
 import net.minecraft.nbt.CompoundTag;
 
 public class TriggerType extends StatementType<TriggerWrapper> {
@@ -63,7 +61,7 @@ public class TriggerType extends StatementType<TriggerWrapper> {
       return nbt;
    }
 
-   public TriggerWrapper readFromBuffer(FriendlyByteBuf buffer) throws IOException {
+   public TriggerWrapper readFromBuffer(FriendlyByteBuf buffer) {
       PacketBufferBC bc = BcPayloadBuffers.ensure(buffer);
       if (bc.readBoolean()) {
          String name = bc.readUtf();
@@ -72,7 +70,8 @@ public class TriggerType extends StatementType<TriggerWrapper> {
          if (statement instanceof ITrigger) {
             return TriggerWrapper.wrap(statement, part.face);
          } else {
-            throw new InvalidInputDataException("Unknown trigger '" + name + "'");
+            BCLog.logger.warn("[gate.trigger] Unknown trigger '{}'", name);
+            return null;
          }
       } else {
          return null;

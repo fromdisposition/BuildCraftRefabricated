@@ -34,7 +34,7 @@ public final class BCBlockEntityLifecycleEvents {
       ServerBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) -> {
          if (blockEntity instanceof TileMarker<?> marker) {
             BlockPos pos = blockEntity.getBlockPos();
-            if (Mc26Compat.isChunkLoaded(level, pos) && level.getBlockState(pos).hasBlockEntity()) {
+            if (BcRegistryUtil.isChunkLoaded(level, pos) && level.getBlockState(pos).hasBlockEntity()) {
                marker.buildcraft$onChunkUnloading();
             }
          }

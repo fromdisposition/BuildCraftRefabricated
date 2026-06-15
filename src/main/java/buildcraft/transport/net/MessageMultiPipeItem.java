@@ -6,7 +6,7 @@
 
 package buildcraft.transport.net;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
@@ -176,7 +176,7 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
          ItemStack stack;
          if (compact) {
             Identifier id = Identifier.parse(buf.readUtf());
-            Item item = Mc26Compat.getItem(id);
+            Item item = BcRegistryUtil.getItem(id);
             stack = item == null ? ItemStack.EMPTY : new ItemStack(item);
          } else {
             stack = (ItemStack)ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);

@@ -6,32 +6,25 @@
 
 package buildcraft.lib.tile;
 
-import buildcraft.lib.fabric.transfer.FabricItemStorageProvider;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 
-public final class WrappedItemStorageInsert implements FabricItemStorageProvider {
-   private final FabricItemStorageProvider delegate;
-   private final Storage<ItemVariant> storage;
+public final class WrappedItemStorageInsert implements Storage<ItemVariant> {
+   private final Storage<ItemVariant> inner;
 
-   public WrappedItemStorageInsert(FabricItemStorageProvider delegate) {
-      this.delegate = delegate;
-      final Storage<ItemVariant> inner = delegate.fabricItemStorage();
-      this.storage = inner == null ? null : new InsertionOnlyStorage<ItemVariant>() {
-         public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
-            return inner.insert(resource, maxAmount, transaction);
-         }
-      };
-   }
-
-   public FabricItemStorageProvider delegate() {
-      return this.delegate;
+   public WrappedItemStorageInsert(Storage<ItemVariant> inner) {
+      this.inner = inner;
    }
 
    @Override
-   public Storage<ItemVariant> fabricItemStorage() {
-      return this.storage;
+   public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
+      return inner == null ? 0L : inner.insert(resource, maxAmount, transaction);
+   }
+
+   @Override
+   public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
+      return 0L;
    }
 }

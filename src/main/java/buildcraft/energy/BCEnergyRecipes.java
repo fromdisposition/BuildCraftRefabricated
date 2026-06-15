@@ -6,15 +6,12 @@
 
 package buildcraft.energy;
 
-import buildcraft.api.fuels.BuildcraftFuelRegistry;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.MathUtil;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
@@ -24,29 +21,6 @@ public class BCEnergyRecipes {
 
    public static void init() {
       if (!initialized) {
-         BuildcraftFuelRegistry.coolant.addCoolant(Fluids.WATER, 0.0023F);
-         BuildcraftFuelRegistry.coolant.addSolidCoolant(new ItemStack(Blocks.ICE), new FluidStack(Fluids.WATER, 1000), 1.5F);
-         BuildcraftFuelRegistry.coolant.addSolidCoolant(new ItemStack(Blocks.PACKED_ICE), new FluidStack(Fluids.WATER, 1000), 2.0F);
-         BuildcraftFuelRegistry.coolant.addSolidCoolant(new ItemStack(Blocks.BLUE_ICE), new FluidStack(Fluids.WATER, 1000), 2.5F);
-         int _oil = 8;
-         int _gas = 16;
-         int _light = 4;
-         int _dense = 2;
-         int _residue = 1;
-         int _gas_light = 10;
-         int _light_dense = 5;
-         int _dense_residue = 2;
-         int _gas_light_dense = 8;
-         int _light_dense_residue = 3;
-         addFuel("fuel_gaseous", 16, 8, 4);
-         addFuel("fuel_light", 4, 6, 6);
-         addFuel("fuel_dense", 2, 4, 12);
-         addFuel("fuel_mixed_light", 10, 3, 5);
-         addFuel("fuel_mixed_heavy", 5, 5, 8);
-         addDirtyFuel("oil_dense", 2, 4, 4);
-         addDirtyFuel("oil_heavy", 3, 2, 4);
-         addDirtyFuel("oil", 8, 3, 4);
-         addFuel("oil_distilled", 8, 1, 5);
          if (BuildcraftRecipeRegistry.refineryRecipes != null) {
             FluidStack[] gas_light_dense_residue = createFluidStacks("oil", 8);
             FluidStack[] gas_light_dense = createFluidStacks("oil_distilled", 8);
@@ -136,29 +110,6 @@ public class BCEnergyRecipes {
             }
 
             BuildcraftRecipeRegistry.refineryRecipes.addDistillationRecipe(_in, _outGas, _outLiquid, mjCost);
-         }
-      }
-   }
-
-   private static void addFuel(String baseName, int amountDiff, int multiplier, int boostOver4) {
-      Fluid fuel = findFluid(baseName);
-      if (fuel != null) {
-         long powerPerCycle = multiplier * MjAPI.MJ;
-         int totalTime = 240000 * boostOver4 / 4 / multiplier / amountDiff;
-         BuildcraftFuelRegistry.fuel.addFuel(fuel, powerPerCycle, totalTime);
-      }
-   }
-
-   private static void addDirtyFuel(String baseName, int amountDiff, int multiplier, int boostOver4) {
-      Fluid fuel = findFluid(baseName);
-      if (fuel != null) {
-         long powerPerCycle = multiplier * MjAPI.MJ;
-         int totalTime = 240000 * boostOver4 / 4 / multiplier / amountDiff;
-         Fluid residue = findFluid("oil_residue");
-         if (residue == null) {
-            BuildcraftFuelRegistry.fuel.addFuel(fuel, powerPerCycle, totalTime);
-         } else {
-            BuildcraftFuelRegistry.fuel.addDirtyFuel(fuel, powerPerCycle, totalTime, new FluidStack(residue, 1000 / amountDiff));
          }
       }
    }

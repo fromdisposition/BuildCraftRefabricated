@@ -7,7 +7,6 @@
 package buildcraft.api.transport.pipe;
 
 import buildcraft.api.core.EnumPipePart;
-import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
@@ -75,7 +74,7 @@ public abstract class PipeBehaviour {
    public void writePayload(FriendlyByteBuf buffer) {
    }
 
-   public void readPayload(FriendlyByteBuf buffer, Object ctx) throws IOException {
+   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) {
    }
 
    public <T> T getCapability(@Nonnull Object capability, Direction facing) {

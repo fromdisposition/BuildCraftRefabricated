@@ -20,7 +20,7 @@ import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.transport.BCTransportStatements;
 import buildcraft.transport.container.ContainerEmzuliPipe_BC8;
 import buildcraft.transport.statements.ActionExtractionPreset;
-import java.io.IOException;
+
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -121,8 +121,8 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
    }
 
    @Override
-   public void readPayload(FriendlyByteBuf buffer, Object ctx) throws IOException {
-      super.readPayload(buffer, ctx);
+   public void readPayload(FriendlyByteBuf buffer, boolean isClientSide) {
+      super.readPayload(buffer, isClientSide);
 
       for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
          int c = buffer.readByte();

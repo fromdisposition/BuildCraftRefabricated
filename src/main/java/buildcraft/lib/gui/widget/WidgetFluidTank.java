@@ -7,8 +7,7 @@
 package buildcraft.lib.gui.widget;
 
 import net.minecraft.network.FriendlyByteBuf;
-import buildcraft.api.fuels.BuildcraftFuelRegistry;
-import buildcraft.api.fuels.ISolidCoolant;
+import buildcraft.energy.recipe.SolidCoolantRecipe;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
@@ -24,10 +23,12 @@ import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jspecify.annotations.Nullable;
 
 public class WidgetFluidTank extends Widget_Neptune<IBcMenu> {
@@ -189,39 +190,32 @@ public class WidgetFluidTank extends Widget_Neptune<IBcMenu> {
                }
             }
 
-            if (BuildcraftFuelRegistry.coolant != null) {
+            if (player.level() instanceof ServerLevel sl) {
                ItemStack stack = player.containerMenu.getCarried();
-               ItemStack singleCopyCoolant = stack.copyWithCount(1);
-               ISolidCoolant solidCoolant = BuildcraftFuelRegistry.coolant.getSolidCoolant(singleCopyCoolant);
-               if (solidCoolant != null) {
-                  FluidStack fluidCoolant = solidCoolant.getFluidFromSolidCoolant(singleCopyCoolant);
-                  if (fluidCoolant != null && !fluidCoolant.isEmpty()) {
-                     Transaction tx = Transaction.openOuter();
-
-                     try {
-                        int filled = FluidStorageOps.insertFluidMb(this.tank, fluidCoolant, fluidCoolant.getAmount(), tx);
-                        if (filled == fluidCoolant.getAmount()) {
-                           tx.commit();
-                           AdvancementUtil.unlockAdvancement(player, Identifier.parse("buildcraftenergy:ice_cool"));
-                           if (!isCreative) {
-                              stack.shrink(1);
+               ItemStack singleCopy = stack.copyWithCount(1);
+               for (RecipeHolder<?> h : sl.recipeAccess().getRecipes()) {
+                  if (h.value() instanceof SolidCoolantRecipe sc && sc.matchesItem(singleCopy)) {
+                     FluidStack fluidCoolant = sc.getFluidFromStack(singleCopy);
+                     if (!fluidCoolant.isEmpty()) {
+                        Transaction tx = Transaction.openOuter();
+                        try {
+                           int filled = FluidStorageOps.insertFluidMb(this.tank, fluidCoolant, fluidCoolant.getAmount(), tx);
+                           if (filled == fluidCoolant.getAmount()) {
+                              tx.commit();
+                              AdvancementUtil.unlockAdvancement(player, Identifier.parse("buildcraftenergy:ice_cool"));
+                              if (!player.getAbilities().instabuild) {
+                                 stack.shrink(1);
+                              }
                            }
-                        }
-                     } catch (Throwable var20) {
-                        if (tx != null) {
-                           try {
-                              tx.close();
-                           } catch (Throwable var15) {
-                              var20.addSuppressed(var15);
+                        } catch (Throwable var20) {
+                           if (tx != null) {
+                              try { tx.close(); } catch (Throwable var15) { var20.addSuppressed(var15); }
                            }
+                           throw var20;
                         }
-
-                        throw var20;
+                        if (tx != null) tx.close();
                      }
-
-                     if (tx != null) {
-                        tx.close();
-                     }
+                     break;
                   }
                }
             }

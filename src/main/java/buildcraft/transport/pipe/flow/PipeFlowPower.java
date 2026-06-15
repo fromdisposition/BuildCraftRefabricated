@@ -20,7 +20,7 @@ import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.misc.data.AverageInt;
 import buildcraft.transport.tile.TilePipeHolder;
-import java.io.IOException;
+
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
@@ -103,16 +103,16 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
    }
 
    @Override
-   public void writePayload(int id, FriendlyByteBuf buffer, Object side) {
-      super.writePayload(id, buffer, side);
+   public void writePayload(int id, FriendlyByteBuf buffer) {
+      super.writePayload(id, buffer);
       if (id == 2 || id == 0) {
          PipeEnergyDisplaySupport.writeDisplayState(buffer, this.sections);
       }
    }
 
    @Override
-   public void readPayload(int id, FriendlyByteBuf buffer, Object side) throws IOException {
-      super.readPayload(id, buffer, side);
+   public void readPayload(int id, FriendlyByteBuf buffer) {
+      super.readPayload(id, buffer);
       if (id == 2 || id == 0) {
          PipeEnergyDisplaySupport.readDisplayState(buffer, this.sections);
       }

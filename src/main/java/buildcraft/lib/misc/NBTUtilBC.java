@@ -6,7 +6,7 @@
 
 package buildcraft.lib.misc;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import com.mojang.serialization.DynamicOps;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,11 +35,11 @@ public class NBTUtilBC {
    public static final Tag NBT_NULL = EndTag.INSTANCE;
 
    public static DynamicOps<Tag> registryAwareOps() {
-      return Mc26Compat.registryAwareOps();
+      return BcRegistryUtil.registryAwareOps();
    }
 
    public static DynamicOps<Tag> registryAwareOps(Level level) {
-      return Mc26Compat.registryAwareOps(level);
+      return BcRegistryUtil.registryAwareOps(level);
    }
 
    public static <T extends Tag> Optional<T> toOptional(@Nullable T tag) {
@@ -164,7 +164,7 @@ public class NBTUtilBC {
             return ItemStack.EMPTY;
          } else {
             Identifier itemId = Identifier.parse(idStr);
-            Item item = Mc26Compat.getItem(itemId);
+            Item item = BcRegistryUtil.getItem(itemId);
             if (item != null && item != Items.AIR) {
                int count = nbt.getIntOr("count", 1);
                return new ItemStack(item, count);

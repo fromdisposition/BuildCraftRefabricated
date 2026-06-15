@@ -1,7 +1,7 @@
 package buildcraft.lib.fabric.menu;
 
 import buildcraft.api.core.BCLog;
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -18,7 +18,7 @@ public final class MenuBlockEntityLookup {
       } else if (playerInv.player.level() == null) {
          BCLog.logger.warn("[menu.lookup] Missing level for {} at {}", type.getSimpleName(), pos);
          return null;
-      } else if (!Mc26Compat.isChunkLoaded(playerInv.player.level(), pos)) {
+      } else if (!BcRegistryUtil.isChunkLoaded(playerInv.player.level(), pos)) {
          BCLog.logger.warn("[menu.lookup] Chunk not loaded for {} at {}", type.getSimpleName(), pos);
          return null;
       } else {

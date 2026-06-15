@@ -7,11 +7,10 @@
 package buildcraft.lib.client.guide.ref;
 
 import buildcraft.api.core.BCLog;
-import buildcraft.api.fuels.BuildcraftFuelRegistry;
-import buildcraft.api.fuels.ICoolant;
-import buildcraft.api.fuels.IFuel;
-import buildcraft.api.fuels.ISolidCoolant;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
+import buildcraft.energy.recipe.CombustionFuelRecipe;
+import buildcraft.energy.recipe.CoolantRecipe;
+import buildcraft.energy.recipe.SolidCoolantRecipe;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.api.statements.IStatement;
 import buildcraft.builders.BCBuildersItems;
@@ -46,10 +45,12 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.function.Function;
 import javax.annotation.Nullable;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
@@ -263,33 +264,23 @@ public class GuideGroupManager {
       addEntry("buildcraft", "fluid_shards", BCCoreItems.FRAGILE_FLUID_CONTAINER);
       addKeys("buildcraft", "fluid_shards", BCEnergyItems.ENGINE_IRON);
       populateExtendedModuleGroups();
-      if (BuildcraftFuelRegistry.fuel != null) {
-         for (IFuel fuel : BuildcraftFuelRegistry.fuel.getFuels()) {
-            FluidStack fs = fuel.getFluid();
-            if (fs != null && !fs.isEmpty()) {
-               addEntry("buildcraft", "combustion_fuels", fs);
+      var srv = Minecraft.getInstance().getSingleplayerServer();
+      if (srv != null) {
+         boolean hasFuel = false, hasCoolant = false;
+         for (RecipeHolder<?> h : srv.getRecipeManager().getRecipes()) {
+            if (h.value() instanceof CombustionFuelRecipe r) {
+               addEntry("buildcraft", "combustion_fuels", new FluidStack(r.fluid(), 1000));
+               hasFuel = true;
+            } else if (h.value() instanceof CoolantRecipe r) {
+               addEntry("buildcraft", "coolants", new FluidStack(r.fluid(), 1000));
+               hasCoolant = true;
+            } else if (h.value() instanceof SolidCoolantRecipe r) {
+               addEntry("buildcraft", "coolants", new ItemStack(r.item()));
+               hasCoolant = true;
             }
          }
-
-         addKey("buildcraft", "combustion_fuels", BCEnergyItems.ENGINE_IRON);
-      }
-
-      if (BuildcraftFuelRegistry.coolant != null) {
-         for (ICoolant c : BuildcraftFuelRegistry.coolant.getCoolants()) {
-            FluidStack fs = c.getRepresentativeFluid();
-            if (fs != null && !fs.isEmpty()) {
-               addEntry("buildcraft", "coolants", fs);
-            }
-         }
-
-         for (ISolidCoolant sc : BuildcraftFuelRegistry.coolant.getSolidCoolants()) {
-            ItemStack stack = sc.getRepresentativeStack();
-            if (stack != null && !stack.isEmpty()) {
-               addEntry("buildcraft", "coolants", stack);
-            }
-         }
-
-         addKey("buildcraft", "coolants", BCEnergyItems.ENGINE_IRON);
+         if (hasFuel) addKey("buildcraft", "combustion_fuels", BCEnergyItems.ENGINE_IRON);
+         if (hasCoolant) addKey("buildcraft", "coolants", BCEnergyItems.ENGINE_IRON);
       }
 
       int totalEntries = 0;

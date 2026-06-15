@@ -6,7 +6,7 @@
 
 package buildcraft.lib.integration.jei;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -24,7 +24,7 @@ public final class BucketJeiTransfer {
 
       for (int i = 0; i < count; i++) {
          int slot = buffer.readVarInt();
-         Item bucket = Mc26Compat.getItem(Identifier.parse(buffer.readUtf()));
+         Item bucket = BcRegistryUtil.getItem(Identifier.parse(buffer.readUtf()));
          JeiTransferUtil.moveBucketToSlot(playerInv, bucket, machineSlots, slot);
       }
    }

@@ -6,7 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.Optional;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,7 +27,7 @@ public class FluidStackRef {
 
    public FluidStack get(Tag nbt) {
       Identifier fluidId = Identifier.parse(((StringTag)this.fluid.get(nbt).orElseThrow(NullPointerException::new)).value());
-      Fluid fluidObj = Mc26Compat.getFluid(fluidId);
+      Fluid fluidObj = BcRegistryUtil.getFluid(fluidId);
       int fluidAmount = Optional.ofNullable(this.amount).flatMap(ref -> ref.get(nbt)).<Integer>map(IntTag::value).orElse(1000);
       return new FluidStack(fluidObj, fluidAmount);
    }

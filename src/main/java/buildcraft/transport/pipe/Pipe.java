@@ -23,7 +23,6 @@ import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.transport.client.model.PipeModelCacheBase;
 import buildcraft.transport.wire.SavedDataWireSystems;
 import buildcraft.transport.client.model.key.PipeModelKey;
-import java.io.IOException;
 import java.util.EnumMap;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -165,7 +164,7 @@ public final class Pipe implements IPipe, IDebuggable {
       this.behaviour.writePayload(buffer);
    }
 
-   public void readPayload(FriendlyByteBuf buffer) throws IOException {
+   public void readPayload(FriendlyByteBuf buffer) {
       this.connected.clear();
       this.types.clear();
       int nColour = buffer.readUnsignedByte();
@@ -182,7 +181,7 @@ public final class Pipe implements IPipe, IDebuggable {
          }
       }
 
-      this.behaviour.readPayload(buffer, null);
+      this.behaviour.readPayload(buffer, true);
       this.invalidateModelKey();
    }
 

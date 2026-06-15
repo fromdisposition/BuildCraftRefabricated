@@ -6,7 +6,7 @@
 
 package buildcraft.lib.tile;
 
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.lib.inventory.AbstractInvItemTransactor;
 import buildcraft.lib.misc.INBTSerializable;
@@ -416,7 +416,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
             String idStr = itemNbt.getString("id").orElse("");
             Identifier id = Identifier.tryParse(idStr);
             if (id != null) {
-               Item item = Mc26Compat.getItem(id);
+               Item item = BcRegistryUtil.getItem(id);
                int count = itemNbt.getInt("count").orElse(1);
                if (item != null && item != Items.AIR) {
                   stack = new ItemStack(item, count);

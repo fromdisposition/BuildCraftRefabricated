@@ -7,7 +7,6 @@
 package buildcraft.lib.transfer.handler;
 
 import buildcraft.lib.common.util.ValueIOSerializable;
-import buildcraft.lib.fabric.transfer.FabricItemStorageProvider;
 import java.util.Collections;
 import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -22,7 +21,6 @@ import net.minecraft.world.level.storage.ValueOutput;
 public abstract class ItemStackResourceHandler
    extends SnapshotParticipant<ItemStack>
    implements Storage<ItemVariant>,
-   FabricItemStorageProvider,
    ValueIOSerializable {
    public static final String VALUE_IO_KEY = "stack";
 
@@ -58,11 +56,6 @@ public abstract class ItemStackResourceHandler
    @Override
    public void deserialize(ValueInput input) {
       this.setStack(input.read("stack", ItemStack.CODEC).orElse(ItemStack.EMPTY));
-   }
-
-   @Override
-   public Storage<ItemVariant> fabricItemStorage() {
-      return this;
    }
 
    public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {

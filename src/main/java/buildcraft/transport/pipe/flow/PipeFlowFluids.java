@@ -23,14 +23,13 @@ import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.fabric.BCEnergyFluidsFabric;
-import buildcraft.lib.fabric.Mc26Compat;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
 import buildcraft.lib.fabric.transfer.fluid.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
 import buildcraft.transport.BCTransportStatements;
-import java.io.IOException;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -239,7 +238,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          String fluidId = nbt.getStringOr("fluid_id", "");
          if (!fluidId.isEmpty()) {
             Identifier fluidRL = Identifier.parse(fluidId);
-            Fluid fluid = Mc26Compat.getFluid(fluidRL);
+            Fluid fluid = BcRegistryUtil.getFluid(fluidRL);
             if (fluid != null && fluid != Fluids.EMPTY) {
                this.setFluid(new FluidStack(fluid, 1000));
             } else {
@@ -285,7 +284,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          String fluidId = nbt.getStringOr("fluid_id", "");
          if (!fluidId.isEmpty()) {
             Identifier fluidRL = Identifier.parse(fluidId);
-            Fluid fluid = Mc26Compat.getFluid(fluidRL);
+            Fluid fluid = BcRegistryUtil.getFluid(fluidRL);
             if (fluid != null && fluid != Fluids.EMPTY) {
                this.currentFluid = new FluidStack(fluid, 1000);
             } else {
@@ -679,7 +678,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    }
 
    @Override
-   public void writePayload(int id, FriendlyByteBuf buffer, Object side) {
+   public void writePayload(int id, FriendlyByteBuf buffer) {
       if (id == 2 || id == 0) {
          boolean full = id == 0;
          if (this.currentFluid.isEmpty()) {
@@ -709,13 +708,13 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    }
 
    @Override
-   public void readPayload(int id, FriendlyByteBuf buffer, Object side) throws IOException {
+   public void readPayload(int id, FriendlyByteBuf buffer) {
       if (id == 2 || id == 0) {
          boolean full = id == 0;
          if (buffer.readBoolean()) {
             String fluidId = buffer.readUtf();
             Identifier fluidRL = Identifier.parse(fluidId);
-            Fluid fluid = Mc26Compat.getFluid(fluidRL);
+            Fluid fluid = BcRegistryUtil.getFluid(fluidRL);
             if (fluid != null && fluid != Fluids.EMPTY) {
                this.currentFluid = new FluidStack(fluid, 1000);
             }
