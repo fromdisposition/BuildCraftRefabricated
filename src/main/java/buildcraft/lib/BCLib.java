@@ -11,7 +11,6 @@ import buildcraft.lib.fabric.BCLibFakePlayerProvider;
 import buildcraft.lib.recipe.IntegrationRecipeRegistry;
 import buildcraft.lib.recipe.ProgrammingRecipeRegistry;
 import buildcraft.lib.recipe.RefineryRecipeRegistry;
-import buildcraft.lib.registry.MigrationRegistry;
 
 public final class BCLib {
    public static final String MODID = "buildcraftlib";
@@ -24,7 +23,6 @@ public final class BCLib {
       initApiRegistries();
       BCLibItems.register();
       BCLibFakePlayerProvider.register();
-      MigrationRegistry.init();
    }
 
    private static void initApiRegistries() {
