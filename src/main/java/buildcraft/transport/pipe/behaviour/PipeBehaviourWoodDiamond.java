@@ -15,16 +15,14 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.transport.container.ContainerDiamondWoodPipe;
+import buildcraft.transport.container.PipeFilterMenus;
 
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.HitResult;
 
@@ -96,16 +94,12 @@ public class PipeBehaviourWoodDiamond extends PipeBehaviourWood {
       }
 
       if (!player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
-         final PipeBehaviourWoodDiamond self = this;
-         serverPlayer.openMenu(new MenuProvider() {
-            public Component getDisplayName() {
-               return Component.translatable("gui.buildcraft.pipe_diamond_wood.title");
-            }
-
-            public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player p) {
-               return new ContainerDiamondWoodPipe(containerId, playerInv, self);
-            }
-         });
+         PipeFilterMenus.open(
+            serverPlayer,
+            this.pipe.getHolder(),
+            Component.translatable("gui.buildcraft.pipe_diamond_wood.title"),
+            ContainerDiamondWoodPipe::new
+         );
       }
 
       return true;

@@ -14,6 +14,7 @@ import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.tile.BcItemInventory;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.transport.container.ContainerDiamondPipe;
+import buildcraft.transport.container.PipeFilterMenus;
 import com.mojang.authlib.GameProfile;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
@@ -21,10 +22,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
@@ -88,16 +86,12 @@ public abstract class PipeBehaviourDiamond extends PipeBehaviour {
    @Override
    public boolean onPipeActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ, EnumPipePart part) {
       if (!player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
-         final PipeBehaviourDiamond self = this;
-         serverPlayer.openMenu(new MenuProvider() {
-            public Component getDisplayName() {
-               return Component.translatable("gui.buildcraft.pipe_diamond.title");
-            }
-
-            public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player p) {
-               return new ContainerDiamondPipe(containerId, playerInv, self);
-            }
-         });
+         PipeFilterMenus.open(
+            serverPlayer,
+            this.pipe.getHolder(),
+            Component.translatable("gui.buildcraft.pipe_diamond.title"),
+            ContainerDiamondPipe::new
+         );
       }
 
       return true;

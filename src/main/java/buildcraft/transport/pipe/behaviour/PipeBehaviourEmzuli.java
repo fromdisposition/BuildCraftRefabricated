@@ -19,6 +19,7 @@ import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.transport.BCTransportStatements;
 import buildcraft.transport.container.ContainerEmzuliPipe_BC8;
+import buildcraft.transport.container.PipeFilterMenus;
 import buildcraft.transport.statements.ActionExtractionPreset;
 
 import java.util.Collections;
@@ -30,10 +31,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.HitResult;
@@ -235,16 +233,12 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
    @Override
    public boolean onPipeActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ, EnumPipePart part) {
       if (!player.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
-         final PipeBehaviourEmzuli self = this;
-         serverPlayer.openMenu(new MenuProvider() {
-            public Component getDisplayName() {
-               return Component.translatable("gui.pipes.emzuli.title");
-            }
-
-            public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player p) {
-               return new ContainerEmzuliPipe_BC8(containerId, playerInv, self);
-            }
-         });
+         PipeFilterMenus.open(
+            serverPlayer,
+            this.pipe.getHolder(),
+            Component.translatable("gui.pipes.emzuli.title"),
+            ContainerEmzuliPipe_BC8::new
+         );
       }
 
       return true;
