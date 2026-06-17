@@ -7,6 +7,7 @@
 package buildcraft.transport.tile;
 
 import buildcraft.api.core.EnumPipePart;
+import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerFiltered;
 import buildcraft.lib.tile.ItemHandlerManager;
@@ -25,7 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-public class TileFilteredBuffer extends BcBlockEntity implements MenuProvider {
+public class TileFilteredBuffer extends BcBlockEntity implements MenuProvider, BlockEntityExtendedMenu {
    public final ItemHandlerSimple invFilter = this.itemManager.addInvHandler("filter", 9, ItemHandlerManager.EnumAccess.PHANTOM);
    public final ItemHandlerFiltered invMain;
 
