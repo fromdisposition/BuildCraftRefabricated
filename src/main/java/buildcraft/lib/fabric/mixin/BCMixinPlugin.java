@@ -3,23 +3,9 @@ package buildcraft.lib.fabric.mixin;
 import java.util.List;
 import java.util.Set;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
-import org.spongepowered.asm.mixin.extensibility.IMixinErrorHandler;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
 public class BCMixinPlugin implements IMixinConfigPlugin {
-   private static final boolean LEVEL_EXTRACTOR_EXISTS;
-
-   static {
-      boolean exists;
-      try {
-         Class.forName("net.minecraft.client.renderer.extract.LevelExtractor");
-         exists = true;
-      } catch (ClassNotFoundException e) {
-         exists = false;
-      }
-      LEVEL_EXTRACTOR_EXISTS = exists;
-   }
-
    @Override
    public void onLoad(String mixinPackage) {}
 
@@ -38,7 +24,12 @@ public class BCMixinPlugin implements IMixinConfigPlugin {
 
    @Override
    public List<String> getMixins() {
-      return LEVEL_EXTRACTOR_EXISTS ? List.of("client.LevelExtractorMixin") : List.of();
+      //? if < 26.1.3 {
+      return List.of();
+      //?}
+      //? if >= 26.1.3 {
+      /*return List.of("client.LevelExtractorMixin");*/
+      //?}
    }
 
    @Override
