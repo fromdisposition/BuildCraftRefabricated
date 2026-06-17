@@ -19,13 +19,14 @@
 !/gradlew.bat
 !/LICENSE
 !/README.md
-!/versions/1.21.1/gradle.properties
-!/versions/1.21.11/gradle.properties
-!/versions/26.1/gradle.properties
-!/versions/26.2/gradle.properties
+!/versions/
+!/versions/*/
+!/versions/*/gradle.properties
 
 # Local / generated (also covered by whitelist above)
 .gradle/
+/versions/**/.gradle/
+/versions/**/build/
 build/
 run/
 run_server/
