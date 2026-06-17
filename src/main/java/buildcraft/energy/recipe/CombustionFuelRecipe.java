@@ -69,6 +69,11 @@ public record CombustionFuelRecipe(
    }
 
    @Override
+   public boolean isSpecial() {
+      return true;
+   }
+
+   @Override
    public boolean showNotification() {
       return false;
    }
