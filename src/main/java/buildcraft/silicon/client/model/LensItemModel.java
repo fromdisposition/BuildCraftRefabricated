@@ -33,7 +33,11 @@ public class LensItemModel implements ItemModel {
    private static final LensItemModel.ContextXform DEFAULT_XFORM = new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.8F);
    private static final EnumMap<ItemDisplayContext, LensItemModel.ContextXform> XFORMS = new EnumMap<>(ItemDisplayContext.class);
    private static final LoadingCache<LensItemModel.CacheKey, List<BakedQuad>> cache = CacheBuilder.newBuilder()
+      //? if >= 26.1.3 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))*/
+      //?} else {
       .expireAfterAccess(1L, TimeUnit.MINUTES)
+      //?}
       .build(CacheLoader.from(key -> {
          LensItemModel.ContextXform xform = XFORMS.getOrDefault(key.context(), DEFAULT_XFORM);
          LensItemModel.LensKey lk = key.lensKey();

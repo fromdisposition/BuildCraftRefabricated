@@ -151,6 +151,9 @@ public class PipeColourRecipe extends CustomRecipe {
    }
 
    private static Item getDyeItem(DyeColor colour) {
+      //? if >= 26.1.3 {
+      /*return Items.DYE.pick(colour);*/
+      //?} else {
       return switch (colour) {
          case WHITE -> Items.WHITE_DYE;
          case ORANGE -> Items.ORANGE_DYE;
@@ -170,6 +173,7 @@ public class PipeColourRecipe extends CustomRecipe {
          case BLACK -> Items.BLACK_DYE;
          default -> throw new MatchException(null, null);
       };
+      //?}
    }
 
    private record Result(ItemStack output, int bleachIndex) {

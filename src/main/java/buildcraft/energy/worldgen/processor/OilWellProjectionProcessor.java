@@ -9,7 +9,10 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
+//? if >= 26.1.3 {
+//?} else {
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
+//?}
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
 /**
@@ -18,9 +21,30 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
  * is a fixed bridge ({@code template 100+}) from Y {@code -11} up to the terrain-relative shaft ({@code template -11..-1}).
  * Bridge must be handled before the surface gravity pass-through ({@code templateY >= 0}).
  */
+//? if >= 26.1.3 {
+/*public final class OilWellProjectionProcessor implements StructureProcessor {*/
+//?} else {
 public final class OilWellProjectionProcessor extends StructureProcessor {
+//?}
    public static final MapCodec<OilWellProjectionProcessor> CODEC = MapCodec.unit(OilWellProjectionProcessor::new);
 
+   //? if >= 26.1.3 {
+   /*@Override
+   public MapCodec<OilWellProjectionProcessor> codec() {
+      return CODEC;
+   }
+
+   @Override
+   public StructureTemplate.StructureBlockInfo processBlock(
+      final LevelReader level,
+      final BlockPos targetPosition,
+      final BlockPos referencePos,
+      final BlockPos originalPos,
+      final StructureTemplate.StructureBlockInfo processedBlockInfo,
+      final StructurePlaceSettings settings
+   ) {
+      int templateY = originalPos.getY();*/
+   //?} else {
    @Override
    public StructureTemplate.StructureBlockInfo processBlock(
       final LevelReader level,
@@ -31,6 +55,7 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
       final StructurePlaceSettings settings
    ) {
       int templateY = originalBlockInfo.pos().getY();
+   //?}
       BlockPos pos = processedBlockInfo.pos();
       int x = pos.getX();
       int z = pos.getZ();
@@ -138,8 +163,11 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
       return -64;
    }
 
+   //? if >= 26.1.3 {
+   //?} else {
    @Override
    protected StructureProcessorType<?> getType() {
       return BCEnergyStructureProcessorTypes.OIL_WELL_PROJECTION;
    }
+   //?}
 }

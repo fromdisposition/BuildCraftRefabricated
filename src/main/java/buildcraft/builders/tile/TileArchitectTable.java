@@ -195,7 +195,6 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
 
             if (this.dropCountdown > 0) {
                this.dropCountdown--;
-               this.scanProgress = (int)((long)this.scanTotal * this.dropCountdown / 10L);
                if (this.dropCountdown == 0) {
                   this.scanProgress = 0;
                   this.scanTotal = 0;

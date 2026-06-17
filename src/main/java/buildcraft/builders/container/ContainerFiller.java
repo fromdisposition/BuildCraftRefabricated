@@ -140,24 +140,20 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 11) {
-         try {
-            if (isClient) {
-               this.patternStatementClient.readFromBuffer(buffer);
-            } else if (this.tile != null) {
-               if (this.tile.isLocked()) {
-                  this.valuesChanged();
-                  return;
-               }
-
-               FullStatement<IFillerPattern> stat = this.getPatternStatement();
-               if (stat != null) {
-                  stat.readFromBuffer(buffer);
-                  this.tile.onStatementChange();
-                  this.tile.setChanged();
-               }
+         if (isClient) {
+            this.patternStatementClient.readFromBuffer(buffer);
+         } else if (this.tile != null) {
+            if (this.tile.isLocked()) {
+               this.valuesChanged();
+               return;
             }
-         } catch (IOException e) {
-            BCLog.logger.warn("[builders.filler] Failed to read filler data from the network buffer", e);
+
+            FullStatement<IFillerPattern> stat = this.getPatternStatement();
+            if (stat != null) {
+               stat.readFromBuffer(buffer);
+               this.tile.onStatementChange();
+               this.tile.setChanged();
+            }
          }
       } else {
          super.readMessage(id, buffer, isClient, ctx);

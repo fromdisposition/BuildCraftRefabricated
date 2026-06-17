@@ -9,7 +9,9 @@ package buildcraft.lib.gui;
 import buildcraft.api.core.BCLog;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.slot.SlotPhantom;
+//? if has_jei {
 import buildcraft.lib.integration.jei.BucketJeiTransfer;
+//?}
 import buildcraft.lib.net.BcEnvelopeCodec;
 import buildcraft.lib.net.BcPacketDistributor;
 import buildcraft.lib.net.IPayloadWriter;
@@ -165,11 +167,13 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
                phantom.set(stack);
             });
          }
+      //? if has_jei {
       } else if (id == NET_JEI_TRANSFER_BUCKETS && !isClient) {
          ItemHandlerSimple machineSlots = this.getJeiBucketTransferSlots();
          if (machineSlots != null) {
             BucketJeiTransfer.apply(buffer, this.player.getInventory(), machineSlots);
          }
+      //?}
       }
    }
 

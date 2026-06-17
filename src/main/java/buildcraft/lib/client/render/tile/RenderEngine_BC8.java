@@ -41,7 +41,13 @@ public class RenderEngine_BC8 extends BcBlockEntityRenderer<TileEngineBase_BC8, 
          if (quads != null && quads.length != 0) {
             poseStack.pushPose();
             int light = state.light;
-            BcBerRenderUtil.submit(poseStack, collector, Sheets.cutoutBlockSheet(), (pose, buffer) -> {
+            BcBerRenderUtil.submit(poseStack, collector,
+               //? if >= 26.1.3 {
+               /*Sheets.cutoutBlockItemSheet(),*/
+               //?} else {
+               Sheets.cutoutBlockSheet(),
+               //?}
+               (pose, buffer) -> {
                for (MutableQuad quad : quads) {
                   quad.setCalculatedDiffuse();
                   quad.lighti(light);

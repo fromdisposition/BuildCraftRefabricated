@@ -9,9 +9,13 @@ package buildcraft.core.marker.volume;
 import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.lib.client.render.BCLibRenderTypes;
+import buildcraft.lib.client.render.laser.LaserBatch;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+//? if >= 26.1.3 {
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource;
+//?}
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.world.entity.player.Player;
@@ -28,11 +32,23 @@ public class AddonDefaultRenderer<T extends Addon> implements IFastAddonRenderer
       this.sprite = sprite;
    }
 
+   //? if >= 26.1.3 {
+   /*@Override
+   public void renderAddonFast(T addon, Player player, float partialTicks, PoseStack poseStack) {
+      AABB bb = addon.getBoundingBox();
+      LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE), (p, vc) -> {
+         renderVertices(bb, p.pose(), vc);
+      });
+   }*/
+   //?} else {
    @Override
    public void renderAddonFast(T addon, Player player, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource) {
       VertexConsumer builder = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE));
-      AABB bb = addon.getBoundingBox();
-      Matrix4f pose = poseStack.last().pose();
+      renderVertices(addon.getBoundingBox(), poseStack.last().pose(), builder);
+   }
+   //?}
+
+   private void renderVertices(AABB bb, Matrix4f pose, VertexConsumer builder) {
       float u0 = this.sprite != null ? (float)this.sprite.getInterpU(0.0) : 0.0F;
       float u1 = this.sprite != null ? (float)this.sprite.getInterpU(1.0) : 1.0F;
       float v0 = this.sprite != null ? (float)this.sprite.getInterpV(0.0) : 0.0F;

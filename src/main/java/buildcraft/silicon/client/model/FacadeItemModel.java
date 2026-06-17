@@ -32,10 +32,18 @@ import org.jspecify.annotations.Nullable;
 
 public class FacadeItemModel implements ItemModel {
    private static final LoadingCache<KeyPlugFacade, List<BakedQuad>> cache = CacheBuilder.newBuilder()
+      //? if >= 26.1.3 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))*/
+      //?} else {
       .expireAfterAccess(1L, TimeUnit.MINUTES)
+      //?}
       .build(CacheLoader.from(key -> PlugBakerFacade.INSTANCE.bake(key)));
    private static final LoadingCache<KeyPlugFacade, List<BakedQuad>> guiCache = CacheBuilder.newBuilder()
+      //? if >= 26.1.3 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))*/
+      //?} else {
       .expireAfterAccess(1L, TimeUnit.MINUTES)
+      //?}
       .build(CacheLoader.from(key -> {
          List<BakedQuad> quads = new ArrayList<>();
          float offsetZ = 0.4375F;

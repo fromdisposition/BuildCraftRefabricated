@@ -21,7 +21,10 @@ import java.util.List;
 import java.util.Set;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+//? if >= 26.1.3 {
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource;
+//?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -54,6 +57,38 @@ public final class GogglesZoneRenderer {
          return;
       }
 
+      //? if >= 26.1.3 {
+      /*Set<Long> drawn = new HashSet<>();
+
+      for (ZoneOverlay overlay : overlays) {
+         if (!(overlay.zone instanceof ZonePlan plan)) {
+            continue;
+         }
+
+         int colour = overlay.colour;
+         int r = colour >> 16 & 0xFF;
+         int g = colour >> 8 & 0xFF;
+         int b = colour & 0xFF;
+         int argb = OVERLAY_ALPHA << 24 | r << 16 | g << 8 | b;
+
+         for (int[] cell : plan.getAll()) {
+            int wx = cell[0];
+            int wz = cell[1];
+            long key = BlockPos.asLong(wx, 0, wz);
+            if (!drawn.add(key)) {
+               continue;
+            }
+
+            if (player.distanceToSqr(wx + 0.5, player.getY(), wz + 0.5) > 128.0 * 128.0) {
+               continue;
+            }
+
+            int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING, wx, wz);
+            AABB box = new AABB(wx, y + 1.02, wz, wx + 1.0, y + 2.0, wz + 1.0);
+            DebugRenderHelper.renderTranslucentBox(poseStack, box, cameraPos, argb);
+         }
+      }*/
+      //?} else {
       MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
       Set<Long> drawn = new HashSet<>();
 
@@ -87,6 +122,7 @@ public final class GogglesZoneRenderer {
       }
 
       bufferSource.endBatch(BCLibRenderTypes.debugFilled());
+      //?}
    }
 
    private static List<ZoneOverlay> collectOverlays(Level level, Player player) {

@@ -123,15 +123,11 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == 11) {
-         try {
-            if (isClient) {
-               this.patternStatementClient.readFromBuffer(buffer);
-            } else if (this.addon != null) {
-               this.addon.patternStatement.readFromBuffer(buffer);
-               this.valuesChanged();
-            }
-         } catch (IOException e) {
-            BCLog.logger.warn("[builders.filler] Failed to read filler planner data from the network buffer", e);
+         if (isClient) {
+            this.patternStatementClient.readFromBuffer(buffer);
+         } else if (this.addon != null) {
+            this.addon.patternStatement.readFromBuffer(buffer);
+            this.valuesChanged();
          }
       } else {
          super.readMessage(id, buffer, isClient, ctx);

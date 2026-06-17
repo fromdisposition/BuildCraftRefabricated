@@ -1,6 +1,7 @@
 package buildcraft.energy.platform;
 
 import buildcraft.api.enums.EnumSpring;
+import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.BCEnergyBlocks;

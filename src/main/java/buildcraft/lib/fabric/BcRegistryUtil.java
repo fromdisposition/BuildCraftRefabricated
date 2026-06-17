@@ -32,7 +32,7 @@ public final class BcRegistryUtil {
    private static final Map<Fluid, Item> FLUID_BUCKET_CACHE = new IdentityHashMap<>();
    private static final Identifier UNKNOWN_BIOME = Identifier.parse("minecraft:plains");
 
-   private Mc26Compat() {
+   private BcRegistryUtil() {
    }
 
    public static Identifier biomeId(Holder<Biome> biome) {

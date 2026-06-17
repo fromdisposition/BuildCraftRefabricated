@@ -30,7 +30,11 @@ public class BCTooltips {
          String key = TOOLTIPS.get(stack.getItem());
          if (key != null) {
             String resolved = key;
+            //? if >= 26.1.3 {
+            /*if (!I18n.get(resolved).equals(resolved)) {*/
+            //?} else {
             if (I18n.exists(resolved)) {
+            //?}
                String translated = I18n.get(resolved, new Object[0]);
 
                for (String line : translated.split("\n")) {

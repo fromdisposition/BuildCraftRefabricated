@@ -32,6 +32,6 @@ public final class WrappedItemStorageExtract implements Storage<ItemVariant> {
 
    @Override
    public Iterator<StorageView<ItemVariant>> iterator() {
-      return inner == null ? Storage.empty().iterator() : inner.iterator();
+      return inner == null ? Storage.<ItemVariant>empty().iterator() : inner.iterator();
    }
 }

@@ -132,7 +132,10 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
    public static void onColorBlindToggle() {
       Minecraft mc = Minecraft.getInstance();
       if (mc != null && mc.levelRenderer != null) {
+         //? if >= 26.1.3 {
+         //?} else {
          mc.levelRenderer.allChanged();
+         //?}
       }
    }
 

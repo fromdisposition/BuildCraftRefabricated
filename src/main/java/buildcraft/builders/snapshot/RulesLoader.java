@@ -53,7 +53,11 @@ public class RulesLoader {
    private static final List<JsonRule> RULES = new ArrayList<>();
    public static final Set<String> READ_DOMAINS = new HashSet<>();
    private static final LoadingCache<Pair<BlockState, CompoundTag>, Set<JsonRule>> BLOCK_RULES_CACHE = CacheBuilder.newBuilder()
+      //? if >= 26.1.3 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(5))*/
+      //?} else {
       .expireAfterAccess(5L, TimeUnit.MINUTES)
+      //?}
       .build(CacheLoader.from(pair -> getBlockRulesInternal((BlockState)pair.getLeft(), (CompoundTag)pair.getRight())));
    private static final String COMPAT_ASSET_DOMAIN = "buildcraftbuilders";
 

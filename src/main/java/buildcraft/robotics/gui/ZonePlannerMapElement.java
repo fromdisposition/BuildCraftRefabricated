@@ -62,6 +62,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private int hoverBlockZ;
    private int hoverBlockY;
    private int selColourValue = 0xFFFFFFFF;
+   private double smoothCamY = Double.NaN;
    private int cachedOverlayVersion = Integer.MIN_VALUE;
    private int cachedOverlayLayer = Integer.MIN_VALUE;
    private int[] cachedOverlayCells = new int[0];
@@ -165,7 +166,13 @@ public class ZonePlannerMapElement implements IInteractionElement {
    }
 
    private double camY(ZonePlannerMapColours cache) {
-      return this.focusHeight(cache) + this.camDist;
+      double target = this.focusHeight(cache) + this.camDist;
+      if (Double.isNaN(this.smoothCamY)) {
+         this.smoothCamY = target;
+      } else {
+         this.smoothCamY += (target - this.smoothCamY) * 0.08;
+      }
+      return this.smoothCamY;
    }
 
    @Override

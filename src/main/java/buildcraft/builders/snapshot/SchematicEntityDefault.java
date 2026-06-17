@@ -30,6 +30,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
+//? if >= 26.1.3 {
+/*import net.minecraft.world.entity.EntitySpawnRequest;*/
+//?}
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -140,7 +143,12 @@ public class SchematicEntityDefault implements ISchematicEntity {
       }
 
       Optional<Entity> optEntity = EntityType.create(
-         TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), newEntityNbt), level, EntitySpawnReason.COMMAND
+         TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), newEntityNbt), level,
+         //? if >= 26.1.3 {
+/*         new EntitySpawnRequest(EntitySpawnReason.COMMAND, false)*/
+         //?} else {
+EntitySpawnReason.COMMAND
+         //?}
       );
       if (optEntity.isPresent()) {
          Entity entity = optEntity.get();

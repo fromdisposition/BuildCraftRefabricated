@@ -11,7 +11,9 @@ import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.ContainerBCTile;
 import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.slot.SlotDisplay;
+//? if has_jei {
 import buildcraft.lib.integration.jei.JeiTransferUtil;
+//?}
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.silicon.BCSiliconMenuTypes;
@@ -88,7 +90,9 @@ public class ContainerAssemblyTable extends ContainerBCTile<TileAssemblyTable> {
             ItemStack want = tag == null ? ItemStack.EMPTY : NBTUtilBC.itemStackFromNBT(tag);
             if (!want.isEmpty()) {
                int limit = maxTransfer ? Integer.MAX_VALUE : want.getCount();
+               //? if has_jei {
                JeiTransferUtil.moveMatchingToHandler(this.player.getInventory(), want, limit, this.tile.inv);
+               //?}
             }
          }
       } else {

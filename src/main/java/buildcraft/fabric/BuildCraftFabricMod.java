@@ -11,7 +11,9 @@ import buildcraft.factory.platform.BCFactoryFabric;
 import buildcraft.robotics.platform.BCRoboticsFabric;
 import buildcraft.silicon.platform.BCSiliconFabric;
 import buildcraft.transport.platform.BCTransportFabric;
+//? if has_jei {
 import buildcraft.fabric.integration.jei.BCJeiBootstrap;
+//?}
 import buildcraft.fabric.network.BCNetworkingRegistry;
 import buildcraft.lib.fabric.BCBlockEntityLifecycleEvents;
 import buildcraft.lib.fabric.ExternalEnergyCompat;
@@ -44,8 +46,10 @@ public class BuildCraftFabricMod implements ModInitializer {
       BCSiliconFabric.register();
       BCRoboticsFabric.register();
       ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> {
+         //? if has_jei {
          BCJeiBootstrap.initSiliconRecipes();
          BCJeiBootstrap.initEnergyRecipes();
+         //?}
       });
       BCNetworkingRegistry.registerCommon();
       BCNetworkingRegistry.registerServer();

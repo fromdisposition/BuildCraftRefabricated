@@ -27,9 +27,15 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTic
 import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
+import buildcraft.lib.client.render.laser.LaserBatch;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
+//? if >= 26.1.3 {
+/*import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeStorage;*/
+//?} else {
 import net.minecraft.client.renderer.SubmitNodeStorage;
+//?}
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.NoopRenderer;
@@ -40,11 +46,19 @@ public final class BCBuildersFabricClient {
 
    public static void init() {
       LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
+         //? if >= 26.1.3 {
+         /*LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());*/
+         //?}
          RenderLevelStageEvent.AfterTranslucentBlocks stage = new RenderLevelStageEvent.AfterTranslucentBlocks(context.poseStack(), context.levelState());
          BCBuildersEventDist.INSTANCE.renderAllQuarries(stage);
          BCBuildersEventDist.INSTANCE.renderAllFillers(stage);
          BCBuildersEventDist.INSTANCE.renderAllArchitectTables(stage);
          BCBuildersEventDist.INSTANCE.renderAllBuilders(stage);
+         //? if >= 26.1.3 {
+         /*SubmitCustomGeometryEvent geometry = new SubmitCustomGeometryEvent(context.poseStack(), context.levelState(), context.submitNodeCollector());
+         BCBuildersEventDist.INSTANCE.renderAllFillersCustomGeometry(geometry);
+         BCBuildersEventDist.INSTANCE.renderAllBuildersCustomGeometry(geometry);*/
+         //?} else {
          Minecraft mc = Minecraft.getInstance();
          if (mc.gameRenderer != null) {
             SubmitNodeStorage storage = mc.gameRenderer.getFeatureRenderDispatcher().getSubmitNodeStorage();
@@ -52,6 +66,7 @@ public final class BCBuildersFabricClient {
             BCBuildersEventDist.INSTANCE.renderAllFillersCustomGeometry(geometry);
             BCBuildersEventDist.INSTANCE.renderAllBuildersCustomGeometry(geometry);
          }
+         //?}
       });
       ClientTickEvents.END_CLIENT_TICK.register((EndTick)client -> ClientArchitectScans.INSTANCE.tick());
       MenuScreens.register(BCBuildersMenuTypes.FILLER, GuiFiller::new);

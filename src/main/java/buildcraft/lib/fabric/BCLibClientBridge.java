@@ -14,7 +14,11 @@ public final class BCLibClientBridge {
       Minecraft mc = Minecraft.getInstance();
       if (mc.player != null) {
          GuideManager.INSTANCE.ensureLoaded();
+         //? if >= 26.1.3 {
+         /*mc.gui.setScreen(new GuiGuide(bookName));*/
+         //?} else {
          mc.setScreen(new GuiGuide(bookName));
+         //?}
       }
    }
 
@@ -28,7 +32,11 @@ public final class BCLibClientBridge {
             gui.openPage(factory.createNew(gui));
          }
 
+         //? if >= 26.1.3 {
+         /*mc.gui.setScreen(gui);*/
+         //?} else {
          mc.setScreen(gui);
+         //?}
       }
    }
 }

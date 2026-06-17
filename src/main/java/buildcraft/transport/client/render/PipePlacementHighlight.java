@@ -18,8 +18,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+//? if >= 26.1.3 {
+/*import net.minecraft.client.renderer.SubmitNodeCollector;*/
+//?} else {
 import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+//?}
 import net.minecraft.client.renderer.state.level.BlockOutlineRenderState;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.core.BlockPos;
@@ -80,6 +84,22 @@ public final class PipePlacementHighlight {
       return itemType.isInstance(off.getItem()) ? off : null;
    }
 
+   //? if >= 26.1.3 {
+   /*private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
+      @Override
+      public boolean render(
+         BlockOutlineRenderState renderState, SubmitNodeCollector submitNodeCollector, PoseStack poseStack, LevelRenderState levelRenderState
+      ) {
+         Vec3 cam = levelRenderState.cameraRenderState.pos;
+         BlockPos pos = renderState.pos();
+         poseStack.pushPose();
+         poseStack.translate(pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z);
+         submitNodeCollector.submitShapeOutline(poseStack, this.shape, BCLibRenderTypes.lines(), ARGB.black(102), 2.5F, renderState.isTranslucent());
+         poseStack.popPose();
+         return true;
+      }
+   }*/
+   //?} else {
    private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
       @Override
       public boolean render(
@@ -97,4 +117,5 @@ public final class PipePlacementHighlight {
          return true;
       }
    }
+   //?}
 }

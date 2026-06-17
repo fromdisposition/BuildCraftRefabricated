@@ -32,7 +32,11 @@ public class GateItemModel implements ItemModel {
    private static final GateItemModel.ContextXform DEFAULT_XFORM = new GateItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.8F);
    private static final EnumMap<ItemDisplayContext, GateItemModel.ContextXform> XFORMS = new EnumMap<>(ItemDisplayContext.class);
    private static final LoadingCache<GateItemModel.CacheKey, List<BakedQuad>> cache = CacheBuilder.newBuilder()
+      //? if >= 26.1.3 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))*/
+      //?} else {
       .expireAfterAccess(1L, TimeUnit.MINUTES)
+      //?}
       .build(CacheLoader.from(key -> {
          GateItemModel.ContextXform x = XFORMS.getOrDefault(key.context(), DEFAULT_XFORM);
          List<BakedQuad> quads = new ArrayList<>();

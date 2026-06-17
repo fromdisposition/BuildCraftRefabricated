@@ -1,14 +1,12 @@
 # BuildCraft Refabricated
 
-Unofficial **Fabric** port of BuildCraft for **Minecraft 26.1.2** — pipes, engines, quarries, oil, gates, and automation in one JAR.
+Unofficial **Fabric** port of BuildCraft for **modern Minecraft** — pipes, engines, quarries, oil, gates, and automation in one JAR.
 
-| | |
-|---|---|
-| **Mod ID** | `buildcraftrefabricated` |
-| **Version** | `26.1.2-beta-2-upstream3` |
-| **Platform** | Fabric Loader ≥ 0.19.2, Fabric API |
-| **Java** | 25+ |
-| **License** | [MPL-2.0](LICENSE) |
+
+| Minecraft Version | Support Status | Mod Loader | Fabric API | Java |
+|-------------------|----------------|------------|------------|------|
+| **26.2**| 🟢 **Mainline** (Upstream) | Fabric Loader ≥ 0.19.3 | 0.152.1+26.2 | 25+ |
+| **26.1.x** | 🟢 **Mainline** (LTS) | Fabric Loader ≥ 0.19.2 | 0.150.0+26.1.2 | 25+ |
 
 **Repository:** [github.com/fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)  
 **Issues:** [github.com/fromdisposition/BuildCraftRefabricated/issues](https://github.com/fromdisposition/BuildCraftRefabricated/issues)

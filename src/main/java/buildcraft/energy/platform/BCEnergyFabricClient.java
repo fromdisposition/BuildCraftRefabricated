@@ -1,6 +1,7 @@
 package buildcraft.energy.platform;
 
 import buildcraft.energy.BCEnergyBlockEntities;
+import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.energy.BCEnergyItems;
 import buildcraft.energy.BCEnergyMenuTypes;
 import buildcraft.energy.BCEnergyModels;

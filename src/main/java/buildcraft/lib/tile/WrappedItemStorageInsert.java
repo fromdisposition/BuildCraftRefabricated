@@ -6,8 +6,10 @@
 
 package buildcraft.lib.tile;
 
+import java.util.Iterator;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.InsertionOnlyStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 
@@ -26,5 +28,10 @@ public final class WrappedItemStorageInsert implements Storage<ItemVariant> {
    @Override
    public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
       return 0L;
+   }
+
+   @Override
+   public Iterator<StorageView<ItemVariant>> iterator() {
+      return inner == null ? Storage.<ItemVariant>empty().iterator() : inner.iterator();
    }
 }

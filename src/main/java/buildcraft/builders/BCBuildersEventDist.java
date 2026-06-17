@@ -44,7 +44,10 @@ import java.util.WeakHashMap;
 import java.util.Map.Entry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+//? if >= 26.1.3 {
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+//?}
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -272,6 +275,38 @@ public enum BCBuildersEventDist {
          if (tile.clientDrillPos != null && tile.prevClientDrillPos != null) {
             Vec3 interpolatedPos = tile.prevClientDrillPos.add(tile.clientDrillPos.subtract(tile.prevClientDrillPos).scale(partialTicks));
             double frameY = max.getY() + 0.5;
+            //? if >= 26.1.3 {
+            /*BcLaserRenderer.renderLasersBatched(
+               poseStack,
+               List.of(
+                  new LaserData_BC8(
+                     FRAME, new Vec3(interpolatedPos.x + 0.5, frameY, interpolatedPos.z), new Vec3(interpolatedPos.x + 0.5, frameY, max.getZ() + 0.75), 0.0625
+                  ),
+                  new LaserData_BC8(
+                     FRAME, new Vec3(interpolatedPos.x + 0.5, frameY, interpolatedPos.z), new Vec3(interpolatedPos.x + 0.5, frameY, min.getZ() + 0.25), 0.0625
+                  ),
+                  new LaserData_BC8(
+                     FRAME, new Vec3(interpolatedPos.x, frameY, interpolatedPos.z + 0.5), new Vec3(max.getX() + 0.75, frameY, interpolatedPos.z + 0.5), 0.0625
+                  ),
+                  new LaserData_BC8(
+                     FRAME, new Vec3(interpolatedPos.x, frameY, interpolatedPos.z + 0.5), new Vec3(min.getX() + 0.25, frameY, interpolatedPos.z + 0.5), 0.0625
+                  ),
+                  new LaserData_BC8(
+                     FRAME_BOTTOM,
+                     new Vec3(interpolatedPos.x + 0.5, interpolatedPos.y + 1.0 + 0.25, interpolatedPos.z + 0.5),
+                     new Vec3(interpolatedPos.x + 0.5, max.getY() + 0.5, interpolatedPos.z + 0.5),
+                     0.0625
+                  ),
+                  new LaserData_BC8(
+                     DRILL,
+                     new Vec3(interpolatedPos.x + 0.5, interpolatedPos.y + 1.0 + yOffset, interpolatedPos.z + 0.5),
+                     new Vec3(interpolatedPos.x + 0.5, interpolatedPos.y + yOffset, interpolatedPos.z + 0.5),
+                     0.0625
+                  )
+               ),
+               cameraPos
+            );*/
+            //?} else {
             BcLaserRenderer.renderLasersBatched(
                poseStack,
                List.of(
@@ -302,6 +337,7 @@ public enum BCBuildersEventDist {
                ),
                cameraPos
             );
+            //?}
          } else {
             LaserBoxRenderer.renderLaserBoxStatic(poseStack, tile.frameBox, BuildCraftLaserManager.STRIPES_WRITE, true, false, cameraPos);
          }
@@ -334,10 +370,35 @@ public enum BCBuildersEventDist {
             }
          }
 
+         //? if >= 26.1.3 {
+         /*this.renderDigitizingCubes(cameraPos, poseStack);*/
+         //?} else {
          this.renderDigitizingCubes(cameraPos, poseStack, mc);
+         //?}
       }
    }
 
+   //? if >= 26.1.3 {
+   /*private void renderDigitizingCubes(Vec3 cameraPos, PoseStack poseStack) {
+      List<ClientArchitectScans.ScanRun> runs = ClientArchitectScans.INSTANCE.getRuns();
+      if (!runs.isEmpty()) {
+         RenderType renderType = RenderTypes.entityTranslucent(SCAN_TEXTURE);
+         LaserBatch.submitGeometry(poseStack, renderType, (pose, vc) -> {
+            for (ClientArchitectScans.ScanRun run : runs) {
+               int alpha = Math.max(0, Math.min(50, run.remaining()));
+               BlockPos min = run.min();
+               BlockPos max = run.max();
+               renderScanCuboid(
+                  pose, vc,
+                  min.getX() - cameraPos.x, min.getY() - cameraPos.y, min.getZ() - cameraPos.z,
+                  max.getX() + 1 - cameraPos.x, max.getY() + 1 - cameraPos.y, max.getZ() + 1 - cameraPos.z,
+                  alpha
+               );
+            }
+         });
+      }
+   }*/
+   //?} else {
    private void renderDigitizingCubes(Vec3 cameraPos, PoseStack poseStack, Minecraft mc) {
       List<ClientArchitectScans.ScanRun> runs = ClientArchitectScans.INSTANCE.getRuns();
       if (!runs.isEmpty()) {
@@ -366,6 +427,7 @@ public enum BCBuildersEventDist {
          bufferSource.endBatch(renderType);
       }
    }
+   //?}
 
    private static void renderScanCuboid(
       Pose pose, VertexConsumer buffer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, int alpha

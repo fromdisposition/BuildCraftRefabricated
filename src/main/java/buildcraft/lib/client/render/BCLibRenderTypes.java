@@ -84,11 +84,19 @@ public final class BCLibRenderTypes {
    }
 
    public static RenderType cutoutBlockSheet() {
+      //? if >= 26.1.3 {
+      /*return Sheets.cutoutBlockItemSheet();*/
+      //?} else {
       return Sheets.cutoutBlockSheet();
+      //?}
    }
 
    public static RenderType translucentBlockSheet() {
+      //? if >= 26.1.3 {
+      /*return Sheets.translucentBlockItemSheet();*/
+      //?} else {
       return Sheets.translucentBlockSheet();
+      //?}
    }
 
    private BCLibRenderTypes() {

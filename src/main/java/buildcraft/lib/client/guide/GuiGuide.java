@@ -173,7 +173,11 @@ public class GuiGuide extends Screen {
 
    public void closePage() {
       if (this.pages.isEmpty()) {
+         //? if >= 26.1.3 {
+         /*this.minecraft.gui.setScreen(null);*/
+         //?} else {
          this.minecraft.setScreen(null);
+         //?}
       } else {
          this.setPageInternal(this.pages.pop());
       }

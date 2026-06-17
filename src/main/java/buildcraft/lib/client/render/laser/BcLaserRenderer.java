@@ -14,7 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
+//? if >= 26.1.3 {
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+//?}
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.BlockPos;
@@ -38,6 +41,10 @@ public final class BcLaserRenderer {
    }
 
    public static void renderLaser(PoseStack poseStack, VertexConsumer consumer, LaserData_BC8 data, Vec3 cameraPos) {
+      renderLaserPose(poseStack.last(), consumer, data, cameraPos);
+   }
+
+   static void renderLaserPose(com.mojang.blaze3d.vertex.PoseStack.Pose pose, VertexConsumer consumer, LaserData_BC8 data, Vec3 cameraPos) {
       ILaserRenderer vertexWriter = (x, y, z, u, v, lmap, nx, ny, nz, colour) -> {
          float rx = (float)(x - cameraPos.x);
          float ry = (float)(y - cameraPos.y);
@@ -46,12 +53,12 @@ public final class BcLaserRenderer {
          int g = (int)(colour * 255.0F);
          int b = (int)(colour * 255.0F);
          int a = 255;
-         consumer.addVertex(poseStack.last().pose(), rx, ry, rz)
+         consumer.addVertex(pose.pose(), rx, ry, rz)
             .setColor(r, g, b, a)
             .setUv((float)u, (float)v)
             .setOverlay(OverlayTexture.NO_OVERLAY)
             .setLight(lmap)
-            .setNormal(poseStack.last(), nx, ny, nz);
+            .setNormal(pose, nx, ny, nz);
       };
       LaserContext ctx = new LaserContext(vertexWriter, data, data.enableDiffuse, data.doubleFace);
       CompiledLaserType type = compileType(data.laserType);
@@ -62,6 +69,17 @@ public final class BcLaserRenderer {
       renderLasersBatched(poseStack, List.of(data), cameraPos);
    }
 
+   //? if >= 26.1.3 {
+   /*public static void renderLasersBatched(PoseStack poseStack, List<LaserData_BC8> lasers, Vec3 cameraPos) {
+      if (!lasers.isEmpty()) {
+         LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE), (pose, vc) -> {
+            for (LaserData_BC8 data : lasers) {
+               renderLaserPose(pose, vc, data, cameraPos);
+            }
+         });
+      }
+   }*/
+   //?} else {
    public static void renderLasersBatched(PoseStack poseStack, List<LaserData_BC8> lasers, Vec3 cameraPos) {
       if (!lasers.isEmpty()) {
          BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
@@ -76,6 +94,7 @@ public final class BcLaserRenderer {
          }
       }
    }
+   //?}
 
    public static int computeLightmap(double x, double y, double z, int minBlockLight) {
       Level level = Minecraft.getInstance().level;

@@ -43,8 +43,13 @@ import java.util.Set;
 import java.util.Map.Entry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
+//? if >= 26.1.3 {
+/*import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeStorage;*/
+//?} else {
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+//?}
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.item.TrackingItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -92,14 +97,137 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    private static final ThreadLocal<MutableBlockPos> NEIGHBOR_SCRATCH = ThreadLocal.withInitial(MutableBlockPos::new);
    private static final TrackingItemStackRenderState MARKER_EMPTY = new TrackingItemStackRenderState();
 
+   //? if >= 26.1.3 {
+   /*public BlueprintPipRenderer() {
+      super();
+   }*/
+   //?} else {
    public BlueprintPipRenderer(BufferSource bufferSource) {
       super(bufferSource);
    }
+   //?}
+
+   //? if >= 26.1.3 {
+   /*@Override
+   protected void renderToTexture(BlueprintPipRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
+      SubmitNodeStorage storage = (SubmitNodeStorage) submitNodeCollector;
+      Snapshot snapshot = renderState.snapshot();
+      BlockPos size = snapshot.size;
+      int sizeX = Math.max(1, size.getX());
+      int sizeY = Math.max(1, size.getY());
+      int sizeZ = Math.max(1, size.getZ());
+      poseStack.scale(1.0F, -1.0F, -1.0F);
+      Minecraft mc = Minecraft.getInstance();
+      long gameTime = mc.level != null ? mc.level.getGameTime() : 0L;
+      float partialTick = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+      float yaw = ((float)(gameTime % 72L) + partialTick) / 72.0F * 360.0F;
+      poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
+      poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
+      poseStack.translate(-sizeX / 2.0F, -sizeY / 2.0F, -sizeZ / 2.0F);
+      Vector3f light0Camera = poseStack.last().transformNormal(LIGHT0_MODEL_SPACE.x(), LIGHT0_MODEL_SPACE.y(), LIGHT0_MODEL_SPACE.z(), new Vector3f());
+      Vector3f light1Camera = poseStack.last().transformNormal(LIGHT1_MODEL_SPACE.x(), LIGHT1_MODEL_SPACE.y(), LIGHT1_MODEL_SPACE.z(), new Vector3f());
+      this.ensureLightingBufferAllocated();
+      this.writeLightDirections(light0Camera, light1Camera);
+      GpuBufferSlice savedShaderLights = RenderSystem.getShaderLights();
+      RenderSystem.setShaderLights(this.lightingBuffer.slice(0L, Lighting.UBO_SIZE));
+      net.minecraft.client.renderer.feature.FeatureRenderDispatcher featureRenderDispatcher = mc.gameRenderer.featureRenderDispatcher();
+      BlueprintPipRenderer.PreviewPlan plan = this.planFor(snapshot, mc);
+
+      for (BlueprintPipRenderer.TemplateEntry entry : plan.templateEntries) {
+         this.submitTemplateGhostCube26(poseStack, entry, storage);
+      }
+
+      for (BlueprintPipRenderer.PipeEntry entry : plan.pipeEntries) {
+         this.submitPipeEntry26(poseStack, entry, storage);
+      }
+
+      for (BlueprintPipRenderer.FluidEntry entry : plan.fluidEntries) {
+         this.submitFluidCube26(poseStack, entry, FULL_BRIGHT, storage);
+      }
+
+      for (BlueprintPipRenderer.ItemEntry entry : plan.itemEntries) {
+         poseStack.pushPose();
+         poseStack.translate(entry.x + 0.5F, entry.y + 0.5F, entry.z + 0.5F);
+         entry.renderState.submit(poseStack, submitNodeCollector, FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0);
+         poseStack.popPose();
+      }
+
+      featureRenderDispatcher.renderAllFeatures(storage);
+      RenderSystem.setShaderLights(savedShaderLights);
+      if (LOGGED_SNAPSHOTS.add(System.identityHashCode(snapshot))) {
+         LOGGER.info(
+            "renderToTexture: type={} size={}x{}x{} submitted={} submittedFluid={} submittedTemplate={} submittedPipe={} skippedNoItem={} skippedAirOrEmpty={} skippedHidden={} sampleSchBlock={} distinctStates={}",
+            new Object[]{
+               snapshot.getClass().getSimpleName(),
+               sizeX, sizeY, sizeZ,
+               plan.itemEntries.size(), plan.fluidEntries.size(),
+               plan.templateEntries.size(), plan.pipeEntries.size(),
+               plan.skippedNoItem, plan.skippedAirOrEmpty, plan.skippedHidden,
+               plan.sampleClassName, plan.distinctStates
+            }
+         );
+      }
+   }
+
+   private void submitTemplateGhostCube26(PoseStack poseStack, BlueprintPipRenderer.TemplateEntry entry, SubmitNodeStorage storage) {
+      poseStack.pushPose();
+      poseStack.translate(entry.x, entry.y, entry.z);
+      com.mojang.blaze3d.vertex.PoseStack.Pose pose = poseStack.last();
+      storage.submitCustomGeometry(poseStack, BCLibRenderTypes.entityTranslucent(SCAN_TEXTURE), (p, vc) -> {
+         for (Direction face : entry.faces) {
+            ModelUtil.createFace(face, GHOST_CENTER, GHOST_RADIUS, GHOST_UVS).lighti(15, 15).colouri(255, 255, 255, 128).render(pose, vc);
+         }
+      });
+      poseStack.popPose();
+   }
+
+   private void submitPipeEntry26(PoseStack poseStack, BlueprintPipRenderer.PipeEntry entry, SubmitNodeStorage storage) {
+      poseStack.pushPose();
+      poseStack.translate(entry.x, entry.y, entry.z);
+      com.mojang.blaze3d.vertex.PoseStack.Pose pipePose = poseStack.last();
+      storage.submitCustomGeometry(poseStack, BCLibRenderTypes.cutoutBlockSheet(), (p, vc) -> {
+         ModelPipe.renderDirect(entry.pipeKey, pipePose, vc, FULL_BRIGHT);
+      });
+      storage.submitCustomGeometry(poseStack, BCLibRenderTypes.translucentBlockSheet(), (p, vc) -> {
+         ModelPipe.renderMaskOverlay(entry.pipeKey, pipePose, vc, FULL_BRIGHT, 76);
+      });
+      poseStack.popPose();
+   }
+
+   private void submitFluidCube26(PoseStack poseStack, BlueprintPipRenderer.FluidEntry entry, int lightmap, SubmitNodeStorage storage) {
+      FluidStack stack = new FluidStack(entry.fluidState.getType(), 1);
+      BcFluidAppearance appearance = BcFluidAppearanceCache.get(stack);
+      if (appearance != null && appearance.sprite() != null) {
+         TextureAtlasSprite sprite = appearance.sprite();
+         int tint = appearance.tint();
+         float a0 = (tint >>> 24 & 0xFF) / 255.0F;
+         final float r = (tint >>> 16 & 0xFF) / 255.0F;
+         final float g = (tint >>> 8 & 0xFF) / 255.0F;
+         final float b = (tint & 0xFF) / 255.0F;
+         final float a = a0 <= 0.0F ? 1.0F : a0;
+         float h = entry.fluidState.isSource() ? 1.0F : Math.max(0.125F, entry.fluidState.getOwnHeight());
+         poseStack.pushPose();
+         poseStack.translate(entry.x, entry.y, entry.z);
+         com.mojang.blaze3d.vertex.PoseStack.Pose pose = poseStack.last();
+         storage.submitCustomGeometry(poseStack, BcFluidAppearanceCache.renderType(appearance), (p, vc) -> {
+            int overlay = OverlayTexture.NO_OVERLAY;
+            if (!entry.cullTop) {
+               BcFluidVertexEmitter.emitQuadWithAtlasUv(pose, vc, sprite, 0.0F, h, 0.0F, sprite.getU(0.0F), sprite.getV(0.0F), 0.0F, h, 1.0F, sprite.getU(0.0F), sprite.getV(1.0F), 1.0F, h, 1.0F, sprite.getU(1.0F), sprite.getV(1.0F), 1.0F, h, 0.0F, sprite.getU(1.0F), sprite.getV(0.0F), 0.0F, 1.0F, 0.0F, r, g, b, a, lightmap, overlay);
+            }
+         });
+         poseStack.popPose();
+      }
+   }*/
+   //?}
 
    private void ensureLightingBufferAllocated() {
       if (this.lightingBuffer == null) {
          GpuDevice device = RenderSystem.getDevice();
+         //? if >= 26.1.3 {
+         /*this.lightingBufferPaddedSize = Lighting.UBO_SIZE;*/
+         //?} else {
          this.lightingBufferPaddedSize = Mth.roundToward(Lighting.UBO_SIZE, device.getUniformOffsetAlignment());
+         //?}
          this.lightingBuffer = device.createBuffer(() -> "BCBlueprintPipLighting", 136, this.lightingBufferPaddedSize);
       }
    }
@@ -139,6 +267,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       return height / 2.0F;
    }
 
+   //? if >= 26.1.3 {
+   //?} else {
    protected void renderToTexture(BlueprintPipRenderState renderState, PoseStack poseStack) {
       Snapshot snapshot = renderState.snapshot();
       BlockPos size = snapshot.size;
@@ -206,6 +336,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          );
       }
    }
+   //?}
 
    private BlueprintPipRenderer.PreviewPlan planFor(Snapshot snapshot, Minecraft mc) {
       BlueprintPipRenderer.PlanKey key = BlueprintPipRenderer.PlanKey.of(snapshot);
@@ -349,6 +480,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       }
    }
 
+   //? if >= 26.1.3 {
+   //?} else {
    private void submitPipeEntry(PoseStack poseStack, BlueprintPipRenderer.PipeEntry entry) {
       poseStack.pushPose();
       poseStack.translate(entry.x, entry.y, entry.z);
@@ -359,7 +492,10 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       );
       poseStack.popPose();
    }
+   //?}
 
+   //? if >= 26.1.3 {
+   //?} else {
    private void submitFluidCube(PoseStack poseStack, BlueprintPipRenderer.FluidEntry entry, int lightmap) {
       int xCell = entry.x;
       int yCell = entry.y;
@@ -610,6 +746,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          poseStack.popPose();
       }
    }
+   //?}
 
    private static boolean neighborIsSameFluid(Blueprint blueprint, BlockPos size, int nx, int ny, int nz, Fluid fluid) {
       if (nx >= 0 && ny >= 0 && nz >= 0 && nx < size.getX() && ny < size.getY() && nz < size.getZ()) {
@@ -636,6 +773,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       }
    }
 
+   //? if >= 26.1.3 {
+   //?} else {
    private void submitTemplateGhostCube(PoseStack poseStack, BlueprintPipRenderer.TemplateEntry entry) {
       VertexConsumer vc = this.bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(SCAN_TEXTURE));
       poseStack.pushPose();
@@ -648,6 +787,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
 
       poseStack.popPose();
    }
+   //?}
 
    private record FluidEntry(
       int x, int y, int z, FluidState fluidState, boolean cullTop, boolean cullBottom, boolean cullNorth, boolean cullSouth, boolean cullWest, boolean cullEast

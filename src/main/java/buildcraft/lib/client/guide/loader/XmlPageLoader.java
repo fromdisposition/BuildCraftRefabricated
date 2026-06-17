@@ -59,6 +59,9 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
+//? if >= 26.1.3 {
+/*import net.minecraft.network.chat.TextColor;*/
+//?}
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -285,7 +288,18 @@ public enum XmlPageLoader implements IPageLoaderText {
             if (c == '<') {
                XmlPageLoader.XmlTag currentTag = parseTag(line.substring(i));
                if (currentTag != null) {
+                  //? if >= 26.1.3 {
+                  /*ChatFormatting formatting = null;
+                  String lookupName = currentTag.name.replace("_", "");
+                  for (ChatFormatting f : ChatFormatting.values()) {
+                     if (f.name().replace("_", "").equalsIgnoreCase(lookupName)) {
+                        formatting = f;
+                        break;
+                     }
+                  }*/
+                  //?} else {
                   ChatFormatting formatting = ChatFormatting.getByName(currentTag.name.replace("_", ""));
+                  //?}
                   if (formatting != null) {
                      if (currentTag.state == XmlPageLoader.XmlTagState.END) {
                         formattingElements.remove(formatting);
@@ -293,7 +307,11 @@ public enum XmlPageLoader implements IPageLoaderText {
                            formatColours.remove();
                         }
                      } else if (currentTag.state == XmlPageLoader.XmlTagState.START) {
+                        //? if >= 26.1.3 {
+                        /*if (TextColor.fromLegacyFormat(formatting) != null) {*/
+                        //?} else {
                         if (formatting.isColor()) {
+                        //?}
                            formatColours.push(formatting);
                         } else {
                            formattingElements.add(formatting);

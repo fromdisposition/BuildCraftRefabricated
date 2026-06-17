@@ -13,11 +13,16 @@
 !/.gitattributes
 !/build.gradle.kts
 !/settings.gradle.kts
+!/stonecutter.gradle.kts
 !/gradle.properties
 !/gradlew
 !/gradlew.bat
 !/LICENSE
 !/README.md
+!/versions/1.21.1/gradle.properties
+!/versions/1.21.11/gradle.properties
+!/versions/26.1/gradle.properties
+!/versions/26.2/gradle.properties
 
 # Local / generated (also covered by whitelist above)
 .gradle/

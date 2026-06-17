@@ -8,15 +8,26 @@ package buildcraft.builders.client.render.pip;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
+//? if >= 26.1.3 {
+/*import net.minecraft.client.renderer.SubmitNodeCollector;*/
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+//?}
 
 public class TooltipBlueprintPipRenderer extends PictureInPictureRenderer<TooltipBlueprintPipRenderState> {
    private final BlueprintPipRenderer renderer;
 
+   //? if >= 26.1.3 {
+   /*public TooltipBlueprintPipRenderer() {
+      super();
+      this.renderer = new BlueprintPipRenderer();
+   }*/
+   //?} else {
    public TooltipBlueprintPipRenderer(BufferSource bufferSource) {
       super(bufferSource);
       this.renderer = new BlueprintPipRenderer(bufferSource);
    }
+   //?}
 
    @Override
    public Class<TooltipBlueprintPipRenderState> getRenderStateClass() {
@@ -33,6 +44,18 @@ public class TooltipBlueprintPipRenderer extends PictureInPictureRenderer<Toolti
       return height / 2.0F;
    }
 
+   //? if >= 26.1.3 {
+   /*@Override
+   protected void renderToTexture(TooltipBlueprintPipRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
+      this.renderer.renderToTexture(
+         new BlueprintPipRenderState(
+            renderState.snapshot(), renderState.x0(), renderState.y0(), renderState.x1(), renderState.y1(), renderState.scale(), renderState.scissorArea()
+         ),
+         poseStack,
+         submitNodeCollector
+      );
+   }*/
+   //?} else {
    @Override
    protected void renderToTexture(TooltipBlueprintPipRenderState renderState, PoseStack poseStack) {
       this.renderer
@@ -43,6 +66,7 @@ public class TooltipBlueprintPipRenderer extends PictureInPictureRenderer<Toolti
             poseStack
          );
    }
+   //?}
 
    @Override
    public void close() {

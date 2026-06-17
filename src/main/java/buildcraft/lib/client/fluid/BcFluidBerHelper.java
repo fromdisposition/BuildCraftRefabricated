@@ -13,7 +13,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import net.minecraft.client.renderer.SubmitNodeCollector;
+//? if >= 26.1.3 {
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+//?}
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 
@@ -21,6 +24,8 @@ public final class BcFluidBerHelper {
    private BcFluidBerHelper() {
    }
 
+   //? if >= 26.1.3 {
+   //?} else {
    public static void renderSmoothedFluid(
       FluidSmoother smoother, BcFluidBerHelper.TankBounds bounds, PoseStack poseStack, BufferSource bufferSource, int light, float partialTicks
    ) {
@@ -29,6 +34,7 @@ public final class BcFluidBerHelper {
          draw.accept(poseStack.last(), buffer);
       });
    }
+   //?}
 
    public static void renderSmoothedFluid(
       FluidSmoother smoother, BcFluidBerHelper.TankBounds bounds, PoseStack poseStack, SubmitNodeCollector collector, int light, float partialTicks

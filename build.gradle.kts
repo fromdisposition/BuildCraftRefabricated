@@ -1,15 +1,24 @@
 import java.awt.image.BufferedImage
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.zip.ZipFile
 import javax.imageio.ImageIO
 
 plugins {
-    id("net.fabricmc.fabric-loom") version "1.16-SNAPSHOT"
+    id("dev.kikugie.loom-back-compat")
+    id("dev.kikugie.stonecutter")
 }
 
-version = providers.gradleProperty("mod_version").get()
+val jeiVer = (project.findProperty("jei_version") as String?).takeIf { !it.isNullOrBlank() }
+stonecutter.constants {
+    put("has_jei", jeiVer != null)
+}
+
+val buildDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"))
+version = "${rootProject.property("mod_version") as String}-$buildDate"
 
 base {
-    archivesName.set("BCRefabricated")
+    archivesName.set("BCRefabricated-${property("minecraft_version") as String}")
 }
 
 repositories {
@@ -24,7 +33,9 @@ loom {
         }
     }
     runs.configureEach {
-        vmArg("--sun-misc-unsafe-memory-access=allow")
+        if (stonecutter.eval(stonecutter.current?.project ?: "26.1", ">=1.21")) {
+            vmArg("--sun-misc-unsafe-memory-access=allow")
+        }
     }
 }
 
@@ -45,18 +56,22 @@ sourceSets {
 // Loader-specific hooks live in buildcraft.lib.fabric.* and buildcraft.fabric.*
 
 dependencies {
-    val mc = providers.gradleProperty("minecraft_version").get()
+    val mc = property("minecraft_version") as String
     minecraft("com.mojang:minecraft:$mc")
-    implementation("net.fabricmc:fabric-loader:${providers.gradleProperty("loader_version").get()}")
-    implementation("net.fabricmc.fabric-api:fabric-api:${providers.gradleProperty("fabric_api_version").get()}")
+    loomx.applyMojangMappings()
+    implementation("net.fabricmc:fabric-loader:${property("loader_version") as String}")
+    implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version") as String}")
 
     implementation("org.jspecify:jspecify:1.0.0")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("com.google.code.findbugs:jsr305:3.0.2")
 
-    compileOnly("mezz.jei:jei-$mc-fabric-api:${providers.gradleProperty("jei_version").get()}")
+    val jeiVersion = findProperty("jei_version") as String?
+    if (!jeiVersion.isNullOrBlank()) {
+        compileOnly("mezz.jei:jei-$mc-fabric-api:$jeiVersion")
+    }
 
-    val energyVersion = providers.gradleProperty("energy_version").get()
+    val energyVersion = property("energy_version") as String
     compileOnly("teamreborn:energy:$energyVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
@@ -162,22 +177,22 @@ fun vanillaWaterToHeatFlow(water: BufferedImage): BufferedImage {
 tasks.register("generateFluidBucketAssets") {
     group = "buildcraft"
     description = "Regenerate fluid block textures, bucket icons, underwater overlays, and bucket item JSON."
-    val heatStill = file("gradle/fluid_assets/heat_still.png")
-    val fluidMask = file("src/main/resources/assets/buildcraftenergy/textures/item/mask/bucket_fluid.png")
-    val fluidOutDir = file("src/main/resources/assets/buildcraftenergy/textures/item/bucket_fluid")
-    val underwaterOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/underwater")
-    val bakedOutDir = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/baked")
-    val itemsDir = file("src/main/resources/assets/buildcraftenergy/items")
-    val modelsDir = file("src/main/resources/assets/buildcraftenergy/models/item/fluid_buckets")
+    val heatStill = rootProject.file("gradle/fluid_assets/heat_still.png")
+    val fluidMask = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/item/mask/bucket_fluid.png")
+    val fluidOutDir = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/item/bucket_fluid")
+    val underwaterOutDir = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/underwater")
+    val bakedOutDir = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/baked")
+    val itemsDir = rootProject.file("src/main/resources/assets/buildcraftenergy/items")
+    val modelsDir = rootProject.file("src/main/resources/assets/buildcraftenergy/models/item/fluid_buckets")
     inputs.file(heatStill)
     inputs.file(fluidMask)
-    inputs.files((0..2).map { file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_still.png") })
-    inputs.files((0..2).map { file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_still.png.mcmeta") })
-    inputs.files((0..2).map { file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_flow.png.mcmeta") })
+    inputs.files((0..2).map { rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_still.png") })
+    inputs.files((0..2).map { rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_still.png.mcmeta") })
+    inputs.files((0..2).map { rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_flow.png.mcmeta") })
     outputs.dir(bakedOutDir)
     outputs.dir(underwaterOutDir)
     outputs.dir(fluidOutDir)
-    outputs.files((0..2).map { file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_flow.png") })
+    outputs.files((0..2).map { rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_flow.png") })
     doLast {
         require(heatStill.isFile) { "Missing ${heatStill.path} — extract from a built JAR or add the texture." }
         require(fluidMask.isFile) { "Missing ${fluidMask.path} (bucket fluid mask)." }
@@ -222,14 +237,14 @@ tasks.register("generateFluidBucketAssets") {
             return out
         }
 
-        val mcVersion = providers.gradleProperty("minecraft_version").get()
-        val mcJar = findMinecraftClientJar(file(".gradle/loom-cache/minecraftMaven/net/minecraft"), mcVersion)
+        val mcVersion = project.property("minecraft_version") as String
+        val mcJar = findMinecraftClientJar(rootProject.file(".gradle/loom-cache/minecraftMaven/net/minecraft"), mcVersion)
         val heatFlowTemplate = vanillaWaterToHeatFlow(loadVanillaWaterFlow(mcJar))
         for (heat in 0..2) {
             ImageIO.write(
                 heatFlowTemplate,
                 "PNG",
-                file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png")
+                rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png")
             )
         }
 
@@ -268,16 +283,16 @@ tasks.register("generateFluidBucketAssets") {
                 val adjLight = (0xFF shl 24) or (minOf(tintR, 0xFF) shl 16) or (minOf(tintG, 0xFF) shl 8) or minOf(tintB, 0xFF)
                 val adjDark = dark
 
-                val heatStillTemplate = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_still.png")
-                val heatFlowTemplate = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png")
+                val heatStillTemplate = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_still.png")
+                val heatFlowTemplate = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png")
                 require(heatStillTemplate.isFile) { "Missing ${heatStillTemplate.path}" }
                 require(heatFlowTemplate.isFile) { "Missing ${heatFlowTemplate.path}" }
                 val stillTemplate = ImageIO.read(heatStillTemplate)
                 val flowTemplate = ImageIO.read(heatFlowTemplate)
                 val bakedStill = bakeImage(stillTemplate, adjLight, adjDark, gaseous)
                 ImageIO.write(bakedStill, "PNG", bakedOutDir.resolve("$fluid.png"))
-                val stillMcmeta = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_still.png.mcmeta")
-                val flowMcmeta = file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png.mcmeta")
+                val stillMcmeta = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_still.png.mcmeta")
+                val flowMcmeta = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png.mcmeta")
                 require(stillMcmeta.isFile) { "Missing ${stillMcmeta.path}" }
                 require(flowMcmeta.isFile) { "Missing ${flowMcmeta.path}" }
                 val (stillFrameW, stillFrameH) = readAnimationFrameSize(stillMcmeta)
@@ -373,17 +388,21 @@ tasks.withType<JavaCompile>().configureEach {
     options.release.set(25)
     options.compilerArgs.add("-Xlint:deprecation")
     notYetOnFabric.forEach { exclude(it) }
+    if ((project.findProperty("jei_version") as String?).isNullOrBlank()) {
+        exclude("**/integration/jei/**")
+    }
 }
 
 tasks.processResources {
-    dependsOn("generateFluidBucketAssets")
+    //dependsOn("generateFluidBucketAssets")
     // Generator mutates src/main/resources; track its outputs so this task never copies stale PNGs.
-    inputs.files(tasks.named("generateFluidBucketAssets").map { it.outputs.files })
+    //inputs.files(tasks.named("generateFluidBucketAssets").map { it.outputs.files })
+	
     val props = mapOf(
         "mod_version" to version,
-        "mc_dep_range" to providers.gradleProperty("mc_dep_range").get(),
-        "loader_version" to providers.gradleProperty("loader_version").get(),
-        "fabric_api_version" to providers.gradleProperty("fabric_api_version").get(),
+        "mc_dep_range" to project.property("mc_dep_range") as String,
+        "loader_version" to project.property("loader_version") as String,
+        "fabric_api_version" to project.property("fabric_api_version") as String,
     )
     inputs.properties(props)
     filesMatching("fabric.mod.json") {
@@ -403,7 +422,6 @@ tasks.withType<Jar>().configureEach {
 }
 
 tasks.named<Jar>("sourcesJar") {
-    dependsOn("runDatagen")
 }
 
 tasks.named<Test>("test") {
@@ -415,10 +433,6 @@ tasks.named<Test>("test") {
 tasks.named("clean") {
     delete(layout.projectDirectory.dir("run"))
     delete(layout.projectDirectory.dir("run_server"))
-}
-
-tasks.named("build") {
-    dependsOn("clean")
 }
 
 /** Unpack Mojang / Fabric API / Loom artifacts into .gradle/api-explore for local API browsing. */
@@ -438,7 +452,7 @@ tasks.register("unpackApiExplore") {
         }.files.maxByOrNull { it.lastModified() }
             ?: error("Minecraft sources JAR not found. Run compileJava or genSources first.")
 
-        val fapiVersion = providers.gradleProperty("fabric_api_version").get()
+        val fapiVersion = project.property("fabric_api_version") as String
         val fapiJar = fileTree(gradle.gradleUserHomeDir.resolve("caches/modules-2/files-2.1/net.fabricmc.fabric-api/fabric-api")).matching {
             include("**/$fapiVersion/**/*.jar")
             exclude("**/*-sources.jar")

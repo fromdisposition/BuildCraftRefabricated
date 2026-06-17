@@ -8,20 +8,42 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.renderer.GameRenderer;
+//? if >= 26.1.3 {
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+//?}
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(GameRenderer.class)
 public class GameRendererPipMixin {
+   //? if >= 26.1.3 {
+   /*@ModifyArg(
+      method = "<init>(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/ItemInHandRenderer;Lnet/minecraft/client/resources/model/ModelManager;)V",
+      at = @At(
+         value = "INVOKE",
+         target = "Lnet/minecraft/client/gui/render/GuiRenderer;<init>(Lnet/minecraft/client/renderer/state/gui/GuiRenderState;Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;Ljava/util/List;)V"
+      ),
+      index = 2,
+      require = 0
+   )
+   private List<PictureInPictureRenderer<?>> buildcraft$appendBlueprintPipRenderer(List<PictureInPictureRenderer<?>> vanilla) {
+      List<PictureInPictureRenderer<?>> renderers = new ArrayList<>(vanilla);
+      renderers.add(new BlueprintPipRenderer());
+      renderers.add(new TooltipBlueprintPipRenderer());
+      renderers.add(new ZoneMapPipRenderer());
+      return List.copyOf(renderers);
+   }*/
+   //?} else {
    @ModifyArg(
       method = "<init>(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/ItemInHandRenderer;Lnet/minecraft/client/renderer/RenderBuffers;Lnet/minecraft/client/resources/model/ModelManager;)V",
       at = @At(
          value = "INVOKE",
          target = "Lnet/minecraft/client/gui/render/GuiRenderer;<init>(Lnet/minecraft/client/renderer/state/gui/GuiRenderState;Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;Lnet/minecraft/client/renderer/SubmitNodeCollector;Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;Ljava/util/List;)V"
       ),
-      index = 4
+      index = 4,
+      require = 0
    )
    private List<PictureInPictureRenderer<?>> buildcraft$appendBlueprintPipRenderer(List<PictureInPictureRenderer<?>> vanilla) {
       List<PictureInPictureRenderer<?>> renderers = new ArrayList<>(vanilla);
@@ -31,4 +53,5 @@ public class GameRendererPipMixin {
       renderers.add(new ZoneMapPipRenderer(buffers));
       return List.copyOf(renderers);
    }
+   //?}
 }

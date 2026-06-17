@@ -17,7 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.Minecraft;
+//? if >= 26.1.3 {
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+//?}
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -41,6 +44,13 @@ public class LaserBoxRenderer {
          List<LaserData_BC8> datas = BOX_CACHE.computeIfAbsent(
             new LaserBoxRenderer.BoxKey(box.min(), box.max(), type, center, enableDiffuse), k -> makeLaserBox(box, type, center, enableDiffuse)
          );
+         //? if >= 26.1.3 {
+         /*LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entitySolid(BcTextureAtlases.BLOCKS_TEXTURE), (pose, vc) -> {
+            for (LaserData_BC8 data : datas) {
+               BcLaserRenderer.renderLaserPose(pose, vc, data, cameraPos);
+            }
+         });*/
+         //?} else {
          BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
          VertexConsumer consumer = bufferSource.getBuffer(BCLibRenderTypes.entitySolid(BcTextureAtlases.BLOCKS_TEXTURE));
 
@@ -51,6 +61,7 @@ public class LaserBoxRenderer {
          if (!LaserBatch.isActive()) {
             bufferSource.endBatch();
          }
+         //?}
       }
    }
 

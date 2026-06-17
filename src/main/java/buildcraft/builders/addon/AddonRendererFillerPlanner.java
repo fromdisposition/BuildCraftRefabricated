@@ -13,7 +13,11 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import buildcraft.lib.client.render.laser.LaserBatch;
+//? if >= 26.1.3 {
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource;
+//?}
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -22,6 +26,24 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 public class AddonRendererFillerPlanner implements IFastAddonRenderer<AddonFillerPlanner> {
+   //? if >= 26.1.3 {
+   /*@Override
+   public void renderAddonFast(AddonFillerPlanner addon, Player player, float partialTicks, PoseStack poseStack) {
+      if (addon.buildingInfo != null) {
+         List<BlockPos> cached = addon.getCachedPreviewPositions();
+         if (!cached.isEmpty()) {
+            List<BlockPos> toDraw = new ArrayList<>(cached);
+            toDraw.sort(Comparator.<BlockPos>comparingDouble(px -> player.position().distanceToSqr(Vec3.atCenterOf(px))).reversed());
+            LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.debugFilled(), (pose, vc) -> {
+               for (BlockPos p : toDraw) {
+                  drawPreviewCube(vc, pose.pose(), p);
+               }
+            });
+         }
+      }
+   }*/
+   //?} else {
+   @Override
    public void renderAddonFast(AddonFillerPlanner addon, Player player, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource) {
       if (addon.buildingInfo != null) {
          List<BlockPos> cached = addon.getCachedPreviewPositions();
@@ -37,6 +59,7 @@ public class AddonRendererFillerPlanner implements IFastAddonRenderer<AddonFille
          }
       }
    }
+   //?}
 
    private static void drawPreviewCube(VertexConsumer vb, Matrix4f pose, BlockPos p) {
       AABB bb = new AABB(Vec3.atLowerCornerOf(p), Vec3.atLowerCornerOf(p.offset(1, 1, 1))).inflate(-0.1);

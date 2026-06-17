@@ -19,6 +19,16 @@ import net.minecraft.world.level.block.state.properties.Property;
 
 public class VanillaPaintHandlers {
    public static void init() {
+      //? if >= 26.1.3 {
+      /*registerColorFamily(Blocks.GLASS, Blocks.STAINED_GLASS.asList().toArray(new Block[0]));
+      registerColorFamily(Blocks.GLASS_PANE, Blocks.STAINED_GLASS_PANE.asList().toArray(new Block[0]));
+      registerColorFamily(Blocks.TERRACOTTA, Blocks.DYED_TERRACOTTA.asList().toArray(new Block[0]));
+      registerColorOnlyFamily(Blocks.WOOL.asList().toArray(new Block[0]));
+      registerColorOnlyFamily(Blocks.CARPET.asList().toArray(new Block[0]));
+      registerColorOnlyFamily(Blocks.CONCRETE.asList().toArray(new Block[0]));
+      registerColorOnlyFamily(Blocks.CONCRETE_POWDER.asList().toArray(new Block[0]));
+      registerColorFamily(Blocks.SHULKER_BOX, Blocks.DYED_SHULKER_BOX.asList().toArray(new Block[0]));*/
+      //?} else {
       registerColorFamily(
          Blocks.GLASS,
          Blocks.WHITE_STAINED_GLASS,
@@ -167,6 +177,7 @@ public class VanillaPaintHandlers {
          Blocks.RED_SHULKER_BOX,
          Blocks.BLACK_SHULKER_BOX
       );
+      //?}
    }
 
    private static void registerColorFamily(Block clearBlock, Block... coloredBlocks) {

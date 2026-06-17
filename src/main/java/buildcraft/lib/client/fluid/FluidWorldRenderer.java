@@ -10,7 +10,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.Lightmap;
+//? if >= 26.1.3 {
+/*import net.minecraft.client.renderer.SubmitNodeCollector;*/
+//?} else {
 import net.minecraft.client.renderer.MultiBufferSource;
+//?}
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -55,6 +59,56 @@ public final class FluidWorldRenderer {
       return player.level() != null && appearanceAtEye(player, player.level()) != null;
    }
 
+   //? if >= 26.1.3 {
+   /*public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
+      if (minecraft.player == null || minecraft.player.level() == null) {
+         return;
+      }
+
+      FluidState fluidState = submergedBcFluidStateAt(
+         minecraft.player.getX(),
+         minecraft.player.getEyeY(),
+         minecraft.player.getZ(),
+         minecraft.player.level()
+      );
+      if (fluidState == null) {
+         return;
+      }
+
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluidState.getType());
+      if (entry == null) {
+         return;
+      }
+
+      BcFluidAppearance appearance = appearanceForBcFluid(fluidState);
+      if (appearance == null) {
+         return;
+      }
+
+      renderOverlay(
+         minecraft,
+         poseStack,
+         submitNodeCollector,
+         Identifier.fromNamespaceAndPath("buildcraftenergy", "textures/block/fluids/underwater/" + entry.name() + ".png"),
+         appearance.overlayAlpha()
+      );
+   }
+
+   private static void renderOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, Identifier location, float overlayAlpha) {
+      BlockPos blockPos = BlockPos.containing(minecraft.player.getX(), minecraft.player.getEyeY(), minecraft.player.getZ());
+      float brightness = Lightmap.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
+      int color = ARGB.colorFromFloat(overlayAlpha, brightness, brightness, brightness);
+      float yawOffset = -minecraft.player.getYRot() / 64.0F;
+      float pitchOffset = minecraft.player.getXRot() / 64.0F;
+      submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.blockScreenEffect(location), (p, vc) -> {
+         Matrix4f matrix4f = p.pose();
+         vc.addVertex(matrix4f, -1.0F, -1.0F, -0.5F).setUv(4.0F + yawOffset, 4.0F + pitchOffset).setColor(color);
+         vc.addVertex(matrix4f, 1.0F, -1.0F, -0.5F).setUv(0.0F + yawOffset, 4.0F + pitchOffset).setColor(color);
+         vc.addVertex(matrix4f, 1.0F, 1.0F, -0.5F).setUv(0.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
+         vc.addVertex(matrix4f, -1.0F, 1.0F, -0.5F).setUv(4.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
+      });
+   }*/
+   //?} else {
    public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, MultiBufferSource bufferSource) {
       if (minecraft.player == null || minecraft.player.level() == null) {
          return;
@@ -88,6 +142,7 @@ public final class FluidWorldRenderer {
          appearance.overlayAlpha()
       );
    }
+   //?}
 
    private static @Nullable FluidState submergedBcFluidStateAt(double x, double sampleY, double z, Level level) {
       if (!BcFluidUtil.isSubmergedInBcFluid(level, x, sampleY, z)) {
@@ -105,6 +160,7 @@ public final class FluidWorldRenderer {
       return BcFluidAppearanceCache.get(fluidState.getType());
    }
 
+   //? if < 26.1.3 {
    private static void renderOverlay(Minecraft minecraft, PoseStack poseStack, MultiBufferSource multiBufferSource, Identifier location, float overlayAlpha) {
       BlockPos blockPos = BlockPos.containing(minecraft.player.getX(), minecraft.player.getEyeY(), minecraft.player.getZ());
       float brightness = Lightmap.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
@@ -118,4 +174,5 @@ public final class FluidWorldRenderer {
       vertexConsumer.addVertex(matrix4f, 1.0F, 1.0F, -0.5F).setUv(0.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
       vertexConsumer.addVertex(matrix4f, -1.0F, 1.0F, -0.5F).setUv(4.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
    }
+   //?}
 }

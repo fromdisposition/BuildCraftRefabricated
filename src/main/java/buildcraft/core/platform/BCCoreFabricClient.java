@@ -14,6 +14,7 @@ import buildcraft.core.list.GuiList;
 import buildcraft.core.list.ListTooltipHandler;
 import buildcraft.lib.client.BCTooltips;
 import buildcraft.lib.client.render.MarkerRenderer;
+import buildcraft.lib.client.render.laser.LaserBatch;
 import buildcraft.lib.client.render.tile.RenderEngine_BC8;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
@@ -23,6 +24,9 @@ import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.After
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
+//? if >= 26.1.3 {
+/*import net.minecraft.client.renderer.SubmitNodeStorage;*/
+//?}
 import net.minecraft.resources.Identifier;
 
 public final class BCCoreFabricClient {
@@ -37,6 +41,9 @@ public final class BCCoreFabricClient {
       LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES
          .register(
             (AfterTranslucentFeatures)context -> {
+               //? if >= 26.1.3 {
+               /*LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());*/
+               //?}
                MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos);
                if (BCCoreItems.GOGGLES != null && Minecraft.getInstance().level != null) {
                   GogglesZoneRenderer.render(context.poseStack(), context.levelState().cameraRenderState.pos, Minecraft.getInstance().level);
