@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 
 final class PipePayloadCoalescer {
    private final Map<BlockPos, Map<Integer, byte[]>> byPos = new HashMap<>();
+   private final List<MessagePipePayload> drainBuf = new ArrayList<>();
 
    void put(MessagePipePayload payload) {
       this.byPos.computeIfAbsent(payload.pos(), unused -> new HashMap<>()).put(payload.receiverOrdinal(), payload.payload());
@@ -27,7 +28,8 @@ final class PipePayloadCoalescer {
    }
 
    List<MessagePipePayload> drain() {
-      List<MessagePipePayload> result = new ArrayList<>();
+      List<MessagePipePayload> result = this.drainBuf;
+      result.clear();
       int estimatedBytes = 0;
       Iterator<Entry<BlockPos, Map<Integer, byte[]>>> posIt = this.byPos.entrySet().iterator();
 

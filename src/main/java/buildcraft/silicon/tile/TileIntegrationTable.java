@@ -145,7 +145,7 @@ public class TileIntegrationTable extends TileLaserTableBase {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       output.putLong("synced_target", this.syncedTarget);
-      output.store("synced_output", ItemStack.CODEC, this.syncedOutput);
+      output.storeNullable("synced_output", ItemStack.CODEC, this.syncedOutput.isEmpty() ? null : this.syncedOutput);
    }
 
    @Override

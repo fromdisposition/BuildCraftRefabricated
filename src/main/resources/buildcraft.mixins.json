@@ -1,5 +1,6 @@
 {
   "required": true,
+  "plugin": "buildcraft.lib.fabric.mixin.BCMixinPlugin",
   "package": "buildcraft.lib.fabric.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
@@ -11,7 +12,6 @@
     "client.GhostSlotsInvokerMixin",
     "client.ClientLevelParticleMixin",
     "client.LevelRendererMixin",
-    "client.LevelExtractorMixin",
     "client.GuiGraphicsExtractorAccessor",
     "client.ModelManagerMixin",
     "client.GameRendererPipMixin",

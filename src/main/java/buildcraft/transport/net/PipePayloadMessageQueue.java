@@ -19,6 +19,8 @@ import net.minecraft.util.profiling.Profiler;
 public final class PipePayloadMessageQueue {
    private static final PlayerBatchQueue<PipePayloadCoalescer> TRACKING_QUEUE = new PlayerBatchQueue<>(unused -> new PipePayloadCoalescer());
    private static final PlayerBatchQueue<PipePayloadCoalescer> GUI_QUEUE = new PlayerBatchQueue<>(unused -> new PipePayloadCoalescer());
+   // Reused across flushQueue calls — safe because serverTick() runs on one thread only.
+   private static final List<Entry<ServerPlayer, PipePayloadCoalescer>> FLUSH_SNAPSHOT = new ArrayList<>();
 
    private PipePayloadMessageQueue() {
    }
@@ -43,8 +45,8 @@ public final class PipePayloadMessageQueue {
    }
 
    private static void flushQueue(PlayerBatchQueue<PipePayloadCoalescer> queue) {
-      List<Entry<ServerPlayer, PipePayloadCoalescer>> snapshot = new ArrayList<>();
-
+      List<Entry<ServerPlayer, PipePayloadCoalescer>> snapshot = FLUSH_SNAPSHOT;
+      snapshot.clear();
       for (Entry<ServerPlayer, PipePayloadCoalescer> entry : queue.entries()) {
          snapshot.add(entry);
       }

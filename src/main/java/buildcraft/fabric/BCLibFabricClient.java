@@ -7,6 +7,8 @@ import buildcraft.lib.client.fluid.BcFluidFogProfiles;
 import buildcraft.lib.client.fluid.FluidDisplayNamesClient;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.model.ModelHolderRegistry;
+import buildcraft.lib.client.model.VariableModelDeserializer;
+import net.fabricmc.fabric.api.client.model.loading.v1.UnbakedModelDeserializer;
 import buildcraft.lib.debug.AdvDebugRenderer;
 import buildcraft.lib.fabric.loader.GamePaths;
 import buildcraft.lib.gui.config.GuiConfigManager;
@@ -29,6 +31,7 @@ public final class BCLibFabricClient {
    }
 
    public static void init() {
+      UnbakedModelDeserializer.register(VariableModelDeserializer.TYPE_ID, VariableModelDeserializer.INSTANCE);
       FluidDisplayNamesClient.register();
       BcFluidFogProfiles.loadFromClasspath();
       BCReloadFabric.initClient();

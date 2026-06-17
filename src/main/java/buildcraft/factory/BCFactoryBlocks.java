@@ -7,7 +7,6 @@
 package buildcraft.factory;
 
 import buildcraft.fabric.BCRegistries;
-import buildcraft.factory.block.BlockAutoWorkbenchFluids;
 import buildcraft.factory.block.BlockAutoWorkbenchItems;
 import buildcraft.factory.block.BlockChute;
 import buildcraft.factory.block.BlockDistiller;
@@ -21,7 +20,6 @@ import net.minecraft.world.level.block.SoundType;
 
 public final class BCFactoryBlocks {
    public static BlockAutoWorkbenchItems AUTOWORKBENCH_ITEM;
-   public static BlockAutoWorkbenchFluids AUTOWORKBENCH_FLUID;
    public static BlockMiningWell MINING_WELL;
    public static BlockPump PUMP;
    public static BlockFloodGate FLOOD_GATE;
@@ -37,9 +35,6 @@ public final class BCFactoryBlocks {
    public static void register() {
       AUTOWORKBENCH_ITEM = BCRegistries.registerBlock(
          "buildcraftfactory", "autoworkbench_item", BlockAutoWorkbenchItems::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
-      );
-      AUTOWORKBENCH_FLUID = BCRegistries.registerBlock(
-         "buildcraftfactory", "autoworkbench_fluid", BlockAutoWorkbenchFluids::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       MINING_WELL = BCRegistries.registerBlock(
          "buildcraftfactory", "mining_well", BlockMiningWell::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()

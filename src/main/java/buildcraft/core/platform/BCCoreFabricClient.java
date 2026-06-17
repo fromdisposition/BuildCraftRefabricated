@@ -6,8 +6,6 @@ import buildcraft.core.BCCoreMenuTypes;
 import buildcraft.core.BCCoreModels;
 import buildcraft.core.client.DebugOverlayHelper;
 import buildcraft.core.client.DebugOverlayRenderer;
-import buildcraft.core.client.GogglesHudRenderer;
-import buildcraft.core.client.GogglesZoneRenderer;
 import buildcraft.core.client.VolumeBoxRenderer;
 import buildcraft.core.item.ItemMarkerConnector;
 import buildcraft.core.list.GuiList;
@@ -21,7 +19,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTic
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 //? if >= 26.1.3 {
@@ -45,9 +42,6 @@ public final class BCCoreFabricClient {
                /*LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());*/
                //?}
                MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos);
-               if (BCCoreItems.GOGGLES != null && Minecraft.getInstance().level != null) {
-                  GogglesZoneRenderer.render(context.poseStack(), context.levelState().cameraRenderState.pos, Minecraft.getInstance().level);
-               }
             }
          );
       BlockEntityRenderers.register(BCCoreBlockEntities.ENGINE_REDSTONE, ctx -> new RenderEngine_BC8(BCCoreModels::getWoodEngineQuads));
@@ -56,15 +50,11 @@ public final class BCCoreFabricClient {
       ListTooltipHandler.register();
       ClientTickEvents.END_CLIENT_TICK.register((EndTick)client -> DebugOverlayHelper.onClientTick());
       HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("buildcraftcore", "debug_overlay"), DebugOverlayRenderer::render);
-      HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("buildcraftcore", "goggles_energy"), GogglesHudRenderer::render);
       BCTooltips.init();
       BCTooltips.addTooltip(BCCoreItems.ENGINE_CREATIVE, "tip.block.engine_creative");
       BCTooltips.addTooltip(BCCoreItems.ENGINE_REDSTONE, "tip.block.engine_redstone");
       BCTooltips.addTooltip(BCCoreItems.MARKER_VOLUME, "tip.block.marker_volume");
       BCTooltips.addTooltip(BCCoreItems.MARKER_PATH, "tip.block.marker_path");
-      if (BCCoreItems.GOGGLES != null) {
-         BCTooltips.addTooltip(BCCoreItems.GOGGLES, "tip.item.goggles");
-      }
       if (BCCoreItems.POWER_TESTER != null) {
          BCTooltips.addTooltip(BCCoreItems.POWER_TESTER, "tip.block.power_tester");
       }

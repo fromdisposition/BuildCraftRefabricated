@@ -8,7 +8,6 @@ package buildcraft.core;
 
 import buildcraft.api.items.FluidItemDrops;
 import buildcraft.core.item.ItemFragileFluidContainer;
-import buildcraft.core.item.ItemGoggles;
 import buildcraft.core.item.ItemList_BC8;
 import buildcraft.core.item.ItemMapLocation;
 import buildcraft.core.item.ItemMarkerConnector;
@@ -16,7 +15,6 @@ import buildcraft.core.item.ItemPaintbrush_BC8;
 import buildcraft.core.item.ItemVolumeBox;
 import buildcraft.core.item.ItemWrench_Neptune;
 import buildcraft.fabric.BCRegistries;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
@@ -43,9 +41,6 @@ public class BCCoreItems {
    public static BlockItem DECORATED_DESTROY;
    public static BlockItem DECORATED_BLUEPRINT;
    public static BlockItem DECORATED_TEMPLATE;
-   public static BlockItem DECORATED_PAPER;
-   public static BlockItem DECORATED_LEATHER;
-   public static ItemGoggles GOGGLES;
    public static BlockItem POWER_TESTER;
    public static ItemMapLocation MAP_LOCATION;
 
@@ -77,7 +72,6 @@ public class BCCoreItems {
       DECORATED_BLUEPRINT = BCRegistries.registerBlockItem("buildcraftcore", "decorated_blueprint", BCCoreBlocks.DECORATED_BLUEPRINT);
       DECORATED_TEMPLATE = BCRegistries.registerBlockItem("buildcraftcore", "decorated_template", BCCoreBlocks.DECORATED_TEMPLATE);
       MAP_LOCATION = BCRegistries.registerItem("buildcraftcore", "map_location", ItemMapLocation::new, p -> p.stacksTo(1));
-      GOGGLES = BCRegistries.registerItem("buildcraftcore", "goggles", ItemGoggles::new, p -> p.stacksTo(1).equippable(EquipmentSlot.HEAD));
       POWER_TESTER = BCRegistries.registerBlockItem("buildcraftcore", "power_tester", BCCoreBlocks.POWER_TESTER);
    }
 }

@@ -30,6 +30,7 @@ import buildcraft.transport.stripes.StripesHandlerShears;
 import buildcraft.transport.stripes.StripesHandlerUse;
 import buildcraft.transport.tile.TilePipeHolder;
 import buildcraft.transport.wire.SavedDataWireSystems;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.EndTick;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
@@ -62,6 +63,9 @@ public final class BCTransportFabric {
       registerMjCapabilities();
       registerNativeTransfer();
       TilePipeHolder.registerGuiViewerDisconnectHook();
+      ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> {
+         if (blockEntity instanceof TilePipeHolder pipeHolder) pipeHolder.onLoad();
+      });
       ServerTickEvents.END_SERVER_TICK.register((EndTick)server -> {
          PipeItemMessageQueue.serverTick();
          PipePayloadMessageQueue.serverTick();

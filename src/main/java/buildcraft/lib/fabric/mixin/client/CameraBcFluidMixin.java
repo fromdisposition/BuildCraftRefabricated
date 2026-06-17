@@ -30,7 +30,9 @@ public class CameraBcFluidMixin {
 
    @Inject(method = "getFluidInCamera", at = @At("RETURN"), cancellable = true)
    private void buildcraft$bcFluidFogType(CallbackInfoReturnable<FogType> cir) {
-      if (cir.getReturnValue() == FogType.WATER || this.level == null) {
+      // Only override when vanilla returned NONE — any other fog type (WATER, LAVA, POWDER_SNOW)
+      // already reflects the player's actual environment and must not be replaced.
+      if (cir.getReturnValue() != FogType.NONE || this.level == null) {
          return;
       }
 

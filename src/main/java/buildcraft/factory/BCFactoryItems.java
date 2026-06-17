@@ -13,7 +13,6 @@ import net.minecraft.world.item.Item;
 
 public final class BCFactoryItems {
    public static BlockItem AUTOWORKBENCH_ITEM;
-   public static BlockItem AUTOWORKBENCH_FLUID;
    public static BlockItem MINING_WELL;
    public static BlockItem PUMP;
    public static BlockItem FLOOD_GATE;
@@ -29,7 +28,6 @@ public final class BCFactoryItems {
 
    public static void register() {
       AUTOWORKBENCH_ITEM = BCRegistries.registerBlockItem("buildcraftfactory", "autoworkbench_item", BCFactoryBlocks.AUTOWORKBENCH_ITEM);
-      AUTOWORKBENCH_FLUID = BCRegistries.registerBlockItem("buildcraftfactory", "autoworkbench_fluid", BCFactoryBlocks.AUTOWORKBENCH_FLUID);
       MINING_WELL = BCRegistries.registerBlockItem("buildcraftfactory", "mining_well", BCFactoryBlocks.MINING_WELL);
       PUMP = BCRegistries.registerBlockItem("buildcraftfactory", "pump", BCFactoryBlocks.PUMP);
       FLOOD_GATE = BCRegistries.registerBlockItem("buildcraftfactory", "flood_gate", BCFactoryBlocks.FLOOD_GATE);

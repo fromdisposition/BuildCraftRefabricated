@@ -12,9 +12,7 @@ import buildcraft.fabric.integration.jei.BCJeiBootstrap;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.factory.BCFactoryMenuTypes;
-import buildcraft.factory.container.ContainerAutoCraftFluids;
 import buildcraft.factory.container.ContainerAutoCraftItems;
-import buildcraft.factory.gui.GuiAutoCraftFluids;
 import buildcraft.factory.gui.GuiAutoCraftItems;
 import buildcraft.factory.gui.GuiDistiller;
 import buildcraft.factory.gui.GuiHeatExchange;
@@ -95,12 +93,6 @@ public class BCFactoryJeiPlugin implements IModPlugin {
       registration.addRecipeTransferHandler(
          new BlueprintTransferHandler(ContainerAutoCraftItems.class, BCFactoryMenuTypes.AUTO_WORKBENCH_ITEMS), RecipeTypes.CRAFTING
       );
-      if (BCFactoryMenuTypes.AUTO_WORKBENCH_FLUIDS != null) {
-         registration.addRecipeTransferHandler(
-            new BlueprintTransferHandler(ContainerAutoCraftFluids.class, BCFactoryMenuTypes.AUTO_WORKBENCH_FLUIDS), RecipeTypes.CRAFTING
-         );
-      }
-
       registration.addRecipeTransferHandler(new DistillerTransferHandler(registration.getTransferHelper()), BCJeiRecipeTypes.DISTILLER);
       registration.addRecipeTransferHandler(new HeatExchangerTransferHandler(registration.getTransferHelper()), BCJeiRecipeTypes.HEAT_EXCHANGER);
    }
@@ -108,22 +100,13 @@ public class BCFactoryJeiPlugin implements IModPlugin {
    @SuppressWarnings("unchecked")
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
       registration.addRecipeClickArea(GuiAutoCraftItems.class, 90, 47, 23, 10, new IRecipeType[]{RecipeTypes.CRAFTING});
-      if (BCFactoryMenuTypes.AUTO_WORKBENCH_FLUIDS != null) {
-         registration.addRecipeClickArea(GuiAutoCraftFluids.class, 90, 47, 23, 10, new IRecipeType[]{RecipeTypes.CRAFTING});
-         registration.addGhostIngredientHandler(GuiAutoCraftFluids.class, new BCGhostIngredientHandler());
-      }
-
       registration.addGhostIngredientHandler(GuiAutoCraftItems.class, new BCGhostIngredientHandler());
       registration.addRecipeClickArea(GuiDistiller.class, 61, 12, 36, 57, new IRecipeType[]{BCJeiRecipeTypes.DISTILLER});
       registration.addRecipeClickArea(GuiHeatExchange.class, 73, 36, 30, 21, new IRecipeType[]{BCJeiRecipeTypes.HEAT_EXCHANGER});
    }
 
    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-      if (BCFactoryItems.AUTOWORKBENCH_FLUID != null) {
-         registration.addCraftingStation(RecipeTypes.CRAFTING, new ItemLike[]{BCFactoryItems.AUTOWORKBENCH_ITEM, BCFactoryItems.AUTOWORKBENCH_FLUID});
-      } else {
-         registration.addCraftingStation(RecipeTypes.CRAFTING, new ItemLike[]{BCFactoryItems.AUTOWORKBENCH_ITEM});
-      }
+      registration.addCraftingStation(RecipeTypes.CRAFTING, new ItemLike[]{BCFactoryItems.AUTOWORKBENCH_ITEM});
       registration.addCraftingStation(BCJeiRecipeTypes.HEAT_EXCHANGER, new ItemLike[]{BCFactoryItems.HEAT_EXCHANGE});
       registration.addCraftingStation(BCJeiRecipeTypes.DISTILLER, new ItemLike[]{BCFactoryItems.DISTILLER});
    }

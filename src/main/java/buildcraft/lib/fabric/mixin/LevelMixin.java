@@ -17,29 +17,55 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Fabric API has no block-set event on {@code Level} (tracking issue:
  * https://github.com/FabricMC/fabric/issues/1500). Keep this mixin until upstream ships one.
  * {@code require = 0} on both injections so the mixin degrades silently if the target shifts.
+ *
+ * Old state is captured at HEAD (before setBlock overwrites it) via a ThreadLocal so the RETURN
+ * injection can deliver the correct before/after pair to LocalBlockUpdateNotifier.
  */
 @Mixin(Level.class)
 public abstract class LevelMixin {
+   private static final ThreadLocal<BlockState> BC_OLD_STATE = new ThreadLocal<>();
+
+   @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At("HEAD"), require = 0)
+   private void buildcraft$captureOldState4(BlockPos pos, BlockState newState, int flags, int recursionLeft, CallbackInfoReturnable<Boolean> cir) {
+      Level level = (Level)(Object)this;
+      if (level instanceof ServerLevel) {
+         BC_OLD_STATE.set(level.getBlockState(pos));
+      }
+   }
+
    @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At("RETURN"), require = 0)
    private void buildcraft$onSetBlockReturn(BlockPos pos, BlockState newState, int flags, int recursionLeft, CallbackInfoReturnable<Boolean> cir) {
-      this.buildcraft$finishSetBlock(pos, newState, flags, (Boolean)cir.getReturnValue());
+      if ((Boolean)cir.getReturnValue()) {
+         BlockState oldState = BC_OLD_STATE.get();
+         BC_OLD_STATE.remove();
+         Level level = (Level)(Object)this;
+         if (level instanceof ServerLevel) {
+            LocalBlockUpdateNotifier.onLevelBlockStateChanged(level, pos, oldState != null ? oldState : newState, newState, flags);
+         }
+      } else {
+         BC_OLD_STATE.remove();
+      }
+   }
+
+   @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z", at = @At("HEAD"), require = 0)
+   private void buildcraft$captureOldState3(BlockPos pos, BlockState newState, int flags, CallbackInfoReturnable<Boolean> cir) {
+      Level level = (Level)(Object)this;
+      if (level instanceof ServerLevel) {
+         BC_OLD_STATE.set(level.getBlockState(pos));
+      }
    }
 
    @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z", at = @At("RETURN"), require = 0)
    private void buildcraft$onSetBlockReturnCompat(BlockPos pos, BlockState newState, int flags, CallbackInfoReturnable<Boolean> cir) {
-      this.buildcraft$finishSetBlock(pos, newState, flags, (Boolean)cir.getReturnValue());
-   }
-
-   private void buildcraft$finishSetBlock(BlockPos pos, BlockState newState, int flags, boolean success) {
-      if (!success) {
-         return;
+      if ((Boolean)cir.getReturnValue()) {
+         BlockState oldState = BC_OLD_STATE.get();
+         BC_OLD_STATE.remove();
+         Level level = (Level)(Object)this;
+         if (level instanceof ServerLevel) {
+            LocalBlockUpdateNotifier.onLevelBlockStateChanged(level, pos, oldState != null ? oldState : newState, newState, flags);
+         }
+      } else {
+         BC_OLD_STATE.remove();
       }
-
-      Level level = (Level)(Object)this;
-      if (!(level instanceof ServerLevel)) {
-         return;
-      }
-
-      LocalBlockUpdateNotifier.onLevelBlockStateChanged(level, pos, newState, newState, flags);
    }
 }

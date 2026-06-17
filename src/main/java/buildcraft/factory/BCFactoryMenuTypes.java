@@ -7,7 +7,6 @@
 package buildcraft.factory;
 
 import buildcraft.fabric.BCRegistries;
-import buildcraft.factory.container.ContainerAutoCraftFluids;
 import buildcraft.factory.container.ContainerAutoCraftItems;
 import buildcraft.factory.container.ContainerChute;
 import buildcraft.factory.container.ContainerDistiller;
@@ -18,7 +17,6 @@ import net.minecraft.world.inventory.MenuType;
 
 public final class BCFactoryMenuTypes {
    public static MenuType<ContainerAutoCraftItems> AUTO_WORKBENCH_ITEMS;
-   public static MenuType<ContainerAutoCraftFluids> AUTO_WORKBENCH_FLUIDS;
    public static MenuType<ContainerTank> TANK;
    public static MenuType<ContainerChute> CHUTE;
    public static MenuType<ContainerDistiller> DISTILLER;
@@ -29,7 +27,6 @@ public final class BCFactoryMenuTypes {
 
    public static void register() {
       AUTO_WORKBENCH_ITEMS = BCRegistries.registerMenuType("buildcraftfactory", "auto_workbench_items", ExtendedMenuTypes.create(ContainerAutoCraftItems::new));
-      AUTO_WORKBENCH_FLUIDS = BCRegistries.registerMenuType("buildcraftfactory", "auto_workbench_fluids", ExtendedMenuTypes.create(ContainerAutoCraftFluids::new));
       TANK = BCRegistries.registerMenuType("buildcraftfactory", "tank", ExtendedMenuTypes.create(ContainerTank::new));
       CHUTE = BCRegistries.registerMenuType("buildcraftfactory", "chute", ExtendedMenuTypes.create(ContainerChute::new));
       DISTILLER = BCRegistries.registerMenuType("buildcraftfactory", "distiller", ExtendedMenuTypes.create(ContainerDistiller::new));

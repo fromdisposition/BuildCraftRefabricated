@@ -7,7 +7,6 @@ import buildcraft.factory.BCFactoryEntities;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.tile.TileAutoWorkbenchBase;
-import buildcraft.factory.tile.TileAutoWorkbenchFluids;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.factory.tile.TileChute;
 import buildcraft.factory.tile.TileDistiller;
@@ -20,6 +19,7 @@ import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.fabric.transfer.AutoProvidingItemStorage;
 import buildcraft.api.mj.IMjReadable;
 import buildcraft.api.mj.MjAPI;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.loader.api.FabricLoader;
@@ -37,6 +37,11 @@ public final class BCFactoryFabric {
       registerNativeTransfer();
       BCFactoryEntities.register();
       BCFactoryAttachments.register();
+      ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> {
+         if (blockEntity instanceof TileTank tank) tank.onLoad();
+         else if (blockEntity instanceof TileMiner miner) miner.onLoad();
+         else if (blockEntity instanceof TileFloodGate floodGate) floodGate.onLoad();
+      });
    }
 
    private static void registerNativeTransfer() {
@@ -74,16 +79,6 @@ public final class BCFactoryFabric {
          );
       ItemStorage.SIDED
          .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedItemStorage(direction) : null,
-            BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
-         );
-      FluidStorage.SIDED
-         .registerForBlockEntity(
-            (blockEntity, direction) -> blockEntity instanceof TileAutoWorkbenchFluids workbench ? workbench.getSidedFluidStorage(direction) : null,
-            BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
-         );
-      ItemStorage.SIDED
-         .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TileMiningWell ? AutoProvidingItemStorage.INSTANCE : null, BCFactoryBlockEntities.MINING_WELL
          );
       if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
@@ -94,8 +89,6 @@ public final class BCFactoryFabric {
    private static void registerMjCapabilities() {
       MjAPI.CAP_RECEIVER.registerForBlockEntity((workbench, direction) -> workbench.getMjReceiver(), BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS);
       MjAPI.CAP_CONNECTOR.registerForBlockEntity((workbench, direction) -> workbench.getMjReceiver(), BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS);
-      MjAPI.CAP_RECEIVER.registerForBlockEntity((workbench, direction) -> workbench.getMjReceiver(), BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS);
-      MjAPI.CAP_CONNECTOR.registerForBlockEntity((workbench, direction) -> workbench.getMjReceiver(), BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS);
       MjAPI.CAP_RECEIVER.registerForBlockEntity((miner, direction) -> miner.getMjReceiver(), BCFactoryBlockEntities.MINING_WELL);
       MjAPI.CAP_CONNECTOR.registerForBlockEntity((miner, direction) -> miner.getMjReceiver(), BCFactoryBlockEntities.MINING_WELL);
       MjAPI.CAP_RECEIVER.registerForBlockEntity((pump, direction) -> pump.getMjReceiver(), BCFactoryBlockEntities.PUMP);
@@ -108,7 +101,6 @@ public final class BCFactoryFabric {
       MjAPI.CAP_READABLE.registerForBlockEntity((chute, direction) -> chute.getMjReceiver() instanceof IMjReadable r ? r : null, BCFactoryBlockEntities.CHUTE);
       MjAPI.CAP_READABLE.registerForBlockEntity((distiller, direction) -> distiller.getMjReceiver() instanceof IMjReadable r ? r : null, BCFactoryBlockEntities.DISTILLER);
       MjAPI.CAP_READABLE.registerForBlockEntity((wb, direction) -> wb.getMjReceiver() instanceof IMjReadable r ? r : null, BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS);
-      MjAPI.CAP_READABLE.registerForBlockEntity((wb, direction) -> wb.getMjReceiver() instanceof IMjReadable r ? r : null, BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS);
    }
 
    public static void onConfigReloaded() {

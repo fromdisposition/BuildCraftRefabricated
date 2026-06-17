@@ -406,12 +406,12 @@ public class TilePump extends TileMiner implements IDebuggable {
                   int inserted;
                   try (Transaction drainTransaction = Transaction.openOuter()) {
                      inserted = this.fluidTank.insertMb(drainedResource, drain.getAmount(), drainTransaction);
-                     if (inserted > 0) {
+                     if (inserted >= drain.getAmount()) {
                         drainTransaction.commit();
                      }
                   }
 
-                  if (inserted > 0) {
+                  if (inserted >= drain.getAmount()) {
                      this.progress = 0;
                      if (this.getOwner() != null) {
                         AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT_DRAIN_ANY);

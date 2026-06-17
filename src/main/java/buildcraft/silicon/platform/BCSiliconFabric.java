@@ -20,6 +20,7 @@ import buildcraft.silicon.tile.TileLaserTableBase;
 import buildcraft.silicon.tile.TilePackager;
 import buildcraft.silicon.tile.TileProgrammingTable;
 import buildcraft.silicon.tile.TileStampingTable;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.loader.api.FabricLoader;
 
@@ -39,6 +40,9 @@ public final class BCSiliconFabric {
       BCSiliconCreativeTabs.register();
       registerMjCapabilities();
       registerNativeTransfer();
+      ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> {
+         if (blockEntity instanceof TileLaser laser) laser.onLoad();
+      });
    }
 
    private static void registerNativeTransfer() {

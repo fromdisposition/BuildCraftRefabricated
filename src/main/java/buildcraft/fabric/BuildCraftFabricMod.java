@@ -36,6 +36,9 @@ public class BuildCraftFabricMod implements ModInitializer {
       ExternalEnergyCompat.init();
       BCBlockEntityLifecycleEvents.init();
       BCReloadFabric.initCommon();
+      // Register packet types before any module can emit packets.
+      BCNetworkingRegistry.registerCommon();
+      BCNetworkingRegistry.registerServer();
       BCCore.register();
       BCCoreFabric.register();
       SoundTestCommand.init();
@@ -51,8 +54,6 @@ public class BuildCraftFabricMod implements ModInitializer {
          BCJeiBootstrap.initEnergyRecipes();
          //?}
       });
-      BCNetworkingRegistry.registerCommon();
-      BCNetworkingRegistry.registerServer();
       BcTransfers.init();
       ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((EndDataPackReload)(server, resourceManager, success) -> {
          if (success) {

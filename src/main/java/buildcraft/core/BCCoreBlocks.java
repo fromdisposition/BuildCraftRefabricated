@@ -24,8 +24,6 @@ public class BCCoreBlocks {
    public static Block DECORATED_DESTROY;
    public static Block DECORATED_BLUEPRINT;
    public static Block DECORATED_TEMPLATE;
-   public static Block DECORATED_PAPER;
-   public static Block DECORATED_LEATHER;
    public static BlockMarkerVolume MARKER_VOLUME;
    public static BlockMarkerPath MARKER_PATH;
    public static BlockEngineRedstone_BC8 ENGINE_REDSTONE;

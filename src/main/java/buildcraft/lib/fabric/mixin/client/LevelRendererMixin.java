@@ -57,8 +57,9 @@ public abstract class LevelRendererMixin {
       BlockPos pos = blockHit.getBlockPos();
       BlockState state = this.level.getBlockState(pos);
       if (state.isAir()) return;
+      var cameraEntity = camera.entity() != null ? camera.entity() : this.minecraft.player;
       ExtractBlockOutlineRenderStateEvent event = new ExtractBlockOutlineRenderStateEvent(
-         (LevelRenderer)(Object)this, this.level, pos, state, blockHit, CollisionContext.of(camera.entity()), camera, levelRenderState
+         (LevelRenderer)(Object)this, this.level, pos, state, blockHit, CollisionContext.of(cameraEntity), camera, levelRenderState
       );
       ExtractBlockOutlineRenderStateEvent.fire(event);
       if (event.isCanceled()) {

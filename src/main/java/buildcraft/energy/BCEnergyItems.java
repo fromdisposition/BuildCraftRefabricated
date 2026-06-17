@@ -7,6 +7,7 @@
 package buildcraft.energy;
 
 import buildcraft.fabric.BCRegistries;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
@@ -23,11 +24,8 @@ public final class BCEnergyItems {
    public static void register() {
       ENGINE_STONE = BCRegistries.registerBlockItem("buildcraftenergy", "engine_stone", BCEnergyBlocks.ENGINE_STONE);
       ENGINE_IRON = BCRegistries.registerBlockItem("buildcraftenergy", "engine_iron", BCEnergyBlocks.ENGINE_IRON);
-      if (BCEnergyBlocks.ENGINE_FE != null) {
+      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
          ENGINE_FE = BCRegistries.registerBlockItem("buildcraftenergy", "engine_rf", BCEnergyBlocks.ENGINE_FE);
-      }
-
-      if (BCEnergyBlocks.DYNAMO_MJ != null) {
          DYNAMO_MJ = BCRegistries.registerBlockItem("buildcraftenergy", "mj_dynamo", BCEnergyBlocks.DYNAMO_MJ);
       }
       GLOB_OF_OIL = BCRegistries.registerItem("buildcraftenergy", "glob_of_oil", Item::new);

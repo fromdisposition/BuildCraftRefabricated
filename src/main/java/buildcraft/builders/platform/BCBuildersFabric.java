@@ -24,6 +24,7 @@ import buildcraft.core.marker.volume.AddonsRegistry;
 import buildcraft.lib.fabric.transfer.AutoProvidingItemStorage;
 import buildcraft.api.mj.IMjReadable;
 import buildcraft.api.mj.MjAPI;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.EndTick;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
@@ -53,6 +54,11 @@ public final class BCBuildersFabric {
       RulesLoader.loadAll();
       registerMjCapabilities();
       registerNativeTransfer();
+      ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> {
+         if (blockEntity instanceof TileBuilder builder) builder.onLoad();
+         else if (blockEntity instanceof TileFiller filler) filler.onLoad();
+         else if (blockEntity instanceof TileQuarry quarry) quarry.onLoad();
+      });
       ServerTickEvents.END_SERVER_TICK.register((EndTick)server -> BCBuildersEventDist.INSTANCE.onServerTick());
    }
 

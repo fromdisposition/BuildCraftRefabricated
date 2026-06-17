@@ -46,8 +46,6 @@ Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2). Legend: **DONE** · **WIP
 | Oil springs | DONE |
 | Paintbrush | DONE |
 | Map location | DONE |
-| Robot goggles | WIP |
-| Engine tester | WIP |
 
 ### Transport
 
@@ -80,7 +78,6 @@ Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2). Legend: **DONE** · **WIP
 | Distiller, heat exchange, chute | DONE |
 | Auto workbench (items) | DONE |
 | Mining well | DONE |
-| Auto workbench (fluids) | WIP |
 
 ### Builders
 
@@ -108,15 +105,6 @@ Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2). Legend: **DONE** · **WIP
 | Deployable robots | DONE |
 | Docking stations | DONE |
 | Requester | DONE |
-
-### Lib
-
-| Feature | Status |
-|---------|--------|
-| MJ API & statements | DONE |
-| Fabric Transfer interop (`BcTransfers`) | DONE |
-| Guide book | WIP |
-| Forge caps | — |
 
 ---
 

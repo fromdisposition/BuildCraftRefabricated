@@ -1,4 +1,5 @@
 {
+  "fabric:type": "buildcraftlib:variable",
   "textures": {
     "#back": "buildcraftenergy:block/engine/stone_back",
     "#side": "buildcraftenergy:block/engine/stone_side"

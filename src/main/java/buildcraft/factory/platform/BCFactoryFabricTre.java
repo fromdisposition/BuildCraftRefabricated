@@ -31,9 +31,5 @@ final class BCFactoryFabricTre {
          (be, dir) -> be instanceof TileAutoWorkbenchBase wb ? wb.getSidedEnergyStorage() : null,
          BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS
       );
-      EnergyStorage.SIDED.registerForBlockEntity(
-         (be, dir) -> be instanceof TileAutoWorkbenchBase wb ? wb.getSidedEnergyStorage() : null,
-         BCFactoryBlockEntities.AUTO_WORKBENCH_FLUIDS
-      );
    }
 }

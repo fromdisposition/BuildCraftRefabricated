@@ -11,6 +11,7 @@ import buildcraft.energy.blocks.BlockEngineFE;
 import buildcraft.energy.blocks.BlockEngineIron_BC8;
 import buildcraft.energy.blocks.BlockEngineStone_BC8;
 import buildcraft.fabric.BCRegistries;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.level.block.SoundType;
 
 public final class BCEnergyBlocks {
@@ -29,13 +30,10 @@ public final class BCEnergyBlocks {
       ENGINE_IRON = BCRegistries.registerBlock(
          "buildcraftenergy", "engine_iron", BlockEngineIron_BC8::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
-      if (BCEnergyConfig.enableRfEngine.get()) {
+      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
          ENGINE_FE = BCRegistries.registerBlock(
             "buildcraftenergy", "engine_rf", BlockEngineFE::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
          );
-      }
-
-      if (BCEnergyConfig.enableMjDynamo.get()) {
          DYNAMO_MJ = BCRegistries.registerBlock(
             "buildcraftenergy", "mj_dynamo", BlockDynamoMJ::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
          );

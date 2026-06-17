@@ -25,8 +25,11 @@ public class FogRendererBcFluidMixin {
 
    @Inject(method = "<clinit>", at = @At("RETURN"))
    private static void buildcraft$registerBcFluidFogEnvironment(CallbackInfo ci) {
-      int waterIndex = -1;
+      // Replace with a mutable copy first — vanilla may use List.of() or a compact list factory
+      // which would throw UnsupportedOperationException on add().
+      FOG_ENVIRONMENTS = new java.util.ArrayList<>(FOG_ENVIRONMENTS);
 
+      int waterIndex = -1;
       for (int i = 0; i < FOG_ENVIRONMENTS.size(); i++) {
          if (FOG_ENVIRONMENTS.get(i) instanceof WaterFogEnvironment) {
             waterIndex = i;

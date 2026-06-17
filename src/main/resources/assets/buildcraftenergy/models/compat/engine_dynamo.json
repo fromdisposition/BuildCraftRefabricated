@@ -1,4 +1,5 @@
 {
+  "fabric:type": "buildcraftlib:variable",
   "textures": {
     "#trunk_blue": "buildcraftlib:block/engine/trunk_blue",
     "#trunk_green": "buildcraftlib:block/engine/trunk_green",

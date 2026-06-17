@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public class ItemWrench_Neptune extends Item implements IToolWrench {
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftcore:wrenched");
@@ -88,6 +89,30 @@ public class ItemWrench_Neptune extends Item implements IToolWrench {
       InteractionHand hand = context.getHand();
       Direction side = context.getClickedFace();
       BlockState state = world.getBlockState(pos);
+
+      Identifier blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+      if (blockId != null && blockId.getNamespace().startsWith("buildcraft")) {
+         if (blockId.getPath().contains("pipe")) {
+            return InteractionResult.PASS;
+         }
+         if (player == null) {
+            return InteractionResult.PASS;
+         }
+
+         if (!world.isClientSide()) {
+            ItemStack drop = new ItemStack(state.getBlock().asItem());
+            if (!drop.isEmpty()) {
+               Block.popResource(world, pos, drop);
+            }
+            world.removeBlock(pos, false);
+            SoundUtil.playSlideSound(world, pos, state, InteractionResult.SUCCESS);
+         }
+
+         BlockHitResult hitResult = new BlockHitResult(context.getClickLocation(), side, pos, context.isInside());
+         this.wrenchUsed(player, hand, context.getItemInHand(), hitResult);
+         return InteractionResult.CONSUME;
+      }
+
       InteractionResult result = CustomRotationHelper.INSTANCE.attemptRotateBlock(world, pos, state, side);
       if (result == InteractionResult.SUCCESS && player != null) {
          BlockHitResult hitResult = new BlockHitResult(context.getClickLocation(), side, pos, context.isInside());

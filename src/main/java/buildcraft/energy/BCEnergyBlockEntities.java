@@ -14,7 +14,10 @@ import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.energy.tile.TileEngineStone_BC8;
 import buildcraft.energy.tile.TileSpringOil;
 import buildcraft.fabric.BCRegistries;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
 public final class BCEnergyBlockEntities {
    public static BlockEntityType<TileSpringOil> SPRING_OIL;
@@ -24,6 +27,14 @@ public final class BCEnergyBlockEntities {
    public static BlockEntityType<TileDynamoMJ> DYNAMO_MJ;
 
    private BCEnergyBlockEntities() {
+   }
+
+   private static TileEngineRF createEngineRF(BlockPos pos, BlockState state) {
+      return new TileEngineRF(pos, state);
+   }
+
+   private static TileDynamoMJ createDynamoMJ(BlockPos pos, BlockState state) {
+      return new TileDynamoMJ(pos, state);
    }
 
    public static void register() {
@@ -40,12 +51,12 @@ public final class BCEnergyBlockEntities {
          ENGINE_IRON = BCRegistries.registerBlockEntity("buildcraftenergy", "engine_iron", TileEngineIron_BC8::new, BCEnergyBlocks.ENGINE_IRON);
       }
 
-      if (BCEnergyBlocks.ENGINE_FE != null) {
-         ENGINE_FE = BCRegistries.registerBlockEntity("buildcraftenergy", "engine_rf", TileEngineRF::new, BCEnergyBlocks.ENGINE_FE);
+      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy") && BCEnergyBlocks.ENGINE_FE != null) {
+         ENGINE_FE = BCRegistries.registerBlockEntity("buildcraftenergy", "engine_rf", BCEnergyBlockEntities::createEngineRF, BCEnergyBlocks.ENGINE_FE);
       }
 
-      if (BCEnergyBlocks.DYNAMO_MJ != null) {
-         DYNAMO_MJ = BCRegistries.registerBlockEntity("buildcraftenergy", "mj_dynamo", TileDynamoMJ::new, BCEnergyBlocks.DYNAMO_MJ);
+      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy") && BCEnergyBlocks.DYNAMO_MJ != null) {
+         DYNAMO_MJ = BCRegistries.registerBlockEntity("buildcraftenergy", "mj_dynamo", BCEnergyBlockEntities::createDynamoMJ, BCEnergyBlocks.DYNAMO_MJ);
       }
    }
 }
