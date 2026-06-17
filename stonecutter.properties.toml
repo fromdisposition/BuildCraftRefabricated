@@ -1,0 +1,17 @@
+# See https://stonecutter.kikugie.dev/wiki/config/properties
+mod.version = "alpha"
+
+["26.1"]
+loom_version = "1.17-SNAPSHOT"
+deps.loader = "0.19.3"
+deps.fabric_api = "0.150.0+26.1.2"
+mod.mc_dep_range = ">=26.1 <26.2"
+deps.energy = "5.0.0"
+deps.jei = "29.5.0.26"
+
+["26.2"]
+loom_version = "1.17-SNAPSHOT"
+deps.loader = "0.19.3"
+deps.fabric_api = "0.152.1+26.2"
+mod.mc_dep_range = ">=26.2 <27.1"
+deps.energy = "5.0.0"

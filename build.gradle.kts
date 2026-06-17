@@ -9,16 +9,19 @@ plugins {
     id("dev.kikugie.stonecutter")
 }
 
-val jeiVer = (project.findProperty("jei_version") as String?).takeIf { !it.isNullOrBlank() }
-stonecutter.constants {
+val jeiVer = sc.properties.rawOrNull("deps", "jei")?.toString()
+sc.constants {
     put("has_jei", jeiVer != null)
 }
 
+val mcVersion = sc.current.version
+val javaRelease = if (sc.current.parsed >= "26.1") 25 else 21
+
 val buildDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"))
-version = "${rootProject.property("mod_version") as String}-$buildDate"
+version = "${sc.properties.raw("mod", "version")}-$buildDate"
 
 base {
-    archivesName.set("BCRefabricated-${property("minecraft_version") as String}")
+    archivesName.set("BCRefabricated-$mcVersion")
 }
 
 repositories {
@@ -33,7 +36,7 @@ loom {
         }
     }
     runs.configureEach {
-        if (stonecutter.eval(stonecutter.current?.project ?: "26.1", ">=1.21")) {
+        if (sc.current.parsed >= "1.21") {
             vmArg("--sun-misc-unsafe-memory-access=allow")
         }
     }
@@ -53,26 +56,43 @@ sourceSets {
     }
 }
 
+// Version-specific shim sources live in versions/<mc>/src/main/java
+val versionJavaSrc = projectDir.resolve("src/main/java")
+if (versionJavaSrc.exists()) {
+    afterEvaluate {
+        tasks.named<JavaCompile>("compileJava").configure {
+            source(versionJavaSrc)
+        }
+    }
+}
+
 // Loader-specific hooks live in buildcraft.lib.fabric.* and buildcraft.fabric.*
 
 dependencies {
-    val mc = property("minecraft_version") as String
-    minecraft("com.mojang:minecraft:$mc")
-    loomx.applyMojangMappings()
-    implementation("net.fabricmc:fabric-loader:${property("loader_version") as String}")
-    implementation("net.fabricmc.fabric-api:fabric-api:${property("fabric_api_version") as String}")
+    minecraft("com.mojang:minecraft:$mcVersion")
+    // 1.21.1 Mojang mappings name the class "ResourceLocation"; 26.x renamed it to "Identifier".
+    // Provide a pre-built mappings JAR with ResourceLocation renamed to Identifier so main source
+    // compiles unchanged. The JAR is derived from the standard Mojang 1.21.1 mappings.
+    if (sc.current.parsed < "26.1" && mcVersion == "1.21.1") {
+        mappings(rootProject.files("gradle/mappings/1.21.1-identifier-mappings.jar"))
+    } else {
+        loomx.applyMojangMappings()
+    }
+    implementation("net.fabricmc:fabric-loader:${sc.properties.raw("deps", "loader")}")
+    // 1.21.1 Fabric API uses intermediary class names internally; modImplementation triggers Loom remapping.
+    // 26.x Fabric API already uses Mojang official names, so plain implementation works there.
+    val fabricApi = "net.fabricmc.fabric-api:fabric-api:${sc.properties.raw("deps", "fabric_api")}"
+    if (sc.current.parsed < "26.1") modImplementation(fabricApi) else implementation(fabricApi)
 
     implementation("org.jspecify:jspecify:1.0.0")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("com.google.code.findbugs:jsr305:3.0.2")
 
-    val jeiVersion = findProperty("jei_version") as String?
-    if (!jeiVersion.isNullOrBlank()) {
-        compileOnly("mezz.jei:jei-$mc-fabric-api:$jeiVersion")
+    if (jeiVer != null) {
+        compileOnly("mezz.jei:jei-$mcVersion-fabric-api:$jeiVer")
     }
 
-    val energyVersion = property("energy_version") as String
-    compileOnly("teamreborn:energy:$energyVersion")
+    compileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.2")
@@ -385,10 +405,10 @@ tasks.register("stripUtf8Bom") {
 
 tasks.withType<JavaCompile>().configureEach {
     dependsOn("stripUtf8Bom")
-    options.release.set(25)
+    options.release.set(javaRelease)
     options.compilerArgs.add("-Xlint:deprecation")
     notYetOnFabric.forEach { exclude(it) }
-    if ((project.findProperty("jei_version") as String?).isNullOrBlank()) {
+    if (jeiVer == null) {
         exclude("**/integration/jei/**")
     }
 }
@@ -400,9 +420,9 @@ tasks.processResources {
 	
     val props = mapOf(
         "mod_version" to version,
-        "mc_dep_range" to project.property("mc_dep_range") as String,
-        "loader_version" to project.property("loader_version") as String,
-        "fabric_api_version" to project.property("fabric_api_version") as String,
+        "mc_dep_range" to sc.properties.raw("mod", "mc_dep_range").toString(),
+        "loader_version" to sc.properties.raw("deps", "loader").toString(),
+        "fabric_api_version" to sc.properties.raw("deps", "fabric_api").toString(),
     )
     inputs.properties(props)
     filesMatching("fabric.mod.json") {
@@ -411,10 +431,11 @@ tasks.processResources {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+val javaVer = if (javaRelease >= 25) JavaVersion.VERSION_25 else JavaVersion.VERSION_21
 java {
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_25
-    targetCompatibility = JavaVersion.VERSION_25
+    sourceCompatibility = javaVer
+    targetCompatibility = javaVer
 }
 
 tasks.withType<Jar>().configureEach {

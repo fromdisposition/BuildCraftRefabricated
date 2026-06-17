@@ -132,27 +132,12 @@ Config: `config/buildcraft/buildcraftrefabricated-common.json` → `powerMode`, 
 
 ---
 
-## Build
-
-**JDK 25** required.
-
-```bash
-git clone https://github.com/fromdisposition/BuildCraftRefabricated.git
-cd BuildCraftRefabricated
-./gradlew build          # Unix / macOS
-gradlew.bat build        # Windows
-```
-
-Output: `build/libs/BCRefabricated-26.1.2-beta-2-upstream3.jar`
-
----
-
 ## Install
 
-1. Fabric Loader for Minecraft 26.1.2
+1. Fabric Loader for Minecraft
 2. Fabric API in `mods/`
 3. BuildCraft Refabricated JAR in `mods/`
-4. Optional: JEI
+4. Optional: JEI, TechReborn
 
 ---
 

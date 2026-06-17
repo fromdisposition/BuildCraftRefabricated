@@ -14,14 +14,12 @@
 !/build.gradle.kts
 !/settings.gradle.kts
 !/stonecutter.gradle.kts
+!/stonecutter.properties.toml
 !/gradle.properties
 !/gradlew
 !/gradlew.bat
 !/LICENSE
 !/README.md
-!/versions/
-!/versions/*/
-!/versions/*/gradle.properties
 
 # Local / generated (also covered by whitelist above)
 .gradle/
