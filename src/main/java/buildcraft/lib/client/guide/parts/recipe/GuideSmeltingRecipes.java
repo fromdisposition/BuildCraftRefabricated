@@ -36,7 +36,7 @@ public enum GuideSmeltingRecipes implements IStackRecipes {
 
          for (RecipeHolder<?> holder : manager.getRecipes()) {
             if (holder.value() instanceof SmeltingRecipe smelt) {
-               ItemStack output = smelt.assemble(EMPTY_INPUT);
+               ItemStack output = smeltOutput(smelt);
                if (!output.isEmpty()) {
                   list.add(new GuideSmeltingFactory(getIngredientStack(smelt), output));
                }
@@ -49,7 +49,7 @@ public enum GuideSmeltingRecipes implements IStackRecipes {
 
          for (RecipeHolder<?> holder : manager.getRecipes()) {
             if (holder.value() instanceof SmeltingRecipe smelt && smelt.input().test(stack)) {
-               ItemStack output = smelt.assemble(EMPTY_INPUT);
+               ItemStack output = smeltOutput(smelt);
                if (!output.isEmpty()) {
                   list.add(new GuideSmeltingFactory(stack, output));
                }
@@ -58,6 +58,14 @@ public enum GuideSmeltingRecipes implements IStackRecipes {
 
          return list.isEmpty() ? null : list;
       }
+   }
+
+   private static ItemStack smeltOutput(SmeltingRecipe smelt) {
+      //? if >= 26.1 {
+      return smelt.assemble(EMPTY_INPUT);
+      //?} else {
+      /*return smelt.assemble(EMPTY_INPUT, net.minecraft.client.Minecraft.getInstance().level.registryAccess());
+      *///?}
    }
 
    @Override
@@ -71,7 +79,7 @@ public enum GuideSmeltingRecipes implements IStackRecipes {
 
       for (RecipeHolder<?> holder : manager.getRecipes()) {
          if (holder.value() instanceof SmeltingRecipe smelt) {
-            ItemStack output = smelt.assemble(EMPTY_INPUT);
+            ItemStack output = smeltOutput(smelt);
             if (!output.isEmpty() && ItemStack.isSameItem(stack, output)) {
                list.add(new GuideSmeltingFactory(getIngredientStack(smelt), output));
             }

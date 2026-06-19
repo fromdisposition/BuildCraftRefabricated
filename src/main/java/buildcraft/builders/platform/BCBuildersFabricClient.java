@@ -25,40 +25,54 @@ import buildcraft.lib.client.BCTooltips;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
 import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
+//? if >= 26.1 {
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
+//?} else {
+/*import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+*///?}
 import buildcraft.lib.client.render.laser.LaserBatch;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 /*import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.SubmitNodeStorage;*/
-//?} else {
+import net.minecraft.client.renderer.SubmitNodeStorage;
+*///?} else {
 import net.minecraft.client.renderer.SubmitNodeStorage;
 //?}
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.NoopRenderer;
+//? if < 26.1 {
+/*import buildcraft.builders.BCBuildersBlocks;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+*///?}
 
 public final class BCBuildersFabricClient {
    private BCBuildersFabricClient() {
    }
 
    public static void init() {
-      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
-         //? if >= 26.1.3 {
-         /*LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());*/
-         //?}
+      //? if >= 26.2 {
+      /*LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
+         LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());
          RenderLevelStageEvent.AfterTranslucentBlocks stage = new RenderLevelStageEvent.AfterTranslucentBlocks(context.poseStack(), context.levelState());
          BCBuildersEventDist.INSTANCE.renderAllQuarries(stage);
          BCBuildersEventDist.INSTANCE.renderAllFillers(stage);
          BCBuildersEventDist.INSTANCE.renderAllArchitectTables(stage);
          BCBuildersEventDist.INSTANCE.renderAllBuilders(stage);
-         //? if >= 26.1.3 {
-         /*SubmitCustomGeometryEvent geometry = new SubmitCustomGeometryEvent(context.poseStack(), context.levelState(), context.submitNodeCollector());
+         SubmitCustomGeometryEvent geometry = new SubmitCustomGeometryEvent(context.poseStack(), context.levelState(), context.submitNodeCollector());
          BCBuildersEventDist.INSTANCE.renderAllFillersCustomGeometry(geometry);
-         BCBuildersEventDist.INSTANCE.renderAllBuildersCustomGeometry(geometry);*/
-         //?} else {
+         BCBuildersEventDist.INSTANCE.renderAllBuildersCustomGeometry(geometry);
+      });
+      *///?} else if >= 26.1 {
+      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
+         RenderLevelStageEvent.AfterTranslucentBlocks stage = new RenderLevelStageEvent.AfterTranslucentBlocks(context.poseStack(), context.levelState());
+         BCBuildersEventDist.INSTANCE.renderAllQuarries(stage);
+         BCBuildersEventDist.INSTANCE.renderAllFillers(stage);
+         BCBuildersEventDist.INSTANCE.renderAllArchitectTables(stage);
+         BCBuildersEventDist.INSTANCE.renderAllBuilders(stage);
          Minecraft mc = Minecraft.getInstance();
          if (mc.gameRenderer != null) {
             SubmitNodeStorage storage = mc.gameRenderer.getFeatureRenderDispatcher().getSubmitNodeStorage();
@@ -66,8 +80,20 @@ public final class BCBuildersFabricClient {
             BCBuildersEventDist.INSTANCE.renderAllFillersCustomGeometry(geometry);
             BCBuildersEventDist.INSTANCE.renderAllBuildersCustomGeometry(geometry);
          }
-         //?}
       });
+      //?} else {
+      /*// 1.21.x: render in END_MAIN; WorldRenderContext.commandQueue() is the SubmitNodeCollector.
+      WorldRenderEvents.END_MAIN.register(context -> {
+         RenderLevelStageEvent.AfterTranslucentBlocks stage = new RenderLevelStageEvent.AfterTranslucentBlocks(context.matrices(), context.worldState());
+         BCBuildersEventDist.INSTANCE.renderAllQuarries(stage);
+         BCBuildersEventDist.INSTANCE.renderAllFillers(stage);
+         BCBuildersEventDist.INSTANCE.renderAllArchitectTables(stage);
+         BCBuildersEventDist.INSTANCE.renderAllBuilders(stage);
+         SubmitCustomGeometryEvent geometry = new SubmitCustomGeometryEvent(context.matrices(), context.worldState(), context.commandQueue());
+         BCBuildersEventDist.INSTANCE.renderAllFillersCustomGeometry(geometry);
+         BCBuildersEventDist.INSTANCE.renderAllBuildersCustomGeometry(geometry);
+      });
+      *///?}
       ClientTickEvents.END_CLIENT_TICK.register((EndTick)client -> ClientArchitectScans.INSTANCE.tick());
       MenuScreens.register(BCBuildersMenuTypes.FILLER, GuiFiller::new);
       MenuScreens.register(BCBuildersMenuTypes.BUILDER, GuiBuilder::new);
@@ -89,5 +115,11 @@ public final class BCBuildersFabricClient {
          return null;
       });
       BCTooltips.addTooltip(BCBuildersItems.QUARRY, "tip.block.quarry");
+      // 1.21.x ignores the model JSON "render_type" field; register the cutout layer explicitly so
+      // the frame lattice and builder slots render with transparency instead of falling back to SOLID.
+      //? if < 26.1 {
+      /*BlockRenderLayerMap.putBlock(BCBuildersBlocks.FRAME, ChunkSectionLayer.CUTOUT);
+      BlockRenderLayerMap.putBlock(BCBuildersBlocks.BUILDER, ChunkSectionLayer.CUTOUT);
+      *///?}
    }
 }

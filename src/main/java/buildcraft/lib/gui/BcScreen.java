@@ -43,7 +43,13 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
    }
 
    protected BcScreen(C container, Inventory playerInventory, Component title, int xSize, int ySize) {
+      //? if >= 26.1 {
       super(container, playerInventory, title, xSize, ySize);
+      //?} else {
+      /*super(container, playerInventory, title);
+      this.imageWidth = xSize;
+      this.imageHeight = ySize;
+      *///?}
       IGuiArea rootArea = BuildCraftGui.createWindowedArea(this);
       this.mainGui = new BuildCraftGui(this, rootArea);
    }
@@ -90,6 +96,7 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       this.mainGui.tick();
    }
 
+   //? if >= 26.1 {
    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
       super.extractBackground(graphics, mouseX, mouseY, partialTicks);
       BCGraphics bcg = new BCGraphics(graphics);
@@ -107,6 +114,28 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       this.mainGui.drawMenuOverlayLayer(bcg);
       this.drawTooltipLayer(mouseX, mouseY, partialTicks);
    }
+   //?} else {
+   /*// 1.21.x uses immediate-mode screen rendering: renderBg draws the GUI texture/background layer,
+   // and the drag/menu-overlay/tooltip passes run in render() after the vanilla container render.
+   @Override
+   protected void renderBg(GuiGraphicsExtractor graphics, float partialTicks, int mouseX, int mouseY) {
+      BCGraphics bcg = new BCGraphics(graphics);
+      GuiIcon.setGuiGraphics(bcg);
+      this.mainGui.drawBackgroundLayer(partialTicks, mouseX, mouseY, () -> this.drawBackgroundTexture(bcg));
+      this.mainGui.drawElementBackgrounds();
+   }
+
+   @Override
+   public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+      super.render(graphics, mouseX, mouseY, partialTicks);
+      BCGraphics bcg = new BCGraphics(graphics);
+      GuiIcon.setGuiGraphics(bcg);
+      graphics.nextStratum();
+      this.mainGui.drawDragLayer(bcg);
+      this.mainGui.drawMenuOverlayLayer(bcg);
+      this.drawTooltipLayer(mouseX, mouseY, partialTicks);
+   }
+   *///?}
 
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
       int mouseX = (int)event.x();
@@ -136,6 +165,7 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       return this.mainGui.onMouseScroll((int)mouseX, (int)mouseY, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
    }
 
+   //? if >= 26.1 {
    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
       BCGraphics bcg = new BCGraphics(graphics);
       GuiIcon.setGuiGraphics(bcg);
@@ -144,6 +174,17 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       this.mainGui.postDrawForeground();
       this.drawForegroundLayer();
    }
+   //?} else {
+   /*@Override
+   protected void renderLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+      BCGraphics bcg = new BCGraphics(graphics);
+      GuiIcon.setGuiGraphics(bcg);
+      this.mainGui.preDrawForeground();
+      this.mainGui.drawElementForegrounds(null);
+      this.mainGui.postDrawForeground();
+      this.drawForegroundLayer();
+   }
+   *///?}
 
    protected void drawForegroundLayer() {
    }

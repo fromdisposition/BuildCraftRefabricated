@@ -34,12 +34,24 @@ public final class BCTransportFabricClient {
       PipeApiClient.registry = PipeRegistryClient.INSTANCE;
       BCTransportClient.registerFlowRenderers();
       ExtractBlockOutlineRenderStateEvent.register(PipePlacementHighlight::onExtractBlockOutline);
+      registerLegacyPipeOutlineHook();
       registerBlockTintSources();
       registerClientExtensions();
    }
 
    private static void registerClientExtensions() {
       BCTransportClient.registerClientExtensions(new ClientBlockExtensionsRegistry());
+   }
+
+   private static void registerLegacyPipeOutlineHook() {
+      try {
+         Class.forName("buildcraft.transport.client.render.PipePlacementHighlightLegacyRegistration")
+            .getMethod("register")
+            .invoke(null);
+      } catch (ClassNotFoundException ignored) {
+      } catch (ReflectiveOperationException e) {
+         throw new IllegalStateException("Failed to register 1.21.x pipe outline hook", e);
+      }
    }
 
    private static void registerBlockTintSources() {

@@ -43,10 +43,10 @@ import java.util.Set;
 import java.util.Map.Entry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 /*import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.SubmitNodeStorage;*/
-//?} else {
+import net.minecraft.client.renderer.SubmitNodeStorage;
+*///?} else {
 import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 //?}
@@ -97,17 +97,17 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    private static final ThreadLocal<MutableBlockPos> NEIGHBOR_SCRATCH = ThreadLocal.withInitial(MutableBlockPos::new);
    private static final TrackingItemStackRenderState MARKER_EMPTY = new TrackingItemStackRenderState();
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*public BlueprintPipRenderer() {
       super();
-   }*/
-   //?} else {
+   }
+   *///?} else {
    public BlueprintPipRenderer(BufferSource bufferSource) {
       super(bufferSource);
    }
    //?}
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*@Override
    protected void renderToTexture(BlueprintPipRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
       SubmitNodeStorage storage = (SubmitNodeStorage) submitNodeCollector;
@@ -129,7 +129,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       this.ensureLightingBufferAllocated();
       this.writeLightDirections(light0Camera, light1Camera);
       GpuBufferSlice savedShaderLights = RenderSystem.getShaderLights();
-      RenderSystem.setShaderLights(this.lightingBuffer.slice(0L, Lighting.UBO_SIZE));
+      RenderSystem.setShaderLights(this.lightingBuffer.slice(0, (int) Lighting.UBO_SIZE));
       net.minecraft.client.renderer.feature.FeatureRenderDispatcher featureRenderDispatcher = mc.gameRenderer.featureRenderDispatcher();
       BlueprintPipRenderer.PreviewPlan plan = this.planFor(snapshot, mc);
 
@@ -217,15 +217,15 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          });
          poseStack.popPose();
       }
-   }*/
-   //?}
+   }
+   *///?}
 
    private void ensureLightingBufferAllocated() {
       if (this.lightingBuffer == null) {
          GpuDevice device = RenderSystem.getDevice();
-         //? if >= 26.1.3 {
-         /*this.lightingBufferPaddedSize = Lighting.UBO_SIZE;*/
-         //?} else {
+         //? if >= 26.2 {
+         /*this.lightingBufferPaddedSize = Lighting.UBO_SIZE;
+         *///?} else {
          this.lightingBufferPaddedSize = Mth.roundToward(Lighting.UBO_SIZE, device.getUniformOffsetAlignment());
          //?}
          this.lightingBuffer = device.createBuffer(() -> "BCBlueprintPipLighting", 136, this.lightingBufferPaddedSize);
@@ -237,7 +237,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
 
       try {
          ByteBuffer bb = Std140Builder.onStack(stack, Lighting.UBO_SIZE).putVec3(light0).putVec3(light1).get();
-         RenderSystem.getDevice().createCommandEncoder().writeToBuffer(this.lightingBuffer.slice(0L, this.lightingBufferPaddedSize), bb);
+         // GpuBuffer.slice length arg is int on 1.21.10 and long on 1.21.11; the (int) cast satisfies both.
+         RenderSystem.getDevice().createCommandEncoder().writeToBuffer(this.lightingBuffer.slice(0, (int) this.lightingBufferPaddedSize), bb);
       } catch (Throwable var7) {
          if (stack != null) {
             try {
@@ -267,7 +268,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       return height / 2.0F;
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    //?} else {
    protected void renderToTexture(BlueprintPipRenderState renderState, PoseStack poseStack) {
       Snapshot snapshot = renderState.snapshot();
@@ -288,7 +289,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       this.ensureLightingBufferAllocated();
       this.writeLightDirections(light0Camera, light1Camera);
       GpuBufferSlice savedShaderLights = RenderSystem.getShaderLights();
-      RenderSystem.setShaderLights(this.lightingBuffer.slice(0L, Lighting.UBO_SIZE));
+      RenderSystem.setShaderLights(this.lightingBuffer.slice(0, (int) Lighting.UBO_SIZE));
       FeatureRenderDispatcher featureRenderDispatcher = mc.gameRenderer.getFeatureRenderDispatcher();
       SubmitNodeStorage submitNodeStorage = featureRenderDispatcher.getSubmitNodeStorage();
       BlueprintPipRenderer.PreviewPlan plan = this.planFor(snapshot, mc);
@@ -480,7 +481,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       }
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    //?} else {
    private void submitPipeEntry(PoseStack poseStack, BlueprintPipRenderer.PipeEntry entry) {
       poseStack.pushPose();
@@ -494,7 +495,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    }
    //?}
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    //?} else {
    private void submitFluidCube(PoseStack poseStack, BlueprintPipRenderer.FluidEntry entry, int lightmap) {
       int xCell = entry.x;
@@ -773,7 +774,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       }
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    //?} else {
    private void submitTemplateGhostCube(PoseStack poseStack, BlueprintPipRenderer.TemplateEntry entry) {
       VertexConsumer vc = this.bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(SCAN_TEXTURE));

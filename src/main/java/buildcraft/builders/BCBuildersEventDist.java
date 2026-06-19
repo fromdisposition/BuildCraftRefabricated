@@ -44,12 +44,12 @@ import java.util.WeakHashMap;
 import java.util.Map.Entry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 //?}
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import buildcraft.lib.client.render.BCLibRenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -275,7 +275,7 @@ public enum BCBuildersEventDist {
          if (tile.clientDrillPos != null && tile.prevClientDrillPos != null) {
             Vec3 interpolatedPos = tile.prevClientDrillPos.add(tile.clientDrillPos.subtract(tile.prevClientDrillPos).scale(partialTicks));
             double frameY = max.getY() + 0.5;
-            //? if >= 26.1.3 {
+            //? if >= 26.2 {
             /*BcLaserRenderer.renderLasersBatched(
                poseStack,
                List.of(
@@ -305,8 +305,8 @@ public enum BCBuildersEventDist {
                   )
                ),
                cameraPos
-            );*/
-            //?} else {
+            );
+            *///?} else {
             BcLaserRenderer.renderLasersBatched(
                poseStack,
                List.of(
@@ -370,19 +370,19 @@ public enum BCBuildersEventDist {
             }
          }
 
-         //? if >= 26.1.3 {
-         /*this.renderDigitizingCubes(cameraPos, poseStack);*/
-         //?} else {
+         //? if >= 26.2 {
+         /*this.renderDigitizingCubes(cameraPos, poseStack);
+         *///?} else {
          this.renderDigitizingCubes(cameraPos, poseStack, mc);
          //?}
       }
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*private void renderDigitizingCubes(Vec3 cameraPos, PoseStack poseStack) {
       List<ClientArchitectScans.ScanRun> runs = ClientArchitectScans.INSTANCE.getRuns();
       if (!runs.isEmpty()) {
-         RenderType renderType = RenderTypes.entityTranslucent(SCAN_TEXTURE);
+         RenderType renderType = BCLibRenderTypes.entityTranslucent(SCAN_TEXTURE);
          LaserBatch.submitGeometry(poseStack, renderType, (pose, vc) -> {
             for (ClientArchitectScans.ScanRun run : runs) {
                int alpha = Math.max(0, Math.min(50, run.remaining()));
@@ -397,13 +397,13 @@ public enum BCBuildersEventDist {
             }
          });
       }
-   }*/
-   //?} else {
+   }
+   *///?} else {
    private void renderDigitizingCubes(Vec3 cameraPos, PoseStack poseStack, Minecraft mc) {
       List<ClientArchitectScans.ScanRun> runs = ClientArchitectScans.INSTANCE.getRuns();
       if (!runs.isEmpty()) {
          BufferSource bufferSource = mc.renderBuffers().bufferSource();
-         RenderType renderType = RenderTypes.entityTranslucent(SCAN_TEXTURE);
+         RenderType renderType = BCLibRenderTypes.entityTranslucent(SCAN_TEXTURE);
          VertexConsumer buffer = bufferSource.getBuffer(renderType);
          Pose pose = poseStack.last();
 

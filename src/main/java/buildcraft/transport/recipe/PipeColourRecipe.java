@@ -6,6 +6,7 @@
 
 package buildcraft.transport.recipe;
 
+import buildcraft.lib.recipe.BcRecipeSerializers;
 import buildcraft.transport.BCTransportItems;
 import buildcraft.transport.item.ItemPipeHolder;
 import com.mojang.serialization.MapCodec;
@@ -23,16 +24,25 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 public class PipeColourRecipe extends CustomRecipe {
+   //? if < 26.1 {
+   /*public PipeColourRecipe() {
+      super(net.minecraft.world.item.crafting.CraftingBookCategory.MISC);
+   }
+   *///?}
    public static final PipeColourRecipe INSTANCE = new PipeColourRecipe();
    public static final MapCodec<PipeColourRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
    public static final StreamCodec<RegistryFriendlyByteBuf, PipeColourRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
-   public static final RecipeSerializer<PipeColourRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+   public static final RecipeSerializer<PipeColourRecipe> SERIALIZER = BcRecipeSerializers.of(MAP_CODEC, STREAM_CODEC);
 
    public boolean matches(CraftingInput input, Level level) {
       return analyse(input).output() != null;
    }
 
+   //? if >= 26.1 {
    public ItemStack assemble(CraftingInput input) {
+   //?} else {
+   /*public ItemStack assemble(CraftingInput input, net.minecraft.core.HolderLookup.Provider provider) {
+   *///?}
       PipeColourRecipe.Result result = analyse(input);
       return result.output() != null ? result.output().copy() : ItemStack.EMPTY;
    }
@@ -151,9 +161,9 @@ public class PipeColourRecipe extends CustomRecipe {
    }
 
    private static Item getDyeItem(DyeColor colour) {
-      //? if >= 26.1.3 {
-      /*return Items.DYE.pick(colour);*/
-      //?} else {
+      //? if >= 26.2 {
+      /*return Items.DYE.pick(colour);
+      *///?} else {
       return switch (colour) {
          case WHITE -> Items.WHITE_DYE;
          case ORANGE -> Items.ORANGE_DYE;

@@ -116,7 +116,12 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public DataComponentMap getPrototype() {
+      //? if >= 26.1 {
       return this.isEmpty() ? DataComponentMap.EMPTY : this.typeHolder().components();
+      //?} else {
+      /*// 1.21.x fluids have no per-fluid default components; the prototype is always empty.
+      return DataComponentMap.EMPTY;
+      *///?}
    }
 
    public DataComponentPatch getComponentsPatch() {
@@ -148,7 +153,11 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public FluidStack(Holder<Fluid> fluid, int amount, DataComponentPatch patch) {
+      //? if >= 26.1 {
       this(fluid, amount, PatchedDataComponentMap.fromPatch(fluid.components(), patch));
+      //?} else {
+      /*this(fluid, amount, PatchedDataComponentMap.fromPatch(DataComponentMap.EMPTY, patch));
+      *///?}
    }
 
    private FluidStack(Holder<Fluid> fluid, int amount, PatchedDataComponentMap components) {

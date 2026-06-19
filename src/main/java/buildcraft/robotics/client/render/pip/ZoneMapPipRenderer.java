@@ -18,31 +18,39 @@ import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 /*import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.SubmitNodeStorage;*/
-//?} else {
+import net.minecraft.client.renderer.SubmitNodeStorage;
+*///?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 //?}
+//? if >= 26.1 {
 import net.minecraft.client.renderer.Projection;
 import net.minecraft.client.renderer.ProjectionMatrixBuffer;
+//?} else {
+/*import net.minecraft.client.renderer.PerspectiveProjectionMatrixBuffer;
+*///?}
 import org.joml.Matrix4f;
 
 public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRenderState> {
    private static final int OVERLAY_ALPHA = 0x55;
    private static final int SELECTION_ALPHA = 0x99;
    private static final int HOVER_ALPHA = 0x99;
+   //? if >= 26.1 {
    private ProjectionMatrixBuffer perspBuffer;
    private ProjectionMatrixBuffer orthoRestoreBuffer;
    private final Projection orthoRestore = new Projection();
+   //?} else {
+   /*private PerspectiveProjectionMatrixBuffer perspBuffer;
+   *///?}
    private final Map<Long, CachedMesh> meshCache = new HashMap<>();
    private long lastStamp = Long.MIN_VALUE;
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*public ZoneMapPipRenderer() {
       super();
-   }*/
-   //?} else {
+   }
+   *///?} else {
    public ZoneMapPipRenderer(BufferSource bufferSource) {
       super(bufferSource);
    }
@@ -63,7 +71,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       return state.renderStamp() == this.lastStamp;
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*@Override
    protected void renderToTexture(ZoneMapPipRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
       this.lastStamp = state.renderStamp();
@@ -81,8 +89,8 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       this.emitTerrain(state, poseStack, (SubmitNodeStorage) submitNodeCollector);
 
       mc.gameRenderer.featureRenderDispatcher().renderAllFeatures((SubmitNodeStorage) submitNodeCollector);
-   }*/
-   //?} else {
+   }
+   *///?} else if >= 26.1 {
    @Override
    protected void renderToTexture(ZoneMapPipRenderState state, PoseStack poseStack) {
       this.lastStamp = state.renderStamp();
@@ -107,9 +115,27 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       this.orthoRestore.setupOrtho(-1000.0F, 1000.0F, width, height, true);
       RenderSystem.setProjectionMatrix(this.orthoRestoreBuffer.getBuffer(this.orthoRestore), ProjectionType.ORTHOGRAPHIC);
    }
-   //?}
+   //?} else {
+   /*@Override
+   protected void renderToTexture(ZoneMapPipRenderState state, PoseStack poseStack) {
+      this.lastStamp = state.renderStamp();
+      this.evictFarMeshes(state);
+      if (this.perspBuffer == null) {
+         this.perspBuffer = new PerspectiveProjectionMatrixBuffer("PIP zone map persp");
+      }
 
-   //? if >= 26.1.3 {
+      // backup/restore returns the GUI's ortho projection that the PIP framework set up.
+      RenderSystem.backupProjectionMatrix();
+      RenderSystem.setProjectionMatrix(this.perspBuffer.getBuffer(state.projMatrix()), ProjectionType.PERSPECTIVE);
+      Pose pose = poseStack.last();
+      pose.pose().set(state.viewMatrix());
+      this.emitTerrain(state, pose);
+      this.bufferSource.endBatch();
+      RenderSystem.restoreProjectionMatrix();
+   }
+   *///?}
+
+   //? if >= 26.2 {
    /*private void emitTerrain(ZoneMapPipRenderState state, PoseStack poseStack, SubmitNodeStorage storage) {
       ZonePlannerMapColours cache = state.colours();
       if (cache == null) return;
@@ -131,8 +157,8 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
          }
       });
       storage.submitCustomGeometry(poseStack, BCLibRenderTypes.debugSolid(), (pose, vc) -> this.emitOverlay(state, pose, vc));
-   }*/
-   //?} else {
+   }
+   *///?} else {
    private void emitTerrain(ZoneMapPipRenderState state, Pose pose) {
       ZonePlannerMapColours cache = state.colours();
       if (cache != null) {
@@ -191,7 +217,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       return mesh;
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*private void emitOverlay(ZoneMapPipRenderState state, Pose pose, VertexConsumer vc) {
       ZonePlannerMapColours cache = state.colours();
       int originX = state.originX();
@@ -237,13 +263,15 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
             emitFilledCuboid(vc, pose, x0 - 0.04F, z0 - 0.04F, x0 + 1.04F, z0 + 1.04F, h + 0.5F, h + 1.7F, r, g, b, HOVER_ALPHA);
          }
       }
-   }*/
-   //?} else {
+   }
+   *///?} else {
    private void emitOverlay(ZoneMapPipRenderState state, Pose pose) {
       ZonePlannerMapColours cache = state.colours();
       int originX = state.originX();
       int originZ = state.originZ();
-      VertexConsumer vc = this.bufferSource.getBuffer(BCLibRenderTypes.debugFilled());
+      // Must match the terrain layer (debugSolid). debugFilledBox uses a weaker debug blend/buffer, which made
+      // the painted zones/selection render faint and on the wrong pass. (The 26.2 path already uses debugSolid.)
+      VertexConsumer vc = this.bufferSource.getBuffer(BCLibRenderTypes.debugSolid());
       int[] cells = state.overlayCells();
       int[] cellColours = state.overlayColours();
       int single = state.overlayColour();
@@ -326,10 +354,12 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
          this.perspBuffer = null;
       }
 
+      //? if >= 26.1 {
       if (this.orthoRestoreBuffer != null) {
          this.orthoRestoreBuffer.close();
          this.orthoRestoreBuffer = null;
       }
+      //?}
    }
 
    

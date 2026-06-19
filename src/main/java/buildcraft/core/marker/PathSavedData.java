@@ -16,7 +16,11 @@ public class PathSavedData extends MarkerSavedDataBase<PathConnection> {
    public static final String ID = "buildcraft_marker_path";
    private static final Codec<PathSavedData> CODEC = MarkerSavedDataBase.codec(PathSavedData::new);
    public static final SavedDataType<PathSavedData> TYPE = new SavedDataType<>(
+      //? if >= 26.1 {
       Identifier.fromNamespaceAndPath("buildcraftcore", "marker_path"), PathSavedData::new, CODEC, DataFixTypes.LEVEL
+      //?} else {
+      /*"buildcraftcore_marker_path", PathSavedData::new, CODEC, DataFixTypes.LEVEL
+      *///?}
    );
 
    private PathSavedData() {

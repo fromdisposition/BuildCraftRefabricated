@@ -73,7 +73,7 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
          }
          normalSpawnBiomes.add(key);
       }
-      normalSpawnBiomes.sort(Comparator.comparing(key -> key.identifier().toString()));
+      normalSpawnBiomes.sort(Comparator.comparing(key -> buildcraft.lib.misc.RegistryKeyUtil.id(key).toString()));
 
       var normalSpawn = builder(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
       for (ResourceKey<Biome> key : normalSpawnBiomes) {

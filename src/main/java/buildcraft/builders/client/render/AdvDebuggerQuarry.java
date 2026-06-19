@@ -10,7 +10,7 @@ import buildcraft.builders.tile.TileQuarry;
 import buildcraft.lib.debug.DebugRenderHelper;
 import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.Set;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.client.renderer.MultiBufferSource;
 //?}
@@ -24,7 +24,7 @@ public final class AdvDebuggerQuarry {
    private AdvDebuggerQuarry() {
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*public static void render(TileQuarry tile, PoseStack poseStack, Vec3 cameraPos) {
       if (tile.frameBox.isInitialized()) {
          Set<ChunkPos> chunks = tile.getChunksToLoad();
@@ -40,8 +40,8 @@ public final class AdvDebuggerQuarry {
             }
          }
       }
-   }*/
-   //?} else {
+   }
+   *///?} else {
    public static void render(TileQuarry tile, PoseStack poseStack, MultiBufferSource bufferSource, Vec3 cameraPos) {
       if (tile.frameBox.isInitialized()) {
          Set<ChunkPos> chunks = tile.getChunksToLoad();

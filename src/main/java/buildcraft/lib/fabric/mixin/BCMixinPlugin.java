@@ -24,12 +24,12 @@ public class BCMixinPlugin implements IMixinConfigPlugin {
 
    @Override
    public List<String> getMixins() {
-      //? if < 26.1.3 {
+      //? if < 26.2 {
       return List.of();
       //?}
-      //? if >= 26.1.3 {
-      /*return List.of("client.LevelExtractorMixin");*/
-      //?}
+      //? if >= 26.2 {
+      /*return List.of("client.LevelExtractorMixin");
+      *///?}
    }
 
    @Override

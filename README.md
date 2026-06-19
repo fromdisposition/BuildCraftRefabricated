@@ -3,15 +3,19 @@
 Unofficial **Fabric** port of BuildCraft for **modern Minecraft** — pipes, engines, quarries, oil, gates, and automation in one JAR.
 
 
-| Minecraft Version | Support Status | Mod Loader | Fabric API | Java |
+| Minecraft Version | Support Status | Fabric Loader | Fabric API | Java |
 |-------------------|----------------|------------|------------|------|
-| **26.2**| 🟢 **Mainline** (Upstream) | Fabric Loader ≥ 0.19.3 | 0.152.1+26.2 | 25+ |
-| **26.1.x** | 🟢 **Mainline** (LTS) | Fabric Loader ≥ 0.19.3 | 0.150.0+26.1.2 | 25+ |
+| **26.2**| 🟢 **Active** (Upstream) | ≥ 0.19.3 | ≥ 0.152.1+26.2 | 25+ |
+| **26.1.x** | 🟢 **Active** (Long term support) | ≥ 0.19.3 | ≥ 0.150.0+26.1.2 | 25+ |
+| **1.21.11** | 🟡 **Maintenance** (Best effort)  | ≥ 0.19.3 | ≥ 0.141.4+1.21.11 | 21+ |
+| **1.21.10** | 🟡 **Maintenance** (Best effort)  | ≥ 0.19.3 | ≥ 0.138.4+1.21.10 | 21+ |
+| **1.21.1** | 🟡 **Maintenance** (Planned) (Critical Fixes Only)  | ≥ 0.19.3 | ≥ 0.116.12+1.21.1 | 21+ |
+| **<1.21.1** | 🔴 **Not supported and not planned**  | | | |
 
 **Repository:** [github.com/fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)  
 **Issues:** [github.com/fromdisposition/BuildCraftRefabricated/issues](https://github.com/fromdisposition/BuildCraftRefabricated/issues)
 
-Gameplay code traces to [legoj15's NeoForge 26.1.2 port](https://github.com/legoj15/BuildCraft), adapted here for Fabric Transfer API and Team Reborn Energy (`E`) interop.
+**Gameplay code traces to [legoj15's NeoForge 26.1.2 port](https://github.com/legoj15/BuildCraft), adapted here for Fabric Transfer API and Team Reborn Energy (`E`) interop.**
 
 ---
 
@@ -33,78 +37,78 @@ Gameplay code traces to [legoj15's NeoForge 26.1.2 port](https://github.com/lego
 
 ## BC 8.0.x parity
 
-Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2). Legend: **DONE** · **WIP** · **—** (n/a).
+Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2).
 
 ### Core
 
 | Feature | Status |
 |---------|--------|
-| Landmark / path markers | DONE |
-| Volume box system | DONE |
-| List mod | DONE |
-| Creative / redstone engines | DONE |
-| Oil springs | DONE |
-| Paintbrush | DONE |
-| Map location | DONE |
+| Landmark / path markers | 🟢 DONE |
+| Volume box system | 🟢 DONE |
+| List mod | 🟢 DONE |
+| Creative / redstone engines | 🟢 DONE |
+| Oil springs | 🟢 DONE |
+| Water springs | 🟢 DONE |
+| Paintbrush | 🟢 DONE |
+| Map location | 🔴 NEED HEAVY TESTING |
 
 ### Transport
 
 | Feature | Status |
 |---------|--------|
-| Item pipes | DONE |
-| Fluid pipes | DONE |
-| MJ power pipes | DONE |
-| E (Team Reborn) pipes | DONE |
-| Pipe behaviours & pluggables | DONE |
-| Gates, facades, lenses, pulsar | DONE |
-| Wire systems | DONE |
-| Filtered buffer | DONE |
+| Item pipes | 🟢 DONE |
+| Fluid pipes | 🟢 DONE |
+| Power pipes | 🔴 NEED HEAVY TESTING |
+| Pipe behaviours & pluggables | 🔴 NEED HEAVY TESTING |
+| Gates, facades, lenses, pulsar | 🔴 NEED HEAVY TESTING |
+| Wire systems | 🔴 NEED HEAVY TESTING |
+| Filtered buffer | 🔴 NEED HEAVY TESTING |
 
 ### Energy
 
 | Feature | Status |
 |---------|--------|
-| Stone / creative engines | DONE |
-| Iron (combustion) engine | DONE |
-| Oil / fuel / residue fluids | DONE |
-| Fluid buckets & worldgen | DONE |
-| E↔MJ bridge blocks (engine / dynamo) | DONE |
+| Stone / creative engines | 🟢 DONE |
+| Iron (combustion) engine | 🟢 DONE |
+| Oil / fuel / residue fluids | 🟢 DONE |
+| Fluid buckets & worldgen | 🟢 DONE |
+| E↔MJ bridge blocks (engine / dynamo) | 🟢 DONE |
 
 ### Factory
 
 | Feature | Status |
 |---------|--------|
-| Tank, pump, flood gate | DONE |
-| Distiller, heat exchange, chute | DONE |
-| Auto workbench (items) | DONE |
-| Mining well | DONE |
+| Tank, pump, flood gate | 🟢 DONE |
+| Distiller, heat exchange, chute | 🟡 NEED TESTING |
+| Auto workbench (items) | 🔴 NEED TESTING |
+| Mining well | 🟢 DONE |
 
 ### Builders
 
 | Feature | Status |
 |---------|--------|
-| Quarry | DONE |
-| Filler (+ planner addon) | DONE |
-| Architect table, builder | DONE |
-| Electronic library, replacer | DONE |
+| Quarry | 🟢 DONE |
+| Filler (+ planner addon) | 🟡 NEED TESTING |
+| Architect table, builder | 🟡 NEED TESTING |
+| Electronic library, replacer | 🔴 NEED HEAVY TESTING |
 
 ### Silicon
 
 | Feature | Status |
 |---------|--------|
-| Assembly / integration / advanced crafting tables | DONE |
-| Programming / charging / stamping tables | DONE |
-| Lasers | DONE |
-| Gates & silicon pluggables | DONE |
+| Assembly / integration / advanced crafting tables | 🔴 NEED HEAVY TESTING |
+| Programming / charging / stamping tables | 🔴 NEED HEAVY TESTING |
+| Lasers | 🔴 NEED HEAVY TESTING |
+| Gates & silicon pluggables | 🔴 NEED HEAVY TESTING |
 
 ### Robotics
 
 | Feature | Status |
 |---------|--------|
-| Zone planner | DONE |
-| Deployable robots | DONE |
-| Docking stations | DONE |
-| Requester | DONE |
+| Zone planner | 🔴 NEED HEAVY TESTING |
+| Deployable robots | 🔴 NEED HEAVY TESTING |
+| Docking stations | 🔴 NEED HEAVY TESTING |
+| Requester | 🔴 NEED HEAVY TESTING |
 
 ---
 
@@ -129,12 +133,43 @@ Config: `config/buildcraft/buildcraftrefabricated-common.json` → `powerMode`, 
 
 ---
 
+## Building from source
+
+1. You'll need a JDK: **Java 25** for the 26.x lines and **Java 21** for 1.21.x.
+
+2. No Gradle install required — the bundled wrapper (`gradlew`) already runs the right version.
+
+3. Clone the repository and enter it:
+
+   ```sh
+   git clone https://github.com/fromdisposition/BuildCraftRefabricated.git
+   cd BuildCraftRefabricated
+   ```
+
+4. Build the mod. BuildCraft Refabricated uses **Stonecutter** to target several Minecraft lines from one source tree (one node per MC line: `1.21.11`, `26.1`, `26.2`).
+
+   - Build **all** lines at once:
+
+     ```sh
+     ./gradlew build
+     ```
+
+   - Build a **single** line via its node task (faster):
+
+     ```sh
+     ./gradlew :1.21.11:build
+     ```
+
+   Swap `1.21.11` for `26.1` or `26.2`. On Windows use `.\gradlew.bat` instead of `./gradlew`.
+
+5. Each line's jar lands in `versions/<line>/build/libs/`, named `BCRefabricated-<version>+mc<mc>.jar` — e.g. `versions/1.21.11/build/libs/BCRefabricated-26.6.18+mc1.21.11.jar` (`<version>` is the build date, `yy.M.d`).
+
+---
+
 ## Known gaps
 
 - Not a byte-for-byte BC 8 clone — modern MC APIs differ from 1.12.2.
 - MJ pipes stay BC-internal; cross-mod energy uses Team Reborn `E` API.
-- Guide book incomplete; some dev-only blocks behind `-Dbuildcraft.dev=true`.
-- Wood pipe + MJ required for passive extraction (BC design).
 
 ---
 

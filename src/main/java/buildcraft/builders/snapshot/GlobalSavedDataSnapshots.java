@@ -38,9 +38,9 @@ public class GlobalSavedDataSnapshots {
    private static final String SNAPSHOT_FILE_EXTENSION = ".bcnbt";
    private static final Map<GlobalSavedDataSnapshots.Side, GlobalSavedDataSnapshots> INSTANCES = new EnumMap<>(GlobalSavedDataSnapshots.Side.class);
    private final LoadingCache<Snapshot.Key, Optional<Snapshot>> snapshotsCache = CacheBuilder.newBuilder()
-      //? if >= 26.1.3 {
-      /*.expireAfterAccess(java.time.Duration.ofMinutes(10))*/
-      //?} else {
+      //? if >= 26.2 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(10))
+      *///?} else {
       .expireAfterAccess(10L, TimeUnit.MINUTES)
       //?}
       .build(CacheLoader.from(key -> Optional.ofNullable(this.readSnapshot(key)).map(Pair::getLeft)));

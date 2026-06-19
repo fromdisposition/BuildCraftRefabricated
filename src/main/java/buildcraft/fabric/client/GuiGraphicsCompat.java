@@ -15,6 +15,10 @@ public final class GuiGraphicsCompat {
    }
 
    public static void submitPictureInPictureRenderState(GuiGraphicsExtractor graphics, PictureInPictureRenderState state) {
+      //? if >= 26.1 {
       ((GuiGraphicsExtractorAccessor)graphics).buildcraft$getGuiRenderState().addPicturesInPictureState(state);
+      //?} else {
+      /*((GuiGraphicsExtractorAccessor)graphics).buildcraft$getGuiRenderState().submitPicturesInPictureState(state);
+      *///?}
    }
 }

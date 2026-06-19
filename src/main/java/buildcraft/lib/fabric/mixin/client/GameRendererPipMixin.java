@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 import net.minecraft.client.renderer.GameRenderer;
-//? if >= 26.1.3 {
-//?} else {
+//? if >= 26.2 {
+//?} else if >= 26.1 {
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
@@ -24,7 +24,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(GameRenderer.class)
 public class GameRendererPipMixin {
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*@ModifyArg(
       method = "<init>(Lnet/minecraft/client/Minecraft;Lnet/minecraft/client/renderer/ItemInHandRenderer;Lnet/minecraft/client/resources/model/ModelManager;)V",
       at = @At(
@@ -40,8 +40,8 @@ public class GameRendererPipMixin {
       renderers.add(new TooltipBlueprintPipRenderer());
       renderers.add(new ZoneMapPipRenderer());
       return List.copyOf(renderers);
-   }*/
-   //?} else {
+   }
+   *///?} else if >= 26.1 {
    // Stash RenderBuffers from the constructor args so @ModifyArg below can use it without
    // calling Minecraft.getInstance().renderBuffers(), which is null mid-construction.
    @Unique

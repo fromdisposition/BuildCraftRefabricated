@@ -156,7 +156,11 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    protected void drawTooltipLayer(int mouseX, int mouseY, float partialTick) {
       if (this.recipeBookComponent != null && this.recipeBookComponent.isVisible()) {
          BCGraphics graphics = GuiIcon.getGuiGraphics();
+         //? if >= 26.1 {
          this.recipeBookComponent.extractTooltip(graphics.raw, mouseX, mouseY, this.hoveredSlot);
+         //?} else {
+         /*this.recipeBookComponent.renderTooltip(graphics.raw, mouseX, mouseY, this.hoveredSlot);
+         *///?}
       }
    }
 

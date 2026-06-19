@@ -29,6 +29,12 @@ import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 
 public class ACTRecipeBookComponent extends RecipeBookComponent<ContainerAdvancedCraftingTable> {
+   //? if < 1.21.11 {
+   /*// Abstract on 1.21.10, dropped in 1.21.11; BC hides the craftable-only filter button, so no-op.
+   @Override
+   protected void initFilterButtonTextures() {
+   }
+   *///?}
    private static final WidgetSprites FILTER_BUTTON_SPRITES = new WidgetSprites(
       Identifier.withDefaultNamespace("recipe_book/filter_enabled"),
       Identifier.withDefaultNamespace("recipe_book/filter_disabled"),

@@ -16,7 +16,11 @@ public class VolumeSavedData extends MarkerSavedDataBase<VolumeConnection> {
    public static final String ID = "buildcraft_marker_volume";
    private static final Codec<VolumeSavedData> CODEC = MarkerSavedDataBase.codec(VolumeSavedData::new);
    public static final SavedDataType<VolumeSavedData> TYPE = new SavedDataType<>(
+      //? if >= 26.1 {
       Identifier.fromNamespaceAndPath("buildcraftcore", "marker_volume"), VolumeSavedData::new, CODEC, DataFixTypes.LEVEL
+      //?} else {
+      /*"buildcraftcore_marker_volume", VolumeSavedData::new, CODEC, DataFixTypes.LEVEL
+      *///?}
    );
 
    private VolumeSavedData() {

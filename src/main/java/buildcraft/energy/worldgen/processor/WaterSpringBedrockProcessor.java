@@ -10,21 +10,21 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 //?}
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
 /** Projects the template spring marker onto the top bedrock in {@code [minY, minY + 4]}. */
-//? if >= 26.1.3 {
-/*public final class WaterSpringBedrockProcessor implements StructureProcessor {*/
-//?} else {
+//? if >= 26.2 {
+/*public final class WaterSpringBedrockProcessor implements StructureProcessor {
+*///?} else {
 public final class WaterSpringBedrockProcessor extends StructureProcessor {
 //?}
    public static final MapCodec<WaterSpringBedrockProcessor> CODEC = MapCodec.unit(WaterSpringBedrockProcessor::new);
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*@Override
    public MapCodec<WaterSpringBedrockProcessor> codec() {
       return CODEC;
@@ -39,8 +39,8 @@ public final class WaterSpringBedrockProcessor extends StructureProcessor {
       StructureTemplate.StructureBlockInfo processedBlockInfo,
       StructurePlaceSettings settings
    ) {
-      if (originalPos.getY() != WaterSpringDefaults.SPRING_TEMPLATE_Y) {*/
-   //?} else {
+      if (originalPos.getY() != WaterSpringDefaults.SPRING_TEMPLATE_Y) {
+   *///?} else {
    @Override
    public StructureTemplate.StructureBlockInfo processBlock(
       LevelReader level,
@@ -83,7 +83,7 @@ public final class WaterSpringBedrockProcessor extends StructureProcessor {
       return -64;
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    //?} else {
    @Override
    protected StructureProcessorType<?> getType() {

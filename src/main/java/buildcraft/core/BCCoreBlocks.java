@@ -13,6 +13,7 @@ import buildcraft.core.block.BlockMarkerPath;
 import buildcraft.core.block.BlockMarkerVolume;
 import buildcraft.core.block.BlockPowerConsumerTester;
 import buildcraft.core.block.BlockSpring;
+import buildcraft.core.block.BlockSpringOil;
 import buildcraft.fabric.BCRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
@@ -37,7 +38,7 @@ public class BCCoreBlocks {
       SPRING_WATER = BCRegistries.registerBlock(
          "buildcraftcore", "spring_water", props -> new BlockSpring(EnumSpring.WATER, props), p -> p.sound(SoundType.STONE)
       );
-      SPRING_OIL = BCRegistries.registerBlock("buildcraftcore", "spring_oil", props -> new BlockSpring(EnumSpring.OIL, props), p -> p.sound(SoundType.STONE));
+      SPRING_OIL = BCRegistries.registerBlock("buildcraftcore", "spring_oil", BlockSpringOil::new, p -> p.sound(SoundType.STONE));
       DECORATED_LASER = BCRegistries.registerBlock(
          "buildcraftcore", "decorated_laser", Block::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );

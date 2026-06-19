@@ -2,7 +2,7 @@
   "multipart": [
     {
       "apply": {
-        "model": "builtin/generated",
+        "model": "buildcraftenergy:block/oil_heat_1",
         "x": 0,
         "y": 0
       }

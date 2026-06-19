@@ -2,7 +2,7 @@
   "multipart": [
     {
       "apply": {
-        "model": "builtin/generated",
+        "model": "buildcraftenergy:block/fuel_mixed_light",
         "x": 0,
         "y": 0
       }

@@ -15,9 +15,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.minecraft.ChatFormatting;
-//? if >= 26.1.3 {
-/*import net.minecraft.network.chat.TextColor;*/
-//?}
+//? if >= 26.2 {
+/*import net.minecraft.network.chat.TextColor;
+*///?}
 
 public class FormatString {
    private static final String WORD_GAP = " \n\t";
@@ -76,9 +76,9 @@ public class FormatString {
             if (format == ChatFormatting.RESET) {
                lastColour = null;
                lastMisc.clear();
-            //? if >= 26.1.3 {
-            /*} else if (TextColor.fromLegacyFormat(format) != null) {*/
-            //?} else {
+            //? if >= 26.2 {
+            /*} else if (TextColor.fromLegacyFormat(format) != null) {
+            *///?} else {
             } else if (format.isColor()) {
             //?}
                lastColour = format;

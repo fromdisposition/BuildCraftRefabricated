@@ -17,13 +17,17 @@ import buildcraft.lib.client.render.tile.RenderEngine_BC8;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+//? if >= 26.1 {
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
+//?} else {
+/*import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+*///?}
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-//? if >= 26.1.3 {
-/*import net.minecraft.client.renderer.SubmitNodeStorage;*/
-//?}
+//? if >= 26.2 {
+/*import net.minecraft.client.renderer.SubmitNodeStorage;
+*///?}
 import net.minecraft.resources.Identifier;
 
 public final class BCCoreFabricClient {
@@ -35,15 +39,21 @@ public final class BCCoreFabricClient {
       MarkerRenderer.setHoldingConnectorCheck(
          player -> player.getMainHandItem().getItem() instanceof ItemMarkerConnector || player.getOffhandItem().getItem() instanceof ItemMarkerConnector
       );
-      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES
-         .register(
-            (AfterTranslucentFeatures)context -> {
-               //? if >= 26.1.3 {
-               /*LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());*/
-               //?}
-               MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos);
-            }
-         );
+      //? if >= 26.2 {
+      /*LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
+         LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());
+         MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos);
+      });
+      *///?} else if >= 26.1 {
+      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context ->
+         MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos)
+      );
+      //?} else {
+      /*// 1.21.x has no AfterTranslucent phase; END_MAIN runs after the main (incl. translucent) pass.
+      WorldRenderEvents.END_MAIN.register(
+         context -> MarkerRenderer.renderMarkers(context.matrices(), context.gameRenderer().getMainCamera().position())
+      );
+      *///?}
       BlockEntityRenderers.register(BCCoreBlockEntities.ENGINE_REDSTONE, ctx -> new RenderEngine_BC8(BCCoreModels::getWoodEngineQuads));
       BlockEntityRenderers.register(BCCoreBlockEntities.ENGINE_CREATIVE, ctx -> new RenderEngine_BC8(BCCoreModels::getCreativeEngineQuads));
       MenuScreens.register(BCCoreMenuTypes.LIST, GuiList::new);

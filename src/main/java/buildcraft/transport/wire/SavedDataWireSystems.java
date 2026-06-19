@@ -40,7 +40,11 @@ import org.jspecify.annotations.Nullable;
 
 public class SavedDataWireSystems extends SavedData {
    public static final SavedDataType<SavedDataWireSystems> TYPE = new SavedDataType<>(
+      //? if >= 26.1 {
       Identifier.fromNamespaceAndPath("buildcrafttransport", "wire_systems"), () -> new SavedDataWireSystems(null), makeCodec(null), DataFixTypes.SAVED_DATA_MAP_DATA
+      //?} else {
+      /*"buildcrafttransport_wire_systems", () -> new SavedDataWireSystems(null), makeCodec(null), DataFixTypes.SAVED_DATA_MAP_DATA
+      *///?}
    );
    public Level world;
    public final Map<WireSystem, Boolean> wireSystems = new HashMap<>();

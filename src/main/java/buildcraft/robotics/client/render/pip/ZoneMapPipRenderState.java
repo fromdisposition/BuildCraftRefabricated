@@ -107,11 +107,14 @@ public record ZoneMapPipRenderState(
 
    public Matrix4f projMatrix() {
       float aspect = (float)(this.x1 - this.x0) / (float)(this.y1 - this.y0);
-      //? if >= 26.1.3 {
-      /*boolean zeroToOne = true;*/
-      //?} else {
+      //? if >= 26.2 {
+      /*boolean zeroToOne = true;
+      *///?} else if >= 26.1 {
       boolean zeroToOne = RenderSystem.getDevice().isZZeroToOne();
-      //?}
+      //?} else {
+      /*// 1.21.x vanilla builds its perspective with JOML's default (zZeroToOne = false).
+      boolean zeroToOne = false;
+      *///?}
       return new Matrix4f().setPerspective((float)Math.toRadians((double)FOV), aspect, NEAR, FAR, zeroToOne);
    }
 
@@ -119,11 +122,14 @@ public record ZoneMapPipRenderState(
    public double[] unprojectRay(double mouseX, double mouseY) {
       double ndcX = 2.0 * (mouseX - this.x0) / (this.x1 - this.x0) - 1.0;
       double ndcY = 1.0 - 2.0 * (mouseY - this.y0) / (this.y1 - this.y0);
-      //? if >= 26.1.3 {
-      /*boolean zeroToOne = true;*/
-      //?} else {
+      //? if >= 26.2 {
+      /*boolean zeroToOne = true;
+      *///?} else if >= 26.1 {
       boolean zeroToOne = RenderSystem.getDevice().isZZeroToOne();
-      //?}
+      //?} else {
+      /*// 1.21.x vanilla builds its perspective with JOML's default (zZeroToOne = false).
+      boolean zeroToOne = false;
+      *///?}
       float nearZ = zeroToOne ? 0.0F : -1.0F;
       Matrix4f inv = new Matrix4f(this.projMatrix()).mul(this.viewMatrix()).invert();
       Vector4f near = inv.transform(new Vector4f((float)ndcX, (float)ndcY, nearZ, 1.0F));

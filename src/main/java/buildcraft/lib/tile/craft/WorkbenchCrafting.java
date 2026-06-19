@@ -99,7 +99,11 @@ public class WorkbenchCrafting {
          if (this.currentRecipe == null) {
             this.assumedResult = ItemStack.EMPTY;
          } else {
+            //? if >= 26.1 {
             this.assumedResult = ((CraftingRecipe)this.currentRecipe.value()).assemble(input);
+            //?} else {
+            /*this.assumedResult = ((CraftingRecipe)this.currentRecipe.value()).assemble(input, this.tile.getLevel().registryAccess());
+            *///?}
          }
 
          this.isBlueprintDirty = false;
@@ -185,7 +189,11 @@ public class WorkbenchCrafting {
          return false;
       }
 
+      //? if >= 26.1 {
       ItemStack result = ((CraftingRecipe)this.currentRecipe.value()).assemble(craftInput);
+      //?} else {
+      /*ItemStack result = ((CraftingRecipe)this.currentRecipe.value()).assemble(craftInput, this.tile.getLevel().registryAccess());
+      *///?}
       if (result.isEmpty()) {
          this.returnItemsToMaterials(gridContents);
          return false;

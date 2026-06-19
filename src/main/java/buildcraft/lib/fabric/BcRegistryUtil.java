@@ -40,7 +40,7 @@ public final class BcRegistryUtil {
    }
 
    public static Optional<Identifier> registryId(Holder<?> holder) {
-      return holder.unwrapKey().map(ResourceKey::identifier);
+      return holder.unwrapKey().map(buildcraft.lib.misc.RegistryKeyUtil::id);
    }
 
    @Nullable

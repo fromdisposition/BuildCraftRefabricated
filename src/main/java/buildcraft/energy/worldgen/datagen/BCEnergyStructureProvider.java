@@ -176,7 +176,7 @@ public final class BCEnergyStructureProvider implements DataProvider {
                   registry,
                   StructureProcessorType.DIRECT_CODEC,
                   processors,
-                  dataRoot.resolve("worldgen/processor_list/" + processorKey.identifier().getPath() + ".json")
+                  dataRoot.resolve("worldgen/processor_list/" + buildcraft.lib.misc.RegistryKeyUtil.id(processorKey).getPath() + ".json")
                )
             );
          }

@@ -110,8 +110,16 @@ public class GuideCraftingFactory implements GuidePartFactory {
       return options.isEmpty() ? ItemStack.EMPTY : options.get(0).baseStack;
    }
 
+   private static ItemStack assembleCrafting(net.minecraft.world.item.crafting.Recipe<CraftingInput> recipe, CraftingInput input) {
+      //? if >= 26.1 {
+      return recipe.assemble(input);
+      //?} else {
+      /*return recipe.assemble(input, net.minecraft.client.Minecraft.getInstance().level.registryAccess());
+      *///?}
+   }
+
    private static GuidePartFactory getFactoryFromShaped(ShapedRecipe recipe) {
-      ItemStack output = recipe.assemble(CraftingInput.EMPTY);
+      ItemStack output = assembleCrafting(recipe, CraftingInput.EMPTY);
       if (output.isEmpty()) {
          return null;
       }
@@ -143,7 +151,7 @@ public class GuideCraftingFactory implements GuidePartFactory {
    }
 
    private static GuidePartFactory getFactoryFromShapeless(ShapelessRecipe recipe) {
-      ItemStack output = recipe.assemble(CraftingInput.EMPTY);
+      ItemStack output = assembleCrafting(recipe, CraftingInput.EMPTY);
       List<Ingredient> ingredients = new ArrayList<>();
 
       for (Ingredient ingredient : ShapelessRecipes.ingredients(recipe)) {

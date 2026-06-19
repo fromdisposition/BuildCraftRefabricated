@@ -34,7 +34,11 @@ public final class ChunkLoaderManager {
    private static <T extends BlockEntity & IChunkLoadingTile> void forceChunks(T tile, boolean add) {
       if (tile.getLevel() instanceof ServerLevel serverLevel) {
          for (ChunkPos chunk : getChunksToLoad(tile)) {
+            //? if >= 26.1 {
             serverLevel.setChunkForced(chunk.x(), chunk.z(), add);
+            //?} else {
+            /*serverLevel.setChunkForced(chunk.x, chunk.z, add);
+            *///?}
          }
       }
    }

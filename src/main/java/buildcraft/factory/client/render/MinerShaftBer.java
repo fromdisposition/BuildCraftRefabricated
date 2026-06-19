@@ -10,7 +10,7 @@ import buildcraft.factory.tile.TileMiner;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import net.minecraft.client.Minecraft;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.client.renderer.LevelRenderer;
 //?}
@@ -209,10 +209,12 @@ final class MinerShaftBer {
          sampleY = origin.getY() - 0.5D;
       }
 
-      //? if >= 26.1.3 {
-      /*return LightCoordsUtil.getLightCoords(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));*/
-      //?} else {
+      //? if >= 26.2 {
+      /*return LightCoordsUtil.getLightCoords(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));
+      *///?} else if >= 26.1 {
       return LevelRenderer.getLightCoords(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));
-      //?}
+      //?} else {
+      /*return LevelRenderer.getLightColor(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));
+      *///?}
    }
 }

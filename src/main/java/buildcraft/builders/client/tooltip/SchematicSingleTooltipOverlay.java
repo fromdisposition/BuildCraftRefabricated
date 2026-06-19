@@ -41,7 +41,11 @@ public final class SchematicSingleTooltipOverlay implements ClientTooltipCompone
    }
 
    @Override
+   //? if >= 26.1 {
    public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
+   //?} else {
+   /*public void renderImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
+   *///?}
       Blueprint synthetic = getOrBuildSynthetic(this.schematic);
       BlueprintRenderer.renderSnapshotForTooltip(new BCGraphics(graphics), synthetic, x, y, PREVIEW_SIZE, PREVIEW_SIZE);
    }

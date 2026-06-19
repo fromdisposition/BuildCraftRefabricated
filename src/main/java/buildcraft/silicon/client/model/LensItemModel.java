@@ -33,9 +33,9 @@ public class LensItemModel implements ItemModel {
    private static final LensItemModel.ContextXform DEFAULT_XFORM = new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.8F);
    private static final EnumMap<ItemDisplayContext, LensItemModel.ContextXform> XFORMS = new EnumMap<>(ItemDisplayContext.class);
    private static final LoadingCache<LensItemModel.CacheKey, List<BakedQuad>> cache = CacheBuilder.newBuilder()
-      //? if >= 26.1.3 {
-      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))*/
-      //?} else {
+      //? if >= 26.2 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))
+      *///?} else {
       .expireAfterAccess(1L, TimeUnit.MINUTES)
       //?}
       .build(CacheLoader.from(key -> {
@@ -109,7 +109,11 @@ public class LensItemModel implements ItemModel {
       List<BakedQuad> quads = (List<BakedQuad>)cache.getUnchecked(key);
       if (!quads.isEmpty()) {
          for (BakedQuad quad : quads) {
+            //? if >= 26.1 {
             if ((quad.materialInfo().flags() & 2) != 0) {
+            //?} else {
+            /*if (false) {
+            *///?}
                renderState.setAnimated();
                break;
             }
@@ -120,6 +124,11 @@ public class LensItemModel implements ItemModel {
          renderState.appendModelIdentityElement(displayContext);
          LayerRenderState layer = renderState.newLayer();
          layer.prepareQuadList().addAll(quads);
+         // 1.21.x needs an explicit render type or the item layer draws nothing. Translucent so the
+         // coloured lens glass keeps its alpha (covers the cutout quads too). Gated to 1.21.x only.
+         //? if < 26.1 {
+         /*layer.setRenderType(buildcraft.lib.client.render.BCLibRenderTypes.translucentBlockSheet());
+         *///?}
       }
    }
 

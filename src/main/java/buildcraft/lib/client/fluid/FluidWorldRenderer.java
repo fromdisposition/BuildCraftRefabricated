@@ -4,18 +4,19 @@ import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.fabric.fluid.BcFluidTags;
 import buildcraft.fabric.fluid.BcFluidUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+//? if >= 26.2 {
+/*import net.minecraft.client.renderer.Lightmap;
+*///?} else if >= 26.1 {
 import net.minecraft.client.renderer.Lightmap;
-//? if >= 26.1.3 {
-/*import net.minecraft.client.renderer.SubmitNodeCollector;*/
 //?} else {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+/*import net.minecraft.client.renderer.LightTexture;
+*///?}
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import buildcraft.lib.client.render.BCLibRenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
@@ -59,7 +60,62 @@ public final class FluidWorldRenderer {
       return player.level() != null && appearanceAtEye(player, player.level()) != null;
    }
 
-   //? if >= 26.1.3 {
+   //? if < 26.2 {
+   public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
+      if (minecraft.player == null || minecraft.player.level() == null) {
+         return;
+      }
+
+      FluidState fluidState = submergedBcFluidStateAt(
+         minecraft.player.getX(),
+         minecraft.player.getEyeY(),
+         minecraft.player.getZ(),
+         minecraft.player.level()
+      );
+      if (fluidState == null) {
+         return;
+      }
+
+      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluidState.getType());
+      if (entry == null) {
+         return;
+      }
+
+      BcFluidAppearance appearance = appearanceForBcFluid(fluidState);
+      if (appearance == null) {
+         return;
+      }
+
+      renderOverlay(
+         minecraft,
+         poseStack,
+         submitNodeCollector,
+         Identifier.fromNamespaceAndPath("buildcraftenergy", "textures/block/fluids/underwater/" + entry.name() + ".png"),
+         appearance.overlayAlpha()
+      );
+   }
+
+   private static void renderOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, Identifier location, float overlayAlpha) {
+      BlockPos blockPos = BlockPos.containing(minecraft.player.getX(), minecraft.player.getEyeY(), minecraft.player.getZ());
+      //? if >= 26.1 {
+      float brightness = Lightmap.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
+      //?} else {
+      /*float brightness = LightTexture.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
+      *///?}
+      int color = ARGB.colorFromFloat(overlayAlpha, brightness, brightness, brightness);
+      float yawOffset = -minecraft.player.getYRot() / 64.0F;
+      float pitchOffset = minecraft.player.getXRot() / 64.0F;
+      submitNodeCollector.submitCustomGeometry(poseStack, BCLibRenderTypes.blockScreenEffect(location), (p, vc) -> {
+         Matrix4f matrix4f = p.pose();
+         vc.addVertex(matrix4f, -1.0F, -1.0F, -0.5F).setUv(4.0F + yawOffset, 4.0F + pitchOffset).setColor(color);
+         vc.addVertex(matrix4f, 1.0F, -1.0F, -0.5F).setUv(0.0F + yawOffset, 4.0F + pitchOffset).setColor(color);
+         vc.addVertex(matrix4f, 1.0F, 1.0F, -0.5F).setUv(0.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
+         vc.addVertex(matrix4f, -1.0F, 1.0F, -0.5F).setUv(4.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
+      });
+   }
+   //?}
+
+   //? if >= 26.2 {
    /*public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
       if (minecraft.player == null || minecraft.player.level() == null) {
          return;
@@ -100,49 +156,15 @@ public final class FluidWorldRenderer {
       int color = ARGB.colorFromFloat(overlayAlpha, brightness, brightness, brightness);
       float yawOffset = -minecraft.player.getYRot() / 64.0F;
       float pitchOffset = minecraft.player.getXRot() / 64.0F;
-      submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.blockScreenEffect(location), (p, vc) -> {
+      submitNodeCollector.submitCustomGeometry(poseStack, BCLibRenderTypes.blockScreenEffect(location), (p, vc) -> {
          Matrix4f matrix4f = p.pose();
          vc.addVertex(matrix4f, -1.0F, -1.0F, -0.5F).setUv(4.0F + yawOffset, 4.0F + pitchOffset).setColor(color);
          vc.addVertex(matrix4f, 1.0F, -1.0F, -0.5F).setUv(0.0F + yawOffset, 4.0F + pitchOffset).setColor(color);
          vc.addVertex(matrix4f, 1.0F, 1.0F, -0.5F).setUv(0.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
          vc.addVertex(matrix4f, -1.0F, 1.0F, -0.5F).setUv(4.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
       });
-   }*/
-   //?} else {
-   public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, MultiBufferSource bufferSource) {
-      if (minecraft.player == null || minecraft.player.level() == null) {
-         return;
-      }
-
-      FluidState fluidState = submergedBcFluidStateAt(
-         minecraft.player.getX(),
-         minecraft.player.getEyeY(),
-         minecraft.player.getZ(),
-         minecraft.player.level()
-      );
-      if (fluidState == null) {
-         return;
-      }
-
-      BCEnergyFluidsFabric.FluidEntry entry = BCEnergyFluidsFabric.findEntry(fluidState.getType());
-      if (entry == null) {
-         return;
-      }
-
-      BcFluidAppearance appearance = appearanceForBcFluid(fluidState);
-      if (appearance == null) {
-         return;
-      }
-
-      renderOverlay(
-         minecraft,
-         poseStack,
-         bufferSource,
-         Identifier.fromNamespaceAndPath("buildcraftenergy", "textures/block/fluids/underwater/" + entry.name() + ".png"),
-         appearance.overlayAlpha()
-      );
    }
-   //?}
+   *///?}
 
    private static @Nullable FluidState submergedBcFluidStateAt(double x, double sampleY, double z, Level level) {
       if (!BcFluidUtil.isSubmergedInBcFluid(level, x, sampleY, z)) {
@@ -159,20 +181,4 @@ public final class FluidWorldRenderer {
 
       return BcFluidAppearanceCache.get(fluidState.getType());
    }
-
-   //? if < 26.1.3 {
-   private static void renderOverlay(Minecraft minecraft, PoseStack poseStack, MultiBufferSource multiBufferSource, Identifier location, float overlayAlpha) {
-      BlockPos blockPos = BlockPos.containing(minecraft.player.getX(), minecraft.player.getEyeY(), minecraft.player.getZ());
-      float brightness = Lightmap.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
-      int color = ARGB.colorFromFloat(overlayAlpha, brightness, brightness, brightness);
-      float yawOffset = -minecraft.player.getYRot() / 64.0F;
-      float pitchOffset = minecraft.player.getXRot() / 64.0F;
-      Matrix4f matrix4f = poseStack.last().pose();
-      VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderTypes.blockScreenEffect(location));
-      vertexConsumer.addVertex(matrix4f, -1.0F, -1.0F, -0.5F).setUv(4.0F + yawOffset, 4.0F + pitchOffset).setColor(color);
-      vertexConsumer.addVertex(matrix4f, 1.0F, -1.0F, -0.5F).setUv(0.0F + yawOffset, 4.0F + pitchOffset).setColor(color);
-      vertexConsumer.addVertex(matrix4f, 1.0F, 1.0F, -0.5F).setUv(0.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
-      vertexConsumer.addVertex(matrix4f, -1.0F, 1.0F, -0.5F).setUv(4.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
-   }
-   //?}
 }

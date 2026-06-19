@@ -105,7 +105,11 @@ public class ListMatchHandlerTags extends ListMatchHandler {
    }
 
    private static Stream<TagKey<Item>> tagsOf(ItemStack stack) {
+      //? if >= 26.1 {
       return stack.typeHolder().tags();
+      //?} else {
+      /*return stack.getTags();
+      *///?}
    }
 
    private static Set<String> collectParts(ItemStack stack, ListMatchHandler.Type type) {

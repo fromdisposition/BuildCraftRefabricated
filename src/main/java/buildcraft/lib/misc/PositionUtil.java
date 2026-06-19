@@ -24,19 +24,35 @@ import net.minecraft.world.phys.Vec3;
 
 public class PositionUtil {
    public static ChunkPos chunkContaining(BlockPos pos) {
+      //? if >= 26.1 {
       return ChunkPos.containing(pos);
+      //?} else {
+      /*return new ChunkPos(pos);
+      *///?}
    }
 
    public static int chunkX(ChunkPos cp) {
+      //? if >= 26.1 {
       return cp.x();
+      //?} else {
+      /*return cp.x;
+      *///?}
    }
 
    public static int chunkZ(ChunkPos cp) {
+      //? if >= 26.1 {
       return cp.z();
+      //?} else {
+      /*return cp.z;
+      *///?}
    }
 
    public static long chunkPack(ChunkPos cp) {
+      //? if >= 26.1 {
       return cp.pack();
+      //?} else {
+      /*return cp.toLong();
+      *///?}
    }
 
    @Nullable

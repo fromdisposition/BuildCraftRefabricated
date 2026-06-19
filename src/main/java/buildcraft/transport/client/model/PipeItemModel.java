@@ -18,7 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import net.minecraft.client.multiplayer.ClientLevel;
+//? if >= 26.1 {
 import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
+//?} else {
+/*import net.minecraft.client.renderer.item.BlockModelWrapper;
+*///?}
 import net.minecraft.client.renderer.item.ItemModel;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
@@ -32,6 +36,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 import org.jspecify.annotations.Nullable;
 
@@ -41,16 +46,29 @@ public class PipeItemModel implements ItemModel {
    private final ItemModel vanillaDelegate;
    private final PipeDefinition definition;
    private final @Nullable ModelRenderProperties renderProperties;
+   // LayerRenderState.setExtents wants Supplier<Vector3fc[]> on 1.21.11 but Supplier<Vector3f[]> on 1.21.10.
+   //? if >= 1.21.11 {
    private final @Nullable Supplier<Vector3fc[]> extents;
+   //?} else {
+   /*private final @Nullable Supplier<Vector3f[]> extents;
+   *///?}
 
    @SuppressWarnings("unchecked")
    public PipeItemModel(ItemModel vanillaDelegate, PipeDefinition definition) {
       this.vanillaDelegate = vanillaDelegate;
       this.definition = definition;
+      //? if >= 26.1 {
       if (vanillaDelegate instanceof CuboidItemModelWrapper wrapper) {
+      //?} else {
+      /*if (vanillaDelegate instanceof BlockModelWrapper wrapper) {
+      *///?}
          try {
             this.renderProperties = (ModelRenderProperties)PROPERTIES_FIELD.get(wrapper);
+            //? if >= 1.21.11 {
             this.extents = (Supplier<Vector3fc[]>)EXTENTS_FIELD.get(wrapper);
+            //?} else {
+            /*this.extents = (Supplier<Vector3f[]>)EXTENTS_FIELD.get(wrapper);
+            *///?}
          } catch (IllegalAccessException e) {
             throw new RuntimeException("Failed to read CuboidItemModelWrapper bake data", e);
          }
@@ -96,7 +114,11 @@ public class PipeItemModel implements ItemModel {
       this.renderProperties.applyToLayer(overlayLayer, displayContext);
       int alpha = this.definition.flowType == PipeApi.flowFluids ? 0xFF000000 : 0x4C000000;
       int tintColour = alpha | ColourUtil.getLightHex(colour);
+      //? if >= 26.1 {
       overlayLayer.tintLayers().add(tintColour);
+      //?} else {
+      /*overlayLayer.prepareTintLayers(1)[0] = tintColour;
+      *///?}
    }
 
    private static List<BakedQuad> generateOverlayQuads(TextureAtlasSprite maskSprite) {
@@ -148,12 +170,32 @@ public class PipeItemModel implements ItemModel {
 
    static {
       try {
-         PROPERTIES_FIELD = CuboidItemModelWrapper.class.getDeclaredField("properties");
+         //? if >= 26.1 {
+         Class<?> wrapperClass = CuboidItemModelWrapper.class;
+         //?} else {
+         /*Class<?> wrapperClass = BlockModelWrapper.class;
+         *///?}
+         // Look the fields up BY TYPE, not by name: in 1.21.x production the runtime is
+         // intermediary-mapped, so the Mojang field name "properties" does not exist and a
+         // name-based getDeclaredField crashes model baking (black screen). Both the
+         // ModelRenderProperties field and the Supplier (extents) field are unique by type in
+         // CuboidItemModelWrapper (26.x) and BlockModelWrapper (1.21.x), so type lookup is
+         // mapping-independent and safe on every target.
+         PROPERTIES_FIELD = findFieldByType(wrapperClass, ModelRenderProperties.class);
+         EXTENTS_FIELD = findFieldByType(wrapperClass, Supplier.class);
          PROPERTIES_FIELD.setAccessible(true);
-         EXTENTS_FIELD = CuboidItemModelWrapper.class.getDeclaredField("extents");
          EXTENTS_FIELD.setAccessible(true);
       } catch (NoSuchFieldException e) {
-         throw new RuntimeException("Failed to access CuboidItemModelWrapper bake data", e);
+         throw new RuntimeException("Failed to access pipe item model bake data", e);
       }
+   }
+
+   private static Field findFieldByType(Class<?> owner, Class<?> type) throws NoSuchFieldException {
+      for (Field field : owner.getDeclaredFields()) {
+         if (field.getType() == type) {
+            return field;
+         }
+      }
+      throw new NoSuchFieldException("No field of type " + type.getName() + " in " + owner.getName());
    }
 }

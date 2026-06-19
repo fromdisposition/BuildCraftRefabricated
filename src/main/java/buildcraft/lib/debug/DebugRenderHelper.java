@@ -11,7 +11,7 @@ import buildcraft.lib.client.render.tile.RenderPartCube;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import buildcraft.lib.client.render.laser.LaserBatch;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -24,7 +24,7 @@ public final class DebugRenderHelper {
    private DebugRenderHelper() {
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*public static void renderTranslucentBox(PoseStack poseStack, AABB box, Vec3 cameraPos, int argb) {
       renderBox(poseStack, box, cameraPos, argb, BCLibRenderTypes.debugFilled());
    }
@@ -48,8 +48,8 @@ public final class DebugRenderHelper {
          cube.center.colouri(r, g, b, a);
          cube.render(pose, vc);
       });
-   }*/
-   //?} else {
+   }
+   *///?} else {
    public static void renderTranslucentBox(PoseStack poseStack, MultiBufferSource bufferSource, AABB box, Vec3 cameraPos, int argb) {
       renderBox(poseStack, bufferSource, box, cameraPos, argb, BCLibRenderTypes.debugFilled());
    }

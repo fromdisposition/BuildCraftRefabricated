@@ -16,9 +16,9 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-//? if >= 26.1.3 {
-/*import net.minecraft.world.entity.EntityTypes;*/
-//?}
+//? if >= 26.2 {
+/*import net.minecraft.world.entity.EntityTypes;
+*///?}
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -31,9 +31,9 @@ public abstract class EntityRobotBase extends LivingEntity {
    public static final long NULL_ROBOT_ID = Long.MAX_VALUE;
 
    public EntityRobotBase(Level par1World) {
-      //? if >= 26.1.3 {
-/*      super(EntityTypes.PIG, par1World);*/
-      //?} else {
+      //? if >= 26.2 {
+      /*super(EntityTypes.PIG, par1World);
+      *///?} else {
 super(EntityType.PIG, par1World);
       //?}
    }

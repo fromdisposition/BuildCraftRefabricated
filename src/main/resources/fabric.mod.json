@@ -40,13 +40,13 @@
     "buildcraft.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.19.3",
+    "fabricloader": ">=${loader_version}",
     "minecraft": "${mc_dep_range}",
-    "java": ">=25",
+    "java": ">=${java_version}",
     "fabric-api": ">=${fabric_api_version}"
   },
   "suggests": {
     "jei": "*",
-    "team_reborn_energy": ">=5.0.0"
+    "team_reborn_energy": ">=${energy_version}"
   }
 }

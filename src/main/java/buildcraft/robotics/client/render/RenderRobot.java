@@ -16,7 +16,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import buildcraft.lib.client.render.BCLibRenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
@@ -66,7 +66,7 @@ public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
       poseStack.translate(0.0, 0.25, 0.0);
       poseStack.mulPose(Axis.YP.rotationDegrees(-state.aimYaw));
 
-      RenderType body = RenderTypes.entityCutout(state.texture);
+      RenderType body = BCLibRenderTypes.entityCutout(state.texture);
       collector.submitCustomGeometry(poseStack, body, (pose, buffer) -> {
          for (Direction face : Direction.values()) {
             ModelUtil.createFace(face, CENTER, EXTENT, uvFor(face)).lighti(light).render(pose, buffer);
@@ -75,14 +75,14 @@ public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
 
       if (state.energy > 0.01F) {
          float alpha = Math.max(0.1F, Math.min(1.0F, state.energy));
-         RenderType sideOverlay = RenderTypes.entityTranslucentEmissive(OVERLAY_SIDE);
+         RenderType sideOverlay = BCLibRenderTypes.entityTranslucentEmissive(OVERLAY_SIDE);
          collector.submitCustomGeometry(poseStack, sideOverlay, (pose, buffer) -> {
             for (Direction face : Direction.values()) {
                ModelUtil.createFace(face, CENTER, EXTENT, uvFor(face)).colourf(1.0F, 1.0F, 1.0F, alpha).lighti(light).render(pose, buffer);
             }
          });
 
-         RenderType bottomOverlay = RenderTypes.entityTranslucentEmissive(OVERLAY_BOTTOM);
+         RenderType bottomOverlay = BCLibRenderTypes.entityTranslucentEmissive(OVERLAY_BOTTOM);
          collector.submitCustomGeometry(poseStack, bottomOverlay, (pose, buffer) -> {
             for (Direction face : Direction.values()) {
                ModelUtil.createFace(face, CENTER, EXTENT, uvFor(face)).colourf(1.0F, 1.0F, 1.0F, 1.0F).lighti(light).render(pose, buffer);

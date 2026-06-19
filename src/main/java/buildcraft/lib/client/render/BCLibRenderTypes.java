@@ -6,25 +6,36 @@
 
 package buildcraft.lib.client.render;
 
+//? if >= 26.1 {
 import com.mojang.blaze3d.pipeline.DepthStencilState;
+//?}
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.pipeline.RenderPipeline.Snippet;
 import java.util.function.Function;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.Sheets;
+//? if >= 1.21.11 {
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.rendertype.RenderSetup.OutlineProperty;
+//?} else {
+/*import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderType;
+*///?}
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 
 public final class BCLibRenderTypes {
    public static final RenderPipeline LED_PIPELINE = RenderPipeline.builder(new Snippet[]{RenderPipelines.DEBUG_FILLED_SNIPPET})
       .withLocation(Identifier.fromNamespaceAndPath("buildcraftlib", "pipeline/led"))
+      //? if >= 26.1 {
       .withDepthStencilState(DepthStencilState.DEFAULT)
+      //?}
       .build();
+
+   //? if >= 1.21.11 {
    private static final RenderType LED = RenderType.create(
       "buildcraft:led", RenderSetup.builder(LED_PIPELINE).setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).createRenderSetup()
    );
@@ -32,7 +43,11 @@ public final class BCLibRenderTypes {
    private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(
       texture -> RenderType.create(
          "buildcraft:entity_translucent_cull",
+         //? if >= 26.1 {
          RenderSetup.builder(RenderPipelines.ENTITY_TRANSLUCENT_CULL)
+         //?} else {
+         /*RenderSetup.builder(RenderPipelines.ENTITY_TRANSLUCENT)
+         *///?}
             .withTexture("Sampler0", texture)
             .useLightmap()
             .useOverlay()
@@ -42,13 +57,38 @@ public final class BCLibRenderTypes {
             .createRenderSetup()
       )
    );
+   //?} else {
+   /*// 1.21.10 uses the legacy RenderType.create(name, bufferSize[, crumbling, sort], pipeline, CompositeState) API;
+   // RenderSetup / RenderTypes / the rendertype.* package do not exist yet there.
+   private static final RenderType LED = RenderType.create(
+      "buildcraft:led", 1536, LED_PIPELINE,
+      RenderType.CompositeState.builder().setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING).createCompositeState(false)
+   );
+   private static final RenderType DEBUG_SOLID = RenderType.create(
+      "buildcraft:debug_solid", 1536, LED_PIPELINE, RenderType.CompositeState.builder().createCompositeState(false)
+   );
+   private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(
+      texture -> RenderType.create(
+         "buildcraft:entity_translucent_cull", 1536, true, true, RenderPipelines.ENTITY_TRANSLUCENT,
+         RenderType.CompositeState.builder()
+            .setTextureState(new RenderStateShard.TextureStateShard(texture, false))
+            .setLightmapState(RenderStateShard.LIGHTMAP)
+            .setOverlayState(RenderStateShard.OVERLAY)
+            .createCompositeState(false)
+      )
+   );
+   *///?}
 
    public static RenderType led() {
       return LED;
    }
 
    public static RenderType debugFilled() {
+      //? if >= 1.21.11 {
       return RenderTypes.debugFilledBox();
+      //?} else {
+      /*return RenderType.debugFilledBox();
+      *///?}
    }
 
    public static RenderType debugSolid() {
@@ -60,43 +100,94 @@ public final class BCLibRenderTypes {
    }
 
    public static RenderType entityCutout(Identifier texture) {
+      //? if >= 1.21.11 {
       return RenderTypes.entityCutout(texture);
+      //?} else {
+      /*return RenderType.entityCutout(texture);
+      *///?}
    }
 
    public static RenderType entityTranslucent(Identifier texture) {
+      //? if >= 1.21.11 {
       return RenderTypes.entityTranslucent(texture);
+      //?} else {
+      /*return RenderType.entityTranslucent(texture);
+      *///?}
    }
 
    public static RenderType entitySolid(Identifier texture) {
+      //? if >= 1.21.11 {
       return RenderTypes.entitySolid(texture);
+      //?} else {
+      /*return RenderType.entitySolid(texture);
+      *///?}
    }
 
    public static RenderType lines() {
+      //? if >= 1.21.11 {
       return RenderTypes.lines();
+      //?} else {
+      /*return RenderType.lines();
+      *///?}
+   }
+
+   public static RenderType entityTranslucentEmissive(Identifier texture) {
+      //? if >= 1.21.11 {
+      return RenderTypes.entityTranslucentEmissive(texture);
+      //?} else {
+      /*return RenderType.entityTranslucentEmissive(texture);
+      *///?}
+   }
+
+   public static RenderType blockScreenEffect(Identifier texture) {
+      //? if >= 1.21.11 {
+      return RenderTypes.blockScreenEffect(texture);
+      //?} else {
+      /*return RenderType.blockScreenEffect(texture);
+      *///?}
    }
 
    public static RenderType entityCutoutCull(Identifier texture) {
+      //? if >= 26.1 {
       return RenderTypes.entityCutoutCull(texture);
+      //?} else if >= 1.21.11 {
+      /*// 1.21.x entityCutout is already back-face culled; entityCutoutNoCull is the non-culled variant.
+      return RenderTypes.entityCutout(texture);
+      *///?} else {
+      /*return RenderType.entityCutout(texture);
+      *///?}
    }
 
    public static RenderType translucentItemSheet() {
+      //? if >= 1.21.11 {
       return Sheets.translucentBlockItemSheet();
+      //?} else {
+      /*// 1.21.10 has only translucentItemSheet() and it is already bound to the BLOCK atlas
+      // (the item/block translucent sheet split happened in 1.21.11).
+      return Sheets.translucentItemSheet();
+      *///?}
    }
 
    public static RenderType cutoutBlockSheet() {
-      //? if >= 26.1.3 {
-      /*return Sheets.cutoutBlockItemSheet();*/
-      //?} else {
+      //? if >= 26.2 {
+      /*return Sheets.cutoutBlockItemSheet();
+      *///?} else {
       return Sheets.cutoutBlockSheet();
       //?}
    }
 
    public static RenderType translucentBlockSheet() {
-      //? if >= 26.1.3 {
-      /*return Sheets.translucentBlockItemSheet();*/
-      //?} else {
+      //? if >= 26.2 {
+      /*return Sheets.translucentBlockItemSheet();
+      *///?} else if >= 26.1 {
       return Sheets.translucentBlockSheet();
-      //?}
+      //?} else if >= 1.21.11 {
+      /*// 1.21.11 translucentBlockItemSheet() is the BLOCK-atlas translucent type.
+      return Sheets.translucentBlockItemSheet();
+      *///?} else {
+      /*// 1.21.10 only has translucentItemSheet(), already bound to the BLOCK atlas.
+      return Sheets.translucentItemSheet();
+      *///?}
    }
 
    private BCLibRenderTypes() {

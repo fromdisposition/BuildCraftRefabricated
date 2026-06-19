@@ -181,8 +181,13 @@ public class GuidePageContents extends GuidePageBase {
          }
 
          if (GuiIcon.getGuiGraphics() != null) {
+            //? if >= 26.1 {
             this.searchText
                .extractRenderState(GuiIcon.getGuiGraphics().raw, (int)this.gui.mouse.getX(), (int)this.gui.mouse.getY(), this.gui.getLastPartialTicks());
+            //?} else {
+            /*this.searchText
+               .render(GuiIcon.getGuiGraphics().raw, (int)this.gui.mouse.getX(), (int)this.gui.mouse.getY(), this.gui.getLastPartialTicks());
+            *///?}
          }
 
          if (this.realResultCount >= 0) {

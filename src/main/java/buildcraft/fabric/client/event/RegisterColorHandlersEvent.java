@@ -11,7 +11,21 @@ public final class RegisterColorHandlersEvent {
 
    public static final class BlockTintSources {
       public void register(List<BlockTintSource> sources, Block block) {
+         //? if >= 26.1 {
          Minecraft.getInstance().getBlockColors().register(sources, block);
+         //?} else {
+         /*// 1.21.x registers a single BlockColor; dispatch by tint index into the source list.
+         Minecraft.getInstance().getBlockColors().register(
+            (state, level, pos, tintIndex) -> {
+               if (tintIndex < 0 || tintIndex >= sources.size()) {
+                  return -1;
+               }
+               BlockTintSource src = sources.get(tintIndex);
+               return level != null && pos != null ? src.colorInWorld(state, level, pos) : src.color(state);
+            },
+            block
+         );
+         *///?}
       }
    }
 }

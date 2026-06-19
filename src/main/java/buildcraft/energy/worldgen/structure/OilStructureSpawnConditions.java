@@ -111,8 +111,13 @@ public final class OilStructureSpawnConditions {
     */
    static int sectorRoll(ChunkPos chunkPos) {
       int sector = OilStructureDefaults.SLICE_SECTOR_CHUNKS;
+      //? if >= 26.1 {
       int sectorX = Math.floorDiv(chunkPos.x(), sector);
       int sectorZ = Math.floorDiv(chunkPos.z(), sector);
+      //?} else {
+      /*int sectorX = Math.floorDiv(chunkPos.x, sector);
+      int sectorZ = Math.floorDiv(chunkPos.z, sector);
+      *///?}
       long hash = sectorX * 341873128713L + sectorZ * 1327217883L + OilStructureDefaults.sectorRollSalt();
       return Math.floorMod(hash, 100);
    }

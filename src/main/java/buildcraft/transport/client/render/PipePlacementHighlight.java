@@ -18,9 +18,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-//? if >= 26.1.3 {
-/*import net.minecraft.client.renderer.SubmitNodeCollector;*/
-//?} else {
+//? if >= 26.2 {
+/*import net.minecraft.client.renderer.SubmitNodeCollector;
+*///?} else {
 import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 //?}
@@ -55,7 +55,7 @@ public final class PipePlacementHighlight {
    }
 
    @Nullable
-   private static VoxelShape previewShape(TilePipeHolder tile, BlockHitResult hit, LocalPlayer player) {
+   static VoxelShape previewShape(TilePipeHolder tile, BlockHitResult hit, LocalPlayer player) {
       ItemStack pluggableStack = heldStackOf(player, IItemPluggable.class);
       if (pluggableStack != null) {
          Direction face = BlockPipeHolder.resolveTargetFace(tile, hit);
@@ -84,7 +84,7 @@ public final class PipePlacementHighlight {
       return itemType.isInstance(off.getItem()) ? off : null;
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
       @Override
       public boolean render(
@@ -98,8 +98,8 @@ public final class PipePlacementHighlight {
          poseStack.popPose();
          return true;
       }
-   }*/
-   //?} else {
+   }
+   *///?} else {
    private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
       @Override
       public boolean render(
@@ -112,7 +112,12 @@ public final class PipePlacementHighlight {
          Vec3 cam = levelRenderState.cameraRenderState.pos;
          BlockPos pos = renderState.pos();
          VertexConsumer lines = buffer.getBuffer(BCLibRenderTypes.lines());
+         //? if >= 1.21.11 {
          ShapeRenderer.renderShape(poseStack, lines, this.shape, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102), 2.5F);
+         //?} else {
+         /*// 1.21.10 ShapeRenderer.renderShape has no line-width parameter.
+         ShapeRenderer.renderShape(poseStack, lines, this.shape, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102));
+         *///?}
          buffer.endLastBatch();
          return true;
       }

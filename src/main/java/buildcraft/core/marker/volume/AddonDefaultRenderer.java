@@ -12,7 +12,7 @@ import buildcraft.lib.client.render.BCLibRenderTypes;
 import buildcraft.lib.client.render.laser.LaserBatch;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.client.renderer.MultiBufferSource;
 //?}
@@ -32,15 +32,15 @@ public class AddonDefaultRenderer<T extends Addon> implements IFastAddonRenderer
       this.sprite = sprite;
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*@Override
    public void renderAddonFast(T addon, Player player, float partialTicks, PoseStack poseStack) {
       AABB bb = addon.getBoundingBox();
       LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE), (p, vc) -> {
          renderVertices(bb, p.pose(), vc);
       });
-   }*/
-   //?} else {
+   }
+   *///?} else {
    @Override
    public void renderAddonFast(T addon, Player player, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource) {
       VertexConsumer builder = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE));

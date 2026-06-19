@@ -10,7 +10,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+//? if >= 26.1 {
 import net.minecraft.client.resources.model.sprite.SpriteId;
+//?} else {
+/*import net.minecraft.client.resources.model.sprite.Material;
+*///?}
 import net.minecraft.data.AtlasIds;
 import net.minecraft.resources.Identifier;
 
@@ -18,7 +22,12 @@ public final class BcTextureAtlases {
    public static final Identifier BLOCKS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/blocks.png");
    public static final Identifier ITEMS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/items.png");
    public static final Identifier BLOCKS = AtlasIds.BLOCKS;
+   //? if >= 1.21.11 {
    public static final Identifier ITEMS = AtlasIds.ITEMS;
+   //?} else {
+   /*// 1.21.10 has no separate items atlas (added in 1.21.11); item sprites live on the block atlas.
+   public static final Identifier ITEMS = AtlasIds.BLOCKS;
+   *///?}
 
    private BcTextureAtlases() {
    }
@@ -40,9 +49,15 @@ public final class BcTextureAtlases {
       return isMissing(sprite) ? guiAtlas(minecraft).getSprite(MissingTextureAtlasSprite.getLocation()) : sprite;
    }
 
+   //? if >= 26.1 {
    public static SpriteId blockSpriteId(Identifier texture) {
       return new SpriteId(BLOCKS_TEXTURE, blockSpriteIdCandidate(texture));
    }
+   //?} else {
+   /*public static Material blockSpriteId(Identifier texture) {
+      return new Material(BLOCKS_TEXTURE, blockSpriteIdCandidate(texture));
+   }
+   *///?}
 
    public static boolean isMissing(TextureAtlasSprite sprite) {
       return sprite.contents().name().equals(MissingTextureAtlasSprite.getLocation());
@@ -91,7 +106,7 @@ public final class BcTextureAtlases {
    }
 
    private static TextureAtlas itemsAtlas(Minecraft minecraft) {
-      return minecraft.getAtlasManager().getAtlasOrThrow(AtlasIds.ITEMS);
+      return minecraft.getAtlasManager().getAtlasOrThrow(ITEMS);
    }
 
    private static TextureAtlas guiAtlas(Minecraft minecraft) {

@@ -7,7 +7,7 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import buildcraft.lib.client.render.BCLibRenderTypes;
 import net.minecraft.world.level.material.Fluid;
 import org.jspecify.annotations.Nullable;
 
@@ -44,8 +44,8 @@ public final class BcFluidAppearanceCache {
 
    public static RenderType renderType(BcFluidAppearance appearance) {
       return appearance.translucent()
-         ? RenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE)
-         : RenderTypes.entityCutout(BcTextureAtlases.BLOCKS_TEXTURE);
+         ? BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE)
+         : BCLibRenderTypes.entityCutout(BcTextureAtlases.BLOCKS_TEXTURE);
    }
 
    public static void clear() {

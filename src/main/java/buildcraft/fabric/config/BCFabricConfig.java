@@ -88,7 +88,6 @@ public final class BCFabricConfig {
 
    private static void applyCore(JsonObject core) {
       if (core != null) {
-         BCCoreConfig.worldGen.set(bool(core, "worldGen", BCCoreConfig.worldGen.get()));
          BCCoreConfig.hidePower.set(bool(core, "hidePowerValues", BCCoreConfig.hidePower.get()));
          BCCoreConfig.hideFluid.set(bool(core, "hideFluidValues", BCCoreConfig.hideFluid.get()));
          BCCoreConfig.minePlayerProtected.set(bool(core, "minePlayerProtected", BCCoreConfig.minePlayerProtected.get()));
@@ -220,6 +219,7 @@ public final class BCFabricConfig {
          return;
       }
 
+      BCCoreConfig.worldGen.set(bool(generator, "worldGen", BCCoreConfig.worldGen.get()));
       BCEnergyConfig.enableOilOnWater.set(bool(generator, "enableOilOnWater", BCEnergyConfig.enableOilOnWater.get()));
       BCEnergyConfig.enableOilGeneration.set(bool(generator, "enableOilGeneration", BCEnergyConfig.enableOilGeneration.get()));
       BCEnergyConfig.enableOilSprings.set(bool(generator, "enableOilSprings", BCEnergyConfig.enableOilSprings.get()));
@@ -264,7 +264,6 @@ public final class BCFabricConfig {
    private static JsonObject defaults() {
       JsonObject root = new JsonObject();
       JsonObject core = new JsonObject();
-      core.addProperty("worldGen", true);
       core.addProperty("hidePowerValues", false);
       core.addProperty("hideFluidValues", false);
       core.addProperty("minePlayerProtected", false);
@@ -299,6 +298,7 @@ public final class BCFabricConfig {
       energy.addProperty("useRfNaming", false);
       energy.addProperty("useFullUnitNames", true);
       JsonObject generator = new JsonObject();
+      generator.addProperty("worldGen", true);
       generator.addProperty("enableOilGeneration", true);
       generator.addProperty("enableOilOnWater", true);
       generator.addProperty("enableOilSprings", true);

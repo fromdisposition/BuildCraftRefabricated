@@ -17,11 +17,11 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import buildcraft.lib.client.render.laser.LaserBatch;
 import net.minecraft.client.Minecraft;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 //?}
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import buildcraft.lib.client.render.BCLibRenderTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
@@ -54,11 +54,11 @@ public final class BuilderRobotVisualRenderer {
    }
 
    private static void renderRobotCube(Minecraft mc, PoseStack poseStack, Vec3 cameraPos, Vec3 robotPos) {
-      //? if >= 26.1.3 {
+      //? if >= 26.2 {
       /*poseStack.pushPose();
       poseStack.translate(robotPos.x - cameraPos.x, robotPos.y - cameraPos.y, robotPos.z - cameraPos.z);
       int worldLight = BcLaserRenderer.computeLightmap(robotPos.x, robotPos.y, robotPos.z, 0);
-      LaserBatch.submitGeometry(poseStack, RenderTypes.entityTranslucent(BCBuildersSprites.ROBOT.getAtlasLocation()), (pose, vc) -> {
+      LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BCBuildersSprites.ROBOT.getAtlasLocation()), (pose, vc) -> {
          int i = 0;
          for (Direction face : Direction.values()) {
             ModelUtil.createFace(
@@ -77,10 +77,10 @@ public final class BuilderRobotVisualRenderer {
             i++;
          }
       });
-      poseStack.popPose();*/
-      //?} else {
+      poseStack.popPose();
+      *///?} else {
       BufferSource bufferSource = mc.renderBuffers().bufferSource();
-      VertexConsumer buffer = bufferSource.getBuffer(RenderTypes.entityTranslucent(BCBuildersSprites.ROBOT.getAtlasLocation()));
+      VertexConsumer buffer = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(BCBuildersSprites.ROBOT.getAtlasLocation()));
       poseStack.pushPose();
       poseStack.translate(robotPos.x - cameraPos.x, robotPos.y - cameraPos.y, robotPos.z - cameraPos.z);
       int worldLight = BcLaserRenderer.computeLightmap(robotPos.x, robotPos.y, robotPos.z, 0);

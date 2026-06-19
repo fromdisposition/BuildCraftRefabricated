@@ -1,6 +1,7 @@
 package buildcraft.energy.platform;
 
 import buildcraft.api.enums.EnumSpring;
+import buildcraft.core.BCCoreConfig;
 import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.energy.BCEnergyBlockEntities;
@@ -46,7 +47,7 @@ public final class BCEnergyFabric {
    }
 
    private static void applySpringConfig() {
-      EnumSpring.OIL.canGen = BCEnergyConfig.enableOilSprings.get();
+      EnumSpring.OIL.canGen = BCCoreConfig.worldGen.get() && BCEnergyConfig.enableOilSprings.get();
       BCEnergyConfig.refreshWaterSpringFlag();
    }
 

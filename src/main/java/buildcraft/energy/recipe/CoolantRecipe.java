@@ -8,6 +8,7 @@ package buildcraft.energy.recipe;
 
 import buildcraft.energy.BCEnergyRecipeSerializers;
 import buildcraft.energy.BCEnergyRecipeTypes;
+import buildcraft.lib.recipe.BcRecipeSerializers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -43,7 +44,7 @@ public record CoolantRecipe(
       CoolantRecipe::new
    );
 
-   public static final RecipeSerializer<CoolantRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+   public static final RecipeSerializer<CoolantRecipe> SERIALIZER = BcRecipeSerializers.of(MAP_CODEC, STREAM_CODEC);
 
    @Override
    public boolean matches(SingleRecipeInput in, Level level) {
@@ -51,7 +52,11 @@ public record CoolantRecipe(
    }
 
    @Override
+   //? if >= 26.1 {
    public ItemStack assemble(SingleRecipeInput in) {
+   //?} else {
+   /*public ItemStack assemble(SingleRecipeInput in, net.minecraft.core.HolderLookup.Provider provider) {
+   *///?}
       return ItemStack.EMPTY;
    }
 

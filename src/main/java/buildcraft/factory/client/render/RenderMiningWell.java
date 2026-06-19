@@ -16,10 +16,14 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import buildcraft.lib.client.render.BCLibRenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+//? if >= 26.1 {
 import net.minecraft.client.resources.model.sprite.SpriteId;
+//?} else {
+/*import net.minecraft.client.resources.model.sprite.Material;
+*///?}
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
@@ -35,7 +39,11 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, Min
    private final TextureAtlasSprite shaftSprite;
 
    public RenderMiningWell(Context context) {
+      //? if >= 26.1 {
       this.shaftSprite = context.sprites().get(new SpriteId(BLOCKS_ATLAS_TEXTURE, SHAFT_TEXTURE));
+      //?} else {
+      /*this.shaftSprite = context.materials().get(new Material(BLOCKS_ATLAS_TEXTURE, SHAFT_TEXTURE));
+      *///?}
    }
 
    public MiningWellRenderState createRenderState() {
@@ -66,7 +74,7 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, Min
       LedRenderUtil.submit(poseStack, collector, LED_STATUS, skipFace, renderState.statusColour);
 
       if (renderState.shaftLength > 0.0) {
-         collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(BLOCKS_ATLAS_TEXTURE), (pose, buffer) -> MinerShaftBer.renderShaft(
+         collector.submitCustomGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BLOCKS_ATLAS_TEXTURE), (pose, buffer) -> MinerShaftBer.renderShaft(
             pose, buffer, renderState.blockPos, this.shaftSprite, (float)renderState.shaftLength
          ));
       }

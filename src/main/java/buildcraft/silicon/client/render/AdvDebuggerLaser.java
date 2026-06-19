@@ -12,7 +12,7 @@ import buildcraft.silicon.BCSiliconBlocks;
 import buildcraft.silicon.block.BlockLaser;
 import buildcraft.silicon.tile.TileLaser;
 import com.mojang.blaze3d.vertex.PoseStack;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.client.renderer.MultiBufferSource;
 //?}
@@ -31,7 +31,7 @@ public final class AdvDebuggerLaser {
    private AdvDebuggerLaser() {
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    //?} else {
    public static void render(TileLaser tile, PoseStack poseStack, MultiBufferSource bufferSource, Vec3 cameraPos) {
       Level level = tile.getLevel();

@@ -19,13 +19,15 @@ plugins {
 }
 
 extensions.configure<dev.kikugie.loomx.LoomCompatSettingsExtension>("loomx") {
-    loomVersion = "1.16-SNAPSHOT"
+    loomVersion = "1.17-SNAPSHOT"
     loomRemapPlugin = "net.fabricmc.fabric-loom-remap"
     loomUnobfPlugin = "net.fabricmc.fabric-loom"
 }
 
 stonecutter {
     create(rootProject) {
+        version("1.21.10", "1.21.10")
+        version("1.21.11", "1.21.11")
         version("26.1", "26.1.2")
         version("26.2", "26.2")
         vcsVersion = "26.1"

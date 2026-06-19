@@ -91,8 +91,13 @@ public class PipeBlockColourHandler {
             }
 
             BlockState wrappedState = (BlockState)wrapped;
+            //? if >= 26.1 {
             BlockTintSource wrappedSource = Minecraft.getInstance().getBlockColors().getTintSource(wrappedState, this.wrappedTintIndex);
             return wrappedSource == null ? -1 : 0xFF000000 | wrappedSource.colorInWorld(wrappedState, level, pos);
+            //?} else {
+            /*// 1.21.x BlockColors exposes only the resolved colour, not the per-index source.
+            return 0xFF000000 | Minecraft.getInstance().getBlockColors().getColor(wrappedState, level, pos, this.wrappedTintIndex);
+            *///?}
          } else {
             return -1;
          }

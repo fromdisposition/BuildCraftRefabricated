@@ -42,9 +42,9 @@ public class RenderEngine_BC8 extends BcBlockEntityRenderer<TileEngineBase_BC8, 
             poseStack.pushPose();
             int light = state.light;
             BcBerRenderUtil.submit(poseStack, collector,
-               //? if >= 26.1.3 {
-               /*Sheets.cutoutBlockItemSheet(),*/
-               //?} else {
+               //? if >= 26.2 {
+               /*Sheets.cutoutBlockItemSheet(),
+               *///?} else {
                Sheets.cutoutBlockSheet(),
                //?}
                (pose, buffer) -> {

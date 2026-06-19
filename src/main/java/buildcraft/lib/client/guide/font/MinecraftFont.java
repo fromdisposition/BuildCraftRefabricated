@@ -101,7 +101,7 @@ public enum MinecraftFont implements IFontRenderer {
          && a.isObfuscated() == b.isObfuscated();
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*private static void appendLegacyCodes(StringBuilder sb, Style style) {
       sb.append(ChatFormatting.PREFIX_CODE).append('r');
       TextColor color = style.getColor();
@@ -119,8 +119,8 @@ public enum MinecraftFont implements IFontRenderer {
       if (style.isUnderlined()) sb.append(ChatFormatting.PREFIX_CODE).append('n');
       if (style.isStrikethrough()) sb.append(ChatFormatting.PREFIX_CODE).append('m');
       if (style.isObfuscated()) sb.append(ChatFormatting.PREFIX_CODE).append('k');
-   }*/
-   //?} else {
+   }
+   *///?} else {
    private static void appendLegacyCodes(StringBuilder sb, Style style) {
       sb.append('§').append(ChatFormatting.RESET.getChar());
       TextColor color = style.getColor();

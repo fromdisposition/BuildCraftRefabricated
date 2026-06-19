@@ -17,17 +17,25 @@ public final class FluidVariants {
    private FluidVariants() {
    }
 
+   private static net.minecraft.core.component.DataComponentPatch componentsOf(FluidVariant variant) {
+      //? if >= 26.1 {
+      return variant.getComponentsPatch();
+      //?} else {
+      /*return variant.getComponents();
+      *///?}
+   }
+
    public static FluidVariant toVariant(FluidStack stack) {
       return stack.isEmpty() ? FluidVariant.blank() : FluidVariant.of(stack.getFluid(), stack.getComponentsPatch());
    }
 
    public static FluidStack toStack(FluidVariant variant) {
-      return variant.isBlank() ? FluidStack.EMPTY : new FluidStack(variant.getFluid(), 1, variant.getComponentsPatch());
+      return variant.isBlank() ? FluidStack.EMPTY : new FluidStack(variant.getFluid(), 1, componentsOf(variant));
    }
 
    public static FluidStack toStack(FluidVariant variant, long droplets) {
       return !variant.isBlank() && droplets > 0L
-         ? new FluidStack(variant.getFluid(), TransferCommits.saturateMb(dropletsToMb(droplets)), variant.getComponentsPatch())
+         ? new FluidStack(variant.getFluid(), TransferCommits.saturateMb(dropletsToMb(droplets)), componentsOf(variant))
          : FluidStack.EMPTY;
    }
 

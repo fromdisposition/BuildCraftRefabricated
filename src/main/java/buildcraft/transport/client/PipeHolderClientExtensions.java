@@ -27,7 +27,9 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+//? if >= 26.1 {
 import net.minecraft.client.resources.model.sprite.Material.Baked;
+//?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -67,12 +69,14 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
          if (states != null && states.length > 0) {
             BlockState state = states[0].getState().getBlockState();
             if (state != null) {
+               //? if >= 26.1 {
                Baked particleMaterial = Minecraft.getInstance().getModelManager().getBlockStateModelSet().getParticleMaterial(state);
-               if (particleMaterial != null) {
-                  TextureAtlasSprite sprite = particleMaterial.sprite();
-                  if (sprite != null && sprite != SpriteUtil.missingSprite()) {
-                     return sprite;
-                  }
+               TextureAtlasSprite sprite = particleMaterial != null ? particleMaterial.sprite() : null;
+               //?} else {
+               /*TextureAtlasSprite sprite = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getBlockModel(state).particleIcon();
+               *///?}
+               if (sprite != null && sprite != SpriteUtil.missingSprite()) {
+                  return sprite;
                }
             }
          }
@@ -91,7 +95,11 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
          }
 
          if (quads != null && !quads.isEmpty()) {
+            //? if >= 26.1 {
             TextureAtlasSprite quadSprite = quads.get(0).materialInfo().sprite();
+            //?} else {
+            /*TextureAtlasSprite quadSprite = quads.get(0).sprite();
+            *///?}
             if (quadSprite != null) {
                return quadSprite;
             }
@@ -104,8 +112,12 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
                this.renderState.clear();
                ItemModelResolver resolver = mc.getItemModelResolver();
                resolver.appendItemLayers(this.renderState, stack, ItemDisplayContext.GUI, mc.level, null, 0);
+               //? if >= 26.1 {
                Baked particleMat = this.renderState.pickParticleMaterial(mc.level.getRandom());
                TextureAtlasSprite sprite = particleMat != null ? particleMat.sprite() : null;
+               //?} else {
+               /*TextureAtlasSprite sprite = this.renderState.pickParticleIcon(mc.level.getRandom());
+               *///?}
                if (sprite != null && sprite != SpriteUtil.missingSprite()) {
                   return sprite;
                }
@@ -359,7 +371,11 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
       }
 
       protected Layer getLayer() {
+         //? if >= 26.1 {
          return Layer.OPAQUE_TERRAIN;
+         //?} else {
+         /*return Layer.TERRAIN;
+         *///?}
       }
    }
 }

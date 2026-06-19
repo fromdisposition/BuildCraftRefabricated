@@ -33,7 +33,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+//? if >= 26.1 {
 import net.minecraft.world.item.ItemStackTemplate;
+//?}
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -138,8 +140,12 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
                this.fuelStack = ItemStack.EMPTY;
             }
 
+            //? if >= 26.1 {
             ItemStackTemplate containerTemplate = consumed.getItem().getCraftingRemainder();
             ItemStack container = containerTemplate != null ? containerTemplate.create() : ItemStack.EMPTY;
+            //?} else {
+            /*ItemStack container = consumed.getItem().getCraftingRemainder();
+            *///?}
             if (!container.isEmpty()) {
                if (this.fuelStack.isEmpty()) {
                   this.fuelStack = container;

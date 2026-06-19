@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.client.Minecraft;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 //?}
@@ -43,7 +43,7 @@ public class VolumeBoxRenderer {
          if (player != null) {
             poseStack.pushPose();
             poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
-            //? if >= 26.1.3 {
+            //? if >= 26.2 {
             /*for (VolumeBox volumeBox : ClientVolumeBoxes.INSTANCE.volumeBoxes) {
                for (Addon addon : volumeBox.addons.values()) {
                   if (addon != null) {
@@ -52,8 +52,8 @@ public class VolumeBoxRenderer {
                      renderer.renderAddonFast(addon, player, 1.0F, poseStack);
                   }
                }
-            }*/
-            //?} else {
+            }
+            *///?} else {
             BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
 
             for (VolumeBox volumeBox : ClientVolumeBoxes.INSTANCE.volumeBoxes) {

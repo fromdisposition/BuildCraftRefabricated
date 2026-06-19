@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 //?}
@@ -69,7 +69,7 @@ public final class BcLaserRenderer {
       renderLasersBatched(poseStack, List.of(data), cameraPos);
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*public static void renderLasersBatched(PoseStack poseStack, List<LaserData_BC8> lasers, Vec3 cameraPos) {
       if (!lasers.isEmpty()) {
          LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE), (pose, vc) -> {
@@ -78,8 +78,8 @@ public final class BcLaserRenderer {
             }
          });
       }
-   }*/
-   //?} else {
+   }
+   *///?} else {
    public static void renderLasersBatched(PoseStack poseStack, List<LaserData_BC8> lasers, Vec3 cameraPos) {
       if (!lasers.isEmpty()) {
          BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();

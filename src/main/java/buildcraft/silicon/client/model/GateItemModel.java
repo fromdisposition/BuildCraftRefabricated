@@ -32,9 +32,9 @@ public class GateItemModel implements ItemModel {
    private static final GateItemModel.ContextXform DEFAULT_XFORM = new GateItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.8F);
    private static final EnumMap<ItemDisplayContext, GateItemModel.ContextXform> XFORMS = new EnumMap<>(ItemDisplayContext.class);
    private static final LoadingCache<GateItemModel.CacheKey, List<BakedQuad>> cache = CacheBuilder.newBuilder()
-      //? if >= 26.1.3 {
-      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))*/
-      //?} else {
+      //? if >= 26.2 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))
+      *///?} else {
       .expireAfterAccess(1L, TimeUnit.MINUTES)
       //?}
       .build(CacheLoader.from(key -> {
@@ -98,6 +98,11 @@ public class GateItemModel implements ItemModel {
             renderState.appendModelIdentityElement(displayContext);
             LayerRenderState layer = renderState.newLayer();
             layer.prepareQuadList().addAll(quads);
+            // 1.21.x needs an explicit render type or the item layer draws nothing (baked quads carry no
+            // layer there). 26.x derives it per-quad and has no setRenderType — gated to 1.21.x only.
+            //? if < 26.1 {
+            /*layer.setRenderType(buildcraft.lib.client.render.BCLibRenderTypes.cutoutBlockSheet());
+            *///?}
          }
       }
    }

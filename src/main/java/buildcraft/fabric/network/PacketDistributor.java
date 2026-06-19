@@ -22,7 +22,11 @@ public final class PacketDistributor {
    }
 
    public static void sendToPlayersInDimension(ServerLevel level, CustomPacketPayload payload) {
+      //? if >= 26.1 {
       for (ServerPlayer player : PlayerLookup.level(level)) {
+      //?} else {
+      /*for (ServerPlayer player : PlayerLookup.world(level)) {
+      *///?}
          ServerPlayNetworking.send(player, payload);
       }
    }

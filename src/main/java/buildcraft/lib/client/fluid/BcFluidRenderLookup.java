@@ -12,15 +12,21 @@ import buildcraft.fabric.BCEnergyFluidsFabric;
 import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fabric.transfer.fluid.FluidVariants;
+//? if >= 26.1 {
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
+//?} else {
+/*import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+*///?}
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
+//? if >= 26.1 {
 import net.minecraft.client.renderer.block.FluidModel;
+import net.minecraft.client.resources.model.sprite.Material.Baked;
+//?}
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.sprite.Material.Baked;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
@@ -54,11 +60,13 @@ public final class BcFluidRenderLookup {
       return resolveBakedSprite(fluid, kind);
    }
 
+   //? if >= 26.1 {
    private static FluidModel modelFor(Fluid fluid) {
       Minecraft minecraft = Minecraft.getInstance();
       FluidState state = fluid.defaultFluidState();
       return minecraft.getModelManager().getFluidStateModelSet().get(state);
    }
+   //?}
 
    public static int tint(FluidStack stack) {
       if (stack == null || stack.isEmpty()) {
@@ -83,10 +91,19 @@ public final class BcFluidRenderLookup {
          return missingSprite();
       }
 
+      //? if >= 26.1 {
       FluidModel model = modelFor(canonical);
       Baked material = kind == SpriteKind.FLOWING ? model.flowingMaterial() : model.stillMaterial();
       TextureAtlasSprite sprite = material.sprite();
       return sprite != null ? sprite : missingSprite();
+      //?} else {
+      /*// 1.21.x: pull the still/flow sprite straight from the registered Fabric fluid render handler.
+      TextureAtlasSprite[] sprites = FluidRenderHandlerRegistry.INSTANCE
+         .get(canonical)
+         .getFluidSprites(null, null, canonical.defaultFluidState());
+      TextureAtlasSprite sprite = sprites[kind == SpriteKind.FLOWING ? 1 : 0];
+      return sprite != null ? sprite : missingSprite();
+      *///?}
    }
 
    public static int itemMaskTint(FluidStack stack, @Nullable BlockAndTintGetter level) {
@@ -170,7 +187,11 @@ public final class BcFluidRenderLookup {
       }
 
       Block block = canonical.defaultFluidState().createLegacyBlock().getBlock();
+      //? if >= 26.1 {
       return FluidRenderingRegistry.isBlockTransparent(block);
+      //?} else {
+      /*return FluidRenderHandlerRegistry.INSTANCE.isBlockTransparent(block);
+      *///?}
    }
 
    public static float[] vertexRgba(FluidStack stack) {

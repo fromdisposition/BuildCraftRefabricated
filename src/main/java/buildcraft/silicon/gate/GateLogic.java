@@ -229,8 +229,9 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
    }
 
    public GateLogic(PluggableGate pluggable, FriendlyByteBuf buffer) {
+      // this(...) must be the first statement on Java 21 (no flexible constructors).
+      this(pluggable, new GateVariant(BcPayloadBuffers.ensure(buffer)));
       PacketBufferBC bc = BcPayloadBuffers.ensure(buffer);
-      this(pluggable, new GateVariant(bc));
       readBoolArray(bc, this.triggerOn);
       readBoolArray(bc, this.actionOn);
       readBoolArray(bc, this.connections);

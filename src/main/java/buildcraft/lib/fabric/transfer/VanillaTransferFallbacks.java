@@ -1,6 +1,10 @@
 package buildcraft.lib.fabric.transfer;
 
+//? if >= 26.1 {
 import net.fabricmc.fabric.api.transfer.v1.item.ContainerStorage;
+//?} else {
+/*import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+*///?}
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -40,6 +44,10 @@ public final class VanillaTransferFallbacks {
          container = ChestBlock.getContainer(chestBlock, state, level, pos, true);
       }
 
+      //? if >= 26.1 {
       return container == null ? null : ContainerStorage.of(container, side);
+      //?} else {
+      /*return container == null ? null : InventoryStorage.of(container, side);
+      *///?}
    }
 }

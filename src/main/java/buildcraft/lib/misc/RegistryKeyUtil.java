@@ -11,7 +11,12 @@ import net.minecraft.resources.ResourceKey;
 
 public final class RegistryKeyUtil {
    public static Identifier id(ResourceKey<?> key) {
+      //? if >= 1.21.11 {
       return key.identifier();
+      //?} else {
+      /*// ResourceKey.location() was renamed to identifier() in 1.21.11.
+      return key.location();
+      *///?}
    }
 
    private RegistryKeyUtil() {

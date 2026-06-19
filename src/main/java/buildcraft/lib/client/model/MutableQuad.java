@@ -10,12 +10,16 @@ import buildcraft.lib.client.model.quad.BakedColors;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import net.minecraft.client.model.geom.builders.UVPair;
+//? if >= 26.1 {
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+//?}
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+//? if >= 26.1 {
 import net.minecraft.client.resources.model.geometry.BakedQuad.MaterialInfo;
+//?}
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.Vec3;
@@ -126,6 +130,7 @@ public class MutableQuad {
    }
 
    public BakedQuad toBakedBlock() {
+      //? if >= 26.1 {
       MaterialInfo matInfo = new MaterialInfo(
          this.sprite, ChunkSectionLayer.CUTOUT, Sheets.cutoutBlockItemSheet(), this.tintIndex, this.shade, this.lightEmission
       );
@@ -141,9 +146,37 @@ public class MutableQuad {
          this.face,
          matInfo
       );
+      //?} else if >= 1.21.11 {
+      /*// 1.21.11 BakedQuad stores sprite/tint/shade/light directly; the render layer is decided by the
+      // model/renderer, not the quad, so cutout and translucent build the same quad here.
+      return new BakedQuad(
+         this.vertex_0.positionvf(),
+         this.vertex_1.positionvf(),
+         this.vertex_2.positionvf(),
+         this.vertex_3.positionvf(),
+         UVPair.pack(this.vertex_0.tex_u, this.vertex_0.tex_v),
+         UVPair.pack(this.vertex_1.tex_u, this.vertex_1.tex_v),
+         UVPair.pack(this.vertex_2.tex_u, this.vertex_2.tex_v),
+         UVPair.pack(this.vertex_3.tex_u, this.vertex_3.tex_v),
+         this.tintIndex,
+         this.face,
+         this.sprite,
+         this.shade,
+         this.lightEmission
+      );
+      *///?} else {
+      /*// 1.21.10 BakedQuad still uses the legacy int[] vertex array (8 ints/vertex).
+      int[] data = new int[32];
+      this.vertex_0.toBakedBlock(data, 0);
+      this.vertex_1.toBakedBlock(data, 8);
+      this.vertex_2.toBakedBlock(data, 16);
+      this.vertex_3.toBakedBlock(data, 24);
+      return new BakedQuad(data, this.tintIndex, this.face, this.sprite, this.shade, this.lightEmission);
+      *///?}
    }
 
    public BakedQuad toBakedTranslucent() {
+      //? if >= 26.1 {
       MaterialInfo matInfo = new MaterialInfo(
          this.sprite, ChunkSectionLayer.TRANSLUCENT, Sheets.translucentBlockItemSheet(), this.tintIndex, this.shade, this.lightEmission
       );
@@ -159,6 +192,30 @@ public class MutableQuad {
          this.face,
          matInfo
       );
+      //?} else if >= 1.21.11 {
+      /*return new BakedQuad(
+         this.vertex_0.positionvf(),
+         this.vertex_1.positionvf(),
+         this.vertex_2.positionvf(),
+         this.vertex_3.positionvf(),
+         UVPair.pack(this.vertex_0.tex_u, this.vertex_0.tex_v),
+         UVPair.pack(this.vertex_1.tex_u, this.vertex_1.tex_v),
+         UVPair.pack(this.vertex_2.tex_u, this.vertex_2.tex_v),
+         UVPair.pack(this.vertex_3.tex_u, this.vertex_3.tex_v),
+         this.tintIndex,
+         this.face,
+         this.sprite,
+         this.shade,
+         this.lightEmission
+      );
+      *///?} else {
+      /*int[] data = new int[32];
+      this.vertex_0.toBakedBlock(data, 0);
+      this.vertex_1.toBakedBlock(data, 8);
+      this.vertex_2.toBakedBlock(data, 16);
+      this.vertex_3.toBakedBlock(data, 24);
+      return new BakedQuad(data, this.tintIndex, this.face, this.sprite, this.shade, this.lightEmission);
+      *///?}
    }
 
    public BakedQuad toBakedItem() {
@@ -189,15 +246,31 @@ public class MutableQuad {
 
    public MutableQuad fromBakedBlock(BakedQuad quad) {
       this.face = quad.direction();
+      //? if >= 26.1 {
       MaterialInfo mat = quad.materialInfo();
       this.tintIndex = mat.tintIndex();
       this.sprite = mat.sprite();
       this.shade = mat.shade();
       this.lightEmission = mat.lightEmission();
+      //?} else {
+      /*this.tintIndex = quad.tintIndex();
+      this.sprite = quad.sprite();
+      this.shade = quad.shade();
+      this.lightEmission = quad.lightEmission();
+      *///?}
+      //? if >= 1.21.11 {
       readVertexFromBaked(this.vertex_0, quad.position0(), quad.packedUV0());
       readVertexFromBaked(this.vertex_1, quad.position1(), quad.packedUV1());
       readVertexFromBaked(this.vertex_2, quad.position2(), quad.packedUV2());
       readVertexFromBaked(this.vertex_3, quad.position3(), quad.packedUV3());
+      //?} else {
+      /*// 1.21.10 BakedQuad exposes the legacy int[] vertex array (8 ints/vertex).
+      int[] data = quad.vertices();
+      readVertexFromBakedArray(this.vertex_0, data, 0);
+      readVertexFromBakedArray(this.vertex_1, data, 8);
+      readVertexFromBakedArray(this.vertex_2, data, 16);
+      readVertexFromBakedArray(this.vertex_3, data, 24);
+      *///?}
       return this;
    }
 

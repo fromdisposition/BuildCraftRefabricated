@@ -9,7 +9,7 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
-//? if >= 26.1.3 {
+//? if >= 26.2 {
 //?} else {
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 //?}
@@ -21,14 +21,14 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
  * is a fixed bridge ({@code template 100+}) from Y {@code -11} up to the terrain-relative shaft ({@code template -11..-1}).
  * Bridge must be handled before the surface gravity pass-through ({@code templateY >= 0}).
  */
-//? if >= 26.1.3 {
-/*public final class OilWellProjectionProcessor implements StructureProcessor {*/
-//?} else {
+//? if >= 26.2 {
+/*public final class OilWellProjectionProcessor implements StructureProcessor {
+*///?} else {
 public final class OilWellProjectionProcessor extends StructureProcessor {
 //?}
    public static final MapCodec<OilWellProjectionProcessor> CODEC = MapCodec.unit(OilWellProjectionProcessor::new);
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    /*@Override
    public MapCodec<OilWellProjectionProcessor> codec() {
       return CODEC;
@@ -43,8 +43,8 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
       final StructureTemplate.StructureBlockInfo processedBlockInfo,
       final StructurePlaceSettings settings
    ) {
-      int templateY = originalPos.getY();*/
-   //?} else {
+      int templateY = originalPos.getY();
+   *///?} else {
    @Override
    public StructureTemplate.StructureBlockInfo processBlock(
       final LevelReader level,
@@ -163,7 +163,7 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
       return -64;
    }
 
-   //? if >= 26.1.3 {
+   //? if >= 26.2 {
    //?} else {
    @Override
    protected StructureProcessorType<?> getType() {

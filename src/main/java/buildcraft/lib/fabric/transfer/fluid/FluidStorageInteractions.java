@@ -119,7 +119,7 @@ public final class FluidStorageInteractions {
                if (!FluidIdentity.areEquivalentFluidStacks(resource, extracted.copyWithAmount(1))) {
                   LOGGER.warn(
                      "Fluid removed without successfully being picked up. Fluid {} at {} in {} matched requested type, but after performing pickup was {}.",
-                     new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, level.dimension().identifier(), BuiltInRegistries.FLUID.getKey(bucketFluid)}
+                     new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, buildcraft.lib.misc.RegistryKeyUtil.id(level.dimension()), BuiltInRegistries.FLUID.getKey(bucketFluid)}
                   );
                   return FluidStack.EMPTY;
                }
@@ -132,7 +132,7 @@ public final class FluidStorageInteractions {
             if (!pickedUpStack.isEmpty()) {
                LOGGER.warn(
                   "Picked up stack is not a bucket. Fluid {} at {} in {} picked up as {}.",
-                  new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, level.dimension().identifier(), pickedUpStack}
+                  new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, buildcraft.lib.misc.RegistryKeyUtil.id(level.dimension()), pickedUpStack}
                );
             }
 

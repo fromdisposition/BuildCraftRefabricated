@@ -76,9 +76,9 @@ public final class OilDepositPoolElement extends SinglePoolElement {
                BlockPos pos = new BlockPos(x, y, z);
                BlockState state = level.getBlockState(pos);
                if (OIL_BLOCK_ID.equals(BuiltInRegistries.BLOCK.getKey(state.getBlock()))) {
-                  //? if >= 26.1.3 {
-/*                  level.getChunk(pos).markPosForPostProcessing(pos);*/
-                  //?} else {
+                  //? if >= 26.2 {
+                  /*level.getChunk(pos).markPosForPostProcessing(pos);
+                  *///?} else {
 level.getChunk(pos).markPosForPostprocessing(pos);
                   //?}
                }

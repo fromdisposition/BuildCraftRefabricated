@@ -24,7 +24,11 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+//? if >= 26.1 {
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+//?} else {
+/*import net.minecraft.client.renderer.block.model.BlockModelPart;
+*///?}
 import net.minecraft.client.resources.model.SimpleModelWrapper;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
@@ -208,12 +212,20 @@ public class FacadeDeduplicator {
 
          for (Direction dir : Direction.values()) {
             for (BakedQuad quad : getQuadsFromModel(model, dir)) {
+               //? if >= 26.1 {
                textures.add(dir.name() + ":" + quad.materialInfo().sprite().contents().name().toString());
+               //?} else {
+               /*textures.add(dir.name() + ":" + quad.sprite().contents().name().toString());
+               *///?}
             }
          }
 
          for (BakedQuad quad : getQuadsFromModel(model, null)) {
+            //? if >= 26.1 {
             textures.add("GENERAL:" + quad.materialInfo().sprite().contents().name().toString());
+            //?} else {
+            /*textures.add("GENERAL:" + quad.sprite().contents().name().toString());
+            *///?}
          }
 
          if (textures.isEmpty()) {
@@ -233,11 +245,19 @@ public class FacadeDeduplicator {
    }
 
    private static List<BakedQuad> getQuadsFromModel(BlockStateModel model, Direction side) {
+      //? if >= 26.1 {
       List<BlockStateModelPart> parts = new ArrayList<>();
+      //?} else {
+      /*List<BlockModelPart> parts = new ArrayList<>();
+      *///?}
       model.collectParts(RANDOM, parts);
       List<BakedQuad> result = new ArrayList<>();
 
+      //? if >= 26.1 {
       for (BlockStateModelPart part : parts) {
+      //?} else {
+      /*for (BlockModelPart part : parts) {
+      *///?}
          if (part instanceof SimpleModelWrapper smw) {
             QuadCollection qc = smw.quads();
             result.addAll(qc.getQuads(side));

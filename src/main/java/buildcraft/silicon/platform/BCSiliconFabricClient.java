@@ -17,8 +17,12 @@ import buildcraft.silicon.gui.GuiProgrammingTable;
 import buildcraft.silicon.gui.GuiStampingTable;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents.Join;
+//? if >= 26.1 {
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
+//?} else {
+/*import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+*///?}
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.NoopRenderer;
@@ -29,12 +33,18 @@ public final class BCSiliconFabricClient {
 
    public static void init() {
       FabricModelModifyHooks.register(BCSiliconClient::onModifyBakingResult);
+      //? if >= 26.1 {
       LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES
          .register(
             (AfterTranslucentFeatures)context -> RenderLaser.onRenderLevel(
                new RenderLevelStageEvent.AfterTranslucentBlocks(context.poseStack(), context.levelState())
             )
          );
+      //?} else {
+      /*WorldRenderEvents.END_MAIN.register(context -> RenderLaser.onRenderLevel(
+         new RenderLevelStageEvent.AfterTranslucentBlocks(context.matrices(), context.worldState())
+      ));
+      *///?}
       ClientPlayConnectionEvents.JOIN
          .register((Join)(handler, sender, server) -> BCSiliconClient.GameBus.onClientLoggingIn(new ClientPlayerNetworkEvent.LoggingIn()));
       MenuScreens.register(BCSiliconMenuTypes.ASSEMBLY_TABLE, GuiAssemblyTable::new);

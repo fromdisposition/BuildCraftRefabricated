@@ -19,9 +19,9 @@ public class ModelCache<K> implements IModelCache<K> {
 
    public ModelCache(ModelCache.IModelGenerator<K> generator) {
       this.modelCache = CacheBuilder.newBuilder()
-         //? if >= 26.1.3 {
-         /*.expireAfterAccess(java.time.Duration.ofMinutes(1))*/
-         //?} else {
+         //? if >= 26.2 {
+         /*.expireAfterAccess(java.time.Duration.ofMinutes(1))
+         *///?} else {
          .expireAfterAccess(1L, TimeUnit.MINUTES)
          //?}
          .build(CacheLoader.from(generator::generate));

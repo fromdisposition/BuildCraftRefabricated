@@ -65,9 +65,9 @@ public class ItemPipeHolder extends BlockItem implements IItemPipe {
       int colon = id.indexOf(58);
       String path = colon >= 0 ? id.substring(colon + 1) : id;
       String tipKey = "tip.pipe." + path;
-      //? if >= 26.1.3 {
-      /*if (!I18n.get(tipKey).equals(tipKey)) {*/
-      //?} else {
+      //? if >= 26.2 {
+      /*if (!I18n.get(tipKey).equals(tipKey)) {
+      *///?} else {
       if (I18n.exists(tipKey)) {
       //?}
          tooltip.add(Component.literal(I18n.get(tipKey, new Object[0])).withStyle(ChatFormatting.GRAY));

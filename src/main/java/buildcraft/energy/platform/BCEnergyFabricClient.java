@@ -15,17 +15,24 @@ import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.client.render.tile.RenderEngine_BC8;
 import buildcraft.lib.engine.TileEngineBase_BC8;
 import java.util.function.BiFunction;
+//? if >= 26.1 {
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
+//?} else {
+/*import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+import net.fabricmc.fabric.api.client.render.fluid.v1.SimpleFluidRenderHandler;
+*///?}
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRenderHandler;
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 import net.minecraft.core.BlockPos;
+//? if >= 26.1 {
 import net.minecraft.client.color.block.BlockTintSources;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.block.FluidModel.Unbaked;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.resources.model.sprite.Material;
+//?}
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
@@ -35,12 +42,23 @@ public final class BCEnergyFabricClient {
 
    public static void init() {
       for (BCEnergyFluidsFabric.FluidEntry entry : BCEnergyFluidsFabric.ALL) {
+         //? if >= 26.1 {
          Material stillMaterial = new Material(BcFluidTintUtil.bakedStillSpriteId(entry.name()));
          Material flowMaterial = new Material(BcFluidTintUtil.bakedFlowSpriteId(entry.name()));
          Material underwaterMaterial = new Material(Identifier.fromNamespaceAndPath("buildcraftenergy", "block/fluids/underwater/" + entry.name()));
          Unbaked model = new Unbaked(stillMaterial, flowMaterial, underwaterMaterial, BlockTintSources.constant(-1));
          FluidRenderingRegistry.register(entry.still(), entry.flowing(), model);
          FluidRenderingRegistry.setBlockTransparency(entry.block(), true);
+         //?} else {
+         /*// 1.21.x renders fluids via Fabric's FluidRenderHandlerRegistry; BC's pre-baked still/flow
+         // sprites are supplied through a SimpleFluidRenderHandler (colour is baked in, so no tint).
+         SimpleFluidRenderHandler handler = new SimpleFluidRenderHandler(
+            BcFluidTintUtil.bakedStillSpriteId(entry.name()),
+            BcFluidTintUtil.bakedFlowSpriteId(entry.name())
+         );
+         FluidRenderHandlerRegistry.INSTANCE.register(entry.still(), entry.flowing(), handler);
+         FluidRenderHandlerRegistry.INSTANCE.setBlockTransparency(entry.block(), true);
+         *///?}
          FluidVariantRenderHandler whiteTint = new FluidVariantRenderHandler() {
             @Override
             public int getColor(FluidVariant variant, BlockAndTintGetter level, BlockPos pos) {

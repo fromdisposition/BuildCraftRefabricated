@@ -16,7 +16,7 @@ public final class WorldgenDimensionFilters {
          return false;
       }
       Level level = worldGenLevel.getLevel();
-      Identifier dimensionId = level.dimension().identifier();
+      Identifier dimensionId = buildcraft.lib.misc.RegistryKeyUtil.id(level.dimension());
       Set<Identifier> excluded = BCEnergyConfig.getExcludedDimensions();
       boolean inList = excluded.contains(dimensionId);
       return BCEnergyConfig.dimensionListMode.get() == BCEnergyConfig.ListMode.BLACKLIST ? inList : !inList;

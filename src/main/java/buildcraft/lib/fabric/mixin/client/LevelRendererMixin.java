@@ -10,9 +10,9 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
-//? if >= 26.1.3 {
-/*import net.minecraft.client.renderer.SubmitNodeCollector;*/
-//?} else {
+//? if >= 26.2 {
+/*import net.minecraft.client.renderer.SubmitNodeCollector;
+*///?} else if >= 26.1 {
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 //?}
 import net.minecraft.client.renderer.state.level.BlockOutlineRenderState;
@@ -40,10 +40,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * Fabric API's {@code WorldRenderEvents.BLOCK_OUTLINE} fires once without a pass discriminator,
  * making it impossible to correctly split opaque/translucent rendering. Keep this mixin until
  * Fabric exposes per-pass block-outline callbacks.
+ *
+ * <p>1.21.x has no {@code extractBlockOutline}/{@code renderBlockOutline} on {@code LevelRenderer};
+ * pipe plug previews use {@code WorldRenderEvents} instead (see {@code PipePlacementHighlight}).
  */
 @Mixin(LevelRenderer.class)
 public abstract class LevelRendererMixin {
-   //? if < 26.1.3 {
+   //? if >= 26.1 && < 26.2 {
    @Shadow
    private ClientLevel level;
    @Shadow
@@ -71,32 +74,7 @@ public abstract class LevelRendererMixin {
          );
       }
    }
-   //?}
 
-   //? if >= 26.1.3 {
-   /*@Inject(
-      method = "submitBlockOutline",
-      at = @At("HEAD"),
-      cancellable = true
-   )
-   private void buildcraft$renderCustomBlockOutline(
-      PoseStack poseStack, SubmitNodeCollector submitNodeCollector, LevelRenderState levelRenderState, CallbackInfo ci
-   ) {
-      BlockOutlineRenderState outline = levelRenderState.blockOutlineRenderState;
-      if (outline != null) {
-         List<BlockOutlineRenderer> custom = BlockOutlineRenderStore.CUSTOM_OUTLINES.getOrDefault(outline, Collections.emptyList());
-         if (!custom.isEmpty()) {
-            boolean cancel = false;
-            for (BlockOutlineRenderer renderer : custom) {
-               cancel |= renderer.render(outline, submitNodeCollector, poseStack, levelRenderState);
-            }
-            if (cancel) {
-               ci.cancel();
-            }
-         }
-      }
-   }*/
-   //?} else {
    @Inject(
       method = "renderBlockOutline",
       at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/state/level/BlockOutlineRenderState;isTranslucent()Z"),
@@ -120,4 +98,29 @@ public abstract class LevelRendererMixin {
       }
    }
    //?}
+
+   //? if >= 26.2 {
+   /*@Inject(
+      method = "submitBlockOutline",
+      at = @At("HEAD"),
+      cancellable = true
+   )
+   private void buildcraft$renderCustomBlockOutline(
+      PoseStack poseStack, SubmitNodeCollector submitNodeCollector, LevelRenderState levelRenderState, CallbackInfo ci
+   ) {
+      BlockOutlineRenderState outline = levelRenderState.blockOutlineRenderState;
+      if (outline != null) {
+         List<BlockOutlineRenderer> custom = BlockOutlineRenderStore.CUSTOM_OUTLINES.getOrDefault(outline, Collections.emptyList());
+         if (!custom.isEmpty()) {
+            boolean cancel = false;
+            for (BlockOutlineRenderer renderer : custom) {
+               cancel |= renderer.render(outline, submitNodeCollector, poseStack, levelRenderState);
+            }
+            if (cancel) {
+               ci.cancel();
+            }
+         }
+      }
+   }
+   *///?}
 }

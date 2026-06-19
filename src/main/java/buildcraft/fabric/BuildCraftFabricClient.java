@@ -24,5 +24,17 @@ public class BuildCraftFabricClient implements ClientModInitializer {
       BCSiliconFabricClient.init();
       BCRoboticsFabricClient.init();
       BCLibFabricClient.init();
+      registerLegacyPictureInPictureHooks();
+   }
+
+   private static void registerLegacyPictureInPictureHooks() {
+      try {
+         Class.forName("buildcraft.lib.fabric.client.PictureInPictureLegacyRegistration")
+            .getMethod("register")
+            .invoke(null);
+      } catch (ClassNotFoundException ignored) {
+      } catch (ReflectiveOperationException e) {
+         throw new IllegalStateException("Failed to register 1.21.x picture-in-picture renderers", e);
+      }
    }
 }

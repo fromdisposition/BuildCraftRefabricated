@@ -15,12 +15,19 @@ import buildcraft.lib.gui.config.GuiConfigManager;
 import buildcraft.lib.misc.data.ModelVariableData;
 import java.util.HashSet;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+//? if >= 26.1 {
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.resource.v1.reloader.SimpleReloadListener;
+//?} else {
+/*import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+*///?}
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
+//? if >= 26.1 {
 import net.minecraft.server.packs.resources.PreparableReloadListener;
+//?}
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.packs.resources.ResourceManager;
 
@@ -30,6 +37,9 @@ public final class BCLibFabricClient {
    private BCLibFabricClient() {
    }
 
+   // 1.21.x uses the (still-functional) resource-loader-v0 API; it is deprecated there in favour of
+   // the async resource.v1 reloader, but v0 is sufficient for these synchronous cache-clearing reloads.
+   @SuppressWarnings("deprecation")
    public static void init() {
       UnbakedModelDeserializer.register(VariableModelDeserializer.TYPE_ID, VariableModelDeserializer.INSTANCE);
       FluidDisplayNamesClient.register();
@@ -38,6 +48,7 @@ public final class BCLibFabricClient {
       registerColorBlindAutoWatcher();
       AdvDebugRenderer.register();
       GuiConfigManager.init(GamePaths.BUILDCRAFT_CONFIG_DIR.resolve("buildcraftrefabricated-gui-state.json"));
+      //? if >= 26.1 {
       ResourceLoader clientResources = ResourceLoader.get(PackType.CLIENT_RESOURCES);
       clientResources.registerReloadListener(
          Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_client_profiles"),
@@ -85,6 +96,48 @@ public final class BCLibFabricClient {
             }
          }
       );
+      //?} else {
+      /*// 1.21.x uses the synchronous ResourceManagerHelper API; BC's listeners only clear caches /
+      // re-read from the manager, so a synchronous reload is sufficient.
+      ResourceManagerHelper clientResources = ResourceManagerHelper.get(PackType.CLIENT_RESOURCES);
+      clientResources.registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+         @Override
+         public Identifier getFabricId() {
+            return Identifier.fromNamespaceAndPath("buildcraftlib", "fluid_client_profiles");
+         }
+
+         @Override
+         public void onResourceManagerReload(ResourceManager manager) {
+            BcFluidFogProfiles.reload(manager);
+            BcFluidAppearanceCache.clear();
+         }
+      });
+      clientResources.registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+         @Override
+         public Identifier getFabricId() {
+            return Identifier.fromNamespaceAndPath("buildcraftlib", "models");
+         }
+
+         @Override
+         public void onResourceManagerReload(ResourceManager manager) {
+            HashSet<Identifier> sprites = new HashSet<>();
+            ModelHolderRegistry.onTextureStitchPre(sprites);
+            ModelHolderRegistry.onModelBake();
+            ModelVariableData.onModelBake();
+         }
+      });
+      clientResources.registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+         @Override
+         public Identifier getFabricId() {
+            return Identifier.fromNamespaceAndPath("buildcraftlib", "guide");
+         }
+
+         @Override
+         public void onResourceManagerReload(ResourceManager manager) {
+            GuideManager.INSTANCE.onResourceManagerReload(manager);
+         }
+      });
+      *///?}
    }
 
    private static void registerColorBlindAutoWatcher() {

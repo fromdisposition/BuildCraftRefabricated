@@ -41,17 +41,17 @@ public final class FormatSegment {
       StringBuilder miscStr = new StringBuilder();
 
       for (ChatFormatting format : this.misc) {
-         //? if >= 26.1.3 {
-         /*miscStr.append(format.name().toLowerCase());*/
-         //?} else {
+         //? if >= 26.2 {
+         /*miscStr.append(format.name().toLowerCase());
+         *///?} else {
          miscStr.append(format.getName());
          //?}
          miscStr.append(' ');
       }
 
-      //? if >= 26.1.3 {
-      /*return (this.colour == null ? "" : this.colour.name().toLowerCase() + "") + miscStr + this.text;*/
-      //?} else {
+      //? if >= 26.2 {
+      /*return (this.colour == null ? "" : this.colour.name().toLowerCase() + "") + miscStr + this.text;
+      *///?} else {
       return (this.colour == null ? "" : this.colour.getName() + "") + miscStr + this.text;
       //?}
    }

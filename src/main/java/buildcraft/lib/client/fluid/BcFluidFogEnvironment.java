@@ -6,6 +6,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.fog.FogData;
 import net.minecraft.client.renderer.fog.environment.FogEnvironment;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.material.FogType;
@@ -14,9 +15,16 @@ import net.minecraft.world.level.material.FogType;
  * Vanilla {@link FogEnvironment} hook for BuildCraft world fluids (oil, fuel, gas tiers).
  */
 public final class BcFluidFogEnvironment extends FogEnvironment {
+   //? if >= 1.21.11 {
    @Override
    public void setupFog(FogData fog, Camera camera, ClientLevel level, float renderDistance, DeltaTracker deltaTracker) {
       BcFluidAppearance appearance = FluidWorldRenderer.appearanceAtCamera(camera, level);
+      //?} else {
+      /*// 1.21.10 FogEnvironment.setupFog takes (Entity, BlockPos) instead of a Camera.
+      @Override
+      public void setupFog(FogData fog, Entity entity, BlockPos pos, ClientLevel level, float renderDistance, DeltaTracker deltaTracker) {
+      BcFluidAppearance appearance = FluidWorldRenderer.appearanceAtEye(entity, level);
+      *///?}
       if (appearance == null) {
          return;
       }

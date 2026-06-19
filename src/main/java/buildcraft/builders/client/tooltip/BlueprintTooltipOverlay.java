@@ -42,7 +42,11 @@ public final class BlueprintTooltipOverlay implements ClientTooltipComponent {
    }
 
    @Override
+   //? if >= 26.1 {
    public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
+   //?} else {
+   /*public void renderImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
+   *///?}
       Snapshot snapshot = ClientSnapshots.INSTANCE.getSnapshot(this.header.key);
       if (snapshot != null) {
          BlueprintRenderer.renderSnapshotForTooltip(new BCGraphics(graphics), snapshot, x, y, PREVIEW_SIZE, PREVIEW_SIZE);

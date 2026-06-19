@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.recipe;
 
+import buildcraft.lib.recipe.BcRecipeSerializers;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.item.ItemPluggableFacade;
 import buildcraft.silicon.plug.FacadeInstance;
@@ -21,18 +22,31 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
 
 public class FacadeSwapRecipe extends CustomRecipe {
+   //? if < 26.1 {
+   /*public FacadeSwapRecipe() {
+      super(net.minecraft.world.item.crafting.CraftingBookCategory.MISC);
+   }
+   *///?}
    public static final FacadeSwapRecipe INSTANCE = new FacadeSwapRecipe();
    public static final MapCodec<FacadeSwapRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
    public static final StreamCodec<RegistryFriendlyByteBuf, FacadeSwapRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
-   public static final RecipeSerializer<FacadeSwapRecipe> SERIALIZER = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
+   public static final RecipeSerializer<FacadeSwapRecipe> SERIALIZER = BcRecipeSerializers.of(MAP_CODEC, STREAM_CODEC);
 
    @Override
    public boolean matches(CraftingInput input, Level level) {
-      return !assemble(input).isEmpty();
+      return !swapResult(input).isEmpty();
    }
 
    @Override
+   //? if >= 26.1 {
    public ItemStack assemble(CraftingInput input) {
+   //?} else {
+   /*public ItemStack assemble(CraftingInput input, net.minecraft.core.HolderLookup.Provider provider) {
+   *///?}
+      return swapResult(input);
+   }
+
+   private ItemStack swapResult(CraftingInput input) {
       ItemStack facade = ItemStack.EMPTY;
 
       for (int slot = 0; slot < input.size(); slot++) {

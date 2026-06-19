@@ -29,6 +29,13 @@ import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 
 public class AWRecipeBookComponent extends RecipeBookComponent<ContainerAutoCraftItems> {
+   //? if < 1.21.11 {
+   /*// initFilterButtonTextures() is abstract on 1.21.10 (the recipe-book filter button there owns its own
+   // textures); 1.21.11 dropped it. BC does not show the craftable-only filter button, so this is a no-op.
+   @Override
+   protected void initFilterButtonTextures() {
+   }
+   *///?}
    private static final WidgetSprites FILTER_BUTTON_SPRITES = new WidgetSprites(
       Identifier.withDefaultNamespace("recipe_book/filter_enabled"),
       Identifier.withDefaultNamespace("recipe_book/filter_disabled"),

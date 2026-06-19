@@ -21,7 +21,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+//? if >= 26.1 {
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+//?} else {
+/*import net.minecraft.client.renderer.block.model.BlockModelPart;
+*///?}
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.SimpleModelWrapper;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
@@ -51,11 +55,19 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
    private static final RandomSource RANDOM = RandomSource.create();
 
    private static List<BakedQuad> getQuadsFromModel(BlockStateModel model, Direction side) {
+      //? if >= 26.1 {
       List<BlockStateModelPart> parts = new ArrayList<>();
+      //?} else {
+      /*List<BlockModelPart> parts = new ArrayList<>();
+      *///?}
       model.collectParts(RANDOM, parts);
       List<BakedQuad> result = new ArrayList<>();
 
+      //? if >= 26.1 {
       for (BlockStateModelPart part : parts) {
+      //?} else {
+      /*for (BlockModelPart part : parts) {
+      *///?}
          if (part instanceof SimpleModelWrapper smw) {
             QuadCollection qc = smw.quads();
             result.addAll(qc.getQuads(side));
@@ -188,7 +200,11 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
    }
 
    public List<MutableQuad> bakeForKey(KeyPlugFacade key) {
+      //? if >= 26.1 {
       BlockStateModel model = Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(key.state);
+      //?} else {
+      /*BlockStateModel model = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getBlockModel(key.state);
+      *///?}
       List<MutableQuad> quads = new ArrayList<>();
       int pS = 2;
       int nS = 16 - pS;

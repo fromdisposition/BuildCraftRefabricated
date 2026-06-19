@@ -17,7 +17,9 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.MinecraftServer;
+//? if >= 1.21.11 {
 import net.minecraft.server.permissions.Permissions;
+//?}
 import net.minecraft.world.entity.player.Player;
 
 public abstract class PageLink implements IContentsLeaf {
@@ -55,7 +57,12 @@ public abstract class PageLink implements IContentsLeaf {
          return true;
       }
 
+      //? if >= 1.21.11 {
       if (p.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)) {
+      //?} else {
+      /*// 1.21.10 has no Permissions API; gamemaster commands require op level 2.
+      if (p.hasPermissions(2)) {
+      *///?}
          return true;
       }
 

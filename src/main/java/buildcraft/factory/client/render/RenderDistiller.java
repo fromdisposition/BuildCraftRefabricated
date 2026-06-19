@@ -20,11 +20,15 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import buildcraft.lib.client.render.BCLibRenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+//? if >= 26.1 {
 import net.minecraft.client.resources.model.sprite.SpriteId;
+//?} else {
+/*import net.minecraft.client.resources.model.sprite.Material;
+*///?}
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
@@ -49,7 +53,11 @@ public class RenderDistiller implements BlockEntityRenderer<TileDistiller, Disti
 
    public RenderDistiller(Context context) {
       for (int i = 0; i < POWER_TEXTURES.length; i++) {
+         //? if >= 26.1 {
          this.powerSprites[i] = context.sprites().get(new SpriteId(BLOCKS_ATLAS_TEXTURE, POWER_TEXTURES[i]));
+         //?} else {
+         /*this.powerSprites[i] = context.materials().get(new Material(BLOCKS_ATLAS_TEXTURE, POWER_TEXTURES[i]));
+         *///?}
       }
    }
 
@@ -152,7 +160,7 @@ public class RenderDistiller implements BlockEntityRenderer<TileDistiller, Disti
       float b = 1.0F;
       float a = 1.0F;
       int overlay = OverlayTexture.NO_OVERLAY;
-      collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(BLOCKS_ATLAS_TEXTURE), (pose, buffer) -> {
+      collector.submitCustomGeometry(poseStack, BCLibRenderTypes.entityCutout(BLOCKS_ATLAS_TEXTURE), (pose, buffer) -> {
          renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerRight, renderState.powerY1, r, g, b, a, light, overlay);
          renderPowerCube(pose, buffer, sprite, topHalf, sizes.powerLeft, renderState.powerY2, r, g, b, a, light, overlay);
       });

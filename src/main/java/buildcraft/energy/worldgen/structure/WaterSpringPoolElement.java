@@ -73,9 +73,9 @@ public final class WaterSpringPoolElement extends SinglePoolElement {
 
       level.setBlock(bedrock, BCCoreBlocks.SPRING_WATER.defaultBlockState(), 2);
       fillWaterColumn(level, bedrock);
-      //? if >= 26.1.3 {
-/*      level.getChunk(bedrock).markPosForPostProcessing(bedrock);*/
-      //?} else {
+      //? if >= 26.2 {
+      /*level.getChunk(bedrock).markPosForPostProcessing(bedrock);
+      *///?} else {
 level.getChunk(bedrock).markPosForPostprocessing(bedrock);
       //?}
       return true;
@@ -89,9 +89,9 @@ level.getChunk(bedrock).markPosForPostprocessing(bedrock);
       for (int y = springPos.getY() + 1; y <= maxY; y++) {
          BlockPos at = new BlockPos(x, y, z);
          level.setBlock(at, Blocks.WATER.defaultBlockState(), 2);
-         //? if >= 26.1.3 {
-/*         level.getChunk(at).markPosForPostProcessing(at);*/
-         //?} else {
+         //? if >= 26.2 {
+         /*level.getChunk(at).markPosForPostProcessing(at);
+         *///?} else {
 level.getChunk(at).markPosForPostprocessing(at);
          //?}
       }

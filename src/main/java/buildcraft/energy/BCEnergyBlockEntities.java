@@ -7,7 +7,7 @@
 package buildcraft.energy;
 
 import buildcraft.core.BCCoreBlocks;
-import buildcraft.core.block.BlockSpring;
+import buildcraft.core.block.BlockSpringOil;
 import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.energy.tile.TileEngineIron_BC8;
 import buildcraft.energy.tile.TileEngineRF;
@@ -40,7 +40,7 @@ public final class BCEnergyBlockEntities {
    public static void register() {
       if (BCCoreBlocks.SPRING_OIL != null) {
          SPRING_OIL = BCRegistries.registerBlockEntity("buildcraftenergy", "spring_oil", TileSpringOil::new, BCCoreBlocks.SPRING_OIL);
-         BlockSpring.oilTileFactory = TileSpringOil::new;
+         BlockSpringOil.oilTileFactory = TileSpringOil::new;
       }
 
       if (BCEnergyBlocks.ENGINE_STONE != null) {

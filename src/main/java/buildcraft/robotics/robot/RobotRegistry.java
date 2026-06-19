@@ -36,7 +36,11 @@ import org.jspecify.annotations.Nullable;
 
 public class RobotRegistry extends SavedData implements IRobotRegistry {
    public static final SavedDataType<RobotRegistry> TYPE = new SavedDataType<>(
+      //? if >= 26.1 {
       Identifier.fromNamespaceAndPath("buildcraftrobotics", "robot_registry"),
+      //?} else {
+      /*"buildcraftrobotics_robot_registry",
+      *///?}
       () -> new RobotRegistry(null),
       makeCodec(null),
       DataFixTypes.SAVED_DATA_MAP_DATA

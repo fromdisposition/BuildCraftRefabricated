@@ -3,10 +3,6 @@ package buildcraft.lib.fabric.mixin.client;
 import buildcraft.lib.client.fluid.FluidWorldRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-//? if >= 26.1.3 {
-//?} else {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
 import net.minecraft.client.renderer.ScreenEffectRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import org.spongepowered.asm.mixin.Final;
@@ -23,14 +19,11 @@ public class ScreenEffectRendererBcFluidMixin {
    @Shadow
    private Minecraft minecraft;
 
-   //? if >= 26.1.3 {
-   //?} else {
-   @Final
-   @Shadow
-   private MultiBufferSource bufferSource;
-   //?}
-
-   //? if >= 26.1.3 {
+   // ScreenEffectRenderer.renderScreenEffect differs by version:
+   //   1.21.11 : renderScreenEffect(boolean sleeping, float partialTicks, SubmitNodeCollector) — 3-arg
+   //   26.1.2  : renderScreenEffect(boolean isFirstPerson, boolean isSleeping, float, SubmitNodeCollector, boolean hideGui) — 5-arg
+   //   26.2+ : same 5 args but the method was renamed to submit(...)
+   //? if >= 26.2 {
    /*@Inject(
       method = "submit",
       at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isOnFire()Z"),
@@ -46,13 +39,12 @@ public class ScreenEffectRendererBcFluidMixin {
       PoseStack poseStack
    ) {
       FluidWorldRenderer.renderSubmergedOverlay(this.minecraft, poseStack, submitNodeCollector);
-   }*/
-   //?} else {
+   }
+   *///?} else if >= 26.1 {
    @Inject(
       method = "renderScreenEffect",
       at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isOnFire()Z"),
-      locals = LocalCapture.CAPTURE_FAILHARD,
-      require = 0
+      locals = LocalCapture.CAPTURE_FAILHARD
    )
    private void buildcraft$renderBcFluidOverlay(
       boolean isFirstPerson,
@@ -63,7 +55,22 @@ public class ScreenEffectRendererBcFluidMixin {
       CallbackInfo ci,
       PoseStack poseStack
    ) {
-      FluidWorldRenderer.renderSubmergedOverlay(this.minecraft, poseStack, this.bufferSource);
+      FluidWorldRenderer.renderSubmergedOverlay(this.minecraft, poseStack, submitNodeCollector);
    }
-   //?}
+   //?} else {
+   /*@Inject(
+      method = "renderScreenEffect",
+      at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isOnFire()Z"),
+      locals = LocalCapture.CAPTURE_FAILHARD
+   )
+   private void buildcraft$renderBcFluidOverlay(
+      boolean sleeping,
+      float partialTicks,
+      SubmitNodeCollector submitNodeCollector,
+      CallbackInfo ci,
+      PoseStack poseStack
+   ) {
+      FluidWorldRenderer.renderSubmergedOverlay(this.minecraft, poseStack, submitNodeCollector);
+   }
+   *///?}
 }

@@ -32,16 +32,16 @@ import org.jspecify.annotations.Nullable;
 
 public class FacadeItemModel implements ItemModel {
    private static final LoadingCache<KeyPlugFacade, List<BakedQuad>> cache = CacheBuilder.newBuilder()
-      //? if >= 26.1.3 {
-      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))*/
-      //?} else {
+      //? if >= 26.2 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))
+      *///?} else {
       .expireAfterAccess(1L, TimeUnit.MINUTES)
       //?}
       .build(CacheLoader.from(key -> PlugBakerFacade.INSTANCE.bake(key)));
    private static final LoadingCache<KeyPlugFacade, List<BakedQuad>> guiCache = CacheBuilder.newBuilder()
-      //? if >= 26.1.3 {
-      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))*/
-      //?} else {
+      //? if >= 26.2 {
+      /*.expireAfterAccess(java.time.Duration.ofMinutes(1))
+      *///?} else {
       .expireAfterAccess(1L, TimeUnit.MINUTES)
       //?}
       .build(CacheLoader.from(key -> {
@@ -91,6 +91,12 @@ public class FacadeItemModel implements ItemModel {
          renderState.appendModelIdentityElement(key);
          LayerRenderState layer = renderState.newLayer();
          layer.prepareQuadList().addAll(quads);
+         // 1.21.x baked quads carry no render layer, so the item layer renders nothing unless a render
+         // type is set explicitly (vanilla BlockModelWrapper does the same). 26.x derives it per-quad
+         // from MaterialInfo and has no setRenderType, so this is gated to the 1.21.x targets only.
+         //? if < 26.1 {
+         /*layer.setRenderType(buildcraft.lib.client.render.BCLibRenderTypes.cutoutBlockSheet());
+         *///?}
       }
    }
 }

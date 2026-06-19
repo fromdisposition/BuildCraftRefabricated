@@ -59,7 +59,12 @@ public final class StructureTemplateExporter {
 
       StructureTemplate template = new StructureTemplate();
       template.load(blocks, tag);
+      //? if >= 26.1 {
       StructureTemplateManager.save(path, template, false);
+      //?} else {
+      /*// 1.21.x StructureTemplateManager.save is instance/id-based; write the template NBT directly.
+      net.minecraft.nbt.NbtIo.writeCompressed(template.save(new CompoundTag()), path);
+      *///?}
    }
 
    public static int computeSizeY(final List<BlockEntry> blocks, final int fallback) {

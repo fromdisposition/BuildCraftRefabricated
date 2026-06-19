@@ -13,20 +13,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import org.jetbrains.annotations.Nullable;
 
-public class BlockSpring extends Block implements EntityBlock {
-   @Nullable
-   public static BlockSpring.OilTileFactory oilTileFactory;
-   private final EnumSpring springType;
+public class BlockSpring extends Block {
+   protected final EnumSpring springType;
 
    public BlockSpring(EnumSpring springType, Properties properties) {
       super(properties.strength(-1.0F, 3600000.0F).sound(SoundType.STONE).randomTicks());
@@ -101,15 +96,5 @@ public class BlockSpring extends Block implements EntityBlock {
 
       FluidState defaultFluid = block.defaultBlockState().getFluidState();
       return !defaultFluid.isEmpty() && defaultFluid.getType() != Fluids.EMPTY;
-   }
-
-   @Nullable
-   public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-      return this.springType == EnumSpring.OIL && oilTileFactory != null ? oilTileFactory.create(pos, state) : null;
-   }
-
-   @FunctionalInterface
-   public interface OilTileFactory {
-      BlockEntity create(BlockPos var1, BlockState var2);
    }
 }
