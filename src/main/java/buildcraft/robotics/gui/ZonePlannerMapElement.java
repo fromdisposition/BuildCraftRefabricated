@@ -19,6 +19,7 @@ import buildcraft.robotics.tile.TileZonePlanner;
 import buildcraft.robotics.zone.ZonePlan;
 import buildcraft.robotics.zone.ZonePlannerMapColours;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -68,6 +69,14 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private int[] cachedOverlayCells = new int[0];
    private int[] cachedOverlayColours;
    private int cachedOverlayColour;
+   private int[] lastScanBounds;
+   private double lastHoverMouseX = Double.NaN;
+   private double lastHoverMouseY = Double.NaN;
+   private double lastHoverCamX = Double.NaN;
+   private double lastHoverCamZ = Double.NaN;
+   private double lastHoverCamY = Double.NaN;
+   private double lastHoverCamDist = Double.NaN;
+   private int lastHoverTerrainVersion = Integer.MIN_VALUE;
 
    public ZonePlannerMapElement(GuiZonePlanner gui, TileZonePlanner tile, int mapOffsetX, int mapOffsetY, int mapW, int mapH) {
       this.gui = gui;
@@ -165,13 +174,31 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return DEFAULT_HEIGHT;
    }
 
-   private double camY(ZonePlannerMapColours cache) {
+   /**
+    * Advances the smoothed camera height by exactly one step per rendered frame. The easing used to
+    * live in {@link #camY}, which is queried several times per frame (bounds, picking, state build),
+    * so the glide speed depended on call count and the value never settled — that kept
+    * {@link buildcraft.robotics.client.render.pip.ZoneMapPipRenderState#renderStamp()} changing every
+    * frame and defeated the picture-in-picture texture cache. Snapping to the target once within an
+    * epsilon lets the stamp stabilise, so the map texture is re-rendered only when something changes.
+    */
+   private void advanceCamera(ZonePlannerMapColours cache) {
       double target = this.focusHeight(cache) + this.camDist;
       if (Double.isNaN(this.smoothCamY)) {
          this.smoothCamY = target;
       } else {
-         this.smoothCamY += (target - this.smoothCamY) * 0.08;
+         this.smoothCamY += (target - this.smoothCamY) * 0.2;
+         if (Math.abs(target - this.smoothCamY) < 0.01) {
+            this.smoothCamY = target;
+         }
       }
+   }
+
+   private double camY(ZonePlannerMapColours cache) {
+      if (Double.isNaN(this.smoothCamY)) {
+         this.smoothCamY = this.focusHeight(cache) + this.camDist;
+      }
+
       return this.smoothCamY;
    }
 
@@ -182,6 +209,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
          ContainerZonePlanner menu = this.container();
          ZonePlannerMapColours cache = menu != null ? menu.mapColours : null;
          this.applyZoomDamping();
+         this.advanceCamera(cache);
          this.ensureVisibleChunks(menu, cache);
          if (cache != null) {
             this.updateHover(cache);
@@ -339,23 +367,36 @@ public class ZonePlannerMapElement implements IInteractionElement {
 
    private void ensureVisibleChunks(ContainerZonePlanner menu, ZonePlannerMapColours cache) {
       if (menu != null && cache != null) {
-         if (++this.retryCounter >= RETRY_INTERVAL) {
+         boolean retry = ++this.retryCounter >= RETRY_INTERVAL;
+         if (retry) {
             this.retryCounter = 0;
             cache.retryMissing();
          }
 
          int[] bounds = this.footprintChunkBounds(cache);
+         // The visible footprint only changes when the camera/zoom moves; rescanning the whole chunk
+         // grid (and allocating a request list) every frame is wasted work once the view has settled.
+         // The periodic retry tick still forces a rescan so newly available chunks get requested.
+         if (!retry && this.lastScanBounds != null && Arrays.equals(bounds, this.lastScanBounds)) {
+            return;
+         }
+
+         this.lastScanBounds = bounds;
          int cx0 = bounds[0];
          int cz0 = bounds[1];
          int cx1 = bounds[2];
          int cz1 = bounds[3];
-         List<Long> missing = new ArrayList<>();
+         List<Long> missing = null;
 
          for (int cx = cx0; cx <= cx1; cx++) {
             for (int cz = cz0; cz <= cz1; cz++) {
                long key = ZonePlannerChunkKeys.chunkKey(cx, cz);
                if (!cache.hasData(key) && !cache.isRequested(key)) {
                   cache.markRequested(key);
+                  if (missing == null) {
+                     missing = new ArrayList<>();
+                  }
+
                   missing.add(key);
                }
             }
@@ -515,6 +556,28 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private void updateHover(ZonePlannerMapColours cache) {
       double mx = this.gui.mainGui.mouse.getX();
       double my = this.gui.mainGui.mouse.getY();
+      int terrainVersion = cache.globalVersion();
+      // The hovered block only changes when the cursor moves, the camera moves, or new terrain
+      // arrives. Re-running the (up to 4000-step) ray-march on every frame otherwise is pure waste,
+      // so reuse the previous result when none of those inputs changed.
+      if (mx == this.lastHoverMouseX
+         && my == this.lastHoverMouseY
+         && this.camX == this.lastHoverCamX
+         && this.camZ == this.lastHoverCamZ
+         && this.smoothCamY == this.lastHoverCamY
+         && this.camDist == this.lastHoverCamDist
+         && terrainVersion == this.lastHoverTerrainVersion) {
+         return;
+      }
+
+      this.lastHoverMouseX = mx;
+      this.lastHoverMouseY = my;
+      this.lastHoverCamX = this.camX;
+      this.lastHoverCamZ = this.camZ;
+      this.lastHoverCamY = this.smoothCamY;
+      this.lastHoverCamDist = this.camDist;
+      this.lastHoverTerrainVersion = terrainVersion;
+
       if (this.inBounds(mx, my)) {
          int[] hit = this.pick(cache, mx, my);
          if (hit != null) {
