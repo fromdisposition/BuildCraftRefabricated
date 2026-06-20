@@ -10,6 +10,8 @@ import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.core.IZone;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
+import com.mojang.authlib.GameProfile;
+import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
@@ -40,6 +42,26 @@ super(EntityType.PIG, par1World);
 
    public EntityRobotBase(EntityType<? extends EntityRobotBase> type, Level par1World) {
       super(type, par1World);
+   }
+
+   /**
+    * The profile of the player who deployed this robot, or {@code null} for legacy robots saved
+    * before owner tracking existed. The owner is threaded into every world-modifying action the
+    * robot performs so that land-claim protection (e.g. Open Parties and Claims, via the standard
+    * Fabric break/use events) can authorize the robot exactly as it would the owning player. A
+    * {@code null} owner is treated as the generic [BuildCraft] fake player by
+    * {@code BuildCraftAPI.fakePlayerProvider}, which fails closed inside any claim.
+    */
+   @Nullable
+   private GameProfile owner;
+
+   @Nullable
+   public GameProfile getOwner() {
+      return this.owner;
+   }
+
+   public void setOwner(@Nullable GameProfile owner) {
+      this.owner = owner;
    }
 
    public abstract void setItemInUse(ItemStack var1);

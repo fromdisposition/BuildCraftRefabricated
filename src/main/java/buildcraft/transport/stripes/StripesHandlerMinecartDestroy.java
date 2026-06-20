@@ -8,6 +8,7 @@ package buildcraft.transport.stripes;
 
 import buildcraft.api.transport.IStripesActivator;
 import buildcraft.api.transport.IStripesHandlerBlock;
+import buildcraft.lib.misc.AttackEntityCompat;
 import java.util.Collections;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -32,6 +33,10 @@ public enum StripesHandlerMinecartDestroy implements IStripesHandlerBlock {
 
       Collections.shuffle(minecarts);
       AbstractMinecart cart = minecarts.get(0);
+      if (player != null && !AttackEntityCompat.canAttack(world, player, cart)) {
+         return false;
+      }
+
       if (cart instanceof Container container) {
          for (int i = 0; i < container.getContainerSize(); i++) {
             ItemStack s = container.getItem(i);

@@ -87,6 +87,9 @@ public class ItemRobot extends Item {
       }
 
       EntityRobot robot = EntityRobot.create(level, boardNBT);
+      if (context.getPlayer() != null) {
+         robot.setOwner(context.getPlayer().getGameProfile());
+      }
       robot.getBattery().setStored(getEnergy(stack));
       Vec3 spawn = Vec3.atCenterOf(pos).add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
       robot.setPos(spawn.x, spawn.y, spawn.z);

@@ -11,7 +11,7 @@ import buildcraft.api.crops.CropManager;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.lib.fabric.BCLibFakePlayerProvider;
+import buildcraft.lib.misc.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -53,7 +53,13 @@ public class AIRobotPlant extends AIRobotGoto {
       }
 
       if (this.robot.level() instanceof ServerLevel serverLevel) {
-         ServerPlayer player = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, BCLibFakePlayerProvider.NULL_PROFILE, this.blockFound);
+         if (!BlockUtil.canMachinePlace(serverLevel, this.blockFound, this.robot.getOwner(), this.robot.blockPosition())) {
+            this.setSuccess(false);
+            this.terminate();
+            return;
+         }
+
+         ServerPlayer player = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, this.robot.getOwner(), this.blockFound);
          ItemStack seed = this.robot.getHeldItem();
          if (!CropManager.plantCrop(serverLevel, player, seed, this.blockFound)) {
             this.setSuccess(false);

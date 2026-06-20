@@ -4,6 +4,16 @@
   "version": "${mod_version}",
   "name": "BuildCraft Refabricated",
   "description": "Unofficial Fabric port of BuildCraft  — pipes, engines, quarries, oil processing, gates, and automation.",
+  "provides": [
+    "buildcraftcore",
+    "buildcraftlib",
+    "buildcraftbuilders",
+    "buildcrafttransport",
+    "buildcraftenergy",
+    "buildcraftfactory",
+    "buildcraftsilicon",
+    "buildcraftrobotics"
+  ],
   "authors": [
     "fromdisposition"
   ],

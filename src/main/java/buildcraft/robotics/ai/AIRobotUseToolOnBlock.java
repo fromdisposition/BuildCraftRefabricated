@@ -10,7 +10,6 @@ import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.lib.fabric.BCLibFakePlayerProvider;
 import buildcraft.robotics.entity.EntityRobot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -63,7 +62,7 @@ public class AIRobotUseToolOnBlock extends AIRobot {
       }
 
       ItemStack stack = entityRobot.getItemInUse();
-      ServerPlayer fakePlayer = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, BCLibFakePlayerProvider.NULL_PROFILE, this.useToBlock);
+      ServerPlayer fakePlayer = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, this.robot.getOwner(), this.useToBlock);
       fakePlayer.setItemInHand(InteractionHand.MAIN_HAND, stack);
 
       Vec3 hit = Vec3.atCenterOf(this.useToBlock);

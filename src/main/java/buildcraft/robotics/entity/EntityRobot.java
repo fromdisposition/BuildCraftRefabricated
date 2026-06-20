@@ -19,8 +19,10 @@ import buildcraft.robotics.BCRoboticsEntities;
 import buildcraft.robotics.ai.AIRobotMain;
 import buildcraft.robotics.boards.RedstoneBoardRobotEmptyNBT;
 import buildcraft.robotics.robot.DockingStationPipe;
+import com.mojang.authlib.GameProfile;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -410,6 +412,12 @@ public class EntityRobot extends EntityRobotBase {
          return;
       }
 
+      net.minecraft.world.entity.player.Player attacker =
+         buildcraft.api.core.BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, this.getOwner(), target.blockPosition());
+      if (!buildcraft.lib.misc.AttackEntityCompat.canAttack(serverLevel, attacker, target)) {
+         return;
+      }
+
       float damage = 1.0F;
       ItemStack weapon = this.itemInUse;
       if (!weapon.isEmpty()) {
@@ -517,6 +525,14 @@ public class EntityRobot extends EntityRobotBase {
          output.store("itemInUse", ItemStack.CODEC, this.itemInUse);
       }
 
+      GameProfile owner = this.getOwner();
+      if (owner != null && owner.id() != null) {
+         output.putString("ownerUUID", owner.id().toString());
+         if (owner.name() != null) {
+            output.putString("ownerName", owner.name());
+         }
+      }
+
       this.writeStationNBT(output, "linkedStation", this.linkedStationPos, this.linkedStationSide);
       this.writeStationNBT(output, "currentStation", this.currentDockingStationPos, this.currentDockingStationSide);
 
@@ -562,6 +578,14 @@ public class EntityRobot extends EntityRobotBase {
       });
       input.child("fluidTank").ifPresent(this.fluidTank::deserialize);
       input.read("itemInUse", ItemStack.CODEC).ifPresent(stack -> this.itemInUse = stack);
+      String ownerUuid = input.getStringOr("ownerUUID", "");
+      if (!ownerUuid.isEmpty()) {
+         try {
+            this.setOwner(new GameProfile(UUID.fromString(ownerUuid), input.getStringOr("ownerName", "Unknown")));
+         } catch (IllegalArgumentException e) {
+            this.setOwner(null);
+         }
+      }
       this.readStationNBT(input, "linkedStation", true);
       this.readStationNBT(input, "currentStation", false);
       input.read("mainAI", CompoundTag.CODEC).ifPresent(tag -> {

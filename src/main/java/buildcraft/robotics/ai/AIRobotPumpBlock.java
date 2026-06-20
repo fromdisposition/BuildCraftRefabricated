@@ -60,7 +60,7 @@ public class AIRobotPumpBlock extends AIRobot {
             int inserted = FluidStorageOps.insertFluidMb(this.robot.getFluidStorage(), drainable, drainable.getAmount(), transaction);
             if (inserted >= drainable.getAmount()) {
                transaction.commit();
-               BlockUtil.drainBlock(world, this.blockToPump, true);
+               BlockUtil.drainBlock(world, this.blockToPump, true, this.robot.getOwner());
                this.pumped += inserted;
             }
          }

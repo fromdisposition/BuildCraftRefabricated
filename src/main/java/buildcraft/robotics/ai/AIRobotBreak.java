@@ -7,7 +7,6 @@
 package buildcraft.robotics.ai;
 
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.lib.fabric.BCLibFakePlayerProvider;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.robotics.entity.EntityRobot;
 import java.util.List;
@@ -72,7 +71,7 @@ public class AIRobotBreak extends AIRobotGoto {
       }
 
       ItemStack tool = entityRobot.getItemInUse();
-      List<ItemStack> drops = BlockUtil.breakBlockAndGetDrops(serverLevel, this.blockToBreak, tool, BCLibFakePlayerProvider.NULL_PROFILE).orElse(null);
+      List<ItemStack> drops = BlockUtil.breakBlockAndGetDrops(serverLevel, this.blockToBreak, tool, this.robot.getOwner()).orElse(null);
       if (drops == null) {
          this.setSuccess(false);
          return;

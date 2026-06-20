@@ -11,6 +11,7 @@ import buildcraft.api.crops.CropManager;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.lib.misc.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -44,6 +45,13 @@ public class AIRobotHarvest extends AIRobot {
       }
 
       if (!BuildCraftAPI.getWorldProperty("harvestable").get(this.robot.level(), this.blockFound)) {
+         this.setSuccess(false);
+         this.terminate();
+         return;
+      }
+
+      if (this.robot.level() instanceof ServerLevel serverLevel
+         && !BlockUtil.canMachineBreak(serverLevel, this.blockFound, this.robot.getOwner())) {
          this.setSuccess(false);
          this.terminate();
          return;

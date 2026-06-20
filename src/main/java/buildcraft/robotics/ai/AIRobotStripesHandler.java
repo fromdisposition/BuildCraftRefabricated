@@ -11,7 +11,6 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.transport.IStripesActivator;
 import buildcraft.api.transport.pipe.PipeApi;
-import buildcraft.lib.fabric.BCLibFakePlayerProvider;
 import javax.annotation.Nonnull;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -68,7 +67,7 @@ public class AIRobotStripesHandler extends AIRobot implements IStripesActivator 
    }
 
    private ServerPlayer getFakePlayer(ServerLevel serverLevel) {
-      ServerPlayer player = buildcraft.api.core.BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, BCLibFakePlayerProvider.NULL_PROFILE, this.useToBlock);
+      ServerPlayer player = buildcraft.api.core.BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, this.robot.getOwner(), this.useToBlock);
       player.setXRot(0.0F);
       player.setYRot(180.0F);
       return player;
