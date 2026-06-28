@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
@@ -100,7 +101,7 @@ public class AIRobotDeliverRequested extends AIRobot {
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
       if (nbt.contains("currentRequest")) {
-         this.requested = StackRequest.loadFromNBT(nbt.getCompound("currentRequest").orElse(new CompoundTag()));
+         this.requested = StackRequest.loadFromNBT(BcNbt.getCompound(nbt, "currentRequest"));
       }
    }
 

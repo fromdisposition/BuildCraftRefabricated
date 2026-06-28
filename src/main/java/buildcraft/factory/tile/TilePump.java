@@ -7,6 +7,7 @@
 package buildcraft.factory.tile;
 
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
@@ -56,8 +57,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TilePump extends TileMiner implements IDebuggable {
    private static final Identifier ADVANCEMENT_DRAIN_ANY = Identifier.parse("buildcraftfactory:draining_the_world");
@@ -88,13 +89,17 @@ public class TilePump extends TileMiner implements IDebuggable {
       super(BCFactoryBlockEntities.PUMP, pos, state);
    }
 
+   //? if >= 1.21.10 {
    @Override
+   //?}
    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
       if (this.level != null && !this.level.isClientSide()) {
          BlockDropsUtil.dropFluidShard(this.level, pos, this.fluidTank.getFluidStack());
       }
 
+      //? if >= 1.21.10 {
       super.preRemoveSideEffects(pos, state);
+      //?}
    }
 
    @Override
@@ -169,7 +174,7 @@ public class TilePump extends TileMiner implements IDebuggable {
       if (this.getOwner() != null && this.level != null && !this.level.isClientSide()) {
          MinecraftServer server = this.level.getServer();
          if (server != null) {
-            ServerPlayer player = server.getPlayerList().getPlayer(this.getOwner().id());
+            ServerPlayer player = server.getPlayerList().getPlayer(BcAuth.id(this.getOwner()));
             if (player != null) {
                String baseName = BCEnergyFluidsFabric.getBaseName(drain.getFluid());
                if (baseName != null) {
@@ -414,7 +419,7 @@ public class TilePump extends TileMiner implements IDebuggable {
                   if (inserted >= drain.getAmount()) {
                      this.progress = 0;
                      if (this.getOwner() != null) {
-                        AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT_DRAIN_ANY);
+                        AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, ADVANCEMENT_DRAIN_ANY);
                      }
 
                      this.isInfiniteWaterSource = !BCCoreConfig.pumpsConsumeWater.get()
@@ -426,7 +431,7 @@ public class TilePump extends TileMiner implements IDebuggable {
                         this.notifyFluidNeighbors(drainedPos);
                         if (isOil(drain.getFluid())) {
                            if (this.getOwner() != null) {
-                              AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT_DRAIN_OIL);
+                              AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, ADVANCEMENT_DRAIN_OIL);
                            }
 
                            this.creditRefineAndRedefineFromPumpedOil(drain);
@@ -473,7 +478,11 @@ public class TilePump extends TileMiner implements IDebuggable {
          BlockPos neighbor = drainedPos.relative(dir);
          BlockState neighborState = this.level.getBlockState(neighbor);
          if (!neighborState.getFluidState().isEmpty()) {
+            //? if >= 1.21.10 {
             this.level.neighborChanged(neighbor, pumpBlock, null);
+            //?} else {
+            /*this.level.neighborChanged(neighbor, pumpBlock, this.worldPosition);
+            *///?}
          }
       }
    }
@@ -495,8 +504,8 @@ public class TilePump extends TileMiner implements IDebuggable {
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       this.fluidTank.serialize(output);
       output.putInt("rebuildDelay", this.rebuildDelay);
       if (this.oilSpringPos != null) {
@@ -517,8 +526,8 @@ public class TilePump extends TileMiner implements IDebuggable {
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.fluidTank.deserialize(input);
       this.rebuildDelay = input.getIntOr("rebuildDelay", 0);
       if (input.getBooleanOr("hasOilSpring", false)) {

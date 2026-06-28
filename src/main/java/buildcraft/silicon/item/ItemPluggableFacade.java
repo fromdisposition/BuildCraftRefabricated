@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.item;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.facades.FacadeType;
 import buildcraft.api.facades.IFacade;
 import buildcraft.api.facades.IFacadeItem;
@@ -37,7 +38,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.Item.TooltipContext;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.component.TooltipDisplay;
+//?}
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.AABB;
@@ -58,15 +61,15 @@ public class ItemPluggableFacade extends Item implements IItemPluggable, IFacade
 
    public static FacadeInstance getStates(@Nonnull ItemStack item) {
       CompoundTag nbt = NBTUtilBC.getItemData(item);
-      String strPreview = nbt.getStringOr("preview", "");
+      String strPreview = BcNbt.getString(nbt, "preview", "");
       if ("basic".equalsIgnoreCase(strPreview)) {
          return FacadeInstance.createSingle(FacadeStateManager.previewState, false);
       }
 
       if (!nbt.contains("facade") && nbt.contains("states")) {
-         ListTag statesList = nbt.getListOrEmpty("states");
+         ListTag statesList = BcNbt.getList(nbt, "states");
          if (!statesList.isEmpty()) {
-            boolean isHollow = statesList.get(0) instanceof CompoundTag ct && ct.getBooleanOr("isHollow", false);
+            boolean isHollow = statesList.get(0) instanceof CompoundTag ct && BcNbt.getBoolean(ct, "isHollow", false);
             CompoundTag tagFacade = new CompoundTag();
             tagFacade.putBoolean("isHollow", isHollow);
             tagFacade.put("states", statesList);
@@ -74,7 +77,7 @@ public class ItemPluggableFacade extends Item implements IItemPluggable, IFacade
          }
       }
 
-      return FacadeInstance.readFromNbt(nbt.getCompoundOrEmpty("facade"));
+      return FacadeInstance.readFromNbt(BcNbt.getCompound(nbt, "facade"));
    }
 
    @Nonnull

@@ -33,6 +33,7 @@ import net.minecraft.client.resources.model.sprite.Material.Baked;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -47,6 +48,18 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
    private final ItemStackRenderState renderState = new ItemStackRenderState();
 
    private PipeHolderClientExtensions() {
+   }
+
+   /** The client crosshair hit, if it is a block hit. Common return type so the caller stays dist-clean. */
+   @Nullable
+   public static BlockHitResult clientBlockHit() {
+      return Minecraft.getInstance().hitResult instanceof BlockHitResult blockHit ? blockHit : null;
+   }
+
+   /** The local client player as the common {@link Player} type (hides the client-only LocalPlayer). */
+   @Nullable
+   public static Player clientPlayer() {
+      return Minecraft.getInstance().player;
    }
 
    private @Nullable TextureAtlasSprite getPipeSprite(Level level, BlockPos pos) {

@@ -18,8 +18,9 @@ import buildcraft.lib.gui.ledger.LedgerOwnership;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import java.util.List;
 import net.minecraft.client.gui.components.Button;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -160,17 +161,17 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
+      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
       int progressDown = ((ContainerElectronicLibrary)this.menu).getSyncedProgressDown();
       if (progressDown > 0) {
          int w = Math.min(22, Math.max(1, (int)Math.ceil(22.0F * (progressDown / 50.0F))));
-         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos + 194 + 22 - w, this.topPos + 58, 256 - w, 240.0F, w, 16, 256, 256);
+         graphics.blit(TEXTURE, this.leftPos + 194 + 22 - w, this.topPos + 58, 256 - w, 240.0F, w, 16, 256, 256);
       }
 
       int progressUp = ((ContainerElectronicLibrary)this.menu).getSyncedProgressUp();
       if (progressUp > 0) {
          int w = Math.min(22, Math.max(1, (int)Math.ceil(22.0F * (progressUp / 50.0F))));
-         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos + 194, this.topPos + 79, 234.0F, 224.0F, w, 16, 256, 256);
+         graphics.blit(TEXTURE, this.leftPos + 194, this.topPos + 79, 234.0F, 224.0F, w, 16, 256, 256);
       }
    }
 
@@ -202,9 +203,17 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
    }
 
    @Override
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      double mouseX = event.x();
-      double mouseY = event.y();
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+   }
+   //?} else {
+   /*public boolean mouseClicked(double mouseXd, double mouseYd, int button) {
+      return this.bcMouseClicked((int)mouseXd, (int)mouseYd, button) || super.mouseClicked(mouseXd, mouseYd, button);
+   }
+   *///?}
+
+   private boolean bcMouseClicked(int mouseX, int mouseY, int button) {
       GlobalSavedDataSnapshots snapshots = GlobalSavedDataSnapshots.get(GlobalSavedDataSnapshots.Side.CLIENT);
       List<Snapshot.Key> list = snapshots.getList();
       int rowY = this.topPos + 22;
@@ -224,6 +233,6 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          rowY += 8;
       }
 
-      return super.mouseClicked(event, doubleClick);
+      return false;
    }
 }

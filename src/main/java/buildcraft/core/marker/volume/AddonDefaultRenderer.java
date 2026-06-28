@@ -14,8 +14,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.world.entity.player.Player;
@@ -33,20 +33,20 @@ public class AddonDefaultRenderer<T extends Addon> implements IFastAddonRenderer
    }
 
    //? if >= 26.2 {
-   /*@Override
+   @Override
    public void renderAddonFast(T addon, Player player, float partialTicks, PoseStack poseStack) {
       AABB bb = addon.getBoundingBox();
       LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE), (p, vc) -> {
          renderVertices(bb, p.pose(), vc);
       });
    }
-   *///?} else {
-   @Override
+   //?} else {
+   /*@Override
    public void renderAddonFast(T addon, Player player, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource) {
       VertexConsumer builder = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE));
       renderVertices(addon.getBoundingBox(), poseStack.last().pose(), builder);
    }
-   //?}
+   *///?}
 
    private void renderVertices(AABB bb, Matrix4f pose, VertexConsumer builder) {
       float u0 = this.sprite != null ? (float)this.sprite.getInterpU(0.0) : 0.0F;

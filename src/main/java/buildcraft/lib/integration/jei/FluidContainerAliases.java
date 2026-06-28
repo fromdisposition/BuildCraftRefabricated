@@ -36,7 +36,11 @@ public final class FluidContainerAliases {
          for (FluidContainerAliases.Provider provider : providers) {
             provider.addAliases(stack, alias -> {
                if (alias != null && !alias.isEmpty()) {
+                  //? if >= 1.21.10 {
                   slot.add(alias);
+                  //?} else {
+                  /*slot.addItemStack(alias);
+                  *///?}
                }
             });
          }

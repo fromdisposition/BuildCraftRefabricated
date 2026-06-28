@@ -6,6 +6,7 @@
 
 package buildcraft.builders.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.IPathProvider;
 import buildcraft.api.enums.EnumOptionalSnapshotType;
@@ -77,8 +78,8 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.phys.Vec3;
 
 public class TileBuilder
@@ -269,7 +270,7 @@ public class TileBuilder
 
    private void tryGrantBuilderAdvancements() {
       if (this.level != null && !this.level.isClientSide() && this.getOwner() != null) {
-         UUID ownerId = this.getOwner().id();
+         UUID ownerId = BcAuth.id(this.getOwner());
          if (!this.startOfSomethingBigGranted && this.snapshot != null) {
             this.bigStructureCellsBuilt = this.bigStructureCellsBuilt + this.snapshot.countNonAirCells();
             if (this.bigStructureCellsBuilt >= 1024L && AdvancementUtil.unlockAdvancement(ownerId, this.level, ADVANCEMENT_START_OF_SOMETHING_BIG)) {
@@ -414,8 +415,8 @@ public class TileBuilder
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putLong("battery_mj", this.battery.getStored());
       output.putBoolean("canExcavate", this.canExcavate);
       output.putInt("fluidMode", this.fluidMode.ordinal());
@@ -488,8 +489,8 @@ public class TileBuilder
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       long stored = input.getLongOr("battery_mj", 0L);
       this.battery.setStored(stored);
       this.canExcavate = input.getBooleanOr("canExcavate", true);

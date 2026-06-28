@@ -14,11 +14,8 @@ import buildcraft.transport.net.MessagePipeLandingEffect;
 import buildcraft.transport.net.MessagePipePayload;
 import buildcraft.transport.wire.PayloadWireSync;
 import java.util.function.BiConsumer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -51,18 +48,10 @@ public final class BCNetworkingRegistry {
       registerServerboundFriendly(BuildersClientRequestPayload.TYPE, BuildersClientRequestPayload.STREAM_CODEC, BuildersClientRequestPayload::handle);
    }
 
-   public static void registerClient() {
-      registerClientbound(MessageMarker.TYPE, MessageMarker.STREAM_CODEC, MessageMarker::handle);
-      registerClientbound(MessageVolumeBoxes.TYPE, MessageVolumeBoxes.STREAM_CODEC, MessageVolumeBoxes::handle);
-      registerClientbound(MessageDebugResponse.TYPE, MessageDebugResponse.STREAM_CODEC, MessageDebugResponse::handle);
-      registerClientbound(MessageContainerPayload.TYPE, MessageContainerPayload.STREAM_CODEC, MessageContainerPayload::handle);
-      registerClientbound(MessageMultiPipeItem.TYPE, MessageMultiPipeItem.STREAM_CODEC, MessageMultiPipeItem::handle);
-      registerClientbound(MessagePipePayload.TYPE, MessagePipePayload.STREAM_CODEC, MessagePipePayload::handle);
-      registerClientbound(MessageMultiPipePayload.TYPE, MessageMultiPipePayload.STREAM_CODEC, MessageMultiPipePayload::handle);
-      registerClientboundFriendly(PayloadWireSync.TYPE, PayloadWireSync.STREAM_CODEC, PayloadWireSync::handle);
-      registerClientbound(MessagePipeLandingEffect.TYPE, MessagePipeLandingEffect.STREAM_CODEC, MessagePipeLandingEffect::handle);
-      registerClientboundFriendly(BuildersServerPayload.TYPE, BuildersServerPayload.STREAM_CODEC, BuildersServerPayload::handle);
-   }
+   // NOTE: clientbound RECEIVERS (which need net.fabricmc...client.ClientPlayNetworking + Minecraft) live in
+   // BCNetworkingRegistryClient (@Environment CLIENT). This class is loaded on the dedicated server, so it must
+   // not reference any client-only type. The clientbound CODECS above are registered in registerCommon() so
+   // both sides agree on the wire format.
 
    private static <T extends CustomPacketPayload> void registerCodecClientbound(Type<T> type, StreamCodec<? super RegistryFriendlyByteBuf, T> codec) {
       PayloadTypeRegistry.clientboundPlay().register(type, codec);
@@ -80,19 +69,9 @@ public final class BCNetworkingRegistry {
       PayloadTypeRegistry.serverboundPlay().register(type, codec);
    }
 
-   private static <T extends CustomPacketPayload> void dispatch(T payload, BCPayloadContext ctx, BiConsumer<T, BCPayloadContext> handler) {
+   // package-private: shared by BCNetworkingRegistryClient (same package) for clientbound dispatch.
+   static <T extends CustomPacketPayload> void dispatch(T payload, BCPayloadContext ctx, BiConsumer<T, BCPayloadContext> handler) {
       ctx.enqueueWork(() -> handler.accept(payload, ctx));
-   }
-
-   private static <T extends CustomPacketPayload> void registerClientbound(
-      Type<T> type, StreamCodec<? super RegistryFriendlyByteBuf, T> codec, BiConsumer<T, BCPayloadContext> handler
-   ) {
-      if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-         ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
-            BCPayloadContext ctx = FabricPayloadContexts.of(context.player());
-            dispatch((T)payload, ctx, handler);
-         });
-      }
    }
 
    private static <T extends CustomPacketPayload> void registerServerbound(
@@ -111,16 +90,5 @@ public final class BCNetworkingRegistry {
          BCPayloadContext ctx = FabricPayloadContexts.of(context.player());
          dispatch((T)payload, ctx, handler);
       });
-   }
-
-   private static <T extends CustomPacketPayload> void registerClientboundFriendly(
-      Type<T> type, StreamCodec<? super FriendlyByteBuf, T> codec, BiConsumer<T, BCPayloadContext> handler
-   ) {
-      if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-         ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
-            BCPayloadContext ctx = FabricPayloadContexts.of(context.player());
-            dispatch((T)payload, ctx, handler);
-         });
-      }
    }
 }

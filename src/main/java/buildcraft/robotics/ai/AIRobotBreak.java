@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.robotics.entity.EntityRobot;
@@ -117,7 +118,7 @@ public class AIRobotBreak extends AIRobotGoto {
    @Override
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
-      int[] arr = nbt.getIntArray("blockToBreak").orElse(new int[0]);
+      int[] arr = BcNbt.getIntArray(nbt, "blockToBreak");
       if (arr.length == 3) {
          this.blockToBreak = new BlockPos(arr[0], arr[1], arr[2]);
       }

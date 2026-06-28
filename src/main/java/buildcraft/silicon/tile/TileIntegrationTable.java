@@ -19,8 +19,8 @@ import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TileIntegrationTable extends TileLaserTableBase {
    public final ItemHandlerSimple invTarget = this.itemManager.addInvHandler("target", 1, ItemHandlerManager.EnumAccess.BOTH, EnumPipePart.VALUES);
@@ -142,15 +142,15 @@ public class TileIntegrationTable extends TileLaserTableBase {
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putLong("synced_target", this.syncedTarget);
       output.storeNullable("synced_output", ItemStack.CODEC, this.syncedOutput.isEmpty() ? null : this.syncedOutput);
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.recipe = null;
       this.syncedTarget = input.getLongOr("synced_target", 0L);
       this.syncedOutput = input.read("synced_output", ItemStack.CODEC).orElse(ItemStack.EMPTY);

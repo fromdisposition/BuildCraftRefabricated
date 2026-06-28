@@ -14,7 +14,6 @@ import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
-import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -39,7 +38,7 @@ public class BlueprintTransferHandler<C extends AbstractContainerMenu> implement
       return Optional.of(this.menuType);
    }
 
-   public IRecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
+   public mezz.jei.api.recipe.types.IRecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
       return RecipeTypes.CRAFTING;
    }
 

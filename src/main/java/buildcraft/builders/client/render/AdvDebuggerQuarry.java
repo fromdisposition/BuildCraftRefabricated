@@ -12,8 +12,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import java.util.Set;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -25,7 +25,7 @@ public final class AdvDebuggerQuarry {
    }
 
    //? if >= 26.2 {
-   /*public static void render(TileQuarry tile, PoseStack poseStack, Vec3 cameraPos) {
+   public static void render(TileQuarry tile, PoseStack poseStack, Vec3 cameraPos) {
       if (tile.frameBox.isInitialized()) {
          Set<ChunkPos> chunks = tile.getChunksToLoad();
          if (chunks != null && !chunks.isEmpty()) {
@@ -41,8 +41,8 @@ public final class AdvDebuggerQuarry {
          }
       }
    }
-   *///?} else {
-   public static void render(TileQuarry tile, PoseStack poseStack, MultiBufferSource bufferSource, Vec3 cameraPos) {
+   //?} else {
+   /*public static void render(TileQuarry tile, PoseStack poseStack, MultiBufferSource bufferSource, Vec3 cameraPos) {
       if (tile.frameBox.isInitialized()) {
          Set<ChunkPos> chunks = tile.getChunksToLoad();
          if (chunks != null && !chunks.isEmpty()) {
@@ -58,5 +58,5 @@ public final class AdvDebuggerQuarry {
          }
       }
    }
-   //?}
+   *///?}
 }

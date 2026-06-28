@@ -10,11 +10,13 @@ import buildcraft.lib.client.render.BCLibRenderTypes;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
+//?}
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
 import net.minecraft.core.Direction;
 
 public final class LedRenderUtil {
@@ -24,14 +26,16 @@ public final class LedRenderUtil {
 
    //? if >= 26.2 {
    //?} else {
-   public static VertexConsumer begin(MultiBufferSource bufferSource) {
+   /*public static VertexConsumer begin(MultiBufferSource bufferSource) {
       return bufferSource.getBuffer(BCLibRenderTypes.led());
    }
-   //?}
+   *///?}
 
+   //? if >= 1.21.10 {
    public static void submit(PoseStack poseStack, SubmitNodeCollector collector, RenderPartCube led, Direction skipFace, int colour) {
       BcBerRenderUtil.submit(poseStack, collector, BCLibRenderTypes.led(), (pose, consumer) -> render(led, pose, consumer, skipFace, colour));
    }
+   //?}
 
    public static void render(RenderPartCube led, Pose pose, VertexConsumer consumer, Direction skipFace, int colour) {
       led.center.colouri(colour);
@@ -40,10 +44,10 @@ public final class LedRenderUtil {
 
    //? if >= 26.2 {
    //?} else {
-   public static void flush(MultiBufferSource.BufferSource bufferSource) {
+   /*public static void flush(MultiBufferSource.BufferSource bufferSource) {
       bufferSource.endBatch(BCLibRenderTypes.led());
    }
-   //?}
+   *///?}
 
    public static void setFacePosition(RenderPartCube led, Direction face, double insetBlocks, double sideOffset, double y) {
       double ledX;
@@ -62,6 +66,9 @@ public final class LedRenderUtil {
          ledZ = face == Direction.SOUTH ? 1.0 - insetBlocks : insetBlocks;
       }
 
+      // The LED quad sits exactly on the machine face; z-fighting is prevented by the LED RenderType's
+      // POLYGON_OFFSET_LAYERING depth bias (see BCLibRenderTypes.led()), so no positional nudge is needed
+      // on any version.
       led.center.positiond(ledX + dX * sideOffset, y, ledZ + dZ * sideOffset);
    }
 

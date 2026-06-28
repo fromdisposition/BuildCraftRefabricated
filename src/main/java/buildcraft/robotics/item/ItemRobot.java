@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.item;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.boards.RedstoneBoardNBT;
 import buildcraft.api.boards.RedstoneBoardRegistry;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
@@ -45,7 +46,7 @@ public class ItemRobot extends Item {
 
    public static RedstoneBoardRobotNBT getRobotNBT(ItemStack stack) {
       CompoundTag data = NBTUtilBC.getItemData(stack);
-      CompoundTag boardTag = data.getCompound("board").orElse(null);
+      CompoundTag boardTag = BcNbt.getCompound(data, "board");
       RedstoneBoardNBT<?> board = boardTag != null
          ? RedstoneBoardRegistry.instance.getRedstoneBoard(boardTag)
          : RedstoneBoardRegistry.instance.getEmptyRobotBoard();
@@ -53,7 +54,7 @@ public class ItemRobot extends Item {
    }
 
    public static long getEnergy(ItemStack stack) {
-      return NBTUtilBC.getItemData(stack).getLong("energy").orElse(0L);
+      return buildcraft.lib.nbt.BcNbt.getLong(NBTUtilBC.getItemData(stack), "energy", 0L);
    }
 
    @Override

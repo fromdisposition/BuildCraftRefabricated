@@ -19,8 +19,8 @@ import buildcraft.lib.client.render.laser.LaserBatch;
 import net.minecraft.client.Minecraft;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+*///?}
 import buildcraft.lib.client.render.BCLibRenderTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
@@ -55,7 +55,7 @@ public final class BuilderRobotVisualRenderer {
 
    private static void renderRobotCube(Minecraft mc, PoseStack poseStack, Vec3 cameraPos, Vec3 robotPos) {
       //? if >= 26.2 {
-      /*poseStack.pushPose();
+      poseStack.pushPose();
       poseStack.translate(robotPos.x - cameraPos.x, robotPos.y - cameraPos.y, robotPos.z - cameraPos.z);
       int worldLight = BcLaserRenderer.computeLightmap(robotPos.x, robotPos.y, robotPos.z, 0);
       LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BCBuildersSprites.ROBOT.getAtlasLocation()), (pose, vc) -> {
@@ -78,8 +78,8 @@ public final class BuilderRobotVisualRenderer {
          }
       });
       poseStack.popPose();
-      *///?} else {
-      BufferSource bufferSource = mc.renderBuffers().bufferSource();
+      //?} else {
+      /*BufferSource bufferSource = mc.renderBuffers().bufferSource();
       VertexConsumer buffer = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(BCBuildersSprites.ROBOT.getAtlasLocation()));
       poseStack.pushPose();
       poseStack.translate(robotPos.x - cameraPos.x, robotPos.y - cameraPos.y, robotPos.z - cameraPos.z);
@@ -106,6 +106,6 @@ public final class BuilderRobotVisualRenderer {
 
       poseStack.popPose();
       bufferSource.endBatch();
-      //?}
+      *///?}
    }
 }

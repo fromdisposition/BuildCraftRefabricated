@@ -11,12 +11,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
 //? if >= 26.2 {
-/*import net.minecraft.client.renderer.SubmitNodeCollector;
-*///?} else if >= 26.1 {
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-//?}
+import net.minecraft.client.renderer.SubmitNodeCollector;
+//?} else if >= 26.1 {
+/*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+*///?}
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.state.level.BlockOutlineRenderState;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
+//?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -47,7 +49,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(LevelRenderer.class)
 public abstract class LevelRendererMixin {
    //? if >= 26.1 && < 26.2 {
-   @Shadow
+   /*@Shadow
    private ClientLevel level;
    @Shadow
    private Minecraft minecraft;
@@ -97,10 +99,10 @@ public abstract class LevelRendererMixin {
          }
       }
    }
-   //?}
+   *///?}
 
    //? if >= 26.2 {
-   /*@Inject(
+   @Inject(
       method = "submitBlockOutline",
       at = @At("HEAD"),
       cancellable = true
@@ -122,5 +124,5 @@ public abstract class LevelRendererMixin {
          }
       }
    }
-   *///?}
+   //?}
 }

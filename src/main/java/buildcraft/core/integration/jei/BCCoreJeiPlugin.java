@@ -28,11 +28,38 @@ public class BCCoreJeiPlugin implements IModPlugin {
    }
 
    public void registerItemSubtypes(ISubtypeRegistration registration) {
+      //? if >= 1.21.10 {
       registration.registerFromDataComponentTypes(BCCoreItems.PAINTBRUSH, new DataComponentType[]{BCCore.BRUSH_COLOR});
       registration.registerSubtypeInterpreter(BCCoreItems.FRAGILE_FLUID_CONTAINER, (stack, context) -> {
          FluidStack fluid = ItemFragileFluidContainer.getFluid(stack);
-         return fluid.isEmpty() ? null : BuiltInRegistries.FLUID.getKey(fluid.getFluid());
+         return fluid.isEmpty() ? null : BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString();
       });
+      //?} else {
+      /*// JEI 19 has no registerFromDataComponentTypes helper, and its single-method IIngredientSubtypeInterpreter
+      // is deprecated-for-removal; use the current ISubtypeInterpreter overload (getSubtypeData + legacy string).
+      registration.registerSubtypeInterpreter(BCCoreItems.PAINTBRUSH, new mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter<net.minecraft.world.item.ItemStack>() {
+         public Object getSubtypeData(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            return stack.get(BCCore.BRUSH_COLOR);
+         }
+
+         @Deprecated
+         public String getLegacyStringSubtypeInfo(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            return String.valueOf(stack.get(BCCore.BRUSH_COLOR));
+         }
+      });
+      registration.registerSubtypeInterpreter(BCCoreItems.FRAGILE_FLUID_CONTAINER, new mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter<net.minecraft.world.item.ItemStack>() {
+         public Object getSubtypeData(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            FluidStack fluid = ItemFragileFluidContainer.getFluid(stack);
+            return fluid.isEmpty() ? null : BuiltInRegistries.FLUID.getKey(fluid.getFluid());
+         }
+
+         @Deprecated
+         public String getLegacyStringSubtypeInfo(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            FluidStack fluid = ItemFragileFluidContainer.getFluid(stack);
+            return fluid.isEmpty() ? "" : BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString();
+         }
+      });
+      *///?}
    }
 
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {

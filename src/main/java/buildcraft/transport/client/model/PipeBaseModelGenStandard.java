@@ -134,8 +134,8 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
       if (mc != null && mc.levelRenderer != null) {
          //? if >= 26.2 {
          //?} else {
-         mc.levelRenderer.allChanged();
-         //?}
+         /*mc.levelRenderer.allChanged();
+         *///?}
       }
    }
 

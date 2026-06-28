@@ -6,6 +6,7 @@
 
 package buildcraft.lib.engine;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjReceiver;
@@ -33,7 +34,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -43,8 +44,12 @@ import net.minecraft.world.level.Level.ExplosionInteraction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 import team.reborn.energy.api.EnergyStorage;
 
 public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebuggable {
@@ -322,7 +327,7 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
    }
 
    public static <T extends TileEngineBase_BC8> void serverTick(Level level, BlockPos pos, BlockState state, T engine) {
-      ProfilerFiller _profiler = Profiler.get();
+      ProfilerFiller _profiler = BcProfiler.get();
       _profiler.push("buildcraft:engine_serverTick");
 
       try {
@@ -534,8 +539,29 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       this.clientModelData.addDebugInfo(left);
    }
 
+   //? if >= 1.21.10 {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
+      this.writeData(new BcValueOut(output));
+   }
+
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*protected void saveAdditional(CompoundTag tag, Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+
+   protected void loadAdditional(CompoundTag tag, Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
       output.putByte("orientation", (byte)this.orientation.ordinal());
       output.putLong("power", this.power);
       output.putFloat("heat", this.heat);
@@ -543,16 +569,15 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       output.putBoolean("isPumping", this.isPumping);
       output.putBoolean("isRedstonePowered", this.isRedstonePowered);
       output.putByte("powerStage", (byte)this.powerStage.ordinal());
-      if (this.owner != null && this.owner.id() != null) {
-         output.putString("ownerUUID", this.owner.id().toString());
-         if (this.owner.name() != null) {
-            output.putString("ownerName", this.owner.name());
+      if (this.owner != null && BcAuth.id(this.owner) != null) {
+         output.putString("ownerUUID", BcAuth.id(this.owner).toString());
+         if (BcAuth.name(this.owner) != null) {
+            output.putString("ownerName", BcAuth.name(this.owner));
          }
       }
    }
 
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   protected void readData(BcValueIn input) {
       int ord = input.getByteOr("orientation", (byte)Direction.UP.ordinal());
       this.orientation = Direction.values()[Math.min(ord, 5)];
       this.power = input.getLongOr("power", 0L);

@@ -23,13 +23,13 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
@@ -220,6 +220,7 @@ public class GuiList extends BcScreen<ContainerList> {
       return (long)itemHash << 8 | flags;
    }
 
+   //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       if (this.labelField != null && this.labelField.isFocused()) {
          if (event.key() == 257 || event.key() == 335) {
@@ -243,6 +244,31 @@ public class GuiList extends BcScreen<ContainerList> {
 
       return super.mouseClicked(event, entered);
    }
+   //?} else {
+   /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+      if (this.labelField != null && this.labelField.isFocused()) {
+         if (keyCode == 257 || keyCode == 335) {
+            this.setFocused(null);
+            return true;
+         }
+
+         if (this.minecraft.options.keyInventory.matches(keyCode, scanCode)) {
+            return true;
+         }
+      }
+
+      return super.keyPressed(keyCode, scanCode, modifiers);
+   }
+
+   @Override
+   public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      if (this.labelField != null && this.labelField.isFocused() && !this.labelField.isMouseOver(mouseX, mouseY)) {
+         this.setFocused(null);
+      }
+
+      return super.mouseClicked(mouseX, mouseY, button);
+   }
+   *///?}
 
    private static final class GhostCache {
       final long signature;
@@ -266,9 +292,15 @@ public class GuiList extends BcScreen<ContainerList> {
          this.onPressAction = onPressAction;
       }
 
+      //? if >= 1.21.10 {
       public void onPress(InputWithModifiers modifiers) {
          this.onPressAction.run();
       }
+      //?} else {
+      /*public void onPress() {
+         this.onPressAction.run();
+      }
+      *///?}
 
       void setToggled(boolean toggled) {
          this.toggled = toggled;
@@ -285,10 +317,13 @@ public class GuiList extends BcScreen<ContainerList> {
             sprite = SPRITE_NORMAL;
          }
 
-         graphics.raw.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, this.getX(), this.getY(), this.getWidth(), this.getHeight(), ARGB.white(this.alpha));
+         // Opaque-scaled white (ARGB.white(float) is 1.21.5+; inline int-math works on every node).
+         int whiteArgb = (Math.round(this.alpha * 255.0F) & 0xFF) << 24 | 0xFFFFFF;
+         graphics.blitSprite(sprite, this.getX(), this.getY(), this.getWidth(), this.getHeight(), whiteArgb);
          this.drawDefaultButtonLabel(graphics);
       }
 
+      //? if >= 1.21.10 {
       public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
          if (this.visible && this.isValidClickButton(event.buttonInfo()) && this.isMouseOver(event.x(), event.y())) {
             this.playDownSound(Minecraft.getInstance().getSoundManager());
@@ -298,5 +333,16 @@ public class GuiList extends BcScreen<ContainerList> {
             return false;
          }
       }
+      //?} else {
+      /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
+         if (this.visible && this.isValidClickButton(button) && this.isMouseOver(mouseX, mouseY)) {
+            this.playDownSound(Minecraft.getInstance().getSoundManager());
+            this.onClick(mouseX, mouseY);
+            return true;
+         } else {
+            return false;
+         }
+      }
+      *///?}
    }
 }

@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.transport.IWireEmitter;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
@@ -58,7 +59,7 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
 
    public PluggableGate(PluggableDefinition def, IPipeHolder holder, Direction side, CompoundTag nbt) {
       super(def, holder, side);
-      this.logic = new GateLogic(this, nbt.getCompound("data").orElse(new CompoundTag()));
+      this.logic = new GateLogic(this, BcNbt.getCompound(nbt, "data"));
    }
 
    @Override
@@ -70,7 +71,7 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
 
    @Override
    public boolean readFromNbt(CompoundTag nbt) {
-      CompoundTag data = nbt.getCompound("data").orElse(new CompoundTag());
+      CompoundTag data = BcNbt.getCompound(nbt, "data");
       this.logic.readConfigData(data);
       return true;
    }

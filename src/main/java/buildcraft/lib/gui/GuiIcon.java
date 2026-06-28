@@ -12,7 +12,6 @@ import buildcraft.lib.client.sprite.SpriteRaw;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.lib.gui.pos.IGuiArea;
 import buildcraft.lib.gui.pos.IGuiPosition;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
@@ -61,7 +60,11 @@ public class GuiIcon implements ISimpleDrawable {
    }
 
    public DynamicTexture createDynamicTexture(int scale) {
+      //? if >= 1.21.10 {
       return new DynamicTexture("bc_guide_icon", this.width * scale, this.height * scale, false);
+      //?} else {
+      /*return new DynamicTexture(this.width * scale, this.height * scale, false);
+      *///?}
    }
 
    @Override
@@ -100,7 +103,6 @@ public class GuiIcon implements ISimpleDrawable {
          float var14 = (float)(raw.uMin * this.textureSize);
          float vPixel = (float)(raw.vMin * this.textureSize);
          currentGraphics.blit(
-            RenderPipelines.GUI_TEXTURED,
             raw.location,
             (int)x,
             (int)y,
@@ -132,7 +134,6 @@ public class GuiIcon implements ISimpleDrawable {
             int drawWidth = (int)(xMax - xMin);
             int drawHeight = (int)(yMax - yMin);
             currentGraphics.blit(
-               RenderPipelines.GUI_TEXTURED,
                raw.location,
                (int)xMin,
                (int)yMin,
@@ -148,7 +149,7 @@ public class GuiIcon implements ISimpleDrawable {
          } else if (sprite instanceof SpriteHolderRegistry.SpriteHolder holder) {
             TextureAtlasSprite tas = holder.getSprite();
             if (tas != null) {
-               currentGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, tas, (int)xMin, (int)yMin, (int)(xMax - xMin), (int)(yMax - yMin));
+               currentGraphics.blitSprite(tas, (int)xMin, (int)yMin, (int)(xMax - xMin), (int)(yMax - yMin));
             }
          }
       }
@@ -171,7 +172,7 @@ public class GuiIcon implements ISimpleDrawable {
          int uW = (int)((uMax - uMin) * lastBoundTexSize);
          int vH = (int)((vMax - vMin) * lastBoundTexSize);
          currentGraphics.blit(
-            RenderPipelines.GUI_TEXTURED, lastBoundLocation, xLow, yLow, uPx, vPx, drawW, drawH, uW, vH, lastBoundTexSize, lastBoundTexSize, colour
+            lastBoundLocation, xLow, yLow, uPx, vPx, drawW, drawH, uW, vH, lastBoundTexSize, lastBoundTexSize, colour
          );
       }
    }

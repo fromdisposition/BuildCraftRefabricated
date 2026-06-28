@@ -18,8 +18,10 @@ import buildcraft.transport.container.ContainerEmzuliPipe_BC8;
 import buildcraft.transport.pipe.behaviour.PipeBehaviourEmzuli;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.InputWithModifiers;
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -130,11 +132,17 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
    }
 
    @Override
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      int mouseX = (int)event.x();
-      int mouseY = (int)event.y();
-      int button = event.button();
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+   }
+   //?} else {
+   /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      return this.bcMouseClicked((int)mouseX, (int)mouseY, button) || super.mouseClicked(mouseX, mouseY, button);
+   }
+   *///?}
 
+   private boolean bcMouseClicked(int mouseX, int mouseY, int button) {
       for (GuiEmzuliPipe_BC8.PaintButton btn : this.paintButtons) {
          if (btn != null && btn.isMouseOver(mouseX, mouseY)) {
             btn.handleClick(button);
@@ -143,9 +151,10 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
          }
       }
 
-      return super.mouseClicked(event, doubleClick);
+      return false;
    }
 
+   //? if >= 1.21.10 {
    @Override
    public boolean mouseReleased(MouseButtonEvent event) {
       if (this.activePressedButton != null) {
@@ -155,6 +164,17 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
          return super.mouseReleased(event);
       }
    }
+   //?} else {
+   /*@Override
+   public boolean mouseReleased(double mouseX, double mouseY, int button) {
+      if (this.activePressedButton != null) {
+         this.activePressedButton = null;
+         return true;
+      } else {
+         return super.mouseReleased(mouseX, mouseY, button);
+      }
+   }
+   *///?}
 
    private static DyeColor cycleColour(DyeColor current) {
       if (current == null) {
@@ -202,8 +222,13 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
          this.updateTooltip();
       }
 
+      //? if >= 1.21.10 {
       public void onPress(InputWithModifiers input) {
       }
+      //?} else {
+      /*public void onPress() {
+      }
+      *///?}
 
       public void handleClick(int button) {
          DyeColor current = ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);

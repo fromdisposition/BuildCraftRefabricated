@@ -16,8 +16,8 @@ import java.util.List;
 import buildcraft.lib.client.render.laser.LaserBatch;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -31,7 +31,7 @@ public class AddonRendererFillerPlanner implements IFastAddonRenderer<AddonFille
    private final List<BlockPos> toDraw = new ArrayList<>();
 
    //? if >= 26.2 {
-   /*@Override
+   @Override
    public void renderAddonFast(AddonFillerPlanner addon, Player player, float partialTicks, PoseStack poseStack) {
       if (addon.buildingInfo != null) {
          List<BlockPos> cached = addon.getCachedPreviewPositions();
@@ -46,8 +46,8 @@ public class AddonRendererFillerPlanner implements IFastAddonRenderer<AddonFille
          }
       }
    }
-   *///?} else {
-   @Override
+   //?} else {
+   /*@Override
    public void renderAddonFast(AddonFillerPlanner addon, Player player, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource) {
       if (addon.buildingInfo != null) {
          List<BlockPos> cached = addon.getCachedPreviewPositions();
@@ -62,7 +62,7 @@ public class AddonRendererFillerPlanner implements IFastAddonRenderer<AddonFille
          }
       }
    }
-   //?}
+   *///?}
 
    private void rebuildDrawList(List<BlockPos> cached) {
       if (cached != this.lastCached) {

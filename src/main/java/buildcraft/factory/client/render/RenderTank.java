@@ -24,7 +24,7 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -83,7 +83,7 @@ public class RenderTank implements BlockEntityRenderer<TileTank, TankRenderState
    }
 
    public void submit(TankRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-      ProfilerFiller _profiler = Profiler.get();
+      ProfilerFiller _profiler = BcProfiler.get();
       _profiler.push("buildcraft:tank_submit");
 
       try {

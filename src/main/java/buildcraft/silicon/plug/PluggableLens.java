@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeEventItem;
@@ -40,12 +41,12 @@ public class PluggableLens extends PipePluggable {
       super(def, holder, side);
       DyeColor loaded = null;
       if (nbt.contains("colour")) {
-         String name = nbt.getStringOr("colour", "");
+         String name = BcNbt.getString(nbt, "colour", "");
          loaded = DyeColor.byName(name, null);
       }
 
       this.colour = loaded;
-      this.isFilter = nbt.getBooleanOr("f", false);
+      this.isFilter = BcNbt.getBoolean(nbt, "f", false);
    }
 
    @Override

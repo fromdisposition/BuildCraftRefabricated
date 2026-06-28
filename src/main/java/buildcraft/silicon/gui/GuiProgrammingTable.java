@@ -15,7 +15,9 @@ import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.lib.gui.pos.IGuiArea;
 import buildcraft.silicon.container.ContainerProgrammingTable;
 import buildcraft.silicon.tile.TileProgrammingTable;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -108,11 +110,18 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
    }
 
    @Override
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      if (event.button() == 0) {
-         int mouseX = (int)event.x();
-         int mouseY = (int)event.y();
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+   }
+   //?} else {
+   /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      return this.bcMouseClicked((int)mouseX, (int)mouseY, button) || super.mouseClicked(mouseX, mouseY, button);
+   }
+   *///?}
 
+   private boolean bcMouseClicked(int mouseX, int mouseY, int button) {
+      if (button == 0) {
          for (int i = 0; i < TileProgrammingTable.WIDTH * TileProgrammingTable.HEIGHT; i++) {
             if (!this.menu.tile.getOptionStack(i).isEmpty() && this.getOptionArea(i).contains(mouseX, mouseY)) {
                if (this.minecraft != null && this.minecraft.gameMode != null) {
@@ -124,6 +133,6 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
          }
       }
 
-      return super.mouseClicked(event, doubleClick);
+      return false;
    }
 }

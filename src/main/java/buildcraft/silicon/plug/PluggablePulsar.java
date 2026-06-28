@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.mj.IMjRedstoneReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IPipeHolder;
@@ -46,10 +47,10 @@ public class PluggablePulsar extends PipePluggable {
 
    public PluggablePulsar(PluggableDefinition definition, IPipeHolder holder, Direction side, CompoundTag nbt) {
       super(definition, holder, side);
-      this.manuallyEnabled = nbt.getBooleanOr("manuallyEnabled", false);
-      this.gateEnabledTicks = nbt.getIntOr("gateEnabledTicks", 0);
-      this.gateSinglePulses = nbt.getIntOr("gateSinglePulses", 0);
-      this.pulseStage = MathUtil.clamp(nbt.getIntOr("pulseStage", 0), 0, 20);
+      this.manuallyEnabled = BcNbt.getBoolean(nbt, "manuallyEnabled", false);
+      this.gateEnabledTicks = BcNbt.getInt(nbt, "gateEnabledTicks", 0);
+      this.gateSinglePulses = BcNbt.getInt(nbt, "gateSinglePulses", 0);
+      this.pulseStage = MathUtil.clamp(BcNbt.getInt(nbt, "pulseStage", 0), 0, 20);
    }
 
    @Override

@@ -8,7 +8,9 @@ import java.util.function.Consumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LevelRenderer;
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.state.level.LevelRenderState;
+//?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -23,7 +25,9 @@ public final class ExtractBlockOutlineRenderStateEvent {
    private final BlockHitResult hitResult;
    private final CollisionContext collisionContext;
    private final Camera camera;
+   //? if >= 1.21.10 {
    private final LevelRenderState levelRenderState;
+   //?}
    private final List<BlockOutlineRenderer> customRenderers = new ArrayList<>();
    private boolean canceled;
 
@@ -48,8 +52,12 @@ public final class ExtractBlockOutlineRenderStateEvent {
       BlockState state,
       BlockHitResult hitResult,
       CollisionContext collisionContext,
+      //? if >= 1.21.10 {
       Camera camera,
       LevelRenderState levelRenderState
+      //?} else {
+      /*Camera camera
+      *///?}
    ) {
       this.levelRenderer = levelRenderer;
       this.level = level;
@@ -58,7 +66,9 @@ public final class ExtractBlockOutlineRenderStateEvent {
       this.hitResult = hitResult;
       this.collisionContext = collisionContext;
       this.camera = camera;
+      //? if >= 1.21.10 {
       this.levelRenderState = levelRenderState;
+      //?}
    }
 
    public LevelRenderer getLevelRenderer() {
@@ -89,9 +99,11 @@ public final class ExtractBlockOutlineRenderStateEvent {
       return this.camera;
    }
 
+   //? if >= 1.21.10 {
    public LevelRenderState getLevelRenderState() {
       return this.levelRenderState;
    }
+   //?}
 
    public void addCustomRenderer(BlockOutlineRenderer renderer) {
       this.customRenderers.add(renderer);

@@ -6,6 +6,10 @@
 
 package buildcraft.robotics.entity;
 
+import buildcraft.lib.nbt.BcAuth;
+import buildcraft.lib.nbt.BcNbt;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
 import buildcraft.api.core.IZone;
@@ -40,8 +44,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 import net.minecraft.world.phys.Vec3;
 
 public class EntityRobot extends EntityRobotBase {
@@ -430,7 +436,11 @@ public class EntityRobot extends EntityRobotBase {
          }
       }
 
+      //? if >= 1.21.10 {
       target.hurtServer(serverLevel, this.damageSources().mobAttack(this), damage);
+      //?} else {
+      /*target.hurt(this.damageSources().mobAttack(this), damage);
+      *///?}
    }
 
    @Override
@@ -500,9 +510,21 @@ public class EntityRobot extends EntityRobotBase {
       super.remove(reason);
    }
 
+   //? if >= 1.21.10 {
    @Override
    protected void addAdditionalSaveData(ValueOutput output) {
       super.addAdditionalSaveData(output);
+      this.writeData(new BcValueOut(output));
+   }
+   //?} else {
+   /*@Override
+   public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+      super.addAdditionalSaveData(tag);
+      this.writeData(new BcValueOut(tag, this.registryAccess()));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
       output.putLong("robotId", this.robotId);
       output.store("battery", CompoundTag.CODEC, this.battery.serializeNBT());
       if (this.board != null) {
@@ -526,10 +548,10 @@ public class EntityRobot extends EntityRobotBase {
       }
 
       GameProfile owner = this.getOwner();
-      if (owner != null && owner.id() != null) {
-         output.putString("ownerUUID", owner.id().toString());
-         if (owner.name() != null) {
-            output.putString("ownerName", owner.name());
+      if (owner != null && BcAuth.id(owner) != null) {
+         output.putString("ownerUUID", BcAuth.id(owner).toString());
+         if (BcAuth.name(owner) != null) {
+            output.putString("ownerName", BcAuth.name(owner));
          }
       }
 
@@ -543,7 +565,7 @@ public class EntityRobot extends EntityRobotBase {
       }
    }
 
-   private void writeStationNBT(ValueOutput output, String key, BlockPos pos, Direction side) {
+   private void writeStationNBT(BcValueOut output, String key, BlockPos pos, Direction side) {
       if (pos != null && side != null) {
          CompoundTag tag = new CompoundTag();
          tag.putIntArray("pos", new int[]{pos.getX(), pos.getY(), pos.getZ()});
@@ -552,9 +574,21 @@ public class EntityRobot extends EntityRobotBase {
       }
    }
 
+   //? if >= 1.21.10 {
    @Override
    protected void readAdditionalSaveData(ValueInput input) {
       super.readAdditionalSaveData(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*@Override
+   public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+      super.readAdditionalSaveData(tag);
+      this.readData(new BcValueIn(tag, this.registryAccess()));
+   }
+   *///?}
+
+   protected void readData(BcValueIn input) {
       this.robotId = input.getLongOr("robotId", NULL_ROBOT_ID);
       input.read("battery", CompoundTag.CODEC).ifPresent(this.battery::deserializeNBT);
       input.read("board", CompoundTag.CODEC).ifPresent(boardTag -> {
@@ -576,7 +610,7 @@ public class EntityRobot extends EntityRobotBase {
             }
          }
       });
-      input.child("fluidTank").ifPresent(this.fluidTank::deserialize);
+      input.child("fluidTank").ifPresent(v -> this.fluidTank.deserialize(v));
       input.read("itemInUse", ItemStack.CODEC).ifPresent(stack -> this.itemInUse = stack);
       String ownerUuid = input.getStringOr("ownerUUID", "");
       if (!ownerUuid.isEmpty()) {
@@ -596,10 +630,10 @@ public class EntityRobot extends EntityRobotBase {
       });
    }
 
-   private void readStationNBT(ValueInput input, String key, boolean linked) {
+   private void readStationNBT(BcValueIn input, String key, boolean linked) {
       input.read(key, CompoundTag.CODEC).ifPresent(tag -> {
-         int[] pos = tag.getIntArray("pos").orElse(new int[0]);
-         int sideOrdinal = tag.getByte("side").orElse((byte) 0);
+         int[] pos = BcNbt.getIntArray(tag, "pos");
+         int sideOrdinal = BcNbt.getByte(tag, "side", (byte) 0);
          if (pos.length == 3 && sideOrdinal >= 0 && sideOrdinal < Direction.values().length) {
             BlockPos blockPos = new BlockPos(pos[0], pos[1], pos[2]);
             Direction side = Direction.values()[sideOrdinal];
@@ -614,10 +648,24 @@ public class EntityRobot extends EntityRobotBase {
       });
    }
 
+   //? if >= 1.21.10 {
    @Override
    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
       return false;
    }
+   //?} else {
+   /*@Override
+   public boolean hurt(DamageSource source, float amount) {
+      return false;
+   }
+   *///?}
+
+   //? if < 1.21.10 {
+   /*@Override
+   public Iterable<ItemStack> getArmorSlots() {
+      return java.util.Collections.emptyList();
+   }
+   *///?}
 
    @Override
    public ItemStack getItemBySlot(EquipmentSlot slot) {

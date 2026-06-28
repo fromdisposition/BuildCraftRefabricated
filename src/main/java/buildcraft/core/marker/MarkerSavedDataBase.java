@@ -14,10 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
 
 public abstract class MarkerSavedDataBase<C extends MarkerConnection<C>> extends SavedData {
    public List<BlockPos> markerPositions = new ArrayList<>();
@@ -65,7 +62,4 @@ public abstract class MarkerSavedDataBase<C extends MarkerConnection<C>> extends
       );
    }
 
-   protected static <T extends SavedData> T getOrCreate(Level level, SavedDataType<T> type, Supplier<T> clientEmpty) {
-      return level.isClientSide() ? clientEmpty.get() : ((ServerLevel)level).getDataStorage().computeIfAbsent(type);
-   }
 }

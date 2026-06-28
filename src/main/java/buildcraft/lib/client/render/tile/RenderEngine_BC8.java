@@ -13,7 +13,7 @@ import java.util.function.BiFunction;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 public class RenderEngine_BC8 extends BcBlockEntityRenderer<TileEngineBase_BC8, EngineRenderState> {
@@ -33,7 +33,7 @@ public class RenderEngine_BC8 extends BcBlockEntityRenderer<TileEngineBase_BC8, 
    }
 
    public void submit(EngineRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
-      ProfilerFiller _profiler = Profiler.get();
+      ProfilerFiller _profiler = BcProfiler.get();
       _profiler.push("buildcraft:engine_submit");
 
       try {
@@ -43,10 +43,10 @@ public class RenderEngine_BC8 extends BcBlockEntityRenderer<TileEngineBase_BC8, 
             int light = state.light;
             BcBerRenderUtil.submit(poseStack, collector,
                //? if >= 26.2 {
-               /*Sheets.cutoutBlockItemSheet(),
-               *///?} else {
-               Sheets.cutoutBlockSheet(),
-               //?}
+               Sheets.cutoutBlockItemSheet(),
+               //?} else {
+               /*Sheets.cutoutBlockSheet(),
+               *///?}
                (pose, buffer) -> {
                for (MutableQuad quad : quads) {
                   quad.setCalculatedDiffuse();

@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -138,7 +137,7 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
       ItemStack gearGold = new ItemStack(BCCoreItems.GEAR_GOLD);
       graphics.item(gearIron, x + 60, y + 21);
       graphics.item(gearGold, x + 83, y + 21);
-      graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + 39, y + 18, 39.0F, 18.0F, 80, 23, 80, 23, 256, 256, -1509949441);
+      graphics.blit(TEXTURE, x + 39, y + 18, 39.0F, 18.0F, 80, 23, 80, 23, 256, 256, -1509949441);
       double rfHeight = 60.0 * ((ContainerDynamoMJ)this.menu).getSyncedFeStored() / 10000.0;
       double scale = Minecraft.getInstance().getWindow().getGuiScale();
       rfHeight = Math.round(rfHeight * scale) / scale;

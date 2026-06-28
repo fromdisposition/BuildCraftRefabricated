@@ -6,11 +6,11 @@
 
 package buildcraft.lib.common.util;
 
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public interface ValueIOSerializable {
-   void serialize(ValueOutput var1);
+   void serialize(BcValueOut var1);
 
-   void deserialize(ValueInput var1);
+   void deserialize(BcValueIn var1);
 }

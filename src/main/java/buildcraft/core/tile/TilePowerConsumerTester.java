@@ -17,8 +17,8 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TilePowerConsumerTester extends BcBlockEntity implements IMjReceiver, IDebuggable {
    private long lastReceived;
@@ -31,8 +31,8 @@ public class TilePowerConsumerTester extends BcBlockEntity implements IMjReceive
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.lastReceived = input.getLongOr("last", 0L);
       this.nextTickReceived = input.getLongOr("nt", 0L);
       this.lastTickReceived = input.getLongOr("lt", 0L);
@@ -40,8 +40,8 @@ public class TilePowerConsumerTester extends BcBlockEntity implements IMjReceive
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putLong("last", this.lastReceived);
       output.putLong("nt", this.nextTickReceived);
       output.putLong("lt", this.lastTickReceived);

@@ -8,11 +8,17 @@ package buildcraft.factory.client.render;
 
 import buildcraft.factory.tile.TileHeatExchange;
 import buildcraft.lib.fluid.stack.FluidStack;
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+//?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
+//? if >= 1.21.10 {
 public class HeatExchangeRenderState extends BlockEntityRenderState {
+//?} else {
+/*public class HeatExchangeRenderState {
+*///?}
    public float partialTick;
    public boolean render;
    public TileHeatExchange.ExchangeSectionStart section;

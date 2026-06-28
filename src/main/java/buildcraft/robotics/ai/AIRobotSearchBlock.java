@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.IZone;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
@@ -159,7 +160,7 @@ public class AIRobotSearchBlock extends AIRobot {
    @Override
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
-      int[] arr = nbt.getIntArray("blockFound").orElse(new int[0]);
+      int[] arr = BcNbt.getIntArray(nbt, "blockFound");
       if (arr.length == 3) {
          this.blockFound = new BlockPos(arr[0], arr[1], arr[2]);
       }

@@ -5,6 +5,7 @@ import buildcraft.builders.BCBuildersEntities;
 import buildcraft.builders.BCBuildersEventDist;
 import buildcraft.builders.BCBuildersItems;
 import buildcraft.builders.BCBuildersMenuTypes;
+import buildcraft.builders.client.render.BCBuildersWorldRenderer;
 import buildcraft.builders.client.render.RenderArchitectTable;
 import buildcraft.builders.client.render.RenderFiller;
 import buildcraft.builders.client.render.RenderQuarry;
@@ -35,11 +36,11 @@ import buildcraft.lib.client.render.laser.LaserBatch;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 //? if >= 26.2 {
-/*import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
-*///?} else {
-import net.minecraft.client.renderer.SubmitNodeStorage;
-//?}
+//?} else {
+/*import net.minecraft.client.renderer.SubmitNodeStorage;
+*///?}
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.NoopRenderer;
@@ -55,43 +56,43 @@ public final class BCBuildersFabricClient {
 
    public static void init() {
       //? if >= 26.2 {
-      /*LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
+      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
          LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());
          RenderLevelStageEvent.AfterTranslucentBlocks stage = new RenderLevelStageEvent.AfterTranslucentBlocks(context.poseStack(), context.levelState());
-         BCBuildersEventDist.INSTANCE.renderAllQuarries(stage);
-         BCBuildersEventDist.INSTANCE.renderAllFillers(stage);
-         BCBuildersEventDist.INSTANCE.renderAllArchitectTables(stage);
-         BCBuildersEventDist.INSTANCE.renderAllBuilders(stage);
+         BCBuildersWorldRenderer.renderAllQuarries(stage);
+         BCBuildersWorldRenderer.renderAllFillers(stage);
+         BCBuildersWorldRenderer.renderAllArchitectTables(stage);
+         BCBuildersWorldRenderer.renderAllBuilders(stage);
          SubmitCustomGeometryEvent geometry = new SubmitCustomGeometryEvent(context.poseStack(), context.levelState(), context.submitNodeCollector());
-         BCBuildersEventDist.INSTANCE.renderAllFillersCustomGeometry(geometry);
-         BCBuildersEventDist.INSTANCE.renderAllBuildersCustomGeometry(geometry);
+         BCBuildersWorldRenderer.renderAllFillersCustomGeometry(geometry);
+         BCBuildersWorldRenderer.renderAllBuildersCustomGeometry(geometry);
       });
-      *///?} else if >= 26.1 {
-      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
+      //?} else if >= 26.1 {
+      /*LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
          RenderLevelStageEvent.AfterTranslucentBlocks stage = new RenderLevelStageEvent.AfterTranslucentBlocks(context.poseStack(), context.levelState());
-         BCBuildersEventDist.INSTANCE.renderAllQuarries(stage);
-         BCBuildersEventDist.INSTANCE.renderAllFillers(stage);
-         BCBuildersEventDist.INSTANCE.renderAllArchitectTables(stage);
-         BCBuildersEventDist.INSTANCE.renderAllBuilders(stage);
+         BCBuildersWorldRenderer.renderAllQuarries(stage);
+         BCBuildersWorldRenderer.renderAllFillers(stage);
+         BCBuildersWorldRenderer.renderAllArchitectTables(stage);
+         BCBuildersWorldRenderer.renderAllBuilders(stage);
          Minecraft mc = Minecraft.getInstance();
          if (mc.gameRenderer != null) {
             SubmitNodeStorage storage = mc.gameRenderer.getFeatureRenderDispatcher().getSubmitNodeStorage();
             SubmitCustomGeometryEvent geometry = new SubmitCustomGeometryEvent(context.poseStack(), context.levelState(), storage);
-            BCBuildersEventDist.INSTANCE.renderAllFillersCustomGeometry(geometry);
-            BCBuildersEventDist.INSTANCE.renderAllBuildersCustomGeometry(geometry);
+            BCBuildersWorldRenderer.renderAllFillersCustomGeometry(geometry);
+            BCBuildersWorldRenderer.renderAllBuildersCustomGeometry(geometry);
          }
       });
-      //?} else {
+      *///?} else {
       /*// 1.21.x: render in END_MAIN; WorldRenderContext.commandQueue() is the SubmitNodeCollector.
       WorldRenderEvents.END_MAIN.register(context -> {
          RenderLevelStageEvent.AfterTranslucentBlocks stage = new RenderLevelStageEvent.AfterTranslucentBlocks(context.matrices(), context.worldState());
-         BCBuildersEventDist.INSTANCE.renderAllQuarries(stage);
-         BCBuildersEventDist.INSTANCE.renderAllFillers(stage);
-         BCBuildersEventDist.INSTANCE.renderAllArchitectTables(stage);
-         BCBuildersEventDist.INSTANCE.renderAllBuilders(stage);
+         BCBuildersWorldRenderer.renderAllQuarries(stage);
+         BCBuildersWorldRenderer.renderAllFillers(stage);
+         BCBuildersWorldRenderer.renderAllArchitectTables(stage);
+         BCBuildersWorldRenderer.renderAllBuilders(stage);
          SubmitCustomGeometryEvent geometry = new SubmitCustomGeometryEvent(context.matrices(), context.worldState(), context.commandQueue());
-         BCBuildersEventDist.INSTANCE.renderAllFillersCustomGeometry(geometry);
-         BCBuildersEventDist.INSTANCE.renderAllBuildersCustomGeometry(geometry);
+         BCBuildersWorldRenderer.renderAllFillersCustomGeometry(geometry);
+         BCBuildersWorldRenderer.renderAllBuildersCustomGeometry(geometry);
       });
       *///?}
       ClientTickEvents.END_CLIENT_TICK.register((EndTick)client -> ClientArchitectScans.INSTANCE.tick());

@@ -6,6 +6,7 @@
 
 package buildcraft.transport.statements;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.gates.IGate;
 import buildcraft.api.statements.IStatement;
@@ -42,7 +43,7 @@ public class ActionParameterSignal implements IStatementParameter {
    }
 
    public static ActionParameterSignal readFromNbt(CompoundTag nbt) {
-      return nbt.contains("color") ? get(DyeColor.byId(nbt.getByteOr("color", (byte)0))) : EMPTY;
+      return nbt.contains("color") ? get(DyeColor.byId(BcNbt.getByte(nbt, "color", (byte)0))) : EMPTY;
    }
 
    @Override

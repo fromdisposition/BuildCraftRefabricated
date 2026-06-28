@@ -139,9 +139,9 @@ public class BCSiliconRecipes {
 
    private static Item getDyeItem(DyeColor colour) {
       //? if >= 26.2 {
-      /*return Items.DYE.pick(colour);
-      *///?} else {
-      return switch (colour) {
+      return Items.DYE.pick(colour);
+      //?} else {
+      /*return switch (colour) {
          case WHITE -> Items.WHITE_DYE;
          case ORANGE -> Items.ORANGE_DYE;
          case MAGENTA -> Items.MAGENTA_DYE;
@@ -160,7 +160,7 @@ public class BCSiliconRecipes {
          case BLACK -> Items.BLACK_DYE;
          default -> throw new MatchException(null, null);
       };
-      //?}
+      *///?}
    }
 
    private static void registerGateCopierRecipe() {
@@ -214,9 +214,9 @@ public class BCSiliconRecipes {
 
    private static Block getStainedGlass(DyeColor colour) {
       //? if >= 26.2 {
-      /*return Blocks.STAINED_GLASS.pick(colour);
-      *///?} else {
-      return switch (colour) {
+      return Blocks.STAINED_GLASS.pick(colour);
+      //?} else {
+      /*return switch (colour) {
          case WHITE -> Blocks.WHITE_STAINED_GLASS;
          case ORANGE -> Blocks.ORANGE_STAINED_GLASS;
          case MAGENTA -> Blocks.MAGENTA_STAINED_GLASS;
@@ -235,6 +235,6 @@ public class BCSiliconRecipes {
          case BLACK -> Blocks.BLACK_STAINED_GLASS;
          default -> throw new MatchException(null, null);
       };
-      //?}
+      *///?}
    }
 }

@@ -42,17 +42,17 @@ public final class FormatSegment {
 
       for (ChatFormatting format : this.misc) {
          //? if >= 26.2 {
-         /*miscStr.append(format.name().toLowerCase());
-         *///?} else {
-         miscStr.append(format.getName());
-         //?}
+         miscStr.append(format.name().toLowerCase());
+         //?} else {
+         /*miscStr.append(format.getName());
+         *///?}
          miscStr.append(' ');
       }
 
       //? if >= 26.2 {
-      /*return (this.colour == null ? "" : this.colour.name().toLowerCase() + "") + miscStr + this.text;
-      *///?} else {
-      return (this.colour == null ? "" : this.colour.getName() + "") + miscStr + this.text;
-      //?}
+      return (this.colour == null ? "" : this.colour.name().toLowerCase() + "") + miscStr + this.text;
+      //?} else {
+      /*return (this.colour == null ? "" : this.colour.getName() + "") + miscStr + this.text;
+      *///?}
    }
 }

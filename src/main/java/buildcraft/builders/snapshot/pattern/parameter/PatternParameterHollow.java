@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot.pattern.parameter;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
@@ -32,8 +33,8 @@ public enum PatternParameterHollow implements IStatementParameter {
    }
 
    public static PatternParameterHollow readFromNbt(CompoundTag nbt) {
-      if (nbt.getBoolean("filled").orElse(false)) {
-         return nbt.getBoolean("outer").orElse(false) ? FILLED_OUTER : FILLED_INNER;
+      if (BcNbt.getBoolean(nbt, "filled", false)) {
+         return BcNbt.getBoolean(nbt, "outer", false) ? FILLED_OUTER : FILLED_INNER;
       } else {
          return HOLLOW;
       }

@@ -4,8 +4,8 @@ import buildcraft.lib.common.util.ValueIOSerializable;
 import buildcraft.lib.transfer.handler.TransferPreconditions;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import team.reborn.energy.api.EnergyStorage;
 
 public class FeEnergyStorage implements EnergyStorage, ValueIOSerializable {
@@ -56,12 +56,12 @@ public class FeEnergyStorage implements EnergyStorage, ValueIOSerializable {
    }
 
    @Override
-   public void serialize(ValueOutput output) {
+   public void serialize(BcValueOut output) {
       output.putInt("energy", this.energy);
    }
 
    @Override
-   public void deserialize(ValueInput input) {
+   public void deserialize(BcValueIn input) {
       this.energy = Math.max(0, input.getIntOr("energy", 0));
    }
 

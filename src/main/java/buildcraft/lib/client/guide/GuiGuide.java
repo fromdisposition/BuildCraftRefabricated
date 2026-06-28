@@ -36,9 +36,11 @@ import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -174,10 +176,10 @@ public class GuiGuide extends Screen {
    public void closePage() {
       if (this.pages.isEmpty()) {
          //? if >= 26.2 {
-         /*this.minecraft.gui.setScreen(null);
-         *///?} else {
-         this.minecraft.setScreen(null);
-         //?}
+         this.minecraft.gui.setScreen(null);
+         //?} else {
+         /*this.minecraft.setScreen(null);
+         *///?}
       } else {
          this.setPageInternal(this.pages.pop());
       }
@@ -302,7 +304,13 @@ public class GuiGuide extends Screen {
       return this.width < 590;
    }
 
+   //? if >= 26.1 {
    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+   //?} else {
+   /*@Override
+   public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+      super.render(graphics, mouseX, mouseY, partialTicks);
+   *///?}
       BCGraphics bcg = new BCGraphics(graphics);
       MinecraftFont.setGuiGraphics(bcg);
       GuiIcon.setGuiGraphics(bcg);
@@ -535,14 +543,25 @@ public class GuiGuide extends Screen {
       this.currentPage.setFontRenderer(this.currentFont);
    }
 
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
       if (this.currentPage != null && this.currentPage.mouseClicked(event, doubleClick)) {
          return true;
       }
 
-      double mouseX = event.x();
-      double mouseY = event.y();
-      int mouseButton = event.button();
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button(), doubleClick) || super.mouseClicked(event, doubleClick);
+   }
+   //?} else {
+   /*public boolean mouseClicked(double mouseXd, double mouseYd, int button) {
+      if (this.currentPage != null && this.currentPage.mouseClicked(mouseXd, mouseYd, button)) {
+         return true;
+      }
+
+      return this.bcMouseClicked((int)mouseXd, (int)mouseYd, button, false) || super.mouseClicked(mouseXd, mouseYd, button);
+   }
+   *///?}
+
+   private boolean bcMouseClicked(int mouseX, int mouseY, int mouseButton, boolean doubleClick) {
       this.mouse.setMousePosition((int)mouseX, (int)mouseY);
       if (mouseButton == 0) {
          if (this.isOpen) {
@@ -625,9 +644,10 @@ public class GuiGuide extends Screen {
          }
       }
 
-      return super.mouseClicked(event, doubleClick);
+      return false;
    }
 
+   //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent keyEvent) {
       if (this.currentPage != null && this.currentPage.keyPressed(keyEvent)) {
          return true;
@@ -647,12 +667,39 @@ public class GuiGuide extends Screen {
 
       return super.keyPressed(keyEvent);
    }
+   //?} else {
+   /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+      if (this.currentPage != null && this.currentPage.keyPressed(keyCode, scanCode, modifiers)) {
+         return true;
+      }
+
+      if (this.isOpen) {
+         if (keyCode == 263) {
+            this.currentPage.lastPage();
+            return true;
+         }
+
+         if (keyCode == 262) {
+            this.currentPage.nextPage();
+            return true;
+         }
+      }
+
+      return super.keyPressed(keyCode, scanCode, modifiers);
+   }
+   *///?}
 
    public boolean isPauseScreen() {
       return false;
    }
 
+   //? if >= 1.21.10 {
    public boolean charTyped(CharacterEvent event) {
       return this.currentPage != null && this.currentPage.charTyped(event) ? true : super.charTyped(event);
    }
+   //?} else {
+   /*public boolean charTyped(char chr, int modifiers) {
+      return this.currentPage != null && this.currentPage.charTyped(chr, modifiers) ? true : super.charTyped(chr, modifiers);
+   }
+   *///?}
 }

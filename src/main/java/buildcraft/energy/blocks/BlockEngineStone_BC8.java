@@ -6,6 +6,8 @@
 
 package buildcraft.energy.blocks;
 
+import buildcraft.lib.compat.BcInteract;
+
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.tools.IToolWrench;
 import buildcraft.api.transport.pipe.IItemPipe;
@@ -42,6 +44,12 @@ public class BlockEngineStone_BC8 extends BlockEngineBase_BC8 {
 
    @Override
    protected InteractionResult useItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
+      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
+   }
+
+   protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
       boolean isWrench = stack.getItem() instanceof IToolWrench;

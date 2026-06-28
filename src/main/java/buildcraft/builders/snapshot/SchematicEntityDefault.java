@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.schematics.ISchematicEntity;
 import buildcraft.api.schematics.SchematicEntityContext;
@@ -28,18 +29,13 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ProblemReporter;
+import buildcraft.lib.nbt.BcEntityNbt;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntitySpawnReason;
-//? if >= 26.2 {
-/*import net.minecraft.world.entity.EntitySpawnRequest;
-*///?}
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Rotation;
-import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.Vec3;
 
 public class SchematicEntityDefault implements ISchematicEntity {
@@ -59,17 +55,13 @@ public class SchematicEntityDefault implements ISchematicEntity {
          return false;
       }
 
-      TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, context.world.registryAccess());
-      context.entity.save(output);
-      CompoundTag entityNbt = output.buildResult();
+      CompoundTag entityNbt = BcEntityNbt.save(context.entity, context.world.registryAccess());
       return RulesLoader.getRules(registryName, entityNbt).stream().anyMatch(rule -> rule.capture);
    }
 
    @Override
    public void init(SchematicEntityContext context) {
-      TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, context.world.registryAccess());
-      context.entity.save(output);
-      this.entityNbt = output.buildResult();
+      this.entityNbt = BcEntityNbt.save(context.entity, context.world.registryAccess());
       this.pos = context.entity.position().subtract(Vec3.atLowerCornerOf(context.basePos));
       if (context.entity instanceof HangingEntity hangingEntity) {
          this.hangingPos = hangingEntity.getPos().subtract(context.basePos);
@@ -88,7 +80,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
    @Nonnull
    @Override
    public List<ItemStack> computeRequiredItems() {
-      Identifier entityId = Identifier.parse(this.entityNbt.getStringOr("id", ""));
+      Identifier entityId = Identifier.parse(BcNbt.getString(this.entityNbt, "id", ""));
       Set<JsonRule> rules = RulesLoader.getRules(entityId, this.entityNbt);
       return rules.isEmpty()
          ? Collections.emptyList()
@@ -104,7 +96,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
    @Nonnull
    @Override
    public List<FluidStack> computeRequiredFluids() {
-      Identifier entityId = Identifier.parse(this.entityNbt.getStringOr("id", ""));
+      Identifier entityId = Identifier.parse(BcNbt.getString(this.entityNbt, "id", ""));
       Set<JsonRule> rules = RulesLoader.getRules(entityId, this.entityNbt);
       return rules.stream()
          .map(rule -> rule.requiredExtractors)
@@ -142,14 +134,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
          rotate = false;
       }
 
-      Optional<Entity> optEntity = EntityType.create(
-         TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), newEntityNbt), level,
-         //? if >= 26.2 {
-         /*new EntitySpawnRequest(EntitySpawnReason.COMMAND, false)
-         *///?} else {
-EntitySpawnReason.COMMAND
-         //?}
-      );
+      Optional<Entity> optEntity = BcEntityNbt.create(newEntityNbt, level);
       if (optEntity.isPresent()) {
          Entity entity = optEntity.get();
          if (rotate && this.entityRotation != Rotation.NONE) {
@@ -184,13 +169,13 @@ EntitySpawnReason.COMMAND
 
    @Override
    public void deserializeNBT(CompoundTag nbt) throws InvalidInputDataException {
-      this.entityNbt = nbt.getCompoundOrEmpty("entityNbt");
+      this.entityNbt = BcNbt.getCompound(nbt, "entityNbt");
       this.pos = NBTUtilBC.readVec3(nbt.get("pos"));
       if (this.pos == null) {
          this.pos = Vec3.ZERO;
       }
 
-      this.hangingPos = NBTUtilBC.readBlockPos(nbt.getCompoundOrEmpty("hangingPos"));
+      this.hangingPos = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "hangingPos"));
       this.hangingFacing = NBTUtilBC.readEnum(nbt.get("hangingFacing"), Direction.class);
       if (this.hangingFacing == null) {
          this.hangingFacing = Direction.NORTH;

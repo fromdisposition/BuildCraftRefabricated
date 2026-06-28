@@ -6,6 +6,7 @@
 
 package buildcraft.core.marker.volume;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.core.client.BuildCraftLaserManager;
 import buildcraft.lib.client.render.laser.LaserData_BC8;
@@ -53,26 +54,26 @@ public class Lock {
    }
 
    public void readFromNBT(CompoundTag nbt) {
-      CompoundTag causeTag = (CompoundTag)nbt.getCompound("cause").orElseGet(CompoundTag::new);
-      String causeType = causeTag.getString("type").orElse("BLOCK");
+      CompoundTag causeTag = (CompoundTag)BcNbt.getCompound(nbt, "cause");
+      String causeType = BcNbt.getString(causeTag, "type", "BLOCK");
 
       try {
          this.cause = Lock.Cause.EnumCause.valueOf(causeType).supplier.get();
-         this.cause.readFromNBT((CompoundTag)causeTag.getCompound("data").orElseGet(CompoundTag::new));
+         this.cause.readFromNBT((CompoundTag)BcNbt.getCompound(causeTag, "data"));
       } catch (IllegalArgumentException e) {
          throw new IllegalArgumentException("Unknown lock cause type: " + causeType, e);
       }
 
       if (nbt.contains("targets")) {
-         ListTag targetsList = (ListTag)nbt.getList("targets").orElseGet(ListTag::new);
+         ListTag targetsList = (ListTag)BcNbt.getList(nbt, "targets");
 
          for (int i = 0; i < targetsList.size(); i++) {
-            CompoundTag targetTag = (CompoundTag)targetsList.getCompound(i).orElseGet(CompoundTag::new);
-            String targetType = targetTag.getString("type").orElse("REMOVE");
+            CompoundTag targetTag = (CompoundTag)BcNbt.getCompound(targetsList, i);
+            String targetType = BcNbt.getString(targetTag, "type", "REMOVE");
 
             try {
                Lock.Target target = Lock.Target.EnumTarget.valueOf(targetType).supplier.get();
-               target.readFromNBT((CompoundTag)targetTag.getCompound("data").orElseGet(CompoundTag::new));
+               target.readFromNBT((CompoundTag)BcNbt.getCompound(targetTag, "data"));
                this.targets.add(target);
             } catch (IllegalArgumentException e) {
                throw new IllegalArgumentException("Unknown lock target type: " + targetType, e);
@@ -117,11 +118,11 @@ public class Lock {
          @Override
          public void readFromNBT(CompoundTag nbt) {
             if (nbt.contains("pos")) {
-               CompoundTag posTag = (CompoundTag)nbt.getCompound("pos").orElseGet(CompoundTag::new);
-               this.pos = new BlockPos(posTag.getInt("X").orElse(0), posTag.getInt("Y").orElse(0), posTag.getInt("Z").orElse(0));
+               CompoundTag posTag = (CompoundTag)BcNbt.getCompound(nbt, "pos");
+               this.pos = new BlockPos(BcNbt.getInt(posTag, "X", 0), BcNbt.getInt(posTag, "Y", 0), BcNbt.getInt(posTag, "Z", 0));
             }
 
-            String blockKey = nbt.getString("block").orElse("minecraft:air");
+            String blockKey = BcNbt.getString(nbt, "block", "minecraft:air");
             this.block = BcRegistryUtil.getBlock(Identifier.parse(blockKey));
          }
 
@@ -186,7 +187,7 @@ public class Lock {
 
          @Override
          public void readFromNBT(CompoundTag nbt) {
-            this.slot = EnumAddonSlot.valueOf(nbt.getString("slot").orElse(""));
+            this.slot = EnumAddonSlot.valueOf(BcNbt.getString(nbt, "slot", ""));
          }
       }
 
@@ -230,7 +231,7 @@ public class Lock {
 
          @Override
          public void readFromNBT(CompoundTag nbt) {
-            this.type = Lock.Target.TargetUsedByMachine.EnumType.valueOf(nbt.getString("type").orElse("STRIPES_WRITE"));
+            this.type = Lock.Target.TargetUsedByMachine.EnumType.valueOf(BcNbt.getString(nbt, "type", "STRIPES_WRITE"));
          }
 
          public enum EnumType {

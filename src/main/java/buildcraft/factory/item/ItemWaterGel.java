@@ -28,7 +28,17 @@ public class ItemWaterGel extends Item {
       super(properties);
    }
 
+   //? if >= 1.21.10 {
    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+      return this.bcUse(level, player, hand);
+   }
+   //?} else {
+   /*public net.minecraft.world.InteractionResultHolder<net.minecraft.world.item.ItemStack> use(Level level, Player player, InteractionHand hand) {
+      return buildcraft.lib.compat.BcInteract.toUse(this.bcUse(level, player, hand), player, hand);
+   }
+   *///?}
+
+   private InteractionResult bcUse(Level level, Player player, InteractionHand hand) {
       ItemStack stack = player.getItemInHand(hand);
       BlockHitResult ray = getPlayerPOVHitResult(level, player, Fluid.SOURCE_ONLY);
       if (ray.getType() != Type.MISS && ray.getBlockPos() != null) {

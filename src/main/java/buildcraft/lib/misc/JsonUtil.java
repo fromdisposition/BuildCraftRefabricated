@@ -130,17 +130,41 @@ public class JsonUtil {
                }
             }
          )
+         //? if >= 1.21.10 {
          .registerTypeAdapter(ByteTag.class, (JsonSerializer<ByteTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.value()))
+         //?} else {
+         /*.registerTypeAdapter(ByteTag.class, (JsonSerializer<ByteTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.getAsByte()))
+         *///?}
          .registerTypeAdapter(ByteTag.class, (JsonDeserializer<ByteTag>)(json, typeOfT, context) -> ByteTag.valueOf(json.getAsJsonPrimitive().getAsByte()))
+         //? if >= 1.21.10 {
          .registerTypeAdapter(ShortTag.class, (JsonSerializer<ShortTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.value()))
+         //?} else {
+         /*.registerTypeAdapter(ShortTag.class, (JsonSerializer<ShortTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.getAsShort()))
+         *///?}
          .registerTypeAdapter(ShortTag.class, (JsonDeserializer<ShortTag>)(json, typeOfT, context) -> ShortTag.valueOf(json.getAsJsonPrimitive().getAsShort()))
+         //? if >= 1.21.10 {
          .registerTypeAdapter(IntTag.class, (JsonSerializer<IntTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.value()))
+         //?} else {
+         /*.registerTypeAdapter(IntTag.class, (JsonSerializer<IntTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.getAsInt()))
+         *///?}
          .registerTypeAdapter(IntTag.class, (JsonDeserializer<IntTag>)(json, typeOfT, context) -> IntTag.valueOf(json.getAsJsonPrimitive().getAsInt()))
+         //? if >= 1.21.10 {
          .registerTypeAdapter(LongTag.class, (JsonSerializer<LongTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.value()))
+         //?} else {
+         /*.registerTypeAdapter(LongTag.class, (JsonSerializer<LongTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.getAsLong()))
+         *///?}
          .registerTypeAdapter(LongTag.class, (JsonDeserializer<LongTag>)(json, typeOfT, context) -> LongTag.valueOf(json.getAsJsonPrimitive().getAsLong()))
+         //? if >= 1.21.10 {
          .registerTypeAdapter(FloatTag.class, (JsonSerializer<FloatTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.value()))
+         //?} else {
+         /*.registerTypeAdapter(FloatTag.class, (JsonSerializer<FloatTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.getAsFloat()))
+         *///?}
          .registerTypeAdapter(FloatTag.class, (JsonDeserializer<FloatTag>)(json, typeOfT, context) -> FloatTag.valueOf(json.getAsJsonPrimitive().getAsFloat()))
+         //? if >= 1.21.10 {
          .registerTypeAdapter(DoubleTag.class, (JsonSerializer<DoubleTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.value()))
+         //?} else {
+         /*.registerTypeAdapter(DoubleTag.class, (JsonSerializer<DoubleTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.getAsDouble()))
+         *///?}
          .registerTypeAdapter(DoubleTag.class, (JsonDeserializer<DoubleTag>)(json, typeOfT, context) -> DoubleTag.valueOf(json.getAsJsonPrimitive().getAsDouble()))
          .registerTypeAdapter(ByteArrayTag.class, (JsonSerializer<ByteArrayTag>)(src, typeOfSrc, context) -> {
             JsonArray jsonArray = new JsonArray();
@@ -161,7 +185,11 @@ public class JsonUtil {
 
             return new ByteArrayTag(bytes);
          })
+         //? if >= 1.21.10 {
          .registerTypeAdapter(StringTag.class, (JsonSerializer<StringTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.value()))
+         //?} else {
+         /*.registerTypeAdapter(StringTag.class, (JsonSerializer<StringTag>)(src, typeOfSrc, context) -> new JsonPrimitive(src.getAsString()))
+         *///?}
          .registerTypeAdapter(StringTag.class, (JsonDeserializer<StringTag>)(json, typeOfT, context) -> StringTag.valueOf(json.getAsJsonPrimitive().getAsString()))
          .registerTypeAdapter(ListTag.class, (JsonSerializer<ListTag>)(src, typeOfSrc, context) -> {
             JsonArray jsonArray = new JsonArray();
@@ -185,7 +213,11 @@ public class JsonUtil {
          .registerTypeAdapter(CompoundTag.class, (JsonSerializer<CompoundTag>)(src, typeOfSrc, context) -> {
             JsonObject jsonObject = new JsonObject();
 
+            //? if >= 1.21.10 {
             for (String key : src.keySet()) {
+            //?} else {
+            /*for (String key : src.getAllKeys()) {
+            *///?}
                jsonObject.add(key, context.serialize(src.get(key), Tag.class));
             }
 

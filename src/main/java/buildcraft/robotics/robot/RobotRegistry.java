@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.robot;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
@@ -26,21 +27,16 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.Identifier;
+import buildcraft.lib.compat.BcSavedDataType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jspecify.annotations.Nullable;
 
 public class RobotRegistry extends SavedData implements IRobotRegistry {
-   public static final SavedDataType<RobotRegistry> TYPE = new SavedDataType<>(
-      //? if >= 26.1 {
-      Identifier.fromNamespaceAndPath("buildcraftrobotics", "robot_registry"),
-      //?} else {
-      /*"buildcraftrobotics_robot_registry",
-      *///?}
+   public static final BcSavedDataType<RobotRegistry> TYPE = new BcSavedDataType<>(
+      "buildcraftrobotics", "robot_registry",
       () -> new RobotRegistry(null),
       makeCodec(null),
       DataFixTypes.SAVED_DATA_MAP_DATA
@@ -309,25 +305,25 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
 
    @Override
    public synchronized void readFromNBT(CompoundTag nbt) {
-      this.nextRobotID = nbt.getLong("nextRobotID").orElse(Long.MIN_VALUE);
+      this.nextRobotID = BcNbt.getLong(nbt, "nextRobotID", Long.MIN_VALUE);
 
-      ListTag resourceList = nbt.getListOrEmpty("resourceList");
+      ListTag resourceList = BcNbt.getList(nbt, "resourceList");
       for (int i = 0; i < resourceList.size(); i++) {
          if (resourceList.get(i) instanceof CompoundTag cpt) {
-            ResourceId resourceId = ResourceId.load(cpt.getCompound("resourceId").orElse(new CompoundTag()));
-            long robotId = cpt.getLong("robotId").orElse(0L);
+            ResourceId resourceId = ResourceId.load(BcNbt.getCompound(cpt, "resourceId"));
+            long robotId = BcNbt.getLong(cpt, "robotId", 0L);
             this.take(resourceId, robotId);
          }
       }
 
-      ListTag stationList = nbt.getListOrEmpty("stationList");
+      ListTag stationList = BcNbt.getList(nbt, "stationList");
       for (int i = 0; i < stationList.size(); i++) {
          if (!(stationList.get(i) instanceof CompoundTag cpt)) {
             continue;
          }
 
          Class<? extends DockingStation> cls = cpt.contains("stationType")
-            ? RobotManager.getDockingStationByName(cpt.getString("stationType").orElse(""))
+            ? RobotManager.getDockingStationByName(BcNbt.getString(cpt, "stationType", ""))
             : null;
          if (cls == null) {
             BCLog.logger.error("Could not load docking station of unknown type");
@@ -360,12 +356,19 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
    public static RobotRegistry get(Level world) {
       if (world.isClientSide()) {
          throw new UnsupportedOperationException("Attempted to get RobotRegistry on the client!");
-      } else if (world instanceof ServerLevel serverLevel) {
-         RobotRegistry instance = serverLevel.getDataStorage().computeIfAbsent(TYPE);
+      } else if (world instanceof ServerLevel) {
+         RobotRegistry instance = TYPE.getOrCreate(world, () -> new RobotRegistry(null));
          instance.world = world;
          return instance;
       } else {
          throw new IllegalArgumentException("World is not a ServerLevel!");
       }
    }
+
+   //? if < 1.21.10 {
+   /*@Override
+   public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
+      return BcSavedDataType.encode(TYPE.codec, this, tag, provider);
+   }
+   *///?}
 }

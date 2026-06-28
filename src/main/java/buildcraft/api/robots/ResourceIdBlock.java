@@ -6,6 +6,7 @@
 
 package buildcraft.api.robots;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.EnumPipePart;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -59,7 +60,7 @@ public class ResourceIdBlock extends ResourceId {
    @Override
    protected void readFromNBT(CompoundTag nbt) {
       super.readFromNBT(nbt);
-      int[] arr = nbt.getIntArray("pos").orElse(new int[0]);
+      int[] arr = BcNbt.getIntArray(nbt, "pos");
       this.pos = new BlockPos(arr[0], arr[1], arr[2]);
       this.side = EnumPipePart.readFromNBT(nbt.get("side"));
    }

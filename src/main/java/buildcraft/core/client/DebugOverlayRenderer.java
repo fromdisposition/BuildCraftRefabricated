@@ -17,7 +17,11 @@ public class DebugOverlayRenderer {
    public static void render(GuiGraphicsExtractor vanillaGraphics, DeltaTracker deltaTracker) {
       BCGraphics graphics = new BCGraphics(vanillaGraphics);
       Minecraft mc = Minecraft.getInstance();
+      //? if >= 1.21.10 {
       if (mc.debugEntries != null && mc.debugEntries.isOverlayVisible()) {
+      //?} else {
+      /*if (mc.gui.getDebugOverlay().showDebugScreen()) {
+      *///?}
          List<String> leftLines = DebugOverlayHelper.getLeftLines();
          List<String> rightLines = DebugOverlayHelper.getRightLines();
          if (!leftLines.isEmpty() || !rightLines.isEmpty()) {

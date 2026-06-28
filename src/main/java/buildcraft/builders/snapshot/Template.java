@@ -49,7 +49,11 @@ public class Template extends Snapshot {
    @Override
    public void deserializeNBT(CompoundTag nbt) throws InvalidInputDataException {
       super.deserializeNBT(nbt);
+      //? if >= 1.21.10 {
       this.data = BitSet.valueOf(nbt.getByteArray("data").orElse(new byte[0]));
+      //?} else {
+      /*this.data = BitSet.valueOf(nbt.getByteArray("data"));
+      *///?}
       if (this.data.length() > this.getDataSize()) {
          throw new InvalidInputDataException(
             "Serialized data has length of " + this.data.length() + ", but we expected at most " + this.getDataSize() + " (" + this.size.toString() + ")"

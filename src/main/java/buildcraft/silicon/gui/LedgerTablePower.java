@@ -12,7 +12,6 @@ import buildcraft.lib.gui.BuildCraftGui;
 import buildcraft.lib.gui.ledger.Ledger_Neptune;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.silicon.tile.TileLaserTableBase;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 public class LedgerTablePower extends Ledger_Neptune {
@@ -41,7 +40,7 @@ public class LedgerTablePower extends Ledger_Neptune {
       SpriteHolderRegistry.SpriteHolder holder = this.tile.avgPowerClient > 0L ? ICON_ACTIVE : ICON_INACTIVE;
       TextureAtlasSprite sprite = holder.getSprite();
       if (sprite != null) {
-         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, (int)x, (int)y, 16, 16);
+         graphics.blitSprite(sprite, (int)x, (int)y, 16, 16);
       }
    }
 }

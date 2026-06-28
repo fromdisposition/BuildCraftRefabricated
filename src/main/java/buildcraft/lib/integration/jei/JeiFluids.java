@@ -28,7 +28,12 @@ public final class JeiFluids {
    public static void addFluidStack(IRecipeSlotBuilder slot, FluidStack stack, long amountMb) {
       if (stack != null && !stack.isEmpty() && amountMb > 0L) {
          FluidVariant variant = FluidVariants.toVariant(stack);
+         //? if >= 1.21.10 {
          slot.add(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, FluidVariants.mbToDroplets(amountMb)));
+         //?} else {
+         /*// JEI 19's IIngredientAcceptor spells the typed add as addIngredient(type, ingredient).
+         slot.addIngredient(FabricTypes.FLUID_STACK, new JeiFluidIngredient(variant, FluidVariants.mbToDroplets(amountMb)));
+         *///?}
       }
    }
 

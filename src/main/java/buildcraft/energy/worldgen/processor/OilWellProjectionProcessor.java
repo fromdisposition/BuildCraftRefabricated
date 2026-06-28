@@ -11,8 +11,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlac
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
-//?}
+/*import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
+*///?}
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
 /**
@@ -22,14 +22,14 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
  * Bridge must be handled before the surface gravity pass-through ({@code templateY >= 0}).
  */
 //? if >= 26.2 {
-/*public final class OilWellProjectionProcessor implements StructureProcessor {
-*///?} else {
-public final class OilWellProjectionProcessor extends StructureProcessor {
-//?}
+public final class OilWellProjectionProcessor implements StructureProcessor {
+//?} else {
+/*public final class OilWellProjectionProcessor extends StructureProcessor {
+*///?}
    public static final MapCodec<OilWellProjectionProcessor> CODEC = MapCodec.unit(OilWellProjectionProcessor::new);
 
    //? if >= 26.2 {
-   /*@Override
+   @Override
    public MapCodec<OilWellProjectionProcessor> codec() {
       return CODEC;
    }
@@ -44,8 +44,8 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
       final StructurePlaceSettings settings
    ) {
       int templateY = originalPos.getY();
-   *///?} else {
-   @Override
+   //?} else {
+   /*@Override
    public StructureTemplate.StructureBlockInfo processBlock(
       final LevelReader level,
       final BlockPos targetPosition,
@@ -55,7 +55,7 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
       final StructurePlaceSettings settings
    ) {
       int templateY = originalBlockInfo.pos().getY();
-   //?}
+   *///?}
       BlockPos pos = processedBlockInfo.pos();
       int x = pos.getX();
       int z = pos.getZ();
@@ -165,9 +165,9 @@ public final class OilWellProjectionProcessor extends StructureProcessor {
 
    //? if >= 26.2 {
    //?} else {
-   @Override
+   /*@Override
    protected StructureProcessorType<?> getType() {
       return BCEnergyStructureProcessorTypes.OIL_WELL_PROJECTION;
    }
-   //?}
+   *///?}
 }

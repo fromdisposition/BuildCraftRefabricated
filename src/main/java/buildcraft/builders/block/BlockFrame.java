@@ -18,7 +18,9 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.ScheduledTickAccess;
+//?}
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockState;
@@ -88,16 +90,17 @@ public class BlockFrame extends Block {
       return this.computeConnections(context.getLevel(), context.getClickedPos(), this.defaultBlockState());
    }
 
+   //? if >= 1.21.10 {
    protected BlockState updateShape(
-      BlockState state,
-      LevelReader level,
-      ScheduledTickAccess scheduledTickAccess,
-      BlockPos pos,
-      Direction direction,
-      BlockPos neighborPos,
-      BlockState neighborState,
-      RandomSource random
+      BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
+      Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random
    ) {
+   //?} else {
+   /*protected BlockState updateShape(
+      BlockState state, Direction direction, BlockState neighborState, net.minecraft.world.level.LevelAccessor level,
+      BlockPos pos, BlockPos neighborPos
+   ) {
+   *///?}
       Property<Boolean> prop = CONNECTED_MAP.get(direction);
       if (prop != null) {
          state = (BlockState)state.setValue(prop, this.canConnectTo(level, neighborPos));

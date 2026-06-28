@@ -17,8 +17,10 @@ import buildcraft.lib.tile.ItemHandlerSimple;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.navigation.ScreenPosition;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -61,8 +63,15 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    protected void init() {
       super.init();
       this.widthTooNarrow = this.width < 379;
+      //? if >= 1.21.10 {
       this.recipeBookComponent = new AWRecipeBookComponent((ContainerAutoCraftItems)this.menu);
       this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow);
+      //?} else {
+      /*// 1.21.1: AWRecipeBookComponent is a thin alias of the concrete vanilla RecipeBookComponent;
+      // instantiate no-arg and pass the menu to the 5-arg init.
+      this.recipeBookComponent = new AWRecipeBookComponent();
+      this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, (ContainerAutoCraftItems)this.menu);
+      *///?}
       this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
       ScreenPosition buttonPos = this.getRecipeBookButtonPosition();
       this.recipeBookButton = new ImageButton(buttonPos.x(), buttonPos.y(), 20, 18, RecipeBookComponent.RECIPE_BUTTON_SPRITES, p -> {
@@ -156,14 +165,20 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    protected void drawTooltipLayer(int mouseX, int mouseY, float partialTick) {
       if (this.recipeBookComponent != null && this.recipeBookComponent.isVisible()) {
          BCGraphics graphics = GuiIcon.getGuiGraphics();
+         //? if >= 1.21.10 {
          //? if >= 26.1 {
          this.recipeBookComponent.extractTooltip(graphics.raw, mouseX, mouseY, this.hoveredSlot);
          //?} else {
          /*this.recipeBookComponent.renderTooltip(graphics.raw, mouseX, mouseY, this.hoveredSlot);
          *///?}
+         //?} else {
+         /*// 1.21.1: RecipeBookComponent.renderTooltip(graphics, leftPos, topPos, mouseX, mouseY).
+         this.recipeBookComponent.renderTooltip(graphics.raw, this.leftPos, this.topPos, mouseX, mouseY);
+         *///?}
       }
    }
 
+   //? if >= 1.21.10 {
    @Override
    public boolean mouseClicked(MouseButtonEvent event, boolean entered) {
       if (this.recipeBookComponent != null && this.recipeBookComponent.mouseClicked(event, entered)) {
@@ -173,12 +188,30 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
          return super.mouseClicked(event, entered);
       }
    }
+   //?} else {
+   /*@Override
+   public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      if (this.recipeBookComponent != null && this.recipeBookComponent.mouseClicked(mouseX, mouseY, button)) {
+         this.setFocused(this.recipeBookComponent);
+         return true;
+      } else {
+         return super.mouseClicked(mouseX, mouseY, button);
+      }
+   }
+   *///?}
 
    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
       boolean outside = mouseX < left || mouseY < top || mouseX >= left + this.imageWidth || mouseY >= top + this.imageHeight;
+      //? if >= 1.21.10 {
       return this.recipeBookComponent != null
          ? this.recipeBookComponent.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, this.imageWidth, this.imageHeight) && outside
          : outside;
+      //?} else {
+      /*// 1.21.1 hasClickedOutside takes the mouse button as a 7th arg.
+      return this.recipeBookComponent != null
+         ? this.recipeBookComponent.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, this.imageWidth, this.imageHeight, button) && outside
+         : outside;
+      *///?}
    }
 
    public void recipesUpdated() {
@@ -187,9 +220,15 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
       }
    }
 
+   //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       return this.recipeBookComponent != null && this.recipeBookComponent.keyPressed(event) ? true : super.keyPressed(event);
    }
+   //?} else {
+   /*public boolean keyPressed(int key, int scancode, int modifiers) {
+      return this.recipeBookComponent != null && this.recipeBookComponent.keyPressed(key, scancode, modifiers) ? true : super.keyPressed(key, scancode, modifiers);
+   }
+   *///?}
 
    protected boolean isHovering(int x, int y, int width, int height, double mouseX, double mouseY) {
       return super.isHovering(x, y, width, height, mouseX, mouseY);

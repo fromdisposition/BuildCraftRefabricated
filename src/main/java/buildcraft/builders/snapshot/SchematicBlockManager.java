@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.SchematicBlockContext;
@@ -72,14 +73,14 @@ public class SchematicBlockManager {
 
    @Nonnull
    public static ISchematicBlock readFromNBT(CompoundTag schematicBlockTag) throws InvalidInputDataException {
-      Identifier name = normalizeFactoryName(schematicBlockTag.getStringOr("name", ""));
+      Identifier name = normalizeFactoryName(BcNbt.getString(schematicBlockTag, "name", ""));
       SchematicBlockFactory<?> factory = SchematicBlockFactoryRegistry.getFactoryByName(name);
       if (factory == null) {
          throw new InvalidInputDataException("Unknown schematic type " + name);
       }
 
       ISchematicBlock schematicBlock = (ISchematicBlock)factory.supplier.get();
-      CompoundTag data = schematicBlockTag.getCompoundOrEmpty("data");
+      CompoundTag data = BcNbt.getCompound(schematicBlockTag, "data");
 
       try {
          schematicBlock.deserializeNBT(data);

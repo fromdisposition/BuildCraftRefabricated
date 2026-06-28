@@ -13,9 +13,9 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import buildcraft.lib.client.render.laser.LaserBatch;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.Minecraft;
+/*import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-//?}
+*///?}
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -25,7 +25,7 @@ public final class DebugRenderHelper {
    }
 
    //? if >= 26.2 {
-   /*public static void renderTranslucentBox(PoseStack poseStack, AABB box, Vec3 cameraPos, int argb) {
+   public static void renderTranslucentBox(PoseStack poseStack, AABB box, Vec3 cameraPos, int argb) {
       renderBox(poseStack, box, cameraPos, argb, BCLibRenderTypes.debugFilled());
    }
 
@@ -49,8 +49,8 @@ public final class DebugRenderHelper {
          cube.render(pose, vc);
       });
    }
-   *///?} else {
-   public static void renderTranslucentBox(PoseStack poseStack, MultiBufferSource bufferSource, AABB box, Vec3 cameraPos, int argb) {
+   //?} else {
+   /*public static void renderTranslucentBox(PoseStack poseStack, MultiBufferSource bufferSource, AABB box, Vec3 cameraPos, int argb) {
       renderBox(poseStack, bufferSource, box, cameraPos, argb, BCLibRenderTypes.debugFilled());
    }
 
@@ -68,5 +68,5 @@ public final class DebugRenderHelper {
       cube.center.colouri(argb >> 16 & 0xFF, argb >> 8 & 0xFF, argb & 0xFF, argb >>> 24 & 0xFF);
       cube.render(poseStack.last(), consumer);
    }
-   //?}
+   *///?}
 }

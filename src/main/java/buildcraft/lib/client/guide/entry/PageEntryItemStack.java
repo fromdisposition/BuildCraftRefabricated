@@ -90,7 +90,11 @@ public class PageEntryItemStack extends PageValueType<ItemStackValueFilter> {
 
       str = str.trim();
       Identifier loc = Identifier.parse(str);
+      //? if >= 1.21.10 {
       Item item = BuiltInRegistries.ITEM.get(loc).map(ref -> (Item)ref.value()).orElse(null);
+      //?} else {
+      /*Item item = BuiltInRegistries.ITEM.get(loc);
+      *///?}
       if (item == null) {
          return new IScriptableRegistry.OptionallyDisabled<>("Unknown item '" + str + "' (from stack '" + json.get("stack").getAsString() + "')");
       }

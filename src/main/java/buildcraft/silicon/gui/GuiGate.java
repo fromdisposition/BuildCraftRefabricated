@@ -19,7 +19,9 @@ import buildcraft.lib.gui.statement.GuiElementStatementParam;
 import buildcraft.lib.gui.statement.GuiElementStatementSource;
 import buildcraft.silicon.container.ContainerGate;
 import net.minecraft.client.Minecraft;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
@@ -167,9 +169,20 @@ public class GuiGate extends BcScreen<ContainerGate> {
       }
    }
 
+   //? if >= 1.21.10 {
    @Override
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      if (event.button() == 0 && ((ContainerGate)this.menu).gate != null) {
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+   }
+   //?} else {
+   /*@Override
+   public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      return this.bcMouseClicked((int)mouseX, (int)mouseY, button) || super.mouseClicked(mouseX, mouseY, button);
+   }
+   *///?}
+
+   private boolean bcMouseClicked(int clickX, int clickY, int button) {
+      if (button == 0 && ((ContainerGate)this.menu).gate != null) {
          boolean twoColumns = ((ContainerGate)this.menu).gate.isSplitInTwo();
          int horizontalSlotCount = twoColumns ? 2 : 1;
          int verticalSlotCount = ((ContainerGate)this.menu).gate.variant.numSlots / horizontalSlotCount;
@@ -177,8 +190,8 @@ public class GuiGate extends BcScreen<ContainerGate> {
          int numActionArgs = ((ContainerGate)this.menu).gate.variant.numActionArgs;
          int slotPairWidth = 18 * (3 + numTriggerArgs + numActionArgs);
          int slotPairStart = (162 - (slotPairWidth + (twoColumns ? slotPairWidth + 18 : 0))) / 2;
-         int mx = (int)event.x() - this.leftPos;
-         int my = (int)event.y() - this.topPos;
+         int mx = clickX - this.leftPos;
+         int my = clickY - this.topPos;
 
          for (int row = 0; row < verticalSlotCount - 1; row++) {
             for (int col = 0; col < horizontalSlotCount; col++) {
@@ -198,7 +211,7 @@ public class GuiGate extends BcScreen<ContainerGate> {
          }
       }
 
-      return super.mouseClicked(event, doubleClick);
+      return false;
    }
 
    @Override

@@ -34,7 +34,9 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.TooltipContext;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.component.TooltipDisplay;
+//?}
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
@@ -129,11 +131,20 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public DataComponentMap immutableComponents() {
+      //? if >= 1.21.10 {
       return !this.isEmpty() ? this.components.toImmutableMap() : DataComponentMap.EMPTY;
+      //?} else {
+      /*// 1.21.1 PatchedDataComponentMap has no toImmutableMap(); it is itself a DataComponentMap.
+      return !this.isEmpty() ? this.components : DataComponentMap.EMPTY;
+      *///?}
    }
 
    public boolean hasNonDefault(DataComponentType<?> type) {
+      //? if >= 1.21.10 {
       return !this.isEmpty() && this.components.hasNonDefault(type);
+      //?} else {
+      /*return !this.isEmpty() && this.components.has(type);
+      *///?}
    }
 
    public boolean isComponentsPatchEmpty() {
@@ -269,10 +280,17 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public List<Component> getTooltipLines(TooltipContext context, @Nullable Player player, TooltipFlag flag) {
+      //? if >= 1.21.10 {
       TooltipDisplay tooltipDisplay = (TooltipDisplay)this.getOrDefault(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT);
       if (!flag.isCreative() && tooltipDisplay.hideTooltip()) {
          return List.of();
       }
+      //?} else {
+      /*// 1.21.1 has no TOOLTIP_DISPLAY component; the whole-tooltip hide flag is the HIDE_TOOLTIP unit component.
+      if (!flag.isCreative() && this.has(DataComponents.HIDE_TOOLTIP)) {
+         return List.of();
+      }
+      *///?}
 
       Fluid fluid = this.getFluid();
       List<Component> list = Lists.newArrayList();
@@ -295,7 +313,11 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public <T> @Nullable T set(TypedDataComponent<T> value) {
+      //? if >= 1.21.10 {
       return (T)this.components.set(value);
+      //?} else {
+      /*return (T)this.components.set(value.type(), value.value());
+      *///?}
    }
 
    @Override

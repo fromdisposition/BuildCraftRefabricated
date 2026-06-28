@@ -29,7 +29,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.CustomModelData;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.component.TooltipDisplay;
+//?}
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ItemPluggableGate extends Item implements IItemPluggable {
@@ -38,7 +40,7 @@ public class ItemPluggableGate extends Item implements IItemPluggable {
    }
 
    public static GateVariant getVariant(ItemStack stack) {
-      return new GateVariant(NBTUtilBC.getItemData(stack).getCompound("gate").orElse(new CompoundTag()));
+      return new GateVariant(buildcraft.lib.nbt.BcNbt.getCompound(NBTUtilBC.getItemData(stack), "gate"));
    }
 
    public ItemStack getStack(GateVariant variant) {
@@ -46,7 +48,7 @@ public class ItemPluggableGate extends Item implements IItemPluggable {
       CompoundTag data = NBTUtilBC.getItemData(stack);
       data.put("gate", variant.writeToNBT());
       NBTUtilBC.setItemData(stack, data);
-      stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), List.of(), List.of(variant.getVariantName()), List.of()));
+      stack.set(DataComponents.CUSTOM_MODEL_DATA, buildcraft.lib.compat.BcModelData.variant(variant.getVariantName()));
       return stack;
    }
 

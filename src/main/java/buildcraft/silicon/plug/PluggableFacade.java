@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.facades.FacadeType;
 import buildcraft.api.facades.IFacade;
 import buildcraft.api.facades.IFacadePhasedState;
@@ -44,9 +45,9 @@ public class PluggableFacade extends PipePluggable implements IFacade {
    public PluggableFacade(PluggableDefinition def, IPipeHolder holder, Direction side, CompoundTag nbt) {
       super(def, holder, side);
       if (nbt.contains("states") && !nbt.contains("facade")) {
-         ListTag tagStates = nbt.getListOrEmpty("states");
+         ListTag tagStates = BcNbt.getList(nbt, "states");
          if (!tagStates.isEmpty()) {
-            boolean isHollow = tagStates.get(0) instanceof CompoundTag ct && ct.getBooleanOr("isHollow", false);
+            boolean isHollow = tagStates.get(0) instanceof CompoundTag ct && BcNbt.getBoolean(ct, "isHollow", false);
             CompoundTag tagFacade = new CompoundTag();
             tagFacade.put("states", tagStates);
             tagFacade.putBoolean("isHollow", isHollow);
@@ -54,8 +55,8 @@ public class PluggableFacade extends PipePluggable implements IFacade {
          }
       }
 
-      this.states = FacadeInstance.readFromNbt(nbt.getCompoundOrEmpty("facade"));
-      this.activeState = MathUtil.clamp(nbt.getIntOr("activeState", 0), 0, this.states.phasedStates.length - 1);
+      this.states = FacadeInstance.readFromNbt(BcNbt.getCompound(nbt, "facade"));
+      this.activeState = MathUtil.clamp(BcNbt.getInt(nbt, "activeState", 0), 0, this.states.phasedStates.length - 1);
       this.isSideSolid = this.states.areAllStatesSolid(side);
    }
 

@@ -12,7 +12,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
+//? if >= 1.21.10 {
 import net.minecraft.world.entity.InsideBlockEffectApplier;
+//?}
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -72,9 +74,15 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
       return this.holder.bucket;
    }
 
+   //? if >= 1.21.10 {
    protected boolean canConvertToSource(ServerLevel level) {
       return false;
    }
+   //?} else {
+   /*protected boolean canConvertToSource(Level level) {
+      return false;
+   }
+   *///?}
 
    protected void beforeDestroyingBlock(LevelAccessor level, BlockPos pos, BlockState state) {
       BlockPos adjacent = this.holder.props.gaseous() ? pos.above() : pos.below();
@@ -121,10 +129,17 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
       return Optional.of(SoundEvents.BUCKET_FILL);
    }
 
+   //? if >= 1.21.10 {
    protected void entityInside(Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier) {
       BcFluidEntityEffects.apply(this.holder, entity);
    }
+   //?} else {
+   /*protected void entityInside(Level level, BlockPos pos, Entity entity) {
+      BcFluidEntityEffects.apply(this.holder, entity);
+   }
+   *///?}
 
+   //? if >= 1.21.10 {
    public void tick(ServerLevel level, BlockPos pos, BlockState state, FluidState fluidState) {
       this.clearSpreadCache();
       if (this.holder.props.gaseous()) {
@@ -142,6 +157,27 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
          super.spread(level, pos, state, fluidState);
       }
    }
+   //?} else {
+   /*public void tick(Level level, BlockPos pos, FluidState fluidState) {
+      this.clearSpreadCache();
+      ServerLevel serverLevel = (ServerLevel) level;
+      BlockState state = level.getBlockState(pos);
+      if (this.holder.props.gaseous()) {
+         BcGaseousFluidPhysics.tick(this, serverLevel, pos, state, fluidState);
+      } else {
+         BcLiquidFluidPhysics.tickBeforeVanilla(this, serverLevel, pos);
+         super.tick(level, pos, fluidState);
+      }
+   }
+
+   protected void spread(Level level, BlockPos pos, FluidState fluidState) {
+      if (this.holder.props.gaseous()) {
+         BcGaseousFluidPhysics.spread(this, (ServerLevel) level, pos, level.getBlockState(pos), fluidState);
+      } else {
+         super.spread(level, pos, fluidState);
+      }
+   }
+   *///?}
 
    @Override
    public void spreadTo(LevelAccessor level, BlockPos pos, BlockState state, Direction direction, FluidState target) {

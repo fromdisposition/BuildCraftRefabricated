@@ -16,13 +16,20 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.equipment.Equippable;
+//?}
 
 public class ListMatchHandlerArmor extends ListMatchHandler {
    @Nullable
    private static EquipmentSlot slotOf(@Nonnull ItemStack stack) {
+      //? if >= 1.21.10 {
       Equippable e = (Equippable)stack.get(DataComponents.EQUIPPABLE);
       return e == null ? null : e.slot();
+      //?} else {
+      /*// 1.21.1: armour slot comes from the Equipable interface (ArmorItem etc.), not an EQUIPPABLE component.
+      return stack.getItem() instanceof net.minecraft.world.item.Equipable eq ? eq.getEquipmentSlot() : null;
+      *///?}
    }
 
    @Override

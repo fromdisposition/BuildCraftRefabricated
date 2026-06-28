@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.boards;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
 import buildcraft.api.core.IStackFilter;
@@ -100,7 +101,7 @@ public class BoardRobotDelivery extends RedstoneBoardRobot {
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
       if (nbt.contains("currentRequest")) {
-         this.currentRequest = StackRequest.loadFromNBT(nbt.getCompound("currentRequest").orElse(new CompoundTag()));
+         this.currentRequest = StackRequest.loadFromNBT(BcNbt.getCompound(nbt, "currentRequest"));
       }
    }
 }

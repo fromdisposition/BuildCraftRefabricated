@@ -6,6 +6,7 @@
 
 package buildcraft.lib.misc.data;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.IBox;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.VecUtil;
@@ -59,12 +60,12 @@ public class BoxIterator implements Iterator<BlockPos> {
 
    @Nullable
    public static BoxIterator readFromNbt(CompoundTag nbt) {
-      BlockPos min = NBTUtilBC.readBlockPos(nbt.getCompoundOrEmpty("min"));
-      BlockPos max = NBTUtilBC.readBlockPos(nbt.getCompoundOrEmpty("max"));
-      boolean invert = nbt.getBooleanOr("invert", false);
+      BlockPos min = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "min"));
+      BlockPos max = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "max"));
+      boolean invert = BcNbt.getBoolean(nbt, "invert", false);
       boolean repeat = false;
-      AxisOrder order = AxisOrder.readNbt(nbt.getCompoundOrEmpty("order"));
-      BlockPos current = NBTUtilBC.readBlockPos(nbt.getCompoundOrEmpty("current"));
+      AxisOrder order = AxisOrder.readNbt(BcNbt.getCompound(nbt, "order"));
+      BlockPos current = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "current"));
       return min != null && max != null && order != null ? new BoxIterator(min, max, invert, repeat, order, current) : null;
    }
 

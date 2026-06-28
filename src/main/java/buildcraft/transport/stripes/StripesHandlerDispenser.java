@@ -38,6 +38,10 @@ public enum StripesHandlerDispenser implements IStripesHandlerItem {
 
       BlockHitResult hitFromPipe = new BlockHitResult(Vec3.atCenterOf(pos), direction, pos, false);
       UseOnContext ctxFromPipe = new UseOnContext(world, player, InteractionHand.MAIN_HAND, stack, hitFromPipe);
+      //? if >= 1.21.10 {
       return stack.useOn(ctxFromPipe).consumesAction() ? true : stack.getItem().use(world, player, InteractionHand.MAIN_HAND).consumesAction();
+      //?} else {
+      /*return stack.useOn(ctxFromPipe).consumesAction() ? true : stack.getItem().use(world, player, InteractionHand.MAIN_HAND).getResult().consumesAction();
+      *///?}
    }
 }

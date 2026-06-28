@@ -14,7 +14,7 @@ import java.util.Map.Entry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 
 public final class PipePayloadMessageQueue {
    private static final PlayerBatchQueue<PipePayloadCoalescer> TRACKING_QUEUE = new PlayerBatchQueue<>(unused -> new PipePayloadCoalescer());
@@ -34,13 +34,13 @@ public final class PipePayloadMessageQueue {
    }
 
    public static void serverTick() {
-      Profiler.get().push("buildcraft:pipe_payload_flush");
+      BcProfiler.get().push("buildcraft:pipe_payload_flush");
 
       try {
          flushQueue(TRACKING_QUEUE);
          flushQueue(GUI_QUEUE);
       } finally {
-         Profiler.get().pop();
+         BcProfiler.get().pop();
       }
    }
 

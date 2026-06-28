@@ -6,6 +6,7 @@
 
 package buildcraft.core.item;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.IBox;
 import buildcraft.api.core.IPathProvider;
@@ -32,7 +33,9 @@ import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.CustomModelData;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.component.TooltipDisplay;
+//?}
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -56,7 +59,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
          return IMapLocation.MapLocationType.CLEAN;
       }
 
-      String typeName = tag.getString("mapType").orElse("");
+      String typeName = BcNbt.getString(tag, "mapType", "");
 
       try {
          return IMapLocation.MapLocationType.valueOf(typeName);
@@ -77,7 +80,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
       if (type == IMapLocation.MapLocationType.CLEAN) {
          stack.remove(DataComponents.CUSTOM_MODEL_DATA);
       } else {
-         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of((float)type.ordinal()), List.of(), List.of(), List.of()));
+         stack.set(DataComponents.CUSTOM_MODEL_DATA, buildcraft.lib.compat.BcModelData.index((float)type.ordinal()));
       }
    }
 
@@ -99,18 +102,18 @@ public class ItemMapLocation extends Item implements IMapLocation {
    }
 
    private static BlockPos readBlockPosNbt(CompoundTag tag) {
-      return new BlockPos(tag.getInt("X").orElse(0), tag.getInt("Y").orElse(0), tag.getInt("Z").orElse(0));
+      return new BlockPos(BcNbt.getInt(tag, "X", 0), BcNbt.getInt(tag, "Y", 0), BcNbt.getInt(tag, "Z", 0));
    }
 
    private static Direction readSide(CompoundTag tag) {
-      int side = tag.getByte("side").orElse((byte)0) & 255;
+      int side = BcNbt.getByte(tag, "side", (byte)0) & 255;
       return side >= 0 && side < Direction.values().length ? Direction.values()[side] : Direction.UP;
    }
 
    public static void appendTooltipLines(ItemMapLocation item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       CompoundTag cpt = getCustomTag(stack);
       if (cpt.contains("name")) {
-         String name = cpt.getString("name").orElse("");
+         String name = BcNbt.getString(cpt, "name", "");
          if (!name.isEmpty()) {
             tooltip.add(Component.literal(name));
          }
@@ -120,29 +123,29 @@ public class ItemMapLocation extends Item implements IMapLocation {
       switch (type) {
          case SPOT:
             if (cpt.contains("x") && cpt.contains("y") && cpt.contains("z") && cpt.contains("side")) {
-               int x = cpt.getInt("x").orElse(0);
-               int y = cpt.getInt("y").orElse(0);
-               int z = cpt.getInt("z").orElse(0);
+               int x = BcNbt.getInt(cpt, "x", 0);
+               int y = BcNbt.getInt(cpt, "y", 0);
+               int z = BcNbt.getInt(cpt, "z", 0);
                Direction side = readSide(cpt);
                tooltip.add(Component.literal("{" + x + ", " + y + ", " + z + ", " + side + "}"));
             }
             break;
          case AREA:
             if (cpt.contains("xMin") && cpt.contains("yMin") && cpt.contains("zMin") && cpt.contains("xMax") && cpt.contains("yMax") && cpt.contains("zMax")) {
-               int x = cpt.getInt("xMin").orElse(0);
-               int y = cpt.getInt("yMin").orElse(0);
-               int z = cpt.getInt("zMin").orElse(0);
-               int xLength = cpt.getInt("xMax").orElse(0) - x + 1;
-               int yLength = cpt.getInt("yMax").orElse(0) - y + 1;
-               int zLength = cpt.getInt("zMax").orElse(0) - z + 1;
+               int x = BcNbt.getInt(cpt, "xMin", 0);
+               int y = BcNbt.getInt(cpt, "yMin", 0);
+               int z = BcNbt.getInt(cpt, "zMin", 0);
+               int xLength = BcNbt.getInt(cpt, "xMax", 0) - x + 1;
+               int yLength = BcNbt.getInt(cpt, "yMax", 0) - y + 1;
+               int zLength = BcNbt.getInt(cpt, "zMax", 0) - z + 1;
                tooltip.add(Component.literal("{" + x + ", " + y + ", " + z + "} + {" + xLength + " x " + yLength + " x " + zLength + "}"));
             }
             break;
          case PATH:
          case PATH_REPEATING:
-            ListTag pathNBT = (ListTag)cpt.getList("path").orElse(null);
+            ListTag pathNBT = (ListTag)BcNbt.getList(cpt, "path");
             if (pathNBT != null && pathNBT.size() > 0) {
-               CompoundTag firstTag = (CompoundTag)pathNBT.getCompound(0).orElse(null);
+               CompoundTag firstTag = (CompoundTag)BcNbt.getCompound(pathNBT, 0);
                if (firstTag != null) {
                   BlockPos first = readBlockPosNbt(firstTag);
                   tooltip.add(
@@ -157,7 +160,17 @@ public class ItemMapLocation extends Item implements IMapLocation {
       }
    }
 
+   //? if >= 1.21.10 {
    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+      return this.bcUse(level, player, hand);
+   }
+   //?} else {
+   /*public net.minecraft.world.InteractionResultHolder<net.minecraft.world.item.ItemStack> use(Level level, Player player, InteractionHand hand) {
+      return buildcraft.lib.compat.BcInteract.toUse(this.bcUse(level, player, hand), player, hand);
+   }
+   *///?}
+
+   private InteractionResult bcUse(Level level, Player player, InteractionHand hand) {
       ItemStack stack = player.getItemInHand(hand);
       if (level.isClientSide()) {
          return InteractionResult.PASS;
@@ -260,13 +273,13 @@ public class ItemMapLocation extends Item implements IMapLocation {
 
    public static IBox getAreaBox(@Nonnull ItemStack item) {
       CompoundTag cpt = getCustomTag(item);
-      int xMin = cpt.getInt("xMin").orElse(0);
-      int yMin = cpt.getInt("yMin").orElse(0);
-      int zMin = cpt.getInt("zMin").orElse(0);
+      int xMin = BcNbt.getInt(cpt, "xMin", 0);
+      int yMin = BcNbt.getInt(cpt, "yMin", 0);
+      int zMin = BcNbt.getInt(cpt, "zMin", 0);
       BlockPos min = new BlockPos(xMin, yMin, zMin);
-      int xMax = cpt.getInt("xMax").orElse(0);
-      int yMax = cpt.getInt("yMax").orElse(0);
-      int zMax = cpt.getInt("zMax").orElse(0);
+      int xMax = BcNbt.getInt(cpt, "xMax", 0);
+      int yMax = BcNbt.getInt(cpt, "yMax", 0);
+      int zMax = BcNbt.getInt(cpt, "zMax", 0);
       BlockPos max = new BlockPos(xMax, yMax, zMax);
       return new Box(min, max);
    }
@@ -305,9 +318,9 @@ public class ItemMapLocation extends Item implements IMapLocation {
       IMapLocation.MapLocationType type = getTypeFromStack(item);
       switch (type) {
          case SPOT:
-            int x = cpt.getInt("x").orElse(0);
-            int y = cpt.getInt("y").orElse(0);
-            int z = cpt.getInt("z").orElse(0);
+            int x = BcNbt.getInt(cpt, "x", 0);
+            int y = BcNbt.getInt(cpt, "y", 0);
+            int z = BcNbt.getInt(cpt, "z", 0);
             BlockPos pos = new BlockPos(x, y, z);
             return new Box(pos, pos);
          default:
@@ -348,7 +361,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
    public BlockPos getPoint(@Nonnull ItemStack item) {
       CompoundTag cpt = getCustomTag(item);
       IMapLocation.MapLocationType type = getTypeFromStack(item);
-      return type == IMapLocation.MapLocationType.SPOT ? new BlockPos(cpt.getInt("x").orElse(0), cpt.getInt("y").orElse(0), cpt.getInt("z").orElse(0)) : null;
+      return type == IMapLocation.MapLocationType.SPOT ? new BlockPos(BcNbt.getInt(cpt, "x", 0), BcNbt.getInt(cpt, "y", 0), BcNbt.getInt(cpt, "z", 0)) : null;
    }
 
    @Override
@@ -376,7 +389,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
       switch (type) {
          case SPOT: {
             List<BlockPos> indexList = new ArrayList<>();
-            indexList.add(new BlockPos(cpt.getInt("x").orElse(0), cpt.getInt("y").orElse(0), cpt.getInt("z").orElse(0)));
+            indexList.add(new BlockPos(BcNbt.getInt(cpt, "x", 0), BcNbt.getInt(cpt, "y", 0), BcNbt.getInt(cpt, "z", 0)));
             return indexList;
          }
          case AREA:
@@ -385,10 +398,10 @@ public class ItemMapLocation extends Item implements IMapLocation {
          case PATH:
          case PATH_REPEATING: {
             List<BlockPos> indexList = new ArrayList<>();
-            ListTag pathNBT = (ListTag)cpt.getList("path").orElse(null);
+            ListTag pathNBT = (ListTag)BcNbt.getList(cpt, "path");
             if (pathNBT != null) {
                for (int i = 0; i < pathNBT.size(); i++) {
-                  CompoundTag posTag = (CompoundTag)pathNBT.getCompound(i).orElse(null);
+                  CompoundTag posTag = (CompoundTag)BcNbt.getCompound(pathNBT, i);
                   if (posTag != null) {
                      indexList.add(readBlockPosNbt(posTag));
                   }
@@ -403,7 +416,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
    @Override
    public String getLocationName(@Nonnull ItemStack item) {
       CompoundTag cpt = getCustomTag(item);
-      return cpt.getString("name").orElse("");
+      return BcNbt.getString(cpt, "name", "");
    }
 
    @Override

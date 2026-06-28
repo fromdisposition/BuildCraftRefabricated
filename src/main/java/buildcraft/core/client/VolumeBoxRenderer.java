@@ -21,8 +21,8 @@ import java.util.UUID;
 import net.minecraft.client.Minecraft;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+*///?}
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
@@ -44,7 +44,7 @@ public class VolumeBoxRenderer {
             poseStack.pushPose();
             poseStack.translate(-cameraPos.x, -cameraPos.y, -cameraPos.z);
             //? if >= 26.2 {
-            /*for (VolumeBox volumeBox : ClientVolumeBoxes.INSTANCE.volumeBoxes) {
+            for (VolumeBox volumeBox : ClientVolumeBoxes.INSTANCE.volumeBoxes) {
                for (Addon addon : volumeBox.addons.values()) {
                   if (addon != null) {
                      @SuppressWarnings("unchecked")
@@ -53,8 +53,8 @@ public class VolumeBoxRenderer {
                   }
                }
             }
-            *///?} else {
-            BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
+            //?} else {
+            /*BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
 
             for (VolumeBox volumeBox : ClientVolumeBoxes.INSTANCE.volumeBoxes) {
                for (Addon addon : volumeBox.addons.values()) {
@@ -67,7 +67,7 @@ public class VolumeBoxRenderer {
             }
 
             bufferSource.endBatch();
-            //?}
+            *///?}
             poseStack.popPose();
          }
       }

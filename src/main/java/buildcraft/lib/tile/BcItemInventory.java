@@ -6,6 +6,7 @@
 
 package buildcraft.lib.tile;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.lib.inventory.AbstractInvItemTransactor;
@@ -404,20 +405,20 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
    }
 
    public void deserializeNBT(CompoundTag nbt) {
-      ListTag list = (ListTag)nbt.getList("items").orElseGet(ListTag::new);
+      ListTag list = (ListTag)BcNbt.getList(nbt, "items");
 
       for (int i = 0; i < list.size() && i < this.size(); i++) {
-         CompoundTag itemNbt = (CompoundTag)list.getCompound(i).orElseGet(CompoundTag::new);
+         CompoundTag itemNbt = (CompoundTag)BcNbt.getCompound(list, i);
          ItemStack stack = ItemStack.EMPTY;
          Tag stackPayload = itemNbt.get("stack");
          if (stackPayload != null) {
             stack = ItemStack.CODEC.parse(NBTUtilBC.registryAwareOps(), stackPayload).resultOrPartial().orElse(ItemStack.EMPTY);
          } else if (itemNbt.contains("id")) {
-            String idStr = itemNbt.getString("id").orElse("");
+            String idStr = BcNbt.getString(itemNbt, "id", "");
             Identifier id = Identifier.tryParse(idStr);
             if (id != null) {
                Item item = BcRegistryUtil.getItem(id);
-               int count = itemNbt.getInt("count").orElse(1);
+               int count = BcNbt.getInt(itemNbt, "count", 1);
                if (item != null && item != Items.AIR) {
                   stack = new ItemStack(item, count);
                }

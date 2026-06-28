@@ -120,15 +120,15 @@ public class BuildCraftGui {
    public void preDrawForeground() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       if (graphics != null) {
-         graphics.pose().pushMatrix();
-         graphics.pose().translate((float)(-this.rootElement.getX()), (float)(-this.rootElement.getY()));
+         graphics.pushPoseGui();
+         graphics.translateGui((float)(-this.rootElement.getX()), (float)(-this.rootElement.getY()));
       }
    }
 
    public void postDrawForeground() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       if (graphics != null) {
-         graphics.pose().popMatrix();
+         graphics.popPoseGui();
       }
    }
 

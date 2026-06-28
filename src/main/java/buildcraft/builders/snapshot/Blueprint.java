@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.api.schematics.ISchematicBlock;
@@ -143,7 +144,7 @@ public class Blueprint extends Snapshot {
 
       this.data = new int[Snapshot.getDataSize(this.size)];
       ListTag serializedDataList = nbt.get("data") instanceof ListTag lt ? lt : null;
-      int[] serializedDataIntArray = (int[])nbt.getIntArray("data").orElse(null);
+      int[] serializedDataIntArray = (int[])BcNbt.getIntArray(nbt, "data");
       if (serializedDataIntArray == null && serializedDataList == null) {
          throw new InvalidInputDataException("Can't read a blueprint with no data!");
       }
@@ -160,7 +161,11 @@ public class Blueprint extends Snapshot {
             for (int x = 0; x < this.size.getX(); x++) {
                int idx = this.posToIndex(x, y, z);
                if (serializedDataList != null) {
+                  //? if >= 1.21.10 {
                   this.data[idx] = serializedDataList.get(idx) instanceof IntTag it ? it.value() : 0;
+                  //?} else {
+                  /*this.data[idx] = serializedDataList.get(idx) instanceof IntTag it ? it.getAsInt() : 0;
+                  *///?}
                } else {
                   this.data[idx] = serializedDataIntArray[idx];
                }

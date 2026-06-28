@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.flow;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.transport.IInjectable;
 import buildcraft.api.transport.pipe.IFlowItems;
@@ -72,7 +73,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    public PipeFlowItems(IPipe pipe, CompoundTag nbt) {
       super(pipe, nbt);
       this.initItemStorages();
-      ListTag list = nbt.getListOrEmpty("items");
+      ListTag list = BcNbt.getList(nbt, "items");
       Level world = pipe.getHolder().getPipeWorld();
       long tickNow = world != null ? world.getGameTime() : 0L;
 

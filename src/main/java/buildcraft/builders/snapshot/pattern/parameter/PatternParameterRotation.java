@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot.pattern.parameter;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
@@ -30,7 +31,7 @@ public enum PatternParameterRotation implements IStatementParameter {
    public final int rotationCount = this.ordinal();
 
    public static PatternParameterRotation readFromNbt(CompoundTag nbt) {
-      int d = nbt.getByte("d").orElse((byte)0);
+      int d = BcNbt.getByte(nbt, "d", (byte)0);
       return values()[d & 3];
    }
 

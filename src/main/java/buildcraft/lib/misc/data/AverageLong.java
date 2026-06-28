@@ -6,6 +6,7 @@
 
 package buildcraft.lib.misc.data;
 
+import buildcraft.lib.nbt.BcNbt;
 import net.minecraft.nbt.CompoundTag;
 
 public class AverageLong {
@@ -77,7 +78,7 @@ public class AverageLong {
    }
 
    public void readFromNbt(CompoundTag nbt, String subTag) {
-      int[] ints = nbt.getIntArray(subTag).orElse(new int[0]);
+      int[] ints = BcNbt.getIntArray(nbt, subTag);
       if (ints.length >= this.precise * 2) {
          this.averageRaw = 0L;
          this.pos = 0;

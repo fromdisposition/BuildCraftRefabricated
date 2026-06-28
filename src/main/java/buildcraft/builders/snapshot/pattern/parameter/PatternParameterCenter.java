@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot.pattern.parameter;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
@@ -41,7 +42,7 @@ public enum PatternParameterCenter implements IStatementParameter {
    }
 
    public static PatternParameterCenter readFromNbt(CompoundTag nbt) {
-      int ord = nbt.getByte("dir").orElse((byte)0);
+      int ord = BcNbt.getByte(nbt, "dir", (byte)0);
       return ord >= 0 && ord < values().length ? values()[ord] : CENTER;
    }
 

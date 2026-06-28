@@ -48,7 +48,11 @@ public enum MarkdownPageLoader implements IPageLoaderText {
          return new IScriptableRegistry.OptionallyDisabled<>(args[0] + " was not a valid item identifier!");
       }
 
+      //? if >= 1.21.10 {
       Item item = BuiltInRegistries.ITEM.get(itemId).map(ref -> (Item)ref.value()).orElse(null);
+      //?} else {
+      /*Item item = BuiltInRegistries.ITEM.get(itemId);
+      *///?}
       if (item == null) {
          return new IScriptableRegistry.OptionallyDisabled<>(args[0] + " was not a valid item!");
       }

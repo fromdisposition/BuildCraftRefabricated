@@ -6,6 +6,7 @@
 
 package buildcraft.core.statements;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
@@ -30,7 +31,7 @@ public enum StatementParamGateSideOnly implements IStatementParameter {
    }
 
    public static StatementParamGateSideOnly readFromNbt(CompoundTag nbt) {
-      return nbt.getBoolean("isOn").orElse(false) ? SPECIFIC : ANY;
+      return BcNbt.getBoolean(nbt, "isOn", false) ? SPECIFIC : ANY;
    }
 
    @Override

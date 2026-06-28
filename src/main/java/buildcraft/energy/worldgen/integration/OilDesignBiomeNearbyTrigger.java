@@ -3,9 +3,9 @@ package buildcraft.energy.worldgen.integration;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Optional;
-import net.minecraft.advancements.criterion.EntityPredicate;
-import net.minecraft.advancements.criterion.ContextAwarePredicate;
-import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
+import net.minecraft.advancements.predicates.entity.EntityPredicate;
+import net.minecraft.advancements.predicates.ContextAwarePredicate;
+import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 
 public final class OilDesignBiomeNearbyTrigger extends SimpleCriterionTrigger<OilDesignBiomeNearbyTrigger.TriggerInstance> {
@@ -18,7 +18,7 @@ public final class OilDesignBiomeNearbyTrigger extends SimpleCriterionTrigger<Oi
       this.trigger(player, instance -> true);
    }
 
-   public record TriggerInstance(Optional<net.minecraft.advancements.criterion.ContextAwarePredicate> player)
+   public record TriggerInstance(Optional<net.minecraft.advancements.predicates.ContextAwarePredicate> player)
       implements SimpleCriterionTrigger.SimpleInstance {
       public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
          EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player)

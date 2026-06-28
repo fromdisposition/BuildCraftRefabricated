@@ -41,7 +41,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -49,8 +49,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 
 public class TileTank extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
    public final SingleFluidTank fluidTank = new SingleFluidTank(16000, SingleFluidTank.TankAccess.OPEN, this::requestColumnBalance);
@@ -83,7 +87,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
 
    public void serverTick() {
       if (this.level != null && !this.level.isClientSide()) {
-         ProfilerFiller _profiler = Profiler.get();
+         ProfilerFiller _profiler = BcProfiler.get();
          _profiler.push("buildcraft:tank_serverTick");
 
          try {
@@ -237,14 +241,18 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
       this.pendingColumnBalance = true;
    }
 
+   //? if >= 1.21.10 {
    @Override
+   //?}
    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
       if (this.level != null && !this.level.isClientSide()) {
          this.dropSegmentContents(pos);
          this.notifyColumnNeighborsOnRemoval();
       }
 
+      //? if >= 1.21.10 {
       super.preRemoveSideEffects(pos, state);
+      //?}
    }
 
    private void dropSegmentContents(BlockPos pos) {
@@ -281,13 +289,33 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
       }
    }
 
+   //? if >= 1.21.10 {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
-      this.fluidTank.serialize(output);
+      this.writeData(new BcValueOut(output));
    }
 
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+
+   protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
+      this.fluidTank.serialize(output);
+   }
+
+   protected void readData(BcValueIn input) {
       this.fluidTank.deserialize(input);
       this.pendingColumnBalance = true;
    }

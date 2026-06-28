@@ -26,8 +26,9 @@ import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.statement.StatementContext;
 import java.util.List;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
+//?}
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -117,7 +118,7 @@ public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
+      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
       int mx = (int)this.mainGui.mouse.getX() - this.leftPos;
       int my = (int)this.mainGui.mouse.getY() - this.topPos;
       boolean invertHover = mx >= 152 && mx < 168 && my >= 40 && my < 56;
@@ -134,10 +135,20 @@ public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
    }
 
    @Override
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      if (event.button() == 0) {
-         int mx = (int)event.x() - this.leftPos;
-         int my = (int)event.y() - this.topPos;
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+   }
+   //?} else {
+   /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      return this.bcMouseClicked((int)mouseX, (int)mouseY, button) || super.mouseClicked(mouseX, mouseY, button);
+   }
+   *///?}
+
+   private boolean bcMouseClicked(int clickX, int clickY, int button) {
+      if (button == 0) {
+         int mx = clickX - this.leftPos;
+         int my = clickY - this.topPos;
          if (mx >= 152 && mx < 168 && my >= 40 && my < 56) {
             ((ContainerFillerPlanner)this.menu).sendMessage(12, buf -> {});
             if (this.minecraft.player != null) {
@@ -148,6 +159,6 @@ public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
          }
       }
 
-      return super.mouseClicked(event, doubleClick);
+      return false;
    }
 }

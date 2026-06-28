@@ -37,8 +37,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TileElectronicLibrary extends BcBlockEntity implements MenuProvider, BlockEntityExtendedMenu {
    public final ItemHandlerSimple invDownIn = this.itemManager
@@ -182,8 +182,8 @@ public class TileElectronicLibrary extends BcBlockEntity implements MenuProvider
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putInt("progressDown", this.progressDown);
       output.putInt("progressUp", this.progressUp);
       output.store("items", CompoundTag.CODEC, this.itemManager.serializeNBT());
@@ -193,8 +193,8 @@ public class TileElectronicLibrary extends BcBlockEntity implements MenuProvider
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.progressDown = input.getIntOr("progressDown", -1);
       this.progressUp = input.getIntOr("progressUp", -1);
       input.read("items", CompoundTag.CODEC).ifPresent(this.itemManager::deserializeNBT);

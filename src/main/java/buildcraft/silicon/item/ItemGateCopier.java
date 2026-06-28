@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.item;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import java.util.List;
@@ -22,7 +23,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.CustomModelData;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.component.TooltipDisplay;
+//?}
 import net.minecraft.world.level.Level;
 
 public class ItemGateCopier extends Item {
@@ -38,7 +41,17 @@ public class ItemGateCopier extends Item {
       }
    }
 
+   //? if >= 1.21.10 {
    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+      return this.bcUse(level, player, hand);
+   }
+   //?} else {
+   /*public net.minecraft.world.InteractionResultHolder<net.minecraft.world.item.ItemStack> use(Level level, Player player, InteractionHand hand) {
+      return buildcraft.lib.compat.BcInteract.toUse(this.bcUse(level, player, hand), player, hand);
+   }
+   *///?}
+
+   private InteractionResult bcUse(Level level, Player player, InteractionHand hand) {
       ItemStack stack = player.getItemInHand(hand);
       if (level.isClientSide()) {
          return InteractionResult.PASS;
@@ -67,7 +80,7 @@ public class ItemGateCopier extends Item {
 
    private static void updateModelData(ItemStack stack) {
       if (getCopiedGateData(stack) != null) {
-         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(1.0F), List.of(), List.of(), List.of()));
+         stack.set(DataComponents.CUSTOM_MODEL_DATA, buildcraft.lib.compat.BcModelData.index(1.0F));
       } else {
          stack.remove(DataComponents.CUSTOM_MODEL_DATA);
       }
@@ -75,7 +88,7 @@ public class ItemGateCopier extends Item {
 
    public static CompoundTag getCopiedGateData(ItemStack stack) {
       CompoundTag data = NBTUtilBC.getItemData(stack);
-      return data.contains("gate_data") ? data.getCompound("gate_data").orElse(new CompoundTag()) : null;
+      return data.contains("gate_data") ? BcNbt.getCompound(data, "gate_data") : null;
    }
 
    public static void setCopiedGateData(ItemStack stack, CompoundTag nbt) {

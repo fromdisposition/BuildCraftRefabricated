@@ -6,6 +6,8 @@
 
 package buildcraft.builders.block;
 
+import buildcraft.lib.compat.BcInteract;
+
 import buildcraft.builders.item.ItemSnapshot;
 import buildcraft.builders.tile.TileConstructionMarker;
 import com.mojang.serialization.MapCodec;
@@ -55,6 +57,12 @@ public class BlockConstructionMarker extends HorizontalDirectionalBlock implemen
    }
 
    protected InteractionResult useItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
+      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
+   }
+
+   protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
       if (!(stack.getItem() instanceof ItemSnapshot snapshot) || !snapshot.isUsed()) {

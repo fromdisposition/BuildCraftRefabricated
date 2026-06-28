@@ -6,6 +6,8 @@
 
 package buildcraft.factory.block;
 
+import buildcraft.lib.compat.BcInteract;
+
 import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.api.tools.IToolWrench;
 import buildcraft.factory.BCFactoryBlockEntities;
@@ -67,6 +69,18 @@ public class BlockFloodGate extends BaseEntityBlock {
       return new TileFloodGate(pos, state);
    }
 
+   // 1.21.1: vanilla never calls the BE hook preRemoveSideEffects (1.21.2+); drop the held fluid shard from the
+   // classic Block.onRemove (BE still present before super removes it). 1.21.10+ uses the BE hook directly.
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof buildcraft.factory.tile.TileFloodGate tile) {
+         tile.preRemoveSideEffects(pos, state);
+      }
+      super.onRemove(state, level, pos, newState, movedByPiston);
+   }
+   *///?}
+
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (level.getBlockEntity(pos) instanceof TileFloodGate floodGate) {
@@ -86,8 +100,14 @@ public class BlockFloodGate extends BaseEntityBlock {
    protected InteractionResult useItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
+      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
+   }
+
+   protected InteractionResult bcUseItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
       if (!(stack.getItem() instanceof IToolWrench wrench)) {
-         return InteractionResult.TRY_WITH_EMPTY_HAND;
+         return BcInteract.TRY_WITH_EMPTY_HAND;
       } else {
          Direction side = hitResult.getDirection();
          if (side != Direction.UP && CONNECTED_MAP.containsKey(side)) {
@@ -122,7 +142,7 @@ public class BlockFloodGate extends BaseEntityBlock {
             wrench.wrenchUsed(player, hand, stack, hitResult);
             return InteractionResult.SUCCESS;
          } else {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
+            return BcInteract.TRY_WITH_EMPTY_HAND;
          }
       }
    }

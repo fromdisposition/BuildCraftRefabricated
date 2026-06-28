@@ -6,6 +6,7 @@
 
 package buildcraft.api.robots;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.mj.MjAPI;
 import net.minecraft.nbt.CompoundTag;
@@ -143,16 +144,16 @@ public class AIRobot {
    }
 
    public final void loadFromNBT(CompoundTag nbt) {
-      this.loadSelfFromNBT(nbt.getCompound("data").orElse(new CompoundTag()));
+      this.loadSelfFromNBT(BcNbt.getCompound(nbt, "data"));
       if (nbt.contains("delegateAI")) {
-         CompoundTag sub = nbt.getCompound("delegateAI").orElse(new CompoundTag());
+         CompoundTag sub = BcNbt.getCompound(nbt, "delegateAI");
 
          try {
             Class<?> aiRobotClass;
             if (sub.contains("class")) {
-               aiRobotClass = RobotManager.getAIRobotByLegacyClassName(sub.getString("class").orElse(""));
+               aiRobotClass = RobotManager.getAIRobotByLegacyClassName(BcNbt.getString(sub, "class", ""));
             } else {
-               aiRobotClass = RobotManager.getAIRobotByName(sub.getString("aiName").orElse(""));
+               aiRobotClass = RobotManager.getAIRobotByName(BcNbt.getString(sub, "aiName", ""));
             }
 
             if (aiRobotClass != null) {
@@ -174,9 +175,9 @@ public class AIRobot {
       try {
          Class<?> aiRobotClass;
          if (nbt.contains("class")) {
-            aiRobotClass = RobotManager.getAIRobotByLegacyClassName(nbt.getString("class").orElse(""));
+            aiRobotClass = RobotManager.getAIRobotByLegacyClassName(BcNbt.getString(nbt, "class", ""));
          } else {
-            aiRobotClass = RobotManager.getAIRobotByName(nbt.getString("aiName").orElse(""));
+            aiRobotClass = RobotManager.getAIRobotByName(BcNbt.getString(nbt, "aiName", ""));
          }
 
          if (aiRobotClass != null) {

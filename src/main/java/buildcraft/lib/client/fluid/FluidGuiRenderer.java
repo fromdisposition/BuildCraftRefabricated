@@ -9,7 +9,6 @@ package buildcraft.lib.client.fluid;
 import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 public final class FluidGuiRenderer {
@@ -39,13 +38,17 @@ public final class FluidGuiRenderer {
          for (int tileX = x; tileX < x + width; tileX += spriteSize) {
             int drawW = Math.min(spriteSize, x + width - tileX);
             int drawH = Math.min(spriteSize, y + height - tileY);
+            // Tinted sub-region blit of the block atlas: sample a drawW x drawH region (unscaled) at the
+            // sprite's pixel offset, coloured by the fluid tint. The 12-arg overload carries the colour;
+            // the previous 10-arg call bound the tint to the textureSize param, producing garbage UVs.
             graphics.blit(
-               RenderPipelines.GUI_TEXTURED,
                BcTextureAtlases.BLOCKS_TEXTURE,
                tileX,
                tileY,
                sprite.getU0() * atlasWidth,
                sprite.getV0() * atlasHeight,
+               drawW,
+               drawH,
                drawW,
                drawH,
                atlasWidth,

@@ -6,6 +6,8 @@
 
 package buildcraft.lib.engine;
 
+import buildcraft.lib.compat.BcInteract;
+
 import buildcraft.api.blocks.ICustomRotationHandler;
 import buildcraft.api.properties.BuildCraftProperties;
 import net.minecraft.core.BlockPos;
@@ -29,7 +31,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.Property;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.redstone.Orientation;
+//?}
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
@@ -113,10 +117,20 @@ public abstract class BlockEngineBase_BC8 extends Block implements EntityBlock, 
    protected InteractionResult useItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
+      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
+   }
+
+   protected InteractionResult bcUseItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
       return InteractionResult.PASS;
    }
 
+   //? if >= 1.21.10 {
    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block blockIn, @Nullable Orientation orientation, boolean isMoving) {
+   //?} else {
+   /*protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+   *///?}
       if (level.getBlockEntity(pos) instanceof TileEngineBase_BC8 engine) {
          engine.onNeighborUpdate();
       }

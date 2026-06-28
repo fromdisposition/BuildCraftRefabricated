@@ -28,9 +28,10 @@ import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -295,7 +296,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
+      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
       Blueprint toRender = this.getPreviewBlueprint();
       if (toRender != null) {
          BlueprintRenderer.renderSnapshot(graphics, toRender, this.leftPos + 8, this.topPos + 9, 160, 100);
@@ -385,6 +386,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
       return block == null ? "?" : block.getName().getString();
    }
 
+   //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       if (this.nameField != null && this.nameField.isFocused()) {
          if (event.key() == 257 || event.key() == 335) {
@@ -412,4 +414,33 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
 
       return super.mouseClicked(event, doubleClick);
    }
+   //?} else {
+   /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+      if (this.nameField != null && this.nameField.isFocused()) {
+         if (keyCode == 257 || keyCode == 335) {
+            this.setFocused(null);
+            return true;
+         }
+
+         if (keyCode == 256) {
+            return super.keyPressed(keyCode, scanCode, modifiers);
+         }
+
+         if (this.nameField.keyPressed(keyCode, scanCode, modifiers) || this.nameField.canConsumeInput()) {
+            return true;
+         }
+      }
+
+      return super.keyPressed(keyCode, scanCode, modifiers);
+   }
+
+   @Override
+   public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      if (this.nameField != null && this.nameField.isFocused() && !this.nameField.isMouseOver(mouseX, mouseY)) {
+         this.setFocused(null);
+      }
+
+      return super.mouseClicked(mouseX, mouseY, button);
+   }
+   *///?}
 }

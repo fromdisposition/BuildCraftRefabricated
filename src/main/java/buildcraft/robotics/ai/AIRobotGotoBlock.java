@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.path.PathFinding;
 import java.util.LinkedList;
@@ -147,16 +148,16 @@ public class AIRobotGotoBlock extends AIRobotGoto {
    @Override
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
-      this.finalX = nbt.getInt("finalX").orElse(0);
-      this.finalY = nbt.getInt("finalY").orElse(0);
-      this.finalZ = nbt.getInt("finalZ").orElse(0);
-      this.maxDistance = nbt.getDouble("maxDistance").orElse(0.0);
+      this.finalX = BcNbt.getInt(nbt, "finalX", 0);
+      this.finalY = BcNbt.getInt(nbt, "finalY", 0);
+      this.finalZ = BcNbt.getInt(nbt, "finalZ", 0);
+      this.maxDistance = BcNbt.getDouble(nbt, "maxDistance", 0.0);
       if (nbt.contains("path")) {
-         ListTag pathList = nbt.getListOrEmpty("path");
+         ListTag pathList = BcNbt.getList(nbt, "path");
          this.path = new LinkedList<>();
          for (int i = 0; i < pathList.size(); i++) {
             if (pathList.get(i) instanceof CompoundTag sub) {
-               this.path.add(new BlockPos(sub.getInt("x").orElse(0), sub.getInt("y").orElse(0), sub.getInt("z").orElse(0)));
+               this.path.add(new BlockPos(BcNbt.getInt(sub, "x", 0), BcNbt.getInt(sub, "y", 0), BcNbt.getInt(sub, "z", 0)));
             }
          }
       }

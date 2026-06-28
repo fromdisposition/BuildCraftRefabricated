@@ -32,8 +32,9 @@ import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.statement.StatementContext;
 import java.util.List;
 import java.util.Locale;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
+//?}
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -198,7 +199,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
+      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
       int mx = (int)this.mainGui.mouse.getX() - this.leftPos;
       int my = (int)this.mainGui.mouse.getY() - this.topPos;
       boolean excavateHover = mx >= 130 && mx < 146 && my >= 40 && my < 56;
@@ -233,10 +234,20 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
    }
 
    @Override
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      if (event.button() == 0) {
-         int mx = (int)event.x() - this.leftPos;
-         int my = (int)event.y() - this.topPos;
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+   }
+   //?} else {
+   /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      return this.bcMouseClicked((int)mouseX, (int)mouseY, button) || super.mouseClicked(mouseX, mouseY, button);
+   }
+   *///?}
+
+   private boolean bcMouseClicked(int clickX, int clickY, int button) {
+      if (button == 0) {
+         int mx = clickX - this.leftPos;
+         int my = clickY - this.topPos;
          if (mx >= 130 && mx < 146 && my >= 40 && my < 56) {
             ((ContainerFiller)this.menu).sendMessage(10, buf -> {});
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
@@ -250,6 +261,6 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
          }
       }
 
-      return super.mouseClicked(event, doubleClick);
+      return false;
    }
 }

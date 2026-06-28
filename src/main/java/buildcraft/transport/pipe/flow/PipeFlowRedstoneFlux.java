@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.flow;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.api.transport.pipe.IFlowRedstoneFlux;
 import buildcraft.api.transport.pipe.IPipe;
@@ -50,7 +51,7 @@ public class PipeFlowRedstoneFlux extends PipeEnergyFlowBase implements IFlowRed
 
    public PipeFlowRedstoneFlux(IPipe pipe, CompoundTag nbt) {
       super(pipe, nbt);
-      this.isReceiver = nbt.getBooleanOr("isReceiver", false);
+      this.isReceiver = BcNbt.getBoolean(nbt, "isReceiver", false);
       this.sections = new EnumMap<>(Direction.class);
 
       for (Direction face : Direction.values()) {

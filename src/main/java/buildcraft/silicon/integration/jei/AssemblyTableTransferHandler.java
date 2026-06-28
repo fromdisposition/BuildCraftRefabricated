@@ -19,7 +19,6 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
-import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -41,7 +40,7 @@ public class AssemblyTableTransferHandler implements IRecipeTransferHandler<Cont
       return Optional.of(BCSiliconMenuTypes.ASSEMBLY_TABLE);
    }
 
-   public IRecipeType<AssemblyRecipeJei> getRecipeType() {
+   public mezz.jei.api.recipe.types.IRecipeType<AssemblyRecipeJei> getRecipeType() {
       return BCJeiRecipeTypes.ASSEMBLY;
    }
 

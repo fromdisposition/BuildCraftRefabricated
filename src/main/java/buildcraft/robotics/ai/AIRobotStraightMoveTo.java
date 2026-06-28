@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.EntityRobotBase;
 import net.minecraft.nbt.CompoundTag;
 
@@ -58,8 +59,8 @@ public class AIRobotStraightMoveTo extends AIRobotGoto {
    @Override
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
-      this.finalX = nbt.getDouble("x").orElse(0.0);
-      this.finalY = nbt.getDouble("y").orElse(0.0);
-      this.finalZ = nbt.getDouble("z").orElse(0.0);
+      this.finalX = BcNbt.getDouble(nbt, "x", 0.0);
+      this.finalY = BcNbt.getDouble(nbt, "y", 0.0);
+      this.finalZ = BcNbt.getDouble(nbt, "z", 0.0);
    }
 }

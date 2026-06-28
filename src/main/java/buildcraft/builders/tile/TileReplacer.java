@@ -32,8 +32,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TileReplacer extends BcBlockEntity implements MenuProvider, BlockEntityExtendedMenu {
    public final ItemHandlerSimple invSnapshot = this.itemManager
@@ -86,14 +86,14 @@ public class TileReplacer extends BcBlockEntity implements MenuProvider, BlockEn
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.store("items", CompoundTag.CODEC, this.itemManager.serializeNBT());
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       input.read("items", CompoundTag.CODEC).ifPresent(this.itemManager::deserializeNBT);
    }
 

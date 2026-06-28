@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjRedstoneReceiver;
@@ -54,7 +55,7 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
 
    public PipeBehaviourStripes(IPipe pipe, CompoundTag nbt) {
       super(pipe, nbt);
-      this.battery.deserializeNBT(nbt.getCompoundOrEmpty("battery"));
+      this.battery.deserializeNBT(BcNbt.getCompound(nbt, "battery"));
       this.direction = NBTUtilBC.readEnum(nbt.get("direction"), Direction.class);
    }
 
@@ -72,7 +73,7 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
    @Override
    public void readFromNbt(CompoundTag nbt) {
       super.readFromNbt(nbt);
-      this.battery.deserializeNBT(nbt.getCompoundOrEmpty("battery"));
+      this.battery.deserializeNBT(BcNbt.getCompound(nbt, "battery"));
       this.direction = NBTUtilBC.readEnum(nbt.get("direction"), Direction.class);
    }
 
@@ -221,7 +222,11 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
          if (!world.isClientSide() && world instanceof ServerLevel serverLevel) {
             ServerPlayer player = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, holder.getOwner(), pos);
             player.getInventory().clearContent();
+            //? if >= 1.21.10 {
             player.getInventory().setItem(player.getInventory().getSelectedSlot(), event.getStack());
+            //?} else {
+            /*player.getInventory().setItem(player.getInventory().selected, event.getStack());
+            *///?}
             if (PipeApi.stripeRegistry != null && PipeApi.stripeRegistry.handleItem(world, pos, this.direction, event.getStack(), player, this)) {
                event.setStack(ItemStack.EMPTY);
 

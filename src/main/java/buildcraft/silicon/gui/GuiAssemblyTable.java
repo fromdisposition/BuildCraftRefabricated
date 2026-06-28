@@ -17,7 +17,9 @@ import buildcraft.lib.gui.pos.IGuiArea;
 import buildcraft.silicon.EnumAssemblyRecipeState;
 import buildcraft.silicon.container.ContainerAssemblyTable;
 import java.util.ArrayList;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -132,11 +134,18 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
    }
 
    @Override
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      if (event.button() == 0) {
-         int mouseX = (int)event.x();
-         int mouseY = (int)event.y();
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+   }
+   //?} else {
+   /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      return this.bcMouseClicked((int)mouseX, (int)mouseY, button) || super.mouseClicked(mouseX, mouseY, button);
+   }
+   *///?}
 
+   private boolean bcMouseClicked(int mouseX, int mouseY, int button) {
+      if (button == 0) {
          for (int i = 0; i < ((ContainerAssemblyTable)this.menu).tile.recipesStates.size(); i++) {
             IGuiArea area = this.getRecipeArea(i);
             if (area.contains(mouseX, mouseY)) {
@@ -149,6 +158,6 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
          }
       }
 
-      return super.mouseClicked(event, doubleClick);
+      return false;
    }
 }

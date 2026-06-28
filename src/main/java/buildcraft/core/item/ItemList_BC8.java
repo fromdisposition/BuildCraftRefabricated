@@ -6,6 +6,7 @@
 
 package buildcraft.core.item;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.items.IList;
 import buildcraft.core.list.ContainerList;
 import buildcraft.core.list.ListOpenContext;
@@ -33,7 +34,9 @@ import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.CustomModelData;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.component.TooltipDisplay;
+//?}
 import net.minecraft.world.level.Level;
 
 public class ItemList_BC8 extends Item implements IList {
@@ -55,13 +58,23 @@ public class ItemList_BC8 extends Item implements IList {
    public static void updateModelData(@Nonnull ItemStack stack) {
       boolean hasItems = ListHandler.hasItems(stack);
       if (hasItems) {
-         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(1.0F), List.of(), List.of(), List.of()));
+         stack.set(DataComponents.CUSTOM_MODEL_DATA, buildcraft.lib.compat.BcModelData.index(1.0F));
       } else {
          stack.remove(DataComponents.CUSTOM_MODEL_DATA);
       }
    }
 
+   //? if >= 1.21.10 {
    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+      return this.bcUse(level, player, hand);
+   }
+   //?} else {
+   /*public net.minecraft.world.InteractionResultHolder<net.minecraft.world.item.ItemStack> use(Level level, Player player, InteractionHand hand) {
+      return buildcraft.lib.compat.BcInteract.toUse(this.bcUse(level, player, hand), player, hand);
+   }
+   *///?}
+
+   private InteractionResult bcUse(Level level, Player player, InteractionHand hand) {
       ListOpenContext.remember(player, hand);
       if (!level.isClientSide()) {
          AdvancementUtil.unlockAdvancement(player, ADVANCEMENT);
@@ -97,7 +110,7 @@ public class ItemList_BC8 extends Item implements IList {
    @Override
    public String getLocationName(@Nonnull ItemStack stack) {
       CompoundTag tag = getCustomTag(stack);
-      return tag.getString("label").orElse("");
+      return BcNbt.getString(tag, "label", "");
    }
 
    @Override

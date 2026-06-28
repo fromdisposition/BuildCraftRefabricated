@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.plug;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.IDockingStationProvider;
 import buildcraft.api.robots.RobotManager;
@@ -134,7 +135,7 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
    @Override
    public void readClientUpdateData(CompoundTag nbt) {
       super.readClientUpdateData(nbt);
-      int ordinal = nbt.getByte("state").orElse((byte) 0);
+      int ordinal = BcNbt.getByte(nbt, "state", (byte) 0);
       RobotStationState[] values = RobotStationState.values();
       this.renderState = ordinal >= 0 && ordinal < values.length ? values[ordinal] : RobotStationState.None;
    }

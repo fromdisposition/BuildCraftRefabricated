@@ -7,6 +7,7 @@
 package buildcraft.factory.tile;
 
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.api.mj.IMjReceiver;
@@ -60,8 +61,12 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 
 public class TileDistiller extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
    public static final long MAX_MJ_PER_TICK = 6L * MjAPI.MJ;
@@ -264,7 +269,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       if (this.owner != null && this.level != null && !this.level.isClientSide()) {
          MinecraftServer server = this.level.getServer();
          if (server != null) {
-            ServerPlayer player = server.getPlayerList().getPlayer(this.owner.id());
+            ServerPlayer player = server.getPlayerList().getPlayer(BcAuth.id(this.owner));
             if (player != null) {
                BCFactoryAttachments.OilAndFuelProduction tracker = BCFactoryAttachments.get(player);
                String gasBase = BCEnergyFluidsFabric.getBaseName(outGas.getFluid());
@@ -369,7 +374,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
          if (distilling && !this.wasDistillingForAdvancement && this.owner != null) {
             int inputHeat = BCEnergyFluidsFabric.getHeat(this.currentRecipe.in().getFluid());
             if (qualifiesForHeatingAdvancement(inputHeat, this.level.dimension() == Level.NETHER)) {
-               AdvancementUtil.unlockAdvancement(this.owner.id(), this.level, ADVANCEMENT_HEATING_AND_DISTILLING);
+               AdvancementUtil.unlockAdvancement(BcAuth.id(this.owner), this.level, ADVANCEMENT_HEATING_AND_DISTILLING);
             }
          }
 
@@ -430,13 +435,17 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       left.add("CurrRecipe = " + this.currentRecipe);
    }
 
+   //? if >= 1.21.10 {
    @Override
+   //?}
    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
       if (this.level != null && !this.level.isClientSide()) {
          this.dropContents(pos);
       }
 
+      //? if >= 1.21.10 {
       super.preRemoveSideEffects(pos, state);
+      //?}
    }
 
    private void dropContents(BlockPos pos) {
@@ -498,12 +507,33 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       return new ContainerDistiller(containerId, playerInv, this);
    }
 
+   //? if >= 1.21.10 {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
-      if (this.owner != null && this.owner.id() != null) {
-         output.putString("ownerUUID", this.owner.id().toString());
-         if (this.owner.name() != null) {
-            output.putString("ownerName", this.owner.name());
+      this.writeData(new BcValueOut(output));
+   }
+
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+
+   protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
+      if (this.owner != null && BcAuth.id(this.owner) != null) {
+         output.putString("ownerUUID", BcAuth.id(this.owner).toString());
+         if (BcAuth.name(this.owner) != null) {
+            output.putString("ownerName", BcAuth.name(this.owner));
          }
       }
 
@@ -527,8 +557,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       output.store("containerSlots", CompoundTag.CODEC, this.containerSlots.serializeNBT());
    }
 
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   protected void readData(BcValueIn input) {
       String ownerUuid = input.getStringOr("ownerUUID", "");
       if (!ownerUuid.isEmpty()) {
          try {

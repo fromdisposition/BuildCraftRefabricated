@@ -7,14 +7,22 @@
 package buildcraft.factory.client.render;
 
 import javax.annotation.Nullable;
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+//?}
 import net.minecraft.core.Direction;
 
+//? if >= 1.21.10 {
 public class DistillerRenderState extends BlockEntityRenderState {
+//?} else {
+/*public class DistillerRenderState {
+*///?}
    public float partialTick;
    public Direction facing;
+   //? if >= 1.21.10 {
    @Nullable
    public RenderDistiller.TankSizes sizes;
+   //?}
    @Nullable
    public DistillerFluidSnapshot fluidIn;
    @Nullable

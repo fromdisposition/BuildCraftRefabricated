@@ -15,18 +15,27 @@ import net.minecraft.client.resources.model.sprite.SpriteId;
 //?} else {
 /*import net.minecraft.client.resources.model.sprite.Material;
 *///?}
+//? if >= 1.21.10 {
 import net.minecraft.data.AtlasIds;
+//?}
 import net.minecraft.resources.Identifier;
 
 public final class BcTextureAtlases {
    public static final Identifier BLOCKS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/blocks.png");
    public static final Identifier ITEMS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/items.png");
+   //? if >= 1.21.10 {
    public static final Identifier BLOCKS = AtlasIds.BLOCKS;
+   //?} else {
+   /*public static final Identifier BLOCKS = net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS;
+   *///?}
    //? if >= 1.21.11 {
    public static final Identifier ITEMS = AtlasIds.ITEMS;
-   //?} else {
+   //?} else if >= 1.21.10 {
    /*// 1.21.10 has no separate items atlas (added in 1.21.11); item sprites live on the block atlas.
    public static final Identifier ITEMS = AtlasIds.BLOCKS;
+   *///?} else {
+   /*// 1.21.1 likewise has no items atlas; item sprites live on the block atlas.
+   public static final Identifier ITEMS = net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS;
    *///?}
 
    private BcTextureAtlases() {
@@ -45,8 +54,13 @@ public final class BcTextureAtlases {
    }
 
    public static TextureAtlasSprite getGuiSprite(Minecraft minecraft, Identifier texture) {
+      //? if >= 1.21.10 {
       TextureAtlasSprite sprite = guiAtlas(minecraft).getSprite(texture);
       return isMissing(sprite) ? guiAtlas(minecraft).getSprite(MissingTextureAtlasSprite.getLocation()) : sprite;
+      //?} else {
+      /*// 1.21.1 keeps GUI sprites in a dedicated GuiSpriteManager, not a TextureAtlas in the model manager.
+      return minecraft.getGuiSprites().getSprite(texture);
+      *///?}
    }
 
    //? if >= 26.1 {
@@ -102,14 +116,24 @@ public final class BcTextureAtlases {
    }
 
    private static TextureAtlas blocksAtlas(Minecraft minecraft) {
+      //? if >= 1.21.10 {
       return minecraft.getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS);
+      //?} else {
+      /*return minecraft.getModelManager().getAtlas(net.minecraft.world.inventory.InventoryMenu.BLOCK_ATLAS);
+      *///?}
    }
 
    private static TextureAtlas itemsAtlas(Minecraft minecraft) {
+      //? if >= 1.21.10 {
       return minecraft.getAtlasManager().getAtlasOrThrow(ITEMS);
+      //?} else {
+      /*return minecraft.getModelManager().getAtlas(ITEMS);
+      *///?}
    }
 
+   //? if >= 1.21.10 {
    private static TextureAtlas guiAtlas(Minecraft minecraft) {
       return minecraft.getAtlasManager().getAtlasOrThrow(AtlasIds.GUI);
    }
+   //?}
 }

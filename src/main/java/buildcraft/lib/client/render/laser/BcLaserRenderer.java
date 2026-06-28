@@ -16,8 +16,8 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+*///?}
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.BlockPos;
@@ -70,7 +70,7 @@ public final class BcLaserRenderer {
    }
 
    //? if >= 26.2 {
-   /*public static void renderLasersBatched(PoseStack poseStack, List<LaserData_BC8> lasers, Vec3 cameraPos) {
+   public static void renderLasersBatched(PoseStack poseStack, List<LaserData_BC8> lasers, Vec3 cameraPos) {
       if (!lasers.isEmpty()) {
          LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE), (pose, vc) -> {
             for (LaserData_BC8 data : lasers) {
@@ -79,8 +79,8 @@ public final class BcLaserRenderer {
          });
       }
    }
-   *///?} else {
-   public static void renderLasersBatched(PoseStack poseStack, List<LaserData_BC8> lasers, Vec3 cameraPos) {
+   //?} else {
+   /*public static void renderLasersBatched(PoseStack poseStack, List<LaserData_BC8> lasers, Vec3 cameraPos) {
       if (!lasers.isEmpty()) {
          BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
          VertexConsumer consumer = bufferSource.getBuffer(BCLibRenderTypes.entityTranslucent(BcTextureAtlases.BLOCKS_TEXTURE));
@@ -94,7 +94,7 @@ public final class BcLaserRenderer {
          }
       }
    }
-   //?}
+   *///?}
 
    public static int computeLightmap(double x, double y, double z, int minBlockLight) {
       Level level = Minecraft.getInstance().level;

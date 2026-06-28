@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.api.transport.pipe.ICustomPipeConnection;
@@ -30,7 +31,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -59,19 +60,19 @@ public final class Pipe implements IPipe, IDebuggable {
 
    public Pipe(IPipeHolder holder, CompoundTag nbt) throws InvalidInputDataException {
       this.holder = holder;
-      String colStr = nbt.getStringOr("col", "");
+      String colStr = BcNbt.getString(nbt, "col", "");
       if (!colStr.isEmpty()) {
          this.colour = NBTUtilBC.readEnum(nbt.get("col"), DyeColor.class);
       }
 
-      this.definition = PipeRegistry.INSTANCE.loadDefinition(nbt.getStringOr("def", ""));
+      this.definition = PipeRegistry.INSTANCE.loadDefinition(BcNbt.getString(nbt, "def", ""));
       if (!this.definition.canBeColoured) {
          this.colour = null;
       }
 
-      this.behaviour = this.definition.logicLoader.loadBehaviour(this, nbt.getCompoundOrEmpty("beh"));
-      this.flow = this.definition.flowType.loader.loadFlow(this, nbt.getCompoundOrEmpty("flow"));
-      int connectionData = nbt.getIntOr("con", 0);
+      this.behaviour = this.definition.logicLoader.loadBehaviour(this, BcNbt.getCompound(nbt, "beh"));
+      this.flow = this.definition.flowType.loader.loadFlow(this, BcNbt.getCompound(nbt, "flow"));
+      int connectionData = BcNbt.getInt(nbt, "con", 0);
 
       for (Direction face : Direction.values()) {
          int data = connectionData >>> face.ordinal() * 2 & 3;
@@ -109,7 +110,7 @@ public final class Pipe implements IPipe, IDebuggable {
    }
 
    public void readFromNbt(CompoundTag nbt) {
-      String colStr = nbt.getStringOr("col", "");
+      String colStr = BcNbt.getString(nbt, "col", "");
       if (!colStr.isEmpty()) {
          this.colour = NBTUtilBC.readEnum(nbt.get("col"), DyeColor.class);
       } else {
@@ -122,7 +123,7 @@ public final class Pipe implements IPipe, IDebuggable {
 
       this.connected.clear();
       this.types.clear();
-      int connectionData = nbt.getIntOr("con", 0);
+      int connectionData = BcNbt.getInt(nbt, "con", 0);
 
       for (Direction face : Direction.values()) {
          int data = connectionData >>> face.ordinal() * 2 & 3;
@@ -136,11 +137,11 @@ public final class Pipe implements IPipe, IDebuggable {
       }
 
       if (nbt.contains("beh")) {
-         this.behaviour.readFromNbt(nbt.getCompoundOrEmpty("beh"));
+         this.behaviour.readFromNbt(BcNbt.getCompound(nbt, "beh"));
       }
 
       if (nbt.contains("flow")) {
-         this.flow.readFromNbt(nbt.getCompoundOrEmpty("flow"));
+         this.flow.readFromNbt(BcNbt.getCompound(nbt, "flow"));
       }
 
       this.invalidateModelKey();
@@ -229,7 +230,7 @@ public final class Pipe implements IPipe, IDebuggable {
    }
 
    public void onTick() {
-      ProfilerFiller _profiler = Profiler.get();
+      ProfilerFiller _profiler = BcProfiler.get();
       if (this.updateMarked) {
          this.updateConnections();
       }
@@ -260,7 +261,7 @@ public final class Pipe implements IPipe, IDebuggable {
    }
 
    private void updateConnections() {
-      ProfilerFiller _profiler = Profiler.get();
+      ProfilerFiller _profiler = BcProfiler.get();
       _profiler.push("buildcraft:pipe_connections");
 
       try {

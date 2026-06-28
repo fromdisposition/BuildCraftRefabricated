@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.gate;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.gates.IGate;
 import buildcraft.api.statements.IActionExternal;
@@ -45,7 +46,7 @@ import java.util.TreeSet;
 import java.util.function.Consumer;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -86,10 +87,10 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
    }
 
    public GateLogic(PluggableGate pluggable, CompoundTag nbt) {
-      this(pluggable, new GateVariant(nbt.getCompound("variant").orElse(new CompoundTag())));
+      this(pluggable, new GateVariant(BcNbt.getCompound(nbt, "variant")));
       this.readConfigData(nbt);
       if (nbt.contains("wireBroadcasts")) {
-         int[] arr = nbt.getIntArray("wireBroadcasts").orElse(new int[0]);
+         int[] arr = BcNbt.getIntArray(nbt, "wireBroadcasts");
 
          for (int i : arr) {
             if (i >= 0 && i < DyeColor.values().length) {
@@ -100,7 +101,7 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
    }
 
    public void readConfigData(CompoundTag nbt) {
-      short c = nbt.getShort("connections").orElse((short)0);
+      short c = BcNbt.getShort(nbt, "connections", (short)0);
 
       for (int i = 0; i < this.connections.length; i++) {
          this.connections[i] = (c >>> i & 1) == 1;
@@ -110,31 +111,31 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
          String tName = "trigger[" + i + "]";
          String aName = "action[" + i + "]";
          if (nbt.contains(tName)) {
-            CompoundTag existing = nbt.getCompound(tName).orElse(new CompoundTag());
+            CompoundTag existing = BcNbt.getCompound(nbt, tName);
             if (existing.contains("kind") && !existing.contains("s")) {
                CompoundTag nbt2 = new CompoundTag();
                CompoundTag sTag = new CompoundTag();
-               sTag.putString("kind", existing.getString("kind").orElse(""));
-               sTag.putByte("side", existing.getByte("side").orElse((byte)6));
+               sTag.putString("kind", BcNbt.getString(existing, "kind", ""));
+               sTag.putByte("side", BcNbt.getByte(existing, "side", (byte)6));
                nbt2.put("s", sTag);
                nbt.put(tName, nbt2);
             }
          }
 
          if (nbt.contains(aName)) {
-            CompoundTag existing = nbt.getCompound(aName).orElse(new CompoundTag());
+            CompoundTag existing = BcNbt.getCompound(nbt, aName);
             if (existing.contains("kind") && !existing.contains("s")) {
                CompoundTag nbt2 = new CompoundTag();
                CompoundTag sTag = new CompoundTag();
-               sTag.putString("kind", existing.getString("kind").orElse(""));
-               sTag.putByte("side", existing.getByte("side").orElse((byte)6));
+               sTag.putString("kind", BcNbt.getString(existing, "kind", ""));
+               sTag.putByte("side", BcNbt.getByte(existing, "side", (byte)6));
                nbt2.put("s", sTag);
                nbt.put(aName, nbt2);
             }
          }
 
-         this.statements[i].trigger.readFromNbt(nbt.getCompound(tName).orElse(new CompoundTag()));
-         this.statements[i].action.readFromNbt(nbt.getCompound(aName).orElse(new CompoundTag()));
+         this.statements[i].trigger.readFromNbt(BcNbt.getCompound(nbt, tName));
+         this.statements[i].action.readFromNbt(BcNbt.getCompound(nbt, aName));
       }
    }
 
@@ -213,19 +214,19 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
    }
 
    public void readClientState(CompoundTag nbt) {
-      short tOn = nbt.getShort("triggerOn").orElse((short)0);
+      short tOn = BcNbt.getShort(nbt, "triggerOn", (short)0);
 
       for (int i = 0; i < this.triggerOn.length; i++) {
          this.triggerOn[i] = (tOn >>> i & 1) == 1;
       }
 
-      short aOn = nbt.getShort("actionOn").orElse((short)0);
+      short aOn = BcNbt.getShort(nbt, "actionOn", (short)0);
 
       for (int i = 0; i < this.actionOn.length; i++) {
          this.actionOn[i] = (aOn >>> i & 1) == 1;
       }
 
-      this.isOn = nbt.getBoolean("isOn").orElse(false);
+      this.isOn = BcNbt.getBoolean(nbt, "isOn", false);
    }
 
    public GateLogic(PluggableGate pluggable, FriendlyByteBuf buffer) {
@@ -458,7 +459,7 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
    }
 
    public void resolveActions() {
-      ProfilerFiller _profiler = Profiler.get();
+      ProfilerFiller _profiler = BcProfiler.get();
       _profiler.push("buildcraft:gate_resolveActions");
 
       try {

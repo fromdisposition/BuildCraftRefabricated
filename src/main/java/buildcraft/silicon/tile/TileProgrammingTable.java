@@ -19,8 +19,8 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TileProgrammingTable extends TileLaserTableBase implements IHasWork {
    public static final int WIDTH = 6;
@@ -177,16 +177,16 @@ public class TileProgrammingTable extends TileLaserTableBase implements IHasWork
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putString("recipe_id", this.currentRecipeId);
       output.putInt("option_id", this.optionId);
       output.putLong("synced_target", this.syncedTarget);
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.currentRecipeId = input.getStringOr("recipe_id", "");
       this.optionId = input.getIntOr("option_id", -1);
       this.syncedTarget = input.getLongOr("synced_target", 0L);

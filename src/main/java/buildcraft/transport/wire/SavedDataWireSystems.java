@@ -6,6 +6,7 @@
 
 package buildcraft.transport.wire;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.transport.IWireEmitter;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
@@ -26,25 +27,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.Identifier;
+import buildcraft.lib.compat.BcSavedDataType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.datafix.DataFixTypes;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jspecify.annotations.Nullable;
 
 public class SavedDataWireSystems extends SavedData {
-   public static final SavedDataType<SavedDataWireSystems> TYPE = new SavedDataType<>(
-      //? if >= 26.1 {
-      Identifier.fromNamespaceAndPath("buildcrafttransport", "wire_systems"), () -> new SavedDataWireSystems(null), makeCodec(null), DataFixTypes.SAVED_DATA_MAP_DATA
-      //?} else {
-      /*"buildcrafttransport_wire_systems", () -> new SavedDataWireSystems(null), makeCodec(null), DataFixTypes.SAVED_DATA_MAP_DATA
-      *///?}
+   public static final BcSavedDataType<SavedDataWireSystems> TYPE = new BcSavedDataType<>(
+      "buildcrafttransport", "wire_systems", () -> new SavedDataWireSystems(null), makeCodec(null), DataFixTypes.SAVED_DATA_MAP_DATA
    );
    public Level world;
    public final Map<WireSystem, Boolean> wireSystems = new HashMap<>();
@@ -312,7 +308,7 @@ public class SavedDataWireSystems extends SavedData {
    public void tick() {
       this.flushPendingRebuilds();
       if (this.structureChanged || !this.changedSystems.isEmpty() || !this.systemsNeedingPowerUpdate.isEmpty()) {
-         Profiler.get().push("buildcraft:wire_sync");
+         BcProfiler.get().push("buildcraft:wire_sync");
 
          try {
             if (!this.systemsNeedingPowerUpdate.isEmpty()) {
@@ -362,7 +358,7 @@ public class SavedDataWireSystems extends SavedData {
             this.structureChanged = false;
             this.changedSystems.clear();
          } finally {
-            Profiler.get().pop();
+            BcProfiler.get().pop();
          }
       }
    }
@@ -383,12 +379,12 @@ public class SavedDataWireSystems extends SavedData {
    public void readFromTag(CompoundTag nbt) {
       this.wireSystems.clear();
       this.elementsToWireSystemsIndex.clear();
-      ListTag entriesList = nbt.getListOrEmpty("entries");
+      ListTag entriesList = BcNbt.getList(nbt, "entries");
 
       for (int i = 0; i < entriesList.size(); i++) {
          if (entriesList.get(i) instanceof CompoundTag entry) {
-            CompoundTag wsTag = entry.getCompound("wireSystem").orElse(new CompoundTag());
-            this.addWireSystem(new WireSystem(wsTag), entry.getBooleanOr("powered", false));
+            CompoundTag wsTag = BcNbt.getCompound(entry, "wireSystem");
+            this.addWireSystem(new WireSystem(wsTag), BcNbt.getBoolean(entry, "powered", false));
          }
       }
 
@@ -398,12 +394,19 @@ public class SavedDataWireSystems extends SavedData {
    public static SavedDataWireSystems get(Level world) {
       if (world.isClientSide()) {
          throw new UnsupportedOperationException("Attempted to get SavedDataWireSystems on the client!");
-      } else if (world instanceof ServerLevel serverLevel) {
-         SavedDataWireSystems instance = (SavedDataWireSystems)serverLevel.getDataStorage().computeIfAbsent(TYPE);
+      } else if (world instanceof ServerLevel) {
+         SavedDataWireSystems instance = TYPE.getOrCreate(world, () -> new SavedDataWireSystems(null));
          instance.world = world;
          return instance;
       } else {
          throw new IllegalArgumentException("World is not a ServerLevel!");
       }
    }
+
+   //? if < 1.21.10 {
+   /*@Override
+   public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
+      return BcSavedDataType.encode(TYPE.codec, this, tag, provider);
+   }
+   *///?}
 }

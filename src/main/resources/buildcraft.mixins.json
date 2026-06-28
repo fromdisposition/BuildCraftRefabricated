@@ -4,6 +4,7 @@
   "package": "buildcraft.lib.fabric.mixin",
   "compatibilityLevel": "${mixin_compat_level}",
   "mixins": [
+    "BucketItemAccessor",
     "EntityBcFluidPhysicsMixin",
     "LevelMixin",
     "ShapelessRecipeAccessor"

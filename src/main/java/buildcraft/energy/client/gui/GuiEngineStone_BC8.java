@@ -16,7 +16,6 @@ import buildcraft.lib.gui.ledger.LedgerEngine;
 import buildcraft.lib.gui.ledger.LedgerOwnership;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.lib.misc.LocaleUtil;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -80,7 +79,6 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
          float progress = ((ContainerEngineStone_BC8)this.menu).getBurnProgress();
          int flameHeight = (int)Math.ceil(progress * 14.0F);
          graphics.blit(
-            RenderPipelines.GUI_TEXTURED,
             TEXTURE,
             this.leftPos + 81,
             this.topPos + 25 + 14 - flameHeight,

@@ -6,6 +6,7 @@
 
 package buildcraft.energy.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.core.tile.ITileOilSpring;
 import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.lib.misc.AdvancementUtil;
@@ -17,8 +18,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 
 public class TileSpringOil extends BlockEntity implements ITileOilSpring {
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftfactory:black_gold");
@@ -35,14 +40,35 @@ public class TileSpringOil extends BlockEntity implements ITileOilSpring {
          TileSpringOil.PlayerPumpInfo info = this.pumpProgress.computeIfAbsent(profile, TileSpringOil.PlayerPumpInfo::new);
          info.lastPumpTick = this.level.getGameTime();
          info.sourcesPumped++;
-         if (info.sourcesPumped >= this.totalSources * 7 / 8 && oilPos.equals(this.getBlockPos().above()) && profile.id() != null) {
-            AdvancementUtil.unlockAdvancement(profile.id(), this.level, ADVANCEMENT);
+         if (info.sourcesPumped >= this.totalSources * 7 / 8 && oilPos.equals(this.getBlockPos().above()) && BcAuth.id(profile) != null) {
+            AdvancementUtil.unlockAdvancement(BcAuth.id(profile), this.level, ADVANCEMENT);
          }
       }
    }
 
+   //? if >= 1.21.10 {
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      this.writeData(new BcValueOut(output));
+   }
+   //?} else {
+   /*public void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+
+   protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+   *///?}
+
+   protected void readData(BcValueIn input) {
       this.totalSources = input.getIntOr("totalSources", 0);
       int pumpCount = input.getIntOr("pumpCount", 0);
 
@@ -69,20 +95,19 @@ public class TileSpringOil extends BlockEntity implements ITileOilSpring {
       }
    }
 
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
       output.putInt("totalSources", this.totalSources);
       output.putInt("pumpCount", this.pumpProgress.size());
       int i = 0;
 
       for (TileSpringOil.PlayerPumpInfo info : this.pumpProgress.values()) {
          String prefix = "pump_" + i + "_";
-         if (info.profile.name() != null) {
-            output.putString(prefix + "name", info.profile.name());
+         if (BcAuth.name(info.profile) != null) {
+            output.putString(prefix + "name", BcAuth.name(info.profile));
          }
 
-         if (info.profile.id() != null) {
-            output.putString(prefix + "id", info.profile.id().toString());
+         if (BcAuth.id(info.profile) != null) {
+            output.putString(prefix + "id", BcAuth.id(info.profile).toString());
          }
 
          output.putLong(prefix + "tick", info.lastPumpTick);

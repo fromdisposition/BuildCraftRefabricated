@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.item;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.transport.IItemPluggable;
 import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.api.transport.pipe.IPipe;
@@ -59,11 +60,11 @@ public class ItemPluggableLens extends Item implements IItemPluggable {
    @Nullable
    public static DyeColor getColour(@Nonnull ItemStack stack) {
       CompoundTag nbt = NBTUtilBC.getItemData(stack);
-      return nbt.contains("colour") ? DyeColor.byName(nbt.getStringOr("colour", ""), null) : null;
+      return nbt.contains("colour") ? DyeColor.byName(BcNbt.getString(nbt, "colour", ""), null) : null;
    }
 
    public static boolean isFilter(@Nonnull ItemStack stack) {
-      return NBTUtilBC.getItemData(stack).getBooleanOr("isFilter", false);
+      return BcNbt.getBoolean(NBTUtilBC.getItemData(stack), "isFilter", false);
    }
 
    @Nullable

@@ -19,15 +19,29 @@ import net.minecraft.world.item.CreativeModeTab.Row;
 
 public final class BCSiliconCreativeTabs {
    public static CreativeModeTab FACADE_TAB;
+   //? if >= 1.21.10 {
    public static final ResourceKey<CreativeModeTab> FACADE_TAB_KEY = BCRegistries.creativeTabKey("buildcraftsilicon", "facades");
+   //?} else {
+   /*// Fabric 1.21.1 orders modded creative tabs alphabetically by registry id (it ignores the Row/column
+   // BC sets), which would place "buildcraftsilicon:facades" before the transport tabs. Register under an
+   // id that sorts after "buildcrafttransport:plugs" so the tab stays last, matching 26.x. The id is never
+   // referenced elsewhere and the title comes from the translation key, so this is invisible otherwise.
+   public static final ResourceKey<CreativeModeTab> FACADE_TAB_KEY = BCRegistries.creativeTabKey("buildcrafttransport", "zz_facades");
+   *///?}
 
    private BCSiliconCreativeTabs() {
    }
 
    public static void register() {
       FACADE_TAB = BCRegistries.registerCreativeTab(
+         //? if >= 1.21.10 {
          "buildcraftsilicon",
          "facades",
+         //?} else {
+         /*// see FACADE_TAB_KEY: id chosen so Fabric 1.21.1's alphabetical modded-tab sort keeps facades last.
+         "buildcrafttransport",
+         "zz_facades",
+         *///?}
          CreativeModeTab.builder(Row.TOP, 4)
             .title(Component.translatable("itemGroup.buildcraft.facades"))
             .icon(

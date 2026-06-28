@@ -11,9 +11,11 @@ import buildcraft.lib.client.guide.font.IFontRenderer;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 
 public abstract class GuidePageBase extends GuidePart {
    private int index = 0;
@@ -184,6 +186,7 @@ public abstract class GuidePageBase extends GuidePart {
       return false;
    }
 
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
       return false;
    }
@@ -195,4 +198,17 @@ public abstract class GuidePageBase extends GuidePart {
    public boolean charTyped(CharacterEvent event) {
       return false;
    }
+   //?} else {
+   /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      return false;
+   }
+
+   public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+      return false;
+   }
+
+   public boolean charTyped(char chr, int modifiers) {
+      return false;
+   }
+   *///?}
 }

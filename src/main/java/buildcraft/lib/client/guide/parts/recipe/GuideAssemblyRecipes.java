@@ -20,7 +20,9 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+//? if >= 1.21.10 {
 import net.minecraft.util.context.ContextMap;
+//?}
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -88,12 +90,18 @@ public enum GuideAssemblyRecipes implements IStackRecipes {
 
    private static ItemStack[] resolveInputStacks(AssemblyRecipe recipe, ItemStack output) {
       Set<IngredientStack> inputs = recipe.getInputsFor(output);
+      //? if >= 1.21.10 {
       ContextMap ctx = GuideCraftingFactory.displayContext();
+      //?}
       ItemStack[] inStacks = new ItemStack[inputs.size()];
       int i = 0;
 
       for (IngredientStack ing : inputs) {
+         //? if >= 1.21.10 {
          List<ItemStack> resolved = ing.ingredient.display().resolveForStacks(ctx);
+         //?} else {
+         /*List<ItemStack> resolved = java.util.Arrays.asList(ing.ingredient.getItems());
+         *///?}
          ItemStack first = ItemStack.EMPTY;
 
          for (ItemStack candidate : resolved) {

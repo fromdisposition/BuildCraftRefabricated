@@ -6,6 +6,8 @@
 
 package buildcraft.core.marker.volume;
 
+import buildcraft.lib.nbt.BcAuth;
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCLog;
 import buildcraft.lib.misc.data.Box;
 import java.util.ArrayList;
@@ -51,7 +53,7 @@ public class VolumeBox {
       }
 
       this.world = world;
-      String idStr = nbt.getString("id").orElse("");
+      String idStr = BcNbt.getString(nbt, "id", "");
 
       try {
          this.id = idStr.isEmpty() ? UUID.randomUUID() : UUID.fromString(idStr);
@@ -61,38 +63,38 @@ public class VolumeBox {
       }
 
       this.box = new Box();
-      this.box.initialize((CompoundTag)nbt.getCompound("box").orElseGet(CompoundTag::new));
-      this.player = nbt.contains("player") ? UUID.fromString(nbt.getString("player").orElse("")) : null;
-      this.oldPlayer = nbt.contains("oldPlayer") ? UUID.fromString(nbt.getString("oldPlayer").orElse("")) : null;
+      this.box.initialize((CompoundTag)BcNbt.getCompound(nbt, "box"));
+      this.player = nbt.contains("player") ? UUID.fromString(BcNbt.getString(nbt, "player", "")) : null;
+      this.oldPlayer = nbt.contains("oldPlayer") ? UUID.fromString(BcNbt.getString(nbt, "oldPlayer", "")) : null;
       if (nbt.contains("held")) {
-         CompoundTag heldTag = (CompoundTag)nbt.getCompound("held").orElseGet(CompoundTag::new);
-         this.held = new BlockPos(heldTag.getInt("X").orElse(0), heldTag.getInt("Y").orElse(0), heldTag.getInt("Z").orElse(0));
+         CompoundTag heldTag = (CompoundTag)BcNbt.getCompound(nbt, "held");
+         this.held = new BlockPos(BcNbt.getInt(heldTag, "X", 0), BcNbt.getInt(heldTag, "Y", 0), BcNbt.getInt(heldTag, "Z", 0));
       }
 
-      this.dist = nbt.getDouble("dist").orElse(0.0);
+      this.dist = BcNbt.getDouble(nbt, "dist", 0.0);
       if (nbt.contains("oldMin")) {
-         CompoundTag oldMinTag = (CompoundTag)nbt.getCompound("oldMin").orElseGet(CompoundTag::new);
-         this.oldMin = new BlockPos(oldMinTag.getInt("X").orElse(0), oldMinTag.getInt("Y").orElse(0), oldMinTag.getInt("Z").orElse(0));
+         CompoundTag oldMinTag = (CompoundTag)BcNbt.getCompound(nbt, "oldMin");
+         this.oldMin = new BlockPos(BcNbt.getInt(oldMinTag, "X", 0), BcNbt.getInt(oldMinTag, "Y", 0), BcNbt.getInt(oldMinTag, "Z", 0));
       }
 
       if (nbt.contains("oldMax")) {
-         CompoundTag oldMaxTag = (CompoundTag)nbt.getCompound("oldMax").orElseGet(CompoundTag::new);
-         this.oldMax = new BlockPos(oldMaxTag.getInt("X").orElse(0), oldMaxTag.getInt("Y").orElse(0), oldMaxTag.getInt("Z").orElse(0));
+         CompoundTag oldMaxTag = (CompoundTag)BcNbt.getCompound(nbt, "oldMax");
+         this.oldMax = new BlockPos(BcNbt.getInt(oldMaxTag, "X", 0), BcNbt.getInt(oldMaxTag, "Y", 0), BcNbt.getInt(oldMaxTag, "Z", 0));
       }
 
       if (nbt.contains("addons")) {
-         ListTag addonsList = (ListTag)nbt.getList("addons").orElseGet(ListTag::new);
+         ListTag addonsList = (ListTag)BcNbt.getList(nbt, "addons");
 
          for (int i = 0; i < addonsList.size(); i++) {
-            CompoundTag addonsEntryTag = (CompoundTag)addonsList.getCompound(i).orElseGet(CompoundTag::new);
-            String addonClassName = addonsEntryTag.getString("addonClass").orElse("");
+            CompoundTag addonsEntryTag = (CompoundTag)BcNbt.getCompound(addonsList, i);
+            String addonClassName = BcNbt.getString(addonsEntryTag, "addonClass", "");
 
             try {
                Class<? extends Addon> addonClass = AddonsRegistry.INSTANCE.getClassByName(Identifier.parse(addonClassName));
                Addon addon = addonClass.getDeclaredConstructor().newInstance();
                addon.volumeBox = this;
-               addon.readFromNBT((CompoundTag)addonsEntryTag.getCompound("addonData").orElseGet(CompoundTag::new));
-               String slotStr = addonsEntryTag.getString("slot").orElse("");
+               addon.readFromNBT((CompoundTag)BcNbt.getCompound(addonsEntryTag, "addonData"));
+               String slotStr = BcNbt.getString(addonsEntryTag, "slot", "");
                EnumAddonSlot slot = EnumAddonSlot.valueOf(slotStr);
                this.addons.put(slot, addon);
                addon.postReadFromNbt();
@@ -103,10 +105,10 @@ public class VolumeBox {
       }
 
       if (nbt.contains("locks")) {
-         ListTag locksList = (ListTag)nbt.getList("locks").orElseGet(ListTag::new);
+         ListTag locksList = (ListTag)BcNbt.getList(nbt, "locks");
 
          for (int i = 0; i < locksList.size(); i++) {
-            CompoundTag lockTag = (CompoundTag)locksList.getCompound(i).orElseGet(CompoundTag::new);
+            CompoundTag lockTag = (CompoundTag)BcNbt.getCompound(locksList, i);
 
             try {
                Lock lock = new Lock();
@@ -154,15 +156,15 @@ public class VolumeBox {
    }
 
    public void setPlayer(Player player) {
-      this.player = player.getGameProfile().id();
+      this.player = BcAuth.id(player.getGameProfile());
    }
 
    public boolean isEditingBy(Player player) {
-      return player != null && Objects.equals(this.player, player.getGameProfile().id());
+      return player != null && Objects.equals(this.player, BcAuth.id(player.getGameProfile()));
    }
 
    public boolean isPausedEditingBy(Player player) {
-      return this.oldPlayer != null && Objects.equals(this.oldPlayer, player.getGameProfile().id());
+      return this.oldPlayer != null && Objects.equals(this.oldPlayer, BcAuth.id(player.getGameProfile()));
    }
 
    public Player getPlayer(Level world) {

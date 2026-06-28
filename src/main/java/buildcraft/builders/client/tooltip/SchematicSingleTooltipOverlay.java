@@ -31,7 +31,11 @@ public final class SchematicSingleTooltipOverlay implements ClientTooltipCompone
    }
 
    @Override
+   //? if >= 1.21.10 {
    public int getHeight(Font font) {
+   //?} else {
+   /*public int getHeight() {
+   *///?}
       return PREVIEW_SIZE;
    }
 
@@ -43,8 +47,10 @@ public final class SchematicSingleTooltipOverlay implements ClientTooltipCompone
    @Override
    //? if >= 26.1 {
    public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
-   //?} else {
+   //?} else if >= 1.21.10 {
    /*public void renderImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics) {
+   *///?} else {
+   /*public void renderImage(Font font, int x, int y, GuiGraphicsExtractor graphics) {
    *///?}
       Blueprint synthetic = getOrBuildSynthetic(this.schematic);
       BlueprintRenderer.renderSnapshotForTooltip(new BCGraphics(graphics), synthetic, x, y, PREVIEW_SIZE, PREVIEW_SIZE);

@@ -29,8 +29,8 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.phys.AABB;
 
 public abstract class TileMiner extends BcBlockEntity implements IHasWork {
@@ -214,11 +214,15 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
       this.updateShaftCollision();
    }
 
+   //? if >= 1.21.10 {
    @Override
+   //?}
    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
       this.registeredCollisionLength = -1;
       this.discardShaftRigs();
+      //? if >= 1.21.10 {
       super.preRemoveSideEffects(pos, state);
+      //?}
    }
 
    @Nullable
@@ -280,8 +284,8 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       if (this.currentPos != null) {
          output.putInt("currentPosX", this.currentPos.getX());
          output.putInt("currentPosY", this.currentPos.getY());
@@ -297,8 +301,8 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       if (input.getBooleanOr("hasCurrentPos", false)) {
          int x = input.getIntOr("currentPosX", 0);
          int y = input.getIntOr("currentPosY", 0);

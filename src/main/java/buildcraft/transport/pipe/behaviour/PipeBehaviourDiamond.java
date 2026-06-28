@@ -6,6 +6,8 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.lib.nbt.BcAuth;
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.PipeBehaviour;
@@ -38,7 +40,7 @@ public abstract class PipeBehaviourDiamond extends PipeBehaviour {
 
    public PipeBehaviourDiamond(IPipe pipe, CompoundTag nbt) {
       super(pipe, nbt);
-      CompoundTag filtersTag = nbt.getCompoundOrEmpty("filters");
+      CompoundTag filtersTag = BcNbt.getCompound(nbt, "filters");
       if (!filtersTag.isEmpty()) {
          this.filters.deserializeNBT(filtersTag);
       }
@@ -54,7 +56,7 @@ public abstract class PipeBehaviourDiamond extends PipeBehaviour {
    @Override
    public void readFromNbt(CompoundTag nbt) {
       super.readFromNbt(nbt);
-      this.filters.deserializeNBT(nbt.getCompoundOrEmpty("filters"));
+      this.filters.deserializeNBT(BcNbt.getCompound(nbt, "filters"));
    }
 
    protected void onFilterSlotChange(BcItemInventory handler, int slot, ItemStack before, ItemStack after) {
@@ -71,8 +73,8 @@ public abstract class PipeBehaviourDiamond extends PipeBehaviour {
 
          if (count >= 7) {
             GameProfile owner = this.pipe.getHolder().getOwner();
-            if (owner != null && owner.id() != null) {
-               AdvancementUtil.unlockAdvancement(owner.id(), level, ADVANCEMENT_NEED_LIST);
+            if (owner != null && BcAuth.id(owner) != null) {
+               AdvancementUtil.unlockAdvancement(BcAuth.id(owner), level, ADVANCEMENT_NEED_LIST);
             }
          }
       }

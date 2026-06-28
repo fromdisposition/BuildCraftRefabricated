@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.transport.pipe.IFlowItems;
@@ -51,7 +52,7 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
 
    public PipeBehaviourEmzuli(IPipe pipe, CompoundTag nbt) {
       super(pipe, nbt);
-      CompoundTag filtersTag = nbt.getCompoundOrEmpty("Filters");
+      CompoundTag filtersTag = BcNbt.getCompound(nbt, "Filters");
       if (!filtersTag.isEmpty()) {
          this.invFilters.deserializeNBT(filtersTag);
       }
@@ -60,7 +61,7 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
       this.currentSlot = NBTUtilBC.readEnum(nbt.get("currentSlot"), PipeBehaviourEmzuli.SlotIndex.class);
 
       for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
-         byte c = nbt.getByteOr("slotColors[" + index.ordinal() + "]", (byte)0);
+         byte c = BcNbt.getByte(nbt, "slotColors[" + index.ordinal() + "]", (byte)0);
          if (c > 0 && c <= 16) {
             this.slotColours.put(index, DyeColor.byId(c - 1));
          }
@@ -86,11 +87,11 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
    @Override
    public void readFromNbt(CompoundTag nbt) {
       super.readFromNbt(nbt);
-      this.invFilters.deserializeNBT(nbt.getCompoundOrEmpty("Filters"));
+      this.invFilters.deserializeNBT(BcNbt.getCompound(nbt, "Filters"));
       this.currentSlot = NBTUtilBC.readEnum(nbt.get("currentSlot"), PipeBehaviourEmzuli.SlotIndex.class);
 
       for (PipeBehaviourEmzuli.SlotIndex index : PipeBehaviourEmzuli.SlotIndex.VALUES) {
-         byte c = nbt.getByteOr("slotColors[" + index.ordinal() + "]", (byte)0);
+         byte c = BcNbt.getByte(nbt, "slotColors[" + index.ordinal() + "]", (byte)0);
          if (c > 0 && c <= 16) {
             this.slotColours.put(index, DyeColor.byId(c - 1));
          } else {

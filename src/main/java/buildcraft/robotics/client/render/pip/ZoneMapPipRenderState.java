@@ -10,7 +10,9 @@ import buildcraft.robotics.zone.ZonePlannerMapColours;
 import com.mojang.blaze3d.systems.RenderSystem;
 import javax.annotation.Nullable;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
+//?}
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 
@@ -47,7 +49,11 @@ public record ZoneMapPipRenderState(
    float scale,
    @Nullable ScreenRectangle scissorArea,
    @Nullable ScreenRectangle bounds
-) implements PictureInPictureRenderState {
+   //? if >= 1.21.10 {
+   ) implements PictureInPictureRenderState {
+   //?} else {
+/*) {
+   *///?}
    public static final float FOV = 70.0F;
    public static final float NEAR = 1.0F;
    public static final float FAR = 10000.0F;
@@ -89,7 +95,11 @@ public record ZoneMapPipRenderState(
          colours, originX, originZ, camX, camZ, camY, pitchDeg, yawDeg, minChunkX, minChunkZ, maxChunkX, maxChunkZ,
          overlayColour, overlayCells, overlayColours, hasSelection, selX0, selZ0, selX1, selZ1, selColour, hasHover,
          hoverX, hoverZ, terrainVersion, x0, y0, x1, y1, scale, scissorArea,
+         //? if >= 1.21.10 {
          PictureInPictureRenderState.getBounds(x0, y0, x1, y1, scissorArea)
+         //?} else {
+         /*null
+         *///?}
       );
    }
 
@@ -108,10 +118,10 @@ public record ZoneMapPipRenderState(
    public Matrix4f projMatrix() {
       float aspect = (float)(this.x1 - this.x0) / (float)(this.y1 - this.y0);
       //? if >= 26.2 {
-      /*boolean zeroToOne = true;
-      *///?} else if >= 26.1 {
-      boolean zeroToOne = RenderSystem.getDevice().isZZeroToOne();
-      //?} else {
+      boolean zeroToOne = true;
+      //?} else if >= 26.1 {
+      /*boolean zeroToOne = RenderSystem.getDevice().isZZeroToOne();
+      *///?} else {
       /*// 1.21.x vanilla builds its perspective with JOML's default (zZeroToOne = false).
       boolean zeroToOne = false;
       *///?}
@@ -123,10 +133,10 @@ public record ZoneMapPipRenderState(
       double ndcX = 2.0 * (mouseX - this.x0) / (this.x1 - this.x0) - 1.0;
       double ndcY = 1.0 - 2.0 * (mouseY - this.y0) / (this.y1 - this.y0);
       //? if >= 26.2 {
-      /*boolean zeroToOne = true;
-      *///?} else if >= 26.1 {
-      boolean zeroToOne = RenderSystem.getDevice().isZZeroToOne();
-      //?} else {
+      boolean zeroToOne = true;
+      //?} else if >= 26.1 {
+      /*boolean zeroToOne = RenderSystem.getDevice().isZZeroToOne();
+      *///?} else {
       /*// 1.21.x vanilla builds its perspective with JOML's default (zZeroToOne = false).
       boolean zeroToOne = false;
       *///?}

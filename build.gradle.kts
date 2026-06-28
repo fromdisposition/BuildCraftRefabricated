@@ -1,3 +1,5 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import java.awt.image.BufferedImage
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -96,11 +98,80 @@ if (versionJavaSrc.exists()) {
 
 // Per-MC-version API converters / replacement classes live in src/main/versions/<mc>/java
 // (shared root layout). Only the active version's directory is compiled into that build.
-val versionSpecificSrc = rootProject.projectDir.resolve("src/main/versions/${sc.current.version}/java")
-if (versionSpecificSrc.exists()) {
+//
+// OVERRIDE SEMANTICS: a class at versions/<active>/java/<pkg>/Foo.java REPLACES the same-named class in the
+// shared src/main/java for that node only. The shared copy is excluded from compileJava (so no duplicate
+// class), and the modern shared source stays untouched. This lets a wholly version-specific render/impl
+// live as a full separate file per version instead of polluting the shared code with conditionals. Removing
+// a version = deleting its versions/<mc>/java dir (the shared copy then compiles everywhere again).
+// RANGE OVERRIDE DIRS (dedup sibling nodes): besides the exact versions/<mc>/java, a directory named
+// versions/_ge_<X>[_lt_<Y>]/java applies to every node whose version satisfies ALL its ge_/lt_ constraints
+// (component-wise numeric compare: 1.21.1 < 1.21.10 < 1.21.11 < 26.1 < 26.2). e.g. versions/_lt_26.1/java
+// holds ONE copy shared by all 1.21.x nodes (no more 3× identical files). Priority: exact > range; the shared
+// src/main copy is excluded when any override root provides the path.
+fun bcVerCompare(a: String, b: String): Int {
+    val pa = a.split('.'); val pb = b.split('.')
+    for (i in 0 until maxOf(pa.size, pb.size)) {
+        val d = (pa.getOrNull(i)?.toIntOrNull() ?: 0) - (pb.getOrNull(i)?.toIntOrNull() ?: 0)
+        if (d != 0) return d
+    }
+    return 0
+}
+// SIMULTANEOUS-BUILD SAFETY: where an override file's SOURCE is read from depends on whether this node is
+// the active one, because Stonecutter compiles them differently:
+//   * the ACTIVE node compiles the raw src/main tree, which Stonecutter has chiseled IN PLACE for it, AND
+//     it does NOT populate its own build/generated/stonecutter tree — so its overrides must come from RAW.
+//   * a NON-ACTIVE node compiles from its own build/generated/stonecutter tree (chiseled per node), while
+//     the raw tree still holds the active node's form — so its overrides must come from GENERATED.
+// This split is what lets `gradlew clean build` fan out to all subprojects at once (every non-active node
+// reads its correctly-chiseled generated overrides) while a plain per-node build of the active node still
+// works (it reads raw). The WINNER set (which relative paths are overridden, by which dir) is always taken
+// from the raw tree since it exists at configuration time, before any Stonecutter generate task has run.
+val curVer = sc.current.version
+val activeVer = Regex("stonecutter active \"([^\"]+)\"")
+    .find(rootProject.file("stonecutter.gradle.kts").readText())?.groupValues?.get(1)
+val rawVersionsRoot = rootProject.projectDir.resolve("src/main/versions")
+// Active node => raw (chiseled in place); non-active => its generated tree.
+val srcVersionsRoot = if (curVer == activeVer) rawVersionsRoot
+    else projectDir.resolve("build/generated/stonecutter/main/versions")
+val overrideDirNames = buildList {
+    if (rawVersionsRoot.resolve("$curVer/java").exists()) add(curVer)
+    (rawVersionsRoot.listFiles() ?: emptyArray())
+        .filter { it.isDirectory && it.name.startsWith("_") }
+        .filter { dir ->
+            val ms = Regex("(ge|lt)_([0-9][0-9.]*)").findAll(dir.name).toList()
+            ms.isNotEmpty() && ms.all { m ->
+                val ver = m.groupValues[2]
+                if (m.groupValues[1] == "ge") bcVerCompare(curVer, ver) >= 0 else bcVerCompare(curVer, ver) < 0
+            }
+        }
+        .filter { it.resolve("java").exists() }
+        .forEach { add(it.name) }
+}
+if (overrideDirNames.isNotEmpty()) {
+    // winning dir per relative path (first in priority order: exact, then ranges) — from the raw tree
+    val pathOwner = LinkedHashMap<String, String>()
+    overrideDirNames.forEach { dn ->
+        val rawRoot = rawVersionsRoot.resolve("$dn/java")
+        rawRoot.walkTopDown().filter { it.isFile && it.extension == "java" }
+            .forEach { pathOwner.putIfAbsent(it.relativeTo(rawRoot).invariantSeparatorsPath, dn) }
+    }
+    // source roots (raw for the active node, generated otherwise), keyed by dir name; prefix identifies
+    // which override root a file under compilation belongs to.
+    val srcRoots = overrideDirNames.associateWith { srcVersionsRoot.resolve("$it/java") }
+    val prefixes = srcRoots.mapValues { it.value.path.replace('\\', '/') + "/" }
     afterEvaluate {
         tasks.named<JavaCompile>("compileJava").configure {
-            source(versionSpecificSrc)
+            srcRoots.values.forEach { source(it) }
+            exclude { el ->
+                if (el.isDirectory) return@exclude false
+                val rel = el.relativePath.pathString.replace('\\', '/')
+                val owner = pathOwner[rel] ?: return@exclude false
+                val path = el.file.path.replace('\\', '/')
+                val underDir = prefixes.entries.firstOrNull { path.startsWith(it.value) }?.key
+                // shared src/main copy of an overridden path -> drop; a versions file -> keep only the winner
+                if (underDir == null) true else underDir != owner
+            }
         }
     }
 }
@@ -184,14 +255,173 @@ tasks.withType<JavaCompile>().configureEach {
     }
 }
 
-tasks.processResources {
-    // On the generator node, bake fluid assets before copying so the jar never picks up stale PNGs.
-    // Other nodes consume the committed output as static resources, so no generation runs there.
-    if (isGeneratorNode) {
-        dependsOn("generateFluidBucketAssets")
-        // Generator mutates src/main/resources; track its outputs so this task never copies stale PNGs.
-        inputs.files(tasks.named("generateFluidBucketAssets").map { it.outputs.files })
+// ===========================================================================
+// 1.21.1 DATA BACKPORT (build-time converter)
+//
+// The committed data/assets are authored in the modern (1.21.2+/26.x) JSON format. 1.21.1's parsers
+// need the legacy shapes. Rather than maintain a duplicate resource tree, this task rewrites the affected
+// JSON into a generated dir that OVERRIDES the modern copies on the 1.21.1 node only (every other node
+// already speaks the modern format). The shared src/main stays the single source of truth.
+//
+// Phase 1 — recipes: ingredient values are bare id/tag strings in the modern format ("minecraft:slime_ball",
+// "#c:ingots/iron"); 1.21.1 requires ingredient OBJECTS ({"item":...} / {"tag":...}). Also custom_model_data
+// is a plain int on 1.21.1, not the {"floats":[...]}/{"strings":[...]} component of 1.21.4+.
+// (The recipe folder is "recipe"/"advancement" singular on 1.21.1 already — no path rename needed.)
+val bc1211DataDir = layout.buildDirectory.dir("generated/bc1211-data")
+if (sc.current.parsed < "1.21.2") {
+    // legacy ingredient: string -> {item|tag}; array -> array of those; object -> unchanged, EXCEPT a Fabric
+    // custom ingredient (carries "fabric:type", e.g. "fabric:custom_data" used by gate recipes to match a
+    // plug_gate with specific NBT) which 1.21.1's recipe parser does not understand -> reduce it to its plain
+    // base item/tag. This loses the NBT/component match (a 1.21.1 gate recipe accepts any base plug_gate), but
+    // makes the recipe parse and craft instead of erroring out.
+    fun convIngredient(v: Any?): Any? = when (v) {
+        is String -> if (v.startsWith("#")) mapOf("tag" to v.substring(1)) else mapOf("item" to v)
+        is List<*> -> v.map { convIngredient(it) }
+        is Map<*, *> -> {
+            val base = (v["base"] ?: v["item"] ?: v["tag"]) as? String
+            if (v.containsKey("fabric:type") && base != null) {
+                if (base.startsWith("#")) mapOf("tag" to base.substring(1)) else mapOf("item" to base)
+            } else v
+        }
+        else -> v
     }
+    @Suppress("UNCHECKED_CAST")
+    fun convertRecipe(json: Any?) {
+        if (json !is MutableMap<*, *>) return
+        val map = json as MutableMap<String, Any?>
+        when (map["type"]) {
+            "minecraft:crafting_shaped" -> (map["key"] as? MutableMap<String, Any?>)?.let { k ->
+                k.keys.toList().forEach { kk -> k[kk] = convIngredient(k[kk]) }
+            }
+            "minecraft:crafting_shapeless" -> (map["ingredients"] as? MutableList<Any?>)?.let { list ->
+                for (i in list.indices) list[i] = convIngredient(list[i])
+            }
+            "minecraft:smelting", "minecraft:blasting", "minecraft:smoking",
+            "minecraft:campfire_cooking", "minecraft:stonecutting" ->
+                map["ingredient"] = convIngredient(map["ingredient"])
+        }
+        // result.components custom_model_data: floats[0] -> int; strings/flags cannot map -> drop
+        val components = (map["result"] as? MutableMap<String, Any?>)?.get("components") as? MutableMap<String, Any?>
+        if (components != null) {
+            val cmd = components["minecraft:custom_model_data"]
+            if (cmd is Map<*, *>) {
+                val floats = cmd["floats"] as? List<*>
+                if (floats != null && floats.isNotEmpty()) {
+                    components["minecraft:custom_model_data"] = (floats[0] as Number).toInt()
+                } else {
+                    components.remove("minecraft:custom_model_data")
+                }
+            }
+        }
+    }
+
+    // Item models: the 1.21.4+ client-item-definition system (assets/<ns>/items/<id>.json) does not exist on
+    // 1.21.1, which resolves an item's model directly from assets/<ns>/models/item/<id>.json. Translate each
+    // definition into that legacy model: a plain "model" def whose target isn't the self path (buckets ->
+    // item/fluid_buckets/..., block-as-item models) becomes {"parent": <target>}; a custom_model_data
+    // range_dispatch becomes legacy integer "overrides" on the base model (merged onto the existing base
+    // model file when present, e.g. paintbrush). Definitions that already point at their own models/item/<id>
+    // need nothing (1.21.1 finds them as-is) and are skipped. Unsupported dispatch properties are skipped.
+    @Suppress("UNCHECKED_CAST")
+    fun build1211ItemModel(def: Map<String, Any?>, existing: File): MutableMap<String, Any?>? {
+        val model = def["model"] as? Map<String, Any?> ?: return null
+        val overrides = mutableListOf<Map<String, Any?>>()
+        val baseRef: String? = when (model["type"]) {
+            "minecraft:range_dispatch" -> {
+                if (model["property"] != "minecraft:custom_model_data") return null
+                (model["entries"] as? List<*>)?.forEach { e ->
+                    val em = e as? Map<*, *> ?: return@forEach
+                    val th = (em["threshold"] as? Number)?.toInt() ?: return@forEach
+                    val mref = (em["model"] as? Map<*, *>)?.get("model") as? String ?: return@forEach
+                    overrides.add(linkedMapOf("predicate" to linkedMapOf("custom_model_data" to th), "model" to mref))
+                }
+                (model["fallback"] as? Map<*, *>)?.get("model") as? String
+            }
+            "minecraft:model" -> model["model"] as? String
+            else -> return null
+        }
+        return if (existing.exists()) {
+            // base model already exists on 1.21.1; only range_dispatch needs the extra overrides merged in
+            if (overrides.isEmpty()) null
+            else (JsonSlurper().parse(existing) as MutableMap<String, Any?>).also { it["overrides"] = overrides }
+        } else {
+            if (baseRef == null) return null
+            linkedMapOf<String, Any?>("parent" to baseRef).also { if (overrides.isNotEmpty()) it["overrides"] = overrides }
+        }
+    }
+
+    tasks.register("convertDataFor1211") {
+        group = "buildcraft"
+        description = "Rewrite modern recipe + item-model JSON into the 1.21.1 legacy format."
+        val srcResources = rootProject.file("src/main/resources")
+        val outDir = bc1211DataDir.get().asFile
+        inputs.dir(srcResources).withPropertyName("sharedResources")
+        outputs.dir(outDir).withPropertyName("converted1211Data")
+        doLast {
+            outDir.deleteRecursively()
+            var recipeCount = 0
+            fileTree(srcResources) { include("data/*/recipe/**/*.json") }.forEach { file ->
+                val json = JsonSlurper().parse(file)
+                convertRecipe(json)
+                val rel = file.relativeTo(srcResources).invariantSeparatorsPath
+                val target = outDir.resolve(rel)
+                target.parentFile.mkdirs()
+                target.writeText(JsonOutput.prettyPrint(JsonOutput.toJson(json)) + "\n")
+                recipeCount++
+            }
+            var modelCount = 0
+            fileTree(srcResources) { include("assets/*/items/**/*.json") }.forEach { file ->
+                val parts = file.relativeTo(srcResources).invariantSeparatorsPath.split("/") // assets/<ns>/items/<id...>.json
+                val ns = parts[1]
+                val id = parts.drop(3).joinToString("/").removeSuffix(".json")
+                val def = JsonSlurper().parse(file) as? Map<String, Any?> ?: return@forEach
+                val existing = srcResources.resolve("assets/$ns/models/item/$id.json")
+                val result = build1211ItemModel(def, existing) ?: return@forEach
+                val outFile = outDir.resolve("assets/$ns/models/item/$id.json")
+                outFile.parentFile.mkdirs()
+                outFile.writeText(JsonOutput.prettyPrint(JsonOutput.toJson(result)) + "\n")
+                modelCount++
+            }
+            logger.lifecycle("Converted $recipeCount recipe + $modelCount item-model JSON(s) to 1.21.1 format -> ${outDir.path}")
+        }
+    }
+
+    // Drop the modern copies the converter replaces so its 1.21.1 output wins (processResources duplicate
+    // resolution otherwise keeps the modern model — that left paintbrush etc. with no integer overrides).
+    // Recipes: the whole recipe/ dir. Item models: the base model of every custom_model_data range_dispatch
+    // item (paintbrush/list/map_location/redstone_board/gate_copier) — the converter always regenerates these
+    // with legacy integer overrides, so excluding the modern base is safe.
+    val rangeDispatchModelExcludes = buildList {
+        val assetsRoot = rootProject.file("src/main/resources/assets")
+        (assetsRoot.listFiles() ?: emptyArray()).forEach { nsDir ->
+            val itemsDir = nsDir.resolve("items")
+            if (itemsDir.isDirectory) {
+                itemsDir.walkTopDown().filter { it.isFile && it.extension == "json" && it.readText().contains("range_dispatch") }
+                    .forEach { add("assets/${nsDir.name}/models/item/${it.relativeTo(itemsDir).invariantSeparatorsPath.removeSuffix(".json")}.json") }
+            }
+        }
+    }
+    sourceSets.named("main") {
+        resources {
+            exclude("data/*/recipe/**")
+            rangeDispatchModelExcludes.forEach { exclude(it) }
+        }
+    }
+}
+
+tasks.processResources {
+    // On 1.21.1, replace the modern recipe JSON with the legacy-format conversion (see convertDataFor1211)
+    // and add the back-ported item models (some override an existing base model, e.g. paintbrush, so the
+    // converted dir — added last — must win duplicates).
+    if (sc.current.parsed < "1.21.2") {
+        dependsOn("convertDataFor1211")
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        from(bc1211DataDir)
+    }
+    // Generated assets (baked fluid textures/buckets + datagen output) are COMMITTED to src/main/resources
+    // and src/main/generated and consumed here as plain static resources on every node. The generators are
+    // deliberately NOT wired into the build graph: a clean build only packages the committed output and
+    // never mutates shared source. Refresh the committed assets explicitly via `:26.1:generateAssets`.
 
     val mixinCompatLevel = if (javaRelease >= 25) "JAVA_25" else "JAVA_21"
     val props = mapOf(
@@ -230,14 +460,6 @@ java {
 
 tasks.withType<Jar>().configureEach {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-// sourcesJar (registered above by withSourcesJar) also packs src/main/resources, which the generator
-// mutates — declare the dependency so Gradle doesn't flag an implicit-dependency conflict on 26.1.
-if (isGeneratorNode) {
-    tasks.named<Jar>("sourcesJar") {
-        dependsOn("generateFluidBucketAssets")
-    }
 }
 
 tasks.named<Test>("test") {
@@ -553,6 +775,15 @@ if (isGeneratorNode) {
             }
             logger.lifecycle("Regenerated ${fluidData.size * heats.size} fluid block, bucket, and underwater assets")
         }
+    }
+
+    // The generator writes into src/main/resources, which Stonecutter's prepare/generate tasks read as
+    // inputs. In a fan-out `gradlew build` (all nodes at once) Gradle schedules all three and rejects the
+    // undeclared producer→consumer relationship. Order the Stonecutter tasks AFTER the generator so the
+    // chiseled tree always sees fresh assets (mustRunAfter only applies when the generator is also
+    // scheduled — i.e. a 26.1 build via processResources — so compile-only graphs are unaffected).
+    listOf("stonecutterPrepare", "stonecutterGenerate").forEach { tn ->
+        tasks.matching { it.name == tn }.configureEach { mustRunAfter("generateFluidBucketAssets") }
     }
 
     /** One-shot aggregate: run every generator (fluid baking + fabric-datagen) on 26.1. */

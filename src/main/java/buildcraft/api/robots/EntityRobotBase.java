@@ -19,8 +19,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 //? if >= 26.2 {
-/*import net.minecraft.world.entity.EntityTypes;
-*///?}
+import net.minecraft.world.entity.EntityTypes;
+//?}
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -34,10 +34,10 @@ public abstract class EntityRobotBase extends LivingEntity {
 
    public EntityRobotBase(Level par1World) {
       //? if >= 26.2 {
-      /*super(EntityTypes.PIG, par1World);
-      *///?} else {
-super(EntityType.PIG, par1World);
-      //?}
+      super(EntityTypes.PIG, par1World);
+      //?} else {
+/*super(EntityType.PIG, par1World);
+      *///?}
    }
 
    public EntityRobotBase(EntityType<? extends EntityRobotBase> type, Level par1World) {

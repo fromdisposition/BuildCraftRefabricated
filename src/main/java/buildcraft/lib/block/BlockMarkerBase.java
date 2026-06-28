@@ -22,7 +22,9 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.ScheduledTickAccess;
+//?}
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.Rotation;
@@ -76,21 +78,30 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
       return level.getBlockState(neighborPos).isFaceSturdy(level, neighborPos, sideOn);
    }
 
+   //? if >= 1.21.10 {
    protected BlockState updateShape(
-      BlockState state,
-      LevelReader level,
-      ScheduledTickAccess scheduledTickAccess,
-      BlockPos pos,
-      Direction direction,
-      BlockPos neighborPos,
-      BlockState neighborState,
-      RandomSource random
+      BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
+      Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random
    ) {
+   //?} else {
+   /*protected BlockState updateShape(
+      BlockState state, Direction direction, BlockState neighborState, net.minecraft.world.level.LevelAccessor level,
+      BlockPos pos, BlockPos neighborPos
+   ) {
+   *///?}
       if (!state.canSurvive(level, pos)) {
+         //? if >= 1.21.10 {
          scheduledTickAccess.scheduleTick(pos, this, 1);
+         //?} else {
+         /*level.scheduleTick(pos, this, 1);
+         *///?}
       }
 
+      //? if >= 1.21.10 {
       return super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
+      //?} else {
+      /*return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+      *///?}
    }
 
    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {

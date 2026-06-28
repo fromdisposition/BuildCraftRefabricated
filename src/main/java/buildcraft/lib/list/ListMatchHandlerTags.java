@@ -70,8 +70,14 @@ public class ListMatchHandlerTags extends ListMatchHandler {
 
       Set<Item> seen = new HashSet<>();
       NonNullList<ItemStack> out = NonNullList.create();
+      //? if >= 1.21.10 {
       BuiltInRegistries.ITEM.getTags().forEach(named -> {
          TagKey<Item> tag = named.key();
+      //?} else {
+      /*BuiltInRegistries.ITEM.getTags().forEach(pair -> {
+         TagKey<Item> tag = pair.getFirst();
+         net.minecraft.core.HolderSet.Named<Item> named = pair.getSecond();
+      *///?}
          String part = partOf(tag, type);
          if (parts.contains(part)) {
             for (Holder<Item> h : named) {

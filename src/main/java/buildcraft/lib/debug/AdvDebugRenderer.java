@@ -12,16 +12,16 @@ import java.lang.invoke.MethodHandles;
 //? if >= 26.1 {
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.AfterTranslucentFeatures;
-//?} else {
+//?} else if >= 1.21.10 {
 /*import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 *///?}
 import buildcraft.lib.client.render.laser.LaserBatch;
 import net.minecraft.client.Minecraft;
 //? if >= 26.2 {
-/*import net.minecraft.client.renderer.SubmitNodeStorage;
-*///?} else {
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-//?}
+import net.minecraft.client.renderer.SubmitNodeStorage;
+//?} else {
+/*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+*///?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -48,10 +48,10 @@ public final class AdvDebugRenderer {
          quarryClass = Class.forName("buildcraft.builders.tile.TileQuarry");
          Class<?> renderer = Class.forName("buildcraft.builders.client.render.AdvDebuggerQuarry");
          //? if >= 26.2 {
-         /*quarryRender = lookup.unreflect(renderer.getMethod("render", quarryClass, PoseStack.class, Vec3.class));
-         *///?} else {
-         quarryRender = lookup.unreflect(renderer.getMethod("render", quarryClass, PoseStack.class, BufferSource.class, Vec3.class));
-         //?}
+         quarryRender = lookup.unreflect(renderer.getMethod("render", quarryClass, PoseStack.class, Vec3.class));
+         //?} else {
+         /*quarryRender = lookup.unreflect(renderer.getMethod("render", quarryClass, PoseStack.class, BufferSource.class, Vec3.class));
+         *///?}
       } catch (ReflectiveOperationException ignored) {
          quarryClass = null;
          quarryRender = null;
@@ -61,10 +61,10 @@ public final class AdvDebugRenderer {
          laserClass = Class.forName("buildcraft.silicon.tile.TileLaser");
          Class<?> renderer = Class.forName("buildcraft.silicon.client.render.AdvDebuggerLaser");
          //? if >= 26.2 {
-         /*laserRender = lookup.unreflect(renderer.getMethod("render", laserClass, PoseStack.class, Vec3.class));
-         *///?} else {
-         laserRender = lookup.unreflect(renderer.getMethod("render", laserClass, PoseStack.class, BufferSource.class, Vec3.class));
-         //?}
+         laserRender = lookup.unreflect(renderer.getMethod("render", laserClass, PoseStack.class, Vec3.class));
+         //?} else {
+         /*laserRender = lookup.unreflect(renderer.getMethod("render", laserClass, PoseStack.class, BufferSource.class, Vec3.class));
+         *///?}
       } catch (ReflectiveOperationException ignored) {
          laserClass = null;
          laserRender = null;
@@ -73,19 +73,20 @@ public final class AdvDebugRenderer {
 
    public static void register() {
       //? if >= 26.2 {
-      /*LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
+      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
          LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());
          runOverlay(context.poseStack(), context.levelState().cameraRenderState.pos);
       });
-      *///?} else if >= 26.1 {
-      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context ->
+      //?} else if >= 26.1 {
+      /*LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context ->
          runOverlay(context.poseStack(), context.levelState().cameraRenderState.pos)
       );
-      //?} else {
+      *///?} else if >= 1.21.10 {
       /*WorldRenderEvents.END_MAIN.register(context ->
          runOverlay(context.matrices(), context.worldState().cameraRenderState.pos)
       );
       *///?}
+      // 1.21.1: the dev-only adv-debug overlay is not wired (WorldRenderEvents API differs) — debug-only loss.
    }
 
    private static void runOverlay(PoseStack poseStack, Vec3 cameraPos) {
@@ -107,19 +108,19 @@ public final class AdvDebugRenderer {
       resolveLookups();
       try {
          //? if >= 26.2 {
-         /*if (quarryRender != null && quarryClass != null && quarryClass.isInstance(be)) {
+         if (quarryRender != null && quarryClass != null && quarryClass.isInstance(be)) {
             quarryRender.invoke(be, poseStack, cameraPos);
          } else if (laserRender != null && laserClass != null && laserClass.isInstance(be)) {
             laserRender.invoke(be, poseStack, cameraPos);
          }
-         *///?} else {
-         BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
+         //?} else {
+         /*BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
          if (quarryRender != null && quarryClass != null && quarryClass.isInstance(be)) {
             quarryRender.invoke(be, poseStack, buffers, cameraPos);
          } else if (laserRender != null && laserClass != null && laserClass.isInstance(be)) {
             laserRender.invoke(be, poseStack, buffers, cameraPos);
          }
-         //?}
+         *///?}
       } catch (Throwable ignored) {
       }
    }

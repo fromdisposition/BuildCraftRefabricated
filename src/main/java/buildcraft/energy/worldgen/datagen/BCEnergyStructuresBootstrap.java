@@ -66,7 +66,11 @@ final class BCEnergyStructuresBootstrap {
             ConstantHeight.of(VerticalAnchor.absolute(0)),
             false,
             java.util.Optional.empty(),
+            //? if >= 1.21.10 {
             new JigsawStructure.MaxDistance(1),
+            //?} else {
+            /*1,
+            *///?}
             java.util.List.of(),
             JigsawStructure.DEFAULT_DIMENSION_PADDING,
             JigsawStructure.DEFAULT_LIQUID_SETTINGS
@@ -95,7 +99,11 @@ final class BCEnergyStructuresBootstrap {
             ConstantHeight.of(VerticalAnchor.absolute(0)),
             false,
             java.util.Optional.of(Heightmap.Types.WORLD_SURFACE_WG),
+            //? if >= 1.21.10 {
             new JigsawStructure.MaxDistance(1),
+            //?} else {
+            /*1,
+            *///?}
             java.util.List.of(),
             JigsawStructure.DEFAULT_DIMENSION_PADDING,
             JigsawStructure.DEFAULT_LIQUID_SETTINGS,

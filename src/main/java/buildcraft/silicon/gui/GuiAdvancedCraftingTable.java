@@ -15,8 +15,10 @@ import buildcraft.silicon.container.ContainerAdvancedCraftingTable;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.navigation.ScreenPosition;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -60,8 +62,13 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
    protected void init() {
       super.init();
       this.widthTooNarrow = this.width < 379;
+      //? if >= 1.21.10 {
       this.recipeBookComponent = new ACTRecipeBookComponent((ContainerAdvancedCraftingTable)this.menu);
       this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow);
+      //?} else {
+      /*this.recipeBookComponent = new ACTRecipeBookComponent();
+      this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, (ContainerAdvancedCraftingTable)this.menu);
+      *///?}
       this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
       ScreenPosition buttonPos = this.getRecipeBookButtonPosition();
       this.recipeBookButton = new ImageButton(buttonPos.x(), buttonPos.y(), 20, 18, RecipeBookComponent.RECIPE_BUTTON_SPRITES, p -> {
@@ -110,8 +117,10 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
          BCGraphics graphics = GuiIcon.getGuiGraphics();
          //? if >= 26.1 {
          this.recipeBookComponent.extractTooltip(graphics.raw, mouseX, mouseY, this.hoveredSlot);
-         //?} else {
+         //?} else if >= 1.21.10 {
          /*this.recipeBookComponent.renderTooltip(graphics.raw, mouseX, mouseY, this.hoveredSlot);
+         *///?} else {
+         /*this.recipeBookComponent.renderTooltip(graphics.raw, this.leftPos, this.topPos, mouseX, mouseY);
          *///?}
       }
    }
@@ -124,6 +133,7 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
    }
 
    @Override
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean entered) {
       if (this.recipeBookComponent != null && this.recipeBookComponent.mouseClicked(event, entered)) {
          this.setFocused(this.recipeBookComponent);
@@ -132,12 +142,28 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
          return super.mouseClicked(event, entered);
       }
    }
+   //?} else {
+   /*public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      if (this.recipeBookComponent != null && this.recipeBookComponent.mouseClicked(mouseX, mouseY, button)) {
+         this.setFocused(this.recipeBookComponent);
+         return true;
+      } else {
+         return super.mouseClicked(mouseX, mouseY, button);
+      }
+   }
+   *///?}
 
    protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int button) {
       boolean outside = mouseX < left || mouseY < top || mouseX >= left + this.imageWidth || mouseY >= top + this.imageHeight;
+      //? if >= 1.21.10 {
       return this.recipeBookComponent != null
          ? this.recipeBookComponent.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, this.imageWidth, this.imageHeight) && outside
          : outside;
+      //?} else {
+      /*return this.recipeBookComponent != null
+         ? this.recipeBookComponent.hasClickedOutside(mouseX, mouseY, this.leftPos, this.topPos, this.imageWidth, this.imageHeight, button) && outside
+         : outside;
+      *///?}
    }
 
    public void recipesUpdated() {
@@ -146,9 +172,15 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
       }
    }
 
+   //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       return this.recipeBookComponent != null && this.recipeBookComponent.keyPressed(event) ? true : super.keyPressed(event);
    }
+   //?} else {
+   /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+      return this.recipeBookComponent != null && this.recipeBookComponent.keyPressed(keyCode, scanCode, modifiers) ? true : super.keyPressed(keyCode, scanCode, modifiers);
+   }
+   *///?}
 
    protected boolean isHovering(int x, int y, int width, int height, double mouseX, double mouseY) {
       return super.isHovering(x, y, width, height, mouseX, mouseY);

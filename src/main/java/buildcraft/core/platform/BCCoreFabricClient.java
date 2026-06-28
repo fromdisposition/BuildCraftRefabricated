@@ -25,9 +25,14 @@ import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.After
 *///?}
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
-//? if >= 26.2 {
-/*import net.minecraft.client.renderer.SubmitNodeStorage;
+//? if < 26.1 {
+/*import buildcraft.core.BCCoreBlocks;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 *///?}
+//? if >= 26.2 {
+import net.minecraft.client.renderer.SubmitNodeStorage;
+//?}
 import net.minecraft.resources.Identifier;
 
 public final class BCCoreFabricClient {
@@ -40,15 +45,15 @@ public final class BCCoreFabricClient {
          player -> player.getMainHandItem().getItem() instanceof ItemMarkerConnector || player.getOffhandItem().getItem() instanceof ItemMarkerConnector
       );
       //? if >= 26.2 {
-      /*LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
+      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context -> {
          LaserBatch.setNodeStorage((SubmitNodeStorage) context.submitNodeCollector());
          MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos);
       });
-      *///?} else if >= 26.1 {
-      LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context ->
+      //?} else if >= 26.1 {
+      /*LevelRenderEvents.AFTER_TRANSLUCENT_FEATURES.register((AfterTranslucentFeatures)context ->
          MarkerRenderer.renderMarkers(context.poseStack(), context.levelState().cameraRenderState.pos)
       );
-      //?} else {
+      *///?} else {
       /*// 1.21.x has no AfterTranslucent phase; END_MAIN runs after the main (incl. translucent) pass.
       WorldRenderEvents.END_MAIN.register(
          context -> MarkerRenderer.renderMarkers(context.matrices(), context.gameRenderer().getMainCamera().position())
@@ -69,5 +74,11 @@ public final class BCCoreFabricClient {
          BCTooltips.addTooltip(BCCoreItems.POWER_TESTER, "tip.block.power_tester");
       }
 
+      //? if < 26.1 {
+      /*// Path/volume markers use the torch-cross model (transparent corners); they need the cutout chunk
+      // layer on <26.1 or the transparent pixels render opaque black. 26.1+ derives this from the model.
+      BlockRenderLayerMap.putBlock(BCCoreBlocks.MARKER_PATH, ChunkSectionLayer.CUTOUT);
+      BlockRenderLayerMap.putBlock(BCCoreBlocks.MARKER_VOLUME, ChunkSectionLayer.CUTOUT);
+      *///?}
    }
 }

@@ -6,6 +6,7 @@
 
 package buildcraft.lib.misc.data;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.IBox;
 import buildcraft.lib.misc.PositionUtil;
@@ -84,17 +85,17 @@ public class Box implements IBox {
    public void initialize(CompoundTag nbt) {
       this.reset();
       if (nbt.contains("xMin")) {
-         this.min = new BlockPos(nbt.getInt("xMin").orElse(0), nbt.getInt("yMin").orElse(0), nbt.getInt("zMin").orElse(0));
-         this.max = new BlockPos(nbt.getInt("xMax").orElse(0), nbt.getInt("yMax").orElse(0), nbt.getInt("zMax").orElse(0));
+         this.min = new BlockPos(BcNbt.getInt(nbt, "xMin", 0), BcNbt.getInt(nbt, "yMin", 0), BcNbt.getInt(nbt, "zMin", 0));
+         this.max = new BlockPos(BcNbt.getInt(nbt, "xMax", 0), BcNbt.getInt(nbt, "yMax", 0), BcNbt.getInt(nbt, "zMax", 0));
       } else {
          if (nbt.contains("min")) {
-            CompoundTag minTag = nbt.getCompound("min").orElse(new CompoundTag());
-            this.min = new BlockPos(minTag.getInt("X").orElse(0), minTag.getInt("Y").orElse(0), minTag.getInt("Z").orElse(0));
+            CompoundTag minTag = BcNbt.getCompound(nbt, "min");
+            this.min = new BlockPos(BcNbt.getInt(minTag, "X", 0), BcNbt.getInt(minTag, "Y", 0), BcNbt.getInt(minTag, "Z", 0));
          }
 
          if (nbt.contains("max")) {
-            CompoundTag maxTag = nbt.getCompound("max").orElse(new CompoundTag());
-            this.max = new BlockPos(maxTag.getInt("X").orElse(0), maxTag.getInt("Y").orElse(0), maxTag.getInt("Z").orElse(0));
+            CompoundTag maxTag = BcNbt.getCompound(nbt, "max");
+            this.max = new BlockPos(BcNbt.getInt(maxTag, "X", 0), BcNbt.getInt(maxTag, "Y", 0), BcNbt.getInt(maxTag, "Z", 0));
          }
       }
 

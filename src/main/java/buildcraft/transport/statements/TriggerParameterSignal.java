@@ -6,6 +6,7 @@
 
 package buildcraft.transport.statements;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.gates.IGate;
 import buildcraft.api.statements.IStatement;
@@ -41,8 +42,8 @@ public class TriggerParameterSignal implements IStatementParameter {
 
    public static TriggerParameterSignal readFromNbt(CompoundTag nbt) {
       if (nbt.contains("color")) {
-         DyeColor colour = DyeColor.byId(nbt.getByteOr("color", (byte)0));
-         boolean active = nbt.getBooleanOr("active", false);
+         DyeColor colour = DyeColor.byId(BcNbt.getByte(nbt, "color", (byte)0));
+         boolean active = BcNbt.getBoolean(nbt, "active", false);
          return get(active, colour);
       } else {
          return EMPTY;

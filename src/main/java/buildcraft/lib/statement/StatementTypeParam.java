@@ -6,6 +6,7 @@
 
 package buildcraft.lib.statement;
 
+import buildcraft.lib.nbt.BcNbt;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.statements.IStatementParameter;
@@ -25,7 +26,7 @@ public class StatementTypeParam extends StatementType<IStatementParameter> {
    }
 
    public IStatementParameter readFromNbt(CompoundTag nbt) {
-      String kind = nbt.getString("kind").orElse("");
+      String kind = BcNbt.getString(nbt, "kind", "");
       StatementManager.IParameterReader reader = StatementManager.getParameterReader(kind);
       return reader == null ? null : reader.readFromNbt(nbt);
    }

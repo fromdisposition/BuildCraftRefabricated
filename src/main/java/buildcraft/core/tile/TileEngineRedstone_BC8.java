@@ -6,6 +6,7 @@
 
 package buildcraft.core.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.core.BCCoreBlockEntities;
@@ -48,7 +49,7 @@ public class TileEngineRedstone_BC8 extends TileEngineBase_BC8 {
             }
 
             if (this.isPumping && !this.givenAdvancement && this.getOwner() != null) {
-               this.givenAdvancement = AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT);
+               this.givenAdvancement = AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, ADVANCEMENT);
             }
          }
       } else {

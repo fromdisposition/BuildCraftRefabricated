@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.recipes.AssemblyRecipe;
 import buildcraft.lib.misc.AdvancementUtil;
@@ -26,13 +27,14 @@ import java.util.Map.Entry;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import buildcraft.lib.nbt.BcNbt;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TileAssemblyTable extends TileLaserTableBase {
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftsilicon:precision_crafting");
@@ -209,7 +211,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
 
       if (this.getTarget() > 0L) {
          if (this.getOwner() != null) {
-            AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.getLevel(), ADVANCEMENT);
+            AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.getLevel(), ADVANCEMENT);
          }
 
          if (this.power >= this.getTarget()) {
@@ -229,8 +231,8 @@ public class TileAssemblyTable extends TileLaserTableBase {
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putLong("synced_target", this.syncedTarget);
       CompoundTag wrapper = new CompoundTag();
       ListTag recipesStatesTag = new ListTag();
@@ -252,40 +254,48 @@ public class TileAssemblyTable extends TileLaserTableBase {
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.syncedTarget = input.getLongOr("synced_target", 0L);
       this.lastSyncedTarget = this.syncedTarget;
       this.recipesStates.clear();
-      input.read("recipes_states", CompoundTag.CODEC).ifPresent(wrapper -> wrapper.getList("entries").ifPresent(recipesStatesTag -> {
+      input.read("recipes_states", CompoundTag.CODEC).ifPresent(wrapper -> {
+         ListTag recipesStatesTag = BcNbt.getList(wrapper, "entries");
          for (int i = 0; i < recipesStatesTag.size(); i++) {
-            recipesStatesTag.getCompound(i).ifPresent(entryTag -> entryTag.getString("recipe").ifPresent(name -> {
-               AssemblyRecipe recipe = AssemblyRecipeRegistry.REGISTRY.get(name);
-               if (recipe != null) {
-                  int stateOrdinal = entryTag.getIntOr("state", 0);
-                  EnumAssemblyRecipeState[] values = EnumAssemblyRecipeState.values();
-                  if (stateOrdinal >= 0 && stateOrdinal < values.length) {
-                     ItemStack outputStack = entryTag.getCompound("output").map(outputTag -> {
-                        ItemStack stack = NBTUtilBC.itemStackFromNBT(outputTag);
-                        outputTag.getCompound("customData").ifPresent(cd -> NBTUtilBC.setItemData(stack, cd));
-                        return stack;
-                     }).orElse(ItemStack.EMPTY);
-                     if (outputStack.isEmpty()) {
-                        Set<ItemStack> outputs = recipe.getOutputs(this.inv.stacks);
-                        if (!outputs.isEmpty()) {
-                           outputStack = outputs.iterator().next();
-                        }
-                     }
-
-                     if (!outputStack.isEmpty()) {
-                        TileAssemblyTable.AssemblyInstruction instruction = new TileAssemblyTable.AssemblyInstruction(recipe, outputStack);
-                        this.recipesStates.put(instruction, values[stateOrdinal]);
+            CompoundTag entryTag = BcNbt.getCompound(recipesStatesTag, i);
+            String name = BcNbt.getString(entryTag, "recipe", "");
+            if (name.isEmpty()) {
+               continue;
+            }
+            AssemblyRecipe recipe = AssemblyRecipeRegistry.REGISTRY.get(name);
+            if (recipe != null) {
+               int stateOrdinal = BcNbt.getInt(entryTag, "state", 0);
+               EnumAssemblyRecipeState[] values = EnumAssemblyRecipeState.values();
+               if (stateOrdinal >= 0 && stateOrdinal < values.length) {
+                  CompoundTag outputTag = BcNbt.getCompound(entryTag, "output");
+                  ItemStack outputStack = ItemStack.EMPTY;
+                  if (!outputTag.isEmpty()) {
+                     outputStack = NBTUtilBC.itemStackFromNBT(outputTag);
+                     CompoundTag cd = BcNbt.getCompound(outputTag, "customData");
+                     if (!cd.isEmpty()) {
+                        NBTUtilBC.setItemData(outputStack, cd);
                      }
                   }
+                  if (outputStack.isEmpty()) {
+                     Set<ItemStack> outputs = recipe.getOutputs(this.inv.stacks);
+                     if (!outputs.isEmpty()) {
+                        outputStack = outputs.iterator().next();
+                     }
+                  }
+
+                  if (!outputStack.isEmpty()) {
+                     TileAssemblyTable.AssemblyInstruction instruction = new TileAssemblyTable.AssemblyInstruction(recipe, outputStack);
+                     this.recipesStates.put(instruction, values[stateOrdinal]);
+                  }
                }
-            }));
+            }
          }
-      }));
+      });
    }
 
    public static class AssemblyInstruction implements Comparable<TileAssemblyTable.AssemblyInstruction> {

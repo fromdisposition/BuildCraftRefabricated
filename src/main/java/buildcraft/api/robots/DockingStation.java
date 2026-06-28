@@ -6,6 +6,7 @@
 
 package buildcraft.api.robots;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.statements.StatementSlot;
@@ -122,13 +123,13 @@ public abstract class DockingStation {
 
    public void readFromNBT(CompoundTag nbt) {
       if (nbt.contains("index")) {
-         CompoundTag indexNBT = nbt.getCompound("index").orElse(new CompoundTag());
-         int x = indexNBT.getInt("i").orElse(0);
-         int y = indexNBT.getInt("j").orElse(0);
-         int z = indexNBT.getInt("k").orElse(0);
+         CompoundTag indexNBT = BcNbt.getCompound(nbt, "index");
+         int x = BcNbt.getInt(indexNBT, "i", 0);
+         int y = BcNbt.getInt(indexNBT, "j", 0);
+         int z = BcNbt.getInt(indexNBT, "k", 0);
          this.pos = new BlockPos(x, y, z);
       } else {
-         int[] array = nbt.getIntArray("pos").orElse(new int[0]);
+         int[] array = BcNbt.getIntArray(nbt, "pos");
          if (array.length == 3) {
             this.pos = new BlockPos(array[0], array[1], array[2]);
          } else if (array.length != 0) {
@@ -138,9 +139,9 @@ public abstract class DockingStation {
          }
       }
 
-      this.side = Direction.values()[nbt.getByte("side").orElse((byte)0)];
-      this.linkIsMain = nbt.getBoolean("isMain").orElse(false);
-      this.robotTakingId = nbt.getLong("robotId").orElse(Long.MAX_VALUE);
+      this.side = Direction.values()[BcNbt.getByte(nbt, "side", (byte)0)];
+      this.linkIsMain = BcNbt.getBoolean(nbt, "isMain", false);
+      this.robotTakingId = BcNbt.getLong(nbt, "robotId", Long.MAX_VALUE);
    }
 
    public boolean isTaken() {

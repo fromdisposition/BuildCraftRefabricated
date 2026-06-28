@@ -18,7 +18,6 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
-import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -42,7 +41,7 @@ public class HeatExchangerTransferHandler implements IRecipeTransferHandler<Cont
       return Optional.of(BCFactoryMenuTypes.HEAT_EXCHANGE);
    }
 
-   public IRecipeType<HeatExchangerRecipePair> getRecipeType() {
+   public mezz.jei.api.recipe.types.IRecipeType<HeatExchangerRecipePair> getRecipeType() {
       return BCJeiRecipeTypes.HEAT_EXCHANGER;
    }
 

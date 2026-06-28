@@ -10,16 +10,24 @@ import buildcraft.core.BCCore;
 import buildcraft.lib.client.fluid.BcFluidRenderLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fluid.stack.SimpleFluidContent;
+//? if >= 1.21.10 {
 import com.mojang.serialization.MapCodec;
 import net.minecraft.client.color.item.ItemTintSource;
+//?}
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
+//? if >= 1.21.10 {
 public final class FluidShardTintSource implements ItemTintSource {
+//?} else {
+/*public final class FluidShardTintSource {
+*///?}
    public static final FluidShardTintSource INSTANCE = new FluidShardTintSource();
+   //? if >= 1.21.10 {
    public static final MapCodec<FluidShardTintSource> MAP_CODEC = MapCodec.unit(INSTANCE);
+   //?}
 
    private FluidShardTintSource() {
    }
@@ -34,7 +42,9 @@ public final class FluidShardTintSource implements ItemTintSource {
       }
    }
 
+   //? if >= 1.21.10 {
    public MapCodec<? extends ItemTintSource> type() {
       return MAP_CODEC;
    }
+   //?}
 }

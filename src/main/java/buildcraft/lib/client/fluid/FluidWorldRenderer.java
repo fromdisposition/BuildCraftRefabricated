@@ -9,17 +9,21 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 //? if >= 26.2 {
-/*import net.minecraft.client.renderer.Lightmap;
-*///?} else if >= 26.1 {
 import net.minecraft.client.renderer.Lightmap;
-//?} else {
-/*import net.minecraft.client.renderer.LightTexture;
+//?} else if >= 26.1 {
+/*import net.minecraft.client.renderer.Lightmap;
+*///?} else {
+/*import net.minecraft.util.LightCoordsUtil;
 *///?}
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
+//?}
 import buildcraft.lib.client.render.BCLibRenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+//? if >= 1.21.10 {
 import net.minecraft.util.ARGB;
+//?}
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FluidState;
@@ -60,8 +64,8 @@ public final class FluidWorldRenderer {
       return player.level() != null && appearanceAtEye(player, player.level()) != null;
    }
 
-   //? if < 26.2 {
-   public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
+   //? if < 26.2 && >= 1.21.10 {
+   /*public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
       if (minecraft.player == null || minecraft.player.level() == null) {
          return;
       }
@@ -100,8 +104,8 @@ public final class FluidWorldRenderer {
       //? if >= 26.1 {
       float brightness = Lightmap.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
       //?} else {
-      /*float brightness = LightTexture.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
-      *///?}
+      /^float brightness = LightCoordsUtil.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
+      ^///?}
       int color = ARGB.colorFromFloat(overlayAlpha, brightness, brightness, brightness);
       float yawOffset = -minecraft.player.getYRot() / 64.0F;
       float pitchOffset = minecraft.player.getXRot() / 64.0F;
@@ -113,10 +117,10 @@ public final class FluidWorldRenderer {
          vc.addVertex(matrix4f, -1.0F, 1.0F, -0.5F).setUv(4.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
       });
    }
-   //?}
+   *///?}
 
    //? if >= 26.2 {
-   /*public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
+   public static void renderSubmergedOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
       if (minecraft.player == null || minecraft.player.level() == null) {
          return;
       }
@@ -164,7 +168,7 @@ public final class FluidWorldRenderer {
          vc.addVertex(matrix4f, -1.0F, 1.0F, -0.5F).setUv(4.0F + yawOffset, 0.0F + pitchOffset).setColor(color);
       });
    }
-   *///?}
+   //?}
 
    private static @Nullable FluidState submergedBcFluidStateAt(double x, double sampleY, double z, Level level) {
       if (!BcFluidUtil.isSubmergedInBcFluid(level, x, sampleY, z)) {

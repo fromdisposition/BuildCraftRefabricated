@@ -22,9 +22,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 import net.minecraft.world.phys.Vec3;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class EntityPackage extends Entity {
    private static final EntityDataAccessor<ItemStack> DATA_ITEM = SynchedEntityData.defineId(EntityPackage.class, EntityDataSerializers.ITEM_STACK);
@@ -90,13 +94,33 @@ public class EntityPackage extends Entity {
       this.discard();
    }
 
+   //? if >= 1.21.10 {
    @Override
    protected void readAdditionalSaveData(ValueInput input) {
-      input.read("package", ItemStack.CODEC).ifPresent(this::setPackage);
+      this.readData(new BcValueIn(input));
    }
 
    @Override
    protected void addAdditionalSaveData(ValueOutput output) {
+      this.writeData(new BcValueOut(output));
+   }
+   //?} else {
+   /*@Override
+   public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+      this.readData(new BcValueIn(tag, this.registryAccess()));
+   }
+
+   @Override
+   public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+      this.writeData(new BcValueOut(tag, this.registryAccess()));
+   }
+   *///?}
+
+   protected void readData(BcValueIn input) {
+      input.read("package", ItemStack.CODEC).ifPresent(this::setPackage);
+   }
+
+   protected void writeData(BcValueOut output) {
       ItemStack pkg = this.getPackage();
       if (!pkg.isEmpty()) {
          output.store("package", ItemStack.CODEC, pkg);
@@ -108,8 +132,15 @@ public class EntityPackage extends Entity {
       return true;
    }
 
+   //? if >= 1.21.10 {
    @Override
    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
       return false;
    }
+   //?} else {
+   /*@Override
+   public boolean hurt(DamageSource source, float amount) {
+      return false;
+   }
+   *///?}
 }

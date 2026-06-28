@@ -38,6 +38,18 @@ public class BlockPump extends BaseEntityBlock {
       return new TilePump(pos, state);
    }
 
+   // 1.21.1: vanilla never calls the BE hook preRemoveSideEffects (1.21.2+); drop the fluid shard from the
+   // classic Block.onRemove (BE still present before super removes it). 1.21.10+ uses the BE hook directly.
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TilePump tile) {
+         tile.preRemoveSideEffects(pos, state);
+      }
+      super.onRemove(state, level, pos, newState, movedByPiston);
+   }
+   *///?}
+
    @Nullable
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide()

@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IFlowPowerLike;
@@ -41,7 +42,7 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
 
    public PipeBehaviourLimiter(IPipe pipe, CompoundTag nbt) {
       super(pipe, nbt);
-      this.limitShift = MathUtil.clamp(nbt.getIntOr("limitShift", 0), 0, 6);
+      this.limitShift = MathUtil.clamp(BcNbt.getInt(nbt, "limitShift", 0), 0, 6);
    }
 
    @Override
@@ -54,7 +55,7 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
    @Override
    public void readFromNbt(CompoundTag nbt) {
       super.readFromNbt(nbt);
-      this.limitShift = MathUtil.clamp(nbt.getIntOr("limitShift", 0), 0, 6);
+      this.limitShift = MathUtil.clamp(BcNbt.getInt(nbt, "limitShift", 0), 0, 6);
    }
 
    @Override

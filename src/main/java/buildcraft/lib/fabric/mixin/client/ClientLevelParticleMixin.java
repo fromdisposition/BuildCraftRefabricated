@@ -27,6 +27,10 @@ public abstract class ClientLevelParticleMixin {
       }
    }
 
+   // ClientLevel.addBreakingBlockEffect (per-face hit particles) only exists from 1.21.10 onward; 1.21.1 has
+   // no equivalent hook on ClientLevel, so this injector is omitted there (a missing-target @Inject would
+   // fail the whole mixin under defaultRequire=1). addDestroyBlockEffect above exists on every version.
+   //? if >= 1.21.10 {
    @Inject(method = "addBreakingBlockEffect", at = @At("HEAD"), cancellable = true)
    private void buildcraft$customHitParticles(BlockPos pos, Direction direction, CallbackInfo ci) {
       ClientLevel level = (ClientLevel)(Object)this;
@@ -40,4 +44,5 @@ public abstract class ClientLevelParticleMixin {
          }
       }
    }
+   //?}
 }

@@ -6,10 +6,16 @@
 
 package buildcraft.factory.client.render;
 
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+//?}
 import net.minecraft.core.Direction;
 
+//? if >= 1.21.10 {
 public class MiningWellRenderState extends BlockEntityRenderState {
+//?} else {
+/*public class MiningWellRenderState {
+*///?}
    public Direction facing;
    public int powerColour;
    public int statusColour;

@@ -4,8 +4,8 @@ import com.mojang.serialization.DynamicOps;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup.Provider;
@@ -45,21 +45,46 @@ public final class BcRegistryUtil {
 
    @Nullable
    public static Fluid getFluid(Identifier id) {
+      //? if >= 1.21.10 {
       return BuiltInRegistries.FLUID.get(id).map(Holder::value).orElse(null);
+      //?} else {
+      /*return BuiltInRegistries.FLUID.get(id);
+      *///?}
    }
 
    @Nullable
    public static Item getItem(Identifier id) {
+      //? if >= 1.21.10 {
       return BuiltInRegistries.ITEM.get(id).map(Holder::value).orElse(null);
+      //?} else {
+      /*return BuiltInRegistries.ITEM.get(id);
+      *///?}
+   }
+
+   /** A HolderGetter view of the block registry (Registry is-a HolderGetter on 1.21.5+; via asLookup on 1.21.1). */
+   public static net.minecraft.core.HolderGetter<Block> blockLookup() {
+      //? if >= 1.21.10 {
+      return BuiltInRegistries.BLOCK;
+      //?} else {
+      /*return BuiltInRegistries.BLOCK.asLookup();
+      *///?}
    }
 
    @Nullable
    public static Block getBlock(Identifier id) {
+      //? if >= 1.21.10 {
       return BuiltInRegistries.BLOCK.get(id).map(Holder::value).orElse(null);
+      //?} else {
+      /*return BuiltInRegistries.BLOCK.get(id);
+      *///?}
    }
 
    public static Fluid bucketFluid(BucketItem bucket) {
+      //? if >= 1.21.10 {
       return bucket.getContent();
+      //?} else {
+      /*return ((buildcraft.lib.fabric.mixin.BucketItemAccessor) (Object) bucket).buildcraft$getContent();
+      *///?}
    }
 
    public static Item fluidBucketItem(Fluid fluid) {
@@ -79,7 +104,7 @@ public final class BcRegistryUtil {
          }
 
          for (Item item : BuiltInRegistries.ITEM) {
-            if (item instanceof BucketItem bucket && bucket.getContent().isSame(fluid)) {
+            if (item instanceof BucketItem bucket && bucketFluid(bucket).isSame(fluid)) {
                FLUID_BUCKET_CACHE.put(fluid, item);
                return item;
             }
@@ -119,21 +144,17 @@ public final class BcRegistryUtil {
    }
 
    public static DynamicOps<Tag> registryAwareOps() {
-      Provider client = clientLevelRegistryAccess();
+      // Client-level registry access lives in a client-only helper so this common class never names a
+      // client type (the verifier would otherwise resolve it and crash a dedicated server). Guard ensures
+      // the helper is never loaded outside the client environment.
+      Provider client = null;
+      if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+         client = buildcraft.lib.fabric.client.BcClientRegistryAccess.levelRegistryAccess();
+      }
       return (DynamicOps<Tag>)(client != null ? RegistryOps.create(NbtOps.INSTANCE, client) : NbtOps.INSTANCE);
    }
 
    public static DynamicOps<Tag> registryAwareOps(Level level) {
       return RegistryOps.create(NbtOps.INSTANCE, level.registryAccess());
-   }
-
-   @Nullable
-   private static Provider clientLevelRegistryAccess() {
-      try {
-         ClientLevel level = Minecraft.getInstance().level;
-         return level == null ? null : level.registryAccess();
-      } catch (Throwable ignored) {
-         return null;
-      }
    }
 }

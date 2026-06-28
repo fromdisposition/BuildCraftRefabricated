@@ -214,8 +214,17 @@ public class ZonePlannerMapElement implements IInteractionElement {
          if (cache != null) {
             this.updateHover(cache);
             this.ensureOverlay(menu);
+            //? if >= 1.21.10 {
             ZoneMapPipRenderState state = this.buildState(g, cache, true);
             GuiGraphicsCompat.submitPictureInPictureRenderState(g.raw, state);
+            //?} else {
+            /*// 1.21.1 has no PictureInPictureRenderer; draw the perspective map straight into its GUI rect.
+            // Flush the pending 2D batch first so the direct GL render is correctly ordered behind the
+            // foreground (slots/text), which GuiGraphicsExtractor draws afterwards.
+            ZoneMapPipRenderState state = this.buildState(g, cache, true);
+            g.raw.flush();
+            buildcraft.robotics.client.render.pip.ZoneMapPipRenderer.render(state);
+            *///?}
          }
       }
    }

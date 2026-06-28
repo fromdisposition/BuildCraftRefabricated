@@ -86,6 +86,6 @@ public class ItemRedstoneBoard extends Item {
       }
 
       int index = BOARD_MODEL_INDEX.getOrDefault(boardType, 0);
-      stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of((float)index), List.of(), List.of(), List.of()));
+      stack.set(DataComponents.CUSTOM_MODEL_DATA, buildcraft.lib.compat.BcModelData.index((float)index));
    }
 }

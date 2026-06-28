@@ -26,9 +26,17 @@ public class FluidStackRef {
    }
 
    public FluidStack get(Tag nbt) {
+      //? if >= 1.21.10 {
       Identifier fluidId = Identifier.parse(((StringTag)this.fluid.get(nbt).orElseThrow(NullPointerException::new)).value());
+      //?} else {
+      /*Identifier fluidId = Identifier.parse(((StringTag)this.fluid.get(nbt).orElseThrow(NullPointerException::new)).getAsString());
+      *///?}
       Fluid fluidObj = BcRegistryUtil.getFluid(fluidId);
+      //? if >= 1.21.10 {
       int fluidAmount = Optional.ofNullable(this.amount).flatMap(ref -> ref.get(nbt)).<Integer>map(IntTag::value).orElse(1000);
+      //?} else {
+      /*int fluidAmount = Optional.ofNullable(this.amount).flatMap(ref -> ref.get(nbt)).<Integer>map(IntTag::getAsInt).orElse(1000);
+      *///?}
       return new FluidStack(fluidObj, fluidAmount);
    }
 }

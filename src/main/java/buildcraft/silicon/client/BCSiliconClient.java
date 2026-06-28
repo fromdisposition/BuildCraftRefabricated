@@ -28,8 +28,10 @@ import buildcraft.silicon.plug.PluggableGate;
 import buildcraft.silicon.plug.PluggablePulsar;
 import buildcraft.transport.client.model.PipeModelCacheAll;
 import java.util.Map;
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.item.ItemModel;
+//?}
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
@@ -38,7 +40,9 @@ import org.slf4j.LoggerFactory;
 
 public class BCSiliconClient {
    private static final Logger LOGGER = LoggerFactory.getLogger("BuildCraft");
+   //? if >= 1.21.10 {
    private static Map<BlockState, BlockStateModel> cachedBlockStateModels;
+   //?}
 
    public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
       if (PipeApiClient.registry != null) {
@@ -52,6 +56,7 @@ public class BCSiliconClient {
          LOGGER.warn("[silicon.client] PipeApiClient.registry is null at ModifyBakingResult! Facade in-world rendering will not work.");
       }
 
+      //? if >= 1.21.10 {
       Map<Identifier, ItemModel> itemModels = event.getBakingResult().itemStackModels();
       Identifier facadeId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_FACADE);
       ItemModel vanillaModel = itemModels.get(facadeId);
@@ -79,13 +84,31 @@ public class BCSiliconClient {
       PipeModelCacheAll.clearAll();
       PlugBakerSimpleItems.onModelBake();
       cachedBlockStateModels = event.getBakingResult().blockStateModels();
+      //?} else {
+      /*java.util.Map<net.minecraft.client.resources.model.ModelIdentifier, net.minecraft.client.resources.model.BakedModel> models = event.getModels();
+      Identifier facadeId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_FACADE);
+      models.put(net.minecraft.client.resources.model.ModelIdentifier.inventory(facadeId), new FacadeItemModel());
+      Identifier gateId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_GATE);
+      models.put(net.minecraft.client.resources.model.ModelIdentifier.inventory(gateId), new GateItemModel());
+      Identifier lensId = BuiltInRegistries.ITEM.getKey(BCSiliconItems.PLUG_LENS);
+      models.put(net.minecraft.client.resources.model.ModelIdentifier.inventory(lensId), new LensItemModel());
+      FacadeItemModel.onModelBake();
+      GateItemModel.onModelBake();
+      LensItemModel.onModelBake();
+      PlugGateBaker.onModelBake();
+      PlugGateRenderer.onModelBake();
+      PipeModelCacheAll.clearAll();
+      PlugBakerSimpleItems.onModelBake();
+      *///?}
    }
 
    public static void runDeferredDedup() {
+      //? if >= 1.21.10 {
       if (cachedBlockStateModels != null) {
          FacadeDeduplicator.deduplicateVisuallyIdentical(cachedBlockStateModels);
          cachedBlockStateModels = null;
       }
+      //?}
    }
 
    public static final class GameBus {

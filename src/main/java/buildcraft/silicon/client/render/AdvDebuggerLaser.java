@@ -14,8 +14,8 @@ import buildcraft.silicon.tile.TileLaser;
 import com.mojang.blaze3d.vertex.PoseStack;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.renderer.MultiBufferSource;
-//?}
+/*import net.minecraft.client.renderer.MultiBufferSource;
+*///?}
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -33,7 +33,7 @@ public final class AdvDebuggerLaser {
 
    //? if >= 26.2 {
    //?} else {
-   public static void render(TileLaser tile, PoseStack poseStack, MultiBufferSource bufferSource, Vec3 cameraPos) {
+   /*public static void render(TileLaser tile, PoseStack poseStack, MultiBufferSource bufferSource, Vec3 cameraPos) {
       Level level = tile.getLevel();
       if (level != null) {
          BlockState state = level.getBlockState(tile.getBlockPos());
@@ -55,5 +55,5 @@ public final class AdvDebuggerLaser {
          }
       }
    }
-   //?}
+   *///?}
 }

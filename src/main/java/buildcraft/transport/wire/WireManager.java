@@ -6,6 +6,7 @@
 
 package buildcraft.transport.wire;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.transport.EnumWirePart;
 import buildcraft.api.transport.IWireManager;
 import buildcraft.api.transport.pipe.IPipe;
@@ -250,7 +251,7 @@ public class WireManager implements IWireManager {
 
    public void readFromNbt(CompoundTag nbt) {
       this.parts.clear();
-      int[] wiresArray = nbt.getIntArray("parts").orElse(new int[0]);
+      int[] wiresArray = BcNbt.getIntArray(nbt, "parts");
 
       for (int i = 0; i + 1 < wiresArray.length; i += 2) {
          int partOrdinal = wiresArray[i];

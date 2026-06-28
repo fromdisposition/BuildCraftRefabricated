@@ -19,6 +19,13 @@ public final class RegistryKeyUtil {
       *///?}
    }
 
+   //? if < 1.21.10 {
+   /*// On 1.21.1 holder ids (e.g. RecipeHolder.id()) are already an Identifier, not a ResourceKey.
+   public static Identifier id(Identifier id) {
+      return id;
+   }
+   *///?}
+
    private RegistryKeyUtil() {
    }
 }

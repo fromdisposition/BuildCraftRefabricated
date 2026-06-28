@@ -6,6 +6,7 @@
 
 package buildcraft.builders.client.render.pip;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.transport.IWireManager;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
@@ -133,7 +134,7 @@ public final class PipePreviewModel {
          return null;
       }
 
-      CompoundTag pipeNbt = tileNbt.getCompoundOrEmpty("pipe");
+      CompoundTag pipeNbt = BcNbt.getCompound(tileNbt, "pipe");
       if (pipeNbt.isEmpty()) {
          return null;
       }

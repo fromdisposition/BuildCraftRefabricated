@@ -6,6 +6,7 @@
 
 package buildcraft.lib.tile;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.lib.fabric.transfer.ItemStorageResolve;
 import buildcraft.lib.misc.INBTSerializable;
@@ -146,7 +147,7 @@ public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
    public void deserializeNBT(CompoundTag nbt) {
       for (Entry<String, INBTSerializable<CompoundTag>> entry : this.handlers.entrySet()) {
          String key = entry.getKey();
-         entry.getValue().deserializeNBT((CompoundTag)nbt.getCompound(key).orElseGet(CompoundTag::new));
+         entry.getValue().deserializeNBT((CompoundTag)BcNbt.getCompound(nbt, key));
       }
    }
 

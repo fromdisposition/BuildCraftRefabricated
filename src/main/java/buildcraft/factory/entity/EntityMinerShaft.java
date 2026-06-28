@@ -15,8 +15,10 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -38,6 +40,7 @@ public class EntityMinerShaft extends Entity {
       builder.define(SIZE_Z, 0.0F);
    }
 
+   //? if >= 1.21.10 {
    @Override
    protected void readAdditionalSaveData(ValueInput input) {
    }
@@ -45,12 +48,22 @@ public class EntityMinerShaft extends Entity {
    @Override
    protected void addAdditionalSaveData(ValueOutput output) {
    }
+   //?} else {
+   /*@Override
+   public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+   }
+
+   @Override
+   public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+   }
+   *///?}
 
    @Override
    public boolean shouldBeSaved() {
       return false;
    }
 
+   //? if >= 1.21.10 {
    @Override
    protected AABB makeBoundingBox(Vec3 position) {
       float halfX = this.entityData.get(SIZE_X) / 2.0F;
@@ -60,11 +73,30 @@ public class EntityMinerShaft extends Entity {
          ? super.makeBoundingBox(position)
          : new AABB(position.x - halfX, position.y - halfY, position.z - halfZ, position.x + halfX, position.y + halfY, position.z + halfZ);
    }
+   //?} else {
+   /*@Override
+   protected AABB makeBoundingBox() {
+      Vec3 position = this.position();
+      float halfX = this.entityData.get(SIZE_X) / 2.0F;
+      float halfY = this.entityData.get(SIZE_Y) / 2.0F;
+      float halfZ = this.entityData.get(SIZE_Z) / 2.0F;
+      return halfX <= 0.0F
+         ? super.makeBoundingBox()
+         : new AABB(position.x - halfX, position.y - halfY, position.z - halfZ, position.x + halfX, position.y + halfY, position.z + halfZ);
+   }
+   *///?}
 
+   //? if >= 1.21.10 {
    @Override
    public boolean canBeCollidedWith(Entity other) {
       return true;
    }
+   //?} else {
+   /*@Override
+   public boolean canBeCollidedWith() {
+      return true;
+   }
+   *///?}
 
    @Override
    public boolean isPickable() {
@@ -76,10 +108,17 @@ public class EntityMinerShaft extends Entity {
       return false;
    }
 
+   //? if >= 1.21.10 {
    @Override
    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
       return false;
    }
+   //?} else {
+   /*@Override
+   public boolean hurt(DamageSource source, float amount) {
+      return false;
+   }
+   *///?}
 
    public void setShaftBox(AABB box) {
       this.entityData.set(SIZE_X, (float)(box.maxX - box.minX));

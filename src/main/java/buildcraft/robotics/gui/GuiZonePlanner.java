@@ -14,7 +14,9 @@ import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.robotics.container.ContainerZonePlanner;
 import buildcraft.robotics.tile.TileZonePlanner;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.KeyEvent;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -62,9 +64,15 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
       return progress < 0 ? 0.0 : Math.min(1.0, progress / 200.0);
    }
 
+   //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       return this.mainGui.onKeyTyped('\u0000', event.key()) ? true : super.keyPressed(event);
    }
+   //?} else {
+   /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+      return this.mainGui.onKeyTyped('\u0000', keyCode) ? true : super.keyPressed(keyCode, scanCode, modifiers);
+   }
+   *///?}
 
    @Override
    protected void initGuiElements() {

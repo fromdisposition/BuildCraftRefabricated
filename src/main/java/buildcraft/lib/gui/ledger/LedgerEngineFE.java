@@ -14,7 +14,6 @@ import buildcraft.lib.misc.LocaleUtil;
 import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 
 public class LedgerEngineFE extends Ledger_Neptune {
@@ -66,7 +65,7 @@ public class LedgerEngineFE extends Ledger_Neptune {
          default -> this.engineOnSupplier.get() ? ICON_ACTIVE : ICON_INACTIVE;
       }).getSprite();
       if (sprite != null) {
-         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, (int)x, (int)y, 16, 16);
+         graphics.blitSprite(sprite, (int)x, (int)y, 16, 16);
       }
    }
 }

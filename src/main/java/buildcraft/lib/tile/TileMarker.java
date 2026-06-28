@@ -7,6 +7,8 @@
 package buildcraft.lib.tile;
 
 import buildcraft.api.tiles.IDebuggable;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import buildcraft.lib.marker.MarkerCache;
 import buildcraft.lib.marker.MarkerConnection;
 import buildcraft.lib.marker.MarkerSubCache;
@@ -19,6 +21,10 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+//? if >= 1.21.10 {
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+//?}
 import org.jetbrains.annotations.Nullable;
 
 public abstract class TileMarker<C extends MarkerConnection<C>> extends BlockEntity implements IDebuggable {
@@ -26,6 +32,35 @@ public abstract class TileMarker<C extends MarkerConnection<C>> extends BlockEnt
 
    public TileMarker(BlockEntityType<?> type, BlockPos pos, BlockState state) {
       super(type, pos, state);
+   }
+
+   // Version-neutral serialization hooks; subclasses override writeData/readData (NOT saveAdditional).
+   //? if >= 1.21.10 {
+   protected void saveAdditional(ValueOutput output) {
+      super.saveAdditional(output);
+      this.writeData(new BcValueOut(output));
+   }
+
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+
+   protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
+   }
+
+   protected void readData(BcValueIn input) {
    }
 
    public abstract MarkerCache<? extends MarkerSubCache<C>> getCache();

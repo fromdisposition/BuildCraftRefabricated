@@ -12,8 +12,8 @@ import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import net.minecraft.client.Minecraft;
 //? if >= 26.2 {
 //?} else {
-import net.minecraft.client.renderer.LevelRenderer;
-//?}
+/*import net.minecraft.client.renderer.LevelRenderer;
+*///?}
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
@@ -210,10 +210,10 @@ final class MinerShaftBer {
       }
 
       //? if >= 26.2 {
-      /*return LightCoordsUtil.getLightCoords(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));
-      *///?} else if >= 26.1 {
-      return LevelRenderer.getLightCoords(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));
-      //?} else {
+      return LightCoordsUtil.getLightCoords(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));
+      //?} else if >= 26.1 {
+      /*return LevelRenderer.getLightCoords(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));
+      *///?} else {
       /*return LevelRenderer.getLightColor(level, BlockPos.containing(origin.getX() + C, sampleY, origin.getZ() + C));
       *///?}
    }

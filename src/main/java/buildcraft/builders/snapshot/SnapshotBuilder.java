@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.nbt.BcNbt;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.lib.misc.BlockUtil;
@@ -635,7 +636,11 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    public void deserializeNBT(CompoundTag nbt) {
       if (this.getBuildingInfo() != null) {
          this.updateSnapshot();
+         //? if >= 1.21.10 {
          byte[] loadedCheckResults = nbt.getByteArray("checkResults").orElse(new byte[0]);
+         //?} else {
+         /*byte[] loadedCheckResults = nbt.getByteArray("checkResults");
+         *///?}
          if (loadedCheckResults.length == this.checkResults.length) {
             System.arraycopy(loadedCheckResults, 0, this.checkResults, 0, this.checkResults.length);
          }
@@ -644,7 +649,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          NBTUtilBC.readCompoundList(nbt.get("breakTasks")).map(x$0 -> new BreakTask(x$0)).forEach(this.breakTasks::add);
          this.placeTasks.clear();
          NBTUtilBC.readCompoundList(nbt.get("placeTasks")).map(x$0 -> new PlaceTask(x$0)).forEach(this.placeTasks::add);
-         this.currentCheckIndex = nbt.getIntOr("currentCheckIndex", 0);
+         this.currentCheckIndex = BcNbt.getInt(nbt, "currentCheckIndex", 0);
       }
    }
 
@@ -671,8 +676,8 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       }
 
       public BreakTask(CompoundTag nbt) {
-         this.pos = new BlockPos((int)nbt.getLongOr("pos_x", 0L), (int)nbt.getLongOr("pos_y", 0L), (int)nbt.getLongOr("pos_z", 0L));
-         this.power = nbt.getLongOr("power", 0L);
+         this.pos = new BlockPos((int)BcNbt.getLong(nbt, "pos_x", 0L), (int)BcNbt.getLong(nbt, "pos_y", 0L), (int)BcNbt.getLong(nbt, "pos_z", 0L));
+         this.power = BcNbt.getLong(nbt, "power", 0L);
       }
 
       public boolean isImpossible() {
@@ -731,7 +736,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       }
 
       public PlaceTask(CompoundTag nbt) {
-         this.pos = new BlockPos((int)nbt.getLongOr("pos_x", 0L), (int)nbt.getLongOr("pos_y", 0L), (int)nbt.getLongOr("pos_z", 0L));
+         this.pos = new BlockPos((int)BcNbt.getLong(nbt, "pos_x", 0L), (int)BcNbt.getLong(nbt, "pos_y", 0L), (int)BcNbt.getLong(nbt, "pos_z", 0L));
          this.items = ImmutableList.copyOf(
             NBTUtilBC.readCompoundList(nbt.get("items"))
                .map(
@@ -740,7 +745,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
                .filter(stack -> !stack.isEmpty())
                .collect(Collectors.toList())
          );
-         this.power = nbt.getLongOr("power", 0L);
+         this.power = BcNbt.getLong(nbt, "power", 0L);
       }
 
       public long getTarget() {

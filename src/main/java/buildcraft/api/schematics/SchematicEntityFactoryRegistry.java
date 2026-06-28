@@ -22,7 +22,7 @@ public class SchematicEntityFactoryRegistry {
    private static final Set<SchematicEntityFactory<?>> FACTORIES = new TreeSet<>();
 
    public static <S extends ISchematicEntity> void registerFactory(String name, int priority, Predicate<SchematicEntityContext> predicate, Supplier<S> supplier) {
-      FACTORIES.add(new SchematicEntityFactory<>(BuildCraftAPI.nameToResourceLocation(name), priority, predicate, supplier));
+      FACTORIES.add(new SchematicEntityFactory<>(BuildCraftAPI.nameToIdentifier(name), priority, predicate, supplier));
    }
 
    public static <S extends ISchematicEntity> void registerFactory(String name, int priority, List<Object> entities, Supplier<S> supplier) {
@@ -44,7 +44,7 @@ public class SchematicEntityFactoryRegistry {
 
    @Nullable
    public static SchematicEntityFactory<?> getFactoryByName(Object name) {
-      Identifier id = name instanceof Identifier i ? i : (name instanceof String s ? BuildCraftAPI.nameToResourceLocation(s) : null);
+      Identifier id = name instanceof Identifier i ? i : (name instanceof String s ? BuildCraftAPI.nameToIdentifier(s) : null);
       return id == null ? null : FACTORIES.stream().filter(schematicEntityFactory -> id.equals(schematicEntityFactory.name)).findFirst().orElse(null);
    }
 }

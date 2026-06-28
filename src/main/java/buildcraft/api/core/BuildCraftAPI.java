@@ -43,7 +43,7 @@ public final class BuildCraftAPI {
       return worldProperties.get("soft").get(world, pos);
    }
 
-   public static Identifier nameToResourceLocation(String name) {
+   public static Identifier nameToIdentifier(String name) {
       if (name.indexOf(58) > 0) {
          return Identifier.parse(name);
       } else {

@@ -20,8 +20,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TilePackager extends BcBlockEntity {
    public static final int PATTERN_SLOTS = 9;
@@ -166,15 +166,15 @@ public class TilePackager extends BcBlockEntity {
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putInt("patternsSet", this.patternsSet);
       output.store("items", net.minecraft.nbt.CompoundTag.CODEC, this.itemManager.serializeNBT());
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.patternsSet = input.getIntOr("patternsSet", 0);
       this.lastSyncedPatterns = this.patternsSet;
       input.read("items", net.minecraft.nbt.CompoundTag.CODEC).ifPresent(tag -> this.itemManager.deserializeNBT(tag));

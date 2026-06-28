@@ -26,6 +26,7 @@ extensions.configure<dev.kikugie.loomx.LoomCompatSettingsExtension>("loomx") {
 
 stonecutter {
     create(rootProject) {
+        version("1.21.1", "1.21.1")
         version("1.21.10", "1.21.10")
         version("1.21.11", "1.21.11")
         version("26.1", "26.1.2")

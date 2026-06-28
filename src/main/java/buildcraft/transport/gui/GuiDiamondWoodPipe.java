@@ -18,7 +18,9 @@ import buildcraft.transport.container.ContainerDiamondWoodPipe;
 import buildcraft.transport.pipe.behaviour.PipeBehaviourWoodDiamond;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.InputWithModifiers;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -108,9 +110,15 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
          this.setTooltip(Tooltip.create(Component.translatable(tooltipKey)));
       }
 
+      //? if >= 1.21.10 {
       public void onPress(InputWithModifiers modifiers) {
          GuiDiamondWoodPipe.this.setFilterMode(this.mode);
       }
+      //?} else {
+      /*public void onPress() {
+         GuiDiamondWoodPipe.this.setFilterMode(this.mode);
+      }
+      *///?}
 
       @Override
       protected void drawButtonContent(BCGraphics graphics, int mouseX, int mouseY, float partialTick) {

@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.ResourceIdBlock;
@@ -89,7 +90,7 @@ public class AIRobotSearchAndGotoBlock extends AIRobot {
    @Override
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
-      int[] arr = nbt.getIntArray("indexStored").orElse(new int[0]);
+      int[] arr = BcNbt.getIntArray(nbt, "indexStored");
       if (arr.length == 3) {
          this.blockFound = new BlockPos(arr[0], arr[1], arr[2]);
       }

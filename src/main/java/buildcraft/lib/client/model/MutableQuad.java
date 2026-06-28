@@ -164,14 +164,20 @@ public class MutableQuad {
          this.shade,
          this.lightEmission
       );
-      *///?} else {
-      /*// 1.21.10 BakedQuad still uses the legacy int[] vertex array (8 ints/vertex).
-      int[] data = new int[32];
+      *///?} else if >= 1.21.10 {
+      /*int[] data = new int[32];
       this.vertex_0.toBakedBlock(data, 0);
       this.vertex_1.toBakedBlock(data, 8);
       this.vertex_2.toBakedBlock(data, 16);
       this.vertex_3.toBakedBlock(data, 24);
       return new BakedQuad(data, this.tintIndex, this.face, this.sprite, this.shade, this.lightEmission);
+      *///?} else {
+      /*int[] data = new int[32];
+      this.vertex_0.toBakedBlock(data, 0);
+      this.vertex_1.toBakedBlock(data, 8);
+      this.vertex_2.toBakedBlock(data, 16);
+      this.vertex_3.toBakedBlock(data, 24);
+      return new BakedQuad(data, this.tintIndex, this.face, this.sprite, this.shade);
       *///?}
    }
 
@@ -208,13 +214,20 @@ public class MutableQuad {
          this.shade,
          this.lightEmission
       );
-      *///?} else {
+      *///?} else if >= 1.21.10 {
       /*int[] data = new int[32];
       this.vertex_0.toBakedBlock(data, 0);
       this.vertex_1.toBakedBlock(data, 8);
       this.vertex_2.toBakedBlock(data, 16);
       this.vertex_3.toBakedBlock(data, 24);
       return new BakedQuad(data, this.tintIndex, this.face, this.sprite, this.shade, this.lightEmission);
+      *///?} else {
+      /*int[] data = new int[32];
+      this.vertex_0.toBakedBlock(data, 0);
+      this.vertex_1.toBakedBlock(data, 8);
+      this.vertex_2.toBakedBlock(data, 16);
+      this.vertex_3.toBakedBlock(data, 24);
+      return new BakedQuad(data, this.tintIndex, this.face, this.sprite, this.shade);
       *///?}
    }
 
@@ -245,7 +258,11 @@ public class MutableQuad {
    }
 
    public MutableQuad fromBakedBlock(BakedQuad quad) {
+      //? if >= 1.21.10 {
       this.face = quad.direction();
+      //?} else {
+      /*this.face = quad.getDirection();
+      *///?}
       //? if >= 26.1 {
       MaterialInfo mat = quad.materialInfo();
       this.tintIndex = mat.tintIndex();
@@ -253,10 +270,17 @@ public class MutableQuad {
       this.shade = mat.shade();
       this.lightEmission = mat.lightEmission();
       //?} else {
-      /*this.tintIndex = quad.tintIndex();
+      /*//? if >= 1.21.10 {
+      this.tintIndex = quad.tintIndex();
       this.sprite = quad.sprite();
       this.shade = quad.shade();
       this.lightEmission = quad.lightEmission();
+      //?} else {
+      /^this.tintIndex = quad.getTintIndex();
+      this.sprite = quad.getSprite();
+      this.shade = quad.isShade();
+      this.lightEmission = 0;
+      ^///?}
       *///?}
       //? if >= 1.21.11 {
       readVertexFromBaked(this.vertex_0, quad.position0(), quad.packedUV0());
@@ -264,8 +288,11 @@ public class MutableQuad {
       readVertexFromBaked(this.vertex_2, quad.position2(), quad.packedUV2());
       readVertexFromBaked(this.vertex_3, quad.position3(), quad.packedUV3());
       //?} else {
-      /*// 1.21.10 BakedQuad exposes the legacy int[] vertex array (8 ints/vertex).
+      /*//? if >= 1.21.10 {
       int[] data = quad.vertices();
+      //?} else {
+      /^int[] data = quad.getVertices();
+      ^///?}
       readVertexFromBakedArray(this.vertex_0, data, 0);
       readVertexFromBakedArray(this.vertex_1, data, 8);
       readVertexFromBakedArray(this.vertex_2, data, 16);

@@ -15,10 +15,10 @@ public final class BCLibClientBridge {
       if (mc.player != null) {
          GuideManager.INSTANCE.ensureLoaded();
          //? if >= 26.2 {
-         /*mc.gui.setScreen(new GuiGuide(bookName));
-         *///?} else {
-         mc.setScreen(new GuiGuide(bookName));
-         //?}
+         mc.gui.setScreen(new GuiGuide(bookName));
+         //?} else {
+         /*mc.setScreen(new GuiGuide(bookName));
+         *///?}
       }
    }
 
@@ -33,10 +33,10 @@ public final class BCLibClientBridge {
          }
 
          //? if >= 26.2 {
-         /*mc.gui.setScreen(gui);
-         *///?} else {
-         mc.setScreen(gui);
-         //?}
+         mc.gui.setScreen(gui);
+         //?} else {
+         /*mc.setScreen(gui);
+         *///?}
       }
    }
 }

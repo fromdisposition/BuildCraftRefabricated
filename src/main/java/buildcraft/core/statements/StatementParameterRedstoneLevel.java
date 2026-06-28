@@ -6,6 +6,7 @@
 
 package buildcraft.core.statements;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
@@ -38,9 +39,9 @@ public class StatementParameterRedstoneLevel implements IStatementParameter {
    }
 
    public StatementParameterRedstoneLevel(CompoundTag nbt) {
-      this.level = nbt.getByte("l").orElse((byte)0);
-      this.minLevel = nbt.getByte("mi").orElse((byte)0);
-      this.maxLevel = nbt.getByte("ma").orElse((byte)15);
+      this.level = BcNbt.getByte(nbt, "l", (byte)0);
+      this.minLevel = BcNbt.getByte(nbt, "mi", (byte)0);
+      this.maxLevel = BcNbt.getByte(nbt, "ma", (byte)15);
    }
 
    @Override

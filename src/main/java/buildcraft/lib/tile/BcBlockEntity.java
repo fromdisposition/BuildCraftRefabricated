@@ -6,6 +6,9 @@
 
 package buildcraft.lib.tile;
 
+import buildcraft.lib.nbt.BcAuth;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import com.mojang.authlib.GameProfile;
 import java.util.HashSet;
@@ -29,8 +32,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 
 public abstract class BcBlockEntity extends BlockEntity {
    protected final ItemHandlerManager itemManager = new ItemHandlerManager((handler, slot, before, after) -> this.setChanged());
@@ -73,18 +78,40 @@ public abstract class BcBlockEntity extends BlockEntity {
       }
    }
 
+   // BC tiles override the version-neutral writeData/readData hooks below (NOT saveAdditional/loadAdditional),
+   // and call super.writeData/readData. The version-specific dispatch lives here once.
+   //? if >= 1.21.10 {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
-      if (this.owner != null && this.owner.id() != null) {
-         output.putString("ownerUUID", this.owner.id().toString());
-         if (this.owner.name() != null) {
-            output.putString("ownerName", this.owner.name());
-         }
-      }
+      this.writeData(new BcValueOut(output));
    }
 
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*protected void saveAdditional(CompoundTag tag, Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+
+   protected void loadAdditional(CompoundTag tag, Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
+      if (this.owner != null && BcAuth.id(this.owner) != null) {
+         output.putString("ownerUUID", BcAuth.id(this.owner).toString());
+         if (BcAuth.name(this.owner) != null) {
+            output.putString("ownerName", BcAuth.name(this.owner));
+         }
+      }
+   }
+
+   protected void readData(BcValueIn input) {
       String uuidStr = input.getStringOr("ownerUUID", "");
       if (!uuidStr.isEmpty()) {
          try {
@@ -115,7 +142,13 @@ public abstract class BcBlockEntity extends BlockEntity {
             holder.wakePipe();
          }
 
+         // neighborChanged's 3rd arg is a @Nullable Orientation from 1.21.2+ (null = no redstone direction),
+         // but a non-null source BlockPos on 1.21.1 (passing null there NPEs in the neighbor updater).
+         //? if >= 1.21.10 {
          this.level.neighborChanged(adjPos, block, null);
+         //?} else {
+         /*this.level.neighborChanged(adjPos, block, this.worldPosition);
+         *///?}
       }
    }
 

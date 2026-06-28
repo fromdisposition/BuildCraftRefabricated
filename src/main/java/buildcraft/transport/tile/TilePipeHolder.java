@@ -6,6 +6,7 @@
 
 package buildcraft.transport.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.mj.IMjConnector;
@@ -66,7 +67,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -77,8 +78,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import buildcraft.lib.nbt.BcNbt;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 import team.reborn.energy.api.EnergyStorage;
 
 public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebuggable {
@@ -118,12 +124,33 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       super(BCTransportBlockEntities.PIPE_HOLDER, pos, state);
    }
 
+   //? if >= 1.21.10 {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
-      if (this.owner != null && this.owner.id() != null) {
-         output.putString("ownerUUID", this.owner.id().toString());
-         if (this.owner.name() != null) {
-            output.putString("ownerName", this.owner.name());
+      this.writeData(new BcValueOut(output));
+   }
+
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+
+   protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
+      if (this.owner != null && BcAuth.id(this.owner) != null) {
+         output.putString("ownerUUID", BcAuth.id(this.owner).toString());
+         if (BcAuth.name(this.owner) != null) {
+            output.putString("ownerName", BcAuth.name(this.owner));
          }
       }
 
@@ -153,8 +180,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       }
    }
 
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   protected void readData(BcValueIn input) {
       String ownerUuid = input.getStringOr("ownerUUID", "");
       if (!ownerUuid.isEmpty()) {
          try {
@@ -180,13 +206,13 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       input.read("plugs", CompoundTag.CODEC).ifPresentOrElse(plugTag -> {
          for (Direction face : Direction.values()) {
             if (plugTag.contains(face.getName())) {
-               CompoundTag entry = plugTag.getCompound(face.getName()).orElse(new CompoundTag());
-               String id = entry.getString("id").orElse("");
+               CompoundTag entry = BcNbt.getCompound(plugTag, face.getName());
+               String id = BcNbt.getString(entry, "id", "");
                if (!id.isEmpty()) {
                   Identifier plugId = Identifier.parse(id);
                   PluggableDefinition def = PipeApi.pluggableRegistry != null ? PipeApi.pluggableRegistry.getDefinition(plugId) : null;
                   if (def != null) {
-                     CompoundTag data = entry.getCompound("data").orElse(new CompoundTag());
+                     CompoundTag data = BcNbt.getCompound(entry, "data");
                      PipePluggable existing = this.pluggables[face.ordinal()];
                      if (existing == null || !existing.definition.identifier.equals(plugId) || !existing.readFromNbt(data)) {
                         try {
@@ -263,22 +289,37 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       return tag;
    }
 
+   //? if >= 1.21.10 {
    public void handleUpdateTag(ValueInput input) {
-      this.applyClientUpdateData(input);
+      this.applyClientUpdateData(new BcValueIn(input));
       this.refreshClientModel();
    }
 
    public void onDataPacket(Connection net, ValueInput input) {
-      this.applyClientUpdateData(input);
+      this.applyClientUpdateData(new BcValueIn(input));
+      this.refreshClientModel();
+   }
+   //?} else {
+   /*public void handleUpdateTag(CompoundTag tag, Provider registries) {
+      this.applyClientUpdateData(new BcValueIn(tag, registries));
       this.refreshClientModel();
    }
 
-   private void applyClientUpdateData(ValueInput input) {
+   public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, Provider registries) {
+      CompoundTag t = pkt.getTag();
+      if (t != null) {
+         this.applyClientUpdateData(new BcValueIn(t, registries));
+         this.refreshClientModel();
+      }
+   }
+   *///?}
+
+   private void applyClientUpdateData(BcValueIn input) {
       input.read("plugsClient", CompoundTag.CODEC).ifPresent(plugsClient -> {
          for (Direction face : Direction.values()) {
             PipePluggable plug = this.pluggables[face.ordinal()];
             if (plug != null && plugsClient.contains(face.getName())) {
-               plug.readClientUpdateData(plugsClient.getCompound(face.getName()).orElse(new CompoundTag()));
+               plug.readClientUpdateData(BcNbt.getCompound(plugsClient, face.getName()));
             }
          }
       });
@@ -382,7 +423,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    }
 
    public void tick() {
-      ProfilerFiller _profiler = Profiler.get();
+      ProfilerFiller _profiler = BcProfiler.get();
       _profiler.push("buildcraft:pipe_tick");
 
       try {
@@ -623,9 +664,15 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
             BlockPos npos = this.worldPosition.relative(dir);
             BlockState nstate = this.level.getBlockState(npos);
             if (!nstate.isAir()) {
+               //? if >= 1.21.10 {
                BlockState res = nstate.updateShape(
                   this.level, this.level, npos, dir.getOpposite(), this.worldPosition, this.getBlockState(), this.level.getRandom()
                );
+               //?} else {
+               /*BlockState res = nstate.updateShape(
+                  dir.getOpposite(), this.getBlockState(), this.level, npos, this.worldPosition
+               );
+               *///?}
                if (res != nstate) {
                   Block.updateOrDestroy(nstate, res, this.level, npos, 3);
                }

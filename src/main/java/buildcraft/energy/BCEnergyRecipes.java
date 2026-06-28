@@ -6,6 +6,7 @@
 
 package buildcraft.energy;
 
+import buildcraft.api.core.BCLog;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IRefineryRecipeManager;
@@ -56,6 +57,15 @@ public class BCEnergyRecipes {
             BuildcraftRecipeRegistry.refineryRecipes.addHeatableRecipe(water, null, 0, 1);
             FluidStack lava = new FluidStack(Fluids.LAVA, 5);
             BuildcraftRecipeRegistry.refineryRecipes.addCoolableRecipe(lava, null, 4, 2);
+            // Diagnostic: if JEI's distiller shows fewer entries than this count, the gap is JEI-side
+            // (ingredient display), not recipe registration; if this count is itself low, a fraction fluid
+            // failed to resolve (addDistillation skips empty-fluid recipes).
+            BCLog.logger.info(
+               "[BuildCraft] Refinery recipes registered: {} distillation, {} heatable, {} coolable",
+               BuildcraftRecipeRegistry.refineryRecipes.getDistillationRegistry().getAllRecipes().size(),
+               BuildcraftRecipeRegistry.refineryRecipes.getHeatableRegistry().getAllRecipes().size(),
+               BuildcraftRecipeRegistry.refineryRecipes.getCoolableRegistry().getAllRecipes().size()
+            );
          }
 
          initialized = true;

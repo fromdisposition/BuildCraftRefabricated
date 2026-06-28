@@ -7,10 +7,9 @@ Unofficial **Fabric** port of BuildCraft for **modern Minecraft** — pipes, eng
 |-------------------|----------------|------------|------------|------|
 | **26.2**| 🟢 **Active** (Upstream) | ≥ 0.19.3 | ≥ 0.152.1+26.2 | 25+ |
 | **26.1.x** | 🟢 **Active** (Long term support) | ≥ 0.19.3 | ≥ 0.150.0+26.1.2 | 25+ |
-| **1.21.11** | 🟡 **Maintenance** (Best effort)  | ≥ 0.19.3 | ≥ 0.141.4+1.21.11 | 21+ |
-| **1.21.10** | 🟡 **Maintenance** (Best effort)  | ≥ 0.19.3 | ≥ 0.138.4+1.21.10 | 21+ |
-| **1.21.1** | 🟡 **Maintenance** (Planned) | ≥ 0.19.3 | ≥ 0.116.12+1.21.1 | 21+ |
-| **<1.21.1** | 🔴 **Not supported and not planned**  | | | |
+| **1.21.11** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.141.4+1.21.11 | 21+ |
+| **1.21.10** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.138.4+1.21.10 | 21+ |
+| **<1.21.10** | 🔴 **Not supported and not planned**  | | | |
 
 **Repository:** [github.com/fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)  
 **Issues:** [github.com/fromdisposition/BuildCraftRefabricated/issues](https://github.com/fromdisposition/BuildCraftRefabricated/issues)

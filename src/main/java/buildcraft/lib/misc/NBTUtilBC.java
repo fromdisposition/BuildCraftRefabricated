@@ -6,6 +6,7 @@
 
 package buildcraft.lib.misc;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import com.mojang.serialization.DynamicOps;
 import java.util.Optional;
@@ -73,7 +74,7 @@ public class NBTUtilBC {
    }
 
    public static BlockPos readBlockPos(CompoundTag nbt) {
-      return new BlockPos(nbt.getIntOr("X", 0), nbt.getIntOr("Y", 0), nbt.getIntOr("Z", 0));
+      return new BlockPos(BcNbt.getInt(nbt, "X", 0), BcNbt.getInt(nbt, "Y", 0), BcNbt.getInt(nbt, "Z", 0));
    }
 
    public static void putUUID(CompoundTag nbt, String key, UUID uuid) {
@@ -82,7 +83,7 @@ public class NBTUtilBC {
    }
 
    public static UUID getUUID(CompoundTag nbt, String key) {
-      return new UUID(nbt.getLongOr(key + "Most", 0L), nbt.getLongOr(key + "Least", 0L));
+      return new UUID(BcNbt.getLong(nbt, key + "Most", 0L), BcNbt.getLong(nbt, key + "Least", 0L));
    }
 
    public static StringTag writeEnum(Enum<?> value) {
@@ -93,7 +94,11 @@ public class NBTUtilBC {
    public static <E extends Enum<E>> E readEnum(Tag tag, Class<E> clazz) {
       if (tag instanceof StringTag stringTag) {
          try {
+            //? if >= 1.21.10 {
             return Enum.valueOf(clazz, stringTag.value());
+            //?} else {
+            /*return Enum.valueOf(clazz, stringTag.getAsString());
+            *///?}
          } catch (IllegalArgumentException e) {
             return null;
          }
@@ -125,7 +130,7 @@ public class NBTUtilBC {
    @Nullable
    public static Vec3 readVec3(@Nullable Tag tag) {
       return tag instanceof ListTag listTag && listTag.size() >= 3
-         ? new Vec3(listTag.getDoubleOr(0, 0.0), listTag.getDoubleOr(1, 0.0), listTag.getDoubleOr(2, 0.0))
+         ? new Vec3(BcNbt.getDouble(listTag, 0, 0.0), BcNbt.getDouble(listTag, 1, 0.0), BcNbt.getDouble(listTag, 2, 0.0))
          : null;
    }
 
@@ -136,9 +141,15 @@ public class NBTUtilBC {
    }
 
    public static Stream<String> readStringList(@Nullable Tag tag) {
+      //? if >= 1.21.10 {
       return tag instanceof ListTag listTag
          ? IntStream.range(0, listTag.size()).mapToObj(i -> listTag.get(i) instanceof StringTag st ? st.value() : "")
          : Stream.empty();
+      //?} else {
+      /*return tag instanceof ListTag listTag
+         ? IntStream.range(0, listTag.size()).mapToObj(i -> listTag.get(i) instanceof StringTag st ? st.getAsString() : "")
+         : Stream.empty();
+      *///?}
    }
 
    @Nonnull
@@ -159,14 +170,14 @@ public class NBTUtilBC {
       if (nbt.isEmpty()) {
          return ItemStack.EMPTY;
       } else {
-         String idStr = nbt.getStringOr("id", "");
+         String idStr = BcNbt.getString(nbt, "id", "");
          if (idStr.isEmpty()) {
             return ItemStack.EMPTY;
          } else {
             Identifier itemId = Identifier.parse(idStr);
             Item item = BcRegistryUtil.getItem(itemId);
             if (item != null && item != Items.AIR) {
-               int count = nbt.getIntOr("count", 1);
+               int count = BcNbt.getInt(nbt, "count", 1);
                return new ItemStack(item, count);
             } else {
                return ItemStack.EMPTY;

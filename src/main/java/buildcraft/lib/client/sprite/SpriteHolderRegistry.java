@@ -34,7 +34,7 @@ public class SpriteHolderRegistry {
          return this.location;
       }
 
-      public Identifier getResourceLocation() {
+      public Identifier getIdentifier() {
          return this.resourceLocation;
       }
 

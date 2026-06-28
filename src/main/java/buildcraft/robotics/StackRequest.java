@@ -6,6 +6,7 @@
 
 package buildcraft.robotics;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.IRequestProvider;
 import buildcraft.api.robots.IRobotRegistry;
@@ -89,17 +90,17 @@ public class StackRequest {
    }
 
    public static StackRequest loadFromNBT(CompoundTag nbt) {
-      int[] arr = nbt.getIntArray("stationIndex").orElse(new int[0]);
+      int[] arr = BcNbt.getIntArray(nbt, "stationIndex");
       if (arr.length != 3) {
          return null;
       }
 
-      int slot = nbt.getInt("slot").orElse(0);
+      int slot = BcNbt.getInt(nbt, "slot", 0);
       ItemStack stack = nbt.contains("stack")
          ? ItemStack.CODEC.parse(NbtOps.INSTANCE, nbt.get("stack")).result().orElse(ItemStack.EMPTY)
          : ItemStack.EMPTY;
       BlockPos stationIndex = new BlockPos(arr[0], arr[1], arr[2]);
-      Direction stationSide = Direction.values()[nbt.getByte("stationSide").orElse((byte)0)];
+      Direction stationSide = Direction.values()[BcNbt.getByte(nbt, "stationSide", (byte)0)];
       return new StackRequest(slot, stack, stationIndex, stationSide);
    }
 }

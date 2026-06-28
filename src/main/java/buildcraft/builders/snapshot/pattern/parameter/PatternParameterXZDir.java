@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot.pattern.parameter;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
@@ -47,10 +48,10 @@ public enum PatternParameterXZDir implements IStatementParameter {
    public static PatternParameterXZDir readFromNbt(CompoundTag nbt) {
       Direction dir;
       if (nbt.contains("dir")) {
-         int d = nbt.getByte("dir").orElse((byte)0) + 2;
+         int d = BcNbt.getByte(nbt, "dir", (byte)0) + 2;
          dir = Direction.from2DDataValue(d);
       } else {
-         dir = Direction.from2DDataValue(nbt.getByte("d").orElse((byte)0));
+         dir = Direction.from2DDataValue(BcNbt.getByte(nbt, "d", (byte)0));
       }
 
       PatternParameterXZDir param = map.get(dir);

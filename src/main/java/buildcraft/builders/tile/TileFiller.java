@@ -6,6 +6,7 @@
 
 package buildcraft.builders.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.core.IBox;
@@ -84,8 +85,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.phys.Vec3;
 
 public class TileFiller
@@ -307,7 +308,7 @@ public class TileFiller
                   boolean done = b.tick();
                   if (done) {
                      if (!this.finished && this.mode == IControllable.Mode.LOOP && this.owner != null) {
-                        AdvancementUtil.unlockAdvancement(this.owner.id(), this.level, ADVANCEMENT_BUILDING_FOR_THE_FUTURE);
+                        AdvancementUtil.unlockAdvancement(BcAuth.id(this.owner), this.level, ADVANCEMENT_BUILDING_FOR_THE_FUTURE);
                      }
 
                      this.finished = true;
@@ -330,8 +331,8 @@ public class TileFiller
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putLong("battery_mj", this.battery.getStored());
       output.putBoolean("canExcavate", this.canExcavate);
       output.putBoolean("inverted", this.inverted);
@@ -361,15 +362,15 @@ public class TileFiller
       }
 
       if (this.owner != null) {
-         ValueOutput ownerChild = output.child("owner");
-         ownerChild.putString("name", this.owner.name() != null ? this.owner.name() : "");
-         ownerChild.putString("uuid", this.owner.id() != null ? this.owner.id().toString() : "");
+         BcValueOut ownerChild = output.child("owner");
+         ownerChild.putString("name", BcAuth.name(this.owner) != null ? BcAuth.name(this.owner) : "");
+         ownerChild.putString("uuid", BcAuth.id(this.owner) != null ? BcAuth.id(this.owner).toString() : "");
       }
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       long stored = input.getLongOr("battery_mj", 0L);
       this.battery.setStored(stored);
       this.canExcavate = input.getBooleanOr("canExcavate", true);
@@ -416,9 +417,9 @@ public class TileFiller
          });
       }
 
-      Optional<ValueInput> ownerInputOpt = input.child("owner");
+      Optional<BcValueIn> ownerInputOpt = input.child("owner");
       if (ownerInputOpt.isPresent()) {
-         ValueInput ownerInput = ownerInputOpt.get();
+         BcValueIn ownerInput = ownerInputOpt.get();
          String uuidStr = ownerInput.getStringOr("uuid", "");
          String name = ownerInput.getStringOr("name", "");
          if (!uuidStr.isEmpty()) {

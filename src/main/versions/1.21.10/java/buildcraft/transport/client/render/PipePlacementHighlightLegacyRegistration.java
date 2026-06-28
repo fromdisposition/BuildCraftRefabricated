@@ -11,8 +11,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.ShapeRenderer;
-import net.minecraft.client.renderer.state.BlockOutlineRenderState;
-import net.minecraft.client.renderer.state.LevelRenderState;
+import net.minecraft.client.renderer.state.level.BlockOutlineRenderState;
+import net.minecraft.client.renderer.state.level.LevelRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.state.BlockState;
@@ -64,7 +64,7 @@ public final class PipePlacementHighlightLegacyRegistration {
       Vec3 cam = levelRenderState.cameraRenderState.pos;
       PoseStack poseStack = context.matrices();
       VertexConsumer lines = context.consumers().getBuffer(BCLibRenderTypes.lines());
-      ShapeRenderer.renderShape(poseStack, lines, preview, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.color(102, 0, 0, 0));
+      ShapeRenderer.renderShape(poseStack, lines, preview, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102));
       return false;
    }
 }

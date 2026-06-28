@@ -6,6 +6,8 @@
 
 package buildcraft.builders.block;
 
+import buildcraft.lib.compat.BcInteract;
+
 import buildcraft.builders.BCBuildersBlockEntities;
 import buildcraft.builders.tile.TileFiller;
 import buildcraft.lib.misc.BlockDropsUtil;
@@ -71,6 +73,12 @@ public class BlockFiller extends HorizontalDirectionalBlock implements EntityBlo
    }
 
    protected InteractionResult useItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
+      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
+   }
+
+   protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
       return stack.isEmpty() ? this.useWithoutItem(state, level, pos, player, hitResult) : this.openGui(level, pos, player);

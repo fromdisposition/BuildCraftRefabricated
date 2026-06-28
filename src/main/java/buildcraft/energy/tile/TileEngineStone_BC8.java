@@ -6,6 +6,7 @@
 
 package buildcraft.energy.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
@@ -39,8 +40,8 @@ import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu {
    private static final Identifier ADVANCEMENT_POWERING_UP = Identifier.parse("buildcraftenergy:powering_up");
@@ -97,7 +98,13 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
    }
 
    private int getBurnTime(@Nonnull ItemStack stack) {
+      //? if >= 1.21.10 {
       return !stack.isEmpty() && this.level != null ? this.level.fuelValues().burnDuration(stack) : 0;
+      //?} else {
+      /*return !stack.isEmpty() && this.level != null
+         ? net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.getFuel().getOrDefault(stack.getItem(), 0)
+         : 0;
+      *///?}
    }
 
    @Nonnull
@@ -127,9 +134,9 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
             this.burnTime = newBurn;
             this.totalBurnTime = newBurn;
             if (this.getOwner() != null && this.level != null) {
-               AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT_POWERING_UP);
+               AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, ADVANCEMENT_POWERING_UP);
                if (this.fuelStack.getItem() == Items.LAVA_BUCKET) {
-                  AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT_LAVA_POWER);
+                  AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, ADVANCEMENT_LAVA_POWER);
                }
             }
 
@@ -143,8 +150,12 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
             //? if >= 26.1 {
             ItemStackTemplate containerTemplate = consumed.getItem().getCraftingRemainder();
             ItemStack container = containerTemplate != null ? containerTemplate.create() : ItemStack.EMPTY;
-            //?} else {
+            //?} else if >= 1.21.10 {
             /*ItemStack container = consumed.getItem().getCraftingRemainder();
+            *///?} else {
+            /*ItemStack container = consumed.getItem().hasCraftingRemainingItem()
+               ? new ItemStack(consumed.getItem().getCraftingRemainingItem())
+               : ItemStack.EMPTY;
             *///?}
             if (!container.isEmpty()) {
                if (this.fuelStack.isEmpty()) {
@@ -203,8 +214,8 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putInt("burnTime", this.burnTime);
       output.putInt("totalBurnTime", this.totalBurnTime);
       output.putLong("esum", this.esum);
@@ -216,8 +227,8 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.burnTime = input.getIntOr("burnTime", 0);
       this.totalBurnTime = input.getIntOr("totalBurnTime", 0);
       this.esum = input.getLongOr("esum", 0L);

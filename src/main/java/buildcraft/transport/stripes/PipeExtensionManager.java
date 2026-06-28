@@ -35,13 +35,17 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerPlayer;
+//? if >= 1.21.10 {
 import net.minecraft.util.ProblemReporter;
+//?}
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.TagValueInput;
+//?}
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -190,7 +194,11 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
       ServerPlayer player = BuildCraftAPI.fakePlayerProvider.getFakePlayer(level, owner, request.pos);
       player.getInventory().clearContent();
       ItemStack placeStack = request.stack.copy();
+      //? if >= 1.21.10 {
       player.getInventory().setItem(player.getInventory().getSelectedSlot(), placeStack);
+      //?} else {
+      /*player.getInventory().setItem(player.getInventory().selected, placeStack);
+      *///?}
       BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(request.pos), request.dir.getOpposite(), request.pos, false);
       UseOnContext ctx = new UseOnContext(level, player, InteractionHand.MAIN_HAND, placeStack, hit);
       InteractionResult result = placeStack.useOn(ctx);
@@ -214,7 +222,11 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
          return false;
       }
 
+      //? if >= 1.21.10 {
       holder.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), stripesNbt));
+      //?} else {
+      /*holder.loadWithComponents(stripesNbt, level.registryAccess());
+      *///?}
       holder.setChanged();
       level.sendBlockUpdated(pos, holder.getBlockState(), holder.getBlockState(), 3);
       return holder.getPipe() != null;
@@ -237,7 +249,11 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
       }
 
       if (!canceled) {
-         holder.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), stripesNbt));
+         //? if >= 1.21.10 {
+      holder.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), stripesNbt));
+      //?} else {
+      /*holder.loadWithComponents(stripesNbt, level.registryAccess());
+      *///?}
          holder.setChanged();
       SavedDataWireSystems.get(level).rebuildWireSystemsAround(holder);
       }

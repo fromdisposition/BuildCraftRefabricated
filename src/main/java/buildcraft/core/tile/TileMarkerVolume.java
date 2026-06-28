@@ -28,8 +28,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.phys.AABB;
 
 public class TileMarkerVolume extends TileMarker<VolumeConnection> implements ITileAreaProvider {
@@ -53,13 +53,13 @@ public class TileMarkerVolume extends TileMarker<VolumeConnection> implements IT
       return this.showSignals || this.getCurrentConnection() != null;
    }
 
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putBoolean("showSignals", this.showSignals);
    }
 
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.showSignals = input.getBooleanOr("showSignals", false);
    }
 

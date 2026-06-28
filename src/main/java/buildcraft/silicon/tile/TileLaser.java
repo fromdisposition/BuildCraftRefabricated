@@ -38,8 +38,12 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -221,8 +225,29 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       }
    }
 
+   //? if >= 1.21.10 {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
+      this.writeData(new BcValueOut(output));
+   }
+
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+
+   protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
       output.store("battery", CompoundTag.CODEC, this.battery.serializeNBT());
       if (this.laserPos != null) {
          output.putDouble("laser_x", this.laserPos.x);
@@ -242,8 +267,7 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       output.store("avg_power", CompoundTag.CODEC, avgTag);
    }
 
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   protected void readData(BcValueIn input) {
       input.read("battery", CompoundTag.CODEC).ifPresent(batteryTag -> this.battery.deserializeNBT(batteryTag));
       if (input.getBooleanOr("has_target", false)) {
          this.targetPos = new BlockPos(input.getIntOr("target_x", 0), input.getIntOr("target_y", 0), input.getIntOr("target_z", 0));

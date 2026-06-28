@@ -19,7 +19,6 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
-import mezz.jei.api.recipe.types.IRecipeType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -42,7 +41,7 @@ public class DistillerTransferHandler implements IRecipeTransferHandler<Containe
       return Optional.of(BCFactoryMenuTypes.DISTILLER);
    }
 
-   public IRecipeType<IRefineryRecipeManager.IDistillationRecipe> getRecipeType() {
+   public mezz.jei.api.recipe.types.IRecipeType<IRefineryRecipeManager.IDistillationRecipe> getRecipeType() {
       return BCJeiRecipeTypes.DISTILLER;
    }
 

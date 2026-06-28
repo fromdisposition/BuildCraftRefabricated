@@ -30,7 +30,6 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -51,6 +50,7 @@ public class BCSiliconJeiPlugin implements IModPlugin {
    }
 
    public void registerItemSubtypes(ISubtypeRegistration registration) {
+      //? if >= 1.21.10 {
       registration.registerSubtypeInterpreter(BCSiliconItems.PLUG_LENS, (stack, context) -> {
          DyeColor colour = ItemPluggableLens.getColour(stack);
          boolean isFilter = ItemPluggableLens.isFilter(stack);
@@ -58,6 +58,42 @@ public class BCSiliconJeiPlugin implements IModPlugin {
       });
       registration.registerSubtypeInterpreter(BCSiliconItems.PLUG_GATE, (stack, context) -> ItemPluggableGate.getVariant(stack).getVariantName());
       registration.registerSubtypeInterpreter(BCSiliconItems.PLUG_FACADE, (stack, context) -> NBTUtilBC.getItemData(stack).getCompoundOrEmpty("facade"));
+      //?} else {
+      /*// JEI 19's single-method IIngredientSubtypeInterpreter is deprecated-for-removal; use the current
+      // ISubtypeInterpreter overload. (1.21.1 CompoundTag.getCompound also returns the tag directly.)
+      registration.registerSubtypeInterpreter(BCSiliconItems.PLUG_LENS, new mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter<net.minecraft.world.item.ItemStack>() {
+         public Object getSubtypeData(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            return getLegacyStringSubtypeInfo(stack, context);
+         }
+
+         @Deprecated
+         public String getLegacyStringSubtypeInfo(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            DyeColor colour = ItemPluggableLens.getColour(stack);
+            boolean isFilter = ItemPluggableLens.isFilter(stack);
+            return (colour == null ? "clear" : colour.getName()) + ":" + isFilter;
+         }
+      });
+      registration.registerSubtypeInterpreter(BCSiliconItems.PLUG_GATE, new mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter<net.minecraft.world.item.ItemStack>() {
+         public Object getSubtypeData(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            return ItemPluggableGate.getVariant(stack).getVariantName();
+         }
+
+         @Deprecated
+         public String getLegacyStringSubtypeInfo(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            return ItemPluggableGate.getVariant(stack).getVariantName();
+         }
+      });
+      registration.registerSubtypeInterpreter(BCSiliconItems.PLUG_FACADE, new mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter<net.minecraft.world.item.ItemStack>() {
+         public Object getSubtypeData(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            return NBTUtilBC.getItemData(stack).getCompound("facade").toString();
+         }
+
+         @Deprecated
+         public String getLegacyStringSubtypeInfo(net.minecraft.world.item.ItemStack stack, mezz.jei.api.ingredients.subtypes.UidContext context) {
+            return NBTUtilBC.getItemData(stack).getCompound("facade").toString();
+         }
+      });
+      *///?}
    }
 
    public void registerCategories(IRecipeCategoryRegistration registration) {
@@ -84,11 +120,11 @@ public class BCSiliconJeiPlugin implements IModPlugin {
 
    @SuppressWarnings("unchecked")
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-      registration.addRecipeClickArea(GuiAdvancedCraftingTable.class, 93, 32, 23, 16, new IRecipeType[]{RecipeTypes.CRAFTING});
+      registration.addRecipeClickArea(GuiAdvancedCraftingTable.class, 93, 32, 23, 16, new mezz.jei.api.recipe.types.IRecipeType[]{RecipeTypes.CRAFTING});
       registration.addGhostIngredientHandler(GuiAdvancedCraftingTable.class, new BCGhostIngredientHandler());
-      registration.addRecipeClickArea(GuiAssemblyTable.class, 86, 36, 4, 70, new IRecipeType[]{BCJeiRecipeTypes.ASSEMBLY});
-      registration.addRecipeClickArea(GuiIntegrationTable.class, 85, 51, 49, 8, new IRecipeType[]{BCJeiRecipeTypes.INTEGRATION});
-      registration.addRecipeClickArea(GuiProgrammingTable.class, 27, 38, 14, 64, new IRecipeType[]{BCJeiRecipeTypes.PROGRAMMING});
+      registration.addRecipeClickArea(GuiAssemblyTable.class, 86, 36, 4, 70, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.ASSEMBLY});
+      registration.addRecipeClickArea(GuiIntegrationTable.class, 85, 51, 49, 8, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.INTEGRATION});
+      registration.addRecipeClickArea(GuiProgrammingTable.class, 27, 38, 14, 64, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.PROGRAMMING});
       registration.addGuiContainerHandler(GuiGate.class, new IGuiContainerHandler<GuiGate>() {
          public List<Rect2i> getGuiExtraAreas(GuiGate containerScreen) {
             List<Rect2i> extraAreas = new ArrayList<>();

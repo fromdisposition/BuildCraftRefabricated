@@ -6,6 +6,7 @@
 
 package buildcraft.robotics;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.boards.RedstoneBoardNBT;
 import buildcraft.api.boards.RedstoneBoardRegistry;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
@@ -44,7 +45,7 @@ public class ImplRedstoneBoardRegistry extends RedstoneBoardRegistry {
 
    @Override
    public RedstoneBoardNBT<?> getRedstoneBoard(CompoundTag nbt) {
-      return this.getRedstoneBoard(nbt.getString("id").orElse(""));
+      return this.getRedstoneBoard(BcNbt.getString(nbt, "id", ""));
    }
 
    @Override

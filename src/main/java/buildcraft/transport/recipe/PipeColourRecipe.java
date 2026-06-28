@@ -29,6 +29,11 @@ public class PipeColourRecipe extends CustomRecipe {
       super(net.minecraft.world.item.crafting.CraftingBookCategory.MISC);
    }
    *///?}
+   //? if < 1.21.10 {
+   /*public boolean canCraftInDimensions(int width, int height) {
+      return width * height >= 1;
+   }
+   *///?}
    public static final PipeColourRecipe INSTANCE = new PipeColourRecipe();
    public static final MapCodec<PipeColourRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
    public static final StreamCodec<RegistryFriendlyByteBuf, PipeColourRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
@@ -162,9 +167,9 @@ public class PipeColourRecipe extends CustomRecipe {
 
    private static Item getDyeItem(DyeColor colour) {
       //? if >= 26.2 {
-      /*return Items.DYE.pick(colour);
-      *///?} else {
-      return switch (colour) {
+      return Items.DYE.pick(colour);
+      //?} else {
+      /*return switch (colour) {
          case WHITE -> Items.WHITE_DYE;
          case ORANGE -> Items.ORANGE_DYE;
          case MAGENTA -> Items.MAGENTA_DYE;
@@ -183,7 +188,7 @@ public class PipeColourRecipe extends CustomRecipe {
          case BLACK -> Items.BLACK_DYE;
          default -> throw new MatchException(null, null);
       };
-      //?}
+      *///?}
    }
 
    private record Result(ItemStack output, int bleachIndex) {

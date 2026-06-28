@@ -43,7 +43,7 @@ public class RenderLaser {
          if (mc.player != null && mc.level != null) {
             ACTIVE_LASERS.removeIf(laserx -> laserx.isRemoved() || laserx.getLevel() != mc.level);
             PoseStack poseStack = event.getPoseStack();
-            Vec3 cameraPos = event.getLevelRenderState().cameraRenderState.pos;
+            Vec3 cameraPos = event.getCameraPos();
             LaserBatch.begin();
 
             try {

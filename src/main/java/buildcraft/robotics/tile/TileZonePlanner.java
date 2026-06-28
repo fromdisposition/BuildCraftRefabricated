@@ -32,8 +32,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TileZonePlanner extends BcBlockEntity implements MenuProvider, BlockEntityExtendedMenu {
    public final ItemHandlerSimple invPaintbrushes = new ItemHandlerSimple(16, null);
@@ -175,7 +175,7 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
 
    private static String mapTypeOf(ItemStack stack) {
       CustomData data = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
-      return data == null ? "CLEAN" : data.copyTag().getString("mapType").orElse("CLEAN");
+      return data == null ? "CLEAN" : buildcraft.lib.nbt.BcNbt.getString(data.copyTag(), "mapType", "CLEAN");
    }
 
    private static boolean isZoneMap(ItemStack stack) {
@@ -209,12 +209,12 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
       }
 
       map.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-      map.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(4.0F), List.of(), List.of(), List.of()));
+      map.set(DataComponents.CUSTOM_MODEL_DATA, buildcraft.lib.compat.BcModelData.index(4.0F));
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
 
       for (int i = 0; i < this.layers.length; i++) {
          CompoundTag layerTag = new CompoundTag();
@@ -234,8 +234,8 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
 
       for (int i = 0; i < this.layers.length; i++) {
          int idx = i;

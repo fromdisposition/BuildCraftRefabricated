@@ -26,8 +26,10 @@ import buildcraft.transport.pipe.flow.PipeFlowFluids;
 import buildcraft.transport.pipe.flow.PipeFlowPower;
 import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 import java.util.Map;
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.item.ItemModel;
+//?}
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
@@ -44,6 +46,7 @@ public class BCTransportClient {
    }
 
    public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
+      //? if >= 1.21.10 {
       BlockState pipeState = BCTransportBlocks.PIPE_HOLDER.defaultBlockState();
       Map<BlockState, BlockStateModel> blockModels = event.getBakingResult().blockStateModels();
       BlockStateModel vanillaModel = blockModels.get(pipeState);
@@ -63,6 +66,7 @@ public class BCTransportClient {
             }
          }
       }
+      //?}
    }
 
    public static void registerFlowRenderers() {

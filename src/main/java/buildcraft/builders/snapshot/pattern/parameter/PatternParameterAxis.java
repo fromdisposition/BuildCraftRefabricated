@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot.pattern.parameter;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
@@ -32,7 +33,7 @@ public enum PatternParameterAxis implements IStatementParameter {
    }
 
    public static PatternParameterAxis readFromNbt(CompoundTag nbt) {
-      byte ord = nbt.getByte("a").orElse((byte)0);
+      byte ord = BcNbt.getByte(nbt, "a", (byte)0);
       if (ord <= 0) {
          return X;
       } else {

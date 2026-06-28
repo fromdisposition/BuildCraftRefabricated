@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.zone;
 
+import buildcraft.lib.nbt.BcNbt;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -83,8 +84,12 @@ public class ZoneChunk {
    }
 
    public void readFromNBT(CompoundTag nbt) {
-      this.fullSet = nbt.getBooleanOr("fullSet", false);
+      this.fullSet = BcNbt.getBoolean(nbt, "fullSet", false);
+      //? if >= 1.21.10 {
       nbt.getByteArray("bits").ifPresent(bytes -> this.property = BitSet.valueOf(bytes));
+      //?} else {
+      /*this.property = BitSet.valueOf(nbt.getByteArray("bits"));
+      *///?}
    }
 
    public BlockPos getRandomBlockPos(Random rand) {

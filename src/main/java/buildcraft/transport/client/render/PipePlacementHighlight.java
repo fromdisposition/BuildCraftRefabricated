@@ -19,16 +19,20 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 //? if >= 26.2 {
-/*import net.minecraft.client.renderer.SubmitNodeCollector;
-*///?} else {
-import net.minecraft.client.renderer.ShapeRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+//?} else if >= 1.21.10 {
+/*import net.minecraft.client.renderer.ShapeRenderer;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-//?}
+*///?}
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.state.level.BlockOutlineRenderState;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
+//?}
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+//? if >= 1.21.10 {
 import net.minecraft.util.ARGB;
+//?}
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -85,7 +89,7 @@ public final class PipePlacementHighlight {
    }
 
    //? if >= 26.2 {
-   /*private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
+   private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
       @Override
       public boolean render(
          BlockOutlineRenderState renderState, SubmitNodeCollector submitNodeCollector, PoseStack poseStack, LevelRenderState levelRenderState
@@ -99,8 +103,8 @@ public final class PipePlacementHighlight {
          return true;
       }
    }
-   *///?} else {
-   private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
+   //?} else if >= 1.21.10 {
+   /*private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
       @Override
       public boolean render(
          BlockOutlineRenderState renderState, BufferSource buffer, PoseStack poseStack, boolean translucentPass, LevelRenderState levelRenderState
@@ -115,12 +119,16 @@ public final class PipePlacementHighlight {
          //? if >= 1.21.11 {
          ShapeRenderer.renderShape(poseStack, lines, this.shape, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102), 2.5F);
          //?} else {
-         /*// 1.21.10 ShapeRenderer.renderShape has no line-width parameter.
+         /^// 1.21.10 ShapeRenderer.renderShape has no line-width parameter.
          ShapeRenderer.renderShape(poseStack, lines, this.shape, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102));
-         *///?}
+         ^///?}
          buffer.endLastBatch();
          return true;
       }
    }
-   //?}
+   *///?} else {
+   /*// 1.21.1: BlockOutlineRenderer is an empty marker (custom outlines absent); no render override.
+   private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
+   }
+   *///?}
 }

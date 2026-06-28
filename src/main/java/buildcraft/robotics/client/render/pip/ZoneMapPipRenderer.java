@@ -19,11 +19,11 @@ import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 //? if >= 26.2 {
-/*import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.SubmitNodeStorage;
-*///?} else {
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
-//?}
+//?} else {
+/*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+*///?}
 //? if >= 26.1 {
 import net.minecraft.client.renderer.Projection;
 import net.minecraft.client.renderer.ProjectionMatrixBuffer;
@@ -47,14 +47,14 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
    private long lastStamp = Long.MIN_VALUE;
 
    //? if >= 26.2 {
-   /*public ZoneMapPipRenderer() {
+   public ZoneMapPipRenderer() {
       super();
    }
-   *///?} else {
-   public ZoneMapPipRenderer(BufferSource bufferSource) {
+   //?} else {
+   /*public ZoneMapPipRenderer(BufferSource bufferSource) {
       super(bufferSource);
    }
-   //?}
+   *///?}
 
    @Override
    public Class<ZoneMapPipRenderState> getRenderStateClass() {
@@ -72,7 +72,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
    }
 
    //? if >= 26.2 {
-   /*@Override
+   @Override
    protected void renderToTexture(ZoneMapPipRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
       this.lastStamp = state.renderStamp();
       this.evictFarMeshes(state);
@@ -90,8 +90,8 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
 
       mc.gameRenderer.featureRenderDispatcher().renderAllFeatures((SubmitNodeStorage) submitNodeCollector);
    }
-   *///?} else if >= 26.1 {
-   @Override
+   //?} else if >= 26.1 {
+   /*@Override
    protected void renderToTexture(ZoneMapPipRenderState state, PoseStack poseStack) {
       this.lastStamp = state.renderStamp();
       this.evictFarMeshes(state);
@@ -115,7 +115,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       this.orthoRestore.setupOrtho(-1000.0F, 1000.0F, width, height, true);
       RenderSystem.setProjectionMatrix(this.orthoRestoreBuffer.getBuffer(this.orthoRestore), ProjectionType.ORTHOGRAPHIC);
    }
-   //?} else {
+   *///?} else {
    /*@Override
    protected void renderToTexture(ZoneMapPipRenderState state, PoseStack poseStack) {
       this.lastStamp = state.renderStamp();
@@ -136,7 +136,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
    *///?}
 
    //? if >= 26.2 {
-   /*private void emitTerrain(ZoneMapPipRenderState state, PoseStack poseStack, SubmitNodeStorage storage) {
+   private void emitTerrain(ZoneMapPipRenderState state, PoseStack poseStack, SubmitNodeStorage storage) {
       ZonePlannerMapColours cache = state.colours();
       if (cache == null) return;
       int originX = state.originX();
@@ -158,8 +158,8 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       });
       storage.submitCustomGeometry(poseStack, BCLibRenderTypes.debugSolid(), (pose, vc) -> this.emitOverlay(state, pose, vc));
    }
-   *///?} else {
-   private void emitTerrain(ZoneMapPipRenderState state, Pose pose) {
+   //?} else {
+   /*private void emitTerrain(ZoneMapPipRenderState state, Pose pose) {
       ZonePlannerMapColours cache = state.colours();
       if (cache != null) {
          VertexConsumer vc = this.bufferSource.getBuffer(BCLibRenderTypes.debugSolid());
@@ -183,7 +183,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
          this.emitOverlay(state, pose);
       }
    }
-   //?}
+   *///?}
 
 
    private void evictFarMeshes(ZoneMapPipRenderState state) {
@@ -218,7 +218,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
    }
 
    //? if >= 26.2 {
-   /*private void emitOverlay(ZoneMapPipRenderState state, Pose pose, VertexConsumer vc) {
+   private void emitOverlay(ZoneMapPipRenderState state, Pose pose, VertexConsumer vc) {
       ZonePlannerMapColours cache = state.colours();
       int originX = state.originX();
       int originZ = state.originZ();
@@ -264,8 +264,8 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
          }
       }
    }
-   *///?} else {
-   private void emitOverlay(ZoneMapPipRenderState state, Pose pose) {
+   //?} else {
+   /*private void emitOverlay(ZoneMapPipRenderState state, Pose pose) {
       ZonePlannerMapColours cache = state.colours();
       int originX = state.originX();
       int originZ = state.originZ();
@@ -314,7 +314,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
          }
       }
    }
-   //?}
+   *///?}
 
    private static void emitOverlayCell(VertexConsumer vc, Pose pose, ZonePlannerMapColours cache, int wx, int wz, int originX, int originZ, int colour, int alpha) {
       int h = cache.heightAt(ZonePlannerChunkKeys.chunkKey(wx >> 4, wz >> 4), wx, wz);

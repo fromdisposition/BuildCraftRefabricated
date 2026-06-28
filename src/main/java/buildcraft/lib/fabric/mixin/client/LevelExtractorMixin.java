@@ -1,5 +1,6 @@
 package buildcraft.lib.fabric.mixin.client;
 
+//? if >= 1.21.10 {
 import buildcraft.fabric.client.event.ExtractBlockOutlineRenderStateEvent;
 import buildcraft.fabric.client.render.BlockOutlineRenderStore;
 import java.util.Collections;
@@ -13,21 +14,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//?}
+import org.spongepowered.asm.mixin.Mixin;
 
 /**
- * In 26.2, block-outline state extraction moved from {@code LevelRenderer} to
- * {@code LevelExtractor}. This mixin hooks {@code extractBlockOutline} there and fires
- * {@link ExtractBlockOutlineRenderStateEvent}, replacing the 26.1.2 hook in
- * {@link LevelRendererMixin}.
- *
- * Uses {@code targets} string form so the mixin is silently ignored in 26.1.2 where
- * {@code LevelExtractor} does not exist.
+ * In 26.2, block-outline state extraction moved from {@code LevelRenderer} to {@code LevelExtractor}.
+ * This mixin hooks {@code extractBlockOutline} there and fires {@code ExtractBlockOutlineRenderStateEvent}.
+ * On 1.21.1 the level render-state extraction does not exist, so this degrades to an empty no-op mixin
+ * (custom block outlines / pipe-placement preview highlight are a cosmetic loss there).
  */
+//? if >= 1.21.10 {
 @Mixin(targets = "net.minecraft.client.renderer.extract.LevelExtractor", remap = false)
 public abstract class LevelExtractorMixin {
    @Shadow(remap = false)
@@ -60,3 +60,8 @@ public abstract class LevelExtractorMixin {
       }
    }
 }
+//?} else {
+/*@Mixin(net.minecraft.client.Minecraft.class)
+public abstract class LevelExtractorMixin {
+}
+*///?}

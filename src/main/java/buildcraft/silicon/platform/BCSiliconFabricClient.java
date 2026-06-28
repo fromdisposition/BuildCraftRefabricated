@@ -26,6 +26,11 @@ import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents.After
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.renderer.entity.NoopRenderer;
+//? if < 26.1 {
+/*import buildcraft.silicon.BCSiliconBlocks;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
+*///?}
 
 public final class BCSiliconFabricClient {
    private BCSiliconFabricClient() {
@@ -56,5 +61,11 @@ public final class BCSiliconFabricClient {
       MenuScreens.register(BCSiliconMenuTypes.PACKAGER, GuiPackager::new);
       MenuScreens.register(BCSiliconMenuTypes.GATE, GuiGate::new);
       EntityRenderers.register(BCSiliconEntities.PACKAGE, NoopRenderer::new);
+      //? if < 26.1 {
+      /*// The programming table model has a glass top (minecraft:block/glass); without an explicit cutout
+      // chunk layer it renders on the solid layer and the glass turns opaque (flat dark centre). 26.1+
+      // resolves the render layer from the model/block, so this is only needed on <26.1.
+      BlockRenderLayerMap.putBlock(BCSiliconBlocks.PROGRAMMING_TABLE, ChunkSectionLayer.CUTOUT);
+      *///?}
    }
 }

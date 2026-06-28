@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.lib.nbt.BcNbt;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.facades.FacadeType;
 import buildcraft.api.facades.IFacade;
@@ -52,7 +53,7 @@ public class FacadeInstance implements IFacade {
    }
 
    public static FacadeInstance readFromNbt(CompoundTag nbt) {
-      ListTag list = nbt.getListOrEmpty("states");
+      ListTag list = BcNbt.getList(nbt, "states");
       if (list.isEmpty()) {
          return createSingle(FacadeStateManager.defaultState, false);
       }
@@ -64,7 +65,7 @@ public class FacadeInstance implements IFacade {
          states[i] = FacadePhasedState.readFromNbt(compound);
       }
 
-      boolean hollow = nbt.getBooleanOr("isHollow", false);
+      boolean hollow = BcNbt.getBoolean(nbt, "isHollow", false);
       return new FacadeInstance(states, hollow);
    }
 

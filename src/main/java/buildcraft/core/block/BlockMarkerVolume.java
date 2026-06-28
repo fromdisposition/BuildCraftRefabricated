@@ -18,7 +18,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.redstone.Orientation;
+//?}
 import net.minecraft.world.phys.BlockHitResult;
 
 public class BlockMarkerVolume extends BlockMarkerBase {
@@ -39,7 +41,11 @@ public class BlockMarkerVolume extends BlockMarkerBase {
       return InteractionResult.SUCCESS;
    }
 
+   //? if >= 1.21.10 {
    protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block blockIn, @Nullable Orientation orientation, boolean isMoving) {
+   //?} else {
+   /*protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+   *///?}
       checkSignalState(world, pos);
    }
 

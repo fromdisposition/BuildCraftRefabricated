@@ -4,7 +4,9 @@ import buildcraft.fabric.config.BCObjectsConfig;
 import com.mojang.logging.LogUtils;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
+//? if >= 1.21.10 {
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
+//?}
 import org.slf4j.Logger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
@@ -70,7 +72,11 @@ public final class BCRegistries {
       }
 
       ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, id(modid, path));
+      //? if >= 1.21.10 {
       B block = (B)factory.apply(properties.apply(Properties.of()).setId(blockKey));
+      //?} else {
+      /*B block = (B)factory.apply(properties.apply(Properties.of()));
+      *///?}
       return (B)Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
    }
 
@@ -91,9 +97,15 @@ public final class BCRegistries {
 
       ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, id(modid, path));
       String nameKey = "item." + modid + "." + path;
+      //? if >= 1.21.10 {
       I item = (I)factory.apply(
          properties.apply(new net.minecraft.world.item.Item.Properties()).setId(itemKey).component(DataComponents.ITEM_NAME, Component.translatable(nameKey))
       );
+      //?} else {
+      /*I item = (I)factory.apply(
+         properties.apply(new net.minecraft.world.item.Item.Properties()).component(DataComponents.ITEM_NAME, Component.translatable(nameKey))
+      );
+      *///?}
       return (I)Registry.register(BuiltInRegistries.ITEM, itemKey, item);
    }
 
@@ -117,7 +129,11 @@ public final class BCRegistries {
 
    public static <T extends Entity> EntityType<T> registerEntityType(String modid, String path, net.minecraft.world.entity.EntityType.Builder<T> builder) {
       ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id(modid, path));
+      //? if >= 1.21.10 {
       return (EntityType<T>)Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
+      //?} else {
+      /*return (EntityType<T>)Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(id(modid, path).toString()));
+      *///?}
    }
 
    @SafeVarargs
@@ -125,9 +141,17 @@ public final class BCRegistries {
       String modid, String path, BCRegistries.BlockEntityFactory<T> factory, Block... validBlocks
    ) {
       ResourceKey<BlockEntityType<?>> key = ResourceKey.create(Registries.BLOCK_ENTITY_TYPE, id(modid, path));
+      //? if >= 1.21.10 {
       return (BlockEntityType<T>)Registry.register(
          BuiltInRegistries.BLOCK_ENTITY_TYPE, key, FabricBlockEntityTypeBuilder.create(factory::create, validBlocks).build()
       );
+      //?} else {
+      /*// Fabric deprecated FabricBlockEntityTypeBuilder once vanilla's BlockEntityType.Builder was patched to
+      // accept modded blocks; use the vanilla builder directly (build(null) = no datafixer type).
+      return (BlockEntityType<T>)Registry.register(
+         BuiltInRegistries.BLOCK_ENTITY_TYPE, key, BlockEntityType.Builder.of(factory::create, validBlocks).build(null)
+      );
+      *///?}
    }
 
    @FunctionalInterface

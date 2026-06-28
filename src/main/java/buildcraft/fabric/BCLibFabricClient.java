@@ -7,8 +7,10 @@ import buildcraft.lib.client.fluid.BcFluidFogProfiles;
 import buildcraft.lib.client.fluid.FluidDisplayNamesClient;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.model.ModelHolderRegistry;
+//? if >= 1.21.10 {
 import buildcraft.lib.client.model.VariableModelDeserializer;
 import net.fabricmc.fabric.api.client.model.loading.v1.UnbakedModelDeserializer;
+//?}
 import buildcraft.lib.debug.AdvDebugRenderer;
 import buildcraft.lib.fabric.loader.GamePaths;
 import buildcraft.lib.gui.config.GuiConfigManager;
@@ -41,7 +43,12 @@ public final class BCLibFabricClient {
    // the async resource.v1 reloader, but v0 is sufficient for these synchronous cache-clearing reloads.
    @SuppressWarnings("deprecation")
    public static void init() {
+      //? if >= 1.21.10 {
       UnbakedModelDeserializer.register(VariableModelDeserializer.TYPE_ID, VariableModelDeserializer.INSTANCE);
+      //?}
+      // On 1.21.1 there is no UnbakedModelDeserializer API; the "buildcraftlib:variable" engine models are
+      // instead kept out of vanilla's bulk model parse by BlockModelVariableSkipMixin (the engine BER draws
+      // the real model via ModelHolderVariable), so nothing needs registering here.
       FluidDisplayNamesClient.register();
       BcFluidFogProfiles.loadFromClasspath();
       BCReloadFabric.initClient();

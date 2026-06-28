@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.gate;
 
+import buildcraft.lib.nbt.BcNbt;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
@@ -35,9 +36,9 @@ public class ActionType extends StatementType<ActionWrapper> {
          return null;
       }
 
-      String kind = nbt.getString("kind").orElse("");
+      String kind = BcNbt.getString(nbt, "kind", "");
       if (kind != null && !kind.isEmpty()) {
-         EnumPipePart side = EnumPipePart.fromMeta(nbt.getByte("side").orElse((byte)5));
+         EnumPipePart side = EnumPipePart.fromMeta(BcNbt.getByte(nbt, "side", (byte)5));
          IStatement statement = StatementManager.statements.get(kind);
          if (statement instanceof IAction) {
             return ActionWrapper.wrap(statement, side.face);

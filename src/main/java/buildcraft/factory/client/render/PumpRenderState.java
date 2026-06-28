@@ -6,9 +6,15 @@
 
 package buildcraft.factory.client.render;
 
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+//?}
 
+//? if >= 1.21.10 {
 public class PumpRenderState extends BlockEntityRenderState {
+//?} else {
+/*public class PumpRenderState {
+*///?}
    public int powerColour;
    public int statusColour;
    public double shaftLength;

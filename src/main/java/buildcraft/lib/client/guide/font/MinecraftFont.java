@@ -102,7 +102,7 @@ public enum MinecraftFont implements IFontRenderer {
    }
 
    //? if >= 26.2 {
-   /*private static void appendLegacyCodes(StringBuilder sb, Style style) {
+   private static void appendLegacyCodes(StringBuilder sb, Style style) {
       sb.append(ChatFormatting.PREFIX_CODE).append('r');
       TextColor color = style.getColor();
       if (color != null) {
@@ -120,8 +120,8 @@ public enum MinecraftFont implements IFontRenderer {
       if (style.isStrikethrough()) sb.append(ChatFormatting.PREFIX_CODE).append('m');
       if (style.isObfuscated()) sb.append(ChatFormatting.PREFIX_CODE).append('k');
    }
-   *///?} else {
-   private static void appendLegacyCodes(StringBuilder sb, Style style) {
+   //?} else {
+   /*private static void appendLegacyCodes(StringBuilder sb, Style style) {
       sb.append('§').append(ChatFormatting.RESET.getChar());
       TextColor color = style.getColor();
       if (color != null) {
@@ -153,5 +153,5 @@ public enum MinecraftFont implements IFontRenderer {
          sb.append('§').append(ChatFormatting.OBFUSCATED.getChar());
       }
    }
-   //?}
+   *///?}
 }

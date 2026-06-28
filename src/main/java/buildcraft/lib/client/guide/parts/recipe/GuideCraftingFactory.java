@@ -19,8 +19,10 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+//? if >= 1.21.10 {
 import net.minecraft.util.context.ContextMap;
 import net.minecraft.util.context.ContextMap.Builder;
+//?}
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -28,7 +30,9 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
+//?}
 
 public class GuideCraftingFactory implements GuidePartFactory {
    private final ChangingItemStack[][] input;
@@ -126,7 +130,11 @@ public class GuideCraftingFactory implements GuidePartFactory {
 
       int width = recipe.getWidth();
       int height = recipe.getHeight();
+      //? if >= 1.21.10 {
       List<Optional<Ingredient>> ingredients = recipe.getIngredients();
+      //?} else {
+      /*net.minecraft.core.NonNullList<Ingredient> ingredients = recipe.getIngredients();
+      *///?}
       int offsetX = width == 1 ? 1 : 0;
       int offsetY = height == 1 ? 1 : 0;
       ChangingItemStack[][] matrix = new ChangingItemStack[3][3];
@@ -136,8 +144,13 @@ public class GuideCraftingFactory implements GuidePartFactory {
             if (x >= offsetX && y >= offsetY) {
                int i = x - offsetX + (y - offsetY) * width;
                if (i < ingredients.size() && x - offsetX < width) {
+                  //? if >= 1.21.10 {
                   Optional<Ingredient> opt = ingredients.get(i);
                   matrix[x][y] = opt.map(GuideCraftingFactory::ingredientToChanging).orElse(new ChangingItemStack(ItemStack.EMPTY));
+                  //?} else {
+                  /*Ingredient ing = ingredients.get(i);
+                  matrix[x][y] = ing == null ? new ChangingItemStack(ItemStack.EMPTY) : ingredientToChanging(ing);
+                  *///?}
                } else {
                   matrix[x][y] = new ChangingItemStack(ItemStack.EMPTY);
                }
@@ -215,17 +228,24 @@ public class GuideCraftingFactory implements GuidePartFactory {
       }
    }
 
+   //? if >= 1.21.10 {
    static ContextMap displayContext() {
       Minecraft mc = Minecraft.getInstance();
       ClientLevel level = mc == null ? null : mc.level;
       return level != null ? SlotDisplayContext.fromLevel(level) : new Builder().create(SlotDisplayContext.CONTEXT);
    }
+   //?}
 
    static ChangingItemStack ingredientToChanging(Ingredient ingredient) {
-      ContextMap ctx = displayContext();
       List<ItemStack> stacks = new ArrayList<>();
 
+      //? if >= 1.21.10 {
+      ContextMap ctx = displayContext();
       for (ItemStack stack : ingredient.display().resolveForStacks(ctx)) {
+      //?} else {
+      /*// 1.21.1: Ingredient exposes the resolved stacks directly, no SlotDisplay/ContextMap.
+      for (ItemStack stack : ingredient.getItems()) {
+      *///?}
          if (!stack.isEmpty() && stack.getItem() != Items.AIR) {
             stacks.add(stack);
          }

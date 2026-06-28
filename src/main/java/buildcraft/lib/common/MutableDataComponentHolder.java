@@ -9,7 +9,9 @@ package buildcraft.lib.common;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+//? if >= 1.21.10 {
 import net.minecraft.core.component.DataComponentGetter;
+//?}
 import net.minecraft.core.component.DataComponentHolder;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPatch;
@@ -23,6 +25,7 @@ public interface MutableDataComponentHolder extends DataComponentHolder {
       return this.set((DataComponentType<T>)componentType.get(), value);
    }
 
+   //? if >= 1.21.10 {
    default <T> void copyFrom(DataComponentType<T> type, DataComponentGetter getter) {
       this.set(type, getter.get(type));
    }
@@ -30,6 +33,7 @@ public interface MutableDataComponentHolder extends DataComponentHolder {
    default <T> void copyFrom(Supplier<? extends DataComponentType<T>> type, DataComponentGetter getter) {
       this.copyFrom((DataComponentType<T>)type.get(), getter);
    }
+   //?}
 
    default <T, U> @Nullable T update(DataComponentType<T> componentType, T value, U updateContext, BiFunction<T, U, T> updater) {
       return this.set(componentType, updater.apply((T)this.getOrDefault(componentType, value), updateContext));

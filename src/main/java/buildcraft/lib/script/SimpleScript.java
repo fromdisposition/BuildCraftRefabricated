@@ -441,6 +441,12 @@ public class SimpleScript {
    }
 
    public static AutoCloseable createLogFile(String path) {
+      // Only dump the per-script processing log when script debugging is enabled; otherwise it pollutes
+      // the logs/ folder on every reload. logForAll() no-ops while logWriter stays null.
+      if (!DEBUG) {
+         return () -> {};
+      }
+
       logDir = GamePaths.GAMEDIR.resolve("logs/buildcraft/scripts").toFile();
 
       try {

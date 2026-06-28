@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
@@ -97,10 +98,10 @@ public abstract class AIRobotStationNavigate extends AIRobot {
    @Override
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
-      int[] arr = nbt.getIntArray("stationIndex").orElse(new int[0]);
+      int[] arr = BcNbt.getIntArray(nbt, "stationIndex");
       if (arr.length == 3) {
          this.stationIndex = new BlockPos(arr[0], arr[1], arr[2]);
-         this.stationSide = Direction.values()[nbt.getByte("stationSide").orElse((byte)0)];
+         this.stationSide = Direction.values()[BcNbt.getByte(nbt, "stationSide", (byte)0)];
       }
    }
 }

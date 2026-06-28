@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.lib.misc.HashUtil;
@@ -119,10 +120,10 @@ public abstract class Snapshot {
    }
 
    public void deserializeNBT(CompoundTag nbt) throws InvalidInputDataException {
-      this.key = new Snapshot.Key(nbt.getCompoundOrEmpty("key"));
-      this.size = NBTUtilBC.readBlockPos(nbt.getCompoundOrEmpty("size"));
+      this.key = new Snapshot.Key(BcNbt.getCompound(nbt, "key"));
+      this.size = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "size"));
       this.facing = NBTUtilBC.readEnum(nbt.get("facing"), Direction.class);
-      this.offset = NBTUtilBC.readBlockPos(nbt.getCompoundOrEmpty("offset"));
+      this.offset = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "offset"));
    }
 
    public abstract Snapshot copy();
@@ -192,10 +193,10 @@ public abstract class Snapshot {
       }
 
       public Header(CompoundTag nbt) {
-         this.key = new Snapshot.Key(nbt.getCompoundOrEmpty("key"));
+         this.key = new Snapshot.Key(BcNbt.getCompound(nbt, "key"));
          this.owner = NBTUtilBC.getUUID(nbt, "owner");
-         this.created = new Date(nbt.getLongOr("created", 0L));
-         this.name = nbt.getStringOr("name", "");
+         this.created = new Date(BcNbt.getLong(nbt, "created", 0L));
+         this.name = BcNbt.getString(nbt, "name", "");
       }
 
       public Header(FriendlyByteBuf buf) {
@@ -270,8 +271,12 @@ public abstract class Snapshot {
       }
 
       public Key(CompoundTag nbt) {
+         //? if >= 1.21.10 {
          this.hash = nbt.getByteArray("hash").orElse(new byte[0]);
-         this.header = nbt.contains("header") ? new Snapshot.Header(nbt.getCompoundOrEmpty("header")) : null;
+         //?} else {
+         /*this.hash = nbt.getByteArray("hash");
+         *///?}
+         this.header = nbt.contains("header") ? new Snapshot.Header(BcNbt.getCompound(nbt, "header")) : null;
       }
 
       public Key(FriendlyByteBuf buf) {

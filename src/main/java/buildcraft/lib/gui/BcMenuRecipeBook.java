@@ -30,13 +30,19 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+//? if >= 1.21.10 {
 import net.minecraft.world.entity.player.StackedItemContents;
+//?} else {
+/*import net.minecraft.world.entity.player.StackedContents;
+*///?}
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.RecipeBookMenu;
 import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.inventory.Slot;
+//? if >= 1.21.10 {
 import net.minecraft.world.inventory.RecipeBookMenu.PostPlaceAction;
+//?}
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
@@ -48,7 +54,11 @@ import net.minecraft.world.level.ItemLike;
  * (AdvancedCraftingTable, AutoWorkbenchItems, AutoWorkbenchFluids) that show a recipe book panel.
  * All other BC containers extend the leaner {@link BcMenu}.
  */
+//? if >= 1.21.10 {
 public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu {
+//?} else {
+/*public abstract class BcMenuRecipeBook extends RecipeBookMenu<net.minecraft.world.item.crafting.CraftingInput, net.minecraft.world.item.crafting.CraftingRecipe> implements IBcMenu {
+*///?}
    public static final int NET_WIDGET = 0;
    public static final int NET_JEI_RECIPE_TRANSFER = 100;
    public static final int NET_GHOST_SLOT_SET = 101;
@@ -148,9 +158,15 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
 
          if (this.player.level() instanceof ServerLevel serverLevel) {
             ResourceKey<Recipe<?>> key = ResourceKey.create(Registries.RECIPE, recipeId);
+            //? if >= 1.21.10 {
             Optional<RecipeHolder<CraftingRecipe>> holder = serverLevel.recipeAccess()
                .byKey(key)
                .flatMap(r -> r.value() instanceof CraftingRecipe crafting ? Optional.of(new RecipeHolder<>(r.id(), crafting)) : Optional.empty());
+            //?} else {
+            /*Optional<RecipeHolder<CraftingRecipe>> holder = serverLevel.getRecipeManager()
+               .byKey(recipeId)
+               .flatMap(r -> r.value() instanceof CraftingRecipe crafting ? Optional.of(new RecipeHolder<>(r.id(), crafting)) : Optional.empty());
+            *///?}
             holder.ifPresent(recipe -> this.handleRecipeTransfer(recipe, serverLevel, this.player.getInventory()));
          }
       } else if (id == 101 && !isClient) {
@@ -162,10 +178,17 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
                return;
             }
 
+            //? if >= 1.21.10 {
             BuiltInRegistries.ITEM.get(itemIdentifier).ifPresent(itemRef -> {
                ItemStack stack = new ItemStack((ItemLike)itemRef.value(), 1);
                phantom.set(stack);
             });
+            //?} else {
+            /*net.minecraft.world.item.Item bcItem = BuiltInRegistries.ITEM.get(itemIdentifier);
+            if (bcItem != null) {
+               phantom.set(new ItemStack((ItemLike) bcItem, 1));
+            }
+            *///?}
          }
       //? if has_jei {
       } else if (id == NET_JEI_TRANSFER_BUCKETS && !isClient) {
@@ -267,6 +290,7 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
       return player.isAlive() && !player.isRemoved();
    }
 
+   //? if >= 1.21.10 {
    @Override
    public PostPlaceAction handlePlacement(boolean useMaxItems, boolean isCreative, RecipeHolder<?> recipe, ServerLevel level, Inventory playerInv) {
       if (recipe.value() instanceof CraftingRecipe crafting) {
@@ -279,6 +303,47 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
    @Override
    public void fillCraftSlotsStackedContents(StackedItemContents contents) {
    }
+   //?} else {
+   /*// 1.21.1 RecipeBookMenu<I,R> abstract surface. The recipe-book panel is largely non-functional on 1.21.1
+   // (BC's components are versions/1.21.1 stubs); these satisfy the contract with safe defaults.
+   @Override
+   public void fillCraftSlotsStackedContents(StackedContents contents) {
+   }
+
+   @Override
+   public void clearCraftingContent() {
+   }
+
+   @Override
+   public boolean recipeMatches(RecipeHolder<net.minecraft.world.item.crafting.CraftingRecipe> recipe) {
+      return false;
+   }
+
+   @Override
+   public int getResultSlotIndex() {
+      return -1;
+   }
+
+   @Override
+   public int getGridWidth() {
+      return 3;
+   }
+
+   @Override
+   public int getGridHeight() {
+      return 3;
+   }
+
+   @Override
+   public int getSize() {
+      return 10;
+   }
+
+   @Override
+   public boolean shouldMoveToInventory(int slotIndex) {
+      return true;
+   }
+   *///?}
 
    @Override
    public RecipeBookType getRecipeBookType() {

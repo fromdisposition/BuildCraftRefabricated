@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot.pattern.parameter;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
@@ -30,7 +31,7 @@ public enum PatternParameterYDir implements IStatementParameter {
    }
 
    public static PatternParameterYDir readFromNbt(CompoundTag nbt) {
-      return nbt.getBoolean("up").orElse(false) ? UP : DOWN;
+      return BcNbt.getBoolean(nbt, "up", false) ? UP : DOWN;
    }
 
    @Override

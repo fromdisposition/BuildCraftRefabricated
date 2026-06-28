@@ -6,6 +6,7 @@
 
 package buildcraft.lib.misc.data;
 
+import buildcraft.lib.nbt.BcNbt;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.google.common.collect.ImmutableTable.Builder;
@@ -31,7 +32,7 @@ public class AxisOrder {
    }
 
    public static AxisOrder readNbt(CompoundTag nbt) {
-      return getFor(EnumAxisOrder.getOrder(nbt.getStringOr("order", "")), AxisOrder.Inversion.getFor(nbt.getStringOr("inversion", "")));
+      return getFor(EnumAxisOrder.getOrder(BcNbt.getString(nbt, "order", "")), AxisOrder.Inversion.getFor(BcNbt.getString(nbt, "inversion", "")));
    }
 
    public CompoundTag writeNBT() {

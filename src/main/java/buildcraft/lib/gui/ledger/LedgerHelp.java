@@ -15,7 +15,6 @@ import buildcraft.lib.gui.pos.IGuiArea;
 import buildcraft.lib.misc.LocaleUtil;
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 
 public class LedgerHelp extends Ledger_Neptune {
@@ -54,7 +53,7 @@ public class LedgerHelp extends Ledger_Neptune {
          this.foundAny = !elements.isEmpty();
       }
 
-      graphics.blit(RenderPipelines.GUI_TEXTURED, ICON_HELP, (int)x, (int)y, 0.0F, 0.0F, 16, 16, 16, 16);
+      graphics.blit(ICON_HELP, (int)x, (int)y, 0.0F, 0.0F, 16, 16, 16, 16);
    }
 
    @Override

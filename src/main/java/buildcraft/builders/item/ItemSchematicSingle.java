@@ -6,6 +6,7 @@
 
 package buildcraft.builders.item;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.schematics.ISchematicBlock;
@@ -40,7 +41,9 @@ import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.Item.TooltipContext;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.component.TooltipDisplay;
+//?}
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -59,7 +62,17 @@ public class ItemSchematicSingle extends Item {
       return this.used;
    }
 
-   public InteractionResult use(Level world, Player player, InteractionHand hand) {
+   //? if >= 1.21.10 {
+   public InteractionResult use(Level level, Player player, InteractionHand hand) {
+      return this.bcUse(level, player, hand);
+   }
+   //?} else {
+   /*public net.minecraft.world.InteractionResultHolder<net.minecraft.world.item.ItemStack> use(Level level, Player player, InteractionHand hand) {
+      return buildcraft.lib.compat.BcInteract.toUse(this.bcUse(level, player, hand), player, hand);
+   }
+   *///?}
+
+   private InteractionResult bcUse(Level world, Player player, InteractionHand hand) {
       if (world.isClientSide()) {
          return InteractionResult.PASS;
       } else if (this.used && player.isShiftKeyDown()) {
@@ -170,7 +183,7 @@ public class ItemSchematicSingle extends Item {
       if (stack.getItem() instanceof ItemSchematicSingle) {
          CompoundTag itemData = NBTUtilBC.getItemData(stack);
          if (itemData.contains("schematic")) {
-            return SchematicBlockManager.readFromNBT(itemData.getCompoundOrEmpty("schematic"));
+            return SchematicBlockManager.readFromNBT(BcNbt.getCompound(itemData, "schematic"));
          }
       }
 

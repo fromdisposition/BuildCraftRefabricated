@@ -75,7 +75,6 @@ import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
@@ -605,7 +604,7 @@ public enum GuideManager {
          if (graphics != null) {
             TextureAtlasSprite sprite = compassFrame.getSprite();
             if (sprite != null) {
-               graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, (int)x, (int)y, 16, 16, -1);
+               graphics.blitSprite(sprite, (int)x, (int)y, 16, 16, -1);
             }
          }
       };

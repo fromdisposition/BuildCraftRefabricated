@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot.pattern.parameter;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementContainer;
@@ -38,7 +39,7 @@ public enum PatternParameterFacing implements IStatementParameter {
    }
 
    public static PatternParameterFacing readFromNbt(CompoundTag nbt) {
-      return values()[MathUtil.clamp(nbt.getByte("v").orElse((byte)0), 0, 6)];
+      return values()[MathUtil.clamp(BcNbt.getByte(nbt, "v", (byte)0), 0, 6)];
    }
 
    public static PatternParameterFacing get(Direction face) {

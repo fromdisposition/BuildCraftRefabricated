@@ -6,6 +6,7 @@
 
 package buildcraft.builders.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.enums.EnumSnapshotType;
@@ -63,8 +64,8 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.phys.AABB;
 
 public class TileArchitectTable extends BcBlockEntity implements IDebuggable, MenuProvider, BlockEntityExtendedMenu {
@@ -369,7 +370,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
             .setStackInSlot(
                0,
                usedItem.createUsedStack(
-                  new Snapshot.Header(snapshot.key, this.getOwner() != null ? this.getOwner().id() : new UUID(0L, 0L), new Date(), this.name)
+                  new Snapshot.Header(snapshot.key, this.getOwner() != null ? BcAuth.id(this.getOwner()) : new UUID(0L, 0L), new Date(), this.name)
                )
             );
          this.templateScannedBlocks = null;
@@ -377,9 +378,9 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
          this.blueprintScannedPalette.clear();
          this.blueprintScannedEntities.clear();
          if (this.getOwner() != null) {
-            AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT);
+            AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, ADVANCEMENT);
             String paperCriterion = this.snapshotType == EnumSnapshotType.BLUEPRINT ? "write_to_blueprint" : "write_to_template";
-            AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, PaperAdvancement.ID, paperCriterion);
+            AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, PaperAdvancement.ID, paperCriterion);
          }
 
          this.setChanged();
@@ -390,8 +391,8 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       if (this.box.isInitialized()) {
          output.putBoolean("box_initialized", true);
          BlockPos bMin = this.box.min();
@@ -415,8 +416,8 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       if (input.getBooleanOr("box_initialized", false)) {
          int minX = input.getIntOr("box_minX", 0);
          int minY = input.getIntOr("box_minY", 0);

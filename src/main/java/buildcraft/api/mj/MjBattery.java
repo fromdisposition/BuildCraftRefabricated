@@ -6,6 +6,7 @@
 
 package buildcraft.api.mj;
 
+import buildcraft.lib.nbt.BcNbt;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -27,7 +28,7 @@ public class MjBattery {
    }
 
    public void deserializeNBT(CompoundTag nbt) {
-      this.setStored(nbt.getLong("stored").orElse(0L));
+      this.setStored(BcNbt.getLong(nbt, "stored", 0L));
    }
 
    public void writeToBuffer(ByteBuf buffer) {

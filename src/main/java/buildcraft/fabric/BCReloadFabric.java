@@ -6,6 +6,8 @@ import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.guide.GuidePageRegistry;
 import buildcraft.lib.guide.GuideBookRegistry;
 import buildcraft.lib.script.ReloadableRegistryManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.EndDataPackReload;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarted;
@@ -21,7 +23,11 @@ public final class BCReloadFabric {
       if (!commonInit) {
          commonInit = true;
          BuildCraftRegistryManager.managerDataPacks = ReloadableRegistryManager.DATA_PACKS;
-         EventBuildCraftReload.onFinishLoad(GuideManager.INSTANCE::onRegistryReload);
+         // The guidebook is client-only (GuideManager references RenderPipelines/Minecraft/TextureAtlasSprite).
+         // Register its reload hook only on the client so the class never loads on a dedicated server.
+         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+            EventBuildCraftReload.onFinishLoad(GuideManager.INSTANCE::onRegistryReload);
+         }
          touchDataRegistries();
          ServerLifecycleEvents.SERVER_STARTED.register((ServerStarted)server -> ReloadableRegistryManager.DATA_PACKS.reloadAll());
          ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((EndDataPackReload)(server, resourceManager, success) -> {

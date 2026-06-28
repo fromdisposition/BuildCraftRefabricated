@@ -6,6 +6,7 @@
 
 package buildcraft.factory.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjRedstoneReceiver;
@@ -35,8 +36,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHasWork, IAutoCraft {
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftfactory:lazy_crafting");
@@ -182,7 +183,7 @@ public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHa
             if (this.crafting.craft()) {
                this.powerStored = this.crafting.canCraft() ? 1L : 0L;
                if (this.getOwner() != null) {
-                  AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT);
+                  AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, ADVANCEMENT);
                }
             }
          } else {
@@ -274,8 +275,8 @@ public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHa
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.store("items", CompoundTag.CODEC, this.itemManager.serializeNBT());
       output.putLong("powerStored", this.powerStored);
       if (!this.resultClient.isEmpty()) {
@@ -284,8 +285,8 @@ public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHa
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       input.read("items", CompoundTag.CODEC).ifPresent(this.itemManager::deserializeNBT);
       this.powerStored = input.getLongOr("powerStored", 0L);
       this.resultClient = input.read("resultClient", ItemStack.CODEC).orElse(ItemStack.EMPTY);

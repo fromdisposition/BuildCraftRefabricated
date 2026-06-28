@@ -23,12 +23,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+//? if >= 1.21.10 {
 import net.minecraft.util.context.ContextMap;
 import net.minecraft.util.context.ContextMap.Builder;
+//?}
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.crafting.display.SlotDisplayContext;
+//?}
 
 public final class AssemblyRecipeCollector {
    private AssemblyRecipeCollector() {
@@ -50,7 +54,9 @@ public final class AssemblyRecipeCollector {
    }
 
    private static void collectStandard(AssemblyRecipe recipe, List<AssemblyRecipeJei> out) {
+      //? if >= 1.21.10 {
       ContextMap displayCtx = displayContext();
+      //?}
 
       for (ItemStack output : recipe.getOutputPreviews()) {
          if (!output.isEmpty()) {
@@ -59,7 +65,11 @@ public final class AssemblyRecipeCollector {
             for (IngredientStack ing : recipe.getInputsFor(output)) {
                List<ItemStack> slot = new ArrayList<>();
 
+               //? if >= 1.21.10 {
                for (ItemStack template : ing.ingredient.display().resolveForStacks(displayCtx)) {
+               //?} else {
+               /*for (ItemStack template : ing.ingredient.getItems()) {
+               *///?}
                   if (!template.isEmpty() && template.getItem() != Items.AIR) {
                      ItemStack stack = template.copy();
                      stack.setCount(ing.count);
@@ -122,9 +132,11 @@ public final class AssemblyRecipeCollector {
       return id + "@" + output.getComponents().hashCode();
    }
 
+   //? if >= 1.21.10 {
    private static ContextMap displayContext() {
       Minecraft mc = Minecraft.getInstance();
       ClientLevel level = mc == null ? null : mc.level;
       return level != null ? SlotDisplayContext.fromLevel(level) : new Builder().create(SlotDisplayContext.CONTEXT);
    }
+   //?}
 }

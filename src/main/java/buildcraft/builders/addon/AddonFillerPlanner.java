@@ -6,6 +6,7 @@
 
 package buildcraft.builders.addon;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.IBox;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.api.statements.IStatementParameter;
@@ -111,8 +112,8 @@ public class AddonFillerPlanner extends Addon implements ISingleAddon, IFillerSt
 
    @Override
    public void readFromNBT(CompoundTag nbt) {
-      this.patternStatement.readFromNbt(nbt.getCompound("patternStatement").orElse(new CompoundTag()));
-      this.inverted = nbt.getBoolean("inverted").orElse(false);
+      this.patternStatement.readFromNbt(BcNbt.getCompound(nbt, "patternStatement"));
+      this.inverted = BcNbt.getBoolean(nbt, "inverted", false);
    }
 
    @Override

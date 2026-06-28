@@ -6,6 +6,7 @@
 
 package buildcraft.core.marker.volume;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.net.BcPacketDistributor;
 import com.mojang.serialization.Codec;
 import java.util.ArrayList;
@@ -19,14 +20,13 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.Identifier;
+import buildcraft.lib.compat.BcSavedDataType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.saveddata.SavedDataType;
 import net.minecraft.world.phys.AABB;
 
 public class WorldSavedDataVolumeBoxes extends SavedData {
@@ -34,13 +34,9 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
    public Level world;
    public final List<VolumeBox> volumeBoxes = new ArrayList<>();
 
-   public static SavedDataType<WorldSavedDataVolumeBoxes> createType(Level world) {
-      return new SavedDataType<>(
-         //? if >= 26.1 {
-         Identifier.fromNamespaceAndPath("buildcraftcore", "volume_boxes"), () -> new WorldSavedDataVolumeBoxes(world), buildCodec(world), DataFixTypes.LEVEL
-         //?} else {
-         /*"buildcraftcore_volume_boxes", () -> new WorldSavedDataVolumeBoxes(world), buildCodec(world), DataFixTypes.LEVEL
-         *///?}
+   public static BcSavedDataType<WorldSavedDataVolumeBoxes> createType(Level world) {
+      return new BcSavedDataType<>(
+         "buildcraftcore", "volume_boxes", () -> new WorldSavedDataVolumeBoxes(world), buildCodec(world), DataFixTypes.LEVEL
       );
    }
 
@@ -51,10 +47,10 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
    private static WorldSavedDataVolumeBoxes fromNbt(CompoundTag nbt, Level world) {
       WorldSavedDataVolumeBoxes instance = new WorldSavedDataVolumeBoxes(world);
       if (nbt.contains("volumeBoxes")) {
-         ListTag listTag = (ListTag)nbt.getList("volumeBoxes").orElseGet(ListTag::new);
+         ListTag listTag = (ListTag)BcNbt.getList(nbt, "volumeBoxes");
 
          for (int i = 0; i < listTag.size(); i++) {
-            CompoundTag tag = (CompoundTag)listTag.getCompound(i).orElseGet(CompoundTag::new);
+            CompoundTag tag = (CompoundTag)BcNbt.getCompound(listTag, i);
             instance.volumeBoxes.add(new VolumeBox(world, tag));
          }
       }
@@ -252,7 +248,15 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
          throw new IllegalArgumentException("Tried to create a world saved data instance on the client!");
       }
 
-      ServerLevel serverLevel = (ServerLevel)world;
-      return (WorldSavedDataVolumeBoxes)serverLevel.getDataStorage().computeIfAbsent(createType(world));
+      return createType(world).getOrCreate(world, () -> {
+         throw new IllegalArgumentException("Tried to create a world saved data instance on the client!");
+      });
    }
+
+   //? if < 1.21.10 {
+   /*@Override
+   public CompoundTag save(CompoundTag tag, net.minecraft.core.HolderLookup.Provider provider) {
+      return BcSavedDataType.encode(buildCodec(this.world), this, tag, provider);
+   }
+   *///?}
 }

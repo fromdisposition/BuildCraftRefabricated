@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCDebugging;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.facades.FacadeAPI;
@@ -283,7 +284,7 @@ public enum FacadeStateManager implements IFacadeRegistry {
 
                FacadePhasedState phasedState = info.createPhased(null);
                CompoundTag nbt = phasedState.writeToNbt();
-               BlockState nbtReadState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, nbt.getCompoundOrEmpty("state"));
+               BlockState nbtReadState = NbtUtils.readBlockState(buildcraft.lib.fabric.BcRegistryUtil.blockLookup(), BcNbt.getCompound(nbt, "state"));
                if (nbtReadState != info.state) {
                   throw new IllegalStateException(
                      "Read (from NBT) state was different! (\n\t" + nbtReadState + "\n !=\n\t" + info.state + "\n\tNBT = " + nbt + "\n)"

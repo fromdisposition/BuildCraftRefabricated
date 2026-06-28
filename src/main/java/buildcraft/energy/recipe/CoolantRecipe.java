@@ -18,10 +18,12 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+//? if >= 1.21.10 {
 import net.minecraft.world.item.crafting.PlacementInfo;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
+//?}
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
@@ -70,15 +72,40 @@ public record CoolantRecipe(
       return false;
    }
 
+   //? if >= 1.21.10 {
    @Override
    public String group() {
       return "";
    }
+   //?} else {
+   /*@Override
+   public String getGroup() {
+      return "";
+   }
+   *///?}
 
+   //? if >= 1.21.10 {
    @Override
    public PlacementInfo placementInfo() {
       return PlacementInfo.NOT_PLACEABLE;
    }
+
+   @Override
+   public RecipeBookCategory recipeBookCategory() {
+      return RecipeBookCategories.CRAFTING_MISC;
+   }
+   //?} else {
+   /*// 1.21.1 Recipe pre-dates the 1.21.4 placement/book-category overhaul; supply the older abstract methods.
+   @Override
+   public ItemStack getResultItem(net.minecraft.core.HolderLookup.Provider provider) {
+      return ItemStack.EMPTY;
+   }
+
+   @Override
+   public boolean canCraftInDimensions(int width, int height) {
+      return false;
+   }
+   *///?}
 
    @Override
    public RecipeType<CoolantRecipe> getType() {
@@ -88,11 +115,6 @@ public record CoolantRecipe(
    @Override
    public RecipeSerializer<CoolantRecipe> getSerializer() {
       return SERIALIZER;
-   }
-
-   @Override
-   public RecipeBookCategory recipeBookCategory() {
-      return RecipeBookCategories.CRAFTING_MISC;
    }
 
    public boolean matchesFluid(Fluid other) {

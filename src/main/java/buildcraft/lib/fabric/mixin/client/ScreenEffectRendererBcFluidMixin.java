@@ -24,7 +24,7 @@ public class ScreenEffectRendererBcFluidMixin {
    //   26.1.2  : renderScreenEffect(boolean isFirstPerson, boolean isSleeping, float, SubmitNodeCollector, boolean hideGui) — 5-arg
    //   26.2+ : same 5 args but the method was renamed to submit(...)
    //? if >= 26.2 {
-   /*@Inject(
+   @Inject(
       method = "submit",
       at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isOnFire()Z"),
       locals = LocalCapture.CAPTURE_FAILHARD
@@ -40,8 +40,8 @@ public class ScreenEffectRendererBcFluidMixin {
    ) {
       FluidWorldRenderer.renderSubmergedOverlay(this.minecraft, poseStack, submitNodeCollector);
    }
-   *///?} else if >= 26.1 {
-   @Inject(
+   //?} else if >= 26.1 {
+   /*@Inject(
       method = "renderScreenEffect",
       at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isOnFire()Z"),
       locals = LocalCapture.CAPTURE_FAILHARD
@@ -57,7 +57,7 @@ public class ScreenEffectRendererBcFluidMixin {
    ) {
       FluidWorldRenderer.renderSubmergedOverlay(this.minecraft, poseStack, submitNodeCollector);
    }
-   //?} else {
+   *///?} else {
    /*@Inject(
       method = "renderScreenEffect",
       at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isOnFire()Z"),

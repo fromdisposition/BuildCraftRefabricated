@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.flow;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjPassiveProvider;
 import buildcraft.api.mj.IMjReceiver;
@@ -55,7 +56,7 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
 
    public PipeFlowPower(IPipe pipe, CompoundTag nbt) {
       super(pipe, nbt);
-      this.isReceiver = nbt.getBooleanOr("isReceiver", false);
+      this.isReceiver = BcNbt.getBoolean(nbt, "isReceiver", false);
       this.sections = new EnumMap<>(Direction.class);
 
       for (Direction face : Direction.values()) {
@@ -83,9 +84,9 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
 
    @Override
    public void readFromNbt(CompoundTag nbt) {
-      this.isReceiver = nbt.getBooleanOr("isReceiver", false);
-      int[] powers = nbt.getIntArray("displayPower").orElse(new int[6]);
-      int[] flows = nbt.getIntArray("displayFlow").orElse(new int[6]);
+      this.isReceiver = BcNbt.getBoolean(nbt, "isReceiver", false);
+      int[] powers = BcNbt.getIntArray(nbt, "displayPower");
+      int[] flows = BcNbt.getIntArray(nbt, "displayFlow");
 
       for (Direction face : Direction.values()) {
          int i = face.ordinal();

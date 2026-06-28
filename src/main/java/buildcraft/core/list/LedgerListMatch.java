@@ -14,7 +14,6 @@ import buildcraft.lib.gui.ledger.Ledger_Neptune;
 import buildcraft.lib.list.ListHandler;
 import buildcraft.lib.misc.LocaleUtil;
 import java.util.List;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
@@ -39,7 +38,7 @@ public class LedgerListMatch extends Ledger_Neptune {
 
    @Override
    protected void drawIcon(double x, double y, BCGraphics graphics) {
-      graphics.blit(RenderPipelines.GUI_TEXTURED, ICON, (int)x, (int)y, 0.0F, 0.0F, 16, 16, 16, 16);
+      graphics.blit(ICON, (int)x, (int)y, 0.0F, 0.0F, 16, 16, 16, 16);
    }
 
    @Override

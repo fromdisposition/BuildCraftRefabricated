@@ -7,6 +7,7 @@
 package buildcraft.factory.tile;
 
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
@@ -58,8 +59,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluid;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 
 public class TileFloodGate extends BlockEntity implements IDebuggable {
    private static final Direction[] SEARCH_NORMAL = new Direction[]{Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
@@ -224,7 +229,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
                      FluidStack placed = FluidStorageInteractions.tryPlaceFluid(this.fluidTank, fakePlayer, this.level, InteractionHand.MAIN_HAND, currentPos);
                      if (!placed.isEmpty()) {
                         if (this.owner != null) {
-                           AdvancementUtil.unlockAdvancement(this.owner.id(), this.level, ADVANCEMENT_FLOODING_THE_WORLD);
+                           AdvancementUtil.unlockAdvancement(BcAuth.id(this.owner), this.level, ADVANCEMENT_FLOODING_THE_WORLD);
                         }
 
                         this.delayIndex = 0;
@@ -246,13 +251,17 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
       }
    }
 
+   //? if >= 1.21.10 {
    @Override
+   //?}
    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
       if (this.level != null && !this.level.isClientSide()) {
          this.dropTankContents(pos);
       }
 
+      //? if >= 1.21.10 {
       super.preRemoveSideEffects(pos, state);
+      //?}
    }
 
    private void dropTankContents(BlockPos pos) {
@@ -270,12 +279,33 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
       }
    }
 
+   //? if >= 1.21.10 {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
-      if (this.owner != null && this.owner.id() != null) {
-         output.putString("ownerUUID", this.owner.id().toString());
-         if (this.owner.name() != null) {
-            output.putString("ownerName", this.owner.name());
+      this.writeData(new BcValueOut(output));
+   }
+
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+
+   protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
+      if (this.owner != null && BcAuth.id(this.owner) != null) {
+         output.putString("ownerUUID", BcAuth.id(this.owner).toString());
+         if (BcAuth.name(this.owner) != null) {
+            output.putString("ownerName", BcAuth.name(this.owner));
          }
       }
 
@@ -291,8 +321,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
       this.fluidTank.serialize(output);
    }
 
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   protected void readData(BcValueIn input) {
       String ownerUuid = input.getStringOr("ownerUUID", "");
       if (!ownerUuid.isEmpty()) {
          try {
@@ -349,7 +378,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
    @Override
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
       left.add("fluid = " + FluidDisplayNames.debugString(this.fluidTank.getFluidStack()));
-      left.add("owner = " + (this.owner != null ? this.owner.name() : "none"));
+      left.add("owner = " + (this.owner != null ? BcAuth.name(this.owner) : "none"));
       left.add("openSides = " + this.openSides.stream().map(Enum::name).collect(Collectors.joining(", ")));
       left.add("delay = " + this.getCurrentDelay());
       left.add("tick = " + this.tick);

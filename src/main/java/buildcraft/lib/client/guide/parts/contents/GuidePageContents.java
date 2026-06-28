@@ -27,9 +27,11 @@ import java.util.Set;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.EditBox;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 
@@ -47,7 +49,9 @@ public class GuidePageContents extends GuidePageBase {
       this.searchText = new EditBox(Minecraft.getInstance().font, 0, 0, 80, 14, Component.empty());
       this.searchText.setBordered(false);
       this.searchText.setTextColor(-16777216);
+      //? if >= 1.21.10 {
       this.searchText.setTextShadow(false);
+      //?}
       this.setupChapters();
    }
 
@@ -277,6 +281,7 @@ public class GuidePageContents extends GuidePageBase {
    }
 
    @Override
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
       double mouseX = event.x();
       double mouseY = event.y();
@@ -300,6 +305,28 @@ public class GuidePageContents extends GuidePageBase {
          return super.mouseClicked(event, doubleClick);
       }
    }
+   //?} else {
+   /*public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+      if (this.searchText.isFocused() && this.searchText.mouseClicked(mouseX, mouseY, mouseButton)) {
+         return true;
+      } else if (this.getIndex() != 0 && this.isOverOrderIcon(mouseX, mouseY)) {
+         return false;
+      } else if (!this.searchText.isFocused()
+         && new GuiRectangle(this.searchText.getX() - 25, this.searchText.getY() - 18, 40.0, 34.0).contains(mouseX, mouseY)) {
+         this.searchText.setFocused(true);
+         return true;
+      } else if (mouseButton == 1
+         && mouseX >= this.searchText.getX()
+         && mouseX < this.searchText.getX() + this.searchText.getWidth()
+         && mouseY >= this.searchText.getY()
+         && mouseY < this.searchText.getY() + this.searchText.getHeight()) {
+         this.searchText.setValue("");
+         return true;
+      } else {
+         return super.mouseClicked(mouseX, mouseY, mouseButton);
+      }
+   }
+   *///?}
 
    private boolean isOverOrderIcon(double mouseX, double mouseY) {
       int pageX = this.searchText.getX() - 23;
@@ -319,6 +346,7 @@ public class GuidePageContents extends GuidePageBase {
    }
 
    @Override
+   //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       return this.searchText.isFocused() && this.searchText.keyPressed(event) ? true : super.keyPressed(event);
    }
@@ -327,4 +355,14 @@ public class GuidePageContents extends GuidePageBase {
    public boolean charTyped(CharacterEvent event) {
       return this.searchText.isFocused() && this.searchText.charTyped(event) ? true : super.charTyped(event);
    }
+   //?} else {
+   /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+      return this.searchText.isFocused() && this.searchText.keyPressed(keyCode, scanCode, modifiers) ? true : super.keyPressed(keyCode, scanCode, modifiers);
+   }
+
+   @Override
+   public boolean charTyped(char chr, int modifiers) {
+      return this.searchText.isFocused() && this.searchText.charTyped(chr, modifiers) ? true : super.charTyped(chr, modifiers);
+   }
+   *///?}
 }

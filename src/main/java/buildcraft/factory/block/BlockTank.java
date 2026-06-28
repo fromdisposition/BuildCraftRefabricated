@@ -6,6 +6,8 @@
 
 package buildcraft.factory.block;
 
+import buildcraft.lib.compat.BcInteract;
+
 
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
 import buildcraft.api.properties.BuildCraftProperties;
@@ -26,7 +28,9 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.ScheduledTickAccess;
+//?}
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -66,6 +70,21 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileTank(pos, state);
    }
+
+   // On 1.21.1 the block-entity hook preRemoveSideEffects (1.21.2+) is never invoked by vanilla, so the
+   // fluid-shard drop is triggered here from the classic Block.onRemove (BE still present before super removes
+   // it). On 1.21.10+ vanilla calls TileTank.preRemoveSideEffects directly, so this override is omitted.
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock())) {
+         if (level.getBlockEntity(pos) instanceof TileTank tile) {
+            tile.preRemoveSideEffects(pos, state);
+         }
+      }
+      super.onRemove(state, level, pos, newState, movedByPiston);
+   }
+   *///?}
 
    @Nullable
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
@@ -107,22 +126,27 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
       return (BlockState)this.defaultBlockState().setValue(JOINED_BELOW, isTankBelow);
    }
 
+   //? if >= 1.21.10 {
    protected BlockState updateShape(
-      BlockState state,
-      LevelReader level,
-      ScheduledTickAccess scheduledTickAccess,
-      BlockPos pos,
-      Direction direction,
-      BlockPos neighborPos,
-      BlockState neighborState,
-      RandomSource random
+      BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
+      Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random
    ) {
+   //?} else {
+   /*protected BlockState updateShape(
+      BlockState state, Direction direction, BlockState neighborState, net.minecraft.world.level.LevelAccessor level,
+      BlockPos pos, BlockPos neighborPos
+   ) {
+   *///?}
       if (direction == Direction.DOWN) {
          boolean isTankBelow = neighborState.getBlock() instanceof ITankBlockConnector;
          return (BlockState)state.setValue(JOINED_BELOW, isTankBelow);
       }
 
+      //? if >= 1.21.10 {
       return super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);
+      //?} else {
+      /*return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+      *///?}
    }
 
    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
@@ -145,6 +169,12 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
    }
 
    protected InteractionResult useItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
+      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
+   }
+
+   protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
       if (player.getItemInHand(hand).isEmpty()) {

@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.flow;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.core.IFluidFilter;
@@ -235,7 +236,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       }
 
       if (nbt.contains("fluid_id")) {
-         String fluidId = nbt.getStringOr("fluid_id", "");
+         String fluidId = BcNbt.getString(nbt, "fluid_id", "");
          if (!fluidId.isEmpty()) {
             Identifier fluidRL = Identifier.parse(fluidId);
             Fluid fluid = BcRegistryUtil.getFluid(fluidRL);
@@ -255,7 +256,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          int direction = part.getIndex();
          String key = "tank[" + direction + "]";
          if (nbt.contains(key)) {
-            CompoundTag compound = nbt.getCompoundOrEmpty(key);
+            CompoundTag compound = BcNbt.getCompound(nbt, key);
             this.sections.get(part).readFromNbt(compound);
          }
       }
@@ -281,7 +282,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    @Override
    public void readFromNbt(CompoundTag nbt) {
       if (nbt.contains("fluid_id")) {
-         String fluidId = nbt.getStringOr("fluid_id", "");
+         String fluidId = BcNbt.getString(nbt, "fluid_id", "");
          if (!fluidId.isEmpty()) {
             Identifier fluidRL = Identifier.parse(fluidId);
             Fluid fluid = BcRegistryUtil.getFluid(fluidRL);
@@ -301,7 +302,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          int direction = part.getIndex();
          String key = "tank[" + direction + "]";
          if (nbt.contains(key)) {
-            CompoundTag compound = nbt.getCompoundOrEmpty(key);
+            CompoundTag compound = BcNbt.getCompound(nbt, key);
             this.sections.get(part).readFromNbt(compound);
          }
       }
@@ -812,16 +813,16 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       }
 
       void readFromNbt(CompoundTag nbt) {
-         this.amount = nbt.contains("amount") ? nbt.getShortOr("amount", (short)0) : nbt.getShortOr("capacity", (short)0);
-         this.lastSentAmount = nbt.getShortOr("lastSentAmount", (short)0);
-         this.ticksInDirection = nbt.getShortOr("ticksInDirection", (short)0);
+         this.amount = nbt.contains("amount") ? BcNbt.getShort(nbt, "amount", (short)0) : BcNbt.getShort(nbt, "capacity", (short)0);
+         this.lastSentAmount = BcNbt.getShort(nbt, "lastSentAmount", (short)0);
+         this.ticksInDirection = BcNbt.getShort(nbt, "ticksInDirection", (short)0);
          this.target = this.amount;
          this.clientAmountThis = this.amount;
          this.clientAmountLast = this.amount;
          this.incomingTotalCache = 0;
 
          for (int i = 0; i < this.incoming.length; i++) {
-            this.incomingTotalCache = this.incomingTotalCache + (this.incoming[i] = nbt.getShortOr("in[" + i + "]", (short)0));
+            this.incomingTotalCache = this.incomingTotalCache + (this.incoming[i] = BcNbt.getShort(nbt, "in[" + i + "]", (short)0));
          }
       }
 

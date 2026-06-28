@@ -141,10 +141,17 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
                return;
             }
 
+            //? if >= 1.21.10 {
             BuiltInRegistries.ITEM.get(itemIdentifier).ifPresent(itemRef -> {
                ItemStack stack = new ItemStack((ItemLike)itemRef.value(), 1);
                phantom.set(stack);
             });
+            //?} else {
+            /*net.minecraft.world.item.Item bcItem = BuiltInRegistries.ITEM.get(itemIdentifier);
+            if (bcItem != null) {
+               phantom.set(new ItemStack((ItemLike) bcItem, 1));
+            }
+            *///?}
          }
       //? if has_jei {
       } else if (id == NET_JEI_TRANSFER_BUCKETS && !isClient) {

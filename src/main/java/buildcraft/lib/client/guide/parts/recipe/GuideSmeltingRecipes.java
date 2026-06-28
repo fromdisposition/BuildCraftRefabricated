@@ -48,7 +48,7 @@ public enum GuideSmeltingRecipes implements IStackRecipes {
          List<GuidePartFactory> list = new ArrayList<>();
 
          for (RecipeHolder<?> holder : manager.getRecipes()) {
-            if (holder.value() instanceof SmeltingRecipe smelt && smelt.input().test(stack)) {
+            if (holder.value() instanceof SmeltingRecipe smelt && cookingInput(smelt).test(stack)) {
                ItemStack output = smeltOutput(smelt);
                if (!output.isEmpty()) {
                   list.add(new GuideSmeltingFactory(stack, output));
@@ -90,6 +90,16 @@ public enum GuideSmeltingRecipes implements IStackRecipes {
    }
 
    private static ItemStack getIngredientStack(AbstractCookingRecipe recipe) {
-      return GuideCraftingFactory.ingredientToChanging(recipe.input()).get().baseStack;
+      return GuideCraftingFactory.ingredientToChanging(cookingInput(recipe)).get().baseStack;
    }
+
+   //? if >= 1.21.10 {
+   private static net.minecraft.world.item.crafting.Ingredient cookingInput(AbstractCookingRecipe recipe) {
+      return recipe.input();
+   }
+   //?} else {
+   /*private static net.minecraft.world.item.crafting.Ingredient cookingInput(AbstractCookingRecipe recipe) {
+      return recipe.getIngredients().get(0);
+   }
+   *///?}
 }

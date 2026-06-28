@@ -20,8 +20,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TileConstructionMarker extends BcBlockEntity {
    private ItemStack blueprintStack = ItemStack.EMPTY;
@@ -124,16 +124,16 @@ public class TileConstructionMarker extends BcBlockEntity {
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       if (!this.blueprintStack.isEmpty()) {
          output.store("blueprint", ItemStack.CODEC, this.blueprintStack);
       }
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.blueprintStack = input.read("blueprint", ItemStack.CODEC).orElse(ItemStack.EMPTY);
       this.recomputeBuildingInfo();
    }

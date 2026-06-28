@@ -27,6 +27,11 @@ public class FacadeSwapRecipe extends CustomRecipe {
       super(net.minecraft.world.item.crafting.CraftingBookCategory.MISC);
    }
    *///?}
+   //? if < 1.21.10 {
+   /*public boolean canCraftInDimensions(int width, int height) {
+      return width * height >= 1;
+   }
+   *///?}
    public static final FacadeSwapRecipe INSTANCE = new FacadeSwapRecipe();
    public static final MapCodec<FacadeSwapRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
    public static final StreamCodec<RegistryFriendlyByteBuf, FacadeSwapRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);

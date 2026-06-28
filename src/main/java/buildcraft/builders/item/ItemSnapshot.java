@@ -6,6 +6,7 @@
 
 package buildcraft.builders.item;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.builders.tooltip.BlueprintPreviewTooltipComponent;
@@ -55,7 +56,7 @@ public class ItemSnapshot extends Item {
          if (customData != null) {
             CompoundTag nbt = customData.copyTag();
             if (nbt.contains("header")) {
-               return new Snapshot.Header(nbt.getCompoundOrEmpty("header"));
+               return new Snapshot.Header(BcNbt.getCompound(nbt, "header"));
             }
          }
       }

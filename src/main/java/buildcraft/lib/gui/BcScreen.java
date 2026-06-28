@@ -13,7 +13,9 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -109,7 +111,7 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       BCGraphics bcg = new BCGraphics(graphics);
       GuiIcon.setGuiGraphics(bcg);
       super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
-      graphics.nextStratum();
+      bcg.nextStratum();
       this.mainGui.drawDragLayer(bcg);
       this.mainGui.drawMenuOverlayLayer(bcg);
       this.drawTooltipLayer(mouseX, mouseY, partialTicks);
@@ -130,13 +132,14 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       super.render(graphics, mouseX, mouseY, partialTicks);
       BCGraphics bcg = new BCGraphics(graphics);
       GuiIcon.setGuiGraphics(bcg);
-      graphics.nextStratum();
+      bcg.nextStratum();
       this.mainGui.drawDragLayer(bcg);
       this.mainGui.drawMenuOverlayLayer(bcg);
       this.drawTooltipLayer(mouseX, mouseY, partialTicks);
    }
    *///?}
 
+   //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
       int mouseX = (int)event.x();
       int mouseY = (int)event.y();
@@ -159,6 +162,27 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       this.mainGui.onMouseDragged(mouseX, mouseY, button, 0L);
       return super.mouseDragged(event, dragX, dragY);
    }
+   //?} else {
+   /*public boolean mouseClicked(double mouseXd, double mouseYd, int button) {
+      int mouseX = (int)mouseXd;
+      int mouseY = (int)mouseYd;
+      return this.mainGui.onMouseClicked(mouseX, mouseY, button) ? true : super.mouseClicked(mouseXd, mouseYd, button);
+   }
+
+   public boolean mouseReleased(double mouseXd, double mouseYd, int button) {
+      int mouseX = (int)mouseXd;
+      int mouseY = (int)mouseYd;
+      this.mainGui.onMouseReleased(mouseX, mouseY, button);
+      return super.mouseReleased(mouseXd, mouseYd, button);
+   }
+
+   public boolean mouseDragged(double mouseXd, double mouseYd, int button, double dragX, double dragY) {
+      int mouseX = (int)mouseXd;
+      int mouseY = (int)mouseYd;
+      this.mainGui.onMouseDragged(mouseX, mouseY, button, 0L);
+      return super.mouseDragged(mouseXd, mouseYd, button, dragX, dragY);
+   }
+   *///?}
 
    @Override
    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {

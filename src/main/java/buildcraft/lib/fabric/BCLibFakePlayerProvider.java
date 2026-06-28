@@ -1,5 +1,6 @@
 package buildcraft.lib.fabric;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.core.IFakePlayerProvider;
 import com.mojang.authlib.GameProfile;
@@ -42,17 +43,21 @@ public final class BCLibFakePlayerProvider implements IFakePlayerProvider {
       double y = pos.getY() + 0.5;
       double z = pos.getZ() + 0.5;
       if (player.level() != world) {
+         //? if >= 1.21.10 {
          player.teleportTo(world, x, y, z, Set.of(), player.getYRot(), player.getXRot(), false);
+         //?} else {
+         /*player.teleportTo(world, x, y, z, Set.of(), player.getYRot(), player.getXRot());
+         *///?}
       } else {
          player.setPos(x, y, z);
       }
    }
 
    private static GameProfile normalizeProfile(@Nullable GameProfile profile) {
-      if (profile == null || profile.id() == null) {
+      if (profile == null || BcAuth.id(profile) == null) {
          return NULL_PROFILE;
       } else {
-         return profile.name() != null && !profile.name().isEmpty() ? profile : new GameProfile(profile.id(), "[BuildCraft]");
+         return BcAuth.name(profile) != null && !BcAuth.name(profile).isEmpty() ? profile : new GameProfile(BcAuth.id(profile), "[BuildCraft]");
       }
    }
 

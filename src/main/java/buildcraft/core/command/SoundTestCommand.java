@@ -23,8 +23,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+//? if >= 1.21.10 {
 import net.minecraft.network.chat.ClickEvent.RunCommand;
 import net.minecraft.network.chat.HoverEvent.ShowText;
+//?}
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -82,7 +84,11 @@ public class SoundTestCommand {
    private static int play(CommandContext<CommandSourceStack> ctx, float pitch, float volume) {
       CommandSourceStack source = (CommandSourceStack)ctx.getSource();
       Identifier soundId = IdentifierArgument.getId(ctx, "sound");
+      //? if >= 1.21.10 {
       SoundEvent event = (SoundEvent)BuiltInRegistries.SOUND_EVENT.getValue(soundId);
+      //?} else {
+      /*SoundEvent event = (SoundEvent)BuiltInRegistries.SOUND_EVENT.get(soundId);
+      *///?}
       if (event == null) {
          source.sendFailure(Component.literal("Unknown sound: " + soundId).withStyle(ChatFormatting.RED));
          return 0;
@@ -113,8 +119,15 @@ public class SoundTestCommand {
 
          for (float pitch : PITCHES) {
             String cmd = "/bcsoundtest " + sound + " " + pitch;
+            //? if >= 1.21.10 {
             MutableComponent button = Component.literal("[" + formatPitch(pitch) + "]")
                .withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(new RunCommand(cmd)).withHoverEvent(new ShowText(Component.literal(cmd))));
+            //?} else {
+            /*MutableComponent button = Component.literal("[" + formatPitch(pitch) + "]")
+               .withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)
+                  .withClickEvent(new net.minecraft.network.chat.ClickEvent(net.minecraft.network.chat.ClickEvent.Action.RUN_COMMAND, cmd))
+                  .withHoverEvent(new net.minecraft.network.chat.HoverEvent(net.minecraft.network.chat.HoverEvent.Action.SHOW_TEXT, Component.literal(cmd))));
+            *///?}
             line.append(Component.literal(" ")).append(button);
          }
 

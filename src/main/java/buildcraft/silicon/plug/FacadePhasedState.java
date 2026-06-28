@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.plug;
 
+import buildcraft.lib.nbt.BcNbt;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.facades.IFacadePhasedState;
 import buildcraft.api.facades.IFacadeState;
@@ -35,7 +36,7 @@ public class FacadePhasedState implements IFacadePhasedState {
       FacadeBlockStateInfo stateInfo = FacadeStateManager.defaultState;
       if (nbt.contains("state")) {
          try {
-            BlockState blockState = NbtUtils.readBlockState(BuiltInRegistries.BLOCK, nbt.getCompoundOrEmpty("state"));
+            BlockState blockState = NbtUtils.readBlockState(buildcraft.lib.fabric.BcRegistryUtil.blockLookup(), BcNbt.getCompound(nbt, "state"));
             stateInfo = FacadeStateManager.validFacadeStates.get(blockState);
             if (stateInfo == null) {
                stateInfo = FacadeStateManager.defaultState;

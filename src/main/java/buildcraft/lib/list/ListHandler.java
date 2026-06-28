@@ -6,6 +6,7 @@
 
 package buildcraft.lib.list;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.lists.ListMatchHandler;
 import buildcraft.api.lists.ListRegistry;
@@ -74,12 +75,12 @@ public final class ListHandler {
       if (customData != null) {
          CompoundTag data = customData.copyTag();
          if (data.contains("written") && data.contains("lines")) {
-            ListTag list = (ListTag)data.getList("lines").orElse(null);
+            ListTag list = (ListTag)BcNbt.getList(data, "lines");
             if (list != null) {
                ListHandler.Line[] lines = new ListHandler.Line[list.size()];
 
                for (int i = 0; i < lines.length; i++) {
-                  CompoundTag lineTag = (CompoundTag)list.getCompound(i).orElse(null);
+                  CompoundTag lineTag = (CompoundTag)BcNbt.getCompound(list, i);
                   lines[i] = lineTag != null ? ListHandler.Line.fromTag(lineTag) : new ListHandler.Line();
                }
 
@@ -143,10 +144,10 @@ public final class ListHandler {
 
       CompoundTag data = customData.copyTag();
       if (data.contains("written") && data.contains("lines")) {
-         ListTag list = (ListTag)data.getList("lines").orElse(null);
+         ListTag list = (ListTag)BcNbt.getList(data, "lines");
          if (list != null) {
             for (int i = 0; i < list.size(); i++) {
-               CompoundTag lineTag = (CompoundTag)list.getCompound(i).orElse(null);
+               CompoundTag lineTag = (CompoundTag)BcNbt.getCompound(list, i);
                if (lineTag != null) {
                   ListHandler.Line line = ListHandler.Line.fromTag(lineTag);
                   if (line.matches(item)) {
@@ -266,10 +267,10 @@ public final class ListHandler {
       public static ListHandler.Line fromTag(CompoundTag data) {
          ListHandler.Line line = new ListHandler.Line();
          if (data != null && data.contains("st")) {
-            ListTag l = (ListTag)data.getList("st").orElse(null);
+            ListTag l = (ListTag)BcNbt.getList(data, "st");
             if (l != null) {
                for (int i = 0; i < l.size() && i < 9; i++) {
-                  CompoundTag itemTag = (CompoundTag)l.getCompound(i).orElse(null);
+                  CompoundTag itemTag = (CompoundTag)BcNbt.getCompound(l, i);
                   if (itemTag != null) {
                      Tag stackPayload = itemTag.get("stack");
                      if (stackPayload != null) {
@@ -280,8 +281,8 @@ public final class ListHandler {
                            .filter(s -> !s.isEmpty())
                            .ifPresent(s -> line.stacks.set(slotIdx, s));
                      } else if (itemTag.contains("id")) {
-                        String itemId = itemTag.getString("id").orElse("");
-                        int count = itemTag.getInt("count").orElse(1);
+                        String itemId = BcNbt.getString(itemTag, "id", "");
+                        int count = BcNbt.getInt(itemTag, "count", 1);
                         Identifier id = Identifier.tryParse(itemId);
                         if (id != null) {
                            Item item = BcRegistryUtil.getItem(id);
@@ -294,9 +295,9 @@ public final class ListHandler {
                }
             }
 
-            line.precise = data.getBoolean("Fp").orElse(false);
-            line.byType = data.getBoolean("Ft").orElse(false);
-            line.byMaterial = data.getBoolean("Fm").orElse(false);
+            line.precise = BcNbt.getBoolean(data, "Fp", false);
+            line.byType = BcNbt.getBoolean(data, "Ft", false);
+            line.byMaterial = BcNbt.getBoolean(data, "Fm", false);
          }
 
          return line;

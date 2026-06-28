@@ -7,6 +7,7 @@
 package buildcraft.builders.snapshot;
 
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.fluid.container.FluidContainers;
 import buildcraft.lib.fluid.identity.FluidIdentity;
 import buildcraft.lib.fabric.BcRegistryUtil;
@@ -276,13 +277,13 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
          })
          .map(stack -> {
             CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
-            CompoundTag fluidTag = customData.copyTag().getCompoundOrEmpty("BuilderFluidStack");
+            CompoundTag fluidTag = BcNbt.getCompound(customData.copyTag(), "BuilderFluidStack");
             if (fluidTag.isEmpty()) {
                return FluidStack.EMPTY;
             }
 
-            String fluidIdStr = fluidTag.getString("fluid").orElse("");
-            int amount = fluidTag.getInt("amount").orElse(0);
+            String fluidIdStr = BcNbt.getString(fluidTag, "fluid", "");
+            int amount = BcNbt.getInt(fluidTag, "amount", 0);
             if (!fluidIdStr.isEmpty() && amount > 0) {
                Identifier id = Identifier.tryParse(fluidIdStr);
                if (id == null) {

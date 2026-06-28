@@ -6,6 +6,7 @@
 
 package buildcraft.factory.tile;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
@@ -47,8 +48,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.phys.AABB;
 
 public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntityExtendedMenu {
@@ -236,7 +237,7 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
 
    private void grantAdvancement() {
       if (this.getOwner() != null) {
-         AdvancementUtil.unlockAdvancement(this.getOwner().id(), this.level, ADVANCEMENT);
+         AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, ADVANCEMENT);
       }
    }
 
@@ -254,26 +255,30 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
       return new ContainerChute(containerId, playerInv, this);
    }
 
+   //? if >= 1.21.10 {
    @Override
+   //?}
    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
       if (this.level != null && !this.level.isClientSide()) {
          BlockDropsUtil.dropTileContents(this.level, pos, this);
       }
 
+      //? if >= 1.21.10 {
       super.preRemoveSideEffects(pos, state);
+      //?}
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putInt("progress", this.progress);
       output.putLong("mjStored", this.battery.getStored());
       output.store("items", CompoundTag.CODEC, this.itemManager.serializeNBT());
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.progress = input.getIntOr("progress", 0);
       this.battery.addPowerChecking(input.getLongOr("mjStored", 0L), false);
       input.read("items", CompoundTag.CODEC).ifPresent(this.itemManager::deserializeNBT);

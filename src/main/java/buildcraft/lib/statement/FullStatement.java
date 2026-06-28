@@ -6,6 +6,7 @@
 
 package buildcraft.lib.statement;
 
+import buildcraft.lib.nbt.BcNbt;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementParameter;
@@ -37,12 +38,12 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
    }
 
    public void readFromNbt(CompoundTag nbt) {
-      this.statement = this.type.readFromNbt(nbt.getCompound("s").orElse(new CompoundTag()));
+      this.statement = this.type.readFromNbt(BcNbt.getCompound(nbt, "s"));
       if (this.statement == null) {
          Arrays.fill(this.params, null);
       } else {
          for (int p = 0; p < this.params.length; p++) {
-            CompoundTag pNbt = nbt.getCompound(Integer.toString(p)).orElse(new CompoundTag());
+            CompoundTag pNbt = BcNbt.getCompound(nbt, Integer.toString(p));
             this.params[p] = StatementTypeParam.INSTANCE.readFromNbt(pNbt);
          }
       }

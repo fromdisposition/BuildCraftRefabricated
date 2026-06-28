@@ -26,7 +26,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.ScheduledTickAccess;
+//?}
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -74,16 +76,17 @@ public class BlockChute extends BaseEntityBlock {
       return computeAllConnections(context.getLevel(), context.getClickedPos(), state);
    }
 
+   //? if >= 1.21.10 {
    protected BlockState updateShape(
-      BlockState state,
-      LevelReader level,
-      ScheduledTickAccess scheduledTickAccess,
-      BlockPos pos,
-      Direction direction,
-      BlockPos neighborPos,
-      BlockState neighborState,
-      RandomSource random
+      BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
+      Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random
    ) {
+   //?} else {
+   /*protected BlockState updateShape(
+      BlockState state, Direction direction, BlockState neighborState, net.minecraft.world.level.LevelAccessor level,
+      BlockPos pos, BlockPos neighborPos
+   ) {
+   *///?}
       Property<Boolean> prop = CONNECTED_MAP.get(direction);
       return prop != null ? (BlockState)state.setValue(prop, shouldConnect(level, pos, state, direction)) : state;
    }

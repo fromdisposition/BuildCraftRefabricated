@@ -8,9 +8,15 @@ package buildcraft.factory.client.render;
 
 import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.fluid.stack.FluidStack;
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+//?}
 
+//? if >= 1.21.10 {
 public class TankRenderState extends BlockEntityRenderState {
+//?} else {
+/*public class TankRenderState {
+*///?}
    public boolean hasFluid;
    public BcFluidAppearance appearance;
    public FluidStack fluid;

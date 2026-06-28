@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
@@ -98,7 +99,7 @@ public class AIRobotPumpBlock extends AIRobot {
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
       if (nbt.contains("x")) {
-         this.blockToPump = new BlockPos(nbt.getInt("x").orElse(0), nbt.getInt("y").orElse(0), nbt.getInt("z").orElse(0));
+         this.blockToPump = new BlockPos(BcNbt.getInt(nbt, "x", 0), BcNbt.getInt(nbt, "y", 0), BcNbt.getInt(nbt, "z", 0));
       }
    }
 }

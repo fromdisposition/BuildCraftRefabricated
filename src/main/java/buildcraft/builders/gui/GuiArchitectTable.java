@@ -20,9 +20,10 @@ import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.ledger.LedgerOwnership;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import net.minecraft.client.gui.components.EditBox;
+//? if >= 1.21.10 {
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
@@ -118,6 +119,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
       this.addRenderableWidget(this.nameField);
    }
 
+   //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       if (this.nameField.isFocused()) {
          if (event.key() == 257 || event.key() == 335) {
@@ -145,16 +147,45 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
 
       return super.mouseClicked(event, entered);
    }
+   //?} else {
+   /*public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+      if (this.nameField.isFocused()) {
+         if (keyCode == 257 || keyCode == 335) {
+            this.setFocused(null);
+            return true;
+         }
+
+         if (keyCode == 256) {
+            return super.keyPressed(keyCode, scanCode, modifiers);
+         }
+
+         if (this.nameField.keyPressed(keyCode, scanCode, modifiers) || this.nameField.canConsumeInput()) {
+            return true;
+         }
+      }
+
+      return super.keyPressed(keyCode, scanCode, modifiers);
+   }
+
+   @Override
+   public boolean mouseClicked(double mouseX, double mouseY, int button) {
+      if (this.nameField.isFocused() && !this.nameField.isMouseOver(mouseX, mouseY)) {
+         this.setFocused(null);
+      }
+
+      return super.mouseClicked(mouseX, mouseY, button);
+   }
+   *///?}
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE_BASE, this.leftPos, this.topPos, 0.0F, 0.0F, 176, 240, 256, 256);
+      graphics.blit(TEXTURE_BASE, this.leftPos, this.topPos, 0.0F, 0.0F, 176, 240, 256, 256);
       int total = ((ContainerArchitectTable)this.menu).getSyncedTotal();
       if (total > 0) {
          int progress = ((ContainerArchitectTable)this.menu).getSyncedProgress();
          int progressWidth = Math.min(22, (int)(22.0F * progress / total));
          if (progressWidth > 0) {
-            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE_BASE, this.leftPos + 77, this.topPos + 125, 0.0F, 240.0F, progressWidth, 16, 256, 256);
+            graphics.blit(TEXTURE_BASE, this.leftPos + 77, this.topPos + 125, 0.0F, 240.0F, progressWidth, 16, 256, 256);
          }
       }
 

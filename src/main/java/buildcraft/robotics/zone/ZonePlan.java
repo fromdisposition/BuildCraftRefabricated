@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.zone;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.IZone;
 import buildcraft.lib.misc.PositionUtil;
 import java.util.ArrayList;
@@ -115,14 +116,13 @@ public class ZonePlan implements IZone {
 
    public void readFromNBT(CompoundTag nbt) {
       this.chunkMapping.clear();
-      nbt.getList("chunkMapping").ifPresent(list -> {
-         for (int i = 0; i < list.size(); i++) {
-            CompoundTag zoneChunkTag = list.getCompoundOrEmpty(i);
-            ZoneChunk chunk = new ZoneChunk();
-            chunk.readFromNBT(zoneChunkTag);
-            this.chunkMapping.put(new ChunkPos(zoneChunkTag.getIntOr("chunkX", 0), zoneChunkTag.getIntOr("chunkZ", 0)), chunk);
-         }
-      });
+      ListTag list = BcNbt.getList(nbt, "chunkMapping");
+      for (int i = 0; i < list.size(); i++) {
+         CompoundTag zoneChunkTag = BcNbt.getCompound(list, i);
+         ZoneChunk chunk = new ZoneChunk();
+         chunk.readFromNBT(zoneChunkTag);
+         this.chunkMapping.put(new ChunkPos(BcNbt.getInt(zoneChunkTag, "chunkX", 0), BcNbt.getInt(zoneChunkTag, "chunkZ", 0)), chunk);
+      }
    }
 
    @Override

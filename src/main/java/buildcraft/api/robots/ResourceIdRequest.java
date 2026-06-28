@@ -6,6 +6,7 @@
 
 package buildcraft.api.robots;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.EnumPipePart;
 import net.minecraft.nbt.CompoundTag;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -50,6 +51,6 @@ public class ResourceIdRequest extends ResourceIdBlock {
    @Override
    protected void readFromNBT(CompoundTag nbt) {
       super.readFromNBT(nbt);
-      this.slot = nbt.getInt("localId").orElse(0);
+      this.slot = BcNbt.getInt(nbt, "localId", 0);
    }
 }

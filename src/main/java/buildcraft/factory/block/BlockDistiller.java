@@ -6,6 +6,8 @@
 
 package buildcraft.factory.block;
 
+import buildcraft.lib.compat.BcInteract;
+
 
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
 import buildcraft.api.blocks.ICustomRotationHandler;
@@ -72,6 +74,18 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
       return new TileDistiller(pos, state);
    }
 
+   // 1.21.1: vanilla never calls the BE hook preRemoveSideEffects (1.21.2+); drop the fluid shards from the
+   // classic Block.onRemove (BE still present before super removes it). 1.21.10+ uses the BE hook directly.
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(net.minecraft.world.level.block.state.BlockState state, net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof buildcraft.factory.tile.TileDistiller tile) {
+         tile.preRemoveSideEffects(pos, state);
+      }
+      super.onRemove(state, level, pos, newState, movedByPiston);
+   }
+   *///?}
+
    @Nullable
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide()
@@ -84,6 +98,12 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
    }
 
    protected InteractionResult useItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
+      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
+   }
+
+   protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
       if (stack.isEmpty()) {

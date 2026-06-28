@@ -6,6 +6,8 @@
 
 package buildcraft.transport.block;
 
+import buildcraft.lib.compat.BcInteract;
+
 import buildcraft.api.blocks.ICustomPaintHandler;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.EnumWirePart;
@@ -27,7 +29,6 @@ import buildcraft.transport.tile.TilePipeHolder;
 import buildcraft.transport.wire.EnumWireBetween;
 import java.util.Arrays;
 import javax.annotation.Nullable;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -55,7 +56,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.redstone.Orientation;
+//?}
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -127,7 +130,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
          && tile.getPipe() != null
          && level instanceof Level realLevel
          && realLevel.isClientSide()
-         && Minecraft.getInstance().hitResult instanceof BlockHitResult blockHit
+         && clientBlockHit() instanceof BlockHitResult blockHit
          && pos.equals(blockHit.getBlockPos())) {
          Pipe pipe = tile.getPipe();
          double lx = blockHit.getLocation().x - pos.getX();
@@ -227,8 +230,14 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    protected InteractionResult useItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
+      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
+   }
+
+   protected InteractionResult bcUseItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
       if (stack.isEmpty()) {
-         return InteractionResult.TRY_WITH_EMPTY_HAND;
+         return BcInteract.TRY_WITH_EMPTY_HAND;
       }
 
       if (level.getBlockEntity(pos) instanceof TilePipeHolder tile && tile.getPipe() != null) {
@@ -301,7 +310,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
                      player, hitResult, (float)hitResult.getLocation().x, (float)hitResult.getLocation().y, (float)hitResult.getLocation().z, hitPart
                   )
                ? InteractionResult.SUCCESS
-               : InteractionResult.TRY_WITH_EMPTY_HAND);
+               : BcInteract.TRY_WITH_EMPTY_HAND);
          }
       } else {
          return InteractionResult.PASS;
@@ -552,8 +561,13 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return super.playerWillDestroy(level, pos, state, player);
    }
 
+   //? if >= 1.21.10 {
    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
       super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
+   //?} else {
+   /*protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos fromPos, boolean movedByPiston) {
+      super.neighborChanged(state, level, pos, neighborBlock, fromPos, movedByPiston);
+   *///?}
       if (level.getBlockEntity(pos) instanceof TilePipeHolder tile && tile.getPipe() != null) {
          tile.getPipe().scheduleConnectionRecheck();
          tile.wakePipe();
@@ -593,13 +607,17 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return this.getSignal(state, level, pos, direction);
    }
 
+   //? if >= 1.21.10 {
    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+   //?} else {
+   /*public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
+   *///?}
       if (level.getBlockEntity(pos) instanceof TilePipeHolder tile) {
          if (!(level instanceof Level realLevel) || !realLevel.isClientSide()) {
             return getDefaultPipePickStack(tile);
          }
 
-         Player player = Minecraft.getInstance().player;
+         Player player = clientPlayer();
          if (player == null) {
             return getDefaultPipePickStack(tile);
          }
@@ -639,7 +657,25 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
          }
       }
 
+      //? if >= 1.21.10 {
       return super.getCloneItemStack(level, pos, state, includeData);
+      //?} else {
+      /*return super.getCloneItemStack(level, pos, state);
+      *///?}
+   }
+
+   // Client-only crosshair queries are delegated to PipeHolderClientExtensions so this common block class
+   // never names net.minecraft.client.* in its bytecode (the verifier would otherwise resolve LocalPlayer and
+   // crash a dedicated server). Both are only reached behind a Level.isClientSide() guard, so the client
+   // extensions class is never loaded server-side. Return types are common (BlockHitResult / Player).
+   @Nullable
+   private static BlockHitResult clientBlockHit() {
+      return PipeHolderClientExtensions.clientBlockHit();
+   }
+
+   @Nullable
+   private static Player clientPlayer() {
+      return PipeHolderClientExtensions.clientPlayer();
    }
 
    private static ItemStack getDefaultPipePickStack(TilePipeHolder tile) {

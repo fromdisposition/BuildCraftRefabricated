@@ -51,7 +51,7 @@ public class ItemPaintbrush_BC8 extends Item {
       if (colour != null && usesLeft > 0) {
          stack.set(BCCore.BRUSH_COLOR, colour);
          stack.set(BCCore.BRUSH_USES, usesLeft);
-         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of((float)(colour.ordinal() + 1)), List.of(), List.of(), List.of()));
+         stack.set(DataComponents.CUSTOM_MODEL_DATA, buildcraft.lib.compat.BcModelData.index((float)(colour.ordinal() + 1)));
       } else {
          stack.remove(BCCore.BRUSH_COLOR);
          stack.remove(BCCore.BRUSH_USES);

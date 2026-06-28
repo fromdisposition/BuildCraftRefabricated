@@ -193,7 +193,11 @@ public class WidgetFluidTank extends Widget_Neptune<IBcMenu> {
             if (player.level() instanceof ServerLevel sl) {
                ItemStack stack = player.containerMenu.getCarried();
                ItemStack singleCopy = stack.copyWithCount(1);
+               //? if >= 1.21.10 {
                for (RecipeHolder<?> h : sl.recipeAccess().getRecipes()) {
+               //?} else {
+               /*for (RecipeHolder<?> h : sl.getRecipeManager().getRecipes()) {
+               *///?}
                   if (h.value() instanceof SolidCoolantRecipe sc && sc.matchesItem(singleCopy)) {
                      FluidStack fluidCoolant = sc.getFluidFromStack(singleCopy);
                      if (!fluidCoolant.isEmpty()) {

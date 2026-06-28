@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import net.minecraft.core.BlockPos;
@@ -59,10 +60,10 @@ public class AIRobotGoAndLinkToDock extends AIRobotStationNavigate {
    @Override
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
-      int[] arr = nbt.getIntArray("stationIndex").orElse(new int[0]);
+      int[] arr = BcNbt.getIntArray(nbt, "stationIndex");
       if (arr.length == 3) {
          BlockPos index = new BlockPos(arr[0], arr[1], arr[2]);
-         Direction side = Direction.values()[nbt.getByte("stationSide").orElse((byte)0)];
+         Direction side = Direction.values()[BcNbt.getByte(nbt, "stationSide", (byte)0)];
          this.station = this.robot.getRegistry().getStation(index, side);
       } else {
          this.station = this.robot.getLinkedStation();

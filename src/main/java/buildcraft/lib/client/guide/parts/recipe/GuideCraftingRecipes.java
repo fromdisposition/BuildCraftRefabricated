@@ -88,11 +88,19 @@ public enum GuideCraftingRecipes implements IStackRecipes {
 
    private static boolean checkRecipeUses(CraftingRecipe recipe, @Nonnull ItemStack target) {
       if (recipe instanceof ShapedRecipe shaped) {
+         //? if >= 1.21.10 {
          for (Optional<Ingredient> opt : shaped.getIngredients()) {
             if (opt.isPresent() && opt.get().test(target)) {
                return true;
             }
          }
+         //?} else {
+         /*for (Ingredient ingredient : shaped.getIngredients()) {
+            if (ingredient.test(target)) {
+               return true;
+            }
+         }
+         *///?}
       } else if (recipe instanceof ShapelessRecipe shapeless) {
          for (Ingredient ingredient : ShapelessRecipes.ingredients(shapeless)) {
             if (ingredient.test(target)) {

@@ -6,6 +6,7 @@
 
 package buildcraft.lib.item;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.BCLibItems;
 import buildcraft.lib.fabric.BCLibClientBridge;
 import java.util.List;
@@ -47,11 +48,21 @@ public class ItemGuideNote extends Item {
          return null;
       }
 
-      String page = data.copyTag().getStringOr("page", "");
+      String page = BcNbt.getString(data.copyTag(), "page", "");
       return page.isEmpty() ? null : Identifier.tryParse(page);
    }
 
+   //? if >= 1.21.10 {
    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+      return this.bcUse(level, player, hand);
+   }
+   //?} else {
+   /*public net.minecraft.world.InteractionResultHolder<net.minecraft.world.item.ItemStack> use(Level level, Player player, InteractionHand hand) {
+      return buildcraft.lib.compat.BcInteract.toUse(this.bcUse(level, player, hand), player, hand);
+   }
+   *///?}
+
+   private InteractionResult bcUse(Level level, Player player, InteractionHand hand) {
       ItemStack stack = player.getItemInHand(hand);
       Identifier page = getLinkedPage(stack);
       if (level.isClientSide()) {

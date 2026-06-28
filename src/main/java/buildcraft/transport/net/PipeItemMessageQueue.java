@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.profiling.Profiler;
+import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -24,7 +24,7 @@ public final class PipeItemMessageQueue {
    }
 
    public static void serverTick() {
-      Profiler.get().push("buildcraft:pipe_item_flush");
+      BcProfiler.get().push("buildcraft:pipe_item_flush");
 
       try {
          QUEUE.flushEach(entry -> {
@@ -33,7 +33,7 @@ public final class PipeItemMessageQueue {
             }
          });
       } finally {
-         Profiler.get().pop();
+         BcProfiler.get().pop();
       }
    }
 

@@ -30,10 +30,18 @@ public class ItemStackRef {
    }
 
    public ItemStack get(Tag nbt) {
+      //? if >= 1.21.10 {
       Identifier itemId = Identifier.parse(((StringTag)this.item.get(nbt).orElseThrow(NullPointerException::new)).value());
+      //?} else {
+      /*Identifier itemId = Identifier.parse(((StringTag)this.item.get(nbt).orElseThrow(NullPointerException::new)).getAsString());
+      *///?}
       Item itemObj = BcRegistryUtil.getItem(itemId);
       Objects.requireNonNull(itemObj, "Unknown item: " + itemId);
+      //? if >= 1.21.10 {
       int count = Optional.ofNullable(this.amount).flatMap(ref -> ref.get(nbt)).<Integer>map(IntTag::value).orElse(1);
+      //?} else {
+      /*int count = Optional.ofNullable(this.amount).flatMap(ref -> ref.get(nbt)).<Integer>map(IntTag::getAsInt).orElse(1);
+      *///?}
       ItemStack itemStack = new ItemStack(itemObj, count);
       Optional.ofNullable(this.tagCompound).flatMap(ref -> ref.get(nbt)).ifPresent(tag -> {});
       return itemStack;

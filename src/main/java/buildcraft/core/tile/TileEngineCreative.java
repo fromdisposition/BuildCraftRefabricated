@@ -21,8 +21,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public class TileEngineCreative extends TileEngineBase_BC8 {
    public static final long[] OUTPUTS = new long[]{1L, 2L, 4L, 8L, 16L, 32L, 64L, 128L, 256L};
@@ -124,14 +124,14 @@ public class TileEngineCreative extends TileEngineBase_BC8 {
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       output.putInt("currentOutputIndex", this.currentOutputIndex);
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       this.currentOutputIndex = input.getIntOr("currentOutputIndex", 0);
       this.currentOutputIndex = MathUtil.clamp(this.currentOutputIndex, 0, OUTPUTS.length - 1);
    }

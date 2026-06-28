@@ -107,7 +107,9 @@ public final class BCEnergyFluidsFabric {
          new BcFluidBlock(
             (FlowingFluid)holder.still,
             Properties.of()
+               //? if >= 1.21.10 {
                .setId(blockKey)
+               //?}
                .mapColor(gaseous ? MapColor.NONE : MapColor.COLOR_BLACK)
                .replaceable()
                .strength(100.0F)

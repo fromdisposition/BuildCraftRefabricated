@@ -54,8 +54,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//?}
 import net.minecraft.world.phys.Vec3;
 
 public class TileHeatExchange extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
@@ -428,13 +432,17 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       }
    }
 
+   //? if >= 1.21.10 {
    @Override
+   //?}
    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
       if (this.level != null && !this.level.isClientSide()) {
          this.dropContents(pos);
       }
 
+      //? if >= 1.21.10 {
       super.preRemoveSideEffects(pos, state);
+      //?}
    }
 
    private void dropContents(BlockPos pos) {
@@ -518,8 +526,29 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       return new ContainerHeatExchange(containerId, playerInv, this.findStart());
    }
 
+   //? if >= 1.21.10 {
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
+      this.writeData(new BcValueOut(output));
+   }
+
+   public void loadAdditional(ValueInput input) {
+      super.loadAdditional(input);
+      this.readData(new BcValueIn(input));
+   }
+   //?} else {
+   /*protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.saveAdditional(tag, registries);
+      this.writeData(new BcValueOut(tag, registries));
+   }
+
+   protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+      super.loadAdditional(tag, registries);
+      this.readData(new BcValueIn(tag, registries));
+   }
+   *///?}
+
+   protected void writeData(BcValueOut output) {
       if (this.section != null) {
          output.putBoolean("hasSection", true);
          output.putBoolean("isStart", this.section instanceof TileHeatExchange.ExchangeSectionStart);
@@ -544,8 +573,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       }
    }
 
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   protected void readData(BcValueIn input) {
       CompoundTag containerSlotsNbt = (CompoundTag)input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new);
       if (input.getBooleanOr("hasSection", false)) {
          boolean isStart = input.getBooleanOr("isStart", true);

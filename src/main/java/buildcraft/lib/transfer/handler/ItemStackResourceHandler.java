@@ -15,8 +15,8 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 
 public abstract class ItemStackResourceHandler
    extends SnapshotParticipant<ItemStack>
@@ -47,14 +47,14 @@ public abstract class ItemStackResourceHandler
    }
 
    @Override
-   public void serialize(ValueOutput output) {
+   public void serialize(BcValueOut output) {
       if (!this.getStack().isEmpty()) {
          output.store("stack", ItemStack.CODEC, this.getStack());
       }
    }
 
    @Override
-   public void deserialize(ValueInput input) {
+   public void deserialize(BcValueIn input) {
       this.setStack(input.read("stack", ItemStack.CODEC).orElse(ItemStack.EMPTY));
    }
 

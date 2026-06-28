@@ -6,6 +6,7 @@
 
 package buildcraft.lib.gui.ledger;
 
+import buildcraft.lib.nbt.BcAuth;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BuildCraftGui;
 import com.mojang.authlib.GameProfile;
@@ -13,10 +14,15 @@ import java.util.function.Supplier;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
-import net.minecraft.client.renderer.RenderPipelines;
+//? if >= 1.21.10 {
 import net.minecraft.core.ClientAsset.Texture;
+//?}
 import net.minecraft.resources.Identifier;
+//? if >= 1.21.10 {
 import net.minecraft.world.entity.player.PlayerSkin;
+//?} else {
+/*import net.minecraft.client.resources.PlayerSkin;
+*///?}
 
 public class LedgerOwnership extends Ledger_Neptune {
    private static final int COLOUR = 14741759;
@@ -29,7 +35,7 @@ public class LedgerOwnership extends Ledger_Neptune {
       this.title = "gui.owner";
       this.appendText(() -> {
          GameProfile profile = ownerSupplier.get();
-         return profile != null ? profile.name() : "Unknown";
+         return profile != null ? BcAuth.name(profile) : "Unknown";
       }, 0);
       this.calculateMaxSize();
    }
@@ -37,22 +43,37 @@ public class LedgerOwnership extends Ledger_Neptune {
    @Override
    protected void drawIcon(double x, double y, BCGraphics graphics) {
       Identifier skinTexture = getSkinTexture(this.ownerSupplier.get());
-      graphics.blit(RenderPipelines.GUI_TEXTURED, skinTexture, (int)x, (int)y, 8.0F, 8.0F, 16, 16, 8, 8, 64, 64);
-      graphics.blit(RenderPipelines.GUI_TEXTURED, skinTexture, (int)x, (int)y, 40.0F, 8.0F, 16, 16, 8, 8, 64, 64);
+      //? if < 1.21.10 {
+      /*// Draw the face + hat through the canonical vanilla helper (graphics.raw is GuiGraphicsExtractor on 1.21.1); it
+      // sets up the player-skin layout/blend exactly like vanilla player heads, avoiding the manual-blit edge
+      // cases that mis-rendered the owner head on 1.21.1.
+      net.minecraft.client.gui.components.PlayerFaceRenderer.draw(graphics.raw, skinTexture, (int) x, (int) y, 16);
+      *///?} else {
+      // The 8x8 face region (UV 8,8) and the 8x8 hat overlay (UV 40,8) from the 64x64 skin, scaled to 16x16.
+      graphics.blit(skinTexture, (int)x, (int)y, 8.0F, 8.0F, 16, 16, 8, 8, 64, 64);
+      graphics.blit(skinTexture, (int)x, (int)y, 40.0F, 8.0F, 16, 16, 8, 8, 64, 64);
+      //?}
    }
 
    private static Identifier getSkinTexture(GameProfile profile) {
-      if (profile != null && profile.id() != null) {
+      if (profile != null && BcAuth.id(profile) != null) {
          try {
             ClientPacketListener connection = Minecraft.getInstance().getConnection();
             if (connection != null) {
-               PlayerInfo info = connection.getPlayerInfo(profile.id());
+               PlayerInfo info = connection.getPlayerInfo(BcAuth.id(profile));
                if (info != null) {
                   PlayerSkin skin = info.getSkin();
+                  //? if >= 1.21.10 {
                   Texture bodyTex = skin.body();
                   if (bodyTex != null) {
                      return bodyTex.id();
                   }
+                  //?} else {
+                  /*Identifier tex = skin.texture();
+                  if (tex != null) {
+                     return tex;
+                  }
+                  *///?}
                }
             }
          } catch (Exception var5) {

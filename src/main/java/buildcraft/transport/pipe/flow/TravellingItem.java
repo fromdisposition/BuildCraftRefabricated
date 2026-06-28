@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.flow;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.misc.VecUtil;
@@ -51,32 +52,32 @@ public class TravellingItem {
 
    public TravellingItem(CompoundTag nbt, long tickNow) {
       this.clientItemLink = () -> ItemStack.EMPTY;
-      this.stack = NBTUtilBC.itemStackFromNBT(nbt.getCompoundOrEmpty("stack"));
+      this.stack = NBTUtilBC.itemStackFromNBT(BcNbt.getCompound(nbt, "stack"));
       if (this.stack.isEmpty()) {
-         CompoundTag stackTag = nbt.getCompoundOrEmpty("stack");
+         CompoundTag stackTag = BcNbt.getCompound(nbt, "stack");
          if (!stackTag.isEmpty()) {
             this.stack = ItemStack.EMPTY;
          }
       }
 
-      int c = nbt.getByteOr("colour", (byte)0);
+      int c = BcNbt.getByte(nbt, "colour", (byte)0);
       this.colour = c == 0 ? null : DyeColor.byId(c - 1);
-      this.toCenter = nbt.getBooleanOr("toCenter", false);
-      this.speed = nbt.getDoubleOr("speed", 0.05);
+      this.toCenter = BcNbt.getBoolean(nbt, "toCenter", false);
+      this.speed = BcNbt.getDouble(nbt, "speed", 0.05);
       if (this.speed < 0.001) {
          this.speed = 0.001;
       }
 
-      this.tickStarted = nbt.getIntOr("tickStarted", 0) + tickNow;
-      this.tickFinished = nbt.getIntOr("tickFinished", 0) + tickNow;
-      this.timeToDest = nbt.getIntOr("timeToDest", 0);
+      this.tickStarted = BcNbt.getInt(nbt, "tickStarted", 0) + tickNow;
+      this.tickFinished = BcNbt.getInt(nbt, "tickFinished", 0) + tickNow;
+      this.timeToDest = BcNbt.getInt(nbt, "timeToDest", 0);
       this.side = NBTUtilBC.readEnum(nbt.get("side"), Direction.class);
       if (this.side == null || this.timeToDest == 0) {
          this.toCenter = true;
       }
 
       this.tried = readEnumSet(nbt.get("tried"), Direction.class);
-      this.isPhantom = nbt.getBooleanOr("isPhantom", false);
+      this.isPhantom = BcNbt.getBoolean(nbt, "isPhantom", false);
    }
 
    public CompoundTag writeToNbt(long tickNow) {

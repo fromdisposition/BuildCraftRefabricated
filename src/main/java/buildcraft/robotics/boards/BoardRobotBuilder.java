@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.boards;
 
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.core.IZone;
@@ -258,10 +259,10 @@ public class BoardRobotBuilder extends BoardRobotBC {
    @Override
    public void loadSelfFromNBT(CompoundTag nbt) {
       super.loadSelfFromNBT(nbt);
-      int[] arr = nbt.getIntArray("markerPos").orElse(new int[0]);
+      int[] arr = BcNbt.getIntArray(nbt, "markerPos");
       if (arr.length == 3) {
          this.pendingMarkerPos = new BlockPos(arr[0], arr[1], arr[2]);
-         this.pendingBuilderNbt = nbt.getCompound("builder").orElse(null);
+         this.pendingBuilderNbt = BcNbt.getCompound(nbt, "builder");
       }
    }
 }

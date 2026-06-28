@@ -68,7 +68,11 @@ public class PageEntryFluidStack extends PageValueType<FluidStackValueFilter> {
 
       String str = json.get("fluid").getAsString().trim();
       Identifier loc = Identifier.parse(str);
+      //? if >= 1.21.10 {
       Fluid fluid = BuiltInRegistries.FLUID.get(loc).map(ref -> (Fluid)ref.value()).orElse(null);
+      //?} else {
+      /*Fluid fluid = BuiltInRegistries.FLUID.get(loc);
+      *///?}
       if (fluid == null) {
          return new IScriptableRegistry.OptionallyDisabled<>("Unknown fluid '" + str + "'");
       }

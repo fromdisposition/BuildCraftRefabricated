@@ -23,8 +23,8 @@ import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
+import buildcraft.lib.nbt.BcValueIn;
+import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.phys.Vec3;
 
 /** Mines straight down: first iron-pick solid from the top, stop on fluid or higher-tier blocks. */
@@ -177,8 +177,8 @@ public class TileMiningWell extends TileMiner {
    }
 
    @Override
-   protected void saveAdditional(ValueOutput output) {
-      super.saveAdditional(output);
+   protected void writeData(BcValueOut output) {
+      super.writeData(output);
       if (this.shaftTipPos != null) {
          output.putBoolean("hasShaftTipPos", true);
          output.putInt("shaftTipY", this.shaftTipPos.getY());
@@ -188,8 +188,8 @@ public class TileMiningWell extends TileMiner {
    }
 
    @Override
-   public void loadAdditional(ValueInput input) {
-      super.loadAdditional(input);
+   public void readData(BcValueIn input) {
+      super.readData(input);
       if (input.getBooleanOr("hasShaftTipPos", false)) {
          this.shaftTipPos = this.columnPos(input.getIntOr("shaftTipY", this.worldPosition.getY() - 1));
       } else if (input.getBooleanOr("hasColumnState", false)) {

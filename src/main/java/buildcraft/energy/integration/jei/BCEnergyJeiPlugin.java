@@ -21,7 +21,6 @@ import java.util.List;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -33,7 +32,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.crafting.RecipeHolder;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.block.entity.FuelValues;
+//?}
 
 @JeiPlugin
 public class BCEnergyJeiPlugin implements IModPlugin {
@@ -89,6 +90,7 @@ public class BCEnergyJeiPlugin implements IModPlugin {
          return out;
       }
 
+      //? if >= 1.21.10 {
       FuelValues fuelValues = level.fuelValues();
 
       for (Item item : fuelValues.fuelItems()) {
@@ -98,6 +100,15 @@ public class BCEnergyJeiPlugin implements IModPlugin {
             out.add(new StirlingFuelJei(stack, burnTime));
          }
       }
+      //?} else {
+      /*// 1.21.1 has no FuelValues registry; the fuel->burn-time map lives on AbstractFurnaceBlockEntity.
+      for (java.util.Map.Entry<Item, Integer> entry : net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.getFuel().entrySet()) {
+         int burnTime = entry.getValue();
+         if (burnTime > 0) {
+            out.add(new StirlingFuelJei(new ItemStack(entry.getKey()), burnTime));
+         }
+      }
+      *///?}
 
       return out;
    }
@@ -109,9 +120,9 @@ public class BCEnergyJeiPlugin implements IModPlugin {
    }
 
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-      registration.addRecipeClickArea(GuiEngineStone_BC8.class, 81, 25, 14, 14, new IRecipeType[]{BCJeiRecipeTypes.STIRLING_FUEL});
+      registration.addRecipeClickArea(GuiEngineStone_BC8.class, 81, 25, 14, 14, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.STIRLING_FUEL});
       registration.addRecipeClickArea(
-         GuiEngineIron_BC8.class, 44, 22, 34, 52, new IRecipeType[]{BCJeiRecipeTypes.COMBUSTION_FUEL, BCJeiRecipeTypes.COMBUSTION_COOLANT}
+         GuiEngineIron_BC8.class, 44, 22, 34, 52, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.COMBUSTION_FUEL, BCJeiRecipeTypes.COMBUSTION_COOLANT}
       );
    }
 }

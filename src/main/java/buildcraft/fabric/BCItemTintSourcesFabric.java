@@ -1,14 +1,21 @@
 package buildcraft.fabric;
 
+import com.mojang.logging.LogUtils;
+import net.minecraft.resources.Identifier;
+import org.slf4j.Logger;
+//? if >= 1.21.10 {
 import buildcraft.core.client.FluidShardTintSource;
 import buildcraft.transport.client.PipeColourTintSource;
-import com.mojang.logging.LogUtils;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.color.item.ItemTintSources;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs.LateBoundIdMapper;
-import org.slf4j.Logger;
+//?}
+//? if < 1.21.10 {
+/*import buildcraft.core.BCCoreItems;
+import buildcraft.core.client.FluidShardTintSource;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+*///?}
 
 public final class BCItemTintSourcesFabric {
    private static final Logger LOGGER = LogUtils.getLogger();
@@ -20,9 +27,22 @@ public final class BCItemTintSourcesFabric {
    }
 
    public static void register() {
+      //? if >= 1.21.10 {
       registerInto(ItemTintSources.ID_MAPPER);
+      //?} else {
+      /*// 1.21.1 has no data-driven ItemTintSource registry; the fluid-shard tint is registered natively via the
+      // classic Fabric ItemColor API instead so the dropped fragile container still shows its fluid colour.
+      if (!registered) {
+         ColorProviderRegistry.ITEM.register(
+            (stack, tintIndex) -> tintIndex == 1 ? FluidShardTintSource.INSTANCE.calculate(stack, null, null) : -1,
+            BCCoreItems.FRAGILE_FLUID_CONTAINER
+         );
+         registered = true;
+      }
+      *///?}
    }
 
+   //? if >= 1.21.10 {
    public static void registerInto(LateBoundIdMapper<Identifier, MapCodec<? extends ItemTintSource>> mapper) {
       if (!registered) {
          try {
@@ -34,4 +54,5 @@ public final class BCItemTintSourcesFabric {
          }
       }
    }
+   //?}
 }

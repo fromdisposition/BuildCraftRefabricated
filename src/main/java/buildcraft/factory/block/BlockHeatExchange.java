@@ -6,6 +6,8 @@
 
 package buildcraft.factory.block;
 
+import buildcraft.lib.compat.BcInteract;
+
 
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
 import buildcraft.api.blocks.ICustomRotationHandler;
@@ -27,7 +29,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.ScheduledTickAccess;
+//?}
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -41,7 +45,9 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+//? if >= 1.21.10 {
 import net.minecraft.world.level.redstone.Orientation;
+//?}
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,16 +108,17 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
       return count;
    }
 
+   //? if >= 1.21.10 {
    protected BlockState updateShape(
-      BlockState state,
-      LevelReader level,
-      ScheduledTickAccess scheduledTickAccess,
-      BlockPos pos,
-      Direction direction,
-      BlockPos neighborPos,
-      BlockState neighborState,
-      RandomSource randomSource
+      BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
+      Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource randomSource
    ) {
+   //?} else {
+   /*protected BlockState updateShape(
+      BlockState state, Direction direction, BlockState neighborState, net.minecraft.world.level.LevelAccessor level,
+      BlockPos pos, BlockPos neighborPos
+   ) {
+   *///?}
       if (direction.getAxis().isVertical()) {
          return state;
       }
@@ -136,6 +143,18 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
       return new TileHeatExchange(pos, state);
    }
 
+   // 1.21.1: vanilla never calls the BE hook preRemoveSideEffects (1.21.2+); drop the fluid shards from the
+   // classic Block.onRemove (BE still present before super removes it). 1.21.10+ uses the BE hook directly.
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(net.minecraft.world.level.block.state.BlockState state, net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof buildcraft.factory.tile.TileHeatExchange tile) {
+         tile.preRemoveSideEffects(pos, state);
+      }
+      super.onRemove(state, level, pos, newState, movedByPiston);
+   }
+   *///?}
+
    @Nullable
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide()
@@ -148,6 +167,12 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
    }
 
    protected InteractionResult useItemOn(
+      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
+   ) {
+      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
+   }
+
+   protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
       if (stack.isEmpty()) {
@@ -202,8 +227,13 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
       return InteractionResult.SUCCESS;
    }
 
+   //? if >= 1.21.10 {
    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
       super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
+   //?} else {
+   /*protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos fromPos, boolean movedByPiston) {
+      super.neighborChanged(state, level, pos, neighborBlock, fromPos, movedByPiston);
+   *///?}
       if (level.getBlockEntity(pos) instanceof TileHeatExchange exchange) {
          exchange.markCheckNeighbours();
       }

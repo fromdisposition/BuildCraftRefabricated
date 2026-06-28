@@ -3,7 +3,7 @@ package buildcraft.fabric;
 import buildcraft.builders.platform.BCBuildersFabricClient;
 import buildcraft.core.platform.BCCoreFabricClient;
 import buildcraft.energy.platform.BCEnergyFabricClient;
-import buildcraft.fabric.network.BCNetworkingRegistry;
+import buildcraft.fabric.network.BCNetworkingRegistryClient;
 import buildcraft.factory.platform.BCFactoryFabricClient;
 import buildcraft.lib.fabric.client.BCClientBlockEntityLifecycleEvents;
 import buildcraft.robotics.platform.BCRoboticsFabricClient;
@@ -15,7 +15,7 @@ public class BuildCraftFabricClient implements ClientModInitializer {
    public void onInitializeClient() {
       BCClientBlockEntityLifecycleEvents.init();
       BCClientRegistriesFabric.register();
-      BCNetworkingRegistry.registerClient();
+      BCNetworkingRegistryClient.registerClient();
       BCCoreFabricClient.init();
       BCEnergyFabricClient.init();
       BCFactoryFabricClient.init();
