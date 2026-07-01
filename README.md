@@ -5,8 +5,8 @@ Unofficial **Fabric** port of BuildCraft for **modern Minecraft** — pipes, eng
 
 | Minecraft Version | Support Status | Fabric Loader | Fabric API | Java |
 |-------------------|----------------|------------|------------|------|
-| **26.2**| 🟢 **Active** (Upstream) | ≥ 0.19.3 | ≥ 0.152.1+26.2 | 25 |
-| **26.1.x** | 🟢 **Active** (Long term support) | ≥ 0.19.3 | ≥ 0.150.0+26.1.2 | 25 |
+| **26.2**| 🟢 **Active** (Upstream) | ≥ 0.19.3 | ≥ 0.153.0+26.2 | 25 |
+| **26.1.x** | 🟢 **Active** (Long term support) | ≥ 0.19.3 | ≥ 0.153.0+26.1.2 | 25 |
 | **1.21.11** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.141.4+1.21.11 | 21 |
 | **1.21.10** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.138.4+1.21.10 | 21 |
 | **1.21.1** | 🟠 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.116.5+1.21.1 | 21 |
@@ -15,7 +15,7 @@ Unofficial **Fabric** port of BuildCraft for **modern Minecraft** — pipes, eng
 **Repository:** [github.com/fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)  
 **Issues:** [github.com/fromdisposition/BuildCraftRefabricated/issues](https://github.com/fromdisposition/BuildCraftRefabricated/issues)
 
-**Gameplay code traces to [legoj15's NeoForge 26.1.2 port](https://github.com/legoj15/BuildCraft), adapted here for Fabric Transfer API and Team Reborn Energy (`E`) interop.**
+**Gameplay code traces to [legoj15's NeoForge port](https://github.com/legoj15/BuildCraft), adapted here for Fabric Transfer API and Team Reborn Energy (`E`) interop.**
 
 ---
 
@@ -146,7 +146,7 @@ Config: `config/buildcraft/buildcraftrefabricated-common.json` → `powerMode`, 
    cd BuildCraftRefabricated
    ```
 
-4. Build the mod. BuildCraft Refabricated uses **Stonecutter** to target several Minecraft lines from one source tree (one node per MC line: `1.21.11`, `26.1`, `26.2`).
+4. Build the mod. BuildCraft Refabricated uses **Stonecutter** to target several Minecraft lines from one source tree (one node per MC line: `1.21.1`, `1.21.10`, `1.21.11`, `26.1`, `26.2`).
 
    - Build **all** lines at once:
 
@@ -160,9 +160,9 @@ Config: `config/buildcraft/buildcraftrefabricated-common.json` → `powerMode`, 
      ./gradlew :1.21.11:build
      ```
 
-   Swap `1.21.11` for `26.1` or `26.2`. On Windows use `.\gradlew.bat` instead of `./gradlew`.
+   Swap `1.21.11` for any other version. On Windows use `.\gradlew.bat` instead of `./gradlew`.
 
-5. Each line's jar lands in `versions/<line>/build/libs/`, named `BCRefabricated-<version>+mc<mc>.jar` — e.g. `versions/1.21.11/build/libs/BCRefabricated-26.6.18+mc1.21.11.jar` (`<version>` is the build date, `yy.M.d`).
+5. Each line's jar lands in `versions/<line>/build/libs/`, named `BCRefabricated-<version>+mc<mc>.jar` — e.g. `versions/1.21.1/build/libs/BCRefabricated-26.7.1+mc1.21.1.jar` (`<version>` is the build date, `yy.M.d`).
 
 ---
 
@@ -176,7 +176,7 @@ Config: `config/buildcraft/buildcraftrefabricated-common.json` → `powerMode`, 
 ## Credits
 
 - **SpaceToad & BuildCraft Team** — original mod ([MPL-2.0](LICENSE))
-- **[legoj15](https://github.com/legoj15)** — NeoForge 26.1.2 port
+- **[legoj15](https://github.com/legoj15)** — NeoForge port
 - **[fromdisposition](https://github.com/fromdisposition)** — Fabric port & maintenance
 
 ---
