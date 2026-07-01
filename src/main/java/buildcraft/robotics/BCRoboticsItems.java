@@ -23,7 +23,7 @@ public final class BCRoboticsItems {
    }
 
    public static void register() {
-      REDSTONE_BOARD = BCRegistries.registerItem("buildcraftrobotics", "redstone_board", props -> new ItemRedstoneBoard(props.stacksTo(16)));
+      REDSTONE_BOARD = BCRegistries.registerItemDynamicName("buildcraftrobotics", "redstone_board", props -> new ItemRedstoneBoard(props.stacksTo(16)));
       ROBOT_STATION = BCRegistries.registerItem("buildcraftrobotics", "robot_station", ItemPluggableRobotStation::new);
       ROBOT = BCRegistries.registerItem("buildcraftrobotics", "robot", ItemRobot::new);
       if (BCRoboticsBlocks.ZONE_PLANNER != null) {

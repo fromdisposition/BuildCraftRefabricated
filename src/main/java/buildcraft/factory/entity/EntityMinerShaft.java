@@ -16,6 +16,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 //? if >= 1.21.10 {
+import net.minecraft.world.entity.InterpolationHandler;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 //?}
@@ -31,6 +32,11 @@ public class EntityMinerShaft extends Entity {
    public EntityMinerShaft(EntityType<?> type, Level level) {
       super(type, level);
       this.noPhysics = true;
+      // Never frustum-cull this invisible collision shaft (see EntityQuarryRig). >= 1.21.10 uses the renderer's
+      // affectedByCulling()=false (set in BCFactoryFabricClient); 1.21.1 uses Entity.noCulling.
+      //? if < 1.21.10 {
+      /*this.noCulling = true;
+      *///?}
    }
 
    @Override
@@ -107,6 +113,22 @@ public class EntityMinerShaft extends Entity {
    public boolean isPushable() {
       return false;
    }
+
+   // Snap to each synced position instead of the default 3-tick client interpolation, so the collider tracks the
+   // shaft tightly as it extends (see EntityQuarryRig — same moving-collision-platform desync).
+   //? if >= 1.21.10 {
+   private final InterpolationHandler interpolation = new InterpolationHandler(this, 0);
+
+   @Override
+   public InterpolationHandler getInterpolation() {
+      return this.interpolation;
+   }
+   //?} else {
+   /*@Override
+   public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+      this.setPos(x, y, z);
+   }
+   *///?}
 
    //? if >= 1.21.10 {
    @Override

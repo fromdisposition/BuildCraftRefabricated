@@ -90,6 +90,37 @@ public final class BCRegistries {
       Function<net.minecraft.world.item.Item.Properties, I> factory,
       UnaryOperator<net.minecraft.world.item.Item.Properties> properties
    ) {
+      return registerItem(modid, path, factory, properties, false);
+   }
+
+   public static <I extends Item> I registerItemDynamicName(String modid, String path, Function<net.minecraft.world.item.Item.Properties, I> factory) {
+      return registerItem(modid, path, factory, UnaryOperator.identity(), true);
+   }
+
+   /**
+    * Like {@link #registerItem} but for items that build their display name in {@code getName(ItemStack)} (wire
+    * colour, fluid shard, gate/lens/facade variants, redstone board, paintbrush). On 1.21.1
+    * {@code ItemStack.getHoverName()} returns the ITEM_NAME component BEFORE consulting {@code Item.getName(stack)},
+    * so a generic ITEM_NAME ("item.modid.path") short-circuits the dynamic name (the wire showed the raw key, the
+    * shard lost its fluid). We therefore omit ITEM_NAME for these on 1.21.1, letting getHoverName fall through to
+    * getName. On >= 1.21.10 getName is reached regardless, so ITEM_NAME is still set there (no behaviour change).
+    */
+   public static <I extends Item> I registerItemDynamicName(
+      String modid,
+      String path,
+      Function<net.minecraft.world.item.Item.Properties, I> factory,
+      UnaryOperator<net.minecraft.world.item.Item.Properties> properties
+   ) {
+      return registerItem(modid, path, factory, properties, true);
+   }
+
+   private static <I extends Item> I registerItem(
+      String modid,
+      String path,
+      Function<net.minecraft.world.item.Item.Properties, I> factory,
+      UnaryOperator<net.minecraft.world.item.Item.Properties> properties,
+      boolean dynamicName
+   ) {
       if (!BCObjectsConfig.isItemEnabled(modid, path)) {
          LOGGER.info("Skipping disabled item {}:{}", modid, path);
          return null;
@@ -97,15 +128,19 @@ public final class BCRegistries {
 
       ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, id(modid, path));
       String nameKey = "item." + modid + "." + path;
+      net.minecraft.world.item.Item.Properties props = properties.apply(new net.minecraft.world.item.Item.Properties());
       //? if >= 1.21.10 {
-      I item = (I)factory.apply(
-         properties.apply(new net.minecraft.world.item.Item.Properties()).setId(itemKey).component(DataComponents.ITEM_NAME, Component.translatable(nameKey))
-      );
-      //?} else {
-      /*I item = (I)factory.apply(
-         properties.apply(new net.minecraft.world.item.Item.Properties()).component(DataComponents.ITEM_NAME, Component.translatable(nameKey))
-      );
+      props.setId(itemKey);
+      //?}
+      boolean setItemName = true;
+      //? if < 1.21.10 {
+      /*setItemName = !dynamicName;
       *///?}
+      if (setItemName) {
+         props.component(DataComponents.ITEM_NAME, Component.translatable(nameKey));
+      }
+
+      I item = (I)factory.apply(props);
       return (I)Registry.register(BuiltInRegistries.ITEM, itemKey, item);
    }
 

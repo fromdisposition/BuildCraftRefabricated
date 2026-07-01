@@ -9,6 +9,7 @@ import buildcraft.builders.client.render.BCBuildersWorldRenderer;
 import buildcraft.builders.client.render.RenderArchitectTable;
 import buildcraft.builders.client.render.RenderFiller;
 import buildcraft.builders.client.render.RenderQuarry;
+import buildcraft.builders.entity.EntityQuarryRig;
 import buildcraft.builders.client.tooltip.BlueprintTooltipOverlay;
 import buildcraft.builders.client.tooltip.SchematicSingleTooltipOverlay;
 import buildcraft.builders.tooltip.BlueprintPreviewTooltipComponent;
@@ -102,7 +103,15 @@ public final class BCBuildersFabricClient {
       MenuScreens.register(BCBuildersMenuTypes.LIBRARY, GuiElectronicLibrary::new);
       MenuScreens.register(BCBuildersMenuTypes.REPLACER, GuiReplacer::new);
       MenuScreens.register(BCBuildersMenuTypes.FILLER_PLANNER, GuiFillerPlanner::new);
-      EntityRenderers.register(BCBuildersEntities.QUARRY_RIG, NoopRenderer::new);
+      // Don't frustum-cull the invisible collision rig (its section-split boxes can be small) — keep it present
+      // instead of dropping the hitbox when the camera looks away. Collision is unaffected (server-side + section
+      // query). 1.21.1 uses Entity.noCulling instead (it has no renderer affectedByCulling hook).
+      EntityRenderers.register(BCBuildersEntities.QUARRY_RIG, context -> new NoopRenderer<EntityQuarryRig>(context) {
+         @Override
+         protected boolean affectedByCulling(EntityQuarryRig entity) {
+            return false;
+         }
+      });
       BlockEntityRenderers.register(BCBuildersBlockEntities.QUARRY, RenderQuarry::new);
       BlockEntityRenderers.register(BCBuildersBlockEntities.ARCHITECT, RenderArchitectTable::new);
       BlockEntityRenderers.register(BCBuildersBlockEntities.FILLER, RenderFiller::new);

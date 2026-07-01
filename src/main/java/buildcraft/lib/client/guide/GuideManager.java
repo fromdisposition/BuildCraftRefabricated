@@ -23,6 +23,7 @@ import buildcraft.lib.client.guide.loader.IPageLoader;
 import buildcraft.lib.client.guide.loader.MarkdownPageLoader;
 import buildcraft.lib.client.guide.loader.XmlPageLoader;
 import buildcraft.lib.client.guide.parts.GuidePage;
+import buildcraft.lib.client.guide.parts.GuidePageEntry;
 import buildcraft.lib.client.guide.parts.GuidePageFactory;
 import buildcraft.lib.client.guide.parts.GuideRecipeFallbackPage;
 import buildcraft.lib.client.guide.parts.GuidePart;
@@ -63,6 +64,7 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -170,7 +172,7 @@ public enum GuideManager {
    private void reload0(ResourceManager resourceManager) {
       Stopwatch watch = Stopwatch.createStarted();
       GuideBookRegistry.INSTANCE.reload();
-      GuidePageRegistry.INSTANCE.reload();
+      GuidePageRegistry.INSTANCE.reload(resourceManager);
       this.entries.clear();
       GuidePageRegistry manager = GuidePageRegistry.INSTANCE;
       Map<GuideBook, Set<String>> domains = new HashMap<>();
@@ -245,15 +247,12 @@ public enum GuideManager {
                   }
 
                   if (bytes.length != 0 && !new String(bytes, StandardCharsets.UTF_8).trim().isEmpty()) {
-                     try (InputStream stream = new ByteArrayInputStream(bytes)) {
-                        GuidePageFactory factory = entry.getValue().loadPage(stream, entryKey, mapEntry.getValue(), InactiveProfiler.INSTANCE);
-                        this.pages.put(entryKey, factory);
-                        if (DEBUG) {
-                           BCLog.logger.info("[lib.guide.loader] Loaded page '" + entryKey + "'.");
-                        }
-                        loadedPage = true;
-                        break;
-                     }
+                     // Defer the (expensive) markdown parse + recipe-usage scan until this page is actually
+                     // opened, then cache it. Parsing every page up front is what made the first book open stall
+                     // for hundreds of ms; now only the page you click pays its own parse cost, once.
+                     this.pages.put(entryKey, lazyPage(entry.getValue(), bytes, entryKey, mapEntry.getValue()));
+                     loadedPage = true;
+                     break;
                   }
 
                   if (DEBUG) {
@@ -271,52 +270,44 @@ public enum GuideManager {
          }
 
          if (!this.pages.containsKey(entryKey)) {
-            try {
-               PageEntry<?> stubEntry = mapEntry.getValue();
-               String title = stubEntry.title != null ? stubEntry.title : entryKey.getPath();
-               String stubContent = "<chapter name=\"" + title + " (WIP)\"/>\nThis guide book entry is a placeholder and has not been written yet.\n";
-               BufferedReader stubReader = new BufferedReader(new StringReader(stubContent));
-
-               try {
-                  GuidePageFactory factory = XmlPageLoader.INSTANCE.loadPage(stubReader, entryKey, stubEntry, InactiveProfiler.INSTANCE);
-                  this.pages.put(entryKey, factory);
-               } catch (Throwable var19) {
-                  try {
-                     stubReader.close();
-                  } catch (Throwable var18) {
-                     var19.addSuppressed(var18);
-                  }
-
-                  throw var19;
-               }
-
-               stubReader.close();
-               if (DEBUG) {
-                  BCLog.logger.info("[lib.guide.loader] Generated stub page for '" + entryKey + "'.");
-               }
-            } catch (IOException io) {
-               String endings;
-               if (PAGE_LOADERS.size() == 1) {
-                  endings = PAGE_LOADERS.keySet().iterator().next();
-               } else {
-                  endings = PAGE_LOADERS.keySet().toString();
-               }
-
-               BCLog.logger
-                  .warn(
-                     "[lib.guide.loader] Unable to load guide page '"
-                        + entryKey
-                        + "' (full path = '"
-                        + domain
-                        + ":"
-                        + path
-                        + "."
-                        + endings
-                        + "') and stub synthesis failed!",
-                     io
-                  );
+            this.pages.put(entryKey, stubFactory(entryKey, mapEntry.getValue()));
+            if (DEBUG) {
+               BCLog.logger.info("[lib.guide.loader] Generated stub page for '" + entryKey + "'.");
             }
          }
+      }
+   }
+
+   /**
+    * A lazily-parsed page: the markdown is parsed — and its {@code <recipes_usages>} tags resolved against the
+    * whole recipe manager — only the first time the page is opened, then cached. This keeps the first book open
+    * cheap; each page pays its own parse cost once, on demand.
+    */
+   private GuidePageFactory lazyPage(IPageLoader loader, byte[] bytes, Identifier entryKey, PageEntry<?> entry) {
+      GuidePageFactory[] cached = new GuidePageFactory[1];
+      return gui -> {
+         if (cached[0] == null) {
+            try (InputStream stream = new ByteArrayInputStream(bytes)) {
+               cached[0] = loader.loadPage(stream, entryKey, entry, InactiveProfiler.INSTANCE);
+            } catch (Exception ex) {
+               BCLog.logger.warn("[lib.guide.loader] Failed to parse guide page '" + entryKey + "' on open.", ex);
+               cached[0] = stubFactory(entryKey, entry);
+            }
+         }
+
+         return cached[0].createNew(gui);
+      };
+   }
+
+   /** A "not written yet" placeholder page, also used as a fallback when a real page fails to parse. */
+   private GuidePageFactory stubFactory(Identifier entryKey, PageEntry<?> entry) {
+      String title = entry.title != null ? entry.title : entryKey.getPath();
+      String stubContent = "<chapter name=\"" + title + " (WIP)\"/>\nThis guide book entry is a placeholder and has not been written yet.\n";
+      try (BufferedReader stubReader = new BufferedReader(new StringReader(stubContent))) {
+         return XmlPageLoader.INSTANCE.loadPage(stubReader, entryKey, entry, InactiveProfiler.INSTANCE);
+      } catch (IOException io) {
+         BCLog.logger.warn("[lib.guide.loader] Stub synthesis failed for '" + entryKey + "'.", io);
+         return gui -> new GuidePageEntry(gui, Collections.emptyList(), entry, entryKey);
       }
    }
 

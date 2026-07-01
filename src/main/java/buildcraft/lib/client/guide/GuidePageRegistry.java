@@ -6,7 +6,7 @@
 
 package buildcraft.lib.client.guide;
 
-import buildcraft.api.registry.IReloadableRegistry;
+import buildcraft.api.core.BCLog;
 import buildcraft.api.registry.IScriptableRegistry;
 import buildcraft.lib.client.guide.entry.PageEntry;
 import buildcraft.lib.client.guide.entry.PageEntryExternal;
@@ -14,28 +14,97 @@ import buildcraft.lib.client.guide.entry.PageEntryFluidStack;
 import buildcraft.lib.client.guide.entry.PageEntryItemStack;
 import buildcraft.lib.client.guide.entry.PageEntryStatement;
 import buildcraft.lib.client.guide.entry.PageValueType;
-import buildcraft.lib.script.ScriptableRegistry;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.GsonHelper;
 
-public class GuidePageRegistry extends ScriptableRegistry<PageEntry<?>> {
+/**
+ * Registry of the guide-book pages that exist. Which pages there are — plus their kind, contents-tab tags and
+ * sort order — is declared purely as data in {@code assets/buildcraft/compat/buildcraft/guide_entries.json} and
+ * loaded straight through GSON (no bespoke script parser). Page BODIES remain per-language markdown loaded by
+ * {@link GuideManager}, and page TITLES resolve through lang keys, so the whole book stays translatable: a
+ * resource pack only needs to add {@code guide/<lang>/**.md} and the matching {@code lang/<lang>.json} keys.
+ */
+public final class GuidePageRegistry {
    public static final GuidePageRegistry INSTANCE = new GuidePageRegistry();
+
+   private static final Identifier ENTRY_INDEX = Identifier.fromNamespaceAndPath("buildcraft", "compat/buildcraft/guide_entries.json");
+   private static final Gson GSON = new Gson();
+
+   /** Entry type ({@code "item_stack"}, {@code "external"}, {@code "statement"}, …) -> its deserializer. */
    public final Map<String, PageValueType<?>> types = new HashMap<>();
+   /** Registered entries, keyed by their {@link Identifier} (e.g. {@code buildcraft:block/quarry}). */
+   private final Map<Object, PageEntry<?>> entries = new HashMap<>();
 
    private GuidePageRegistry() {
-      super(IReloadableRegistry.PackType.RESOURCE_PACK, "buildcraft/guide");
-      this.addType("item_stack", PageEntryItemStack.INSTANCE);
-      this.addType("fluid_stack", PageEntryFluidStack.INSTANCE);
-      this.addType("external", PageEntryExternal.INSTANCE);
-      this.addType("statement", PageEntryStatement.INSTANCE);
+      this.types.put("item_stack", PageEntryItemStack.INSTANCE);
+      this.types.put("fluid_stack", PageEntryFluidStack.INSTANCE);
+      this.types.put("external", PageEntryExternal.INSTANCE);
+      this.types.put("statement", PageEntryStatement.INSTANCE);
    }
 
-   public <T> void addType(String name, PageValueType<T> type) {
-      this.types.put(name, type);
-      this.addCustomType(name, (id, json, ctx) -> {
-         IScriptableRegistry.OptionallyDisabled<PageEntry<T>> o1 = type.deserialize((Identifier)id, json, ctx);
-         return o1.isPresent() ? new IScriptableRegistry.OptionallyDisabled<>(o1.get()) : new IScriptableRegistry.OptionallyDisabled<>(o1.getDisabledReason());
-      });
+   public Map<Object, PageEntry<?>> getReloadableEntryMap() {
+      return this.entries;
+   }
+
+   public Iterable<PageEntry<?>> getAllEntries() {
+      return this.entries.values();
+   }
+
+   /** Re-reads the entry index from the active resource packs. */
+   public void reload(ResourceManager resources) {
+      this.entries.clear();
+
+      Optional<Resource> resource = resources.getResource(ENTRY_INDEX);
+      if (resource.isEmpty()) {
+         BCLog.logger.warn("[lib.guide] Guide entry index " + ENTRY_INDEX + " is missing — the guide book will be empty.");
+         return;
+      }
+
+      try (InputStream stream = resource.get().open(); Reader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
+         JsonObject root = GSON.fromJson(reader, JsonObject.class);
+         String book = GsonHelper.getAsString(root, "book");
+         JsonObject index = GsonHelper.getAsJsonObject(root, "entries");
+         for (Map.Entry<String, JsonElement> node : index.entrySet()) {
+            this.loadEntry(node.getKey(), node.getValue(), book);
+         }
+         BCLog.logger.info("[lib.guide] Registered " + this.entries.size() + " guide entries.");
+      } catch (Exception ex) {
+         BCLog.logger.error("[lib.guide] Failed to read guide entry index " + ENTRY_INDEX + ".", ex);
+      }
+   }
+
+   private void loadEntry(String path, JsonElement element, String book) {
+      Identifier id = Identifier.fromNamespaceAndPath("buildcraft", path);
+      try {
+         JsonObject json = GsonHelper.convertToJsonObject(element, path);
+         if (!json.has("book")) {
+            json.addProperty("book", book);
+         }
+         String typeName = GsonHelper.getAsString(json, "type");
+         PageValueType<?> type = this.types.get(typeName);
+         if (type == null) {
+            BCLog.logger.warn("[lib.guide] Skipping guide entry " + id + ": unknown type '" + typeName + "'.");
+            return;
+         }
+         // One bad entry never takes down the rest of the book.
+         IScriptableRegistry.OptionallyDisabled<? extends PageEntry<?>> result = type.deserialize(id, json, GSON::fromJson);
+         if (result.isPresent()) {
+            this.entries.put(id, result.get());
+         }
+      } catch (RuntimeException ex) {
+         BCLog.logger.warn("[lib.guide] Skipping malformed guide entry " + id + ".", ex);
+      }
    }
 }

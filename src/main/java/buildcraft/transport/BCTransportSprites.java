@@ -38,11 +38,7 @@ public class BCTransportSprites {
    }
 
    private static SpriteHolderRegistry.SpriteHolder getHolder(String module, String loc) {
-      return SpriteHolderRegistry.getHolder("buildcrafttransport:" + loc);
-   }
-
-   private static SpriteHolderRegistry.SpriteHolder getCoreTextureHolder(String loc) {
-      return SpriteHolderRegistry.getHolder("buildcraftcore:textures/" + loc);
+      return SpriteHolderRegistry.getHolder("buildcraft" + module + ":" + loc);
    }
 
    public static SpriteHolderRegistry.SpriteHolder getPipeSignal(boolean active, DyeColor colour) {
@@ -55,7 +51,7 @@ public class BCTransportSprites {
 
    static {
       for (DyeColor colour : ColourUtil.COLOURS) {
-         ACTION_PIPE_COLOUR[colour.ordinal()] = getCoreTextureHolder("item/paintbrush/" + colour.getName());
+         ACTION_PIPE_COLOUR[colour.ordinal()] = getHolder("core", "item/paintbrush/" + colour.getName());
       }
 
       PIPE_SIGNAL_OFF = new EnumMap<>(DyeColor.class);

@@ -17,12 +17,17 @@ import net.minecraft.world.item.DyeColor;
 public class PipeHolderRenderState extends BlockEntityRenderState {
    public TilePipeHolder pipe;
    public float partialTick;
+   /**
+    * Backing pool of entries — grown on demand and reused across frames (never holds more than its high-water
+    * mark). Only the first {@link #itemEntryCount} are live this frame; iterate with that bound, not size().
+    */
    public final List<PipeHolderRenderState.ItemRenderEntry> itemEntries = new ArrayList<>();
+   public int itemEntryCount;
    private final List<ItemStackRenderState> itemStatePool = new ArrayList<>();
    private int itemStatePoolUsed;
 
    public void beginItemExtraction() {
-      this.itemEntries.clear();
+      this.itemEntryCount = 0;
       this.itemStatePoolUsed = 0;
    }
 
@@ -34,16 +39,25 @@ public class PipeHolderRenderState extends BlockEntityRenderState {
       return this.itemStatePool.get(this.itemStatePoolUsed++);
    }
 
-   public static class ItemRenderEntry {
-      public final ItemStackRenderState renderState;
-      public final double posX;
-      public final double posY;
-      public final double posZ;
-      public final Direction direction;
-      public final DyeColor colour;
-      public final int stackCount;
+   /** Returns a pooled, reusable entry for this frame; the caller must populate it via {@link ItemRenderEntry#set}. */
+   public PipeHolderRenderState.ItemRenderEntry acquireItemEntry() {
+      if (this.itemEntryCount >= this.itemEntries.size()) {
+         this.itemEntries.add(new PipeHolderRenderState.ItemRenderEntry());
+      }
 
-      public ItemRenderEntry(ItemStackRenderState renderState, double posX, double posY, double posZ, Direction direction, DyeColor colour, int stackCount) {
+      return this.itemEntries.get(this.itemEntryCount++);
+   }
+
+   public static class ItemRenderEntry {
+      public ItemStackRenderState renderState;
+      public double posX;
+      public double posY;
+      public double posZ;
+      public Direction direction;
+      public DyeColor colour;
+      public int stackCount;
+
+      public void set(ItemStackRenderState renderState, double posX, double posY, double posZ, Direction direction, DyeColor colour, int stackCount) {
          this.renderState = renderState;
          this.posX = posX;
          this.posY = posY;

@@ -98,7 +98,11 @@ public class FacadeItemModel implements BakedModel {
 
    @Override
    public boolean isGui3d() {
-      return false;
+      // MUST be true (like GateItemModel). The emitted geometry is NORTH-facing; 1.21.1's flat-item GUI path
+      // (isGui3d=false) renders it so the NORTH front faces AWAY from the viewer — you saw the slab's back/inside
+      // ("the facade effect"). The 3d-item path orients the NORTH front toward the viewer, same as the gate item.
+      // This does NOT re-introduce the block tilt: that came from the GUI transform rotation (kept at 0 below).
+      return true;
    }
 
    @Override
@@ -126,9 +130,11 @@ public class FacadeItemModel implements BakedModel {
       return ItemOverrides.EMPTY;
    }
 
-   // plug_facade.json declares "parent": "block/block", i.e. it inherits the vanilla block-item display.
-   // Vanilla 1.21.1 BakedModel has no per-context applyTransform, so reproduce minecraft:block/block's
-   // standard display table here (NO_TRANSFORMS left the facade flat and mis-oriented in GUI/hand).
+   // The emitted geometry is the modern guiCache's FLAT face-on slab (bakeForKey NORTH + offsetZ + UP normal),
+   // identical to what 26.2 renders in the GUI as a flat texture tile. Vanilla 1.21.1 BakedModel has no
+   // per-context applyTransform, so getTransforms() is the only placement hook. The GUI MUST stay flat (rot 0,
+   // scale 1 = fills the slot face-on, like 26.2) — NOT the block/block 30/225 tilt, which turned the flat tile
+   // into a 3D block. Hand/ground keep the block-item poses (the flat slab as a held card is acceptable there).
    private static final ItemTransforms TRANSFORMS = buildBlockTransforms();
 
    private static ItemTransforms buildBlockTransforms() {
@@ -138,7 +144,7 @@ public class FacadeItemModel implements BakedModel {
          xform(0, 225, 0, 0, 0, 0, 0.4F),        // firstperson_lefthand
          xform(0, 45, 0, 0, 0, 0, 0.4F),         // firstperson_righthand
          xform(0, 0, 0, 0, 0, 0, 1.0F),          // head
-         xform(30, 225, 0, 0, 0, 0, 0.625F),     // gui
+         xform(0, 0, 0, 0, 0, 0, 1.0F),          // gui — flat face-on tile (matches 26.2), not the 3D block tilt
          xform(0, 0, 0, 0, 3, 0, 0.25F),         // ground
          xform(0, 0, 0, 0, 0, 0, 0.5F)           // fixed
       );

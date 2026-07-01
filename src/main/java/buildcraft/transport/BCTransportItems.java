@@ -93,7 +93,7 @@ public final class BCTransportItems {
 
       for (DyeColor color : DyeColor.values()) {
          DyeColor c = color;
-         wires.put(color, BCRegistries.registerItem("buildcrafttransport", "wire_" + color.getName(), props -> new ItemWire(props, c)));
+         wires.put(color, BCRegistries.registerItemDynamicName("buildcrafttransport", "wire_" + color.getName(), props -> new ItemWire(props, c)));
       }
 
       WIRE_ITEMS = Collections.unmodifiableMap(wires);

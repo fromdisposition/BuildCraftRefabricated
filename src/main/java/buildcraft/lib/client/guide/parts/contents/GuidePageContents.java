@@ -135,7 +135,7 @@ public class GuidePageContents extends GuidePageBase {
          _y += 3;
          f.drawString(text, xMiddle, _y, 0, false, true);
          _y += f.getFontHeight(text) + 5;
-         String vers = "BuildCraft 26.1";
+         String vers = "BuildCraft";
          f.drawString(vers, xMiddle, _y, 0, false, true);
          _y = y + height - 80;
          f.drawString(LocaleUtil.localize("options.title"), xMiddle, _y, 0, false, true, 2.0F);

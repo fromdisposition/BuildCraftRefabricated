@@ -25,11 +25,7 @@ public class BCSiliconSprites {
    }
 
    private static SpriteHolderRegistry.SpriteHolder getHolder(String module, String loc) {
-      return SpriteHolderRegistry.getHolder("buildcraftsilicon:" + loc);
-   }
-
-   private static SpriteHolderRegistry.SpriteHolder getCoreTextureHolder(String loc) {
-      return SpriteHolderRegistry.getHolder("buildcraftcore:textures/" + loc);
+      return SpriteHolderRegistry.getHolder("buildcraft" + module + ":" + loc);
    }
 
    public static void preInit() {
@@ -37,7 +33,7 @@ public class BCSiliconSprites {
 
    static {
       for (DyeColor colour : ColourUtil.COLOURS) {
-         ACTION_PIPE_COLOUR[colour.ordinal()] = getCoreTextureHolder("item/paintbrush/" + colour.getName());
+         ACTION_PIPE_COLOUR[colour.ordinal()] = getHolder("core", "item/paintbrush/" + colour.getName());
       }
    }
 }

@@ -144,9 +144,11 @@ This shows an image. There are 3 arguments:
 * width: The width that the image will be shown with. Defaults to the width of the source image (however this might not be what you want)
 * height: The height that the image will be shown with.
 
+The src is a texture location: the loader reads it as `<namespace>:textures/<path>.png`, so `buildcraftcore:item/wrench` points at `assets/buildcraftcore/textures/item/wrench.png`. Use the texture's own namespace (most BuildCraft item textures live under `buildcraftcore`, `buildcrafttransport`, etc.), not `buildcraft`.
+
 For example:
 <guide_md>
-&lt;image src="buildcraft:item/wrench" width="64" height="64"/&gt;
+&lt;image src="buildcraftcore:item/wrench" width="64" height="64"/&gt;
 </guide_md>
-<image src="buildcraft:item/wrench" width="64" height="64"/>
+<image src="buildcraftcore:item/wrench" width="64" height="64"/>
 

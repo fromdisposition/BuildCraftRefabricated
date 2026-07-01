@@ -24,17 +24,21 @@ import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.flow.PipeFlowFluids;
 import buildcraft.transport.pipe.flow.PipeFlowItems;
 import buildcraft.transport.tile.TilePipeHolder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import java.util.Random;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
@@ -50,6 +54,36 @@ import net.minecraft.world.level.Level;
  * through the classic ItemRenderer.renderStatic.
  */
 public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
+
+   /** Reused per item for the stacked-item jitter — render() runs single-threaded on the render thread. */
+   private static final ThreadLocal<Random> MODEL_OFFSET_RANDOM = ThreadLocal.withInitial(() -> new Random(0L));
+
+   /**
+    * Translucent paint-mask sheet for the pipe colour overlay, identical to {@code Sheets.translucentItemSheet()}
+    * ({@code itemEntityTranslucentCull}) EXCEPT it writes colour only ({@code COLOR_WRITE}), not depth. The vanilla
+    * sheet depth-writes, so the painted shell would occlude the pipe's block contents behind it — most visibly at
+    * the up/down faces and where stacked painted pipes share a boundary (one pipe's paint face wrote depth over the
+    * neighbour's adjacent item). Not writing depth means the shell can tint the contents but can never hide them.
+    * It is also a custom (non-fixed) sheet, so the BufferSource flushes it in insertion order — after the items
+    * rendered just above — letting the paint blend over them (tint) rather than the items drawing over the paint.
+    */
+   private static final RenderType PIPE_PAINT_OVERLAY = RenderType.create(
+      "buildcraft:pipe_paint_overlay",
+      DefaultVertexFormat.NEW_ENTITY,
+      VertexFormat.Mode.QUADS,
+      1536,
+      true,
+      true,
+      RenderType.CompositeState.builder()
+         .setShaderState(RenderStateShard.RENDERTYPE_ITEM_ENTITY_TRANSLUCENT_CULL_SHADER)
+         .setTextureState(new RenderStateShard.TextureStateShard(InventoryMenu.BLOCK_ATLAS, false, false))
+         .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+         .setOutputState(RenderStateShard.ITEM_ENTITY_TARGET)
+         .setLightmapState(RenderStateShard.LIGHTMAP)
+         .setOverlayState(RenderStateShard.OVERLAY)
+         .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+         .createCompositeState(true)
+   );
 
    public RenderPipeHolder(BlockEntityRendererProvider.Context context) {
    }
@@ -68,14 +102,20 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
       ModelPipe.renderCutoutPluggables(pipe, cutoutPose, cutout, light);
       PipeWireRenderer.renderWires(pipe, cutoutPose, light, cutout);
 
+      renderItems(pipe, partialTick, poseStack, buffers, light, level);
+
       Pipe bodyPipe = pipe.getPipe();
       if (bodyPipe != null && bodyPipe.getColour() != null) {
+         // Paint via PIPE_PAINT_OVERLAY (colour-only, no depth write): the shell tints the pipe contents instead
+         // of depth-occluding them. Block-items render on RenderType.solid(); the depth-writing vanilla translucent
+         // sheet used to be drawn first and hide them (most visibly at the up/down faces and stacked-pipe
+         // boundaries). A non-depth-writing sheet can never hide the items on any face, so no buffer flush is
+         // needed; as a custom sheet it also flushes after the items above, so the paint blends over them (tint).
          int paintAlpha = bodyPipe.definition.flowType == PipeApi.flowFluids ? 255 : ModelPipe.PIPE_PAINT_ALPHA;
-         VertexConsumer translucent = buffers.getBuffer(BCLibRenderTypes.translucentBlockSheet());
+         VertexConsumer translucent = buffers.getBuffer(PIPE_PAINT_OVERLAY);
          ModelPipe.renderMaskOverlay(pipe, poseStack.last(), translucent, light, paintAlpha);
       }
 
-      renderItems(pipe, partialTick, poseStack, buffers, light, level);
       renderContents(pipe, partialTick, poseStack, buffers, light);
 
       poseStack.popPose();
@@ -103,7 +143,8 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
          Direction dir = item.getRenderDirection(now, partialTick);
          int count = item.stackSize > 0 ? item.stackSize : stack.getCount();
          int models = count > 1 ? 2 : 1;
-         Random offset = new Random(count & 2147483647L);
+         Random offset = MODEL_OFFSET_RANDOM.get();
+         offset.setSeed(count & 2147483647L);
          for (int m = 0; m < models; m++) {
             poseStack.pushPose();
             float dx = 0.0F;

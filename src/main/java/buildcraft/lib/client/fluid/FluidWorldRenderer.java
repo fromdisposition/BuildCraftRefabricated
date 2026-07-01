@@ -102,10 +102,10 @@ public final class FluidWorldRenderer {
    private static void renderOverlay(Minecraft minecraft, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, Identifier location, float overlayAlpha) {
       BlockPos blockPos = BlockPos.containing(minecraft.player.getX(), minecraft.player.getEyeY(), minecraft.player.getZ());
       //? if >= 26.1 {
-      float brightness = Lightmap.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
-      //?} else {
-      /^float brightness = LightCoordsUtil.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
-      ^///?}
+      /^float brightness = Lightmap.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
+      ^///?} else {
+      float brightness = LightCoordsUtil.getBrightness(minecraft.player.level().dimensionType(), minecraft.player.level().getMaxLocalRawBrightness(blockPos));
+      //?}
       int color = ARGB.colorFromFloat(overlayAlpha, brightness, brightness, brightness);
       float yawOffset = -minecraft.player.getYRot() / 64.0F;
       float pitchOffset = minecraft.player.getXRot() / 64.0F;

@@ -8,10 +8,7 @@ package buildcraft.transport.client.render;
 
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IPipe;
-import buildcraft.lib.client.model.ModelUtil;
-import buildcraft.lib.client.model.MutableQuad;
-import buildcraft.lib.misc.MathUtil;
-import buildcraft.lib.misc.VecUtil;
+import buildcraft.lib.client.fluid.BcFluidBoxQuads;
 import buildcraft.transport.BCTransportSprites;
 import buildcraft.transport.pipe.flow.PipeEnergyDisplaySupport;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -19,16 +16,14 @@ import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import java.util.EnumMap;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
 
 public final class PipeFlowRendererEnergy {
    private static final ThreadLocal<double[]> TL_POWER = ThreadLocal.withInitial(() -> new double[6]);
-   private static final ThreadLocal<ModelUtil.UvFaceData> TL_UVS = ThreadLocal.withInitial(ModelUtil.UvFaceData::new);
-   private static final ThreadLocal<MutableQuad> TL_QUAD = ThreadLocal.withInitial(MutableQuad::new);
-   private static final ThreadLocal<Vector3f> TL_FROM = ThreadLocal.withInitial(Vector3f::new);
-   private static final ThreadLocal<Vector3f> TL_TO = ThreadLocal.withInitial(Vector3f::new);
+   private static final ThreadLocal<double[]> TL_BOUNDS = ThreadLocal.withInitial(() -> new double[6]);
+   /** The power-flow sprites are already coloured (cyan / overload red), so the cuboid vertices are plain white. */
+   private static final float[] WHITE = {1.0F, 1.0F, 1.0F, 1.0F};
 
    private PipeFlowRendererEnergy() {
    }
@@ -67,92 +62,74 @@ public final class PipeFlowRendererEnergy {
          centrePower = Math.max(centrePower, power[i]);
       }
 
-      if (!(centrePower <= 0.0)) {
-         TextureAtlasSprite sprite = overloadSprite ? BCTransportSprites.POWER_FLOW_OVERLOAD.getSprite() : BCTransportSprites.POWER_FLOW.getSprite();
-         if (sprite != null) {
-            for (Direction side : Direction.values()) {
-               if (pipe.isConnected(side)) {
-                  PipeEnergyDisplaySupport.DisplaySection section = sections.get(side);
-                  double offset = computeOffset(section.getClientDisplayFlowLast(), section.getClientDisplayFlow(), partialTicks);
-                  renderSidePower(side, power[side.ordinal()], centrePower, offset, sprite, buffer, pose, packedLight);
-               }
-            }
+      if (centrePower <= 0.0) {
+         return;
+      }
 
-            double offsetX = computeOffset(centreLast.x, centre.x, partialTicks);
-            double offsetY = computeOffset(centreLast.y, centre.y, partialTicks);
-            double offsetZ = computeOffset(centreLast.z, centre.z, partialTicks);
-            renderCentrePower(centrePower, offsetX, offsetY, offsetZ, sprite, buffer, pose, packedLight);
+      TextureAtlasSprite sprite = overloadSprite ? BCTransportSprites.POWER_FLOW_OVERLOAD.getSprite() : BCTransportSprites.POWER_FLOW.getSprite();
+      if (sprite == null) {
+         return;
+      }
+
+      // Emit the flow as flat cuboids straight into the buffer via the shared, allocation-free BcFluidBoxQuads
+      // emitter (the same path the fluid-flow renderer uses). No MutableQuad / Vector3f / Vec3 / AABB are
+      // allocated per face, so a screen full of powered pipes does not churn the GC on low-end machines. The
+      // animation comes from the power_flow sprite itself being an animated atlas texture (frame strip + .mcmeta).
+      double[] bounds = TL_BOUNDS.get();
+
+      for (Direction side : Direction.values()) {
+         if (pipe.isConnected(side) && power[side.ordinal()] > 0.0) {
+            sideFlowBounds(side, power[side.ordinal()], centrePower, bounds);
+            // Skip the inner face (toward the pipe centre) — it is hidden by the centre cuboid.
+            emit(pose, buffer, sprite, bounds, 1 << side.getOpposite().ordinal(), packedLight);
          }
       }
+
+      centreFlowBounds(centrePower, bounds);
+      emit(pose, buffer, sprite, bounds, 0, packedLight);
    }
 
-   static double computeOffset(double tick0, double tick1, float partialTicks) {
-      if (tick0 + 8.0 < tick1) {
-         tick0 += 16.0;
-      } else if (tick1 + 8.0 < tick0) {
-         tick1 += 16.0;
-      }
-
-      double offset = MathUtil.interp(partialTicks, tick0, tick1);
-      if (offset >= 16.0) {
-         offset -= 16.0;
-      }
-
-      return offset;
-   }
-
-   private static void renderSidePower(
-      Direction side, double power, double centrePower, double offset, TextureAtlasSprite sprite, VertexConsumer buffer, Pose pose, int packedLight
-   ) {
-      if (!(power < 0.0)) {
-         AABB box = sideFlowBox(side, power, centrePower);
-         Vec3 offsetVec = VecUtil.offset(Vec3.ZERO, side, offset * side.getAxisDirection().getStep() / 32.0);
-         ModelUtil.UvFaceData uvs = TL_UVS.get();
-
-         for (Direction face : Direction.values()) {
-            if (face != side.getOpposite()) {
-               renderScrollingBox(box, offsetVec, face, uvs, sprite, buffer, pose, packedLight);
-            }
-         }
-      }
-   }
-
-   static AABB sideFlowBox(Direction side, double power, double centrePower) {
+   /**
+    * An arm cuboid running from the pipe centre out to {@code side}. The cross-section scales with this side's
+    * power (a thin core at low throughput, near the bore at high), capped at 0.24 = the fluid ARM_RADIUS so it
+    * stays inside the pipe wall; the centre end is pulled back as the centre cuboid grows. Writes minX,minY,minZ,
+    * maxX,maxY,maxZ into {@code out}.
+    */
+   private static void sideFlowBounds(Direction side, double power, double centrePower, double[] out) {
       double p = Math.min(Math.max(power, 0.0), 1.0);
       double c = Math.min(Math.max(centrePower, 0.0), 1.0);
-      double radius = 0.248 * p;
-      double centreRadius = 0.252 - 0.248 * c;
-      Vec3 centre = VecUtil.offset(VecUtil.VEC_HALF, side, 0.375 - centreRadius / 2.0);
-      Vec3 radiusV = new Vec3(radius, radius, radius);
-      radiusV = VecUtil.replaceValue(radiusV, side.getAxis(), 0.125 + centreRadius / 2.0);
-      return new AABB(centre.x - radiusV.x, centre.y - radiusV.y, centre.z - radiusV.z, centre.x + radiusV.x, centre.y + radiusV.y, centre.z + radiusV.z);
+      double radius = 0.24 * p;
+      double centreRadius = 0.252 - 0.24 * c;
+      double axisCentreOff = 0.375 - centreRadius / 2.0;
+      double axisRadius = 0.125 + centreRadius / 2.0;
+      double cx = 0.5 + side.getStepX() * axisCentreOff;
+      double cy = 0.5 + side.getStepY() * axisCentreOff;
+      double cz = 0.5 + side.getStepZ() * axisCentreOff;
+      double rx = side.getAxis() == Axis.X ? axisRadius : radius;
+      double ry = side.getAxis() == Axis.Y ? axisRadius : radius;
+      double rz = side.getAxis() == Axis.Z ? axisRadius : radius;
+      out[0] = cx - rx;
+      out[1] = cy - ry;
+      out[2] = cz - rz;
+      out[3] = cx + rx;
+      out[4] = cy + ry;
+      out[5] = cz + rz;
    }
 
-   private static void renderCentrePower(
-      double centrePower, double offsetX, double offsetY, double offsetZ, TextureAtlasSprite sprite, VertexConsumer buffer, Pose pose, int packedLight
-   ) {
-      double radius = 0.248 * centrePower;
-      Vec3 centre = VecUtil.VEC_HALF.add(offsetX / 16.0, offsetY / 16.0, offsetZ / 16.0);
-      Vec3 radiusV = new Vec3(radius, radius, radius);
-      AABB box = new AABB(centre.x - radiusV.x, centre.y - radiusV.y, centre.z - radiusV.z, centre.x + radiusV.x, centre.y + radiusV.y, centre.z + radiusV.z);
-      ModelUtil.UvFaceData uvs = TL_UVS.get();
-
-      for (Direction face : Direction.values()) {
-         renderScrollingBox(box, Vec3.ZERO, face, uvs, sprite, buffer, pose, packedLight);
-      }
+   /** The centre cuboid, sized by the maximum power passing through the pipe (clamped inside the pipe wall). */
+   private static void centreFlowBounds(double centrePower, double[] out) {
+      double radius = 0.24 * Math.min(Math.max(centrePower, 0.0), 1.0);
+      out[0] = 0.5 - radius;
+      out[1] = 0.5 - radius;
+      out[2] = 0.5 - radius;
+      out[3] = 0.5 + radius;
+      out[4] = 0.5 + radius;
+      out[5] = 0.5 + radius;
    }
 
-   private static void renderScrollingBox(
-      AABB box, Vec3 offset, Direction face, ModelUtil.UvFaceData uvs, TextureAtlasSprite sprite, VertexConsumer buffer, Pose pose, int packedLight
-   ) {
-      Vector3f from = TL_FROM.get();
-      from.set((float)(box.minX + offset.x), (float)(box.minY + offset.y), (float)(box.minZ + offset.z));
-      Vector3f to = TL_TO.get();
-      to.set((float)(box.maxX + offset.x), (float)(box.maxY + offset.y), (float)(box.maxZ + offset.z));
-      MutableQuad quad = TL_QUAD.get();
-      quad.copyFrom(ModelUtil.createFace(face, from, to, uvs));
-      quad.texFromSprite(sprite);
-      quad.lighti(packedLight);
-      quad.render(pose, buffer);
+   private static void emit(Pose pose, VertexConsumer buffer, TextureAtlasSprite sprite, double[] b, int skipFaceMask, int packedLight) {
+      BcFluidBoxQuads.emitCuboid(
+         pose, buffer, sprite, (float)b[0], (float)b[1], (float)b[2], (float)b[3], (float)b[4], (float)b[5], skipFaceMask, WHITE, packedLight
+      );
    }
 }

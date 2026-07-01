@@ -63,10 +63,10 @@ public final class BCSiliconItems {
       CHIPSET_QUARTZ = BCRegistries.registerItem("buildcraftsilicon", "chipset_quartz", Item::new);
       CHIPSET_DIAMOND = BCRegistries.registerItem("buildcraftsilicon", "chipset_diamond", Item::new);
       GATE_COPIER = BCRegistries.registerItem("buildcraftsilicon", "gate_copier", ItemGateCopier::new);
-      PLUG_FACADE = BCRegistries.registerItem("buildcraftsilicon", "plug_facade", ItemPluggableFacade::new);
-      PLUG_GATE = BCRegistries.registerItem("buildcraftsilicon", "plug_gate", ItemPluggableGate::new);
+      PLUG_FACADE = BCRegistries.registerItemDynamicName("buildcraftsilicon", "plug_facade", ItemPluggableFacade::new);
+      PLUG_GATE = BCRegistries.registerItemDynamicName("buildcraftsilicon", "plug_gate", ItemPluggableGate::new);
       PLUG_PULSAR = BCRegistries.registerItem("buildcraftsilicon", "plug_pulsar", ItemPluggablePulsar::new);
-      PLUG_LENS = BCRegistries.registerItem("buildcraftsilicon", "plug_lens", ItemPluggableLens::new);
+      PLUG_LENS = BCRegistries.registerItemDynamicName("buildcraftsilicon", "plug_lens", ItemPluggableLens::new);
       PLUG_LIGHT_SENSOR = BCRegistries.registerItem("buildcraftsilicon", "plug_light_sensor", ItemPluggableLightSensor::new);
       PLUG_TIMER = BCRegistries.registerItem("buildcraftsilicon", "plug_timer", ItemPluggableTimer::new);
    }

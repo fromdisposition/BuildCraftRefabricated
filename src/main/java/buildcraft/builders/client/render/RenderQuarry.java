@@ -10,6 +10,10 @@ import buildcraft.builders.tile.TileQuarry;
 import buildcraft.lib.client.render.tile.BcBlockEntityRenderer;
 import buildcraft.lib.client.render.tile.LedRenderUtil;
 import buildcraft.lib.client.render.tile.RenderPartCube;
+//? if < 26.1 {
+/*import buildcraft.lib.client.render.laser.LaserBatch;
+import net.minecraft.world.phys.Vec3;
+*///?}
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider.Context;
@@ -61,7 +65,38 @@ public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRender
       }
 
       poseStack.popPose();
+
+      //? if < 26.1 {
+      /*// 1.21.10/1.21.11: the world-render path (BCBuildersWorldRenderer.renderAllQuarries) draws the frame/drill
+      // via WorldRenderEvents AFTER translucent water, cutting the underwater drill from above. The block-entity
+      // submit pass runs BEFORE translucent water, so draw the frame/drill here instead (immediate LaserBatch on
+      // < 26.2), exactly like the LEDs above and the 1.21.1 immediate BER. cameraPos = this quarry's BlockPos makes
+      // renderQuarry's absolute world coords block-relative, matching this BER's pose (translated to blockPos - cam).
+      if (renderState.tile != null) {
+         LaserBatch.begin();
+         BCBuildersWorldRenderer.renderQuarry(
+            renderState.tile, poseStack, Vec3.atLowerCornerOf(renderState.tile.getBlockPos()), renderState.partialTick
+         );
+         LaserBatch.end();
+      }
+      *///?}
    }
+
+   //? if < 26.1 {
+   /*// The frame/drill drawn in submit() extends far beyond the quarry block, so (like a beacon beam) the BER must
+   // not be frustum-culled when the block leaves the view, and its view distance must be large enough that a big
+   // quarry still renders when the camera is near the frame but far from the block. 26.1+ draws the frame/drill via
+   // the world renderer (renderAllQuarries), which has no per-BER culling, so this is only needed for the BER path.
+   @Override
+   public boolean shouldRenderOffScreen() {
+      return true;
+   }
+
+   @Override
+   public int getViewDistance() {
+      return 256;
+   }
+   *///?}
 
    static {
       for (int i = 0; i < 4; i++) {

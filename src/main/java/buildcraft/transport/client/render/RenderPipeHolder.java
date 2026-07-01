@@ -29,8 +29,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import com.mojang.math.Axis;
-import java.util.HashMap;
-import java.util.Map;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.Random;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -51,9 +50,12 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, PipeHolderRenderState> {
+   /** Reused per-frame for the stacked-item model jitter (submit runs single-threaded on the render thread). */
+   private static final ThreadLocal<Random> MODEL_OFFSET_RANDOM = ThreadLocal.withInitial(() -> new Random(0L));
    private final ItemModelResolver itemModelResolver;
    private long itemModelCacheTick = Long.MIN_VALUE;
-   private final Map<Integer, ItemStackRenderState> itemModelBySignature = new HashMap<>();
+   /** Per-tick cache of resolved item models, keyed by int signature (no Integer boxing per item per frame). */
+   private final Int2ObjectOpenHashMap<ItemStackRenderState> itemModelBySignature = new Int2ObjectOpenHashMap<>();
 
    public RenderPipeHolder(Context context) {
       this.itemModelResolver = context.itemModelResolver();
@@ -110,8 +112,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                         item.writeRenderPosition(BlockPos.ZERO, now, partialTick, flowItems, posScratch);
                         Direction dir = item.getRenderDirection(now, partialTick);
                         int count = item.stackSize > 0 ? item.stackSize : stack.getCount();
-                        renderState.itemEntries
-                           .add(new PipeHolderRenderState.ItemRenderEntry(itemState, posScratch[0], posScratch[1], posScratch[2], dir, item.colour, count));
+                        renderState.acquireItemEntry().set(itemState, posScratch[0], posScratch[1], posScratch[2], dir, item.colour, count);
                      }
                   }
                }
@@ -151,10 +152,12 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
    }
 
    private static void submitItems(PipeHolderRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, int light) {
-      if (!renderState.itemEntries.isEmpty()) {
-         Random modelOffsetRandom = new Random(0L);
+      if (renderState.itemEntryCount > 0) {
+         Random modelOffsetRandom = MODEL_OFFSET_RANDOM.get();
+         modelOffsetRandom.setSeed(0L);
 
-         for (PipeHolderRenderState.ItemRenderEntry entry : renderState.itemEntries) {
+         for (int idx = 0; idx < renderState.itemEntryCount; idx++) {
+            PipeHolderRenderState.ItemRenderEntry entry = renderState.itemEntries.get(idx);
             if (!entry.renderState.isEmpty()) {
                Direction dir = entry.direction != null ? entry.direction : Direction.EAST;
                int itemModelCount = getStackModelCount(entry.stackCount);

@@ -99,6 +99,19 @@ public final class BCBuildersWorldRenderer {
    }
 
    public static void renderAllQuarries(RenderLevelStageEvent.AfterTranslucentBlocks event) {
+      // < 26.1 draws the quarry frame/drill from its BlockEntityRenderer instead (the block-entity pass runs
+      // BEFORE translucent water, so the drill is no longer depth-occluded by the water surface from above).
+      // This world-renderer path composites AFTER water on < 26.1 (WorldRenderEvents.END_MAIN), so skip it there
+      // to avoid both the water cut and double-rendering the (now correct) BER lasers. 26.1+ uses
+      // AFTER_TRANSLUCENT_FEATURES, which composites these immediate draws WITH water, so it keeps this path.
+      boolean handledByBer = false;
+      //? if < 26.1 {
+      /*handledByBer = true;
+      *///?}
+      if (handledByBer) {
+         return;
+      }
+
       Minecraft mc = Minecraft.getInstance();
       if (mc.player != null && mc.level != null) {
          Deque<WeakReference<TileQuarry>> quarries = BCBuildersEventDist.INSTANCE.renderQuarries(mc.level);
@@ -127,7 +140,7 @@ public final class BCBuildersWorldRenderer {
       }
    }
 
-   private static void renderQuarry(TileQuarry tile, PoseStack poseStack, Vec3 cameraPos, float partialTicks) {
+   public static void renderQuarry(TileQuarry tile, PoseStack poseStack, Vec3 cameraPos, float partialTicks) {
       if (tile.frameBox.isInitialized()) {
          BlockPos min = tile.frameBox.min();
          BlockPos max = tile.frameBox.max();

@@ -98,9 +98,11 @@ public final class BlueprintPipRenderer {
       poseStack.pushPose();
       poseStack.translate((x0 + x1) / 2.0F, (y0 + y1) / 2.0F, 250.0F);
       poseStack.scale(scale, scale, scale);
-      // Match the shared PIP model transform (it renders into a texture, so it flips Y/Z); the GUI ortho is
-      // y-down, so the net orientation may need a sign tweak after visual testing.
-      poseStack.scale(1.0F, -1.0F, -1.0F);
+      // Direct-to-GUI render (no PiP texture round-trip), so use vanilla's GUI 3D-item convention: flip Y ONLY,
+      // to map the model's y-up into the y-down GUI ortho. The shared PiP path additionally flips Z because it
+      // renders into an offscreen texture; replicating that Z flip here cancelled the reflection (det > 0), which
+      // culled the OUTWARD faces (structure looked inside-out) and inverted depth (camera looked mirrored).
+      poseStack.scale(1.0F, -1.0F, 1.0F);
       poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
       poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
       poseStack.translate(-sizeX / 2.0F, -sizeY / 2.0F, -sizeZ / 2.0F);

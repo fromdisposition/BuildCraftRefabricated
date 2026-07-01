@@ -117,11 +117,11 @@ public final class PipePlacementHighlight {
          BlockPos pos = renderState.pos();
          VertexConsumer lines = buffer.getBuffer(BCLibRenderTypes.lines());
          //? if >= 1.21.11 {
-         ShapeRenderer.renderShape(poseStack, lines, this.shape, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102), 2.5F);
-         //?} else {
-         /^// 1.21.10 ShapeRenderer.renderShape has no line-width parameter.
+         /^ShapeRenderer.renderShape(poseStack, lines, this.shape, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102), 2.5F);
+         ^///?} else {
+         // 1.21.10 ShapeRenderer.renderShape has no line-width parameter.
          ShapeRenderer.renderShape(poseStack, lines, this.shape, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102));
-         ^///?}
+         //?}
          buffer.endLastBatch();
          return true;
       }

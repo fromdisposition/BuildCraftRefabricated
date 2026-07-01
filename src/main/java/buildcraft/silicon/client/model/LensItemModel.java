@@ -50,7 +50,12 @@ public class LensItemModel implements ItemModel {
 
          for (MutableQuad mq : PlugBakerLens.bakeForItem(lk.colour(), lk.isFilter(), false)) {
             transformForItem(mq, xform, false);
-            quads.add(mq.toBakedTranslucent());
+            // The render-state item pipeline (1.21.10+, every version that uses this shared model) colours items
+            // through the layer tint, not per-vertex quad colour, so the dye PlugBakerLens applies via colouri(...)
+            // never reaches the GUI on bake. Tag the overlay with tintIndex 0; the actual dye is supplied through
+            // the render-state layer tint in update() (tintLayers() on 26.1+, prepareTintLayers() on 1.21.10/11).
+            mq.setTint(0);
+            quads.add(mq.toBakedItem());
          }
 
          return quads;
@@ -124,8 +129,19 @@ public class LensItemModel implements ItemModel {
          renderState.appendModelIdentityElement(displayContext);
          LayerRenderState layer = renderState.newLayer();
          layer.prepareQuadList().addAll(quads);
-         //? if < 26.1 {
-         /*layer.setRenderType(buildcraft.lib.client.render.BCLibRenderTypes.translucentBlockSheet());
+         //? if >= 26.1 {
+         // Supply the dye colour for tint layer 0 (the overlay quads are tagged with tintIndex 0). The render-state
+         // item pipeline ignores per-vertex quad colour, so this layer tint is the only way the dye reaches the GUI.
+         int lensTint = colour != null ? 0xFF000000 | colour.getTextureDiffuseColor() & 0xFFFFFF : 0xFF3F76E4;
+         layer.tintLayers().add(lensTint);
+         //?} else {
+         /*// 1.21.10/1.21.11: dye reaches the GUI via tint layer 0 (prepareTintLayers(int)[] here, not 26.1's
+         // tintLayers() IntList). CRUCIAL: the < 26.1 BakedQuad carries NO render type (the 26.x MaterialInfo
+         // does), so the layer's render type MUST be set explicitly — without it the layer renders with the
+         // wrong/default type and the whole lens breaks. cutout matches what 26.x bakes (cutoutBlockItemSheet).
+         int lensTint = colour != null ? 0xFF000000 | colour.getTextureDiffuseColor() & 0xFFFFFF : 0xFF3F76E4;
+         layer.prepareTintLayers(1)[0] = lensTint;
+         layer.setRenderType(buildcraft.lib.client.render.BCLibRenderTypes.cutoutBlockSheet());
          *///?}
       }
    }

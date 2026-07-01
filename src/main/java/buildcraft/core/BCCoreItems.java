@@ -49,11 +49,11 @@ public class BCCoreItems {
 
    public static void register() {
       WRENCH = BCRegistries.registerItem("buildcraftcore", "wrench", ItemWrench_Neptune::new, p -> p.stacksTo(1));
-      FRAGILE_FLUID_CONTAINER = BCRegistries.registerItem("buildcraftcore", "fragile_fluid_container", ItemFragileFluidContainer::new, p -> p);
+      FRAGILE_FLUID_CONTAINER = BCRegistries.registerItemDynamicName("buildcraftcore", "fragile_fluid_container", ItemFragileFluidContainer::new, p -> p);
       FluidItemDrops.item = FRAGILE_FLUID_CONTAINER;
       MARKER_CONNECTOR = BCRegistries.registerItem("buildcraftcore", "marker_connector", ItemMarkerConnector::new, p -> p.stacksTo(1));
       VOLUME_BOX = BCRegistries.registerItem("buildcraftcore", "volume_box", ItemVolumeBox::new, p -> p.stacksTo(16));
-      PAINTBRUSH = BCRegistries.registerItem("buildcraftcore", "paintbrush", ItemPaintbrush_BC8::new, p -> p.stacksTo(1));
+      PAINTBRUSH = BCRegistries.registerItemDynamicName("buildcraftcore", "paintbrush", ItemPaintbrush_BC8::new, p -> p.stacksTo(1));
       LIST = BCRegistries.registerItem("buildcraftcore", "list", ItemList_BC8::new, p -> p.stacksTo(1));
       GEAR_WOOD = BCRegistries.registerItem("buildcraftcore", "gear_wood", Item::new);
       GEAR_STONE = BCRegistries.registerItem("buildcraftcore", "gear_stone", Item::new);

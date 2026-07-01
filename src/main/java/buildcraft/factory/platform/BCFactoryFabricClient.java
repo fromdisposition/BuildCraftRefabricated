@@ -2,6 +2,7 @@ package buildcraft.factory.platform;
 
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.BCFactoryEntities;
+import buildcraft.factory.entity.EntityMinerShaft;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.client.render.RenderDistiller;
@@ -40,7 +41,14 @@ public final class BCFactoryFabricClient {
       BlockEntityRenderers.register(BCFactoryBlockEntities.HEAT_EXCHANGE, RenderHeatExchange::new);
       BlockEntityRenderers.register(BCFactoryBlockEntities.PUMP, RenderPump::new);
       BlockEntityRenderers.register(BCFactoryBlockEntities.MINING_WELL, RenderMiningWell::new);
-      EntityRenderers.register(BCFactoryEntities.MINER_SHAFT, NoopRenderer::new);
+      // Don't frustum-cull the invisible collision shaft (see BCBuildersFabricClient / the rig). 1.21.1 uses
+      // Entity.noCulling instead.
+      EntityRenderers.register(BCFactoryEntities.MINER_SHAFT, context -> new NoopRenderer<EntityMinerShaft>(context) {
+         @Override
+         protected boolean affectedByCulling(EntityMinerShaft entity) {
+            return false;
+         }
+      });
       // 1.21.x ignores the model JSON "render_type" field (a 26.1 model-system feature), so the
       // chunk render layer must be registered explicitly via Fabric's BlockRenderLayerMap, otherwise
       // these blocks fall back to SOLID and their glass/lattice parts render opaque.

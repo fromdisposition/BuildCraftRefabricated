@@ -68,9 +68,9 @@ public class LensItemModel implements BakedModel {
    }
 
    /**
-    * The lens geometry is baked in the plug_lens.json frame (WEST-facing pluggable); per-context placement
-    * (incl. the GUI 90deg yaw) comes entirely from getTransforms(), matching the model JSON's display block.
-    * No geometry pre-rotation here — that double-rotated the GUI view (lens faced the wrong way / looked oversized).
+    * Geometry stays as baked (WEST-facing plate); per-context placement comes entirely from getTransforms(),
+    * mirroring plug_lens.json's display block. No geometry pre-rotation — the lens frame is symmetric, so the GUI
+    * yaw in getTransforms suffices and a geometry rotation would only risk double-rotating.
     */
    private static void transformForItem(MutableQuad mq, boolean resetColors) {
       mq.setShade(false);

@@ -117,7 +117,13 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    private boolean deferredChunkLoad = false;
    private List<AABB> collisionBoxes = ImmutableList.of();
    private Vec3 collisionDrillPos;
-   private final EntityQuarryRig[] rigs = new EntityQuarryRig[3];
+   private final List<EntityQuarryRig> rigs = new ArrayList<>();
+   // Minecraft stores each entity in the single 16-block section of its CENTRE, and a player's collision query
+   // only scans the sections around the player. A rig box that CROSSES a section boundary is therefore not found
+   // when the player stands on the part that lies in a different section than the box centre (the hitbox still
+   // renders — rendering iterates every entity — but there is no collision). So a rig box is cut at the 16-block
+   // section boundaries: each piece lies within one section, where the player standing on it always queries it.
+   // A box that already fits inside one section (the common case for a normal quarry) stays a single entity.
 
    public TileQuarry(BlockPos pos, BlockState state) {
       super(BCBuildersBlockEntities.QUARRY, pos, state);
@@ -735,22 +741,37 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
             } else {
                boolean isDrillMoving = this.currentTask instanceof TileQuarry.TaskMoveDrill;
 
-               for (int i = 0; i < 3; i++) {
-                  EntityQuarryRig rig = this.rigs[i];
+               // Cut each beam/drill box at section boundaries so every piece is found by the player's
+               // section-local collision query (see the rigs field). A box inside one section stays one entity.
+               // Index >= drillSegmentStart are the vertical-drill pieces, which phase (no collision) while the
+               // drill is travelling.
+               List<AABB> segments = new ArrayList<>();
+               splitBoxAtSections(boxes.get(0), segments);
+               splitBoxAtSections(boxes.get(1), segments);
+               int drillSegmentStart = segments.size();
+               splitBoxAtSections(boxes.get(2), segments);
+
+               while (this.rigs.size() > segments.size()) {
+                  EntityQuarryRig extra = this.rigs.remove(this.rigs.size() - 1);
+                  if (extra != null && !extra.isRemoved()) {
+                     extra.discard();
+                  }
+               }
+
+               for (int i = 0; i < segments.size(); i++) {
+                  EntityQuarryRig rig = i < this.rigs.size() ? this.rigs.get(i) : null;
                   if (rig == null || rig.isRemoved()) {
                      rig = new EntityQuarryRig(BCBuildersEntities.QUARRY_RIG, this.level);
-                     if (rig != null) {
-                        this.level.addFreshEntity(rig);
-                        this.rigs[i] = rig;
+                     this.level.addFreshEntity(rig);
+                     if (i < this.rigs.size()) {
+                        this.rigs.set(i, rig);
+                     } else {
+                        this.rigs.add(rig);
                      }
                   }
 
-                  if (rig != null) {
-                     rig.setRiggingBox(boxes.get(i));
-                     if (i == 2) {
-                        rig.setPhasing(isDrillMoving);
-                     }
-                  }
+                  rig.setRiggingBox(segments.get(i));
+                  rig.setPhasing(i >= drillSegmentStart && isDrillMoving);
                }
             }
          } else {
@@ -759,14 +780,55 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       }
    }
 
-   private void discardRigs() {
-      for (int i = 0; i < 3; i++) {
-         if (this.rigs[i] != null && !this.rigs[i].isRemoved()) {
-            this.rigs[i].discard();
+   /**
+    * Cuts {@code box} along its longest axis at 16-block section boundaries so every piece lies within a single
+    * entity section, appending the pieces to {@code out}. A box that already fits one section is added unchanged.
+    */
+   private static void splitBoxAtSections(AABB box, List<AABB> out) {
+      double dx = box.maxX - box.minX;
+      double dy = box.maxY - box.minY;
+      double dz = box.maxZ - box.minZ;
+      double longest = Math.max(dx, Math.max(dy, dz));
+
+      double min;
+      double max;
+      Axis axis;
+      if (longest == dx) {
+         axis = Axis.X;
+         min = box.minX;
+         max = box.maxX;
+      } else if (longest == dy) {
+         axis = Axis.Y;
+         min = box.minY;
+         max = box.maxY;
+      } else {
+         axis = Axis.Z;
+         min = box.minZ;
+         max = box.maxZ;
+      }
+
+      for (double from = min; from < max; ) {
+         double to = Math.min(Math.floor(from / 16.0) * 16.0 + 16.0, max);
+         if (axis == Axis.X) {
+            out.add(new AABB(from, box.minY, box.minZ, to, box.maxY, box.maxZ));
+         } else if (axis == Axis.Y) {
+            out.add(new AABB(box.minX, from, box.minZ, box.maxX, to, box.maxZ));
+         } else {
+            out.add(new AABB(box.minX, box.minY, from, box.maxX, box.maxY, to));
          }
 
-         this.rigs[i] = null;
+         from = to;
       }
+   }
+
+   private void discardRigs() {
+      for (EntityQuarryRig rig : this.rigs) {
+         if (rig != null && !rig.isRemoved()) {
+            rig.discard();
+         }
+      }
+
+      this.rigs.clear();
    }
 
    public List<AABB> getCollisionBoxes() {

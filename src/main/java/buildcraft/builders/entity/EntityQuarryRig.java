@@ -16,6 +16,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 //? if >= 1.21.10 {
+import net.minecraft.world.entity.InterpolationHandler;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 //?}
@@ -32,6 +33,13 @@ public class EntityQuarryRig extends Entity {
    public EntityQuarryRig(EntityType<?> type, Level level) {
       super(type, level);
       this.noPhysics = true;
+      // Never frustum-cull this invisible collision rig. After the section-split its boxes can be small, and the
+      // camera leaving one would otherwise drop its F3+B debug hitbox (collision is unaffected — it is server-side
+      // + a section query, never frustum-based). On >= 1.21.10 the renderer's affectedByCulling()=false does this
+      // (set at registration in BCBuildersFabricClient); 1.21.1 has no such renderer hook, so use Entity.noCulling.
+      //? if < 1.21.10 {
+      /*this.noCulling = true;
+      *///?}
    }
 
    protected void defineSynchedData(Builder builder) {
@@ -97,6 +105,22 @@ public class EntityQuarryRig extends Entity {
    public boolean isPushable() {
       return false;
    }
+
+   // The tile repositions this collision rig every server tick to follow the moving drill/frame. By default the
+   // client interpolates an entity's synced position over DEFAULT_INTERPOLATION_STEPS (3) ticks, so the collision
+   // box LAGGED ~3 ticks behind the smoothly rendered gantry — the player walking on the moving part fell through
+   // where the box had not caught up yet. Snap the rig straight to each synced position so collision tracks tight.
+   //? if >= 1.21.10 {
+   private final InterpolationHandler interpolation = new InterpolationHandler(this, 0);
+
+   public InterpolationHandler getInterpolation() {
+      return this.interpolation;
+   }
+   //?} else {
+   /*public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+      this.setPos(x, y, z);
+   }
+   *///?}
 
    //? if >= 1.21.10 {
    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {

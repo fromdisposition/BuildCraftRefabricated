@@ -8,6 +8,7 @@ package buildcraft.builders.client.render;
 
 import buildcraft.builders.tile.TileQuarry;
 import buildcraft.lib.client.render.BCLibRenderTypes;
+import buildcraft.lib.client.render.laser.LaserBatch;
 import buildcraft.lib.client.render.tile.LedRenderUtil;
 import buildcraft.lib.client.render.tile.RenderPartCube;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -19,6 +20,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 /** 1.21.1 (versions/1.21.1) quarry renderer: immediate-mode status LEDs (skips the rear face). */
 public class RenderQuarry implements BlockEntityRenderer<TileQuarry> {
@@ -54,6 +56,28 @@ public class RenderQuarry implements BlockEntityRenderer<TileQuarry> {
          }
       }
       poseStack.popPose();
+
+      // Frame + drill rendered HERE in the BER. The block-entity pass runs BEFORE the translucent water pass, so
+      // (unlike the END_MAIN world-render path) the underwater drill lands in the depth buffer first and the
+      // water then blends over it — visible through water from above, exactly like the LEDs above already are.
+      // cameraPos = this quarry's own BlockPos makes renderQuarry's absolute world coords block-relative, which
+      // matches this BER's pose (already translated to blockPos - camera). LaserBatch flushes inside the BE pass.
+      LaserBatch.begin();
+      BCBuildersWorldRenderer.renderQuarry(tile, poseStack, Vec3.atLowerCornerOf(tile.getBlockPos()), partialTick);
+      LaserBatch.end();
+   }
+
+   @Override
+   public boolean shouldRenderOffScreen(TileQuarry tile) {
+      // The frame/drill extends far beyond the quarry block, so don't frustum-cull the BER on the block alone.
+      return true;
+   }
+
+   @Override
+   public int getViewDistance() {
+      // A large quarry's frame/drill reaches well past the default 64-block BER view distance; raise it (like a
+      // beacon) so the render does not vanish when the camera is near the frame but far from the quarry block.
+      return 256;
    }
 
    static {
