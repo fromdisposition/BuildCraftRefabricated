@@ -16,6 +16,11 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 
 final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
+   // Biome ids that exist on the generator node (26.x) but not on every target: emitted as optional tag
+   // entries ({"id":...,"required":false}) so the shared tag still loads where the biome is absent.
+   // minecraft:pale_garden was added in 1.21.4 — a required entry breaks the whole tag on 1.21.1.
+   // Compared by id string (RegistryKeyUtil) to stay independent of each node's mappings.
+   private static final Set<String> OPTIONAL_NORMAL_SPAWN = Set.of("minecraft:pale_garden");
    private static final List<ResourceKey<Biome>> PATCH_DESERT = List.of(Biomes.DESERT, Biomes.BADLANDS, Biomes.WOODED_BADLANDS);
    private static final List<ResourceKey<Biome>> PATCH_OCEAN = List.of(
       Biomes.OCEAN,
@@ -77,7 +82,11 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
 
       var normalSpawn = builder(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
       for (ResourceKey<Biome> key : normalSpawnBiomes) {
-         normalSpawn.add(key);
+         if (OPTIONAL_NORMAL_SPAWN.contains(buildcraft.lib.misc.RegistryKeyUtil.id(key).toString())) {
+            normalSpawn.addOptional(key);
+         } else {
+            normalSpawn.add(key);
+         }
       }
    }
 }

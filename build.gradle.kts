@@ -25,10 +25,10 @@ val javaRelease = if (sc.current.parsed >= "26.1") 25 else 21
 val javaVer = if (javaRelease >= 25) JavaVersion.VERSION_25 else JavaVersion.VERSION_21
 
 // Asset generators (fluid bucket baking + fabric-datagen) mutate the shared src/main resources and
-// src/main/generated. They run on ONE node only — 26.1, where every generator works — and the
+// src/main/generated. They run on ONE node only — 26.2 (the newest full-format node) — and the
 // committed output is then consumed as static resources by every other node. See the
 // "Asset generation" section at the bottom of this file.
-val isGeneratorNode = project.name == "26.1"
+val isGeneratorNode = project.name == "26.2"
 
 // Version format: <yy>.<M>.<d>+mc<mcVersion>, date without leading zeros (e.g. 26.6.18+mc1.21.11).
 val buildDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yy.M.d"))
@@ -64,7 +64,7 @@ loom {
     }
 }
 
-// Data generation is a generator task: configure it (and its runDatagen run) only on 26.1.
+// Data generation is a generator task: configure it (and its runDatagen run) only on 26.2.
 if (isGeneratorNode) {
     fabricApi {
         configureDataGeneration {
@@ -421,7 +421,7 @@ tasks.processResources {
     // Generated assets (baked fluid textures/buckets + datagen output) are COMMITTED to src/main/resources
     // and src/main/generated and consumed here as plain static resources on every node. The generators are
     // deliberately NOT wired into the build graph: a clean build only packages the committed output and
-    // never mutates shared source. Refresh the committed assets explicitly via `:26.1:generateAssets`.
+    // never mutates shared source. Refresh the committed assets explicitly via `:26.2:generateAssets`.
 
     val mixinCompatLevel = if (javaRelease >= 25) "JAVA_25" else "JAVA_21"
     val props = mapOf(
@@ -477,11 +477,11 @@ tasks.named("clean") {
 }
 
 // ===========================================================================
-// Asset generation (26.1 only)
+// Asset generation (26.2 only)
 //
 // These tasks regenerate committed assets from source templates: fluid bucket/block textures and
-// fabric-datagen output. They mutate the shared src/main tree, so they are wired up on the 26.1 node
-// only — the one node where every generator is known to work. Run `:26.1:generateAssets` to refresh
+// fabric-datagen output. They mutate the shared src/main tree, so they are wired up on the 26.2 node
+// only — the newest full-format node. Run `:26.2:generateAssets` to refresh
 // everything at once; the output is committed and consumed as static resources by all other nodes.
 // ===========================================================================
 
@@ -643,7 +643,7 @@ if (isGeneratorNode) {
                 return out
             }
 
-            // mcVersion is the build-script val (sc.current.version); on the 26.1 node it is "26.1.2",
+            // mcVersion is the build-script val (sc.current.version); on the 26.2 node it is "26.2",
             // which is the merged-jar folder name findMinecraftClientJar matches on.
             val mcJar = findMinecraftClientJar(rootProject.file(".gradle/loom-cache/minecraftMaven/net/minecraft"), mcVersion)
             val heatFlowTemplate = vanillaWaterToHeatFlow(loadVanillaWaterFlow(mcJar))
@@ -777,19 +777,20 @@ if (isGeneratorNode) {
         }
     }
 
-    // The generator writes into src/main/resources, which Stonecutter's prepare/generate tasks read as
-    // inputs. In a fan-out `gradlew build` (all nodes at once) Gradle schedules all three and rejects the
-    // undeclared producer→consumer relationship. Order the Stonecutter tasks AFTER the generator so the
-    // chiseled tree always sees fresh assets (mustRunAfter only applies when the generator is also
-    // scheduled — i.e. a 26.1 build via processResources — so compile-only graphs are unaffected).
-    listOf("stonecutterPrepare", "stonecutterGenerate").forEach { tn ->
+    // The generator writes into src/main/resources, which Stonecutter's prepare/generate tasks and
+    // processResources read as inputs. When both are scheduled (a fan-out `gradlew build`, or the
+    // generateAssets aggregate whose runDatagen pulls in processResources) Gradle rejects the undeclared
+    // producer→consumer relationship. Order those readers AFTER the generator so they always see fresh
+    // assets (mustRunAfter only applies when the generator is also scheduled — so compile-only graphs are
+    // unaffected).
+    listOf("stonecutterPrepare", "stonecutterGenerate", "processResources").forEach { tn ->
         tasks.matching { it.name == tn }.configureEach { mustRunAfter("generateFluidBucketAssets") }
     }
 
-    /** One-shot aggregate: run every generator (fluid baking + fabric-datagen) on 26.1. */
+    /** One-shot aggregate: run every generator (fluid baking + fabric-datagen) on 26.2. */
     tasks.register("generateAssets") {
         group = "buildcraft"
-        description = "Run all asset generators (fluid bucket baking + data generation). 26.1 only."
+        description = "Run all asset generators (fluid bucket baking + data generation). 26.2 only."
         dependsOn("generateFluidBucketAssets", "runDatagen")
     }
 }
