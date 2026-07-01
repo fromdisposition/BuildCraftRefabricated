@@ -1,0 +1,36 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.builders.snapshot.pattern;
+
+import buildcraft.api.core.render.ISprite;
+import buildcraft.builders.BCBuildersSprites;
+
+public class PatternShape2dHexagon extends PatternShape2d {
+   public PatternShape2dHexagon() {
+      super("2d_hexagon");
+   }
+
+   @Override
+   public ISprite getSprite() {
+      return BCBuildersSprites.FILLER_2D_HEXAGON;
+   }
+
+   @Override
+   protected void genShape(int maxA, int maxB, PatternShape2d.LineList list) {
+      int indent = maxA / 4;
+      int halfB = maxB / 2;
+      list.moveTo(indent, 0);
+      list.lineTo(maxA - indent, 0);
+      list.lineFrom(maxA, halfB);
+      list.moveTo(maxA, maxB - halfB);
+      list.lineTo(maxA - indent, maxB);
+      list.lineFrom(indent, maxB);
+      list.lineFrom(0, maxB - halfB);
+      list.moveTo(0, halfB);
+      list.lineTo(indent, 0);
+   }
+}

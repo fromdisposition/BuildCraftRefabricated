@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "buildcraft_pipes",
+  "pattern": [
+    "lgr"
+  ],
+  "key": {
+    "l": "#minecraft:planks",
+    "g": "#c:glass_blocks/colorless",
+    "r": "#minecraft:planks"
+  },
+  "result": {
+    "id": "buildcrafttransport:pipe_wood_item",
+    "count": 8
+  }
+}

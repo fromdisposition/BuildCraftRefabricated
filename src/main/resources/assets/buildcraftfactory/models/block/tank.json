@@ -1,0 +1,45 @@
+{
+  "render_type": "cutout",
+  "elements": [
+    {
+      "from": [
+        2,
+        0,
+        2
+      ],
+      "to": [
+        14,
+        16,
+        14
+      ],
+      "faces": {
+        "down": {
+          "texture": "#down",
+          "cullface": "down"
+        },
+        "up": {
+          "texture": "#up",
+          "cullface": "up"
+        },
+        "north": {
+          "texture": "#side"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        }
+      }
+    }
+  ],
+  "textures": {
+    "particle": "buildcraftfactory:block/tank/side",
+    "up": "buildcraftfactory:block/tank/end",
+    "down": "buildcraftfactory:block/tank/end",
+    "side": "buildcraftfactory:block/tank/side"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_large",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 8
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_large_s",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 6
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_large_m",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 6
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_medium",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 20
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_medium_l",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 15
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_medium_alt",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 12
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_medium_s",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 13
+    }
+  ],
+  "fallback": "minecraft:empty"
+}

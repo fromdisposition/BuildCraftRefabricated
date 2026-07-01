@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "III",
+    "IRI",
+    "D D"
+  ],
+  "key": {
+    "I": "#c:ingots/iron",
+    "R": "buildcraftsilicon:chipset_redstone",
+    "D": "buildcraftsilicon:chipset_diamond"
+  },
+  "result": {
+    "id": "buildcraftrobotics:robot"
+  }
+}

@@ -1,41 +1,44 @@
-#eclipse
-.project
-.classpath
-.settings/
-.metadata
-*.launch
-org.*
-bin
+# Whitelist: only src/, gradle/, and root project files are tracked.
+/*
 
-#idea
+!/src/
+!/src/**
+!/gradle/
+!/gradle/**
+# Build inputs for generateFluidBucketAssets (not shipped in the mod JAR).
+!/gradle/fluid_assets/
+!/gradle/fluid_assets/**
+
+!/.gitignore
+!/.gitattributes
+!/build.gradle.kts
+!/settings.gradle.kts
+!/stonecutter.gradle.kts
+!/stonecutter.properties.toml
+!/gradle.properties
+!/gradlew
+!/gradlew.bat
+!/LICENSE
+!/README.md
+
+# Local / generated (also covered by whitelist above)
+.gradle/
+/versions/**/.gradle/
+/versions/**/build/
+build/
+run/
+run_server/
+
+# Fluid bake outputs under src/ ARE tracked (baked/, underwater/, heat_* templates,
+# bucket_fluid icons). Regenerate via: ./gradlew generateFluidBucketAssets
+
+# IDE / OS
+.idea/
 *.iml
-*.ipr
-*.iws
-.idea
-out
-
-#gradle
-build
-.gradle
-modules
-libs
-
-#runtime
-run
-run_server
-
-#mac
+.vscode/
 .DS_Store
+Thumbs.db
 
-#Custom code to inject the the dev environment
-custom
-test-results
-
-#licnse_checker
-# Not in git because it contains names + emails.
-license_checker/agreed.txt
-license_checker/unused_code.txt
-license_checker/out/**
-
-# For some annoying reason the tests creates a log file in "/logs/latest.txt"
-logs
+# Decompiler junk at repo root
+/com/
+/net/

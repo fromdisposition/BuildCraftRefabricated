@@ -1,0 +1,36 @@
+# See https://stonecutter.kikugie.dev/wiki/config/properties
+
+["1.21.1"]
+deps.loader = "0.19.3"
+deps.fabric_api = "0.116.5+1.21.1"
+mod.mc_dep_range = ">=1.21 <1.21.2"
+deps.energy = "4.0.0"
+deps.jei = "19.27.0.343"
+
+["1.21.10"]
+deps.loader = "0.19.3"
+deps.fabric_api = "0.138.4+1.21.10"
+mod.mc_dep_range = ">=1.21.10 <1.21.11"
+deps.energy = "4.2.0"
+deps.jei = "26.2.0.30"
+
+["1.21.11"]
+deps.loader = "0.19.3"
+deps.fabric_api = "0.141.4+1.21.11"
+mod.mc_dep_range = ">=1.21.11 <1.22"
+deps.energy = "4.2.0"
+deps.jei = "27.4.0.22"
+
+["26.1"]
+deps.loader = "0.19.3"
+deps.fabric_api = "0.153.0+26.1.2"
+mod.mc_dep_range = ">=26.1 <26.2"
+deps.energy = "5.0.0"
+deps.jei = "29.6.2.38"
+
+["26.2"]
+deps.loader = "0.19.3"
+deps.fabric_api = "0.153.0+26.2"
+mod.mc_dep_range = ">=26.2 <27.1"
+deps.energy = "5.0.0"
+deps.jei = "30.1.0.12"

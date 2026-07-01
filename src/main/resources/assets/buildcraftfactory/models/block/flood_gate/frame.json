@@ -1,0 +1,26 @@
+{
+  "textures": {
+    "particle": "buildcraftfactory:block/flood_gate/top",
+    "top": "buildcraftfactory:block/flood_gate/top"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftfactory:distiller"
+    ]
+  },
+  "criteria": {
+    "has_tank": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftfactory:tank"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_tank"
+    ]
+  ]
+}

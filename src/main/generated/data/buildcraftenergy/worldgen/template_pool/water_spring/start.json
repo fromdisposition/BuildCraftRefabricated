@@ -1,0 +1,14 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "buildcraftenergy:water_spring",
+        "location": "buildcraftenergy:water_spring",
+        "processors": "buildcraftenergy:water_spring_bedrock",
+        "projection": "rigid"
+      },
+      "weight": 1
+    }
+  ],
+  "fallback": "minecraft:empty"
+}

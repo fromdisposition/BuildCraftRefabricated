@@ -1,0 +1,29 @@
+{
+    "type":  "minecraft:crafting_shaped",
+    "category":  "misc",
+    "pattern":  [
+                    " m ",
+                    "mgm",
+                    " m "
+                ],
+    "key":  {
+                "m":  "minecraft:lapis_lazuli",
+                "g":  {
+                          "fabric:type":  "fabric:custom_data",
+                          "base":  "buildcraftsilicon:plug_gate",
+                          "nbt":  "{gate:{logic:0b,material:1b,modifier:0b}}"
+                      }
+            },
+    "result":  {
+                   "id":  "buildcraftsilicon:plug_gate",
+                   "count":  1,
+                   "components":  {
+                                      "minecraft:custom_data":  "{gate:{logic:0b,material:1b,modifier:1b}}",
+                                      "minecraft:custom_model_data":  {
+                                                                          "strings":  [
+                                                                                          "iron_and_lapis"
+                                                                                      ]
+                                                                      }
+                                  }
+               }
+}

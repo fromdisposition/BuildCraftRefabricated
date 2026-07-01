@@ -1,0 +1,42 @@
+{
+  "render_type": "minecraft:translucent",
+  "textures": {
+    "sprite_b": "buildcraftfactory:block/heat_exchange/sprite_b",
+    "particle": "buildcraftfactory:block/heat_exchange/sprite_b"
+  },
+  "elements": [
+    {
+      "comment": "Cap - closes off the outer pipe end (paper-thin for both-sides)",
+      "from": [
+        15.99,
+        2,
+        2
+      ],
+      "to": [
+        16.01,
+        14,
+        14
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            12,
+            12
+          ],
+          "texture": "#sprite_b"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            12,
+            12
+          ],
+          "texture": "#sprite_b"
+        }
+      }
+    }
+  ]
+}

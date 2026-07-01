@@ -1,0 +1,12 @@
+{
+  "fabric:load_conditions": [{ "condition": "fabric:all_mods_loaded", "values": ["team_reborn_energy"] }],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "buildcrafttransport:pipe_wood_power",
+    "#c:dusts/redstone"
+  ],
+  "result": {
+    "id": "buildcrafttransport:pipe_wood_rf"
+  }
+}

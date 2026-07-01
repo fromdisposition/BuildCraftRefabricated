@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "buildcraft_power_pipes",
+  "ingredients": [
+    "buildcrafttransport:pipe_cobble_item",
+    "#c:dusts/redstone"
+  ],
+  "result": {
+    "id": "buildcrafttransport:pipe_cobble_power"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "rtr",
+    "tgt"
+  ],
+  "key": {
+    "r": "minecraft:redstone_torch",
+    "t": "buildcraftfactory:tank",
+    "g": "buildcraftcore:gear_diamond"
+  },
+  "result": {
+    "id": "buildcraftfactory:distiller"
+  }
+}

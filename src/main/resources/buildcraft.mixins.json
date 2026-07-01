@@ -1,0 +1,27 @@
+{
+  "required": true,
+  "plugin": "buildcraft.lib.fabric.mixin.BCMixinPlugin",
+  "package": "buildcraft.lib.fabric.mixin",
+  "compatibilityLevel": "${mixin_compat_level}",
+  "mixins": [
+    "BucketItemAccessor",
+    "EntityBcFluidPhysicsMixin",
+    "LevelMixin",
+    "ShapelessRecipeAccessor"
+  ],
+  "client": [
+    "client.ItemTintSourcesBootstrapMixin",
+    "client.GhostSlotsInvokerMixin",
+    "client.ClientLevelParticleMixin",
+    "client.LevelRendererMixin",
+    "client.GuiGraphicsExtractorAccessor",
+    "client.ModelManagerMixin",
+    "client.GameRendererPipMixin",
+    "client.FogRendererBcFluidMixin",
+    "client.CameraBcFluidMixin",
+    "client.ScreenEffectRendererBcFluidMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

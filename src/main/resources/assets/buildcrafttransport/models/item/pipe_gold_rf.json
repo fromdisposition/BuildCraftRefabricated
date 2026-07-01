@@ -1,0 +1,8 @@
+{
+  "parent": "buildcrafttransport:item/pipe_item",
+  "textures": {
+    "top": "buildcrafttransport:pipes/gold_rf",
+    "center": "buildcrafttransport:pipes/gold_rf",
+    "bottom": "buildcrafttransport:pipes/gold_rf"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "salt": 1346811108,
+    "separation": 8,
+    "spacing": 26
+  },
+  "structures": [
+    {
+      "structure": "buildcraftenergy:oil_deposit_normal",
+      "weight": 1
+    }
+  ]
+}

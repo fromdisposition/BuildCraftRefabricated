@@ -1,0 +1,8 @@
+{
+  "type": "buildcraftenergy:combustion_fuel",
+  "fluid": "buildcraftenergy:oil",
+  "power_per_cycle": 3145728,
+  "total_burning_time": 10000,
+  "residue_fluid": "buildcraftenergy:oil_residue",
+  "residue_amount_per_1000mb": 125
+}

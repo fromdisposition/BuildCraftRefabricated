@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "sis",
+    "sgs",
+    "srs"
+  ],
+  "key": {
+    "s": "buildcrafttransport:pipe_structure",
+    "g": "buildcraftcore:gear_stone",
+    "r": "minecraft:redstone",
+    "i": "#c:ingots/gold"
+  },
+  "result": {
+    "id": "buildcrafttransport:plug_power_adaptor",
+    "count": 4
+  }
+}

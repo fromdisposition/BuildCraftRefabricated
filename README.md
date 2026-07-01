@@ -1,135 +1,184 @@
-## Welcome to BuildCraft on GitHub
+# BuildCraft Refabricated
 
-### Reporting an issue
+Unofficial **Fabric** port of BuildCraft for **modern Minecraft** — pipes, engines, quarries, oil, gates, and automation in one JAR.
 
-Please open an issue for a bug report only if:
 
-* you are sure the bug is caused by BuildCraft and not by any other mod,
-* you have at least one of the following:
-  * a crash report, 
-  * means of reproducing the bug in question,
-  * screenshots/videos/etc. to demonstrate the bug.
+| Minecraft Version | Support Status | Fabric Loader | Fabric API | Java |
+|-------------------|----------------|------------|------------|------|
+| **26.2**| 🟢 **Active** (Upstream) | ≥ 0.19.3 | ≥ 0.153.0+26.2 | 25 |
+| **26.1.x** | 🟢 **Active** (Long term support) | ≥ 0.19.3 | ≥ 0.153.0+26.1.2 | 25 |
+| **1.21.11** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.141.4+1.21.11 | 21 |
+| **1.21.10** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.138.4+1.21.10 | 21 |
+| **1.21.1** | 🟠 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.116.5+1.21.1 | 21 |
+| **<1.21.1** | 🔴 **Not supported and not planned**  | | | |
 
-**If you are not sure if a bug report is valid, please use the "Ask Help!" subforum.**
+**Repository:** [github.com/fromdisposition/BuildCraftRefabricated](https://github.com/fromdisposition/BuildCraftRefabricated)  
+**Issues:** [github.com/fromdisposition/BuildCraftRefabricated/issues](https://github.com/fromdisposition/BuildCraftRefabricated/issues)
 
-Please only use **official BuildCraft releases** for any kind of bug reports unless otherwise told to do by the BuildCraft team. Custom builds (for instance from Jenkins) are unsupported, often buggy and will **not** get any support from the developers.
+**Gameplay code traces to [legoj15's NeoForge port](https://github.com/legoj15/BuildCraft), adapted here for Fabric Transfer API and Team Reborn Energy (`E`) interop.**
 
-Please check if the bug has been reported beforehand. Also, provide the version of BuildCraft used - if it's a version compiled from source, link to the commit/tree you complied from.
+---
 
-Please mention if you are using MCPC+, Cauldron, OptiFine, FastCraft or any other mods which optimize or otherwise severely modify the functioning of the Minecraft engine. That is very helpful when trying to reproduce a bug.
+## Modules
 
-Please do not open issues for features unless you are a member of the BuildCraft team. For that, use the "Feature Requests" subforum.
+| Package | Role |
+|---------|------|
+| `buildcraft.core` | Markers, volume boxes, list mod, springs |
+| `buildcraft.lib` | GUI, tiles, transfer, rendering, guide |
+| `buildcraft.energy` | Engines, oil/fuel fluids, worldgen |
+| `buildcraft.transport` | Item/fluid/MJ/E pipes, pluggables, wires |
+| `buildcraft.factory` | Tank, pump, distiller, auto workbench, mining well |
+| `buildcraft.builders` | Quarry, filler, builder, architect table |
+| `buildcraft.silicon` | Laser tables, gates, facades |
+| `buildcraft.robotics` | Zone planner, robots, docking stations |
+| `buildcraft.fabric` | Registries, config, networking, bootstrap |
 
-BuildCraft, being an open-source project, gives you the right to submit a pull request if a particular fix or feature is important to you. However, if the change in question is major, please contact the team beforehand - we wish to prevent wasted effort.
+---
 
-### Contributing
+## BC 8.0.x parity
 
-If you wish to submit a pull request to fix bugs or broken behaviour feel free to do so. If you would like to add 
-features or change existing behaviour or balance, please discuss it on discord before submitting a PR (https://discord.gg/v4geqgA).
+Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2).
 
-Do not submit pull requests which solely "fix" formatting. As these kinds of changes are usually very intrusive in commit history and everyone has their own idea what "proper formatting" is, they should be done by one of the main contributors. 
-Please only submit "code cleanup", if the changes actually have a substantial impact on readability.
+### Core
 
-PR implementing new features or changing large portions of code are helpful. But if you're doing such a change and if it gets accepted, please don't "fire and forget". Complex changes are introducing bugs, and as thorough as testing and peer review may be, there will be bugs. Please carry on playing your changes after initial commit and fix residual issues. It is extremely frustrating for others to spend days fixing regressions introduced by unmaintained submissions.
+| Feature | Status |
+|---------|--------|
+| Landmark / path markers | 🟢 DONE |
+| Volume box system | 🟢 DONE |
+| List mod | 🟢 DONE |
+| Creative / redstone engines | 🟢 DONE |
+| Oil springs | 🟢 DONE |
+| Water springs | 🟢 DONE |
+| Paintbrush | 🟢 DONE |
+| Map location | 🔴 NEED HEAVY TESTING |
 
-#### Frequently reported
+### Transport
 
-* java.lang.AbstractMethodError, java.lang.NoSuchMethodException
-  * A mod has not updated to the current BuildCraft API
-  * You are not using the correct version of BuildCraft for your Forge/Minecraft versions
-  * You are using the dev version on a normal game instance (or vice versa)
-* Render issue (Quarry causes flickering) - Try without OptiFine first! This is a known issue with some versions of OptiFine.
+| Feature | Status |
+|---------|--------|
+| Item pipes | 🟢 DONE |
+| Fluid pipes | 🟢 DONE |
+| Power pipes | 🔴 NEED HEAVY TESTING |
+| Pipe behaviours & pluggables | 🔴 NEED HEAVY TESTING |
+| Gates, facades, lenses, pulsar | 🔴 NEED HEAVY TESTING |
+| Wire systems | 🔴 NEED HEAVY TESTING |
+| Filtered buffer | 🔴 NEED HEAVY TESTING |
 
-### Compiling and packaging BuildCraft
-1. Ensure that `Java` (found [here](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html)), `Git` (found [here](http://git-scm.com/)) are installed correctly on your system.
- * Optional: Install `Gradle` (found [here](http://www.gradle.org/downloads)). You probably want to install version 4.3.1.
-2. Create a base directory for the build
-3. Clone the BuildCraft repository into 'baseDir/BuildCraft/'
-4. Clone (and update) the submodules into 'baseDir/BuildCraft with 'git submodule init' and 'git submodule update'
-5. Navigate to basedir/BuildCraft in a shell and run one of two commands:
-    * `./gradlew setupCIWorkspace build` to just build a current jar (this may take a while).
-    * `./gradlew setupDecompWorkspace` to setup a complete development environment.
-    * With `Gradle` installed: use `gradle` instead of `./gradlew`
-    * On Windows: use `gradlew.bat` instead of `./gradlew`
-6. The compiles and obfuscated module jars will be in 'baseDir/BuildCraft/build/libs/&lt;build number&gt;/modules'
+### Energy
 
-Your directory structure should look like this before running gradle:
-***
+| Feature | Status |
+|---------|--------|
+| Stone / creative engines | 🟢 DONE |
+| Iron (combustion) engine | 🟢 DONE |
+| Oil / fuel / residue fluids | 🟢 DONE |
+| Fluid buckets & worldgen | 🟢 DONE |
+| E↔MJ bridge blocks (engine / dynamo) | 🟢 DONE |
 
-    baseDir
-    \- BuildCraft
-     |- buildcraft_resources
-     |- common
-     |- ...
-     \- BuildCraftAPI
-      |- api
-      |- ...
-     \- BuildCraft-Localization
-      |- lang
-      |- ...
+### Factory
 
-***
+| Feature | Status |
+|---------|--------|
+| Tank, pump, flood gate | 🟢 DONE |
+| Distiller, heat exchange, chute | 🟡 NEED TESTING |
+| Auto workbench (items) | 🔴 NEED TESTING |
+| Mining well | 🟢 DONE |
 
-And like this after running gradle:
-***
+### Builders
 
-    basedir
-    \- BuildCraft
-     |- .gradle
-     |- build
-     |- buildcraft_resources
-     |- common
-     |- ...
-     \- BuildCraftAPI
-      |- api
-      |- ...
-     \- BuildCraft-Localization
-      |- lang
-      |- ...
+| Feature | Status |
+|---------|--------|
+| Quarry | 🟢 DONE |
+| Filler (+ planner addon) | 🟡 NEED TESTING |
+| Architect table, builder | 🟡 NEED TESTING |
+| Electronic library, replacer | 🔴 NEED HEAVY TESTING |
 
-***
+### Silicon
 
-### Localizations
+| Feature | Status |
+|---------|--------|
+| Assembly / integration / advanced crafting tables | 🔴 NEED HEAVY TESTING |
+| Programming / charging / stamping tables | 🔴 NEED HEAVY TESTING |
+| Lasers | 🔴 NEED HEAVY TESTING |
+| Gates & silicon pluggables | 🔴 NEED HEAVY TESTING |
 
-Localizations can be submitted [here](https://github.com/BuildCraft/BuildCraft-Localization). Localization PRs against
-this repository will have to be rejected.
+### Robotics
 
-### Depending on BuildCraft
+| Feature | Status |
+|---------|--------|
+| Zone planner | 🔴 NEED HEAVY TESTING |
+| Deployable robots | 🔴 NEED HEAVY TESTING |
+| Docking stations | 🔴 NEED HEAVY TESTING |
+| Requester | 🔴 NEED HEAVY TESTING |
 
-Instructions for depending on BC 7.1.x can be found [here](https://github.com/BuildCraft/BuildCraft/blob/7.1.x/README.md) (for 1.7.10).
+---
 
-8.0.x hasn't been finished yet, so there are no instructions for depending on it :(
+## Energy interop
 
-The following instructions are for BC 7.99.12 (1.12.2):
+Internal logic uses **MJ**. By default (`MJ_AUTOCONVERT_RF`):
 
-Add the following to your build.gradle file:
-```
-repositories {
-    maven {
-        name "BuildCraft"
-        url = "https://mod-buildcraft.com/maven"
-    }
-}
-````
+- BC machines accept **Team Reborn E** when conversion is enabled.
+- UI shows **E** when another `team_reborn_energy` mod (e.g. Tech Reborn) is in the pack; otherwise **MJ**.
+- `MJ_ONLY` — MJ only, no E. `DISPLAY_RF` — always show E.
 
-If you want to depend on JUST the API then do this:
-````
-dependencies {
-    deobfCompile "com.mod-buildcraft:buildcraft-api:7.99.12"
-}
-````
+Config: `config/buildcraft/buildcraftrefabricated-common.json` → `powerMode`, `mjRfConversion`.
 
-If you want to depend on JUST the lib then do this:
-````
-dependencies {
-    deobfCompile "com.mod-buildcraft:buildcraft-lib:7.99.12"
-}
-````
+---
 
-If you want to depend on the whole of buildcraft do this:
-```
-dependencies {
-    deobfCompile "com.mod-buildcraft:buildcraft:7.99.12"
-}
-```
-Where `7.99.12` is the desired version of BuildCraft.
+## Install
+
+1. Fabric Loader for Minecraft
+2. Fabric API in `mods/`
+3. BuildCraft Refabricated JAR in `mods/`
+4. Optional: JEI, TechReborn
+
+---
+
+## Building from source
+
+1. You'll need a JDK: **Java 25** for the 26.x lines and **Java 21** for 1.21.x.
+
+2. No Gradle install required — the bundled wrapper (`gradlew`) already runs the right version.
+
+3. Clone the repository and enter it:
+
+   ```sh
+   git clone https://github.com/fromdisposition/BuildCraftRefabricated.git
+   cd BuildCraftRefabricated
+   ```
+
+4. Build the mod. BuildCraft Refabricated uses **Stonecutter** to target several Minecraft lines from one source tree (one node per MC line: `1.21.1`, `1.21.10`, `1.21.11`, `26.1`, `26.2`).
+
+   - Build **all** lines at once:
+
+     ```sh
+     ./gradlew build
+     ```
+
+   - Build a **single** line via its node task (faster):
+
+     ```sh
+     ./gradlew :1.21.11:build
+     ```
+
+   Swap `1.21.11` for any other version. On Windows use `.\gradlew.bat` instead of `./gradlew`.
+
+5. Each line's jar lands in `versions/<line>/build/libs/`, named `BCRefabricated-<version>+mc<mc>.jar` — e.g. `versions/1.21.1/build/libs/BCRefabricated-26.7.1+mc1.21.1.jar` (`<version>` is the build date, `yy.M.d`).
+
+---
+
+## Known gaps
+
+- Not a byte-for-byte BC 8 clone — modern MC APIs differ from 1.12.2.
+- MJ pipes stay BC-internal; cross-mod energy uses Team Reborn `E` API.
+
+---
+
+## Credits
+
+- **SpaceToad & BuildCraft Team** — original mod ([MPL-2.0](LICENSE))
+- **[legoj15](https://github.com/legoj15)** — NeoForge port
+- **[fromdisposition](https://github.com/fromdisposition)** — Fabric port & maintenance
+
+---
+
+*BuildCraft Refabricated — unofficial Fabric port. Original mod by [BuildCraft/BuildCraft](https://github.com/BuildCraft/BuildCraft).*

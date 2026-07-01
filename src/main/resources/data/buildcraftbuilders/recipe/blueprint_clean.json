@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "ppp",
+    "pbp",
+    "ppp"
+  ],
+  "key": {
+    "p": "minecraft:paper",
+    "b": "#c:gems/lapis"
+  },
+  "result": {
+    "id": "buildcraftbuilders:blueprint_clean",
+    "count": 2
+  }
+}

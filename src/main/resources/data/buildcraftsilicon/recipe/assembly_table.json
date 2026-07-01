@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OdO",
+    "OrO",
+    "OgO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "d": "#c:gems/diamond",
+    "r": "#c:dusts/redstone",
+    "g": "buildcraftcore:gear_diamond"
+  },
+  "result": {
+    "id": "buildcraftsilicon:assembly_table"
+  }
+}
