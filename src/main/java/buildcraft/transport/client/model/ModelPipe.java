@@ -6,11 +6,14 @@
 
 package buildcraft.transport.client.model;
 
+import buildcraft.api.transport.pluggable.PipePluggable;
+import buildcraft.api.transport.pluggable.PluggableModelKey;
 import buildcraft.transport.client.model.key.PipeModelKey;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.tile.TilePipeHolder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
+import net.minecraft.core.Direction;
 
 public class ModelPipe {
    public static final int PIPE_PAINT_ALPHA = 76;
@@ -34,10 +37,18 @@ public class ModelPipe {
 
    public static void renderTranslucentPluggables(TilePipeHolder tile, Pose pose, VertexConsumer buffer, int light) {
       if (tile != null && tile.getPipe() != null) {
-         // The translucent pluggable layer (e.g. the coloured lens glass) was baked and cached but never drawn —
-         // no BER submitted it — so lens glass showed nothing in-world. This renders it on the translucent sheet.
-         PipeModelCachePluggable.PluggableKey key = new PipeModelCachePluggable.PluggableKey(false, tile);
-         PipePluggableQuadCache.renderTranslucent(key, pose, buffer, light);
+         // The translucent pluggable layer (e.g. the coloured lens glass) is drawn per side so each pluggable
+         // keeps its own tint: the dye cannot survive the BakedQuad bake on modern MC, so it is applied at render
+         // time from the model key. Without this the lens glass rendered but showed no colour (white).
+         for (Direction side : Direction.values()) {
+            PipePluggable plug = tile.getPluggable(side);
+            if (plug != null) {
+               PluggableModelKey key = plug.getModelRenderKey("translucent");
+               if (key != null) {
+                  PipePluggableQuadCache.renderTranslucent(key, pose, buffer, light);
+               }
+            }
+         }
       }
    }
 

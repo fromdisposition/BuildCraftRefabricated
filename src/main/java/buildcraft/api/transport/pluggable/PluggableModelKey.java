@@ -24,6 +24,15 @@ public abstract class PluggableModelKey {
       this.hash = Objects.hash(layer, side);
    }
 
+   /**
+    * A packed ARGB colour to tint this pluggable's rendered quads with, or {@code -1} for none. Needed because
+    * modern (26.x/1.21.11) {@code BakedQuad}s carry no per-vertex colour, so a dye baked per-vertex (e.g. lens
+    * glass) is lost through the bake; the tint is instead applied at render time from this key.
+    */
+   public int getTintColour() {
+      return -1;
+   }
+
    @Override
    public boolean equals(Object obj) {
       if (obj == this) {
