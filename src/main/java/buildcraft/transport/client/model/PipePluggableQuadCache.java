@@ -15,7 +15,7 @@ public final class PipePluggableQuadCache {
       PipeModelCachePluggable.cacheCutoutAll::bake
    );
    private static final BakedQuadTemplateCache<PipeModelCachePluggable.PluggableKey> TRANSLUCENT = new BakedQuadTemplateCache<>(
-      PipeModelCachePluggable.cacheTranslucentAll::bake
+      PipeModelCachePluggable.cacheTranslucentAll::bake, false
    );
 
    private PipePluggableQuadCache() {

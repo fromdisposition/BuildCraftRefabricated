@@ -19,9 +19,15 @@ public final class BakedQuadTemplateCache<K> {
    private static final ThreadLocal<MutableQuad> RENDER_SCRATCH = ThreadLocal.withInitial(MutableQuad::new);
    private final Map<K, List<MutableQuad>> templates = new ConcurrentHashMap<>();
    private final Function<K, List<BakedQuad>> baker;
+   private final boolean applyDiffuse;
 
    public BakedQuadTemplateCache(Function<K, List<BakedQuad>> baker) {
+      this(baker, true);
+   }
+
+   public BakedQuadTemplateCache(Function<K, List<BakedQuad>> baker, boolean applyDiffuse) {
       this.baker = baker;
+      this.applyDiffuse = applyDiffuse;
    }
 
    public static MutableQuad renderScratch() {
@@ -38,7 +44,13 @@ public final class BakedQuadTemplateCache<K> {
 
       for (BakedQuad quad : baked) {
          MutableQuad mutable = new MutableQuad().fromBakedBlock(quad);
-         mutable.setCalculatedDiffuse();
+         // setCalculatedDiffuse OVERWRITES the vertex colour with a grey face-shade — correct for sprite-coloured
+         // cutout geometry, but it would wipe the per-vertex dye baked into translucent quads (e.g. the lens
+         // glass), so translucent caches skip it and keep the baked colour.
+         if (this.applyDiffuse) {
+            mutable.setCalculatedDiffuse();
+         }
+
          result.add(mutable);
       }
 
