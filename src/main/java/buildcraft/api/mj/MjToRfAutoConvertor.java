@@ -48,28 +48,10 @@ public class MjToRfAutoConvertor implements IMjReadable {
    }
 
    long implGetPowerRequested() {
-      Transaction tx = Transaction.openOuter();
-
-      long accepted;
-      try {
-         accepted = this.fe.insert(Long.MAX_VALUE, tx);
-      } catch (Throwable var7) {
-         if (tx != null) {
-            try {
-               tx.close();
-            } catch (Throwable var6) {
-               var7.addSuppressed(var6);
-            }
-         }
-
-         throw var7;
+      try (Transaction tx = Transaction.openOuter()) {
+         long accepted = this.fe.insert(Long.MAX_VALUE, tx);
+         return accepted <= 0L ? 0L : accepted * MjAPI.getRfConversion().mjPerRf;
       }
-
-      if (tx != null) {
-         tx.close();
-      }
-
-      return accepted <= 0L ? 0L : accepted * MjAPI.getRfConversion().mjPerRf;
    }
 
    long implReceivePower(long microJoules, boolean simulate) {
@@ -80,54 +62,16 @@ public class MjToRfAutoConvertor implements IMjReadable {
       }
 
       if (simulate) {
-         Transaction tx = Transaction.openOuter();
-
-         long var19;
-         try {
+         try (Transaction tx = Transaction.openOuter()) {
             long received = this.fe.insert(maxRf, tx);
-            var19 = microJoules - received * mjPerRf;
-         } catch (Throwable var16) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var14) {
-                  var16.addSuppressed(var14);
-               }
-            }
-
-            throw var16;
+            return microJoules - received * mjPerRf;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var19;
       } else {
-         Transaction tx = Transaction.openOuter();
-
-         long var11;
-         try {
+         try (Transaction tx = Transaction.openOuter()) {
             long received = this.fe.insert(maxRf, tx);
             tx.commit();
-            var11 = microJoules - received * mjPerRf;
-         } catch (Throwable var15) {
-            if (tx != null) {
-               try {
-                  tx.close();
-               } catch (Throwable var13) {
-                  var15.addSuppressed(var13);
-               }
-            }
-
-            throw var15;
+            return microJoules - received * mjPerRf;
          }
-
-         if (tx != null) {
-            tx.close();
-         }
-
-         return var11;
       }
    }
 
@@ -138,26 +82,10 @@ public class MjToRfAutoConvertor implements IMjReadable {
          return 0L;
       }
 
-      Transaction simTx = Transaction.openOuter();
-
       long extractedMJ;
-      try {
+      try (Transaction simTx = Transaction.openOuter()) {
          long extractedRF = this.fe.extract(maxRf, simTx);
          extractedMJ = extractedRF * mjPerRf;
-      } catch (Throwable var20) {
-         if (simTx != null) {
-            try {
-               simTx.close();
-            } catch (Throwable var18) {
-               var20.addSuppressed(var18);
-            }
-         }
-
-         throw var20;
-      }
-
-      if (simTx != null) {
-         simTx.close();
       }
 
       if (extractedMJ < min) {
@@ -165,30 +93,11 @@ public class MjToRfAutoConvertor implements IMjReadable {
       }
 
       if (!simulate) {
-         simTx = Transaction.openOuter();
-
-         long var15;
-         try {
-            long extractedRF = this.fe.extract(maxRf, simTx);
-            simTx.commit();
-            var15 = extractedRF * mjPerRf;
-         } catch (Throwable var19) {
-            if (simTx != null) {
-               try {
-                  simTx.close();
-               } catch (Throwable var17) {
-                  var19.addSuppressed(var17);
-               }
-            }
-
-            throw var19;
+         try (Transaction tx = Transaction.openOuter()) {
+            long extractedRF = this.fe.extract(maxRf, tx);
+            tx.commit();
+            return extractedRF * mjPerRf;
          }
-
-         if (simTx != null) {
-            simTx.close();
-         }
-
-         return var15;
       } else {
          return extractedMJ;
       }
