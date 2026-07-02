@@ -10,6 +10,7 @@ import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.facades.FacadeType;
 import buildcraft.api.facades.IFacade;
 import buildcraft.api.facades.IFacadePhasedState;
+import buildcraft.api.transport.IWireManager;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
@@ -25,6 +26,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.phys.AABB;
@@ -135,6 +137,71 @@ public class PluggableFacade extends PipePluggable implements IFacade {
    @Override
    public IFacadePhasedState[] getPhasedStates() {
       return this.states.getPhasedStates();
+   }
+
+   @Override
+   public boolean needsTick() {
+      // A plain facade (every state has a null colour) never switches, so it needn't tick.
+      return this.isPhased();
+   }
+
+   @Override
+   public void onTick() {
+      if (this.holder == null || this.holder.getPipeWorld() == null || this.holder.getPipeWorld().isClientSide()) {
+         return;
+      }
+
+      // Phased facades change appearance based on which coloured pipe wire is powered. activeState was only ever
+      // set at construction, so this switching never happened — resolve it each server tick and push a render
+      // update (which syncs the new activeState to clients via the pluggable client-update data) when it changes.
+      int target = this.resolveActiveState();
+      if (target != this.activeState) {
+         this.activeState = target;
+         this.holder.scheduleRenderUpdate();
+      }
+   }
+
+   private boolean isPhased() {
+      for (FacadePhasedState state : this.states.phasedStates) {
+         if (state.activeColour != null) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   /**
+    * The state to display now: the first colour-keyed state whose wire colour is powered on this pipe, else the
+    * default (null-colour) state, else state 0.
+    */
+   private int resolveActiveState() {
+      IWireManager wires = this.holder.getWireManager();
+      int defaultState = 0;
+      FacadePhasedState[] phased = this.states.phasedStates;
+
+      for (int i = 0; i < phased.length; i++) {
+         DyeColor colour = phased[i].activeColour;
+         if (colour == null) {
+            defaultState = i;
+         } else if (wires.isAnyPowered(colour)) {
+            return i;
+         }
+      }
+
+      return defaultState;
+   }
+
+   @Override
+   public CompoundTag writeClientUpdateData() {
+      CompoundTag nbt = new CompoundTag();
+      nbt.putInt("activeState", this.activeState);
+      return nbt;
+   }
+
+   @Override
+   public void readClientUpdateData(CompoundTag nbt) {
+      this.activeState = MathUtil.clamp(BcNbt.getInt(nbt, "activeState", this.activeState), 0, this.states.phasedStates.length - 1);
    }
 
    static {
