@@ -81,6 +81,8 @@ public class EntityRobot extends EntityRobotBase {
    private float aimYaw;
    private float aimPitch;
    private ItemStack itemInUse = ItemStack.EMPTY;
+   /** Last synced robot texture (an Identifier), cached so the per-tick sync only fires when it actually changes. */
+   private Object lastRobotTexture;
 
    public Vec3 destination;
 
@@ -150,7 +152,13 @@ public class EntityRobot extends EntityRobotBase {
       this.entityData.set(DATA_AIM_YAW, this.aimYaw);
       this.entityData.set(DATA_ITEM, this.itemInUse == null ? ItemStack.EMPTY : this.itemInUse);
       if (this.board != null && this.board.getNBTHandler() != null) {
-         this.entityData.set(DATA_TEXTURE, this.board.getNBTHandler().getRobotTexture().toString());
+         // Only rebuild + sync the texture string when the texture actually changes (it almost never does),
+         // instead of allocating a String via toString() and running the data-watcher set every tick.
+         Object texture = this.board.getNBTHandler().getRobotTexture();
+         if (texture != null && !texture.equals(this.lastRobotTexture)) {
+            this.lastRobotTexture = texture;
+            this.entityData.set(DATA_TEXTURE, texture.toString());
+         }
       }
 
       if (this.mainAI == null && this.board != null) {

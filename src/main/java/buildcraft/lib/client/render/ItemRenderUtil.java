@@ -9,10 +9,10 @@ package buildcraft.lib.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.Random;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
@@ -26,13 +26,16 @@ public class ItemRenderUtil {
    private static PoseStack currentPoseStack;
    private static SubmitNodeCollector currentCollector;
    private static int currentLight;
-   private static ItemStackRenderState renderState;
+   // Resolved item models for the current batch, keyed by ItemStack.hashItemAndComponents. Place-task ghosts
+   // render the same stack many times, so resolving once per distinct stack (instead of per call into a shared
+   // state) avoids re-running the item model resolver every frame for every ghost.
+   private static final Int2ObjectOpenHashMap<ItemStackRenderState> itemStateCache = new Int2ObjectOpenHashMap<>();
 
    public static void beginItemBatch(PoseStack poseStack, SubmitNodeCollector collector, int light) {
       currentPoseStack = poseStack;
       currentCollector = collector;
       currentLight = light;
-      renderState = new ItemStackRenderState();
+      itemStateCache.clear();
    }
 
    public static PoseStack getCurrentPoseStack() {
@@ -49,10 +52,17 @@ public class ItemRenderUtil {
             dir = Direction.EAST;
          }
 
-         ItemModelResolver resolver = Minecraft.getInstance().getItemModelResolver();
-         renderState.clear();
-         resolver.updateForTopItem(renderState, stack, ItemDisplayContext.FIXED, Minecraft.getInstance().level, null, 0);
-         if (!renderState.isEmpty()) {
+         int signature = ItemStack.hashItemAndComponents(stack);
+         ItemStackRenderState state = itemStateCache.get(signature);
+         if (state == null) {
+            state = new ItemStackRenderState();
+            Minecraft.getInstance()
+               .getItemModelResolver()
+               .updateForTopItem(state, stack, ItemDisplayContext.FIXED, Minecraft.getInstance().level, null, 0);
+            itemStateCache.put(signature, state);
+         }
+
+         if (!state.isEmpty()) {
             int itemModelCount = getStackModelCount(stackCount);
             if (itemModelCount > 1) {
                setupModelOffsetRandom(stack);
@@ -72,7 +82,7 @@ public class ItemRenderUtil {
                currentPoseStack.translate(x + dx, y + dy, z + dz);
                currentPoseStack.scale(0.6F, 0.6F, 0.6F);
                applyDirectionRotation(currentPoseStack, dir);
-               renderState.submit(currentPoseStack, currentCollector, lightc, OverlayTexture.NO_OVERLAY, 0);
+               state.submit(currentPoseStack, currentCollector, lightc, OverlayTexture.NO_OVERLAY, 0);
                currentPoseStack.popPose();
             }
          }
@@ -126,5 +136,6 @@ public class ItemRenderUtil {
    public static void endItemBatch() {
       currentPoseStack = null;
       currentCollector = null;
+      itemStateCache.clear();
    }
 }

@@ -105,16 +105,27 @@ public class LaserContext {
    public void addPoint(double xIn, double yIn, double zIn, double uIn, double vIn) {
       this.point.set((float)xIn, (float)yIn, (float)zIn);
       this.matrix.transformPosition(this.point);
-      int lmap = BcLaserRenderer.computeLightmap(this.point.x, this.point.y, this.point.z, this.minBlockLight);
       this.x[this.index] = this.point.x;
       this.y[this.index] = this.point.y;
       this.z[this.index] = this.point.z;
       this.u[this.index] = uIn;
       this.v[this.index] = vIn;
-      this.l[this.index] = lmap;
       this.index++;
       if (this.index == 4) {
          this.index = 0;
+         // One chunk light sample per quad, from its centre, instead of one per vertex: the four corners of a
+         // laser segment quad share essentially the same block, so this is visually identical while cutting the
+         // per-frame light-engine queries 4x (the dominant cost for long quarry-frame / shaft lasers).
+         int lmap = BcLaserRenderer.computeLightmap(
+            (this.x[0] + this.x[1] + this.x[2] + this.x[3]) * 0.25,
+            (this.y[0] + this.y[1] + this.y[2] + this.y[3]) * 0.25,
+            (this.z[0] + this.z[1] + this.z[2] + this.z[3]) * 0.25,
+            this.minBlockLight
+         );
+         this.l[0] = lmap;
+         this.l[1] = lmap;
+         this.l[2] = lmap;
+         this.l[3] = lmap;
          this.vertex(0);
          this.vertex(1);
          this.vertex(2);

@@ -385,7 +385,10 @@ public class TilePump extends TileMiner implements IDebuggable {
       }
 
       super.serverTick();
-      NeighborTransfers.pushFluidToNeighbors(this.level, this.worldPosition, this.fluidTank);
+      // Nothing to push when the tank is empty — skip the per-tick neighbour capability scan + transaction.
+      if (this.fluidTank.getAmountMb() > 0) {
+         NeighborTransfers.pushFluidToNeighbors(this.level, this.worldPosition, this.fluidTank);
+      }
    }
 
    @Override

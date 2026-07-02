@@ -8,6 +8,7 @@ package buildcraft.transport.client.model;
 
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeDefinition;
+import buildcraft.lib.client.model.ModelCache;
 import buildcraft.lib.client.model.ModelUtil;
 import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.misc.ColourUtil;
@@ -43,6 +44,10 @@ import org.jspecify.annotations.Nullable;
 public class PipeItemModel implements ItemModel {
    private static final Field PROPERTIES_FIELD;
    private static final Field EXTENTS_FIELD;
+   // The coloured-pipe overlay geometry depends only on the mask sprite, so bake it once per sprite instead of
+   // rebuilding ~14 quads on every item render. Keyed by the sprite, so a resource reload (new sprite instance)
+   // is a natural cache miss — no stale geometry — and unused entries expire on their own.
+   private static final ModelCache<TextureAtlasSprite> OVERLAY_CACHE = new ModelCache<>(PipeItemModel::generateOverlayQuads);
    private final ItemModel vanillaDelegate;
    private final PipeDefinition definition;
    private final @Nullable ModelRenderProperties renderProperties;
@@ -100,7 +105,7 @@ public class PipeItemModel implements ItemModel {
          return;
       }
 
-      List<BakedQuad> overlayQuads = generateOverlayQuads(maskSprite);
+      List<BakedQuad> overlayQuads = OVERLAY_CACHE.bake(maskSprite);
       if (overlayQuads.isEmpty()) {
          return;
       }

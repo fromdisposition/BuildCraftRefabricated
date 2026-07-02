@@ -98,7 +98,12 @@ public class MjBattery {
    }
 
    public void tick(Level world, BlockPos position) {
-      this.tick(world, new Vec3(position.getX() + 0.5, position.getY() + 0.5, position.getZ() + 0.5));
+      // The Vec3 is only ever used by losePower's visual effect, which triggers solely when we are over-full.
+      // Guard first so we don't allocate a Vec3 every tick for every energy tile (quarry, miner, pump, laser,
+      // engines, robots) when nothing is being lost.
+      if (this.microJoules > this.capacity * 2L) {
+         this.losePower(world, new Vec3(position.getX() + 0.5, position.getY() + 0.5, position.getZ() + 0.5));
+      }
    }
 
    public void tick(Level world, Vec3 position) {
