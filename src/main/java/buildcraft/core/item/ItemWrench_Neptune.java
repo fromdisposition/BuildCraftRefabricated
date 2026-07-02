@@ -95,6 +95,11 @@ public class ItemWrench_Neptune extends Item implements IToolWrench {
          if (blockId.getPath().contains("pipe")) {
             return InteractionResult.PASS;
          }
+         if (blockId.getPath().equals("frame")) {
+            // The quarry frame is a technical block the quarry builds and removes itself — don't let the wrench
+            // dismantle it into an item (it also drops nothing when broken), so it stays non-obtainable in play.
+            return InteractionResult.PASS;
+         }
          if (player == null) {
             return InteractionResult.PASS;
          }
