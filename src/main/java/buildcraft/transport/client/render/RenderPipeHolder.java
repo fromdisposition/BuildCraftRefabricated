@@ -135,6 +135,11 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                   PipeWireRenderer.renderWires(pipe, pose, light, buffer);
                }
             );
+            BcBerRenderUtil.submit(
+               poseStack, collector, BCLibRenderTypes.translucentBlockSheet(), (pose, buffer) -> {
+                  ModelPipe.renderTranslucentPluggables(pipe, pose, buffer, light);
+               }
+            );
             Pipe bodyPipe = pipe.getPipe();
             if (bodyPipe != null && bodyPipe.getColour() != null) {
                int paintAlpha = bodyPipe.definition.flowType == PipeApi.flowFluids ? 255 : ModelPipe.PIPE_PAINT_ALPHA;

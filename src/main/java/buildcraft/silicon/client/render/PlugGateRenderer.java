@@ -11,15 +11,12 @@ import buildcraft.api.transport.pluggable.IPlugDynamicRenderer;
 import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.misc.SpriteUtil;
 import buildcraft.silicon.client.model.plug.GateQuadGeometry;
-import buildcraft.silicon.gate.GateVariant;
 import buildcraft.silicon.plug.PluggableGate;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,7 +29,6 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
 
    private static List<MutableQuad> onBox;
    private static List<MutableQuad> offBox;
-   private static final Map<GateVariant, List<MutableQuad>> staticByVariant = new ConcurrentHashMap<>();
 
    private static void initDynamicCache() {
       if (onBox == null) {
@@ -45,14 +41,6 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
       }
    }
 
-   private static List<MutableQuad> staticQuadsFor(GateVariant variant) {
-      return staticByVariant.computeIfAbsent(variant, v -> {
-         List<MutableQuad> list = new ArrayList<>();
-         GateQuadGeometry.appendStaticWestFacing(list, v, PlugGateRenderer::getMcSprite, true);
-         return list;
-      });
-   }
-
    private static TextureAtlasSprite getMcSprite(String path) {
       TextureAtlasSprite sprite = BcTextureAtlases.getBlockSprite(Identifier.parse(path));
       return sprite != null ? sprite : SpriteUtil.missingSprite();
@@ -61,7 +49,6 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
    public static void onModelBake() {
       onBox = null;
       offBox = null;
-      staticByVariant.clear();
    }
 
    public void render(PluggableGate plug, double x, double y, double z, float partialTicks, VertexConsumer bb, PoseStack ps) {
@@ -99,12 +86,8 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
 
       ps.translate(-0.5F, -0.5F, -0.5F);
 
-      for (MutableQuad q : staticQuadsFor(plug.logic.variant)) {
-         MutableQuad mq = new MutableQuad(q);
-         mq.lighti(naturalBlockLight, naturalSkyLight);
-         mq.render(ps.last(), bb);
-      }
-
+      // Only the animated on/off indicator box is drawn here; the static gate body comes from the baked cutout
+      // path (PlugGateBaker). Drawing both here and in the baker was the Z-fighting cause, now removed.
       for (MutableQuad q : on ? onBox : offBox) {
          MutableQuad mq = new MutableQuad(q);
          if (on) {

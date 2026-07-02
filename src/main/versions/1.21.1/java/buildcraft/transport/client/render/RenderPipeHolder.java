@@ -102,6 +102,12 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
       ModelPipe.renderCutoutPluggables(pipe, cutoutPose, cutout, light);
       PipeWireRenderer.renderWires(pipe, cutoutPose, light, cutout);
 
+      // Translucent pluggable layer (e.g. coloured lens glass) — drawn on the normal depth-sorted translucent
+      // block sheet, NOT the colour-only PIPE_PAINT_OVERLAY used for pipe paint below, so the glass occludes
+      // correctly. Without this the lens glass was baked but never submitted, so it showed nothing in-world.
+      VertexConsumer translucentPluggables = buffers.getBuffer(BCLibRenderTypes.translucentBlockSheet());
+      ModelPipe.renderTranslucentPluggables(pipe, cutoutPose, translucentPluggables, light);
+
       renderItems(pipe, partialTick, poseStack, buffers, light, level);
 
       Pipe bodyPipe = pipe.getPipe();

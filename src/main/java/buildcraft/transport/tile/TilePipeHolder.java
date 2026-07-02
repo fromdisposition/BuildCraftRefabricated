@@ -243,6 +243,13 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
          this.eventBus.registerHandler(plug);
       }
 
+      // The update packet (getUpdateTag) ships client-only pluggable state under "plugsClient" — e.g. the gate's
+      // isOn glow. The handleUpdateTag/onDataPacket overrides that used to read it no longer match a BlockEntity
+      // method that modern MC actually calls (the packet is applied through loadAdditional -> readData), so that
+      // state was dropped on chunk (re)load and the gate rendered dark until it next toggled. Apply it here on the
+      // live load path. Disk saves contain no "plugsClient", so this no-ops there.
+      this.applyClientUpdateData(input);
+
       input.read("wires", CompoundTag.CODEC).ifPresent(wireTag -> this.wireManager.readFromNbt(wireTag));
       if (this.level != null && this.level.isClientSide()) {
          this.refreshClientModel();

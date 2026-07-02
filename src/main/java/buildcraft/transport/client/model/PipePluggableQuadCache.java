@@ -14,11 +14,18 @@ public final class PipePluggableQuadCache {
    private static final BakedQuadTemplateCache<PipeModelCachePluggable.PluggableKey> CUTOUT = new BakedQuadTemplateCache<>(
       PipeModelCachePluggable.cacheCutoutAll::bake
    );
+   private static final BakedQuadTemplateCache<PipeModelCachePluggable.PluggableKey> TRANSLUCENT = new BakedQuadTemplateCache<>(
+      PipeModelCachePluggable.cacheTranslucentAll::bake
+   );
 
    private PipePluggableQuadCache() {
    }
 
    public static void renderCutout(PipeModelCachePluggable.PluggableKey key, Pose pose, VertexConsumer buffer, int light) {
       CUTOUT.render(key, pose, buffer, light);
+   }
+
+   public static void renderTranslucent(PipeModelCachePluggable.PluggableKey key, Pose pose, VertexConsumer buffer, int light) {
+      TRANSLUCENT.render(key, pose, buffer, light);
    }
 }

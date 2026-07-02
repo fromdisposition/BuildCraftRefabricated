@@ -32,6 +32,15 @@ public class ModelPipe {
       }
    }
 
+   public static void renderTranslucentPluggables(TilePipeHolder tile, Pose pose, VertexConsumer buffer, int light) {
+      if (tile != null && tile.getPipe() != null) {
+         // The translucent pluggable layer (e.g. the coloured lens glass) was baked and cached but never drawn —
+         // no BER submitted it — so lens glass showed nothing in-world. This renders it on the translucent sheet.
+         PipeModelCachePluggable.PluggableKey key = new PipeModelCachePluggable.PluggableKey(false, tile);
+         PipePluggableQuadCache.renderTranslucent(key, pose, buffer, light);
+      }
+   }
+
    public static void renderMaskOverlay(TilePipeHolder tile, Pose pose, VertexConsumer buffer, int light, int alpha) {
       if (tile != null && tile.getPipe() != null) {
          Pipe pipe = tile.getPipe();
