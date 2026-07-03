@@ -148,7 +148,10 @@ public class EntityRobot extends EntityRobotBase {
       }
 
       this.battery.tick(this.level(), this.position());
-      this.entityData.set(DATA_ENERGY, (float) this.battery.getStored() / (float) this.battery.getCapacity());
+      // The synced energy is display-only (getEnergyFraction -> RenderRobot), so quantize it to 1% steps: the
+      // raw ratio changes every tick while charging/discharging, which re-dirtied the data watcher and
+      // broadcast a float to every tracking client each tick per robot for an invisible change.
+      this.entityData.set(DATA_ENERGY, Math.round(this.battery.getStored() * 100.0F / this.battery.getCapacity()) / 100.0F);
       this.entityData.set(DATA_AIM_YAW, this.aimYaw);
       this.entityData.set(DATA_ITEM, this.itemInUse == null ? ItemStack.EMPTY : this.itemInUse);
       if (this.board != null && this.board.getNBTHandler() != null) {
