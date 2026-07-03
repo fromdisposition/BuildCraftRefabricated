@@ -6,17 +6,19 @@
 
 package buildcraft.robotics.zone;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import it.unimi.dsi.fastutil.longs.LongSet;
 
 public class ZonePlannerMapColours {
    public static final int NO_HEIGHT = Integer.MIN_VALUE;
-   private final Map<Long, int[]> colour = new HashMap<>();
-   private final Map<Long, int[]> height = new HashMap<>();
-   private final Map<Long, Integer> version = new HashMap<>();
-   private final Set<Long> requested = new HashSet<>();
+   // Primitive-keyed maps: colourAt/heightAt/versionOf run per cell / per chunk on the render path, and the
+   // boxed Long keys of the old HashMaps were a steady per-frame allocation churn.
+   private final Long2ObjectOpenHashMap<int[]> colour = new Long2ObjectOpenHashMap<>();
+   private final Long2ObjectOpenHashMap<int[]> height = new Long2ObjectOpenHashMap<>();
+   private final Long2IntOpenHashMap version = new Long2IntOpenHashMap();
+   private final LongSet requested = new LongOpenHashSet();
    private int globalVersion;
 
    public boolean hasData(long key) {
@@ -40,12 +42,22 @@ public class ZonePlannerMapColours {
 
    
    public int versionOf(long key) {
-      return this.version.getOrDefault(key, 0);
+      return this.version.get(key);
    }
 
    
    public int globalVersion() {
       return this.globalVersion;
+   }
+
+   /** Raw backing colour array of a chunk (16x16, row-major by local Z) for mesh baking — treat as read-only. */
+   public int[] coloursOf(long key) {
+      return this.colour.get(key);
+   }
+
+   /** Raw backing height array of a chunk (16x16, row-major by local Z) for mesh baking — treat as read-only. */
+   public int[] heightsOf(long key) {
+      return this.height.get(key);
    }
 
    public int colourAt(long key, int localX, int localZ) {
