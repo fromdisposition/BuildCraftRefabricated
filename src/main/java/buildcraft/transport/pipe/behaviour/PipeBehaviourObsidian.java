@@ -68,8 +68,15 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
                   this.pipeCenterCache = Vec3.atCenterOf(pos);
                }
 
-               for (ItemEntity entity : this.pipe.getHolder().getPipeWorld().getEntitiesOfClass(ItemEntity.class, this.collisionBoxCache, Entity::isAlive)) {
-                  this.trySuckEntity(entity, openFace, Long.MAX_VALUE, false);
+               // Obsidian pipes never sleep (an open face keeps hasSimulationWork true), so back the entity
+               // query off to every 8 ticks while it keeps coming up empty; any hit resets to per-tick.
+               if (!this.suckScanBackoff || (this.pipe.getHolder().getPipeWorld().getGameTime() & 7L) == 0L) {
+                  var found = this.pipe.getHolder().getPipeWorld().getEntitiesOfClass(ItemEntity.class, this.collisionBoxCache, Entity::isAlive);
+                  this.suckScanBackoff = found.isEmpty();
+
+                  for (ItemEntity entity : found) {
+                     this.trySuckEntity(entity, openFace, Long.MAX_VALUE, false);
+                  }
                }
             }
          }
@@ -191,10 +198,23 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
       return true;
    }
 
+   private boolean suckScanBackoff;
+   private long lastRequestedPower;
+   private long lastRequestedTick = Long.MIN_VALUE;
+
    @Override
    public long getPowerRequested() {
+      // Engines poll this every tick, and answering honestly runs up to four escalating entity AABB queries.
+      // Memoize for 4 ticks; the pipe's own suction cadence hides the difference.
+      long now = this.pipe.getHolder().getPipeWorld().getGameTime();
+      if (now - this.lastRequestedTick < 4L) {
+         return this.lastRequestedPower;
+      }
+
+      this.lastRequestedTick = now;
       long power = 512L * MjAPI.MJ;
-      return power - this.receivePower(power, true);
+      this.lastRequestedPower = power - this.receivePower(power, true);
+      return this.lastRequestedPower;
    }
 
    @Override

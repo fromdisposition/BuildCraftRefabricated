@@ -83,6 +83,8 @@ public class EntityRobot extends EntityRobotBase {
    private ItemStack itemInUse = ItemStack.EMPTY;
    /** Last synced robot texture (an Identifier), cached so the per-tick sync only fires when it actually changes. */
    private Object lastRobotTexture;
+   private float lastSentEnergy = Float.NaN;
+   private float lastSentAimYaw = Float.NaN;
 
    public Vec3 destination;
 
@@ -139,9 +141,13 @@ public class EntityRobot extends EntityRobotBase {
          this.destination = null;
          BlockPos dockPos = this.currentDockingStation.getPos();
          Direction dockSide = this.currentDockingStation.side();
-         this.setPos(
-            Vec3.atCenterOf(dockPos).add(dockSide.getStepX() * 0.5, dockSide.getStepY() * 0.5, dockSide.getStepZ() * 0.5)
-         );
+         double dockX = dockPos.getX() + 0.5 + dockSide.getStepX() * 0.5;
+         double dockY = dockPos.getY() + 0.5 + dockSide.getStepY() * 0.5;
+         double dockZ = dockPos.getZ() + 0.5 + dockSide.getStepZ() * 0.5;
+         // Docked is the default state: skip the per-tick setPos -> new AABB churn while already in place.
+         if (this.getX() != dockX || this.getY() != dockY || this.getZ() != dockZ) {
+            this.setPos(dockX, dockY, dockZ);
+         }
          if (this.currentDockingStation.providesPower() && this.currentDockingStation instanceof DockingStationPipe pipeStation) {
             pipeStation.tryChargeRobot(this);
          }
@@ -151,8 +157,16 @@ public class EntityRobot extends EntityRobotBase {
       // The synced energy is display-only (getEnergyFraction -> RenderRobot), so quantize it to 1% steps: the
       // raw ratio changes every tick while charging/discharging, which re-dirtied the data watcher and
       // broadcast a float to every tracking client each tick per robot for an invisible change.
-      this.entityData.set(DATA_ENERGY, Math.round(this.battery.getStored() * 100.0F / this.battery.getCapacity()) / 100.0F);
-      this.entityData.set(DATA_AIM_YAW, this.aimYaw);
+      float energyFraction = Math.round(this.battery.getStored() * 100.0F / this.battery.getCapacity()) / 100.0F;
+      if (energyFraction != this.lastSentEnergy) {
+         this.lastSentEnergy = energyFraction;
+         this.entityData.set(DATA_ENERGY, energyFraction);
+      }
+
+      if (this.aimYaw != this.lastSentAimYaw) {
+         this.lastSentAimYaw = this.aimYaw;
+         this.entityData.set(DATA_AIM_YAW, this.aimYaw);
+      }
       this.entityData.set(DATA_ITEM, this.itemInUse == null ? ItemStack.EMPTY : this.itemInUse);
       if (this.board != null && this.board.getNBTHandler() != null) {
          // Only rebuild + sync the texture string when the texture actually changes (it almost never does),

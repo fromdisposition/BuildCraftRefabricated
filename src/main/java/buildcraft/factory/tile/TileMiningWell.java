@@ -54,10 +54,19 @@ public class TileMiningWell extends TileMiner {
       return tip == null ? 0 : Math.max(0, this.worldPosition.getY() - tip.getY());
    }
 
+   private long nextColumnScanTick = Long.MIN_VALUE;
+   private int lastSentBreakStage = -1;
+
    @Override
    protected void mine() {
       BlockPos previousTarget = this.currentPos;
-      this.syncColumnState();
+      // The full column rescan walks from the machine down through every already-dug air block; doing that
+      // every tick made a 100-deep well pay ~100 block reads per tick. Rescan on a short cadence (and right
+      // after a break below) — a block appearing mid-shaft is picked up at most 4 ticks late.
+      if (this.level.getGameTime() >= this.nextColumnScanTick) {
+         this.nextColumnScanTick = this.level.getGameTime() + 4L;
+         this.syncColumnState();
+      }
 
       if (previousTarget != null && !Objects.equals(previousTarget, this.currentPos)) {
          this.progress = 0;
@@ -92,6 +101,7 @@ public class TileMiningWell extends TileMiner {
          }
 
          this.syncColumnState();
+         this.nextColumnScanTick = this.level.getGameTime() + 4L;
       } else {
          this.showBreakProgress(this.currentPos, (int)(this.progress * 9L / target));
       }
@@ -160,6 +170,7 @@ public class TileMiningWell extends TileMiner {
 
    private void clearBreakProgress(@Nullable BlockPos pos) {
       if (this.level != null && !this.level.isClientSide() && pos != null) {
+         this.lastSentBreakStage = -1;
          this.level.destroyBlockProgress(pos.hashCode(), pos, -1);
       }
    }
@@ -169,6 +180,12 @@ public class TileMiningWell extends TileMiner {
          return;
       }
 
+      // destroyBlockProgress broadcasts a packet; only send when the 0-9 stage actually moved.
+      if (stage == this.lastSentBreakStage) {
+         return;
+      }
+
+      this.lastSentBreakStage = stage;
       this.level.destroyBlockProgress(pos.hashCode(), pos, stage);
    }
 

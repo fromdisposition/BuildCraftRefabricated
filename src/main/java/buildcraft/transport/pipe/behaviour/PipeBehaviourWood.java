@@ -88,10 +88,23 @@ public class PipeBehaviourWood extends PipeBehaviourDirectional implements IMjRe
       return true;
    }
 
+   private long lastRequestedPower;
+   private long lastRequestedTick = Long.MIN_VALUE;
+
    @Override
    public long getPowerRequested() {
+      // Engines poll this every tick, and answering honestly means a full simulated extraction (an inventory
+      // scan plus two transactions) even over an empty chest. Memoize for 4 ticks — the first pump after a
+      // refill lands a few ticks late at worst, within the pipe's own extraction cadence.
+      long now = this.pipe.getHolder().getPipeWorld().getGameTime();
+      if (now - this.lastRequestedTick < 4L) {
+         return this.lastRequestedPower;
+      }
+
+      this.lastRequestedTick = now;
       long power = 512L * MjAPI.MJ;
-      return power - this.extract(power, true);
+      this.lastRequestedPower = power - this.extract(power, true);
+      return this.lastRequestedPower;
    }
 
    @Override
