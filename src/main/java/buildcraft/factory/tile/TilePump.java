@@ -257,9 +257,10 @@ public class TilePump extends TileMiner implements IDebuggable {
          nextPosesToCheck.clear();
 
          for (BlockPos posToCheck : nextPosesToCheckCopy) {
-            if (isWater && isInfiniteSourceAt(this.level, posToCheck)) {
-               this.isInfiniteWaterSource = true;
-               stopSearching = true;
+            // Every node in the copy already had its infinite-source check when it was discovered below (the
+            // seed is covered by the check above), so just honour the flag instead of re-probing 5 block states
+            // per node — and stop expanding the rest of the ring once one node found an infinite pool.
+            if (stopSearching) {
                break;
             }
 
