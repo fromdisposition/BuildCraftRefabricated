@@ -240,12 +240,17 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    public boolean tick() {
       boolean checkResultsChanged = false;
 
-      for (int i = 0; i < 10; i++) {
-         if (this.check(this.indexToPos(this.checkOrder[this.currentCheckIndex]))) {
-            checkResultsChanged = true;
-         }
+      // A degenerate snapshot (zero volume) leaves the order arrays empty; without this guard the modulo
+      // below throws ArithmeticException inside the block-entity ticker, which is a hard "ticking block
+      // entity" crash rather than a harmless no-op.
+      if (this.checkOrder.length != 0) {
+         for (int i = 0; i < 10; i++) {
+            if (this.check(this.indexToPos(this.checkOrder[this.currentCheckIndex]))) {
+               checkResultsChanged = true;
+            }
 
-         this.currentCheckIndex = (this.currentCheckIndex + 1) % this.checkOrder.length;
+            this.currentCheckIndex = (this.currentCheckIndex + 1) % this.checkOrder.length;
+         }
       }
 
       Iterator<SnapshotBuilder<T>.BreakTask> iterator = this.breakTasks.iterator();
