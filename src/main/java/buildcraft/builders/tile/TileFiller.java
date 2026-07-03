@@ -106,6 +106,7 @@ public class TileFiller
    private boolean canExcavate = true;
    public boolean inverted = false;
    private boolean finished = false;
+   private boolean writingSyncTag;
    private byte lockedTicks = 0;
    private boolean deferredChunkLoad = false;
    private IControllable.Mode mode = IControllable.Mode.ON;
@@ -357,7 +358,10 @@ public class TileFiller
       output.store("patternStatement", CompoundTag.CODEC, this.patternStatement.writeToNbt());
       output.store("items", CompoundTag.CODEC, this.itemManager.serializeNBT());
       if (this.builder != null) {
-         output.store("builderState", CompoundTag.CODEC, this.builder.serializeNBT());
+         if (!this.writingSyncTag) {
+            output.store("builderState", CompoundTag.CODEC, this.builder.serializeNBT());
+         }
+
          output.store("builderClientData", CompoundTag.CODEC, this.builder.serializeClientNBT());
       }
 
@@ -367,6 +371,7 @@ public class TileFiller
          ownerChild.putString("uuid", BcAuth.id(this.owner) != null ? BcAuth.id(this.owner).toString() : "");
       }
    }
+
 
    @Override
    public void readData(BcValueIn input) {
@@ -432,9 +437,20 @@ public class TileFiller
       }
    }
 
+   /** The sync tag drops the inventory and — via writingSyncTag — the heavy builderState blob (checkResults is
+    * sized to the whole template volume); clients only consume builderClientData, and readData tolerates the
+    * missing keys. */
    @Override
    public CompoundTag getUpdateTag(Provider registries) {
-      CompoundTag tag = this.saveCustomOnly(registries);
+      this.writingSyncTag = true;
+
+      CompoundTag tag;
+      try {
+         tag = this.saveCustomOnly(registries);
+      } finally {
+         this.writingSyncTag = false;
+      }
+
       tag.remove("items");
       return tag;
    }

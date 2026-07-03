@@ -59,6 +59,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -114,6 +115,7 @@ public class TileBuilder
    private Rotation rotation = null;
    private boolean isDone = false;
    private boolean wasDoneLastTick = false;
+   private boolean writingSyncTag;
    private long bigStructureCellsBuilt = 0L;
    private boolean pavingTheWayGranted = false;
    private boolean startOfSomethingBigGranted = false;
@@ -240,9 +242,12 @@ public class TileBuilder
                boolean justCompletedBasePos = this.isDone && !this.wasDoneLastTick;
                this.wasDoneLastTick = this.isDone;
                if (this.isDone) {
-                  builder.onNetworkSync();
-                  this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+                  // Sync once on the done transition. Nothing changes while the builder stays done, and the
+                  // old per-tick sendBlockUpdated re-serialized and re-broadcast the full update tag to every
+                  // tracking player forever.
                   if (justCompletedBasePos) {
+                     builder.onNetworkSync();
+                     this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
                      this.tryGrantBuilderAdvancements();
                   }
 
@@ -256,7 +261,7 @@ public class TileBuilder
                   }
                }
 
-               if (this.level.getGameTime() % 5L == 0L) {
+               if (!this.isDone && this.level.getGameTime() % 5L == 0L) {
                   MessageUtil.sendUpdateToTrackingPlayers(this);
                }
             }
@@ -483,8 +488,27 @@ public class TileBuilder
       output.putBoolean("wasDoneLastTick", this.wasDoneLastTick);
       SnapshotBuilder<?> activeBuilder = this.getBuilder();
       if (activeBuilder != null) {
-         output.store("builderState", CompoundTag.CODEC, activeBuilder.serializeNBT());
+         if (!this.writingSyncTag) {
+            output.store("builderState", CompoundTag.CODEC, activeBuilder.serializeNBT());
+         }
+
          output.store("builderClientData", CompoundTag.CODEC, activeBuilder.serializeClientNBT());
+      }
+   }
+
+   /**
+    * The persisted builderState embeds checkResults — a byte array sized to the whole snapshot volume (256 KB
+    * for a 64x64x64 blueprint). Clients only consume builderClientData (the task lists), so the network update
+    * tag skips the heavy blob; readData tolerates the missing key.
+    */
+   @Override
+   public CompoundTag getUpdateTag(Provider registries) {
+      this.writingSyncTag = true;
+
+      try {
+         return super.getUpdateTag(registries);
+      } finally {
+         this.writingSyncTag = false;
       }
    }
 
