@@ -44,6 +44,8 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
    private final ContainerData data;
    private final List<byte[]> uploadChunks = new ArrayList<>();
    private final List<byte[]> downloadChunks = new ArrayList<>();
+   private int uploadBytes = 0;
+   private int downloadBytes = 0;
 
    public ContainerElectronicLibrary(int containerId, Inventory playerInv, BlockPos pos) {
       this(containerId, playerInv, getTile(playerInv, pos));
@@ -132,9 +134,10 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
       } else if (id == 2 && isClient) {
          boolean last = buffer.readByte() != 0;
          byte[] chunk = readBoundedChunk(buffer);
-         this.downloadChunks.add(chunk);
+         this.downloadBytes = accumulateChunk(this.downloadChunks, this.downloadBytes, chunk, "download");
          if (last) {
             this.assembleDownload();
+            this.downloadBytes = 0;
          }
       } else if (id == 3 && isClient) {
          Snapshot.Key key = new Snapshot.Key(buffer);
@@ -143,9 +146,10 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
          if (id == 4 && !isClient) {
             boolean last = buffer.readByte() != 0;
             byte[] chunk = readBoundedChunk(buffer);
-            this.uploadChunks.add(chunk);
+            this.uploadBytes = accumulateChunk(this.uploadChunks, this.uploadBytes, chunk, "upload");
             if (last) {
                this.assembleUpload();
+               this.uploadBytes = 0;
             }
          }
       }
@@ -155,6 +159,22 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
       byte[] chunk = buffer.readByteArray();
       BCPacketLimits.validateChunkSize(chunk.length);
       return chunk;
+   }
+
+   /** Applies the assembled-size cap WHILE the chunk stream accumulates, not only at assembly: without this a
+    * malicious client could stream endless non-final upload chunks (each individually valid) and grow the list
+    * without bound before {@link #assembleChunks} ever runs. On overflow the transfer is dropped and the stream
+    * restarts bounded — a later "last" chunk then assembles garbage, which the NBT parse rejects harmlessly. */
+   private static int accumulateChunk(List<byte[]> chunks, int accumulatedBytes, byte[] chunk, String kind) {
+      int total = accumulatedBytes + chunk.length;
+      if (total > BCPacketLimits.MAX_ASSEMBLED_BYTES) {
+         chunks.clear();
+         BCLog.logger.warn("[library] Dropped oversized snapshot {} stream ({} bytes)", kind, total);
+         return 0;
+      }
+
+      chunks.add(chunk);
+      return total;
    }
 
    private void sendSnapshotToServer(Snapshot.Key key) {
