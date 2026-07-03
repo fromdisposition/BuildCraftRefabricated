@@ -64,7 +64,7 @@ public class MarkerRenderer {
    }
 
    private static void renderPossibleConnections(Player player) {
-      Set<Long> renderedPairs = new HashSet<>();
+      Set<MarkerPair> renderedPairs = new HashSet<>();
 
       for (MarkerCache<? extends MarkerSubCache<?>> cache : MarkerCache.CACHES) {
          MarkerSubCache<?> subCache = (MarkerSubCache<?>)cache.getSubCache(player.level());
@@ -80,8 +80,7 @@ public class MarkerRenderer {
 
                while (var10.hasNext()) {
                   BlockPos target = (BlockPos)var10.next();
-                  long pairKey = pairKey(marker, target);
-                  if (renderedPairs.add(pairKey)) {
+                  if (renderedPairs.add(MarkerPair.of(marker, target))) {
                      Vec3 from = VecUtil.add(VEC_HALF, marker);
                      Vec3 to = VecUtil.add(VEC_HALF, target);
                      Vec3 fromOffset = offset(from, to);
@@ -100,10 +99,14 @@ public class MarkerRenderer {
       return from.add(VecUtil.scale(dir, 0.125));
    }
 
-   private static long pairKey(BlockPos a, BlockPos b) {
-      long ha = a.asLong();
-      long hb = b.asLong();
-      return ha < hb ? ha * 31L + hb : hb * 31L + ha;
+   /** Order-independent exact key for a candidate marker line. (The previous {@code a * 31 + b} long hash could
+    * collide and silently skip a line for a frame; the boxed record costs the same as the boxed Long did.) */
+   private record MarkerPair(long min, long max) {
+      static MarkerPair of(BlockPos a, BlockPos b) {
+         long ha = a.asLong();
+         long hb = b.asLong();
+         return ha < hb ? new MarkerPair(ha, hb) : new MarkerPair(hb, ha);
+      }
    }
 
    private static void renderVolumeBoxes() {
