@@ -118,6 +118,10 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    private List<AABB> collisionBoxes = ImmutableList.of();
    private Vec3 collisionDrillPos;
    private final List<EntityQuarryRig> rigs = new ArrayList<>();
+   // The getCollisionBoxes() list reference + phasing the rig segments were last built from, so updateRigs can
+   // skip the per-tick section-split + rig re-set while the drill sits on one block (the common case).
+   private List<AABB> rigsBuiltFromBoxes;
+   private boolean rigsBuiltPhasing;
    // Minecraft stores each entity in the single 16-block section of its CENTRE, and a player's collision query
    // only scans the sections around the player. A rig box that CROSSES a section boundary is therefore not found
    // when the player stands on the part that lies in a different section than the box centre (the hitbox still
@@ -741,6 +745,16 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
             } else {
                boolean isDrillMoving = this.currentTask instanceof TileQuarry.TaskMoveDrill;
 
+               // The drill sits on one block for many ticks while breaking it; getCollisionBoxes() returns the
+               // same cached list by reference until the drill actually moves. When neither the geometry nor the
+               // phasing changed, every rig already holds the right box/position/phasing, so skip the rebuild —
+               // otherwise each idle tick churns the segments ArrayList + splitBoxAtSections AABBs and re-runs
+               // Entity.setPos -> makeBoundingBox on every rig, per quarry. (HARD chunk-loading keeps the rig
+               // entities alive, so nothing needs re-validating while idle.)
+               if (boxes == this.rigsBuiltFromBoxes && isDrillMoving == this.rigsBuiltPhasing) {
+                  return;
+               }
+
                // Cut each beam/drill box at section boundaries so every piece is found by the player's
                // section-local collision query (see the rigs field). A box inside one section stays one entity.
                // Index >= drillSegmentStart are the vertical-drill pieces, which phase (no collision) while the
@@ -773,6 +787,9 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
                   rig.setRiggingBox(segments.get(i));
                   rig.setPhasing(i >= drillSegmentStart && isDrillMoving);
                }
+
+               this.rigsBuiltFromBoxes = boxes;
+               this.rigsBuiltPhasing = isDrillMoving;
             }
          } else {
             this.discardRigs();
@@ -829,6 +846,8 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       }
 
       this.rigs.clear();
+      // Force the next updateRigs to rebuild rather than short-circuit against a stale reference.
+      this.rigsBuiltFromBoxes = null;
    }
 
    public List<AABB> getCollisionBoxes() {
