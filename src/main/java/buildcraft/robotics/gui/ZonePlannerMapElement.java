@@ -260,6 +260,9 @@ public class ZonePlannerMapElement implements IInteractionElement {
       int[] overlayCells = withContent ? this.cachedOverlayCells : new int[0];
       int[] overlayColours = withContent ? this.cachedOverlayColours : null;
       int overlayColour = withContent ? this.cachedOverlayColour : 0;
+      // Identity of the painted-zone overlay: it is a pure function of the layer data version and the selected
+      // layer, so this stamp lets renderStamp() detect overlay changes in O(1) instead of hashing every cell.
+      int overlayStamp = withContent ? this.cachedOverlayVersion * 31 + this.cachedOverlayLayer : 0;
       boolean hasSel = withContent && this.selecting;
       boolean hasHover = withContent && this.hasHover;
       return new ZoneMapPipRenderState(
@@ -278,6 +281,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
          overlayColour,
          overlayCells,
          overlayColours,
+         overlayStamp,
          hasSel,
          this.selStartBX,
          this.selStartBZ,

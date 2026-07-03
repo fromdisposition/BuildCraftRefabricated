@@ -32,6 +32,7 @@ public record ZoneMapPipRenderState(
    int overlayColour,
    int[] overlayCells,
    @Nullable int[] overlayColours,
+   int overlayStamp,
    boolean hasSelection,
    int selX0,
    int selZ0,
@@ -74,6 +75,7 @@ public record ZoneMapPipRenderState(
       int overlayColour,
       int[] overlayCells,
       @Nullable int[] overlayColours,
+      int overlayStamp,
       boolean hasSelection,
       int selX0,
       int selZ0,
@@ -93,7 +95,7 @@ public record ZoneMapPipRenderState(
    ) {
       this(
          colours, originX, originZ, camX, camZ, camY, pitchDeg, yawDeg, minChunkX, minChunkZ, maxChunkX, maxChunkZ,
-         overlayColour, overlayCells, overlayColours, hasSelection, selX0, selZ0, selX1, selZ1, selColour, hasHover,
+         overlayColour, overlayCells, overlayColours, overlayStamp, hasSelection, selX0, selZ0, selX1, selZ1, selColour, hasHover,
          hoverX, hoverZ, terrainVersion, x0, y0, x1, y1, scale, scissorArea,
          //? if >= 1.21.10 {
          PictureInPictureRenderState.getBounds(x0, y0, x1, y1, scissorArea)
@@ -163,18 +165,10 @@ public record ZoneMapPipRenderState(
       h = 31L * h + this.maxChunkZ;
       h = 31L * h + this.terrainVersion;
       h = 31L * h + this.overlayColour;
-      if (this.overlayCells != null) {
-         for (int c : this.overlayCells) {
-            h = 31L * h + c;
-         }
-      }
-
-      if (this.overlayColours != null) {
-         for (int c : this.overlayColours) {
-            h = 31L * h + c;
-         }
-      }
-
+      // The painted-zone overlay is a pure function of (clientLayerVersion, activeLayer), folded into overlayStamp
+      // by the map element. Hashing that one int instead of iterating the whole overlayCells/overlayColours arrays
+      // keeps this per-frame stamp O(1) instead of O(painted cells) — the arrays only change when the stamp does.
+      h = 31L * h + this.overlayStamp;
       h = 31L * h + (this.hasSelection ? 1 : 0);
       h = 31L * h + this.selX0;
       h = 31L * h + this.selZ0;
