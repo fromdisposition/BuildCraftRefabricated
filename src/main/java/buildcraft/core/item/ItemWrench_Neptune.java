@@ -22,6 +22,7 @@ import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -83,6 +84,16 @@ public class ItemWrench_Neptune extends Item implements IToolWrench {
       if (blockId.getPath().equals("frame")) {
          // The quarry frame is a technical block the quarry builds and removes itself — don't let the wrench
          // dismantle it into an item (it also drops nothing when broken), so it stays non-obtainable in play.
+         return InteractionResult.PASS;
+      }
+      if (blockId.getPath().startsWith("spring")) {
+         // Water/oil springs are world-generated technical blocks hidden under geysers — never wrench-removable.
+         return InteractionResult.PASS;
+      }
+      if (!(state.getBlock() instanceof EntityBlock)) {
+         // Only actual machines (block-entity blocks) can be dismantled. Terrain-ish BuildCraft blocks — gelled
+         // water, decorative blocks, fluid blocks — must be broken normally so their own loot applies: popping a
+         // block item here would void e.g. the gel's gelled_water drop (the gel block has no item form at all).
          return InteractionResult.PASS;
       }
 
