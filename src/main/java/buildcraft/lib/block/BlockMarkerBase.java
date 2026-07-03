@@ -66,9 +66,6 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
    @Nullable
    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
       Direction facing = ctx.getClickedFace();
-      Level world = ctx.getLevel();
-      BlockPos pos = ctx.getClickedPos();
-      BlockState state = this.defaultBlockState();
       return (BlockState)this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, facing);
    }
 
