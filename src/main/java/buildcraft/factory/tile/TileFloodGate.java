@@ -74,7 +74,10 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
    public final SingleFluidTank fluidTank = new SingleFluidTank(2000);
    public final EnumSet<Direction> openSides = EnumSet.of(Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
    public final Deque<BlockPos> queue = new ArrayDeque<>();
-   private final Map<BlockPos, List<BlockPos>> paths = new HashMap<>();
+   // Parent pointers instead of a full ImmutableList path per node: over an ocean the old scheme copied an
+   // O(depth) list for every one of up to ~10^5 visited positions on each rebuild. The single needed path is
+   // reconstructed by walking parents (the flood gate position marks a seed's root).
+   private final Map<BlockPos, BlockPos> paths = new HashMap<>();
    private int delayIndex = 0;
    private int tick = 0;
    private int lastSyncedAmount = 0;
@@ -124,7 +127,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
          for (Direction face : this.openSides) {
             BlockPos offset = this.worldPosition.relative(face);
             nextPosesToCheck.add(offset);
-            this.paths.put(offset, ImmutableList.of(offset));
+            this.paths.put(offset, this.worldPosition);
          }
 
          Direction[] directions = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid.getFluid())) ? SEARCH_GASEOUS : SEARCH_NORMAL;
@@ -135,6 +138,12 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
 
             for (BlockPos toCheck : nextPosesToCheckCopy) {
                if (!(toCheck.distSqr(this.worldPosition) > 4096.0) && checked.add(toCheck) && this.canSearch(toCheck)) {
+                  // Over an ocean the whole radius-64 sphere is searchable-but-not-fillable, so without this
+                  // cap a single rebuild visited up to ~10^5-10^6 positions in one tick.
+                  if (checked.size() >= 65536) {
+                     return;
+                  }
+
                   if (this.canFill(toCheck)) {
                      this.queue.push(toCheck);
                      if (this.queue.size() >= 4096) {
@@ -142,15 +151,10 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
                      }
                   }
 
-                  List<BlockPos> checkPath = this.paths.get(toCheck);
-
                   for (Direction side : directions) {
                      BlockPos next = toCheck.relative(side);
                      if (!checked.contains(next)) {
-                        Builder<BlockPos> pathBuilder = ImmutableList.builder();
-                        pathBuilder.addAll(checkPath);
-                        pathBuilder.add(next);
-                        this.paths.put(next, pathBuilder.build());
+                        this.paths.put(next, toCheck);
                         nextPosesToCheck.add(next);
                      }
                   }
@@ -212,14 +216,13 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
             this.tick++;
             if (this.tick % 16 == 0 && !this.fluidTank.isEmpty() && !this.queue.isEmpty() && this.fluidTank.getAmountMb() >= 1000) {
                   BlockPos currentPos = this.queue.removeLast();
-                  List<BlockPos> path = this.paths.get(currentPos);
                   boolean canFill = true;
-                  if (path != null) {
-                     for (BlockPos p : path) {
-                        if (!p.equals(currentPos) && !this.canFillThrough(p)) {
-                           canFill = false;
-                           break;
-                        }
+                  for (BlockPos step = this.paths.get(currentPos);
+                       step != null && !step.equals(this.worldPosition);
+                       step = this.paths.get(step)) {
+                     if (!this.canFillThrough(step)) {
+                        canFill = false;
+                        break;
                      }
                   }
 
