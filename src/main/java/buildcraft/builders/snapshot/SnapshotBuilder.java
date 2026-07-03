@@ -14,6 +14,7 @@ import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.net.PacketBufferBC;
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -291,20 +292,51 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             breakTasksIndexes.add(this.posToIndex(breakTask.pos));
          }
 
-         int[] blocks = Arrays.stream(this.breakOrder).filter(i -> this.checkResults[i] == 2 && !breakTasksIndexes.contains(i)).toArray();
-         this.leftToBreak = blocks.length;
-         if (blocks.length != 0) {
+         // Fused single pass over breakOrder. The old stream materialized every candidate into an int[], then
+         // re-probed the world's FluidState per element in the accept filter AND on every comparison of the
+         // boxed priority sort — O(k log k) block lookups per tick just to pick <= 16 tasks. The stable sort
+         // by tier (0 = source, 1 = flowing, 2 = dry) + limit is equivalent to three order-preserving buckets
+         // capped at the task budget, fed by ONE FluidState probe per candidate; once the source bucket is
+         // full no later candidate can enter the selection, so the rest of the pass only counts — and the
+         // count never needed world access in the first place.
+         int needed = max > 0L ? 16 - this.breakTasks.size() : 0;
+         boolean clearFluidMode = this.getFluidMode() == EnumFluidHandlingMode.CLEAR;
+         IntArrayList sourceBucket = new IntArrayList();
+         IntArrayList flowingBucket = new IntArrayList();
+         IntArrayList dryBucket = new IntArrayList();
+         int breakCandidates = 0;
+
+         for (int index : this.breakOrder) {
+            if (this.checkResults[index] == 2 && !breakTasksIndexes.contains(index)) {
+               breakCandidates++;
+               if (needed > 0 && sourceBucket.size() < needed) {
+                  FluidState fluidAt = this.tile.getWorldBC().getFluidState(this.indexToPos(index));
+                  if (fluidAt.isEmpty()) {
+                     if (dryBucket.size() < needed) {
+                        dryBucket.add(index);
+                     }
+                  } else if (clearFluidMode) {
+                     if (fluidAt.isSource()) {
+                        sourceBucket.add(index);
+                     } else if (flowingBucket.size() < needed) {
+                        flowingBucket.add(index);
+                     }
+                  }
+               }
+            }
+         }
+
+         this.leftToBreak = breakCandidates;
+         if (breakCandidates != 0) {
             isDone = false;
          }
 
-         if (max > 0L) {
-            Arrays.stream(blocks)
-               .mapToObj(this::indexToPos)
-               .filter(this::shouldBreakQueueAcceptFluid)
-               .sorted(Comparator.comparingInt(this::breakPriorityTier))
-               .map(blockPos -> new BreakTask(blockPos, 0L))
-               .limit(16 - this.breakTasks.size())
-               .forEach(this.breakTasks::add);
+         int added = 0;
+         for (IntArrayList bucket : new IntArrayList[]{sourceBucket, flowingBucket, dryBucket}) {
+            for (int i = 0; i < bucket.size() && added < needed; i++) {
+               this.breakTasks.add(new BreakTask(this.indexToPos(bucket.getInt(i)), 0L));
+               added++;
+            }
          }
       } else {
          this.leftToBreak = 0;
@@ -316,37 +348,52 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          placeTasksIndexes.add(this.posToIndex(placeTaskx.pos));
       }
 
-      int[] blocks = Arrays.stream(this.placeOrder).filter(i -> this.checkResults[i] == 3 && !placeTasksIndexes.contains(i)).toArray();
-      this.leftToPlace = blocks.length;
       boolean areaHasFluid = (this.getFluidMode() == EnumFluidHandlingMode.CLEAR || this.getFluidMode() == EnumFluidHandlingMode.REPLACE)
          && this.buildAreaHasAnyFluid();
       boolean clearStillMopping = areaHasFluid && this.getFluidMode() == EnumFluidHandlingMode.CLEAR;
       boolean replaceFragileGated = areaHasFluid && this.getFluidMode() == EnumFluidHandlingMode.REPLACE;
-      if (!this.tile.canExcavate() || this.breakTasks.isEmpty()) {
-         if (blocks.length != 0) {
-            isDone = false;
-         }
+      // Fused single pass, mirroring the break path: the old code materialized every candidate into an int[]
+      // just to count them, then re-scanned it with a second stream. The selection chain below runs exactly as
+      // the stream did — limit() counted the candidates that passed isReadyToPlace, with canPlace and the item
+      // lookup applied only to those — and stops evaluating once the task budget is met, while the cheap count
+      // continues to the end of the order.
+      boolean selecting = !this.tile.canExcavate() || this.breakTasks.isEmpty();
+      int neededPlace = selecting && max > 0L ? 16 - this.placeTasks.size() : 0;
+      int placeCandidates = 0;
+      int passedReady = 0;
 
-         if (max > 0L) {
-            Arrays.stream(blocks)
-               .filter(i -> {
-                  if (this.requiredCache[i] != 0) {
-                     return this.requiredCache[i] == 1;
+      for (int index : this.placeOrder) {
+         if (this.checkResults[index] == 3 && !placeTasksIndexes.contains(index)) {
+            placeCandidates++;
+            if (passedReady < neededPlace) {
+               boolean has;
+               if (this.requiredCache[index] != 0) {
+                  has = this.requiredCache[index] == 1;
+               } else {
+                  has = this.hasEnoughToPlaceItems(this.indexToPos(index));
+                  this.requiredCache[index] = (byte)(has ? 1 : 2);
+               }
+
+               if (has) {
+                  BlockPos pos = this.indexToPos(index);
+                  boolean gateOk = clearStillMopping ? this.isAllowedDuringFluidMop(pos) : !replaceFragileGated || !this.isFragileSchematicAt(pos);
+                  if (gateOk && this.isReadyToPlace(pos)) {
+                     passedReady++;
+                     if (this.canPlace(pos)) {
+                        List<ItemStack> items = this.getToPlaceItems(pos);
+                        if (items != null) {
+                           this.placeTasks.add(new PlaceTask(pos, items, 0L));
+                        }
+                     }
                   }
-
-                  boolean has = this.hasEnoughToPlaceItems(this.indexToPos(i));
-                  this.requiredCache[i] = (byte)(has ? 1 : 2);
-                  return has;
-               })
-               .mapToObj(this::indexToPos)
-               .filter(pos -> clearStillMopping ? this.isAllowedDuringFluidMop(pos) : !replaceFragileGated || !this.isFragileSchematicAt(pos))
-               .filter(this::isReadyToPlace)
-               .limit(16 - this.placeTasks.size())
-               .filter(this::canPlace)
-               .map(blockPos -> new PlaceTask(blockPos, this.getToPlaceItems(blockPos), 0L))
-               .filter(placeTaskx -> placeTaskx.items != null)
-               .forEach(this.placeTasks::add);
+               }
+            }
          }
+      }
+
+      this.leftToPlace = placeCandidates;
+      if (selecting && placeCandidates != 0) {
+         isDone = false;
       }
 
       if (!this.breakTasks.isEmpty()) {
