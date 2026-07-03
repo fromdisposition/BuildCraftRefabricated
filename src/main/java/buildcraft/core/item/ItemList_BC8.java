@@ -75,8 +75,13 @@ public class ItemList_BC8 extends Item implements IList {
    *///?}
 
    private InteractionResult bcUse(Level level, Player player, InteractionHand hand) {
-      ListOpenContext.remember(player, hand);
-      if (!level.isClientSide()) {
+      if (level.isClientSide()) {
+         // Hand off which hand opened the list to the client-side menu factory (BCCoreMenuTypes.LIST) through
+         // ListOpenContext — a plain MenuProvider can't carry extra open data. Only the client consumes it; the
+         // server builds the menu straight from openHand (ServerPlayer.openMenu -> MenuProvider.createMenu, never
+         // MenuType's factory), so remembering it server-side would just leak one never-consumed entry per player.
+         ListOpenContext.remember(player, hand);
+      } else {
          AdvancementUtil.unlockAdvancement(player, ADVANCEMENT);
          if (player instanceof ServerPlayer serverPlayer) {
             final InteractionHand openHand = hand;
