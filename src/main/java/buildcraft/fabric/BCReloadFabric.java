@@ -29,9 +29,13 @@ public final class BCReloadFabric {
             EventBuildCraftReload.onFinishLoad(GuideManager.INSTANCE::onRegistryReload);
          }
          touchDataRegistries();
-         ServerLifecycleEvents.SERVER_STARTED.register((ServerStarted)server -> ReloadableRegistryManager.DATA_PACKS.reloadAll());
+         ServerLifecycleEvents.SERVER_STARTED.register((ServerStarted)server -> {
+            buildcraft.energy.tile.TileEngineIron_BC8.invalidateRecipeCaches();
+            ReloadableRegistryManager.DATA_PACKS.reloadAll();
+         });
          ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((EndDataPackReload)(server, resourceManager, success) -> {
             if (success) {
+               buildcraft.energy.tile.TileEngineIron_BC8.invalidateRecipeCaches();
                ReloadableRegistryManager.DATA_PACKS.reloadAll();
             }
          });

@@ -336,22 +336,52 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
       *///?}
    }
 
+   // Fuel/coolant lookups iterate the ENTIRE recipe manager, and they run on per-tick paths (updateHeatLevel
+   // while heat != target, plus the tank insert filters on every pipe push). The results are global per server,
+   // so memoize them per Fluid; BCReloadFabric invalidates on datapack reload. NaN marks "no coolant recipe".
+   private static final java.util.concurrent.ConcurrentHashMap<Fluid, java.util.Optional<CombustionFuelRecipe>> FUEL_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+   private static final java.util.concurrent.ConcurrentHashMap<Fluid, Float> COOLANT_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+
+   public static void invalidateRecipeCaches() {
+      FUEL_CACHE.clear();
+      COOLANT_CACHE.clear();
+   }
+
    private @Nullable CombustionFuelRecipe findFuel(Fluid fluid) {
-      if (this.level instanceof ServerLevel sl) {
-         for (RecipeHolder<?> h : bcAllRecipes(sl)) {
-            if (h.value() instanceof CombustionFuelRecipe r && r.fluid().isSame(fluid)) return r;
-         }
+      if (!(this.level instanceof ServerLevel sl)) {
+         return null;
       }
-      return null;
+
+      return FUEL_CACHE.computeIfAbsent(fluid, f -> {
+         for (RecipeHolder<?> h : bcAllRecipes(sl)) {
+            if (h.value() instanceof CombustionFuelRecipe r && r.fluid().isSame(f)) {
+               return java.util.Optional.of(r);
+            }
+         }
+
+         return java.util.Optional.empty();
+      }).orElse(null);
+   }
+
+   private float coolantDegreesOrNaN(Fluid fluid) {
+      if (!(this.level instanceof ServerLevel sl)) {
+         return Float.NaN;
+      }
+
+      return COOLANT_CACHE.computeIfAbsent(fluid, f -> {
+         for (RecipeHolder<?> h : bcAllRecipes(sl)) {
+            if (h.value() instanceof CoolantRecipe r && r.matchesFluid(f)) {
+               return r.degreesCoolingPerMb();
+            }
+         }
+
+         return Float.NaN;
+      });
    }
 
    private float getCoolantDegreesPerMb(Fluid fluid) {
-      if (this.level instanceof ServerLevel sl) {
-         for (RecipeHolder<?> h : bcAllRecipes(sl)) {
-            if (h.value() instanceof CoolantRecipe r && r.matchesFluid(fluid)) return r.degreesCoolingPerMb();
-         }
-      }
-      return 0.0f;
+      float degrees = this.coolantDegreesOrNaN(fluid);
+      return Float.isNaN(degrees) ? 0.0f : degrees;
    }
 
    private boolean isValidFuel(FluidStack fluid) {
@@ -359,12 +389,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
    }
 
    private boolean isValidCoolant(FluidStack fluid) {
-      if (this.level instanceof ServerLevel sl) {
-         for (RecipeHolder<?> h : bcAllRecipes(sl)) {
-            if (h.value() instanceof CoolantRecipe r && r.matchesFluid(fluid.getFluid())) return true;
-         }
-      }
-      return false;
+      return !Float.isNaN(this.coolantDegreesOrNaN(fluid.getFluid()));
    }
 
    private boolean isResidue(FluidStack fluid) {
