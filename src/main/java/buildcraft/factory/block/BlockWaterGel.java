@@ -35,6 +35,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.material.Fluids;
 
 public class BlockWaterGel extends Block {
    public static final MapCodec<BlockWaterGel> CODEC = simpleCodec(BlockWaterGel::new);
@@ -66,15 +67,19 @@ public class BlockWaterGel extends Block {
          Collections.shuffle(faces);
          seenSet.add(pos);
 
+         // Mark the seeds as seen up front — otherwise a sibling's expansion can re-queue them and the same
+         // position gets processed (and potentially converted) twice. The per-expansion shuffle below keeps
+         // the spread direction random.
          for (Direction face : faces) {
-            openQueue.add(pos.relative(face));
+            BlockPos seed = pos.relative(face);
+            if (seenSet.add(seed)) {
+               openQueue.add(seed);
+            }
          }
-
-         Collections.shuffle(faces);
 
          for (int tries = 0; openQueue.size() > 0 && changeable.size() < 3 && tries < 10000; tries++) {
             BlockPos test = openQueue.removeFirst();
-            boolean water = isWater(level, test);
+            boolean water = isGellableWater(level, test);
             boolean spreadable = water || this.canSpread(level, test);
             if (water && level.getFluidState(test).isSource()) {
                changeable.add(test);
@@ -116,7 +121,7 @@ public class BlockWaterGel extends Block {
 
    private static boolean notTouchingWater(Level level, BlockPos pos) {
       for (Direction face : Direction.values()) {
-         if (isWater(level, pos.relative(face))) {
+         if (isGellableWater(level, pos.relative(face))) {
             return false;
          }
       }
@@ -124,9 +129,16 @@ public class BlockWaterGel extends Block {
       return true;
    }
 
-   private static boolean isWater(Level level, BlockPos pos) {
+   /** Whether the gel should treat this position as water it can convert: plain water, or a no-collision block that
+    * merely holds a water source — the water plants (seagrass, tall seagrass, kelp, kelp_plant, ...). Solid
+    * waterlogged blocks (fences, slabs, stairs, ...) keep their collision and are deliberately left intact. */
+   public static boolean isGellableWater(BlockGetter level, BlockPos pos) {
       BlockState state = level.getBlockState(pos);
-      return state.is(Blocks.WATER);
+      if (state.is(Blocks.WATER)) {
+         return true;
+      }
+
+      return state.getFluidState().isSourceOfType(Fluids.WATER) && state.getCollisionShape(level, pos).isEmpty();
    }
 
    private boolean canSpread(Level level, BlockPos pos) {

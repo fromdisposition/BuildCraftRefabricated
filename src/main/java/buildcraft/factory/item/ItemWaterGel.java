@@ -18,7 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Item.Properties;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ClipContext.Fluid;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult.Type;
@@ -42,8 +41,7 @@ public class ItemWaterGel extends Item {
       ItemStack stack = player.getItemInHand(hand);
       BlockHitResult ray = getPlayerPOVHitResult(level, player, Fluid.SOURCE_ONLY);
       if (ray.getType() != Type.MISS && ray.getBlockPos() != null) {
-         BlockState hitState = level.getBlockState(ray.getBlockPos());
-         if (hitState.is(Blocks.WATER) && level.getFluidState(ray.getBlockPos()).isSource()) {
+         if (BlockWaterGel.isGellableWater(level, ray.getBlockPos()) && level.getFluidState(ray.getBlockPos()).isSource()) {
             if (!player.getAbilities().instabuild) {
                stack.shrink(1);
             }
