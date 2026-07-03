@@ -263,6 +263,13 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       return extracted;
    }
 
+   // FabricLoader.isModLoaded is a map lookup, and the old code ran it per engine per tick.
+   private static final boolean TR_ENERGY_LOADED = FabricLoader.getInstance().isModLoaded("team_reborn_energy");
+   // Identity-cache of the RF bridge: the old code allocated a new MjToRfAutoConvertor wrapper every tick for
+   // an engine facing an RF machine.
+   private Object lastFeStorage;
+   private IMjReceiver lastFeReceiver;
+
    @Nullable
    public IMjReceiver getReceiverToPower(Direction side) {
       if (this.level == null) {
@@ -273,23 +280,29 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
 
       for (int len = 0; len <= this.getMaxChainLength(); len++) {
          BlockPos targetPos = pos.relative(side);
-         BlockEntity tile = this.level.getBlockEntity(targetPos);
+         BlockEntity tile = BcTransfers.cachedBlockEntity(this.level, targetPos);
          if (tile == null) {
             return null;
          }
 
          if (tile.getClass() != this.getClass()) {
-            IMjReceiver receiver = MjAPI.CAP_RECEIVER.find(this.level, targetPos, null, null, side.getOpposite());
+            IMjReceiver receiver = BcTransfers.mjReceiver(this.level, targetPos, side.getOpposite());
             if (receiver != null && receiver.canConnect(this.getMjConnector()) && this.getMjConnector().canConnect(receiver)) {
                return receiver;
             }
 
-            if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
+            if (TR_ENERGY_LOADED) {
                Object feStorage = BcTransfers.energy(this.level, targetPos, side.getOpposite());
                if (feStorage != null) {
-                  IMjReceiver feReceiver = MjToRfAutoConvertor.createReceiver(
-                     (team.reborn.energy.api.EnergyStorage) feStorage
-                  );
+                  IMjReceiver feReceiver;
+                  if (feStorage == this.lastFeStorage && this.lastFeReceiver != null) {
+                     feReceiver = this.lastFeReceiver;
+                  } else {
+                     feReceiver = MjToRfAutoConvertor.createReceiver((team.reborn.energy.api.EnergyStorage) feStorage);
+                     this.lastFeStorage = feStorage;
+                     this.lastFeReceiver = feReceiver;
+                  }
+
                   if (feReceiver != null && feReceiver.canConnect(this.getMjConnector())) {
                      return feReceiver;
                   }
@@ -399,7 +412,6 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
                }
             }
 
-            engine.setChanged();
             boolean needsSync = false;
             if (engine.orientation != engine.prevOrientation) {
                engine.prevOrientation = engine.orientation;
@@ -417,7 +429,13 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
             }
 
             if (needsSync) {
+               engine.setChanged();
                level.sendBlockUpdated(pos, state, state, 3);
+            } else if (engine.isBurning() && level.getGameTime() % 100L == 0L) {
+               // The old unconditional per-tick setChanged kept every engine chunk permanently dirty. Visible
+               // state changes mark + sync above; a slow keepalive while burning covers autosave of the
+               // gradually moving power/heat without per-tick chunk dirtying.
+               engine.setChanged();
             }
 
             return;

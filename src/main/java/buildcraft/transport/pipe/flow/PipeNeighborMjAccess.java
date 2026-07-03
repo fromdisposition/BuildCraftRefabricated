@@ -64,7 +64,7 @@ public final class PipeNeighborMjAccess {
          BlockPos neighborPos = holder.getPipePos().relative(from);
          Direction querySide = from.getOpposite();
          if (capability == MjAPI.CAP_RECEIVER) {
-            T fromBlock = (T) MjAPI.CAP_RECEIVER.find(level, neighborPos, null, null, querySide);
+            T fromBlock = (T) buildcraft.lib.fabric.transfer.BcTransfers.mjReceiver(level, neighborPos, querySide);
             if (fromBlock != null) {
                return fromBlock;
             }

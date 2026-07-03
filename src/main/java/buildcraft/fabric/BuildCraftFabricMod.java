@@ -79,9 +79,15 @@ public class BuildCraftFabricMod implements ModInitializer {
       // writing markers into the previous world's dead level + detached saved data. This restores the old
       // BuildCraft WorldEvent.Unload semantics the Fabric port had lost.
       //? if >= 26.1 {
-      ServerLevelEvents.UNLOAD.register((server, level) -> MarkerCache.onWorldUnload(level));
+      ServerLevelEvents.UNLOAD.register((server, level) -> {
+         MarkerCache.onWorldUnload(level);
+         buildcraft.lib.fabric.transfer.BcTransfers.onLevelUnload(level);
+      });
       //?} else {
-      /*ServerWorldEvents.UNLOAD.register((server, world) -> MarkerCache.onWorldUnload(world));
+      /*ServerWorldEvents.UNLOAD.register((server, world) -> {
+         MarkerCache.onWorldUnload(world);
+         buildcraft.lib.fabric.transfer.BcTransfers.onLevelUnload(world);
+      });
       *///?}
    }
 }
