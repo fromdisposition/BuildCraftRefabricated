@@ -12,9 +12,12 @@ import buildcraft.api.lists.ListMatchHandler;
 import buildcraft.api.lists.ListRegistry;
 import buildcraft.lib.misc.NBTUtilBC;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import javax.annotation.Nonnull;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
@@ -31,6 +34,13 @@ import net.minecraft.world.item.component.CustomData;
 public final class ListHandler {
    public static final int WIDTH = 9;
    public static final int HEIGHT = 2;
+   // matches() runs in pipe/gate filters for every tested stack; re-decoding the whole CUSTOM_DATA tag with
+   // ItemStack.CODEC each call is pure GC pressure. CustomData is immutable (every list edit produces a new
+   // component instance), so the parsed lines are cached per component: weak keys let entries die with their
+   // stacks and an edited list naturally misses to a fresh parse. Cached lines are shared READ-ONLY — the
+   // editing path (getLines) still parses fresh mutable copies.
+   private static final Map<CustomData, ListHandler.Line[]> MATCH_LINE_CACHE = Collections.synchronizedMap(new WeakHashMap<>());
+   private static final ListHandler.Line[] NO_LINES = new ListHandler.Line[0];
 
    private ListHandler() {
    }
@@ -142,23 +152,32 @@ public final class ListHandler {
          return false;
       }
 
-      CompoundTag data = customData.copyTag();
-      if (data.contains("written") && data.contains("lines")) {
-         ListTag list = (ListTag)BcNbt.getList(data, "lines");
-         if (list != null) {
-            for (int i = 0; i < list.size(); i++) {
-               CompoundTag lineTag = (CompoundTag)BcNbt.getCompound(list, i);
-               if (lineTag != null) {
-                  ListHandler.Line line = ListHandler.Line.fromTag(lineTag);
-                  if (line.matches(item)) {
-                     return true;
-                  }
-               }
-            }
+      for (ListHandler.Line line : MATCH_LINE_CACHE.computeIfAbsent(customData, ListHandler::parseMatchLines)) {
+         if (line.matches(item)) {
+            return true;
          }
       }
 
       return false;
+   }
+
+   private static ListHandler.Line[] parseMatchLines(CustomData customData) {
+      CompoundTag data = customData.copyTag();
+      if (data.contains("written") && data.contains("lines")) {
+         ListTag list = (ListTag)BcNbt.getList(data, "lines");
+         if (list != null) {
+            ListHandler.Line[] lines = new ListHandler.Line[list.size()];
+
+            for (int i = 0; i < lines.length; i++) {
+               CompoundTag lineTag = (CompoundTag)BcNbt.getCompound(list, i);
+               lines[i] = lineTag != null ? ListHandler.Line.fromTag(lineTag) : new ListHandler.Line();
+            }
+
+            return lines;
+         }
+      }
+
+      return NO_LINES;
    }
 
    public static class Line {
