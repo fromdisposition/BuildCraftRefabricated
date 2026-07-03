@@ -58,6 +58,7 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
    private boolean worldHasUpdated = true;
    private final AverageLong avgPower = new AverageLong(100);
    private long averageClient;
+   private boolean writingSyncTag;
    private final MjBattery battery;
    private final MjBatteryReceiver mjReceiver;
    private boolean registered = false;
@@ -219,7 +220,9 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
 
       long previousAverageClient = this.averageClient;
       this.averageClient = (long)this.avgPower.getAverage();
-      if (!Objects.equals(previousTargetPos, this.targetPos) || this.averageClient != previousAverageClient) {
+      // Quantize the sync trigger to whole MJ: the raw micro-MJ average changes virtually every tick while
+      // firing, which used to broadcast a full update tag per tick per laser.
+      if (!Objects.equals(previousTargetPos, this.targetPos) || this.averageClient / MjAPI.MJ != previousAverageClient / MjAPI.MJ) {
          this.setChanged();
          MessageUtil.sendUpdateToTrackingPlayers(this);
       }
@@ -262,9 +265,14 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
          output.putBoolean("has_target", true);
       }
 
-      CompoundTag avgTag = new CompoundTag();
-      this.avgPower.writeToNbt(avgTag, "average_power");
-      output.store("avg_power", CompoundTag.CODEC, avgTag);
+      output.putLong("avg_client", this.averageClient);
+      if (!this.writingSyncTag) {
+         // The 100-entry power history (an int[200] tag) is only needed to persist the rolling average across
+         // restarts; clients render from the avg_client scalar, so the sync tag skips the array.
+         CompoundTag avgTag = new CompoundTag();
+         this.avgPower.writeToNbt(avgTag, "average_power");
+         output.store("avg_power", CompoundTag.CODEC, avgTag);
+      }
    }
 
    protected void readData(BcValueIn input) {
@@ -281,14 +289,20 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       }
 
       input.read("avg_power", CompoundTag.CODEC).ifPresent(tag -> this.avgPower.readFromNbt(tag, "average_power"));
-      this.averageClient = (long)this.avgPower.getAverage();
+      this.averageClient = input.getLongOr("avg_client", (long)this.avgPower.getAverage());
       if (this.level != null && this.level.isClientSide()) {
          this.onClientLoaded();
       }
    }
 
    public CompoundTag getUpdateTag(Provider registries) {
-      return this.saveCustomOnly(registries);
+      this.writingSyncTag = true;
+
+      try {
+         return this.saveCustomOnly(registries);
+      } finally {
+         this.writingSyncTag = false;
+      }
    }
 
    public Packet<ClientGamePacketListener> getUpdatePacket() {

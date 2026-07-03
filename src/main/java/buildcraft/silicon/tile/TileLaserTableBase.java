@@ -84,7 +84,11 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
          this.avgPower.clear();
       }
 
-      if (this.power != this.lastSyncedPower) {
+      // power moves every tick while lasers feed the table; syncing on 1%-of-target steps (and on the
+      // empty/non-empty transition) keeps the progress display smooth without a full NBT broadcast per tick.
+      long syncQuantum = Math.max(MjAPI.MJ, this.getTarget() / 100L);
+      boolean zeroCrossing = this.power == 0L != (this.lastSyncedPower == 0L);
+      if (Math.abs(this.power - this.lastSyncedPower) >= syncQuantum || zeroCrossing) {
          this.lastSyncedPower = this.power;
          this.setChanged();
          if (this.getLevel() != null) {
