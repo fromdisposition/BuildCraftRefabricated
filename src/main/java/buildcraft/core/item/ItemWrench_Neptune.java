@@ -7,7 +7,6 @@
 package buildcraft.core.item;
 
 import buildcraft.api.blocks.CustomRotationHelper;
-import buildcraft.api.blocks.ICustomRotationHandler;
 import buildcraft.api.tools.IToolWrench;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.SoundUtil;
@@ -46,43 +45,7 @@ public class ItemWrench_Neptune extends Item implements IToolWrench {
       player.swing(hand);
    }
 
-   public InteractionResult trySneakRotate(ItemStack stack, UseOnContext context) {
-      Player player = context.getPlayer();
-      if (player != null && player.isShiftKeyDown()) {
-         Level world = context.getLevel();
-         BlockPos pos = context.getClickedPos();
-         BlockState state = world.getBlockState(pos);
-         Block block = state.getBlock();
-         if (block instanceof ICustomRotationHandler) {
-            return InteractionResult.PASS;
-         }
-
-         Direction side = context.getClickedFace();
-         InteractionResult result = CustomRotationHelper.INSTANCE.attemptRotateBlock(world, pos, state, side);
-         if (result == InteractionResult.PASS) {
-            return InteractionResult.PASS;
-         }
-
-         if (result == InteractionResult.SUCCESS) {
-            BlockHitResult hit = new BlockHitResult(context.getClickLocation(), side, pos, context.isInside());
-            this.wrenchUsed(player, context.getHand(), stack, hit);
-         }
-
-         SoundUtil.playSlideSound(world, pos, state, result);
-         return result;
-      } else {
-         return InteractionResult.PASS;
-      }
-   }
-
    public InteractionResult useOn(UseOnContext context) {
-      if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) {
-         InteractionResult sneak = this.trySneakRotate(context.getItemInHand(), context);
-         if (sneak != InteractionResult.PASS) {
-            return sneak;
-         }
-      }
-
       Level world = context.getLevel();
       BlockPos pos = context.getClickedPos();
       Player player = context.getPlayer();
@@ -90,34 +53,13 @@ public class ItemWrench_Neptune extends Item implements IToolWrench {
       Direction side = context.getClickedFace();
       BlockState state = world.getBlockState(pos);
 
-      Identifier blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-      if (blockId != null && blockId.getNamespace().startsWith("buildcraft")) {
-         if (blockId.getPath().contains("pipe")) {
-            return InteractionResult.PASS;
-         }
-         if (blockId.getPath().equals("frame")) {
-            // The quarry frame is a technical block the quarry builds and removes itself — don't let the wrench
-            // dismantle it into an item (it also drops nothing when broken), so it stays non-obtainable in play.
-            return InteractionResult.PASS;
-         }
-         if (player == null) {
-            return InteractionResult.PASS;
-         }
-
-         if (!world.isClientSide()) {
-            ItemStack drop = new ItemStack(state.getBlock().asItem());
-            if (!drop.isEmpty()) {
-               Block.popResource(world, pos, drop);
-            }
-            world.removeBlock(pos, false);
-            SoundUtil.playSlideSound(world, pos, state, InteractionResult.SUCCESS);
-         }
-
-         BlockHitResult hitResult = new BlockHitResult(context.getClickLocation(), side, pos, context.isInside());
-         this.wrenchUsed(player, hand, context.getItemInHand(), hitResult);
-         return InteractionResult.CONSUME;
+      // Classic BuildCraft semantics: a plain right-click rotates the block, sneak + right-click dismantles it.
+      if (player != null && player.isShiftKeyDown()) {
+         return this.tryDismantle(context, world, pos, player, hand, side, state);
       }
 
+      // Plain right-click: rotate. attemptRotateBlock handles ICustomRotationHandler blocks (e.g. engines) and any
+      // block with a registered rotation handler, and returns PASS for everything else.
       InteractionResult result = CustomRotationHelper.INSTANCE.attemptRotateBlock(world, pos, state, side);
       if (result == InteractionResult.SUCCESS && player != null) {
          BlockHitResult hitResult = new BlockHitResult(context.getClickLocation(), side, pos, context.isInside());
@@ -126,5 +68,39 @@ public class ItemWrench_Neptune extends Item implements IToolWrench {
 
       SoundUtil.playSlideSound(world, pos, state, result);
       return result;
+   }
+
+   private InteractionResult tryDismantle(
+      UseOnContext context, Level world, BlockPos pos, Player player, InteractionHand hand, Direction side, BlockState state
+   ) {
+      Identifier blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+      if (blockId == null || !blockId.getNamespace().startsWith("buildcraft")) {
+         return InteractionResult.PASS;
+      }
+      if (blockId.getPath().contains("pipe")) {
+         return InteractionResult.PASS;
+      }
+      if (blockId.getPath().equals("frame")) {
+         // The quarry frame is a technical block the quarry builds and removes itself — don't let the wrench
+         // dismantle it into an item (it also drops nothing when broken), so it stays non-obtainable in play.
+         return InteractionResult.PASS;
+      }
+
+      if (!world.isClientSide()) {
+         // Run the block's own break logic first: a machine drops its inventory and the quarry tears down its
+         // frame lattice inside playerWillDestroy, which world.removeBlock skips. Without this the wrench would
+         // silently void machine contents and orphan quarry frames.
+         state.getBlock().playerWillDestroy(world, pos, state, player);
+         ItemStack drop = new ItemStack(state.getBlock().asItem());
+         if (!drop.isEmpty()) {
+            Block.popResource(world, pos, drop);
+         }
+         world.removeBlock(pos, false);
+         SoundUtil.playSlideSound(world, pos, state, InteractionResult.SUCCESS);
+      }
+
+      BlockHitResult hitResult = new BlockHitResult(context.getClickLocation(), side, pos, context.isInside());
+      this.wrenchUsed(player, hand, context.getItemInHand(), hitResult);
+      return InteractionResult.CONSUME;
    }
 }
