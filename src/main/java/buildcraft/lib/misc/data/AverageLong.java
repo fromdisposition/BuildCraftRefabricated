@@ -7,10 +7,11 @@
 package buildcraft.lib.misc.data;
 
 import buildcraft.lib.nbt.BcNbt;
+import java.util.Arrays;
 import net.minecraft.nbt.CompoundTag;
 
 public class AverageLong {
-   private long[] data;
+   private final long[] data;
    private final int precise;
    private int pos;
    private long averageRaw;
@@ -18,11 +19,17 @@ public class AverageLong {
 
    public AverageLong(int precise) {
       this.precise = precise;
-      this.clear();
+      this.data = new long[precise];
    }
 
    public void clear() {
-      this.data = new long[this.precise];
+      // Callers clear() every idle tick (lasers without a target, tables without a recipe), so this must not
+      // allocate: zero the existing array in place, and skip even that when the window is already empty.
+      if (this.averageRaw == 0L && this.tickValue == 0L && this.pos == 0) {
+         return;
+      }
+
+      Arrays.fill(this.data, 0L);
       this.pos = 0;
       this.averageRaw = 0L;
       this.tickValue = 0L;
