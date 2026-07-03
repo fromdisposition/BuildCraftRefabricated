@@ -23,6 +23,12 @@ import buildcraft.transport.wire.SavedDataWireSystems;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarting;
+// Fabric API renamed the per-level lifecycle events for 26.x: ServerWorldEvents (2.x) -> ServerLevelEvents (4.x).
+//? if >= 26.1 {
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
+//?} else {
+/*import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+*///?}
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.EndDataPackReload;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.EndTick;
@@ -68,5 +74,14 @@ public class BuildCraftFabricMod implements ModInitializer {
             SavedDataWireSystems.get(joinLevel).sendTo(handler.player);
          }
       });
+      // Marker sub-caches are keyed by dimension id, which collides across worlds in the same game session
+      // (singleplayer world switching): evict on unload so the next world builds a fresh cache instead of
+      // writing markers into the previous world's dead level + detached saved data. This restores the old
+      // BuildCraft WorldEvent.Unload semantics the Fabric port had lost.
+      //? if >= 26.1 {
+      ServerLevelEvents.UNLOAD.register((server, level) -> MarkerCache.onWorldUnload(level));
+      //?} else {
+      /*ServerWorldEvents.UNLOAD.register((server, world) -> MarkerCache.onWorldUnload(world));
+      *///?}
    }
 }

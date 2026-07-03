@@ -60,6 +60,16 @@ public abstract class MarkerCache<S extends MarkerSubCache<?>> {
       }
    }
 
+   /** Client counterpart of {@link #onWorldUnload}: the sub-caches are keyed by dimension id, which collides
+    * across worlds/servers in the same game session. The server re-sends all marker state on the next join (and
+    * as block entities load), so on disconnect simply drop every client sub-cache — otherwise stale positions
+    * from the previous world linger and render as ghost markers/lasers. */
+   public static void onClientDisconnect() {
+      for (MarkerCache<?> cache : CACHES) {
+         cache.cacheClient.clear();
+      }
+   }
+
    private void onWorldUnloadImpl(Level world) {
       Map<ResourceKey<Level>, S> cache = world.isClientSide() ? this.cacheClient : this.cacheServer;
       ResourceKey<Level> key = world.dimension();
