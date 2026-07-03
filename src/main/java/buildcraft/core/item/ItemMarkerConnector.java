@@ -131,6 +131,10 @@ public class ItemMarkerConnector extends Item {
                addonVolumeBox.addons.get(addonSlot).onPlayerRightClick(player);
                volumeBoxes.markDirtyAndBroadcast();
             }
+
+            // The addon interaction ran on the server, so report success — otherwise the shared fall-through below
+            // returns FAIL and the player's arm never swings for a placement/removal that actually happened.
+            return InteractionResult.SUCCESS;
          }
       } else if (player.isShiftKeyDown()) {
          if (currentEditing != null) {
