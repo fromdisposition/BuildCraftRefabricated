@@ -35,17 +35,18 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Pipe block model. The vanilla delegate carries the (empty) baked state; on top of it this emits the pipe
- * PAINT shell as chunk translucent geometry via the Fabric renderer API, driven by the tile's render data
- * ({@link PipeModelKey} snapshot).
+ * Pipe block model. The vanilla delegate carries the (empty) baked state; on top of it this emits the STATIC
+ * pipe geometry as chunk geometry via the Fabric renderer API, driven by the tile's render data
+ * ({@link PipeModelKey} snapshot): the body on the cutout layer and the paint shell on the translucent layer.
+ * The block-entity renderer only draws the dynamic remainder (travelling items, fluid, pluggables, wires), so
+ * a field of bare pipes costs nothing per frame — geometry rebuilds only when a pipe's colour or connections
+ * change, via the existing sendBlockUpdated in TilePipeHolder#refreshClientModel.
  *
- * <p>The paint used to be a block-entity submit, but BER translucency draws in a separate pass from
- * translucent terrain, so it can never sort against water/oil: either the paint's depth writes hid the fluid
- * behind the pipe, or (without depth writes) the fluid drew over the paint and washed the tint out, plus the
- * BER-vs-terrain transform mismatch z-fought on shared planes. As chunk geometry the shell is depth-written,
- * sorted per-quad against fluids in the same translucent pass — exactly how stained glass behaves — and costs
- * nothing per frame (rebuilt only when the pipe's colour/connections change, via the existing
- * sendBlockUpdated in TilePipeHolder#refreshClientModel).
+ * <p>The paint especially must be chunk geometry: BER translucency draws in a separate pass from translucent
+ * terrain, so it can never sort against water/oil — either its depth writes hid the fluid behind the pipe, or
+ * (without depth writes) the fluid drew over the paint and washed the tint out, plus the BER-vs-terrain
+ * transform mismatch z-fought on shared planes. As chunk geometry the shell is depth-written and sorted
+ * per-quad against fluids in the same translucent pass, exactly how stained glass behaves.
  */
 public class PipeBlockStateModel implements BlockStateModel {
    private static final float BOUNDARY_EPS = 1.0E-4F;
@@ -83,35 +84,38 @@ public class PipeBlockStateModel implements BlockStateModel {
       QuadEmitter emitter, BlockAndTintGetter blockView, BlockPos pos, BlockState state, RandomSource random, Predicate<Direction> cullTest
    ) {
       this.vanillaDelegate.emitQuads(emitter, blockView, pos, state, random, cullTest);
-      if (blockView.getBlockEntityRenderData(pos) instanceof PipeModelKey key && key.colour != null) {
-         int alpha = key.definition != null && key.definition.flowType == PipeApi.flowFluids ? 255 : ModelPipe.PIPE_PAINT_ALPHA;
-         emitPaint(emitter, key, alpha, cullTest);
-      }
-   }
-
-   private static void emitPaint(QuadEmitter emitter, PipeModelKey key, int alpha, Predicate<Direction> cullTest) {
-      List<MutableQuad> quads = PipeMutableQuadCache.maskQuads(new PipeModelCacheBase.PipeBaseCutoutKey(key), alpha);
-
-      for (int i = 0; i < quads.size(); i++) {
-         MutableQuad q = quads.get(i);
-         Direction boundary = boundaryFace(q);
-         if (boundary == null || !cullTest.test(boundary)) {
-            emitQuad(emitter, q);
+      if (blockView.getBlockEntityRenderData(pos) instanceof PipeModelKey key) {
+         PipeModelCacheBase.PipeBaseCutoutKey cutoutKey = new PipeModelCacheBase.PipeBaseCutoutKey(key);
+         emitQuads(emitter, PipeMutableQuadCache.cutoutQuads(cutoutKey), ChunkSectionLayer.CUTOUT, cullTest);
+         if (key.colour != null) {
+            int alpha = key.definition != null && key.definition.flowType == PipeApi.flowFluids ? 255 : ModelPipe.PIPE_PAINT_ALPHA;
+            emitQuads(emitter, PipeMutableQuadCache.maskQuads(cutoutKey, alpha), ChunkSectionLayer.TRANSLUCENT, cullTest);
          }
       }
    }
 
-   private static void emitQuad(QuadEmitter emitter, MutableQuad q) {
+   private static void emitQuads(QuadEmitter emitter, List<MutableQuad> quads, ChunkSectionLayer layer, Predicate<Direction> cullTest) {
+      for (int i = 0; i < quads.size(); i++) {
+         MutableQuad q = quads.get(i);
+         Direction boundary = boundaryFace(q);
+         if (boundary == null || !cullTest.test(boundary)) {
+            emitQuad(emitter, q, layer);
+         }
+      }
+   }
+
+   private static void emitQuad(QuadEmitter emitter, MutableQuad q, ChunkSectionLayer layer) {
       emitVertex(emitter, 0, q.vertex_0);
       emitVertex(emitter, 1, q.vertex_1);
       emitVertex(emitter, 2, q.vertex_2);
       emitVertex(emitter, 3, q.vertex_3);
       //? if >= 26.1 {
-      emitter.chunkLayer(ChunkSectionLayer.TRANSLUCENT);
+      emitter.chunkLayer(layer);
       //?} else {
-      /*emitter.renderLayer(ChunkSectionLayer.TRANSLUCENT);
+      /*emitter.renderLayer(layer);
       *///?}
-      // Flat like the old overlay: the shell hugs the already-shaded pipe body, so diffuse/AO would double-darken.
+      // Flat like the block-entity renderer this replaces: the templates bake their own colours, and the paint
+      // shell hugs the body, so diffuse/AO would double-darken it.
       emitter.diffuseShade(false);
       emitter.ambientOcclusion(TriState.FALSE);
       emitter.emit();

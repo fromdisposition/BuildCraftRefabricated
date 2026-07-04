@@ -45,6 +45,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.WeakHashMap;
@@ -205,6 +206,8 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       });
       input.read("plugs", CompoundTag.CODEC).ifPresentOrElse(plugTag -> {
          for (Direction face : Direction.values()) {
+            PipePluggable existing = this.pluggables[face.ordinal()];
+            PipePluggable next = null;
             if (plugTag.contains(face.getName())) {
                CompoundTag entry = BcNbt.getCompound(plugTag, face.getName());
                String id = BcNbt.getString(entry, "id", "");
@@ -213,27 +216,34 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
                   PluggableDefinition def = PipeApi.pluggableRegistry != null ? PipeApi.pluggableRegistry.getDefinition(plugId) : null;
                   if (def != null) {
                      CompoundTag data = BcNbt.getCompound(entry, "data");
-                     PipePluggable existing = this.pluggables[face.ordinal()];
-                     if (existing == null || !existing.definition.identifier.equals(plugId) || !existing.readFromNbt(data)) {
+                     if (existing != null && existing.definition.identifier.equals(plugId) && existing.readFromNbt(data)) {
+                        next = existing;
+                     } else {
                         try {
-                           this.pluggables[face.ordinal()] = def.readFromNbt(this, face, data);
+                           next = def.readFromNbt(this, face, data);
                         } catch (RuntimeException e) {
                            BCLog.logger.warn("[transport.pipe] Failed to load pluggable {} at {} {}", plugId, this.getBlockPos(), face, e);
-                           this.pluggables[face.ordinal()] = null;
                         }
                      }
-                  } else {
-                     this.pluggables[face.ordinal()] = null;
                   }
-               } else {
-                  this.pluggables[face.ordinal()] = null;
                }
-            } else {
-               this.pluggables[face.ordinal()] = null;
             }
+
+            if (next != existing && existing != null) {
+               // The replaced instance would otherwise stay registered on the event bus forever — the loop
+               // below only re-registers the new array contents, so every full BE resync that swaps a
+               // pluggable object added a duplicate handler.
+               this.eventBus.unregisterHandler(existing);
+            }
+
+            this.pluggables[face.ordinal()] = next;
          }
       }, () -> {
          for (int i = 0; i < this.pluggables.length; i++) {
+            if (this.pluggables[i] != null) {
+               this.eventBus.unregisterHandler(this.pluggables[i]);
+            }
+
             this.pluggables[i] = null;
          }
       });
@@ -269,22 +279,52 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       this.scheduleRenderUpdate = true;
    }
 
+   /** The model key snapshot the section was last meshed with; see {@link #refreshClientModel()}. */
+   private Object lastChunkModelKey;
+
    private void refreshClientModel() {
       if (this.level != null && this.level.isClientSide()) {
-         this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 2);
+         // The chunk-baked pipe geometry (body + paint, PipeBlockStateModel) is a pure function of the pipe's
+         // model key, so only remesh the section when that snapshot actually changed. Everything else that
+         // funnels through here — gate glow, wire power, behaviour/flow syncs, plain BE re-sends — is drawn by
+         // the block-entity renderer from live tile state and must not pay for a rebuild: in a chunk dense with
+         // pipes one no-op sendBlockUpdated costs a six-figure quad remesh plus a translucent re-sort.
+         // The key is re-derived (not read from the cache) so a behaviour that changed its texture state without
+         // calling invalidateModelKey still gets picked up; equal keys compare equal by value either way.
+         Object key = null;
+         if (this.pipe != null) {
+            this.pipe.invalidateModelKey();
+            key = this.pipe.getModel();
+         }
+
+         if (!Objects.equals(key, this.lastChunkModelKey)) {
+            this.lastChunkModelKey = key;
+            this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 2);
+         }
       }
    }
 
    /**
     * Fabric block-view render data: the immutable {@link buildcraft.transport.client.model.key.PipeModelKey}
-    * snapshot the chunk mesher hands to the pipe's block model off-thread (it drives the chunk-baked paint
-    * shell). Uncoloured pipes return null so meshing skips them; the sendBlockUpdated above re-snapshots this
-    * whenever the pipe's colour or connections change.
+    * snapshot the chunk mesher hands to the pipe's block model off-thread (it drives the chunk-baked body and
+    * paint shell). Returns the exact snapshot {@link #refreshClientModel()} last triggered a remesh for — a
+    * plain field read of an immutable object, so the capture can never race a lazy rebuild or mesh a key the
+    * gate has not seen.
     */
    @Override
    public Object getRenderData() {
-      Pipe p = this.pipe;
-      return p != null && p.getColour() != null ? p.getModel() : null;
+      return this.lastChunkModelKey;
+   }
+
+   /** Whether any side carries a pluggable — lets the renderer skip whole submits for bare pipes. */
+   public boolean hasPluggables() {
+      for (PipePluggable plug : this.pluggables) {
+         if (plug != null) {
+            return true;
+         }
+      }
+
+      return false;
    }
 
    public CompoundTag getUpdateTag(Provider registries) {
@@ -448,6 +488,11 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       try {
          if (this.level != null) {
             if (this.level.isClientSide()) {
+               // On the client this flag only ever meant "refreshClientModel already ran" (readData/onLoad call
+               // it directly); the reset below is server-only, so without clearing it here needsClientTick()
+               // stayed true forever and every loaded pipe ran the full simulation body each tick — the dominant
+               // steady client cost on dense networks.
+               this.scheduleRenderUpdate = false;
                if (!this.needsClientTick()) {
                   return;
                }
@@ -456,10 +501,12 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
             }
          }
 
-         Arrays.fill(this.redstoneOutputsThisTick, 0);
          boolean simulate = this.level == null || this.level.isClientSide() || this.needsHeavySimulation();
          boolean redstoneChanged = false;
          if (simulate) {
+            // The redstone scratch is only refilled by the pluggable ticks below; comparing it on a
+            // non-simulated tick (network flush only) would zero live gate outputs for a tick.
+            Arrays.fill(this.redstoneOutputsThisTick, 0);
             this.wireManager.tick();
             if (this.pipe != null) {
                this.pipe.onTick();
@@ -474,12 +521,12 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
             if (this.pipe != null) {
                this.pipe.postPluggableTick();
             }
-         }
 
-         for (int i = 0; i < 6; i++) {
-            if (this.redstoneOutputs[i] != this.redstoneOutputsThisTick[i]) {
-               this.redstoneOutputs[i] = this.redstoneOutputsThisTick[i];
-               redstoneChanged = true;
+            for (int i = 0; i < 6; i++) {
+               if (this.redstoneOutputs[i] != this.redstoneOutputsThisTick[i]) {
+                  this.redstoneOutputs[i] = this.redstoneOutputsThisTick[i];
+                  redstoneChanged = true;
+               }
             }
          }
 
@@ -525,14 +572,20 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
    private void sendScheduledPayloads(Set<IPipeHolder.PipeMessageReceiver> parts, Consumer<MessagePipePayload> sender) {
       if (!parts.isEmpty()) {
-         if (parts.size() == 1) {
-            IPipeHolder.PipeMessageReceiver part = parts.iterator().next();
-            this.dispatchPayload(part, sender);
-         } else {
-            byte[] data = this.buildMultiPayload(parts);
-            if (data != null) {
-               sender.accept(new MessagePipePayload(this.worldPosition, MessagePipePayload.MULTI_RECEIVER_ORDINAL, data));
+         // Contained like sendMessage: a pluggable/behaviour whose writePayload throws (e.g. a statement whose
+         // tag vanished with a datapack) must not crash the block-entity ticker every tick.
+         try {
+            if (parts.size() == 1) {
+               IPipeHolder.PipeMessageReceiver part = parts.iterator().next();
+               this.dispatchPayload(part, sender);
+            } else {
+               byte[] data = this.buildMultiPayload(parts);
+               if (data != null) {
+                  sender.accept(new MessagePipePayload(this.worldPosition, MessagePipePayload.MULTI_RECEIVER_ORDINAL, data));
+               }
             }
+         } catch (Exception e) {
+            BCLog.logger.warn("[transport.net] Failed to build pipe payload at {}", this.worldPosition, e);
          }
       }
    }
@@ -665,6 +718,12 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       PipePluggable old = this.pluggables[side.ordinal()];
       this.pluggables[side.ordinal()] = with;
       this.eventBus.unregisterHandler(old);
+      if (old != null && old != with && this.level != null && !this.level.isClientSide()) {
+         // Lifecycle parity with dropPipeItems: pluggables clean external state (wire emitters, caches) in
+         // onRemove, which was skipped when only the plug was broken off instead of the whole pipe.
+         old.onRemove();
+      }
+
       this.eventBus.registerHandler(with);
       if (this.pipe != null) {
          this.pipe.markForUpdate();

@@ -38,6 +38,8 @@ public class PipeModelCacheBase {
       public final float[] connections;
       public final DyeColor colour;
       public final EnumPipeColourType colourType;
+      /** Bitmask by face ordinal: sides connected to a TILE — those tube ends are open (see generator). */
+      public final int tileConnections;
       private final int hashCode;
 
       public PipeBaseCutoutKey(PipeModelKey key) {
@@ -45,6 +47,7 @@ public class PipeModelCacheBase {
          this.centerSprite = key.center;
          this.sideSprites = key.sides;
          this.connections = key.connected;
+         this.tileConnections = key.tileConnections;
          EnumPipeColourType defColourType = key.getColourType();
          if (key.colour != null && canBakeCutoutColour(defColourType)) {
             this.colour = key.colour;
@@ -60,7 +63,8 @@ public class PipeModelCacheBase {
             Arrays.hashCode(this.sideSprites),
             Arrays.hashCode(this.connections),
             this.colour,
-            this.colourType
+            this.colourType,
+            this.tileConnections
          );
       }
 
@@ -90,6 +94,8 @@ public class PipeModelCacheBase {
             } else if (this.colour != other.colour) {
                return false;
             } else if (this.colourType != other.colourType) {
+               return false;
+            } else if (this.tileConnections != other.tileConnections) {
                return false;
             } else {
                return !Arrays.equals(this.connections, other.connections) ? false : Arrays.equals(this.sideSprites, other.sideSprites);

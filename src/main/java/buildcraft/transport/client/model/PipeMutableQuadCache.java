@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class PipeMutableQuadCache {
    private static final BakedQuadTemplateCache<PipeModelCacheBase.PipeBaseCutoutKey> CUTOUT = new BakedQuadTemplateCache<>(PipeModelCacheBase.cacheCutout::bake);
+   private static final Map<PipeModelCacheBase.PipeBaseCutoutKey, List<MutableQuad>> CUTOUT_MUTABLE = new ConcurrentHashMap<>();
    private static final Map<PipeMutableQuadCache.MaskCacheKey, List<MutableQuad>> MASK = new ConcurrentHashMap<>();
 
    private PipeMutableQuadCache() {
@@ -23,7 +24,16 @@ public final class PipeMutableQuadCache {
 
    public static void clearCaches() {
       CUTOUT.clear();
+      CUTOUT_MUTABLE.clear();
       MASK.clear();
+   }
+
+   /**
+    * Cached body templates for the chunk-baked pipe model (dye baked into the vertex colours where the colour
+    * type calls for it). Safe to call from chunk-build worker threads.
+    */
+   public static List<MutableQuad> cutoutQuads(PipeModelCacheBase.PipeBaseCutoutKey key) {
+      return CUTOUT_MUTABLE.computeIfAbsent(key, k -> PipeBaseModelGenStandard.INSTANCE.generateCutoutMutable(k));
    }
 
    public static MutableQuad renderScratch() {

@@ -265,8 +265,10 @@ public final class Pipe implements IPipe, IDebuggable {
       _profiler.push("buildcraft:pipe_connections");
 
       try {
+         // Cleared on both sides: the clear used to sit inside the server branch, so a client-side mark kept
+         // hasSimulationWork() true and onTick re-entered here every ticked tick forever.
+         this.updateMarked = false;
          if (!this.holder.getPipeWorld().isClientSide()) {
-            this.updateMarked = false;
             EnumMap<Direction, Float> old = this.connected.clone();
             EnumMap<Direction, IPipe.ConnectedType> oldTypes = this.types.clone();
             this.connected.clear();
@@ -486,14 +488,18 @@ public final class Pipe implements IPipe, IDebuggable {
       if (this.cachedModelKey == null) {
          PipeFaceTex[] sides = new PipeFaceTex[6];
          float[] mc = new float[6];
+         int tileMask = 0;
 
          for (Direction face : Direction.values()) {
             int i = face.ordinal();
             sides[i] = this.behaviour.getTextureData(face);
             mc[i] = this.getConnectedDist(face);
+            if (this.types.get(face) == IPipe.ConnectedType.TILE) {
+               tileMask |= 1 << i;
+            }
          }
 
-         this.cachedModelKey = new PipeModelKey(this.definition, this.behaviour.getTextureData(null), sides, mc, this.colour);
+         this.cachedModelKey = new PipeModelKey(this.definition, this.behaviour.getTextureData(null), sides, mc, this.colour, tileMask);
       }
 
       return this.cachedModelKey;

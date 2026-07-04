@@ -8,6 +8,7 @@ package buildcraft.transport.client.render;
 
 import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.api.transport.pipe.IPipeBehaviourRenderer;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
 import buildcraft.api.transport.pipe.PipeBehaviour;
@@ -24,6 +25,7 @@ import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.flow.PipeFlowFluids;
 import buildcraft.transport.pipe.flow.PipeFlowItems;
 import buildcraft.transport.tile.TilePipeHolder;
+import buildcraft.transport.wire.WireManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
@@ -90,7 +92,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       renderState.partialTick = partialTick;
       renderState.beginItemExtraction();
       Pipe pipe = blockEntity.getPipe();
-      if (pipe != null && pipe.flow instanceof PipeFlowItems flowItems) {
+      if (pipe != null && pipe.flow instanceof PipeFlowItems flowItems && flowItems.doesContainItems()) {
          Level world = blockEntity.getLevel();
          if (world != null) {
             long now = world.getGameTime();
@@ -127,21 +129,29 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
          if (level != null) {
             int light = renderState.lightCoords;
             poseStack.pushPose();
-            BcBerRenderUtil.submit(
-               poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (pose, buffer) -> {
-                  ModelPipe.renderDirect(pipe, pose, buffer, light);
-                  ModelPipe.renderCutoutPluggables(pipe, pose, buffer, light);
-                  PipeWireRenderer.renderWires(pipe, pose, light, buffer);
-               }
-            );
-            BcBerRenderUtil.submit(
-               poseStack, collector, BCLibRenderTypes.translucentBlockSheet(), (pose, buffer) -> {
-                  ModelPipe.renderTranslucentPluggables(pipe, pose, buffer, light);
-               }
-            );
-            // The paint shell is NOT submitted here: it is chunk-baked translucent geometry (PipeBlockStateModel),
-            // so it depth-sorts against water/oil in the terrain pass like stained glass instead of fighting it
-            // from the earlier block-entity translucent pass.
+            // The static pipe body and paint shell are NOT submitted here: they are chunk-baked geometry
+            // (PipeBlockStateModel), rebuilt only when the pipe changes — so this per-frame path only draws the
+            // dynamic remainder, and a bare pipe (no pluggables, no wires) submits nothing at all.
+            boolean hasPluggables = pipe.hasPluggables();
+            WireManager wires = pipe.getWireManager();
+            boolean hasWires = wires != null && (!wires.parts.isEmpty() || !wires.betweens.isEmpty());
+            if (hasPluggables || hasWires) {
+               BcBerRenderUtil.submit(
+                  poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (pose, buffer) -> {
+                     ModelPipe.renderCutoutPluggables(pipe, pose, buffer, light);
+                     PipeWireRenderer.renderWires(pipe, pose, light, buffer);
+                  }
+               );
+            }
+
+            if (hasPluggables) {
+               BcBerRenderUtil.submit(
+                  poseStack, collector, BCLibRenderTypes.translucentBlockSheet(), (pose, buffer) -> {
+                     ModelPipe.renderTranslucentPluggables(pipe, pose, buffer, light);
+                  }
+               );
+            }
+
             submitItems(renderState, poseStack, collector, light);
             renderContents(pipe, 0.0, 0.0, 0.0, renderState.partialTick, poseStack, collector, light);
             poseStack.popPose();
@@ -243,20 +253,23 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       Pipe p = pipe.getPipe();
       if (p != null) {
          PipeRenderContext.setPackedLight(light);
-         boolean hasBehaviour = p.behaviour != null;
-         boolean hasPluggables = false;
+         // Submit only when something will actually draw: most behaviours and pluggables have no dynamic
+         // renderer, and an empty submit still costs a node, a lambda and a PoseStack copy per pipe per frame.
+         IPipeBehaviourRenderer<PipeBehaviour> behaviourRenderer = p.behaviour != null ? PipeRegistryClient.getBehaviourRenderer(p.behaviour) : null;
+         boolean hasDynamicPlugs = false;
 
          for (Direction facing : Direction.values()) {
-            if (pipe.getPluggable(facing) != null) {
-               hasPluggables = true;
+            PipePluggable plug = pipe.getPluggable(facing);
+            if (plug != null && PipeRegistryClient.getPlugRenderer(plug) != null) {
+               hasDynamicPlugs = true;
                break;
             }
          }
 
-         if (hasBehaviour || hasPluggables) {
+         if (behaviourRenderer != null || hasDynamicPlugs) {
             BcBerRenderUtil.submitWithPoseStack(poseStack, collector, BCLibRenderTypes.cutoutBlockSheet(), (stack, buffer) -> {
-               if (hasBehaviour) {
-                  renderBehaviour(p.behaviour, x, y, z, partialTicks, buffer, stack.last());
+               if (behaviourRenderer != null) {
+                  behaviourRenderer.render(p.behaviour, x, y, z, partialTicks, buffer, stack.last());
                }
 
                for (Direction facing : Direction.values()) {
@@ -268,9 +281,14 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
             });
          }
 
-         if (p.flow != null && !(p.flow instanceof PipeFlowItems)) {
+         if (p.flow != null && !(p.flow instanceof PipeFlowItems) && PipeRegistryClient.getFlowRenderer(p.flow) != null) {
             RenderType flowType = BCLibRenderTypes.cutoutBlockSheet();
             if (p.flow instanceof PipeFlowFluids fluids) {
+               FluidStack forRender = fluids.getFluidStackForRender();
+               if (forRender == null || forRender.isEmpty()) {
+                  return;
+               }
+
                PipeFlowRendererFluids.prepareRenderCache(fluids);
                BcFluidAppearance appearance = fluids.renderCacheAppearance;
                if (appearance != null) {
@@ -301,12 +319,4 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       }
    }
 
-   private static <B extends PipeBehaviour> void renderBehaviour(
-      B behaviour, double x, double y, double z, float partialTicks, VertexConsumer buffer, Pose pose
-   ) {
-      IPipeBehaviourRenderer<B> renderer = PipeRegistryClient.getBehaviourRenderer(behaviour);
-      if (renderer != null) {
-         renderer.render(behaviour, x, y, z, partialTicks, buffer, pose);
-      }
-   }
 }

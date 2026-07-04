@@ -83,7 +83,16 @@ public final class WireSyncSplitter {
 
    private static boolean wouldExceed(PayloadWireSync msg) {
       FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-      PayloadWireSync.encodeTo(buf, msg);
-      return buf.readableBytes() > 524288;
+
+      try {
+         PayloadWireSync.encodeTo(buf, msg);
+         return buf.readableBytes() > 524288;
+      } catch (IllegalStateException oversized) {
+         // encodeTo enforces the byte budget by throwing — that IS the over-budget signal this probe exists
+         // to detect; without catching it the splitter could never split and the server tick crashed instead.
+         return true;
+      } finally {
+         buf.release();
+      }
    }
 }

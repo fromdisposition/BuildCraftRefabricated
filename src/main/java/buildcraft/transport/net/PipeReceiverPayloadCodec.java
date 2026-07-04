@@ -10,6 +10,8 @@ import buildcraft.api.core.BCLog;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.api.transport.pluggable.PipePluggable;
+import buildcraft.lib.net.BcPayloadBuffers;
+import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.tile.TilePipeHolder;
 import java.util.Set;
@@ -92,13 +94,31 @@ public final class PipeReceiverPayloadCodec {
       return mask;
    }
 
+   /**
+    * Each receiver's payload is length-prefixed and read from an isolated slice. The write and read sides of a
+    * segment can legitimately fall out of step for a tick — a pluggable can exist on only one side during
+    * place/remove races, and gate payloads bail out early on unknown statement tags — and without the frame any
+    * such mismatch silently shifted every byte of the receivers after it in the same packet. With it the damage
+    * is contained to (and logged for) the one segment.
+    */
    public static void writeMulti(Set<IPipeHolder.PipeMessageReceiver> parts, TilePipeHolder holder, FriendlyByteBuf buffer) {
       int mask = buildMask(parts);
       buffer.writeShort(mask);
 
       for (IPipeHolder.PipeMessageReceiver receiver : IPipeHolder.PipeMessageReceiver.VALUES) {
          if ((mask & 1 << receiver.ordinal()) != 0) {
-            write(receiver, holder, buffer);
+            // Each segment gets its own PacketBufferBC: receivers write bit-packed booleans, so a segment must
+            // both start with a fresh bit cache (no partial byte shared with the previous segment) and be read
+            // back through the same buffer class — a plain slice reader would consume whole bytes per boolean.
+            PacketBufferBC segment = BcPayloadBuffers.create();
+
+            try {
+               write(receiver, holder, segment);
+               buffer.writeInt(segment.readableBytes());
+               buffer.writeBytes(segment);
+            } finally {
+               segment.release();
+            }
          }
       }
    }
@@ -108,7 +128,19 @@ public final class PipeReceiverPayloadCodec {
 
       for (IPipeHolder.PipeMessageReceiver receiver : IPipeHolder.PipeMessageReceiver.VALUES) {
          if ((mask & 1 << receiver.ordinal()) != 0) {
-            read(receiver, holder, pipe, buffer);
+            int length = buffer.readInt();
+            if (length < 0 || length > buffer.readableBytes()) {
+               BCLog.logger.warn("[transport.net] Corrupt pipe payload segment {} at {} (length {})", receiver, holder.getPipePos(), length);
+               return;
+            }
+
+            PacketBufferBC segment = BcPayloadBuffers.ensure(buffer.readSlice(length));
+
+            try {
+               read(receiver, holder, pipe, segment);
+            } catch (Exception e) {
+               BCLog.logger.warn("[transport.net] Failed to read pipe payload segment {} at {}", receiver, holder.getPipePos(), e);
+            }
          }
       }
    }

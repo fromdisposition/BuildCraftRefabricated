@@ -20,16 +20,22 @@ public final class PipeModelKey {
    public final PipeFaceTex[] sides;
    public final float[] connected;
    public final DyeColor colour;
+   /** Bitmask by face ordinal: sides connected to a TILE (not another pipe) — those tube ends are open. */
+   public final int tileConnections;
    private final int hash;
 
-   public PipeModelKey(PipeDefinition definition, PipeFaceTex center, PipeFaceTex[] sides, float[] connected, DyeColor colour) {
+   public PipeModelKey(PipeDefinition definition, PipeFaceTex center, PipeFaceTex[] sides, float[] connected, DyeColor colour, int tileConnections) {
       this.definition = definition;
       this.center = center;
       this.sides = sides;
       this.connected = connected;
       this.colour = colour;
+      this.tileConnections = tileConnections;
       this.hash = Arrays.hashCode(
-         new int[]{Objects.hashCode(definition), Objects.hashCode(center), Arrays.hashCode(sides), Arrays.hashCode(connected), Objects.hashCode(colour)}
+         new int[]{
+            Objects.hashCode(definition), Objects.hashCode(center), Arrays.hashCode(sides), Arrays.hashCode(connected), Objects.hashCode(colour),
+            tileConnections
+         }
       );
    }
 
@@ -46,6 +52,8 @@ public final class PipeModelKey {
          if (this.definition != other.definition) {
             return false;
          } else if (this.center != other.center) {
+            return false;
+         } else if (this.tileConnections != other.tileConnections) {
             return false;
          } else if (!Arrays.equals(this.sides, other.sides)) {
             return false;
@@ -68,6 +76,6 @@ public final class PipeModelKey {
       PipeFaceTex sprite = PipeFaceTex.get(0);
       PipeFaceTex[] sides = new PipeFaceTex[]{sprite, sprite, sprite, sprite, sprite, sprite};
       float[] connected = new float[]{0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F};
-      DEFAULT_KEY = new PipeModelKey(null, sprite, sides, connected, null);
+      DEFAULT_KEY = new PipeModelKey(null, sprite, sides, connected, null, 0);
    }
 }

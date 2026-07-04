@@ -29,7 +29,14 @@ public final class PipeItemInjectStorage implements Storage<ItemVariant> {
    public PipeItemInjectStorage(IFlowItems flow, Direction side) {
       this.flow = flow;
       this.side = side;
-      this.pendingInjects = new FabricDeferredCommit<>(stack -> flow.injectItem(stack, true, side, null, 0.25));
+      this.pendingInjects = new FabricDeferredCommit<>(stack -> {
+         ItemStack leftover = flow.injectItem(stack, true, side, null, 0.25);
+         if (!leftover.isEmpty()) {
+            // The commit can accept less than the simulation did (another insert in the same outer transaction
+            // filled the pipe first); force the remainder in rather than silently voiding items.
+            flow.insertItemsForce(leftover, side, null, 0.25);
+         }
+      });
    }
 
    public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {

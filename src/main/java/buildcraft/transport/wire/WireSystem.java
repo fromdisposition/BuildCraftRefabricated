@@ -242,7 +242,8 @@ public final class WireSystem {
          .mapToObj(i -> elementsList.get(i) instanceof CompoundTag ct ? ct : new CompoundTag())
          .map(WireSystem.WireElement::new)
          .collect(ImmutableList.toImmutableList());
-      this.color = DyeColor.byId(BcNbt.getInt(nbt, "color", 0));
+      // The write side omits the key for a null colour; defaulting to id 0 would deserialize it as WHITE.
+      this.color = nbt.contains("color") ? DyeColor.byId(BcNbt.getInt(nbt, "color", 0)) : null;
       this.hasEmitters = computeHasEmitters(this.elements);
       this.cachedHashCode = this.computeHashCode();
       this.cachedWiresHashCode = this.computeCachedWiresHashCode();

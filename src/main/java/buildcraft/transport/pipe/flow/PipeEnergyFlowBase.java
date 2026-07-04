@@ -54,8 +54,20 @@ public abstract class PipeEnergyFlowBase extends PipeFlow {
       this.displaySnapshot.capture(sections);
    }
 
+   /**
+    * Latched until actually sent: the snapshot re-captures every tick, so a change vetoed by the rate tracker
+    * would otherwise never be re-detected and the client kept a stale power display until the next unrelated
+    * change (possibly forever on a steady-state network).
+    */
+   private boolean displaySendPending;
+
    protected void sendDisplayIfChanged(EnumMap<Direction, ? extends PipeEnergyDisplaySupport.DisplaySection> sections, int payloadId) {
-      if (this.displaySnapshot.changed(sections) && this.getNetworkTracker().markTimeIfDelay(this.pipe.getHolder().getPipeWorld())) {
+      if (this.displaySnapshot.changed(sections)) {
+         this.displaySendPending = true;
+      }
+
+      if (this.displaySendPending && this.getNetworkTracker().markTimeIfDelay(this.pipe.getHolder().getPipeWorld())) {
+         this.displaySendPending = false;
          this.sendPayload(payloadId);
       }
    }

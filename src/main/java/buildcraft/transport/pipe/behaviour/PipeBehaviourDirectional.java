@@ -97,9 +97,17 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
       return false;
    }
 
+   /**
+    * Set once the facing has been re-validated. Everything that can invalidate it (connection changes,
+    * neighbour updates, pluggable changes) wakes the holder for two ticks, during which onTick runs again —
+    * so a validated idle facing needs no per-tick simulation. Without this every directional pipe (wood,
+    * iron, emerald, daizuli, …) kept its holder in heavy simulation every tick forever.
+    */
+   private boolean facingValidated;
+
    @Override
    public boolean hasSimulationWork() {
-      return !this.pipe.getHolder().getPipeWorld().isClientSide() && this.getCurrentDir() != null;
+      return !this.pipe.getHolder().getPipeWorld().isClientSide() && this.getCurrentDir() != null && !this.facingValidated;
    }
 
    @Override
@@ -108,6 +116,8 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
          if (!this.canFaceDirection(this.getCurrentDir()) && !this.advanceFacing()) {
             this.setCurrentDir(null);
          }
+
+         this.facingValidated = true;
       }
    }
 
@@ -141,6 +151,7 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
    protected void setCurrentDir(Direction setTo) {
       if (this.currentDir.face != setTo) {
          this.currentDir = EnumPipePart.fromFacing(setTo);
+         this.facingValidated = false;
          if (this.pipe.getHolder().getPipeWorld() != null && !this.pipe.getHolder().getPipeWorld().isClientSide()) {
             this.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
             this.pipe.getHolder().scheduleRenderUpdate();

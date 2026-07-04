@@ -40,6 +40,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
@@ -777,7 +778,26 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       }
    }
 
-   class Section {
+   /** Transaction snapshot of the whole-flow fluid identity, restored field-directly (not via setFluid,
+    * which would clobber the per-section arrays the section snapshots restore). */
+   private record FlowFluidState(FluidStack fluid, int delay) {
+   }
+
+   final SnapshotParticipant<PipeFlowFluids.FlowFluidState> transactionFluidState = new SnapshotParticipant<>() {
+      protected PipeFlowFluids.FlowFluidState createSnapshot() {
+         return new PipeFlowFluids.FlowFluidState(PipeFlowFluids.this.currentFluid, PipeFlowFluids.this.currentDelay);
+      }
+
+      protected void readSnapshot(PipeFlowFluids.FlowFluidState state) {
+         PipeFlowFluids.this.currentFluid = state.fluid();
+         PipeFlowFluids.this.currentDelay = state.delay();
+      }
+   };
+
+   private record FluidSectionState(int amount, int currentTime, int[] incoming, int incomingTotalCache, int ticksInDirection) {
+   }
+
+   class Section extends SnapshotParticipant<PipeFlowFluids.FluidSectionState> {
       final EnumPipePart part;
       final PipeFluidSectionStorage fluidStorage;
       int amount = 0;
@@ -800,6 +820,20 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       Section(EnumPipePart part) {
          this.part = part;
          this.fluidStorage = new PipeFluidSectionStorage(this);
+      }
+
+      @Override
+      protected PipeFlowFluids.FluidSectionState createSnapshot() {
+         return new PipeFlowFluids.FluidSectionState(this.amount, this.currentTime, this.incoming.clone(), this.incomingTotalCache, this.ticksInDirection);
+      }
+
+      @Override
+      protected void readSnapshot(PipeFlowFluids.FluidSectionState state) {
+         this.amount = state.amount();
+         this.currentTime = state.currentTime();
+         this.incoming = state.incoming();
+         this.incomingTotalCache = state.incomingTotalCache();
+         this.ticksInDirection = state.ticksInDirection();
       }
 
       void writeToNbt(CompoundTag nbt) {
@@ -1017,8 +1051,19 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
                return 0;
             }
 
+            // Fabric transaction contract: external callers routinely simulate-and-abort, so every mutation
+            // below must be snapshot for rollback — otherwise a simulated insert really stays in the pipe.
             if (PipeFlowFluids.this.currentFluid.isEmpty()) {
+               // setFluid touches the whole flow (fluid identity + every section's arrays): snapshot it all.
+               PipeFlowFluids.this.transactionFluidState.updateSnapshots(transaction);
+
+               for (PipeFlowFluids.Section s : PipeFlowFluids.this.sections.values()) {
+                  s.updateSnapshots(transaction);
+               }
+
                PipeFlowFluids.this.setFluid(fluidStack.copy());
+            } else {
+               this.updateSnapshots(transaction);
             }
 
             int filled = this.fill(insertAmount, true);
@@ -1053,6 +1098,9 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             return 0;
          }
 
+         // Fabric transaction contract: a simulated extract must fully roll back on abort, or the fluid is
+         // really deleted from the pipe.
+         this.updateSnapshots(transaction);
          int drained = this.drainInternal(extractAmount, true);
          if (drained > 0) {
             this.ticksInDirection = 60;
@@ -1066,6 +1114,13 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             }
 
             if (isEmpty) {
+               // setFluid(EMPTY) touches the whole flow: snapshot the rest before clearing.
+               PipeFlowFluids.this.transactionFluidState.updateSnapshots(transaction);
+
+               for (PipeFlowFluids.Section s2 : PipeFlowFluids.this.sections.values()) {
+                  s2.updateSnapshots(transaction);
+               }
+
                PipeFlowFluids.this.setFluid(FluidStack.EMPTY);
             }
          }

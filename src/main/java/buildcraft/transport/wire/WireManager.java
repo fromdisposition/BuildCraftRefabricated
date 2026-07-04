@@ -116,6 +116,9 @@ public class WireManager implements IWireManager {
 
    public void removeParts(Collection<EnumWirePart> toRemove) {
       toRemove.forEach(this.parts::remove);
+      // Mirrors removePart: without this a gate reading isPowered in the same tick still sees the broken
+      // wire as powered until the game-time cache key rolls over.
+      this.invalidatePoweredCache();
       if (!this.holder.getPipeWorld().isClientSide()) {
          this.removePartsFromSystem(toRemove);
       }

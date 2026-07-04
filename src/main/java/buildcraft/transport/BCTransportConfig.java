@@ -72,6 +72,8 @@ public class BCTransportConfig {
    }
 
    private static void fluidTransfer(PipeDefinition def, int rate, int delay) {
-      PipeApi.fluidTransferData.put(def, new PipeApi.FluidTransferInfo(rate, delay));
+      // Pipe sections sync and save their amount as a short, so the section capacity (max(1000, rate * 10))
+      // must stay within 16 bits; an oversized configured baseFlowRate would silently corrupt both.
+      PipeApi.fluidTransferData.put(def, new PipeApi.FluidTransferInfo(Math.min(rate, 3200), delay));
    }
 }

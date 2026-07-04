@@ -6,6 +6,7 @@
 
 package buildcraft.transport.wire;
 
+import buildcraft.api.core.BCLog;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.net.BCPacketLimits;
@@ -114,8 +115,18 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
          .stream()
          .filter(element -> element.type == WireSystem.WireElement.Type.WIRE_PART)
          .collect(Collectors.toList());
-      buf.writeInt(elements.size());
-      elements.forEach(element -> element.toBytes(buf));
+      // The decoder rejects anything above 4096 elements per system; writing more would make the system
+      // permanently unsyncable (every client hard-fails the packet until the wires are physically broken up).
+      int count = Math.min(elements.size(), 4096);
+      if (count < elements.size()) {
+         BCLog.logger.warn("[transport.wire] Wire system {} exceeds {} elements; truncating its sync", networkId, 4096);
+      }
+
+      buf.writeInt(count);
+
+      for (int i = 0; i < count; i++) {
+         elements.get(i).toBytes(buf);
+      }
    }
 
    private static PayloadWireSync decode(FriendlyByteBuf buf) {
