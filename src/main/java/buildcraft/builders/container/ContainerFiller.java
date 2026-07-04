@@ -32,14 +32,16 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.SimpleContainerData;
 
 public class ContainerFiller extends ContainerBCTile<TileFiller> implements IContainerFilling {
+   // countToPlace/countToBreak are block counts and easily exceed a vanilla data slot's 16 wire bits
+   // (see BcMenu.chunk16), so each travels as two unsigned 16-bit chunks.
    private static final int DATA_CAN_EXCAVATE = 0;
    private static final int DATA_INVERTED = 1;
    private static final int DATA_FINISHED = 2;
    private static final int DATA_LOCKED = 3;
    private static final int DATA_MODE = 4;
    private static final int DATA_TO_PLACE = 5;
-   private static final int DATA_TO_BREAK = 6;
-   private static final int DATA_COUNT = 7;
+   private static final int DATA_TO_BREAK = 7;
+   private static final int DATA_COUNT = 9;
    private final ContainerData data;
    private final FullStatement<IFillerPattern> patternStatementClient = new FullStatement<>(
       FillerType.INSTANCE, 4, (statement, paramIndex) -> this.onStatementChange()
@@ -75,8 +77,8 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
                   case 2 -> tile.getFinished() ? 1 : 0;
                   case 3 -> tile.getLockedTicks();
                   case 4 -> tile.getModeOrdinal();
-                  case 5 -> tile.getCountToPlace();
-                  case 6 -> tile.getCountToBreak();
+                  case 5, 6 -> chunk16(tile.getCountToPlace(), index - DATA_TO_PLACE);
+                  case 7, 8 -> chunk16(tile.getCountToBreak(), index - DATA_TO_BREAK);
                   default -> 0;
                };
             }
@@ -85,11 +87,11 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
             }
 
             public int getCount() {
-               return 7;
+               return 9;
             }
          };
       } else {
-         this.data = new SimpleContainerData(7);
+         this.data = new SimpleContainerData(9);
       }
 
       this.addDataSlots(this.data);
@@ -209,28 +211,28 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
    }
 
    public boolean getSyncedCanExcavate() {
-      return this.data.get(0) != 0;
+      return this.data.get(DATA_CAN_EXCAVATE) != 0;
    }
 
    public boolean getSyncedFinished() {
-      return this.data.get(2) != 0;
+      return this.data.get(DATA_FINISHED) != 0;
    }
 
    public boolean getSyncedLocked() {
-      return this.data.get(3) > 0;
+      return this.data.get(DATA_LOCKED) > 0;
    }
 
    public IControllable.Mode getSyncedMode() {
-      int ordinal = this.data.get(4);
+      int ordinal = this.data.get(DATA_MODE);
       IControllable.Mode[] values = IControllable.Mode.values();
       return ordinal >= 0 && ordinal < values.length ? values[ordinal] : IControllable.Mode.ON;
    }
 
    public int getSyncedToPlace() {
-      return this.data.get(5);
+      return readInt32(this.data, DATA_TO_PLACE);
    }
 
    public int getSyncedToBreak() {
-      return this.data.get(6);
+      return readInt32(this.data, DATA_TO_BREAK);
    }
 }

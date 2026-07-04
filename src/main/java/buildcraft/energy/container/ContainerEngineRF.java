@@ -24,15 +24,15 @@ public class ContainerEngineRF extends BcMenu {
    private static final ItemHandlerSimple FALLBACK_UPGRADES = createFallbackUpgrades();
    public final TileEngineRF engine;
    private final ContainerData data;
-   private static final int DATA_POWER_HI = 0;
-   private static final int DATA_POWER_LO = 1;
-   private static final int DATA_HEAT = 2;
-   private static final int DATA_OUTPUT_HI = 3;
-   private static final int DATA_OUTPUT_LO = 4;
-   private static final int DATA_POWER_STAGE = 5;
-   private static final int DATA_IS_BURNING_ENGINE = 6;
-   private static final int DATA_FE_STORED = 7;
-   private static final int DATA_COUNT = 8;
+   // Wide values are split into unsigned 16-bit chunks (see BcMenu.chunk16): vanilla data slots lose
+   // everything above the low short on the wire.
+   private static final int DATA_POWER = 0;
+   private static final int DATA_HEAT = 4;
+   private static final int DATA_OUTPUT = 6;
+   private static final int DATA_POWER_STAGE = 10;
+   private static final int DATA_IS_BURNING_ENGINE = 11;
+   private static final int DATA_FE_STORED = 12;
+   private static final int DATA_COUNT = 14;
 
    public ContainerEngineRF(int containerId, Inventory playerInv, BlockPos pos) {
       this(containerId, playerInv, MenuBlockEntityLookup.get(playerInv, pos, TileEngineRF.class));
@@ -45,14 +45,12 @@ public class ContainerEngineRF extends BcMenu {
          this.data = new ContainerData() {
             public int get(int index) {
                return switch (index) {
-                  case 0 -> (int)(engine.getPower() >>> 32);
-                  case 1 -> (int)(engine.getPower() & 4294967295L);
-                  case 2 -> Float.floatToIntBits(engine.getHeat());
-                  case 3 -> (int)(engine.getCurrentOutput() >>> 32);
-                  case 4 -> (int)(engine.getCurrentOutput() & 4294967295L);
-                  case 5 -> engine.getPowerStage().ordinal();
-                  case 6 -> engine.isBurning() ? 1 : 0;
-                  case 7 -> engine.getCurrentFe();
+                  case 0, 1, 2, 3 -> chunk16(engine.getPower(), index - DATA_POWER);
+                  case 4, 5 -> chunk16(Float.floatToIntBits(engine.getHeat()), index - DATA_HEAT);
+                  case 6, 7, 8, 9 -> chunk16(engine.getCurrentOutput(), index - DATA_OUTPUT);
+                  case 10 -> engine.getPowerStage().ordinal();
+                  case 11 -> engine.isBurning() ? 1 : 0;
+                  case 12, 13 -> chunk16(engine.getCurrentFe(), index - DATA_FE_STORED);
                   default -> 0;
                };
             }
@@ -61,12 +59,14 @@ public class ContainerEngineRF extends BcMenu {
             }
 
             public int getCount() {
-               return 8;
+               return 14;
             }
          };
       } else {
-         SimpleContainerData clientData = new SimpleContainerData(8);
-         clientData.set(2, Float.floatToIntBits(20.0F));
+         SimpleContainerData clientData = new SimpleContainerData(14);
+         int heatBits = Float.floatToIntBits(20.0F);
+         clientData.set(DATA_HEAT, chunk16(heatBits, 0));
+         clientData.set(DATA_HEAT + 1, chunk16(heatBits, 1));
          this.data = clientData;
       }
 
@@ -91,29 +91,29 @@ public class ContainerEngineRF extends BcMenu {
    }
 
    public long getSyncedPower() {
-      return (long)this.data.get(0) << 32 | this.data.get(1) & 4294967295L;
+      return readLong64(this.data, DATA_POWER);
    }
 
    public float getSyncedHeat() {
-      return Float.intBitsToFloat(this.data.get(2));
+      return readFloat32(this.data, DATA_HEAT);
    }
 
    public EnumPowerStage getSyncedPowerStage() {
-      int ordinal = this.data.get(5);
+      int ordinal = this.data.get(DATA_POWER_STAGE);
       EnumPowerStage[] values = EnumPowerStage.values();
       return ordinal >= 0 && ordinal < values.length ? values[ordinal] : EnumPowerStage.BLUE;
    }
 
    public boolean isSyncedBurningEngine() {
-      return this.data.get(6) != 0;
+      return this.data.get(DATA_IS_BURNING_ENGINE) != 0;
    }
 
    public long getSyncedCurrentOutput() {
-      return (long)this.data.get(3) << 32 | this.data.get(4) & 4294967295L;
+      return readLong64(this.data, DATA_OUTPUT);
    }
 
    public int getSyncedFeStored() {
-      return this.data.get(7);
+      return readInt32(this.data, DATA_FE_STORED);
    }
 
    @Override

@@ -23,16 +23,16 @@ import net.minecraft.world.item.ItemStack;
 public class ContainerEngineStone_BC8 extends BcMenu {
    public final TileEngineStone_BC8 engine;
    private final ContainerData data;
+   // Wide values are split into unsigned 16-bit chunks (see BcMenu.chunk16): vanilla data slots lose
+   // everything above the low short on the wire.
    private static final int DATA_BURN_TIME = 0;
    private static final int DATA_TOTAL_BURN_TIME = 1;
-   private static final int DATA_POWER_HI = 2;
-   private static final int DATA_POWER_LO = 3;
-   private static final int DATA_HEAT = 4;
-   private static final int DATA_OUTPUT_HI = 5;
-   private static final int DATA_OUTPUT_LO = 6;
-   private static final int DATA_POWER_STAGE = 7;
-   private static final int DATA_IS_BURNING_ENGINE = 8;
-   private static final int DATA_COUNT = 9;
+   private static final int DATA_POWER = 2;
+   private static final int DATA_HEAT = 6;
+   private static final int DATA_OUTPUT = 8;
+   private static final int DATA_POWER_STAGE = 12;
+   private static final int DATA_IS_BURNING_ENGINE = 13;
+   private static final int DATA_COUNT = 14;
 
    public ContainerEngineStone_BC8(int containerId, Inventory playerInv, BlockPos pos) {
       this(containerId, playerInv, MenuBlockEntityLookup.get(playerInv, pos, TileEngineStone_BC8.class));
@@ -47,13 +47,11 @@ public class ContainerEngineStone_BC8 extends BcMenu {
                return switch (index) {
                   case 0 -> engine.burnTime;
                   case 1 -> engine.totalBurnTime;
-                  case 2 -> (int)(engine.getPower() >>> 32);
-                  case 3 -> (int)(engine.getPower() & 4294967295L);
-                  case 4 -> Float.floatToIntBits(engine.getHeat());
-                  case 5 -> (int)(engine.currentOutput >>> 32);
-                  case 6 -> (int)(engine.currentOutput & 4294967295L);
-                  case 7 -> engine.getPowerStage().ordinal();
-                  case 8 -> engine.isBurning() ? 1 : 0;
+                  case 2, 3, 4, 5 -> chunk16(engine.getPower(), index - DATA_POWER);
+                  case 6, 7 -> chunk16(Float.floatToIntBits(engine.getHeat()), index - DATA_HEAT);
+                  case 8, 9, 10, 11 -> chunk16(engine.currentOutput, index - DATA_OUTPUT);
+                  case 12 -> engine.getPowerStage().ordinal();
+                  case 13 -> engine.isBurning() ? 1 : 0;
                   default -> 0;
                };
             }
@@ -62,12 +60,14 @@ public class ContainerEngineStone_BC8 extends BcMenu {
             }
 
             public int getCount() {
-               return 9;
+               return 14;
             }
          };
       } else {
-         SimpleContainerData clientData = new SimpleContainerData(9);
-         clientData.set(4, Float.floatToIntBits(20.0F));
+         SimpleContainerData clientData = new SimpleContainerData(14);
+         int heatBits = Float.floatToIntBits(20.0F);
+         clientData.set(DATA_HEAT, chunk16(heatBits, 0));
+         clientData.set(DATA_HEAT + 1, chunk16(heatBits, 1));
          this.data = clientData;
       }
 
@@ -94,25 +94,25 @@ public class ContainerEngineStone_BC8 extends BcMenu {
    }
 
    public long getSyncedPower() {
-      return (long)this.data.get(2) << 32 | this.data.get(3) & 4294967295L;
+      return readLong64(this.data, DATA_POWER);
    }
 
    public float getSyncedHeat() {
-      return Float.intBitsToFloat(this.data.get(4));
+      return readFloat32(this.data, DATA_HEAT);
    }
 
    public EnumPowerStage getSyncedPowerStage() {
-      int ordinal = this.data.get(7);
+      int ordinal = this.data.get(DATA_POWER_STAGE);
       EnumPowerStage[] values = EnumPowerStage.values();
       return ordinal >= 0 && ordinal < values.length ? values[ordinal] : EnumPowerStage.BLUE;
    }
 
    public boolean isSyncedBurningEngine() {
-      return this.data.get(8) != 0;
+      return this.data.get(DATA_IS_BURNING_ENGINE) != 0;
    }
 
    public long getSyncedCurrentOutput() {
-      return (long)this.data.get(5) << 32 | this.data.get(6) & 4294967295L;
+      return readLong64(this.data, DATA_OUTPUT);
    }
 
    @Override

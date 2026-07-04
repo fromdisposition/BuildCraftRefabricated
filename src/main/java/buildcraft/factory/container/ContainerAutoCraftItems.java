@@ -9,6 +9,7 @@ package buildcraft.factory.container;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
 import buildcraft.lib.fabric.menu.MenuBlockEntityLookup;
+import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.ContainerBCTileRecipeBook;
 import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.slot.SlotDisplay;
@@ -68,30 +69,25 @@ public class ContainerAutoCraftItems extends ContainerBCTileRecipeBook<TileAutoW
       }
 
       this.addSlot(new SlotDisplay(i -> tile != null ? tile.resultClient : ItemStack.EMPTY, 0, 93, 27));
-      this.addDataSlot(new DataSlot() {
-         public int get() {
-            return tile != null ? (int)(tile.getPowerStored() & 4294967295L) : 0;
-         }
 
-         public void set(int value) {
-            if (tile != null) {
-               long current = tile.getPowerStored();
-               tile.setPowerStored(current & -4294967296L | value & 4294967295L);
+      // Vanilla data slots are 16-bit on the wire (see BcMenu.chunk16), so the stored-power long travels as
+      // four unsigned 16-bit chunks; each client-side set() splices its chunk back into the mirror tile.
+      for (int chunk = 0; chunk < 4; chunk++) {
+         final int c = chunk;
+         this.addDataSlot(new DataSlot() {
+            public int get() {
+               return tile != null ? BcMenu.chunk16(tile.getPowerStored(), c) : 0;
             }
-         }
-      });
-      this.addDataSlot(new DataSlot() {
-         public int get() {
-            return tile != null ? (int)(tile.getPowerStored() >>> 32) : 0;
-         }
 
-         public void set(int value) {
-            if (tile != null) {
-               long current = tile.getPowerStored();
-               tile.setPowerStored(current & 4294967295L | (long)value << 32);
+            public void set(int value) {
+               if (tile != null) {
+                  long mask = 65535L << c * 16;
+                  tile.setPowerStored(tile.getPowerStored() & ~mask | (long)(value & 0xFFFF) << c * 16);
+               }
             }
-         }
-      });
+         });
+      }
+
       this.addFullPlayerInventory(8, 115);
    }
 

@@ -39,13 +39,15 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
+   // leftToBreak/leftToPlace are block counts and easily exceed a vanilla data slot's 16 wire bits
+   // (see BcMenu.chunk16), so each travels as two unsigned 16-bit chunks.
    private static final int DATA_CAN_EXCAVATE = 0;
    private static final int DATA_SNAPSHOT_TYPE = 1;
    private static final int DATA_LEFT_TO_BREAK = 2;
-   private static final int DATA_LEFT_TO_PLACE = 3;
-   private static final int DATA_FLUID_MODE = 4;
-   private static final int DATA_CONTENTS_MODE = 5;
-   private static final int DATA_COUNT = 6;
+   private static final int DATA_LEFT_TO_PLACE = 4;
+   private static final int DATA_FLUID_MODE = 6;
+   private static final int DATA_CONTENTS_MODE = 7;
+   private static final int DATA_COUNT = 8;
    private static final int NET_DISPLAY_LIST = 10;
    private static final int NET_TANK_LEVELS = 11;
    public static final int NET_FLUID_MODE_CLICK = 12;
@@ -68,10 +70,10 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
                return switch (index) {
                   case 0 -> tile.canExcavate() ? 1 : 0;
                   case 1 -> tile.snapshotType == null ? -1 : tile.snapshotType.ordinal();
-                  case 2 -> tile.getBuilder() != null ? tile.getBuilder().leftToBreak : 0;
-                  case 3 -> tile.getBuilder() != null ? tile.getBuilder().leftToPlace : 0;
-                  case 4 -> tile.getFluidMode().ordinal();
-                  case 5 -> tile.getContainerContentsMode().ordinal();
+                  case 2, 3 -> chunk16(tile.getBuilder() != null ? tile.getBuilder().leftToBreak : 0, index - DATA_LEFT_TO_BREAK);
+                  case 4, 5 -> chunk16(tile.getBuilder() != null ? tile.getBuilder().leftToPlace : 0, index - DATA_LEFT_TO_PLACE);
+                  case 6 -> tile.getFluidMode().ordinal();
+                  case 7 -> tile.getContainerContentsMode().ordinal();
                   default -> 0;
                };
             }
@@ -80,11 +82,11 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
             }
 
             public int getCount() {
-               return 6;
+               return 8;
             }
          };
       } else {
-         this.data = new SimpleContainerData(6);
+         this.data = new SimpleContainerData(8);
       }
 
       this.addDataSlots(this.data);
@@ -277,27 +279,27 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
    }
 
    public boolean getSyncedCanExcavate() {
-      return this.data.get(0) != 0;
+      return this.data.get(DATA_CAN_EXCAVATE) != 0;
    }
 
    public int getSyncedSnapshotType() {
-      return this.data.get(1);
+      return this.data.get(DATA_SNAPSHOT_TYPE);
    }
 
    public int getSyncedLeftToBreak() {
-      return this.data.get(2);
+      return readInt32(this.data, DATA_LEFT_TO_BREAK);
    }
 
    public int getSyncedLeftToPlace() {
-      return this.data.get(3);
+      return readInt32(this.data, DATA_LEFT_TO_PLACE);
    }
 
    public EnumFluidHandlingMode getSyncedFluidMode() {
-      return EnumFluidHandlingMode.fromOrdinal(this.data.get(4));
+      return EnumFluidHandlingMode.fromOrdinal(this.data.get(DATA_FLUID_MODE));
    }
 
    public EnumContainerContentsMode getSyncedContentsMode() {
-      return EnumContainerContentsMode.fromOrdinal(this.data.get(5));
+      return EnumContainerContentsMode.fromOrdinal(this.data.get(DATA_CONTENTS_MODE));
    }
 
    private static class BuilderContainer implements Container {

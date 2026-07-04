@@ -24,11 +24,13 @@ import net.minecraft.world.item.ItemStack;
 
 public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable> {
    public static final int NET_SET_NAME = 10;
+   // Scan progress/total are block counts and easily exceed a vanilla data slot's 16 wire bits
+   // (see BcMenu.chunk16), so each travels as two unsigned 16-bit chunks.
    private static final int DATA_SCANNING = 0;
    private static final int DATA_PROGRESS = 1;
-   private static final int DATA_TOTAL = 2;
-   private static final int DATA_VALID = 3;
-   private static final int DATA_COUNT = 4;
+   private static final int DATA_TOTAL = 3;
+   private static final int DATA_VALID = 5;
+   private static final int DATA_COUNT = 6;
    private final ContainerData data;
    private final ContainerArchitectTable.SnapshotContainer snapshotContainer;
 
@@ -43,9 +45,9 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
             public int get(int index) {
                return switch (index) {
                   case 0 -> tile.isScanning() ? 1 : 0;
-                  case 1 -> tile.getScanProgress();
-                  case 2 -> tile.getScanTotal();
-                  case 3 -> tile.getIsValid() ? 1 : 0;
+                  case 1, 2 -> chunk16(tile.getScanProgress(), index - DATA_PROGRESS);
+                  case 3, 4 -> chunk16(tile.getScanTotal(), index - DATA_TOTAL);
+                  case 5 -> tile.getIsValid() ? 1 : 0;
                   default -> 0;
                };
             }
@@ -54,11 +56,11 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
             }
 
             public int getCount() {
-               return 4;
+               return 6;
             }
          };
       } else {
-         this.data = new SimpleContainerData(4);
+         this.data = new SimpleContainerData(6);
       }
 
       this.addDataSlots(this.data);
@@ -73,19 +75,19 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
    }
 
    public boolean getSyncedScanning() {
-      return this.data.get(0) != 0;
+      return this.data.get(DATA_SCANNING) != 0;
    }
 
    public int getSyncedProgress() {
-      return this.data.get(1);
+      return readInt32(this.data, DATA_PROGRESS);
    }
 
    public int getSyncedTotal() {
-      return this.data.get(2);
+      return readInt32(this.data, DATA_TOTAL);
    }
 
    public boolean getSyncedValid() {
-      return this.data.get(3) != 0;
+      return this.data.get(DATA_VALID) != 0;
    }
 
    public String getTileName() {

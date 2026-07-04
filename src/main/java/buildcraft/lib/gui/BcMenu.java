@@ -31,6 +31,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
@@ -52,6 +53,28 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
    protected BcMenu(MenuType<?> menuType, int containerId, Player player) {
       super(menuType, containerId);
       this.player = player;
+   }
+
+   /**
+    * Vanilla data slots are 16-bit on the wire (ClientboundContainerSetDataPacket writes the value with
+    * writeShort), so an int/long/float pushed through one slot arrives truncated and sign-extended — a float's
+    * bit pattern typically decodes as NaN. Wide values must be split into unsigned 16-bit chunks, one slot per
+    * chunk, and reassembled with masking on the client.
+    */
+   public static int chunk16(long value, int chunk) {
+      return (int)(value >>> chunk * 16) & 0xFFFF;
+   }
+
+   public static int readInt32(ContainerData data, int firstSlot) {
+      return data.get(firstSlot) & 0xFFFF | (data.get(firstSlot + 1) & 0xFFFF) << 16;
+   }
+
+   public static long readLong64(ContainerData data, int firstSlot) {
+      return readInt32(data, firstSlot) & 4294967295L | (readInt32(data, firstSlot + 2) & 4294967295L) << 32;
+   }
+
+   public static float readFloat32(ContainerData data, int firstSlot) {
+      return Float.intBitsToFloat(readInt32(data, firstSlot));
    }
 
    protected void addFullPlayerInventory(int startX, int startY) {
