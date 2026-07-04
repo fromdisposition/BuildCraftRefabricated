@@ -56,6 +56,7 @@ public final class BCFactoryFabricClient {
       /*BlockRenderLayerMap.putBlock(BCFactoryBlocks.TANK, ChunkSectionLayer.CUTOUT);
       BlockRenderLayerMap.putBlock(BCFactoryBlocks.DISTILLER, ChunkSectionLayer.CUTOUT);
       BlockRenderLayerMap.putBlock(BCFactoryBlocks.HEAT_EXCHANGE, ChunkSectionLayer.TRANSLUCENT);
+      BlockRenderLayerMap.putBlock(BCFactoryBlocks.WATER_GEL, ChunkSectionLayer.TRANSLUCENT);
       *///?}
       registerTooltips();
    }

@@ -60,6 +60,6 @@ public final class BCFactoryBlocks {
          BlockHeatExchange::new,
          p -> p.strength(5.0F, 10.0F).noOcclusion().sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
-      WATER_GEL = BCRegistries.registerBlock("buildcraftfactory", "water_gel", BlockWaterGel::new, p -> p.strength(0.6F).sound(SoundType.SLIME_BLOCK));
+      WATER_GEL = BCRegistries.registerBlock("buildcraftfactory", "water_gel", BlockWaterGel::new, p -> p.strength(0.6F).sound(SoundType.SLIME_BLOCK).noOcclusion());
    }
 }

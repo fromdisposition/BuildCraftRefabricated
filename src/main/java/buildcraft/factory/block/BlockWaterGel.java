@@ -31,6 +31,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.HalfTransparentBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
@@ -39,7 +40,11 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluids;
 
-public class BlockWaterGel extends Block {
+// HalfTransparentBlock is not just same-block face culling: the vanilla fluid renderer special-cases it by
+// instanceof — water touching a HalfTransparentBlock draws its clean flat OVERLAY texture on the shared face
+// (the glass/ice interface) instead of the flowing texture fighting the gel's own coplanar translucent face.
+// Extending it makes the gel behave exactly like ice in water, including any future vanilla special cases.
+public class BlockWaterGel extends HalfTransparentBlock {
    public static final MapCodec<BlockWaterGel> CODEC = simpleCodec(BlockWaterGel::new);
    public static final EnumProperty<BlockWaterGel.GelStage> PROP_STAGE = EnumProperty.create("stage", BlockWaterGel.GelStage.class);
 
@@ -48,7 +53,7 @@ public class BlockWaterGel extends Block {
       this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(PROP_STAGE, BlockWaterGel.GelStage.SPREAD_0));
    }
 
-   protected MapCodec<? extends Block> codec() {
+   protected MapCodec<? extends BlockWaterGel> codec() {
       return CODEC;
    }
 
