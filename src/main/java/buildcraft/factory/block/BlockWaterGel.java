@@ -7,7 +7,9 @@
 package buildcraft.factory.block;
 
 import buildcraft.factory.BCFactoryItems;
+import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.SoundUtil;
+import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.MapCodec;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -99,17 +101,32 @@ public class BlockWaterGel extends Block {
 
          int time = next.spreading ? 200 : 400;
          if (changeable.size() == 3 || level.getRandom().nextDouble() < 0.5) {
+            // Converting someone's water must be attributable: gate each target through the machine-break
+            // event with the seeding player's profile (claim mods listen to it natively). Denied targets are
+            // skipped, so the gel stops at a claim border and keeps gelling on its own side; ownerless gel
+            // (legacy saves) fails closed and only hardens in place.
+            GelOwnerSavedData ownersData = GelOwnerSavedData.getOrCreate(level);
+            GameProfile gelOwner = ownersData.getOwner(pos);
+
             for (BlockPos p : changeable) {
-               level.setBlockAndUpdate(p, nextState);
-               level.scheduleTick(p, this, rand.nextInt(150) + time);
+               if (BlockUtil.canMachineBreak(level, p, gelOwner)) {
+                  level.setBlockAndUpdate(p, nextState);
+                  ownersData.setOwner(p, gelOwner);
+                  level.scheduleTick(p, this, rand.nextInt(150) + time);
+               }
             }
 
             level.setBlockAndUpdate(pos, nextState);
             SoundUtil.playBlockPlace(level, pos);
+            if (!next.spreading) {
+               ownersData.removeOwner(pos);
+            }
          }
 
          level.scheduleTick(pos, this, rand.nextInt(150) + time);
       } else if (stage != next) {
+         // No longer spreading: the ownership entry (if any survived, e.g. legacy data) is no longer needed.
+         GelOwnerSavedData.getOrCreate(level).removeOwner(pos);
          if (notTouchingWater(level, pos)) {
             level.setBlockAndUpdate(pos, nextState);
             level.scheduleTick(pos, this, rand.nextInt(150) + 400);
