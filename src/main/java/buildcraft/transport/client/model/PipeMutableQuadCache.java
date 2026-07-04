@@ -34,12 +34,21 @@ public final class PipeMutableQuadCache {
       CUTOUT.render(key, pose, buffer, light);
    }
 
+   /**
+    * Cached paint-mask templates for (pipe shape, alpha) — dye and alpha are baked into the vertex colours.
+    * Safe to call from chunk-build worker threads: the map is concurrent and the generator only reads
+    * immutable templates and atlas sprites.
+    */
+   public static List<MutableQuad> maskQuads(PipeModelCacheBase.PipeBaseCutoutKey key, int alpha) {
+      return MASK.computeIfAbsent(
+         new PipeMutableQuadCache.MaskCacheKey(key, alpha), k -> PipeBaseModelGenStandard.INSTANCE.generateMaskMutable(k.key(), k.alpha())
+      );
+   }
+
    public static void renderMask(PipeModelCacheBase.PipeBaseCutoutKey key, Pose pose, VertexConsumer buffer, int light, int alpha) {
       MutableQuad scratch = BakedQuadTemplateCache.renderScratch();
 
-      for (MutableQuad template : MASK.computeIfAbsent(
-         new PipeMutableQuadCache.MaskCacheKey(key, alpha), k -> PipeBaseModelGenStandard.INSTANCE.generateMaskMutable(k.key(), k.alpha())
-      )) {
+      for (MutableQuad template : maskQuads(key, alpha)) {
          scratch.copyFrom(template);
          scratch.lighti(light);
          scratch.render(pose, buffer);

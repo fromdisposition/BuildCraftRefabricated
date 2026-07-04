@@ -26,6 +26,9 @@ public final class BCTransportFabricClient {
 
    public static void init() {
       FabricModelModifyHooks.register(BCTransportClient::onModifyBakingResult);
+      //? if >= 1.21.10 {
+      BCTransportClient.registerModelLoadingPlugin();
+      //?}
       MenuScreens.register(BCTransportMenuTypes.FILTERED_BUFFER, GuiFilteredBuffer::new);
       MenuScreens.register(BCTransportMenuTypes.DIAMOND_PIPE, GuiDiamondPipe::new);
       MenuScreens.register(BCTransportMenuTypes.DIAMOND_WOOD_PIPE, GuiDiamondWoodPipe::new);

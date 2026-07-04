@@ -275,6 +275,18 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       }
    }
 
+   /**
+    * Fabric block-view render data: the immutable {@link buildcraft.transport.client.model.key.PipeModelKey}
+    * snapshot the chunk mesher hands to the pipe's block model off-thread (it drives the chunk-baked paint
+    * shell). Uncoloured pipes return null so meshing skips them; the sendBlockUpdated above re-snapshots this
+    * whenever the pipe's colour or connections change.
+    */
+   @Override
+   public Object getRenderData() {
+      Pipe p = this.pipe;
+      return p != null && p.getColour() != null ? p.getModel() : null;
+   }
+
    public CompoundTag getUpdateTag(Provider registries) {
       CompoundTag tag = this.saveCustomOnly(registries);
       CompoundTag plugsClient = new CompoundTag();

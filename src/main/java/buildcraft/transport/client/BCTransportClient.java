@@ -27,13 +27,11 @@ import buildcraft.transport.pipe.flow.PipeFlowPower;
 import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 import java.util.Map;
 //? if >= 1.21.10 {
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.item.ItemModel;
 //?}
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.level.block.state.BlockState;
 
 public class BCTransportClient {
    public static final ModelHolderStatic BLOCKER = new ModelHolderStatic("buildcrafttransport:models/plugs/blocker.json");
@@ -45,15 +43,24 @@ public class BCTransportClient {
       event.registerBlock(PipeHolderClientExtensions.INSTANCE, BCTransportBlocks.PIPE_HOLDER);
    }
 
+   //? if >= 1.21.10 {
+   /**
+    * Wraps the pipe block model via the native model-loading hook. This must NOT go through
+    * {@code onModifyBakingResult}: that event mutates {@code BakingResult.blockStateModels()}, but on 26.x
+    * ModelManager.loadModels copies that map into the ReloadState dispatch (createBlockStateToModelDispatch)
+    * before apply() ever runs, so a swap made there is silently dropped. AfterBakeBlock wraps the model at bake
+    * time, before any copy, on every version with the BlockStateModel pipeline.
+    */
+   public static void registerModelLoadingPlugin() {
+      net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin.register(
+         pluginContext -> pluginContext.modifyBlockModelAfterBake()
+            .register((model, context) -> context.state().getBlock() == BCTransportBlocks.PIPE_HOLDER ? new PipeBlockStateModel(model) : model)
+      );
+   }
+   //?}
+
    public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
       //? if >= 1.21.10 {
-      BlockState pipeState = BCTransportBlocks.PIPE_HOLDER.defaultBlockState();
-      Map<BlockState, BlockStateModel> blockModels = event.getBakingResult().blockStateModels();
-      BlockStateModel vanillaModel = blockModels.get(pipeState);
-      if (vanillaModel != null) {
-         blockModels.put(pipeState, new PipeBlockStateModel(vanillaModel));
-      }
-
       Map<Identifier, ItemModel> itemModels = event.getBakingResult().itemStackModels();
 
       for (PipeDefinition def : PipeApi.pipeRegistry.getAllRegisteredPipes()) {

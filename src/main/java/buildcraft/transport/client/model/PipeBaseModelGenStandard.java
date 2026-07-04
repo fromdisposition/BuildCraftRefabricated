@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -36,8 +37,10 @@ import org.joml.Vector3f;
 public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
    INSTANCE;
 
-   private static final Map<Long, TextureAtlasSprite[]> SPRITES = new HashMap<>();
-   private static final Map<Long, TextureAtlasSprite[]> MASK_SPRITES = new HashMap<>();
+   // Concurrent: the mask path feeds the chunk-baked paint shell, so it is read (and lazily filled) from
+   // chunk-build worker threads, not just the render thread.
+   private static final Map<Long, TextureAtlasSprite[]> SPRITES = new ConcurrentHashMap<>();
+   private static final Map<Long, TextureAtlasSprite[]> MASK_SPRITES = new ConcurrentHashMap<>();
    private static final Map<String, String> MASK_MAP = new HashMap<>();
    private static final MutableQuad[][][] QUADS;
    private static final MutableQuad[][][] QUADS_COLOURED;
@@ -215,6 +218,14 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
       return quads;
    }
 
+   /**
+    * How far the paint shell is pushed off the pipe body along each quad's normal. The body renders through the
+    * block-entity transform while the shell is chunk geometry; exactly-coplanar quads through the two matrix
+    * paths round to slightly different depths per pixel and checkerboard-z-fight, so the shell must not share
+    * the body's planes.
+    */
+   private static final float MASK_SHELL_OFFSET = 0.001F;
+
    public List<MutableQuad> generateMaskMutable(PipeModelCacheBase.PipeBaseCutoutKey key, int alpha) {
       if (key.colour != null && key.colourType == EnumPipeColourType.TRANSLUCENT) {
          List<MutableQuad> quads = new ArrayList<>();
@@ -243,6 +254,10 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
 
                startIndex = quads.size();
             }
+         }
+
+         for (MutableQuad quad : quads) {
+            inflate(quad, MASK_SHELL_OFFSET);
          }
 
          return quads;
@@ -355,6 +370,21 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
 
    public static int getDyeTintColour(DyeColor c) {
       return getPipeModelColour(c);
+   }
+
+   /** Moves the quad along its face normal by {@code by} blocks. */
+   private static void inflate(MutableQuad quad, float by) {
+      Vector3f normal = quad.getCalculatedNormal();
+      float length = normal.length();
+      if (length > 1.0E-6F) {
+         float dx = normal.x() * by / length;
+         float dy = normal.y() * by / length;
+         float dz = normal.z() * by / length;
+         quad.vertex_0.translatef(dx, dy, dz);
+         quad.vertex_1.translatef(dx, dy, dz);
+         quad.vertex_2.translatef(dx, dy, dz);
+         quad.vertex_3.translatef(dx, dy, dz);
+      }
    }
 
    private static void addQuads(MutableQuad[] from, List<MutableQuad> to, TextureAtlasSprite sprite) {

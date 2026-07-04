@@ -10,7 +10,6 @@ import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.api.transport.pipe.IPipeBehaviourRenderer;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
-import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.api.transport.pluggable.IPlugDynamicRenderer;
@@ -140,15 +139,9 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                   ModelPipe.renderTranslucentPluggables(pipe, pose, buffer, light);
                }
             );
-            Pipe bodyPipe = pipe.getPipe();
-            if (bodyPipe != null && bodyPipe.getColour() != null) {
-               int paintAlpha = bodyPipe.definition.flowType == PipeApi.flowFluids ? 255 : ModelPipe.PIPE_PAINT_ALPHA;
-               BcBerRenderUtil.submit(
-                  poseStack, collector, BCLibRenderTypes.translucentBlockSheet(), (pose, buffer) -> {
-                     ModelPipe.renderMaskOverlay(pipe, pose, buffer, light, paintAlpha);
-                  }
-               );
-            }
+            // The paint shell is NOT submitted here: it is chunk-baked translucent geometry (PipeBlockStateModel),
+            // so it depth-sorts against water/oil in the terrain pass like stained glass instead of fighting it
+            // from the earlier block-entity translucent pass.
             submitItems(renderState, poseStack, collector, light);
             renderContents(pipe, 0.0, 0.0, 0.0, renderState.partialTick, poseStack, collector, light);
             poseStack.popPose();
