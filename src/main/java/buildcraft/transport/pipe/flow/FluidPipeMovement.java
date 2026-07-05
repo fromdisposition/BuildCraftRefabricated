@@ -58,11 +58,8 @@ public final class FluidPipeMovement {
                      int filled = FluidStorageOps.insertFluidMb(storage, resource, maxDrain, true);
                      if (filled > 0) {
                         host.sectionDrain(part, filled, true);
+                        host.setSectionCooldownOutput(part);
                      }
-
-                     // Cooldown after failures too: a blocked destination otherwise re-ran the full neighbour
-                     // lookup + simulated insert every tick until space appeared.
-                     host.setSectionCooldownOutput(part);
                   }
                }
             }
