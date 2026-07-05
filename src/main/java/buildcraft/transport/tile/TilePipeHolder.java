@@ -29,6 +29,7 @@ import buildcraft.lib.net.BcEnvelopeCodec;
 import buildcraft.silicon.plug.PluggableGate;
 import buildcraft.transport.BCTransportBlockEntities;
 import buildcraft.transport.BCTransportItems;
+import buildcraft.transport.block.BlockPipeHolder;
 import buildcraft.transport.net.MessagePipePayload;
 import buildcraft.transport.net.PipePayloadMessageQueue;
 import buildcraft.transport.pipe.Pipe;
@@ -86,6 +87,7 @@ import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 //?}
+import net.minecraft.world.phys.shapes.VoxelShape;
 import team.reborn.energy.api.EnergyStorage;
 
 public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebuggable {
@@ -261,6 +263,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       this.applyClientUpdateData(input);
 
       input.read("wires", CompoundTag.CODEC).ifPresent(wireTag -> this.wireManager.readFromNbt(wireTag));
+      this.invalidateShapeCache();
       if (this.level != null && this.level.isClientSide()) {
          this.refreshClientModel();
          this.scheduleRenderUpdate = true;
@@ -717,6 +720,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    public PipePluggable replacePluggable(Direction side, @Nullable PipePluggable with) {
       PipePluggable old = this.pluggables[side.ordinal()];
       this.pluggables[side.ordinal()] = with;
+      this.invalidateShapeCache();
       this.eventBus.unregisterHandler(old);
       if (old != null && old != with && this.level != null && !this.level.isClientSide()) {
          // Lifecycle parity with dropPipeItems: pluggables clean external state (wire emitters, caches) in
@@ -938,8 +942,31 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       return this.eventBus.fireEvent(event);
    }
 
+   /**
+    * Cached composed outline/collision shape (see BlockPipeHolder.buildFullShape). Volatile: shape queries can
+    * come from chunk-meshing workers through region copies while invalidation happens on the game thread.
+    */
+   private volatile VoxelShape cachedFullShape;
+
+   public VoxelShape getFullShape() {
+      VoxelShape shape = this.cachedFullShape;
+      if (shape == null) {
+         shape = BlockPipeHolder.buildFullShape(this);
+         this.cachedFullShape = shape;
+      }
+
+      return shape;
+   }
+
+   public void invalidateShapeCache() {
+      this.cachedFullShape = null;
+   }
+
    @Override
    public void scheduleRenderUpdate() {
+      // Everything that changes the pipe's geometry (connections, pluggables, wires) funnels through here on
+      // both sides, so it doubles as the shape-cache chokepoint.
+      this.invalidateShapeCache();
       if (this.level != null && this.level.isClientSide()) {
          this.refreshClientModel();
       } else {

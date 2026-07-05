@@ -11,6 +11,7 @@ import buildcraft.api.transport.EnumWirePart;
 import buildcraft.api.transport.IWireManager;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.transport.tile.TilePipeHolder;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -171,6 +172,11 @@ public class WireManager implements IWireManager {
                ((IPipeHolder)tile).getWireManager().updateBetweens(true);
             }
          }
+      }
+
+      // Wires are part of the composed block shape; every wire add/remove/reload path funnels through here.
+      if (this.holder.getPipeTile() instanceof TilePipeHolder tilePipeHolder) {
+         tilePipeHolder.invalidateShapeCache();
       }
    }
 

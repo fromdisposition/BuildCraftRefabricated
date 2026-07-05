@@ -95,34 +95,44 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    }
 
    private VoxelShape getFullShape(BlockGetter level, BlockPos pos) {
-      if (level.getBlockEntity(pos) instanceof TilePipeHolder tile && tile.getPipe() != null) {
-         VoxelShape shape = CENTER;
-         Pipe pipe = tile.getPipe();
+      return level.getBlockEntity(pos) instanceof TilePipeHolder tile && tile.getPipe() != null ? tile.getFullShape() : CENTER;
+   }
 
-         for (Direction dir : Direction.values()) {
-            if (pipe.isConnected(dir)) {
-               shape = Shapes.or(shape, ARMS[dir.ordinal()]);
-            }
-
-            PipePluggable plug = tile.getPluggable(dir);
-            if (plug != null) {
-               AABB box = plug.getBoundingBox();
-               shape = Shapes.or(shape, Shapes.create(box));
-            }
-         }
-
-         for (EnumWirePart part : tile.getWireManager().parts.keySet()) {
-            shape = Shapes.or(shape, Shapes.create(part.boundingBox));
-         }
-
-         for (EnumWireBetween between : tile.getWireManager().betweens.keySet()) {
-            shape = Shapes.or(shape, Shapes.create(between.boundingBox));
-         }
-
-         return shape;
-      } else {
+   /**
+    * Composes the full outline/collision shape. Only called by {@link TilePipeHolder#getFullShape()} on cache
+    * miss: dynamicShape() disables vanilla's per-state shape cache, and shape queries run hot (every entity
+    * collision each tick, neighbour sturdiness checks, interaction rays), so recomposing these Shapes.or
+    * merges per query made dense pipe chunks pay for it thousands of times a tick.
+    */
+   public static VoxelShape buildFullShape(TilePipeHolder tile) {
+      Pipe pipe = tile.getPipe();
+      if (pipe == null) {
          return CENTER;
       }
+
+      VoxelShape shape = CENTER;
+
+      for (Direction dir : Direction.values()) {
+         if (pipe.isConnected(dir)) {
+            shape = Shapes.or(shape, ARMS[dir.ordinal()]);
+         }
+
+         PipePluggable plug = tile.getPluggable(dir);
+         if (plug != null) {
+            AABB box = plug.getBoundingBox();
+            shape = Shapes.or(shape, Shapes.create(box));
+         }
+      }
+
+      for (EnumWirePart part : tile.getWireManager().parts.keySet()) {
+         shape = Shapes.or(shape, Shapes.create(part.boundingBox));
+      }
+
+      for (EnumWireBetween between : tile.getWireManager().betweens.keySet()) {
+         shape = Shapes.or(shape, Shapes.create(between.boundingBox));
+      }
+
+      return shape;
    }
 
    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
