@@ -56,6 +56,9 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
    private long itemModelCacheTick = Long.MIN_VALUE;
    /** Per-tick cache of resolved item models, keyed by int signature (no Integer boxing per item per frame). */
    private final Int2ObjectOpenHashMap<ItemStackRenderState> itemModelBySignature = new Int2ObjectOpenHashMap<>();
+   /** Reused scratch for the item-extraction loop — extractRenderState runs single-threaded on the render thread. */
+   private final int[] itemIndexScratch = new int[1];
+   private final double[] itemPosScratch = new double[3];
 
    public RenderPipeHolder(Context context) {
       this.itemModelResolver = context.itemModelResolver();
@@ -83,6 +86,51 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       return new PipeHolderRenderState();
    }
 
+   /**
+    * The body and paint are chunk-baked (PipeBlockStateModel); the block-entity renderer only draws the dynamic
+    * remainder. When a pipe has none — no pluggables, no wires, no behaviour renderer, empty item/fluid flow —
+    * returning false makes the dispatcher skip extractRenderState AND submit entirely for it, so a wall of bare
+    * transport pipes costs zero block-entity-renderer time per frame. The body stays visible either way (it is
+    * section mesh, independent of this renderer). Cheap enough to run per pipe per frame: field reads and a
+    * couple of isEmpty checks.
+    */
+   @Override
+   public boolean shouldRender(TilePipeHolder pipe, Vec3 cameraPosition) {
+      return hasDynamicContent(pipe) && BlockEntityRenderer.super.shouldRender(pipe, cameraPosition);
+   }
+
+   private static boolean hasDynamicContent(TilePipeHolder tile) {
+      if (tile.hasPluggables()) {
+         return true;
+      }
+
+      WireManager wires = tile.getWireManager();
+      if (wires != null && (!wires.parts.isEmpty() || !wires.betweens.isEmpty())) {
+         return true;
+      }
+
+      Pipe pipe = tile.getPipe();
+      if (pipe == null) {
+         return false;
+      }
+
+      if (pipe.behaviour != null && PipeRegistryClient.getBehaviourRenderer(pipe.behaviour) != null) {
+         return true;
+      }
+
+      PipeFlow flow = pipe.flow;
+      if (flow instanceof PipeFlowItems items) {
+         return items.doesContainItems();
+      } else if (flow instanceof PipeFlowFluids fluids) {
+         FluidStack forRender = fluids.getFluidStackForRender();
+         return forRender != null && !forRender.isEmpty();
+      } else {
+         // Power/RF and anything else with a registered flow renderer: keep rendering, its transmission overlay
+         // draws from live state we do not cheaply probe here. Structure pipes have no renderer and skip.
+         return flow != null && PipeRegistryClient.getFlowRenderer(flow) != null;
+      }
+   }
+
    public void extractRenderState(
       TilePipeHolder blockEntity, PipeHolderRenderState renderState, float partialTick, Vec3 cameraPos, @Nullable CrumblingOverlay crumblingOverlay
    ) {
@@ -96,8 +144,9 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
          if (world != null) {
             long now = world.getGameTime();
             int posHash = (int)blockEntity.getBlockPos().asLong();
-            int[] itemIndex = new int[]{0};
-            double[] posScratch = new double[3];
+            int[] itemIndex = this.itemIndexScratch;
+            itemIndex[0] = 0;
+            double[] posScratch = this.itemPosScratch;
             flowItems.forEachItemForRender(
                item -> {
                   int i = (int)(itemIndex[0]++);
