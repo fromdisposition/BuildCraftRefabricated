@@ -7,6 +7,7 @@
 package buildcraft.lib.debug;
 
 import buildcraft.api.tiles.IDebuggable;
+import buildcraft.lib.item.ItemDebugger;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -33,6 +34,12 @@ public class ClientDebuggables {
       //?} else {
       /*if ((Boolean)mc.options.reducedDebugInfo().get() || mc.player == null || mc.player.isReducedDebugInfo() || !mc.gui.getDebugOverlay().showDebugScreen()) {
       *///?}
+         return null;
+      }
+
+      // The server half (MessageDebugRequest) only sends debug data when the player holds the Debugger (or is
+      // in creative); mirror that here so the client-computed getDebugInfo doesn't leak onto F3 for everyone.
+      if (!ItemDebugger.isShowDebugInfo(mc.player)) {
          return null;
       }
 
