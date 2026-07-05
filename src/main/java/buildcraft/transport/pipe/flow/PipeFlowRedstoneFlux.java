@@ -164,6 +164,19 @@ public class PipeFlowRedstoneFlux extends PipeEnergyFlowBase implements IFlowRed
          return true;
       }
 
+      // A pipe touching a machine must keep ticking even when idle. Transfer is demand-driven: the
+      // consumer-adjacent pipe has to run requestFromConnectedTiles every tick to (re)create the query that
+      // propagates upstream, and the source-adjacent pipe has to be ready to receive. Otherwise, once a consumer
+      // stops asking for a moment the query decays, the pipe sleeps, and nothing wakes it when the machine wants
+      // power again (machines don't call wakePipe) -- transfer latches off. For an energy pipe a TILE connection
+      // is always an energy machine, so this is the exact "adjacent to a machine" test: a cached EnumMap read,
+      // no per-tick world/capability lookup. Pure transport pipes with nothing attached still sleep.
+      for (Direction face : Direction.values()) {
+         if (this.pipe.getConnectedType(face) == IPipe.ConnectedType.TILE) {
+            return true;
+         }
+      }
+
       for (PipeFlowRedstoneFlux.Section section : this.sections.values()) {
          if (section.internalPower > 0 || section.powerQuery > 0 || section.internalNextPower > 0 || section.nextPowerQuery > 0) {
             return true;
