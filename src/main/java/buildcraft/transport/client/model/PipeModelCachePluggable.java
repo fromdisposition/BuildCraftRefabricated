@@ -27,9 +27,6 @@ public class PipeModelCachePluggable {
    public static final IModelCache<PipeModelCachePluggable.PluggableKey> cacheCutoutAll = new ModelCacheMultipleSame<>(
       PipeModelCachePluggable.PluggableKey::getKeys, PipeModelCachePluggable.cacheCutoutSingle
    );
-   public static final IModelCache<PipeModelCachePluggable.PluggableKey> cacheTranslucentAll = new ModelCacheMultipleSame<>(
-      PipeModelCachePluggable.PluggableKey::getKeys, PipeModelCachePluggable.cacheTranslucentSingle
-   );
 
    @SuppressWarnings("unchecked")
    private static <K extends PluggableModelKey> List<BakedQuad> generate(K key) {
