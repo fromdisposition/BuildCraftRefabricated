@@ -13,14 +13,9 @@ import buildcraft.api.statements.ITrigger;
 import buildcraft.api.statements.StatementManager;
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.GuideManager;
-import buildcraft.lib.client.guide.PageLine;
 import buildcraft.lib.client.guide.data.JsonTypeTags;
-import buildcraft.lib.client.guide.parts.GuideChapterWithin;
-import buildcraft.lib.client.guide.parts.GuidePageFactory;
 import buildcraft.lib.client.guide.parts.GuidePart;
-import buildcraft.lib.client.guide.parts.GuidePartLink;
 import buildcraft.lib.client.guide.parts.GuideText;
-import buildcraft.lib.client.guide.parts.contents.PageLinkNormal;
 import buildcraft.lib.client.guide.parts.contents.PageLinkStatement;
 import buildcraft.lib.client.guide.ref.GuideGroupManager;
 import buildcraft.lib.gui.ISimpleDrawable;
@@ -41,7 +36,6 @@ public class PageEntryStatement extends PageValueType<IStatement> {
    public static final PageEntryStatement INSTANCE = new PageEntryStatement();
    private static final JsonTypeTags TRIGGER_TAGS = new JsonTypeTags("buildcraft.guide.contents.triggers");
    private static final JsonTypeTags ACTION_TAGS = new JsonTypeTags("buildcraft.guide.contents.actions");
-   private static final Identifier GATES_PAGE = Identifier.fromNamespaceAndPath("buildcraft", "concept/gates_and_wires");
 
    /**
     * Statement family (matched by uniqueTag prefix) -> a lang key describing what that whole family does. This
@@ -152,9 +146,9 @@ public class PageEntryStatement extends PageValueType<IStatement> {
    public void addPageEntries(IStatement value, GuiGuide gui, List<GuidePart> parts) {
       // A statement carries a name but no description of its own, and an auto-generated statement page is built
       // with an empty body — so without this the page would be blank. When there is no written .md (parts holds
-      // only the auto-added title chapter), fill the page: the statement's own extra tooltip lines, a real
-      // description of its family (familyDescription), its usages, and a pointer to the Gates & Wires overview.
-      // Pages that already have a written .md are left as they were (their body + the usage links below).
+      // only the auto-added title chapter), fill the page: the statement's own extra tooltip lines plus a real
+      // description of its family (familyDescription). Pages that already have a written .md are left as they
+      // were (their body + the usage links below).
       boolean hasWrittenBody = parts.size() > 1;
 
       if (!hasWrittenBody) {
@@ -170,14 +164,5 @@ public class PageEntryStatement extends PageValueType<IStatement> {
       }
 
       GuideGroupManager.appendLinkedChapters(INSTANCE.wrap(value), gui, parts);
-
-      if (!hasWrittenBody) {
-         GuidePageFactory gatesFactory = GuideManager.INSTANCE.getFactoryFor(GATES_PAGE);
-         if (gatesFactory != null) {
-            parts.add(new GuideChapterWithin(gui, LocaleUtil.localize("buildcraft.guide.meta.see_also")));
-            PageLine line = new PageLine(2, LocaleUtil.localize("buildcraft.guide.page.gates_and_wires"), true);
-            parts.add(new GuidePartLink(gui, new PageLinkNormal(line, true, null, gatesFactory)));
-         }
-      }
    }
 }
