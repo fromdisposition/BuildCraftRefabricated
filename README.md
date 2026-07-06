@@ -5,7 +5,7 @@ Unofficial **Fabric** port of BuildCraft for **modern Minecraft** — pipes, eng
 
 | Minecraft Version | Support Status | Fabric Loader | Fabric API | Java |
 |-------------------|----------------|------------|------------|------|
-| **26.2**| 🟢 **Active** (Upstream) | ≥ 0.19.3 | ≥ 0.154.0+26.2 | 25 |
+| **26.2**| 🟢 **Active** (Upstream) | ≥ 0.19.3 | ≥ 0.154.1+26.2 | 25 |
 | **26.1.x** | 🟢 **Active** (Long term support) | ≥ 0.19.3 | ≥ 0.154.0+26.1.2 | 25 |
 | **1.21.11** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.141.4+1.21.11 | 21 |
 | **1.21.10** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.138.4+1.21.10 | 21 |
@@ -50,14 +50,14 @@ Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2).
 | Oil springs | 🟢 DONE |
 | Water springs | 🟢 DONE |
 | Paintbrush | 🟢 DONE |
-| Map location | 🔴 NEED HEAVY TESTING |
+| Map location | 🟢 DONE |
 
 ### Transport
 
 | Feature | Status |
 |---------|--------|
 | Item pipes | 🟢 DONE |
-| Fluid pipes | 🟢 DONE |
+| Fluid pipes | 🟡 NEED TESTING |
 | Power pipes | 🔴 NEED HEAVY TESTING |
 | Pipe behaviours & pluggables | 🔴 NEED HEAVY TESTING |
 | Gates, facades, lenses, pulsar | 🔴 NEED HEAVY TESTING |
@@ -78,7 +78,7 @@ Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2).
 
 | Feature | Status |
 |---------|--------|
-| Tank, pump, flood gate | 🟢 DONE |
+| Tank, pump, flood gate | 🟡 NEED TESTING |
 | Distiller, heat exchange, chute | 🟡 NEED TESTING |
 | Auto workbench (items) | 🔴 NEED TESTING |
 | Mining well | 🟢 DONE |
@@ -90,7 +90,7 @@ Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2).
 | Quarry | 🟢 DONE |
 | Filler (+ planner addon) | 🟡 NEED TESTING |
 | Architect table, builder | 🟡 NEED TESTING |
-| Electronic library, replacer | 🔴 NEED HEAVY TESTING |
+| Electronic library, replacer | 🟡 NEED TESTING |
 
 ### Silicon
 
