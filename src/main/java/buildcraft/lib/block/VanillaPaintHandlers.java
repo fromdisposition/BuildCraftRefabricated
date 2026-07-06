@@ -10,8 +10,10 @@ import buildcraft.api.blocks.CustomPaintHelper;
 import buildcraft.api.blocks.ICustomPaintHandler;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,6 +30,9 @@ public class VanillaPaintHandlers {
       registerColorOnlyFamily(Blocks.CONCRETE.asList().toArray(new Block[0]));
       registerColorOnlyFamily(Blocks.CONCRETE_POWDER.asList().toArray(new Block[0]));
       registerColorFamily(Blocks.SHULKER_BOX, Blocks.DYED_SHULKER_BOX.asList().toArray(new Block[0]));
+      registerColorOnlyFamily(Blocks.GLAZED_TERRACOTTA.asList().toArray(new Block[0]));
+      registerColorFamily(Blocks.CANDLE, Blocks.DYED_CANDLE.asList().toArray(new Block[0]));
+      registerBedFamily(Blocks.BED.asList().toArray(new Block[0]));
       //?} else {
       /*registerColorFamily(
          Blocks.GLASS,
@@ -177,6 +182,61 @@ public class VanillaPaintHandlers {
          Blocks.RED_SHULKER_BOX,
          Blocks.BLACK_SHULKER_BOX
       );
+      registerColorOnlyFamily(
+         Blocks.WHITE_GLAZED_TERRACOTTA,
+         Blocks.ORANGE_GLAZED_TERRACOTTA,
+         Blocks.MAGENTA_GLAZED_TERRACOTTA,
+         Blocks.LIGHT_BLUE_GLAZED_TERRACOTTA,
+         Blocks.YELLOW_GLAZED_TERRACOTTA,
+         Blocks.LIME_GLAZED_TERRACOTTA,
+         Blocks.PINK_GLAZED_TERRACOTTA,
+         Blocks.GRAY_GLAZED_TERRACOTTA,
+         Blocks.LIGHT_GRAY_GLAZED_TERRACOTTA,
+         Blocks.CYAN_GLAZED_TERRACOTTA,
+         Blocks.PURPLE_GLAZED_TERRACOTTA,
+         Blocks.BLUE_GLAZED_TERRACOTTA,
+         Blocks.BROWN_GLAZED_TERRACOTTA,
+         Blocks.GREEN_GLAZED_TERRACOTTA,
+         Blocks.RED_GLAZED_TERRACOTTA,
+         Blocks.BLACK_GLAZED_TERRACOTTA
+      );
+      registerColorFamily(
+         Blocks.CANDLE,
+         Blocks.WHITE_CANDLE,
+         Blocks.ORANGE_CANDLE,
+         Blocks.MAGENTA_CANDLE,
+         Blocks.LIGHT_BLUE_CANDLE,
+         Blocks.YELLOW_CANDLE,
+         Blocks.LIME_CANDLE,
+         Blocks.PINK_CANDLE,
+         Blocks.GRAY_CANDLE,
+         Blocks.LIGHT_GRAY_CANDLE,
+         Blocks.CYAN_CANDLE,
+         Blocks.PURPLE_CANDLE,
+         Blocks.BLUE_CANDLE,
+         Blocks.BROWN_CANDLE,
+         Blocks.GREEN_CANDLE,
+         Blocks.RED_CANDLE,
+         Blocks.BLACK_CANDLE
+      );
+      registerBedFamily(
+         Blocks.WHITE_BED,
+         Blocks.ORANGE_BED,
+         Blocks.MAGENTA_BED,
+         Blocks.LIGHT_BLUE_BED,
+         Blocks.YELLOW_BED,
+         Blocks.LIME_BED,
+         Blocks.PINK_BED,
+         Blocks.GRAY_BED,
+         Blocks.LIGHT_GRAY_BED,
+         Blocks.CYAN_BED,
+         Blocks.PURPLE_BED,
+         Blocks.BLUE_BED,
+         Blocks.BROWN_BED,
+         Blocks.GREEN_BED,
+         Blocks.RED_BED,
+         Blocks.BLACK_BED
+      );
       *///?}
    }
 
@@ -255,6 +315,51 @@ public class VanillaPaintHandlers {
 
       for (Block colored : coloredBlocks) {
          CustomPaintHelper.INSTANCE.registerHandler(colored, handler);
+      }
+   }
+
+   /** A bed is two blocks (head + foot). Recolouring only the struck half would leave the other half a different
+    * colour, and its {@code updateShape} would then see a mismatched partner and pop it off. So recolour BOTH
+    * halves, with {@code UPDATE_KNOWN_SHAPE} to suppress those shape updates mid-swap. */
+   private static void registerBedFamily(Block... beds) {
+      if (beds.length != 16) {
+         throw new IllegalArgumentException("Expected 16 bed blocks, got " + beds.length);
+      }
+
+      Map<Block, DyeColor> blockToColor = new IdentityHashMap<>();
+      for (int i = 0; i < 16; i++) {
+         blockToColor.put(beds[i], DyeColor.values()[i]);
+      }
+
+      ICustomPaintHandler handler = (world, pos, state, hitPos, hitSide, paintColour) -> {
+         Block currentBlock = state.getBlock();
+         if (!blockToColor.containsKey(currentBlock)) {
+            return InteractionResult.PASS;
+         }
+
+         if (paintColour == null) {
+            return InteractionResult.FAIL;
+         }
+
+         if (blockToColor.get(currentBlock) == paintColour) {
+            return InteractionResult.FAIL;
+         }
+
+         Block targetBlock = beds[paintColour.ordinal()];
+         int flags = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE;
+         BlockPos otherPos = pos.relative(BedBlock.getConnectedDirection(state));
+         BlockState otherState = world.getBlockState(otherPos);
+
+         world.setBlock(pos, copyMatchingProperties(state, targetBlock.defaultBlockState()), flags);
+         if (otherState.getBlock() == currentBlock) {
+            world.setBlock(otherPos, copyMatchingProperties(otherState, targetBlock.defaultBlockState()), flags);
+         }
+
+         return InteractionResult.SUCCESS;
+      };
+
+      for (Block bed : beds) {
+         CustomPaintHelper.INSTANCE.registerHandler(bed, handler);
       }
    }
 
