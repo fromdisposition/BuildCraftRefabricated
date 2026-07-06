@@ -71,6 +71,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
@@ -705,9 +706,9 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
    @Override
    public boolean canPlayerInteract(Player player) {
-      return this.level == null
-         ? false
-         : player.distanceToSqr(this.worldPosition.getX() + 0.5, this.worldPosition.getY() + 0.5, this.worldPosition.getZ() + 0.5) <= 64.0;
+      // Vanilla's reach-attribute-aware container check (matching every BC block-entity GUI) rather than a
+      // hand-rolled fixed 8-block (64 = 8^2) sphere. Drives the Gate and pipe-filter GUIs' stillValid.
+      return this.level != null && Container.stillValidBlockEntity(this, player);
    }
 
    @Nullable
