@@ -18,15 +18,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.HitResult;
 
 public class EntityUtil {
-   /** The Fabric convention tag every wrench belongs to (ConventionalItemTags.WRENCH_TOOLS = c:tools/wrench).
-    * BuildCraft's own wrench is in this tag too, so detection is uniform and fully native: any tagged wrench --
-    * ours or another mod's -- counts, and no BuildCraft-specific interface is needed. */
+   /** The Fabric convention tag for wrenches (ConventionalItemTags.WRENCH_TOOLS = c:tools/wrench) -- the official,
+    * forward-looking standard. BuildCraft's own wrench is in this tag. */
    public static final TagKey<Item> WRENCHES = TagKey.create(Registries.ITEM, Identifier.parse("c:tools/wrench"));
+   /** The older de-facto wrench tag still used across the industrial ecosystem (Tech Reborn, Modern
+    * Industrialization, Applied Energistics, ...). BuildCraft's wrench is added to this one too, and we accept it,
+    * so wrenching is two-way with those mods -- there is no single universal wrench tag, so we honour both. */
+   public static final TagKey<Item> WRENCHES_LEGACY = TagKey.create(Registries.ITEM, Identifier.parse("c:wrenches"));
    private static final Identifier WRENCH_ADVANCEMENT = Identifier.parse("buildcraftcore:wrenched");
 
-   /** True if the stack is a wrench, decided purely by the native {@code c:tools/wrench} tag. */
+   /** True if the stack is a wrench, by either convention tag ({@code c:tools/wrench} or the legacy {@code c:wrenches}). */
    public static boolean isWrench(ItemStack stack) {
-      return !stack.isEmpty() && stack.is(WRENCHES);
+      return !stack.isEmpty() && (stack.is(WRENCHES) || stack.is(WRENCHES_LEGACY));
    }
 
    /** Common feedback for a successful wrench action: award the "wrenched" advancement and swing the arm. */
