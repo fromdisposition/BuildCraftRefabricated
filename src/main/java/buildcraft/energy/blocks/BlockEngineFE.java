@@ -8,7 +8,7 @@ package buildcraft.energy.blocks;
 
 import buildcraft.lib.compat.BcInteract;
 
-import buildcraft.api.tools.IToolWrench;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.api.transport.pipe.IItemPipe;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.energy.tile.TileEngineRF;
@@ -58,7 +58,7 @@ public class BlockEngineFE extends BlockEngineBase_BC8 {
             return this.openGui(state, level, pos, player);
          }
 
-         if (stack.getItem() instanceof IToolWrench) {
+         if (EntityUtil.isWrench(stack)) {
             if (level.getBlockEntity(pos) instanceof TileEngineBase_BC8 engine && engine.hasAlternateReceiver()) {
                return InteractionResult.PASS;
             } else {

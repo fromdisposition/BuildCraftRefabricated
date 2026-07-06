@@ -12,7 +12,7 @@ import buildcraft.lib.compat.BcInteract;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.items.FluidItemDrops;
-import buildcraft.api.tools.IToolWrench;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.api.transport.pipe.IItemPipe;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.energy.tile.TileEngineIron_BC8;
@@ -55,7 +55,7 @@ public class BlockEngineIron_BC8 extends BlockEngineBase_BC8 {
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
-      boolean isWrench = !stack.isEmpty() && stack.getItem() instanceof IToolWrench;
+      boolean isWrench = !stack.isEmpty() && EntityUtil.isWrench(stack);
       TileEngineIron_BC8 engine = level.getBlockEntity(pos) instanceof TileEngineIron_BC8 e ? e : null;
       if (isWrench && engine != null && engine.getPowerStage() == EnumPowerStage.OVERHEAT) {
          if (!level.isClientSide()) {

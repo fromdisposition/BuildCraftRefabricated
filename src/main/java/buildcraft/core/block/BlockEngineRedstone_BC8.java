@@ -8,7 +8,7 @@ package buildcraft.core.block;
 
 import buildcraft.lib.compat.BcInteract;
 
-import buildcraft.api.tools.IToolWrench;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.core.tile.TileEngineRedstone_BC8;
 import buildcraft.lib.engine.BlockEngineBase_BC8;
 import buildcraft.lib.engine.TileEngineBase_BC8;
@@ -47,7 +47,7 @@ public class BlockEngineRedstone_BC8 extends BlockEngineBase_BC8 {
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
-      if (!(stack.getItem() instanceof IToolWrench)) {
+      if (!(EntityUtil.isWrench(stack))) {
          return InteractionResult.PASS;
       } else if (level.getBlockEntity(pos) instanceof TileEngineBase_BC8 engine && engine.hasAlternateReceiver()) {
          return InteractionResult.PASS;

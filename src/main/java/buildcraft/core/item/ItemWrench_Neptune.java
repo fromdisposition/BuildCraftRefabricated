@@ -7,8 +7,7 @@
 package buildcraft.core.item;
 
 import buildcraft.api.blocks.CustomRotationHelper;
-import buildcraft.api.tools.IToolWrench;
-import buildcraft.lib.misc.AdvancementUtil;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.lib.misc.SoundUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,28 +24,23 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.core.registries.BuiltInRegistries;
 
-public class ItemWrench_Neptune extends Item implements IToolWrench {
-   private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftcore:wrenched");
-
+public class ItemWrench_Neptune extends Item {
    public ItemWrench_Neptune(Properties properties) {
       super(properties);
    }
 
-   @Override
-   public boolean canWrench(Player player, InteractionHand hand, ItemStack wrench, HitResult rayTrace) {
-      return true;
-   }
-
-   @Override
-   public void wrenchUsed(Player player, InteractionHand hand, ItemStack wrench, HitResult rayTrace) {
-      AdvancementUtil.unlockAdvancement(player, ADVANCEMENT);
-      player.swing(hand);
-   }
-
    public InteractionResult useOn(UseOnContext context) {
+      return applyWrench(context);
+   }
+
+   /**
+    * The BuildCraft wrench behaviour, callable for ANY wrench (this item, or another mod's {@code c:tools/wrench}
+    * item routed here by {@code UseBlockCallback}): plain right-click rotates the block, sneak + right-click
+    * dismantles it. Returns PASS for anything it can't act on so the normal interaction continues.
+    */
+   public static InteractionResult applyWrench(UseOnContext context) {
       Level world = context.getLevel();
       BlockPos pos = context.getClickedPos();
       Player player = context.getPlayer();
@@ -54,9 +48,8 @@ public class ItemWrench_Neptune extends Item implements IToolWrench {
       Direction side = context.getClickedFace();
       BlockState state = world.getBlockState(pos);
 
-      // Classic BuildCraft semantics: a plain right-click rotates the block, sneak + right-click dismantles it.
       if (player != null && player.isShiftKeyDown()) {
-         return this.tryDismantle(context, world, pos, player, hand, side, state);
+         return tryDismantle(context, world, pos, player, hand, side, state);
       }
 
       // Plain right-click: rotate. attemptRotateBlock handles ICustomRotationHandler blocks (e.g. engines) and any
@@ -64,14 +57,14 @@ public class ItemWrench_Neptune extends Item implements IToolWrench {
       InteractionResult result = CustomRotationHelper.INSTANCE.attemptRotateBlock(world, pos, state, side);
       if (result == InteractionResult.SUCCESS && player != null) {
          BlockHitResult hitResult = new BlockHitResult(context.getClickLocation(), side, pos, context.isInside());
-         this.wrenchUsed(player, hand, context.getItemInHand(), hitResult);
+         EntityUtil.wrenchUsed(player, hand, context.getItemInHand(), hitResult);
       }
 
       SoundUtil.playSlideSound(world, pos, state, result);
       return result;
    }
 
-   private InteractionResult tryDismantle(
+   private static InteractionResult tryDismantle(
       UseOnContext context, Level world, BlockPos pos, Player player, InteractionHand hand, Direction side, BlockState state
    ) {
       Identifier blockId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
@@ -111,7 +104,7 @@ public class ItemWrench_Neptune extends Item implements IToolWrench {
       }
 
       BlockHitResult hitResult = new BlockHitResult(context.getClickLocation(), side, pos, context.isInside());
-      this.wrenchUsed(player, hand, context.getItemInHand(), hitResult);
+      EntityUtil.wrenchUsed(player, hand, context.getItemInHand(), hitResult);
       return InteractionResult.CONSUME;
    }
 }

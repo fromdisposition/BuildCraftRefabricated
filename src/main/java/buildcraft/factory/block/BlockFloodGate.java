@@ -9,7 +9,7 @@ package buildcraft.factory.block;
 import buildcraft.lib.compat.BcInteract;
 
 import buildcraft.api.properties.BuildCraftProperties;
-import buildcraft.api.tools.IToolWrench;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileFloodGate;
 import com.mojang.serialization.MapCodec;
@@ -106,7 +106,7 @@ public class BlockFloodGate extends BaseEntityBlock {
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
-      if (!(stack.getItem() instanceof IToolWrench wrench)) {
+      if (!(EntityUtil.isWrench(stack))) {
          return BcInteract.TRY_WITH_EMPTY_HAND;
       } else {
          Direction side = hitResult.getDirection();
@@ -139,7 +139,7 @@ public class BlockFloodGate extends BaseEntityBlock {
                );
             }
 
-            wrench.wrenchUsed(player, hand, stack, hitResult);
+            EntityUtil.wrenchUsed(player, hand, stack, hitResult);
             return InteractionResult.SUCCESS;
          } else {
             return BcInteract.TRY_WITH_EMPTY_HAND;

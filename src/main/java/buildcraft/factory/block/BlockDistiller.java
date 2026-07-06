@@ -11,7 +11,7 @@ import buildcraft.lib.compat.BcInteract;
 
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
 import buildcraft.api.blocks.ICustomRotationHandler;
-import buildcraft.api.tools.IToolWrench;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileDistiller;
 import com.mojang.serialization.MapCodec;
@@ -110,7 +110,7 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
          return this.useWithoutItem(state, level, pos, player, hitResult);
       }
 
-      if (stack.getItem() instanceof IToolWrench) {
+      if (EntityUtil.isWrench(stack)) {
          if (player.isShiftKeyDown()) {
             openMenuOnServer(level, player, pos);
             return InteractionResult.SUCCESS;

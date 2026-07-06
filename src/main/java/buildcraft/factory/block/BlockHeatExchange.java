@@ -11,7 +11,7 @@ import buildcraft.lib.compat.BcInteract;
 
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
 import buildcraft.api.blocks.ICustomRotationHandler;
-import buildcraft.api.tools.IToolWrench;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileHeatExchange;
 import com.mojang.serialization.MapCodec;
@@ -179,7 +179,7 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
          return this.useWithoutItem(state, level, pos, player, hitResult);
       }
 
-      if (stack.getItem() instanceof IToolWrench) {
+      if (EntityUtil.isWrench(stack)) {
          if (player.isShiftKeyDown()) {
             return (InteractionResult)(level.getBlockEntity(pos) instanceof TileHeatExchange exchange
                ? openExchangeMenu(level, exchange, player)

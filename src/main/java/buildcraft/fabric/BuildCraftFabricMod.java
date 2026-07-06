@@ -3,6 +3,8 @@ package buildcraft.fabric;
 import buildcraft.builders.platform.BCBuildersFabric;
 import buildcraft.core.BCCore;
 import buildcraft.core.command.SoundTestCommand;
+import buildcraft.core.item.ItemWrench_Neptune;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.core.marker.volume.WorldSavedDataVolumeBoxes;
 import buildcraft.core.platform.BCCoreFabric;
 import buildcraft.energy.platform.BCEnergyFabric;
@@ -21,7 +23,11 @@ import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.marker.MarkerCache;
 import buildcraft.transport.wire.SavedDataWireSystems;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarting;
 // Fabric API renamed the per-level lifecycle events for 26.x: ServerWorldEvents (2.x) -> ServerLevelEvents (4.x).
 //? if >= 26.1 {
@@ -61,6 +67,18 @@ public class BuildCraftFabricMod implements ModInitializer {
          //?}
       });
       BcTransfers.init();
+      // Any c:tools/wrench item that isn't our own wrench (which handles itself in useOn) gets the BuildCraft
+      // wrench behaviour on BuildCraft blocks -- rotate, or sneak-dismantle. Fires before block.useItemOn, so it
+      // only acts when applyWrench actually does something (rotatable/dismantlable); otherwise PASS lets the
+      // block's own wrench handling (e.g. flood gate side config) run.
+      UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
+         ItemStack held = player.getItemInHand(hand);
+         if (EntityUtil.isWrench(held) && !(held.getItem() instanceof ItemWrench_Neptune)) {
+            return ItemWrench_Neptune.applyWrench(new UseOnContext(world, player, hand, held, hit));
+         }
+
+         return InteractionResult.PASS;
+      });
       ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((EndDataPackReload)(server, resourceManager, success) -> {
          if (success) {
             BCFabricConfig.reload();

@@ -9,7 +9,7 @@ package buildcraft.energy.blocks;
 import buildcraft.lib.compat.BcInteract;
 
 import buildcraft.api.enums.EnumPowerStage;
-import buildcraft.api.tools.IToolWrench;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.api.transport.pipe.IItemPipe;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.energy.tile.TileEngineStone_BC8;
@@ -52,7 +52,7 @@ public class BlockEngineStone_BC8 extends BlockEngineBase_BC8 {
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
-      boolean isWrench = stack.getItem() instanceof IToolWrench;
+      boolean isWrench = EntityUtil.isWrench(stack);
       TileEngineBase_BC8 engine = level.getBlockEntity(pos) instanceof TileEngineBase_BC8 e ? e : null;
       if (isWrench && engine != null && engine.getPowerStage() == EnumPowerStage.OVERHEAT) {
          if (!level.isClientSide()) {

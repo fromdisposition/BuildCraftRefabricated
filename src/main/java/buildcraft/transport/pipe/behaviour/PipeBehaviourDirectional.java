@@ -7,7 +7,7 @@
 package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.api.core.EnumPipePart;
-import buildcraft.api.tools.IToolWrench;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeBehaviour;
@@ -89,7 +89,7 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
 
    protected static boolean isHoldingWrench(Player player) {
       for (InteractionHand hand : InteractionHand.values()) {
-         if (player.getItemInHand(hand).getItem() instanceof IToolWrench) {
+         if (EntityUtil.isWrench(player.getItemInHand(hand))) {
             return true;
          }
       }

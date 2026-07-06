@@ -8,7 +8,7 @@ package buildcraft.core.block;
 
 import buildcraft.lib.compat.BcInteract;
 
-import buildcraft.api.tools.IToolWrench;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.core.tile.TileEngineCreative;
 import buildcraft.lib.engine.BlockEngineBase_BC8;
 import buildcraft.lib.engine.TileEngineBase_BC8;
@@ -47,7 +47,7 @@ public class BlockEngineCreative extends BlockEngineBase_BC8 {
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
-      if (stack.getItem() instanceof IToolWrench wrench) {
+      if (EntityUtil.isWrench(stack)) {
          BlockEntity var11 = level.getBlockEntity(pos);
          if (player.isShiftKeyDown()) {
             if (var11 instanceof TileEngineBase_BC8 engine && engine.hasAlternateReceiver()) {
@@ -65,7 +65,7 @@ public class BlockEngineCreative extends BlockEngineBase_BC8 {
                creative.onWrenchInteract(player);
             }
 
-            wrench.wrenchUsed(player, hand, stack, hitResult);
+            EntityUtil.wrenchUsed(player, hand, stack, hitResult);
             if (!level.isClientSide()) {
                level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.4F, 0.7F);
             }
