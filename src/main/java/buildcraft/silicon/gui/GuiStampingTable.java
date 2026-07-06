@@ -23,7 +23,7 @@ public class GuiStampingTable extends BcScreen<ContainerStampingTable> {
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 151.0);
 
    public GuiStampingTable(ContainerStampingTable container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, 151);
+      super(container, playerInventory, title, 176, heightForSlots(container, 151));
    }
 
    @Override

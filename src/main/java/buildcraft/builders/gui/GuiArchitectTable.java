@@ -35,7 +35,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    private int previewRefreshCounter = 0;
 
    public GuiArchitectTable(ContainerArchitectTable container, Inventory playerInv, Component title) {
-      super(container, playerInv, title, 176, 240);
+      super(container, playerInv, title, 176, heightForSlots(container, 240));
       this.inventoryLabelY = this.imageHeight - 94;
    }
 

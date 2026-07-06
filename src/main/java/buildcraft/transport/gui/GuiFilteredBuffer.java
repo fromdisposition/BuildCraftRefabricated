@@ -30,7 +30,7 @@ public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
    );
 
    public GuiFilteredBuffer(ContainerFilteredBuffer_BC8 menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 169);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 169));
    }
 
    @Override

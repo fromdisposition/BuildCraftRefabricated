@@ -36,7 +36,7 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
    private GuiDiamondWoodPipe.FilterButton roundRobinButton;
 
    public GuiDiamondWoodPipe(ContainerDiamondWoodPipe menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 175, 161);
+      super(menu, playerInv, title, 175, heightForSlots(menu, 161));
    }
 
    @Override

@@ -41,7 +41,7 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
    private static final GuiIcon ICON_RF = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 60.0);
 
    public GuiEngineRF(ContainerEngineRF menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 177);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 177));
    }
 
    @Override
@@ -151,6 +151,6 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
       int strWidth = this.font.width(str);
       int titleX = (this.imageWidth - strWidth) / 2;
       graphics.text(this.font, str, titleX, 6, -12566464, false);
-      graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 96 + 2, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 }

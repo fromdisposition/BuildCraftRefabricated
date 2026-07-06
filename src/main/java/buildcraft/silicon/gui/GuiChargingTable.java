@@ -23,7 +23,7 @@ public class GuiChargingTable extends BcScreen<ContainerChargingTable> {
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 132.0);
 
    public GuiChargingTable(ContainerChargingTable container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, 132);
+      super(container, playerInventory, title, 176, heightForSlots(container, 132));
    }
 
    @Override

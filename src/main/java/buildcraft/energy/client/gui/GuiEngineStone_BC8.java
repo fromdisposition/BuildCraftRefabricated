@@ -25,7 +25,7 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 166.0);
 
    public GuiEngineStone_BC8(ContainerEngineStone_BC8 menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 166);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 166));
    }
 
    @Override
@@ -99,6 +99,6 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
       int strWidth = this.font.width(str);
       int titleX = (this.imageWidth - strWidth) / 2;
       graphics.text(this.font, str, titleX, 6, -12566464, false);
-      graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 96 + 2, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 }

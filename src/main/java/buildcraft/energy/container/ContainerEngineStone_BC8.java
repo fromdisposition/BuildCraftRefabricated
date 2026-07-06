@@ -117,9 +117,7 @@ public class ContainerEngineStone_BC8 extends BcMenu {
 
    @Override
    public boolean stillValid(Player player) {
-      return this.engine != null && !this.engine.isRemoved()
-         ? player.distanceToSqr(this.engine.getBlockPos().getX() + 0.5, this.engine.getBlockPos().getY() + 0.5, this.engine.getBlockPos().getZ() + 0.5) <= 64.0
-         : false;
+      return this.engine != null && Container.stillValidBlockEntity(this.engine, player);
    }
 
    private static class FuelContainer implements Container {

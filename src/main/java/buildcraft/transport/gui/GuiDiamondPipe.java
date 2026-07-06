@@ -25,7 +25,7 @@ public class GuiDiamondPipe extends BcScreen<ContainerDiamondPipe> {
    private static final GuiIcon ICON_GUI_CB = new GuiIcon(TEXTURE_CB, 0.0, 0.0, 175.0, 225.0);
 
    public GuiDiamondPipe(ContainerDiamondPipe menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 175, 225);
+      super(menu, playerInv, title, 175, heightForSlots(menu, 225));
    }
 
    @Override

@@ -24,7 +24,7 @@ public class GuiPackager extends BcScreen<ContainerPackager> {
    private static final GuiIcon ICON_PATTERN_SET = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 18.0, 18.0);
 
    public GuiPackager(ContainerPackager container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, 197);
+      super(container, playerInventory, title, 176, heightForSlots(container, 197));
    }
 
    @Override

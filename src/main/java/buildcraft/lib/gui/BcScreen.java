@@ -17,10 +17,23 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 //?}
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractContainerMenu & IBcMenu> extends AbstractContainerScreen<C> {
    public final BuildCraftGui mainGui;
+
+   // Vanilla player-inventory texture, sliced like the vanilla chest screens do. One tile-able row of 9 slots,
+   // and the "gap + hotbar + bottom frame" block; both include the panel's side frames. Reused so a machine GUI
+   // only ships its own machine header and the whole player inventory comes from vanilla pixels (and any mod
+   // that extends the inventory composes for free).
+   // Exactly the texture and regions vanilla's ContainerScreen.extractBackground uses to draw the player
+   // inventory: generic_54.png, the (0,126,176,96) block. INV_ROW is one 9-slot row of it (tex y139, tileable at
+   // 18px); INV_BOTTOM is the rest of that block (gap + hotbar + bottom frame, tex y192..221).
+   private static final Identifier CONTAINER_BG = Identifier.parse("minecraft:textures/gui/container/generic_54.png");
+   private static final GuiIcon INV_ROW = new GuiIcon(CONTAINER_BG, 0.0, 139.0, 176.0, 18.0);
+   private static final GuiIcon INV_BOTTOM = new GuiIcon(CONTAINER_BG, 0.0, 192.0, 176.0, 30.0);
 
    public int getGuiLeftPos() {
       return this.leftPos;
@@ -36,6 +49,92 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
 
    public int getGuiImageHeight() {
       return this.imageHeight;
+   }
+
+   /**
+    * Height (px) needed to fit every slot of {@code menu}, never smaller than {@code defaultHeight}. Lets a GUI
+    * grow when a mod extends the player inventory (extra rows) so the added slots stay on the window. Uses the
+    * vanilla 6px bottom padding, so an un-extended inventory keeps the original size exactly (no regression).
+    */
+   protected static int heightForSlots(net.minecraft.world.inventory.AbstractContainerMenu menu, int defaultHeight) {
+      int maxY = -1;
+      for (net.minecraft.world.inventory.Slot slot : menu.slots) {
+         if (slot.container instanceof Inventory) {
+            maxY = Math.max(maxY, slot.y);
+         }
+      }
+
+      return maxY < 0 ? defaultHeight : Math.max(defaultHeight, maxY + 18 + 6);
+   }
+
+   /**
+    * When a mod has extended the player inventory beyond its vanilla 4 rows (3 main + hotbar), draws the vanilla
+    * inventory panel from generic_54.png so the added rows get a proper background. Otherwise draws nothing: the
+    * machine's own GUI texture already bakes a correct, pixel-perfect player inventory, so we leave it untouched
+    * (no seams, no double-drawing). Only the extended case -- which the baked art can't cover -- is rendered here.
+    */
+   protected void drawPlayerInventoryBackground() {
+      int top = (int) this.mainGui.rootElement.getY();
+      java.util.SortedSet<Integer> rows = new java.util.TreeSet<>();
+      int minX = Integer.MAX_VALUE;
+      for (Slot slot : this.menu.slots) {
+         if (slot.container instanceof Inventory) {
+            rows.add(slot.y);
+            minX = Math.min(minX, slot.x);
+         }
+      }
+
+      // 4 rows == a stock player inventory the machine texture already draws correctly. Nothing to add.
+      if (rows.size() <= 4) {
+         return;
+      }
+
+      // Extended: the baked art can't match the moved hotbar / extra rows, so redraw the whole player inventory
+      // from vanilla generic_54.png. One tile-able 9-slot band per main row, then the gap+hotbar+bottom block for
+      // the lowest (hotbar) row, shifted to wherever this container's inventory starts.
+      int left = (int) this.mainGui.rootElement.getX() + minX - 8;
+      int hotbarY = rows.last();
+      for (int rowY : rows) {
+         if (rowY == hotbarY) {
+            INV_BOTTOM.drawAt(left, top + rowY - 6);
+         } else {
+            INV_ROW.drawAt(left, top + rowY - 1);
+         }
+      }
+
+      // The generic 176-wide vanilla panel above may not match a GUI whose inventory has custom chrome beside it
+      // (a side box, a divider, a non-standard frame). Only reached in the extended case, so a GUI can patch those
+      // regions with slices of its own texture without ever touching the pixel-perfect un-extended look.
+      this.drawExtendedInventoryChrome();
+   }
+
+   /**
+    * Called after the vanilla inventory panel has been drawn for a mod-extended player inventory. Override in a GUI
+    * whose inventory area carries custom frames the generic panel can't reproduce, to blit those regions from the
+    * GUI's own texture back on top (e.g. a side divider, a box edge, a bottom frame). Position slices relative to
+    * {@link #firstPlayerRowY()} / the actual slot rows so they follow the inventory as the mod grows it. No-op by
+    * default; never runs for an un-extended inventory (nothing is overdrawn there).
+    */
+   protected void drawExtendedInventoryChrome() {
+   }
+
+   /** Container-relative Y of the topmost player-inventory row, or -1 if this menu has no player inventory. */
+   protected int firstPlayerRowY() {
+      int minY = Integer.MAX_VALUE;
+      for (Slot slot : this.menu.slots) {
+         if (slot.container instanceof Inventory) {
+            minY = Math.min(minY, slot.y);
+         }
+      }
+
+      return minY == Integer.MAX_VALUE ? -1 : minY;
+   }
+
+   /** Y for a screen's "Inventory" label: just above the first player-inventory row, independent of imageHeight
+    * (which grows when a mod extends the inventory). Returns -1 if this menu has no player inventory. */
+   protected int playerInventoryLabelY() {
+      int minY = this.firstPlayerRowY();
+      return minY < 0 ? -1 : minY - 12;
    }
 
    protected BcScreen(C container, Inventory playerInventory, Component title) {
@@ -103,7 +202,10 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       super.extractBackground(graphics, mouseX, mouseY, partialTicks);
       BCGraphics bcg = new BCGraphics(graphics);
       GuiIcon.setGuiGraphics(bcg);
-      this.mainGui.drawBackgroundLayer(partialTicks, mouseX, mouseY, () -> this.drawBackgroundTexture(bcg));
+      this.mainGui.drawBackgroundLayer(partialTicks, mouseX, mouseY, () -> {
+         this.drawBackgroundTexture(bcg);
+         this.drawPlayerInventoryBackground();
+      });
       this.mainGui.drawElementBackgrounds();
    }
 
@@ -123,7 +225,10 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
    protected void renderBg(GuiGraphicsExtractor graphics, float partialTicks, int mouseX, int mouseY) {
       BCGraphics bcg = new BCGraphics(graphics);
       GuiIcon.setGuiGraphics(bcg);
-      this.mainGui.drawBackgroundLayer(partialTicks, mouseX, mouseY, () -> this.drawBackgroundTexture(bcg));
+      this.mainGui.drawBackgroundLayer(partialTicks, mouseX, mouseY, () -> {
+         this.drawBackgroundTexture(bcg);
+         this.drawPlayerInventoryBackground();
+      });
       this.mainGui.drawElementBackgrounds();
    }
 

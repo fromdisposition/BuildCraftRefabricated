@@ -20,9 +20,25 @@ import net.minecraft.world.entity.player.Inventory;
 public class GuiRequester extends BcScreen<ContainerRequester> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftrobotics:textures/gui/requester.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 196.0, 181.0);
+   // The 196-wide texture leaves machine chrome on BOTH sides of the 176-wide player inventory (panel at x=11..187).
+   // A mod-extended inventory draws the generic vanilla panel whose opaque edges (left: black outline + white bevel
+   // x=11..13; right: dark + black x=184..186) clash with the machine frame. These re-blit the requester's own
+   // light frame over both edges, plus a 1px foot each for the bottom-corner shadow.
+   private static final GuiIcon ICON_EDGE_L = new GuiIcon(TEXTURE_BASE, 11.0, 100.0, 3.0, 78.0);
+   private static final GuiIcon ICON_EDGE_R = new GuiIcon(TEXTURE_BASE, 184.0, 100.0, 3.0, 78.0);
+   private static final GuiIcon ICON_EDGE_L_FOOT = new GuiIcon(TEXTURE_BASE, 11.0, 178.0, 1.0, 2.0);
+   private static final GuiIcon ICON_EDGE_R_FOOT = new GuiIcon(TEXTURE_BASE, 186.0, 178.0, 1.0, 2.0);
 
    public GuiRequester(ContainerRequester container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 196, 181);
+      super(container, playerInventory, title, 196, heightForSlots(container, 181));
+   }
+
+   @Override
+   protected void drawExtendedInventoryChrome() {
+      ICON_EDGE_L.drawAt(this.mainGui.rootElement.offset(11.0, 100.0));
+      ICON_EDGE_R.drawAt(this.mainGui.rootElement.offset(184.0, 100.0));
+      ICON_EDGE_L_FOOT.drawAt(this.mainGui.rootElement.offset(11.0, 178.0));
+      ICON_EDGE_R_FOOT.drawAt(this.mainGui.rootElement.offset(186.0, 178.0));
    }
 
    @Override

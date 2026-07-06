@@ -22,7 +22,7 @@ public class GuiChute extends BcScreen<ContainerChute> {
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 153.0);
 
    public GuiChute(ContainerChute menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 153);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 153));
    }
 
    @Override

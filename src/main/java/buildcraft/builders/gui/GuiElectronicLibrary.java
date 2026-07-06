@@ -30,7 +30,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
    private Button deleteButton;
 
    public GuiElectronicLibrary(ContainerElectronicLibrary container, Inventory playerInv, Component title) {
-      super(container, playerInv, title, 244, 220);
+      super(container, playerInv, title, 244, heightForSlots(container, 220));
       this.inventoryLabelY = this.imageHeight - 94;
    }
 
@@ -161,7 +161,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
+      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 220, 256, 256);
       int progressDown = ((ContainerElectronicLibrary)this.menu).getSyncedProgressDown();
       if (progressDown > 0) {
          int w = Math.min(22, Math.max(1, (int)Math.ceil(22.0F * (progressDown / 50.0F))));

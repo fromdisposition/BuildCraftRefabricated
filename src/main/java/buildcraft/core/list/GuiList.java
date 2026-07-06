@@ -43,7 +43,7 @@ public class GuiList extends BcScreen<ContainerList> {
    private final Map<Integer, GuiList.GhostCache> ghostCache = new HashMap<>();
 
    public GuiList(ContainerList menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 191);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 191));
    }
 
    @Override

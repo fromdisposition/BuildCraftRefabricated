@@ -29,7 +29,7 @@ public class GuiDistiller extends BcScreen<ContainerDistiller> {
    private static final GuiIcon OVERLAY_RUNNING = new GuiIcon(TEXTURE, 212.0, 0.0, 36.0, 57.0);
 
    public GuiDistiller(ContainerDistiller menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 161);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 161));
    }
 
    @Override
@@ -122,7 +122,7 @@ public class GuiDistiller extends BcScreen<ContainerDistiller> {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       String titleStr = this.title.getString();
       graphics.text(this.font, titleStr, 8, 6, -12566464, false);
-      graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 96 + 2, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 
    @Override

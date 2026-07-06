@@ -14,6 +14,7 @@ import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
@@ -118,9 +119,7 @@ public class ContainerDynamoMJ extends BcMenu {
 
    @Override
    public boolean stillValid(Player player) {
-      return this.dynamo != null && !this.dynamo.isRemoved()
-         ? player.distanceToSqr(this.dynamo.getBlockPos().getX() + 0.5, this.dynamo.getBlockPos().getY() + 0.5, this.dynamo.getBlockPos().getZ() + 0.5) <= 64.0
-         : false;
+      return this.dynamo != null && Container.stillValidBlockEntity(this.dynamo, player);
    }
 
    private static ItemHandlerSimple createFallbackUpgrades() {

@@ -38,7 +38,7 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    private boolean widthTooNarrow;
 
    public GuiAutoCraftItems(ContainerAutoCraftItems menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 197);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 197));
    }
 
    @Override

@@ -82,7 +82,14 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
    }
 
    protected void addFullPlayerInventory(int startX, int startY, Inventory inv) {
-      for (int sy = 0; sy < 3; sy++) {
+      // Build the player-inventory slots through vanilla's addStandardInventorySlots (same 36-slot layout the
+      // manual loop produced) so mods that extend the player inventory by mixin-ing that helper -- e.g.
+      // Inventory Extended -- add their extra rows to BuildCraft GUIs too. 1.21.1 has no such helper, so it
+      // keeps the manual loop.
+      //? if >= 1.21.10 {
+      this.addStandardInventorySlots(inv, startX, startY);
+      //?} else {
+      /*for (int sy = 0; sy < 3; sy++) {
          for (int sx = 0; sx < 9; sx++) {
             this.addSlot(new Slot(inv, sx + sy * 9 + 9, startX + sx * 18, startY + sy * 18));
          }
@@ -91,6 +98,7 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
       for (int sx = 0; sx < 9; sx++) {
          this.addSlot(new Slot(inv, sx, startX + sx * 18, startY + 58));
       }
+      *///?}
    }
 
    public <W extends Widget_Neptune<?>> W addWidget(W widget) {

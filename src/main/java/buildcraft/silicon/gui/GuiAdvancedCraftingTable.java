@@ -33,7 +33,7 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
    private boolean widthTooNarrow;
 
    public GuiAdvancedCraftingTable(ContainerAdvancedCraftingTable container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, 241);
+      super(container, playerInventory, title, 176, heightForSlots(container, 241));
    }
 
    @Override

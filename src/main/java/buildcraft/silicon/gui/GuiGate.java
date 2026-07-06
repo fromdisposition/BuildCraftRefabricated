@@ -36,7 +36,7 @@ public class GuiGate extends BcScreen<ContainerGate> {
    private final int numRows;
 
    public GuiGate(ContainerGate container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, 117 + container.slotHeight * 18);
+      super(container, playerInventory, title, 176, heightForSlots(container, 117 + container.slotHeight * 18));
       this.numRows = container.slotHeight;
    }
 

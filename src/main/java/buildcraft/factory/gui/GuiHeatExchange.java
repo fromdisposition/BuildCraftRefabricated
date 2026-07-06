@@ -27,7 +27,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
    private static final GuiIcon OVERLAY_HORIZONTAL = new GuiIcon(TEXTURE, 17.0, 171.0, 34.0, 17.0);
 
    public GuiHeatExchange(ContainerHeatExchange menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 171);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 171));
    }
 
    @Override

@@ -34,7 +34,7 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
    private GuiEmzuliPipe_BC8.PaintButton activePressedButton = null;
 
    public GuiEmzuliPipe_BC8(ContainerEmzuliPipe_BC8 menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 166);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 166));
    }
 
    @Override
@@ -200,7 +200,7 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
       String titleStr = Component.translatable("gui.pipes.emzuli.title").getString();
       int titleX = (this.imageWidth - this.font.width(titleStr)) / 2;
       graphics.text(this.font, titleStr, titleX, 6, -12566464, false);
-      graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 93, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
       PipeBehaviourEmzuli.SlotIndex currentSlot = ((ContainerEmzuliPipe_BC8)this.menu).behaviour.getCurrentSlot();
 
       for (PipeBehaviourEmzuli.SlotIndex index : ((ContainerEmzuliPipe_BC8)this.menu).behaviour.getActiveSlots()) {

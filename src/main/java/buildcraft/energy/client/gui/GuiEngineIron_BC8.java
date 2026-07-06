@@ -28,7 +28,7 @@ public class GuiEngineIron_BC8 extends BcScreen<ContainerEngineIron_BC8> {
    private static final GuiIcon ICON_TANK_OVERLAY = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 60.0);
 
    public GuiEngineIron_BC8(ContainerEngineIron_BC8 menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 177);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 177));
    }
 
    @Override
@@ -132,6 +132,6 @@ public class GuiEngineIron_BC8 extends BcScreen<ContainerEngineIron_BC8> {
       int strWidth = this.font.width(str);
       int titleX = (this.imageWidth - strWidth) / 2;
       graphics.text(this.font, str, titleX, 6, -12566464, false);
-      graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 96 + 2, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 }

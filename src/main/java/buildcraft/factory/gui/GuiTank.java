@@ -24,7 +24,7 @@ public class GuiTank extends BcScreen<ContainerTank> {
    private static final GuiIcon ICON_TANK_OVERLAY = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 64.0);
 
    public GuiTank(ContainerTank menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, 181);
+      super(menu, playerInv, title, 176, heightForSlots(menu, 181));
    }
 
    @Override
@@ -66,6 +66,6 @@ public class GuiTank extends BcScreen<ContainerTank> {
       int titleWidth = this.font.width(titleStr);
       int titleX = (this.imageWidth - titleWidth) / 2;
       graphics.text(this.font, titleStr, titleX, 6, -12566464, false);
-      graphics.text(this.font, this.playerInventoryTitle, 8, this.imageHeight - 96 + 2, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 }

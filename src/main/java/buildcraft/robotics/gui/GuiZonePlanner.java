@@ -26,10 +26,15 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 256.0, 228.0);
    private static final GuiIcon ICON_PROGRESS_INPUT = new GuiIcon(TEXTURE, 9.0, 228.0, 28.0, 9.0);
    private static final GuiIcon ICON_PROGRESS_OUTPUT = new GuiIcon(TEXTURE, 0.0, 228.0, 9.0, 28.0);
+   // Native light divider between the paintbrush grid and the player inventory (tex x=80..82). Masks the generic
+   // vanilla panel's intruding left edge (opaque black outline + white bevel) when a mod-extended inventory is
+   // drawn here; the 1px foot restores the divider's bottom shadow.
+   private static final GuiIcon ICON_INV_DIVIDER = new GuiIcon(TEXTURE, 80.0, 145.0, 3.0, 80.0);
+   private static final GuiIcon ICON_INV_DIVIDER_FOOT = new GuiIcon(TEXTURE, 80.0, 225.0, 1.0, 2.0);
    private boolean requestedLayers = false;
 
    public GuiZonePlanner(ContainerZonePlanner menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 256, 228);
+      super(menu, playerInv, title, 256, heightForSlots(menu, 228));
    }
 
    @Override
@@ -58,6 +63,15 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
             ICON_PROGRESS_OUTPUT.drawCutInside(left + 236, top + 45, 9.0, 28.0 * fracOut);
          }
       }
+   }
+
+   @Override
+   protected void drawExtendedInventoryChrome() {
+      // A mod-extended inventory draws the generic vanilla panel at x=80; its left edge (opaque black outline +
+      // white bevel) clashes with the light paintbrush/inventory divider. Re-blit the machine's own divider slice
+      // over it, plus a 1px foot for the divider's bottom shadow.
+      ICON_INV_DIVIDER.drawAt(this.mainGui.rootElement.offset(80.0, 145.0));
+      ICON_INV_DIVIDER_FOOT.drawAt(this.mainGui.rootElement.offset(80.0, 225.0));
    }
 
    private static double progressFraction(int progress) {

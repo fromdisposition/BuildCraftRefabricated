@@ -35,12 +35,19 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
    private static final Identifier TEXTURE_BLUEPRINT = Identifier.parse("buildcraftbuilders:textures/gui/builder_blueprint.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 222.0);
    private static final GuiIcon ICON_BLUEPRINT_GUI = new GuiIcon(TEXTURE_BLUEPRINT, 169.0, 0.0, 87.0, 222.0);
+   // Box left divider (x=169..178), down to just above its solid bottom frame (tex y=214). Restores the box's
+   // clean vertical edge beside the tanks/slots when a mod-extended inventory has drawn the generic panel over it.
+   private static final GuiIcon ICON_BLUEPRINT_EDGE = new GuiIcon(TEXTURE_BLUEPRINT, 169.0, 0.0, 10.0, 214.0);
+   // The box's bottom-left corner (tex x=173..178, y=214..220): the frame band + shadow that close the divider into
+   // the horizontal bottom frame. Blitted narrow (from x=173) so it covers the generic panel's dark groove/black
+   // edge without pushing the box's shadow onto x=169..172, where the divider stays light -- i.e. a clean L-corner.
+   private static final GuiIcon ICON_BLUEPRINT_CORNER = new GuiIcon(TEXTURE_BLUEPRINT, 173.0, 214.0, 6.0, 7.0);
    private static final GuiIcon ICON_TANK_OVERLAY = new GuiIcon(TEXTURE_BLUEPRINT, 0.0, 54.0, 16.0, 47.0);
    private GuiBuilder.FluidModeButton fluidModeButton;
    private GuiBuilder.ContentsModeButton contentsModeButton;
 
    public GuiBuilder(ContainerBuilder container, Inventory playerInv, Component title) {
-      super(container, playerInv, title, 256, 222);
+      super(container, playerInv, title, 256, heightForSlots(container, 222));
       this.inventoryLabelY = this.imageHeight - 94;
    }
 
@@ -157,6 +164,16 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
       ICON_BLUEPRINT_GUI.drawAt(this.mainGui.rootElement.offset(169.0, 0.0));
+   }
+
+   @Override
+   protected void drawExtendedInventoryChrome() {
+      // A mod-extended inventory redraws the generic vanilla panel across the full 0..176 width, whose right frame
+      // covers the blueprint box's left divider. Re-blit the box's divider so it keeps its clean edge beside the
+      // tanks/slots, plus its bottom-left corner so the divider closes into the box's bottom frame (instead of the
+      // generic panel's dark groove + black edge showing through as a notch).
+      ICON_BLUEPRINT_EDGE.drawAt(this.mainGui.rootElement.offset(169.0, 0.0));
+      ICON_BLUEPRINT_CORNER.drawAt(this.mainGui.rootElement.offset(173.0, 214.0));
    }
 
    @Override

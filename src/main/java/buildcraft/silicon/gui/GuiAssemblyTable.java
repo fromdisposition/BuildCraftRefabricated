@@ -35,7 +35,7 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 48.0, 4.0, 70.0);
 
    public GuiAssemblyTable(ContainerAssemblyTable container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, 220);
+      super(container, playerInventory, title, 176, heightForSlots(container, 220));
    }
 
    @Override

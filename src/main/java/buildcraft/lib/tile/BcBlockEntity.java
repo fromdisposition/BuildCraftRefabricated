@@ -26,6 +26,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -57,9 +58,10 @@ public abstract class BcBlockEntity extends BlockEntity {
    }
 
    public boolean canInteractWith(Player player) {
-      return this.level != null && this.level.getBlockEntity(this.worldPosition) == this
-         ? player.distanceToSqr(this.worldPosition.getX() + 0.5, this.worldPosition.getY() + 0.5, this.worldPosition.getZ() + 0.5) <= 64.0
-         : false;
+      // Vanilla's container-validity check: the block entity is still the one at its position and the player is
+      // within block-interaction reach (reach-attribute aware) -- rather than a hand-rolled fixed 8-block (64 =
+      // 8^2) sphere. Used by every ContainerBCTile via stillValid.
+      return Container.stillValidBlockEntity(this, player);
    }
 
    @Nullable

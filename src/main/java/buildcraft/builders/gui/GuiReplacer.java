@@ -57,7 +57,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    private volatile boolean asyncPreviewPending;
 
    public GuiReplacer(ContainerReplacer container, Inventory playerInv, Component title) {
-      super(container, playerInv, title, 176, 241);
+      super(container, playerInv, title, 176, heightForSlots(container, 241));
       this.inventoryLabelY = this.imageHeight - 94;
    }
 
@@ -296,7 +296,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
+      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 241, 256, 256);
       Blueprint toRender = this.getPreviewBlueprint();
       if (toRender != null) {
          BlueprintRenderer.renderSnapshot(graphics, toRender, this.leftPos + 8, this.topPos + 9, 160, 100);

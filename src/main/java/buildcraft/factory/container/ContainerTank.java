@@ -12,6 +12,7 @@ import buildcraft.lib.fabric.menu.MenuBlockEntityLookup;
 import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.gui.widget.WidgetFluidTank;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -33,13 +34,7 @@ public class ContainerTank extends BcMenu {
 
    @Override
    public boolean stillValid(Player player) {
-      if (this.tile == null) {
-         return false;
-      } else {
-         return this.tile.getLevel() != null && this.tile.getLevel().getBlockEntity(this.tile.getBlockPos()) == this.tile
-            ? player.distanceToSqr(this.tile.getBlockPos().getX() + 0.5, this.tile.getBlockPos().getY() + 0.5, this.tile.getBlockPos().getZ() + 0.5) <= 64.0
-            : false;
-      }
+      return this.tile != null && Container.stillValidBlockEntity(this.tile, player);
    }
 
    @Override

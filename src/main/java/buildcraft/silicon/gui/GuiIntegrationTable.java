@@ -24,7 +24,7 @@ public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 4.0, 70.0);
 
    public GuiIntegrationTable(ContainerIntegrationTable container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, 191);
+      super(container, playerInventory, title, 176, heightForSlots(container, 191));
    }
 
    @Override

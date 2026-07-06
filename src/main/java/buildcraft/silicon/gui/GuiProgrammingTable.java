@@ -30,7 +30,7 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
    private static final GuiIcon ICON_OPTION_SELECTED = new GuiIcon(TEXTURE_BASE, 196.0, 1.0, 16.0, 16.0);
 
    public GuiProgrammingTable(ContainerProgrammingTable container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, 207);
+      super(container, playerInventory, title, 176, heightForSlots(container, 207));
    }
 
    @Override
