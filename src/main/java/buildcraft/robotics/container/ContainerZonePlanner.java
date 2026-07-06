@@ -279,29 +279,38 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
 
    private void handleMapRequest(FriendlyByteBuf buffer) {
       int count = buffer.readVarInt();
-      long[] keys = new long[count];
-
-      for (int i = 0; i < count; i++) {
-         keys[i] = buffer.readLong();
-      }
+      // Never allocate on the client-declared count: a forged request can claim billions of keys in a handful of
+      // bytes. Read at most as many longs as the (already size-bounded) packet actually contains.
+      int cap = Math.min(Math.max(count, 0), buffer.readableBytes() / Long.BYTES);
 
       Level level = this.tile != null ? this.tile.getLevel() : null;
-      if (level != null) {
+      if (level != null && level.getServer() != null) {
+         // The map is centred on this tile; only chunks within the server view-distance around it are ever loaded
+         // and legitimately viewable. Gating on that bounds the per-chunk colour scan (256 blocks each) and stops a
+         // client from harvesting map colours of arbitrary loaded chunks elsewhere on the server.
+         int viewDist = level.getServer().getPlayerList().getViewDistance();
+         int centerX = this.tile.getBlockPos().getX() >> 4;
+         int centerZ = this.tile.getBlockPos().getZ() >> 4;
          List<Long> okKeys = new ArrayList<>();
          List<int[]> cols = new ArrayList<>();
          List<int[]> heights = new ArrayList<>();
 
-         for (long key : keys) {
+         for (int i = 0; i < cap; i++) {
+            long key = buffer.readLong();
             int cx = ChunkPos.getX(key);
             int cz = ChunkPos.getZ(key);
-            if (level.getChunkSource().hasChunk(cx, cz)) {
-               int[] col = new int[256];
-               int[] height = new int[256];
-               computeChunk(level, cx, cz, col, height);
-               okKeys.add(key);
-               cols.add(col);
-               heights.add(height);
+            if (Math.max(Math.abs(cx - centerX), Math.abs(cz - centerZ)) > viewDist) {
+               continue;
             }
+            if (!level.getChunkSource().hasChunk(cx, cz)) {
+               continue;
+            }
+            int[] col = new int[256];
+            int[] height = new int[256];
+            computeChunk(level, cx, cz, col, height);
+            okKeys.add(key);
+            cols.add(col);
+            heights.add(height);
          }
 
          int total = okKeys.size();
