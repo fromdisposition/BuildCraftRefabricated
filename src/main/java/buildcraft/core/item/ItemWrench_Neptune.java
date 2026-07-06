@@ -32,7 +32,12 @@ public class ItemWrench_Neptune extends Item {
    }
 
    public InteractionResult useOn(UseOnContext context) {
-      return applyWrench(context);
+      InteractionResult result = applyWrench(context);
+      // Swallow a right-click the wrench didn't act on (plain ground, a non-BuildCraft block, ...) so the
+      // interaction doesn't fall through to the OFF-HAND item and accidentally place a block. Only our own item
+      // does this: the shared applyWrench keeps returning PASS for the UseBlockCallback path, so a foreign
+      // wrench's own block interaction can still continue.
+      return result == InteractionResult.PASS ? InteractionResult.CONSUME : result;
    }
 
    /**
