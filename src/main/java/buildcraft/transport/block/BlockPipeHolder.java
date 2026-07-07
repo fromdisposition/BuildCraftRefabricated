@@ -559,11 +559,9 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
             return super.playerWillDestroy(level, pos, state, player);
          }
 
-         if (!level.isClientSide() && !player.isCreative()) {
-            tile.dropPipeItems(level, pos);
-         }
-
          if (!level.isClientSide()) {
+            // Always run cleanup (pluggable onRemove -> station/robot teardown); pop the item drops only in survival.
+            tile.dropPipeItems(level, pos, !player.isCreative());
             tile.wireManager.invalidate();
          }
       }

@@ -638,8 +638,11 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       }
    }
 
-   public void dropPipeItems(Level lvl, BlockPos pos) {
-      if (this.pipe != null) {
+   public void dropPipeItems(Level lvl, BlockPos pos, boolean dropItems) {
+      // dropItems=false (creative) still runs pluggable onRemove + clears state -- only the item pops are skipped.
+      // Pluggables clean up external state in onRemove (e.g. a robot station destroys its docked robot), which must
+      // happen on every break, not just survival, or a creative-broken pipe leaks its station and strands the robot.
+      if (dropItems && this.pipe != null) {
          PipeDefinition def = this.pipe.getDefinition();
          Item pipeItem = (Item)PipeApi.pipeRegistry.getItemForPipe(def);
          if (pipeItem != null) {
@@ -663,11 +666,13 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       for (int i = 0; i < 6; i++) {
          PipePluggable plug = this.pluggables[i];
          if (plug != null) {
-            NonNullList<ItemStack> plugDrops = NonNullList.create();
-            plug.addDrops(plugDrops, 0);
+            if (dropItems) {
+               NonNullList<ItemStack> plugDrops = NonNullList.create();
+               plug.addDrops(plugDrops, 0);
 
-            for (ItemStack drop : plugDrops) {
-               Block.popResource(lvl, pos, drop);
+               for (ItemStack drop : plugDrops) {
+                  Block.popResource(lvl, pos, drop);
+               }
             }
 
             plug.onRemove();
@@ -675,11 +680,13 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
          }
       }
 
-      for (DyeColor color : this.wireManager.parts.values()) {
-         if (color != null) {
-            Item wireItem = BCTransportItems.WIRE_ITEMS.get(color);
-            if (wireItem != null) {
-               Block.popResource(lvl, pos, new ItemStack(wireItem));
+      if (dropItems) {
+         for (DyeColor color : this.wireManager.parts.values()) {
+            if (color != null) {
+               Item wireItem = BCTransportItems.WIRE_ITEMS.get(color);
+               if (wireItem != null) {
+                  Block.popResource(lvl, pos, new ItemStack(wireItem));
+               }
             }
          }
       }

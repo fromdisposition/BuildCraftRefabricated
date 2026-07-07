@@ -9,7 +9,6 @@ package buildcraft.robotics.plug;
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.DockingStation;
-import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.IDockingStationProvider;
 import buildcraft.api.robots.RobotManager;
 import buildcraft.api.transport.pipe.IPipeHolder;
@@ -22,6 +21,7 @@ import buildcraft.robotics.robot.DockingStationPipe;
 // Client-only model key; only referenced from getModelRenderKey, which is invoked exclusively client-side during
 // model baking -- so the class is never loaded on a dedicated server (same pattern as PluggableBlocker).
 import buildcraft.transport.client.model.key.KeyPlugBlocker;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -109,25 +109,31 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
          return;
       }
 
+      BlockPos pos = this.holder.getPipePos();
       var registry = RobotManager.registryProvider.getRegistry(world);
-      // Resolve the authoritative registry station for this position rather than trusting this.station: it is a
-      // lazily-populated transient field and can still be null here (e.g. right after a world reload, before
-      // anything called getStation()) -- the old `this.station != null` guard then skipped everything, so breaking
-      // the pipe left the docked robot hanging instead of dropping it.
-      DockingStation station = this.station != null ? this.station : registry.getStation(this.holder.getPipePos(), this.side);
-      if (station != null) {
-         if (station instanceof DockingStationPipe pipeStation) {
-            // Bind so world/pipe are set and robotTaking() resolves through the registry without NPEing.
-            pipeStation.bindToPipe(this.holder);
-         }
+      // this.station is a lazily-populated transient (can be null right after a reload); fall back to the
+      // authoritative registry station for this position.
+      DockingStation station = this.station != null ? this.station : registry.getStation(pos, this.side);
+      if (station instanceof DockingStationPipe pipeStation) {
+         pipeStation.bindToPipe(this.holder);
+      }
 
-         // Breaking the robot's home (main) station destroys the robot: drop it as its board item (with its stored
-         // energy and carried tool/loot) where it stood, before removeStation frees the slot.
-         EntityRobotBase taking = station.robotTaking();
-         if (station.isMainStation() && taking instanceof EntityRobot robot) {
+      // Breaking the station destroys the robot that calls it home: drop it as its board (with stored energy and
+      // carried tool/loot) where it stood -- robots are otherwise invulnerable/unremovable. Try the direct
+      // station->robot link first, then scan nearby robot entities matched by their persisted home-station pos/side.
+      // The scan is the robust path: the registry link can be momentarily unresolved on the single-plug removal
+      // path, which is why a plain robotTaking() check silently missed and left the robot hanging.
+      if (station != null && station.isMainStation() && station.robotTaking() instanceof EntityRobot linked) {
+         linked.dropAsItemAndDiscard();
+      }
+
+      for (EntityRobot robot : world.getEntitiesOfClass(EntityRobot.class, new AABB(pos).inflate(2.0))) {
+         if (!robot.isRemoved() && robot.isHomedAt(pos, this.side)) {
             robot.dropAsItemAndDiscard();
          }
+      }
 
+      if (station != null) {
          registry.removeStation(station);
       }
 

@@ -274,6 +274,12 @@ public class EntityRobot extends EntityRobotBase {
       }
    }
 
+   /** True when this robot's home (linked/main) station is the one at pos/side -- used to destroy the robot when
+    *  that station is broken. Matches on the persisted linked-station position, so it works even after a reload. */
+   public boolean isHomedAt(BlockPos pos, Direction side) {
+      return pos != null && pos.equals(this.linkedStationPos) && side == this.linkedStationSide;
+   }
+
    public void setLinkedStation(DockingStation station) {
       this.linkedStation = station;
       if (station != null) {
