@@ -19,7 +19,6 @@ import buildcraft.factory.block.BlockChute;
 import buildcraft.factory.container.ContainerChute;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.BlockDropsUtil;
@@ -75,10 +74,6 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
       return this.battery;
    }
 
-   @Nullable
-   public MjEnergyStorage getSidedEnergyStorage() {
-      return MjEnergyStorage.createIfRfEnabled(this.battery);
-   }
 
    public ItemHandlerSimple getInv() {
       return this.inv;

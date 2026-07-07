@@ -10,7 +10,6 @@ import buildcraft.api.mj.ILaserTarget;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.IngredientStack;
 import buildcraft.api.tiles.IDebuggable;
-import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.fabric.transfer.MjPowerCell;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.data.AverageLong;
@@ -123,9 +122,6 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
       return ClientboundBlockEntityDataPacket.create(this);
    }
 
-   public @Nullable MjEnergyStorage getSidedEnergyStorage() {
-      return MjEnergyStorage.createIfRfEnabled(this.createEnergyCell());
-   }
 
    private MjPowerCell createEnergyCell() {
       return new MjPowerCell() {

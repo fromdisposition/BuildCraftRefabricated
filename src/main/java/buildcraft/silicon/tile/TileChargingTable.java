@@ -57,7 +57,7 @@ public class TileChargingTable extends TileLaserTableBase {
    }
 
    private long getIdleBleed() {
-      long mjPerRf = MjAPI.isRfAutoConversionEnabled() ? MjAPI.getRfConversion().mjPerRf : 0L;
+      long mjPerRf = MjAPI.getRfConversion().mjPerRf;
       return mjPerRf > 0L ? 10L * mjPerRf : MjAPI.MJ;
    }
 

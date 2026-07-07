@@ -116,11 +116,11 @@ Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2).
 
 Internal logic uses **MJ**. By default (`MJ_AUTOCONVERT_RF`):
 
-- BC machines accept **Team Reborn E** when conversion is enabled.
-- UI shows **E** when another `team_reborn_energy` mod (e.g. Tech Reborn) is in the pack; otherwise **MJ**.
-- `MJ_ONLY` — MJ only, no E. `DISPLAY_RF` — always show E.
+- BuildCraft's internal energy is **MJ**; it stays MJ everywhere in the UI.
+- **RF/E (Team Reborn) energy** and MJ are separate networks. RF pipes/machines move E natively; MJ pipes/engines move MJ natively — no silent auto-conversion between them.
+- The bridge between the two is explicit hardware: the **RF Energy Engine** (E → MJ) and the **MJ Dynamo** (MJ → E). Each shows the real unit on its own side of the conversion.
 
-Config: `config/buildcraft/buildcraftrefabricated-common.json` → `powerMode`, `mjRfConversion`.
+Config: `config/buildcraft/buildcraftrefabricated-common.json` → `mjRfConversion` (the MJ-per-E ratio used by the converter blocks).
 
 ---
 

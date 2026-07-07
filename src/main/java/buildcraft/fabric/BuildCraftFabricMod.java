@@ -18,7 +18,6 @@ import buildcraft.fabric.integration.jei.BCJeiBootstrap;
 //?}
 import buildcraft.fabric.network.BCNetworkingRegistry;
 import buildcraft.lib.fabric.BCBlockEntityLifecycleEvents;
-import buildcraft.lib.fabric.ExternalEnergyCompat;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.marker.MarkerCache;
 import buildcraft.transport.wire.SavedDataWireSystems;
@@ -45,7 +44,6 @@ import net.minecraft.server.level.ServerLevel;
 public class BuildCraftFabricMod implements ModInitializer {
    public void onInitialize() {
       BCFabricConfig.load();
-      ExternalEnergyCompat.init();
       BCBlockEntityLifecycleEvents.init();
       BCReloadFabric.initCommon();
       // Register packet types before any module can emit packets.

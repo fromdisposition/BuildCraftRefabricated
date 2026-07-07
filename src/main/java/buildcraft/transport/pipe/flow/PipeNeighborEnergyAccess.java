@@ -29,7 +29,11 @@ public final class PipeNeighborEnergyAccess {
 
    @Nullable
    private static EnergyStorage blockEnergyStorage(Level level, BlockPos pos, Direction side) {
-      return MjAPI.isRfAutoConversionEnabled() ? BcTransfers.energy(level, pos, side) : null;
+      // RF<->RF transport is not conversion: an RF pipe always connects to a neighbour's E storage. Whether a BC
+      // machine exposes an E port at all is decided at the machine (getSidedEnergyStorage, gated on the power
+      // mode) -- so in MJ_ONLY, MJ machines expose nothing here while native E machines and the converter engines
+      // still connect.
+      return BcTransfers.energy(level, pos, side);
    }
 
    public static boolean canConnect(IPipeHolder holder, Direction from) {

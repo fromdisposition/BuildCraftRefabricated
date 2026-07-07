@@ -23,7 +23,6 @@ import buildcraft.factory.FactoryFluidContainers;
 import buildcraft.factory.block.BlockDistiller;
 import buildcraft.factory.container.ContainerDistiller;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.fabric.transfer.fluid.SidedFluidStorages;
 import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fluid.registry.FluidSmoother;
@@ -148,10 +147,6 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       return this.mjBattery;
    }
 
-   @Nullable
-   public MjEnergyStorage getSidedEnergyStorage() {
-      return MjEnergyStorage.createIfRfEnabled(this.mjBattery);
-   }
 
    @Nullable
    public GameProfile getOwner() {

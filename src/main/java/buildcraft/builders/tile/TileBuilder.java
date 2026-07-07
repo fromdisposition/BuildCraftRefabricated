@@ -33,7 +33,6 @@ import buildcraft.builders.snapshot.SnapshotBuilder;
 import buildcraft.builders.snapshot.Template;
 import buildcraft.builders.snapshot.TemplateBuilder;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.fabric.transfer.fluid.MultiFluidTankStorage;
 import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fluid.stack.FluidStack;
@@ -164,10 +163,6 @@ public class TileBuilder
       return direction == null ? null : this.fluidTanks;
    }
 
-   @Nullable
-   public MjEnergyStorage getSidedEnergyStorage() {
-      return MjEnergyStorage.createIfRfEnabled(this.getBattery());
-   }
 
    @Override
    public void onPlacedBy(@Nullable LivingEntity placer, ItemStack stack) {

@@ -15,7 +15,6 @@ import buildcraft.api.tiles.IDebuggable;
 import buildcraft.lib.block.ILocalBlockUpdateSubscriber;
 import buildcraft.lib.block.LocalBlockUpdateNotifier;
 import buildcraft.lib.debug.IAdvDebugTarget;
-import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.VolumeUtil;
 import buildcraft.lib.misc.data.AverageLong;
@@ -77,9 +76,6 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       return this.battery;
    }
 
-   public @Nullable MjEnergyStorage getSidedEnergyStorage() {
-      return MjEnergyStorage.createIfRfEnabled(this.getBattery());
-   }
 
    @Override
    public int getUpdateRange() {

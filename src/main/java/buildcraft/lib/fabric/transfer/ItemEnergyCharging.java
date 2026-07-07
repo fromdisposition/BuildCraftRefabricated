@@ -18,7 +18,7 @@ public final class ItemEnergyCharging {
 
    public static long getRequiredMj(ItemStack stack) {
       EnergyStorage storage = getStorage(stack);
-      if (storage == null || !MjAPI.isRfAutoConversionEnabled()) {
+      if (storage == null) {
          return 0L;
       }
 
@@ -33,7 +33,7 @@ public final class ItemEnergyCharging {
 
    public static long chargeMj(ItemStack stack, long microJoules) {
       EnergyStorage storage = getStorage(stack);
-      if (storage == null || microJoules <= 0L || !MjAPI.isRfAutoConversionEnabled()) {
+      if (storage == null || microJoules <= 0L) {
          return 0L;
       }
 
@@ -59,7 +59,7 @@ public final class ItemEnergyCharging {
    }
 
    private static EnergyStorage getStorage(ItemStack stack) {
-      if (stack.isEmpty() || !MjAPI.isRfAutoConversionEnabled()) {
+      if (stack.isEmpty()) {
          return null;
       }
 

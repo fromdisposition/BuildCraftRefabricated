@@ -11,14 +11,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 
 public final class BCLibConfig {
-   public static final BCLibConfig.PowerMode POWER_MODE = BCLibConfig.PowerMode.MJ_AUTOCONVERT_RF;
    public static final BCLibConfig.ColorBlindMode COLOR_BLIND_MODE = BCLibConfig.ColorBlindMode.AUTO;
    public static final BCLibConfig.TimeGap DISPLAY_TIME_GAP = BCLibConfig.TimeGap.SECONDS;
    public static final BCLibConfig.RenderRotation ROTATE_TRAVELING_ITEMS = BCLibConfig.RenderRotation.ENABLED;
    public static final BCLibConfig.ChunkLoaderLevel CHUNK_LOADING_LEVEL = BCLibConfig.ChunkLoaderLevel.SELF_TILES;
-   public static final BCLibConfig.EnumValue<BCLibConfig.PowerMode> powerMode = new BCLibConfig.EnumValue<>(POWER_MODE);
    public static final BCLibConfig.EnumValue<BCLibConfig.ColorBlindMode> colorBlindMode = new BCLibConfig.EnumValue<>(COLOR_BLIND_MODE);
-   public static final BCLibConfig.BooleanValue externalEnergyEcosystemPresent = new BCLibConfig.BooleanValue(false);
    public static final BCLibConfig.DoubleValue mjRfConversionAmount = new BCLibConfig.DoubleValue(0.1);
    public static final BCLibConfig.BooleanValue canEnginesExplode = new BCLibConfig.BooleanValue(false);
    public static final BCLibConfig.BooleanValue useColouredLabels = new BCLibConfig.BooleanValue(true);
@@ -121,24 +118,6 @@ public final class BCLibConfig {
 
       public void set(int value) {
          this.value = value;
-      }
-   }
-
-   public enum PowerMode {
-      /** No E interop; MJ labels everywhere. */
-      MJ_ONLY(false, false),
-      /** Accept E; show E in UI when another Team Reborn energy mod is in the pack. */
-      MJ_AUTOCONVERT_RF(true, false),
-      /** Accept E; always show E in UI regardless of loaded mods. */
-      DISPLAY_RF(true, true);
-
-      public final boolean autoconvert;
-      /** When true, external units are shown even without a detected E ecosystem. */
-      public final boolean displayExternal;
-
-      PowerMode(boolean autoconvert, boolean displayExternal) {
-         this.autoconvert = autoconvert;
-         this.displayExternal = displayExternal;
       }
    }
 

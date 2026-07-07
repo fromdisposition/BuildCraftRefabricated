@@ -80,7 +80,7 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    @Nullable
    public EnergyStorage getSidedEnergyStorage(@Nullable Direction direction) {
-      return direction != null && direction == this.getOrientation() && MjAPI.isRfAutoConversionEnabled() ? this.energyStorage : null;
+      return direction != null && direction == this.getOrientation() ? this.energyStorage : null;
    }
 
    public int getCurrentFe() {
@@ -134,13 +134,12 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    @Override
    protected void engineUpdate() {
-      if (MjAPI.isRfAutoConversionEnabled()) {
-         this.sendFeToReceiver();
-      }
+      // The MJ Dynamo is the MJ->RF bridge, so it always converts regardless of the global auto-conversion mode.
+      this.sendFeToReceiver();
 
       this.currentOutput = 0L;
       long mjStored = this.mjBattery.getStored();
-      if (MjAPI.isRfAutoConversionEnabled() && mjStored > 0L) {
+      if (mjStored > 0L) {
          if (this.isRedstonePowered) {
             long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
             if (mjPerRf == 0L) {
@@ -180,7 +179,7 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    @Nullable
    public EnergyStorage getFeReceiver(Direction side) {
-      if (this.level == null || !MjAPI.isRfAutoConversionEnabled()) {
+      if (this.level == null) {
          return null;
       }
 

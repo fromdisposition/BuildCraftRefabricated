@@ -36,7 +36,6 @@ import buildcraft.core.marker.volume.WorldSavedDataVolumeBoxes;
 import buildcraft.lib.chunkload.ChunkLoaderManager;
 import buildcraft.lib.chunkload.IChunkLoadingTile;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
-import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.MessageUtil;
@@ -126,10 +125,6 @@ public class TileFiller
       return this.mjReceiver;
    }
 
-   @Nullable
-   public MjEnergyStorage getSidedEnergyStorage() {
-      return MjEnergyStorage.createIfRfEnabled(this.getBattery());
-   }
 
    public TileFiller(BlockPos pos, BlockState state) {
       super(BCBuildersBlockEntities.FILLER, pos, state);

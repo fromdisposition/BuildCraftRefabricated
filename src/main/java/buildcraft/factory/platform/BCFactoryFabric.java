@@ -81,9 +81,6 @@ public final class BCFactoryFabric {
          .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TileMiningWell ? AutoProvidingItemStorage.INSTANCE : null, BCFactoryBlockEntities.MINING_WELL
          );
-      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
-         BCFactoryFabricTre.register();
-      }
    }
 
    private static void registerMjCapabilities() {

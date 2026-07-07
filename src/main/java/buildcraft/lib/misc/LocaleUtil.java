@@ -23,13 +23,12 @@ public final class LocaleUtil {
       return Component.translatable(key, args).getString();
    }
 
+   // MJ is BuildCraft's internal unit and is always shown as MJ; external energy (Team Reborn "E") is always shown
+   // as E. No cross-conversion in the display -- only the RF Engine / MJ Dynamo bridge the two, so each number
+   // reads in its real type instead of the old "everything as E" auto-substitution.
    public static String localizeMj(long microMj) {
       if (BCCoreConfig.hidePower.get()) {
          return "";
-      }
-
-      if (MjAPI.displaysExternalEnergyUnits()) {
-         return localizeRf((int)(microMj / MjAPI.getRfConversion().mjPerRf));
       }
 
       return String.format("%.2f MJ", microMj / 1000000.0);
@@ -38,10 +37,6 @@ public final class LocaleUtil {
    public static String localizeMjFlow(long microMjPerTick) {
       if (BCCoreConfig.hidePower.get()) {
          return "";
-      }
-
-      if (MjAPI.displaysExternalEnergyUnits()) {
-         return localizeRfFlow((int)(microMjPerTick / MjAPI.getRfConversion().mjPerRf));
       }
 
       long scaled = BCLibConfig.displayTimeGap.get().convertTicksToGap(microMjPerTick);
@@ -58,10 +53,6 @@ public final class LocaleUtil {
          return "";
       }
 
-      if (!MjAPI.displaysExternalEnergyUnits()) {
-         return localizeMjFlow(ePerTick * MjAPI.getRfConversion().mjPerRf);
-      }
-
       int scaled = (int)BCLibConfig.displayTimeGap.get().convertTicksToGap(ePerTick);
       String unit = MjAPI.EXTERNAL_ENERGY_UNIT;
       String suffix = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? " " + unit + "/s" : " " + unit + "/t";
@@ -73,10 +64,6 @@ public final class LocaleUtil {
          return "";
       }
 
-      if (!MjAPI.displaysExternalEnergyUnits()) {
-         return localizeMj(e * MjAPI.getRfConversion().mjPerRf);
-      }
-
       return e + " " + MjAPI.EXTERNAL_ENERGY_UNIT;
    }
 
@@ -85,16 +72,7 @@ public final class LocaleUtil {
          return "";
       }
 
-      if (!MjAPI.isRfAutoConversionEnabled()) {
-         return localizeMj(0L) + " / " + localizeMj(0L);
-      }
-
-      if (MjAPI.displaysExternalEnergyUnits()) {
-         return currentE + " / " + maxE + " " + MjAPI.EXTERNAL_ENERGY_UNIT;
-      }
-
-      long mjPerE = MjAPI.getRfConversion().mjPerRf;
-      return localizeMj(currentE * mjPerE) + " / " + localizeMj(maxE * mjPerE);
+      return currentE + " / " + maxE + " " + MjAPI.EXTERNAL_ENERGY_UNIT;
    }
 
    public static String localizeFluidFlow(int mbPerTick) {

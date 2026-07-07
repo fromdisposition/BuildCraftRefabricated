@@ -12,12 +12,10 @@ import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.IMjRedstoneReceiver;
 import buildcraft.api.mj.MjAPI;
-import buildcraft.api.mj.MjToRfAutoConvertor;
 import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import net.fabricmc.loader.api.FabricLoader;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.data.ModelVariableData;
@@ -263,13 +261,6 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       return extracted;
    }
 
-   // FabricLoader.isModLoaded is a map lookup, and the old code ran it per engine per tick.
-   private static final boolean TR_ENERGY_LOADED = FabricLoader.getInstance().isModLoaded("team_reborn_energy");
-   // Identity-cache of the RF bridge: the old code allocated a new MjToRfAutoConvertor wrapper every tick for
-   // an engine facing an RF machine.
-   private Object lastFeStorage;
-   private IMjReceiver lastFeReceiver;
-
    @Nullable
    public IMjReceiver getReceiverToPower(Direction side) {
       if (this.level == null) {
@@ -289,24 +280,6 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
             IMjReceiver receiver = BcTransfers.mjReceiver(this.level, targetPos, side.getOpposite());
             if (receiver != null && receiver.canConnect(this.getMjConnector()) && this.getMjConnector().canConnect(receiver)) {
                return receiver;
-            }
-
-            if (TR_ENERGY_LOADED) {
-               Object feStorage = BcTransfers.energy(this.level, targetPos, side.getOpposite());
-               if (feStorage != null) {
-                  IMjReceiver feReceiver;
-                  if (feStorage == this.lastFeStorage && this.lastFeReceiver != null) {
-                     feReceiver = this.lastFeReceiver;
-                  } else {
-                     feReceiver = MjToRfAutoConvertor.createReceiver((team.reborn.energy.api.EnergyStorage) feStorage);
-                     this.lastFeStorage = feStorage;
-                     this.lastFeReceiver = feReceiver;
-                  }
-
-                  if (feReceiver != null && feReceiver.canConnect(this.getMjConnector())) {
-                     return feReceiver;
-                  }
-               }
             }
 
             return null;

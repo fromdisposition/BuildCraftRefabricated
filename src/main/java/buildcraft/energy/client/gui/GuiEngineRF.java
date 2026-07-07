@@ -83,11 +83,7 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
                   List<String> lines = new ArrayList<>();
                   lines.add(LocaleUtil.localize("buildcraft.gui.rf_engine.upgrade_types"));
                   TileEngineRF.initUpgrades();
-                  String unitLabel = LocaleUtil.localize(
-                     MjAPI.displaysExternalEnergyUnits()
-                        ? "buildcraft.gui.rf_engine.upgrade_rate_unit"
-                        : "buildcraft.gui.rf_engine.upgrade_rate_unit_mj"
-                  );
+                  String unitLabel = LocaleUtil.localize("buildcraft.gui.rf_engine.upgrade_rate_unit_mj");
 
                   long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
 
@@ -110,9 +106,7 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
                String rf = LocaleUtil.localizeRfFlow(rfPerTick);
                String mj = LocaleUtil.localizeMjFlow(mjPerTick);
                String conversion = LocaleUtil.localize(BCEnergyConfig.rfFeKey("buildcraft.help.rf_engine.battery"), rf, mj);
-               String titleKey = MjAPI.displaysExternalEnergyUnits()
-                  ? "buildcraft.help.rf_engine.battery.title"
-                  : "buildcraft.help.rf_engine.battery.title_mj";
+               String titleKey = "buildcraft.help.rf_engine.battery.title_mj";
                ElementHelpInfo help = ElementHelpInfo.preTranslated(titleKey, -13391309, conversion);
                elements.add(help.target(this));
             }

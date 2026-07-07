@@ -46,9 +46,6 @@ public final class BCSiliconFabric {
    }
 
    private static void registerNativeTransfer() {
-      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
-         BCSiliconFabricTre.register();
-      }
       ItemStorage.SIDED
          .registerForBlockEntity(
             (blockEntity, direction) -> blockEntity instanceof TileAssemblyTable table ? table.getSidedItemStorage(direction) : null,

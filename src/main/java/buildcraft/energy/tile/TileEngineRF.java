@@ -73,7 +73,7 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    @Nullable
    public EnergyStorage getSidedEnergyStorage(@Nullable Direction direction) {
-      return direction != null && direction != this.getOrientation() && MjAPI.isRfAutoConversionEnabled() ? this.energyStorage : null;
+      return direction != null && direction != this.getOrientation() ? this.energyStorage : null;
    }
 
    public int getCurrentFe() {
@@ -114,13 +114,13 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    @Override
    protected void engineUpdate() {
-      if (MjAPI.isRfAutoConversionEnabled()) {
-         this.pullFeFromNeighbors();
-      }
+      // The Energy Engine is the RF->MJ bridge, so it always converts regardless of the global auto-conversion
+      // mode (which now only governs whether ordinary machines/pipes accept E directly).
+      this.pullFeFromNeighbors();
 
       this.currentOutput = 0L;
       int currentFe = this.getCurrentFe();
-      if (MjAPI.isRfAutoConversionEnabled() && currentFe > 0 && this.isRedstonePowered) {
+      if (currentFe > 0 && this.isRedstonePowered) {
          long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
          if (mjPerRf != 0L) {
             int maxFe = this.getFeConsumptionRate();

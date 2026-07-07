@@ -808,7 +808,6 @@
   "buildcraft.configuration.display": "Display",
   "buildcraft.configuration.general": "General",
   "buildcraft.configuration.worldgen": "World Generation",
-  "buildcraft.configuration.powerMode": "Power Mode (MJ_AUTOCONVERT_RF = accept E, show E when Tech Reborn or similar is loaded else MJ; MJ_ONLY = MJ only; DISPLAY_RF = accept E, always show E)",
   "buildcraft.configuration.mjRfConversionAmount": "MJ to E Conversion Amount",
   "buildcraft.configuration.canEnginesExplode": "Engines Explode on Overheat",
   "buildcraft.configuration.minePlayerProtected": "Mine Player Protected Blocks",

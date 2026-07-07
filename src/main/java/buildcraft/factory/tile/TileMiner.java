@@ -13,7 +13,6 @@ import buildcraft.api.tiles.IHasWork;
 import buildcraft.factory.BCFactoryEntities;
 import buildcraft.factory.collision.MinerShaftCollisions;
 import buildcraft.factory.entity.EntityMinerShaft;
-import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
@@ -283,10 +282,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
       return this.battery;
    }
 
-   @Nullable
-   public MjEnergyStorage getSidedEnergyStorage() {
-      return MjEnergyStorage.createIfRfEnabled(this.battery);
-   }
 
    @Override
    public CompoundTag getUpdateTag(Provider registries) {

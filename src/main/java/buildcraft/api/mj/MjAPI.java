@@ -69,29 +69,6 @@ public class MjAPI {
       return MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get());
    }
 
-   public static boolean isRfAutoConversionEnabled() {
-      return BCLibConfig.powerMode.get().autoconvert;
-   }
-
-   /** True when another mod in the pack exposes Team Reborn {@link #EXTERNAL_ENERGY_UNIT}. */
-   public static boolean isExternalEnergyEcosystemPresent() {
-      return BCLibConfig.externalEnergyEcosystemPresent.get();
-   }
-
-   /**
-    * Whether UI should label power as {@link #EXTERNAL_ENERGY_UNIT} instead of MJ.
-    * MJ_ONLY always uses MJ. DISPLAY_RF forces E. Otherwise E is shown when interop is on and
-    * the modpack includes a Team Reborn energy consumer (e.g. Tech Reborn).
-    */
-   public static boolean displaysExternalEnergyUnits() {
-      BCLibConfig.PowerMode mode = BCLibConfig.powerMode.get();
-      if (!mode.autoconvert) {
-         return false;
-      }
-
-      return mode.displayExternal || isExternalEnergyEcosystemPresent();
-   }
-
    private static long getMjValue() {
       return 1000000L;
    }

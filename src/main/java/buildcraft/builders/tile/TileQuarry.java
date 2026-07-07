@@ -27,7 +27,6 @@ import buildcraft.core.tile.TileMarkerVolume;
 import buildcraft.lib.chunkload.ChunkLoaderManager;
 import buildcraft.lib.chunkload.IChunkLoadingTile;
 import buildcraft.lib.debug.IAdvDebugTarget;
-import buildcraft.lib.fabric.transfer.MjEnergyStorage;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.BoundingBoxUtil;
@@ -145,10 +144,6 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       return this.battery;
    }
 
-   @Nullable
-   public MjEnergyStorage getSidedEnergyStorage() {
-      return MjEnergyStorage.createIfRfEnabled(this.getBattery());
-   }
 
    @Nonnull
    private BoxIterator createBoxIterator() {

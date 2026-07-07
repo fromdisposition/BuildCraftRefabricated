@@ -98,14 +98,6 @@ public final class BCFabricConfig {
 
    private static void applyLib(JsonObject lib) {
       if (lib != null) {
-         String mode = string(lib, "powerMode", BCLibConfig.powerMode.get().name());
-
-         try {
-            BCLibConfig.powerMode.set(BCLibConfig.PowerMode.valueOf(mode));
-         } catch (IllegalArgumentException e) {
-            LOGGER.warn("Unknown powerMode '{}', keeping {}", mode, BCLibConfig.powerMode.get());
-         }
-
          BCLibConfig.mjRfConversionAmount.set(doubleVal(lib, "mjRfConversion", BCLibConfig.mjRfConversionAmount.get()));
          BCLibConfig.canEnginesExplode.set(bool(lib, "canEnginesExplode", BCLibConfig.canEnginesExplode.get()));
          BCLibConfig.useColouredLabels.set(bool(lib, "useColouredLabels", BCLibConfig.useColouredLabels.get()));
@@ -271,7 +263,6 @@ public final class BCFabricConfig {
       core.addProperty("networkUpdateRate", 10);
       root.add("core", core);
       JsonObject lib = new JsonObject();
-      lib.addProperty("powerMode", "MJ_AUTOCONVERT_RF");
       lib.addProperty("colorBlindMode", "AUTO");
       lib.addProperty("mjRfConversion", 0.1);
       lib.addProperty("canEnginesExplode", false);

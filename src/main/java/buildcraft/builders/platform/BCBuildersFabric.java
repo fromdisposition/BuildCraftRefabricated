@@ -91,9 +91,6 @@ public final class BCBuildersFabric {
             (blockEntity, direction) -> blockEntity instanceof TileArchitectTable architect ? architect.getSidedItemStorage(direction) : null,
             BCBuildersBlockEntities.ARCHITECT
          );
-      if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
-         BCBuildersFabricTre.register();
-      }
    }
 
    private static void registerMjCapabilities() {
