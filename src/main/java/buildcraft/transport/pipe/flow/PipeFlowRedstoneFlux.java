@@ -247,6 +247,12 @@ public class PipeFlowRedstoneFlux extends PipeEnergyFlowBase implements IFlowRed
       PipeFlowRedstoneFlux.Section s = this.sections.get(from);
       s.nextPowerQuery += amount;
       s.nextPowerQuery = Math.min(s.nextPowerQuery, this.maxPower);
+      // Demand arriving must wake this pipe, exactly as arriving power does (receivePowerInternal). Otherwise a
+      // query propagated into a sleeping intermediate pipe sits unprocessed -- the demand loop latches and the
+      // upstream generator never sees the consumer, so transfer stalls until an unrelated block update.
+      if (amount > 0 && this.pipe.getHolder().getPipeTile() instanceof TilePipeHolder holder) {
+         holder.wakePipe();
+      }
    }
 
    @Override
