@@ -130,6 +130,20 @@ public class EntityRobot extends EntityRobotBase {
          return;
       }
 
+      try {
+         this.tickServer();
+      } catch (Exception e) {
+         // A legacy/corrupt robot must not crash the whole tick loop -- remove it and keep the world alive.
+         buildcraft.api.core.BCLog.logger.warn(
+            "[robots] Robot " + this.robotId + " threw while ticking; removing it to keep the world stable", e);
+         try {
+            this.discard();
+         } catch (Exception ignored) {
+         }
+      }
+   }
+
+   private void tickServer() {
       if (this.needsInit) {
          this.needsInit = false;
          if (this.getRegistry().getLoadedRobot(this.getRobotId()) != this) {

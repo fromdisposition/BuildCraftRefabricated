@@ -79,6 +79,9 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
       if (this.station == null && world != null && !world.isClientSide()) {
          DockingStation existing = RobotManager.registryProvider.getRegistry(world).getStation(this.holder.getPipePos(), this.side);
          if (existing instanceof DockingStationPipe pipeStation) {
+            // A station reused from the registry may have been loaded detached (world/pipe null); bind it to this
+            // live holder so robotTaking()/powerRoom() can resolve the registry without NPEing.
+            pipeStation.bindToPipe(this.holder);
             this.station = pipeStation;
          } else {
             this.station = new DockingStationPipe(this.holder, this.side);
@@ -106,15 +109,23 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
       }
    }
 
+   /** Set once the station throws while ticking (usually a legacy/corrupt state); it then stops ticking instead of
+    * crashing the pipe every tick. */
+   private boolean tickFaulted;
+
    @Override
    public boolean needsTick() {
-      return true;
+      return !this.tickFaulted;
    }
 
    @Override
    public void onTick() {
       Level world = this.holder.getPipeWorld();
-      if (world != null && !world.isClientSide()) {
+      if (world == null || world.isClientSide() || this.tickFaulted) {
+         return;
+      }
+
+      try {
          this.getStation();
          if (this.station != null) {
             this.station.tickPower();
@@ -125,6 +136,11 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
             this.renderState = newState;
             this.scheduleNetworkUpdate();
          }
+      } catch (Exception e) {
+         // A broken docking station must not crash the pipe tick; disable it and keep the world alive.
+         this.tickFaulted = true;
+         buildcraft.api.core.BCLog.logger.warn(
+            "[robots] Docking station at " + this.holder.getPipePos() + " threw while ticking; disabling it to keep the world stable", e);
       }
    }
 

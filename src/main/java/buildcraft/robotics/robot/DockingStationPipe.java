@@ -53,6 +53,14 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       this.world = pipe.getPipeWorld();
    }
 
+   /** Re-attach a station that was loaded detached (no-arg ctor, e.g. reused from the registry/NBT) to the live
+    * pipe holder, so its {@code world} and {@code pipe} are valid for registry lookups (robotTaking, powerRoom,
+    * tickPower). Idempotent. */
+   public void bindToPipe(IPipeHolder holder) {
+      this.pipe = holder;
+      this.world = holder.getPipeWorld();
+   }
+
    public IPipeHolder getPipe() {
       if (this.pipe == null && this.world != null) {
          BlockEntity tile = this.world.getBlockEntity(this.getPos());
@@ -372,6 +380,11 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
    /** Free MJ the buffer can still take -- but only "wanted" while a live robot bound to this station needs charge,
     * so an idle station never drains the network. */
    private long powerRoom() {
+      // robotTaking() resolves through the registry keyed by world; a detached station (world null) would NPE.
+      if (this.world == null) {
+         return 0L;
+      }
+
       EntityRobotBase robot = this.robotTaking();
       if (robot == null) {
          return 0L;
