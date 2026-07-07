@@ -290,8 +290,12 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
    // so upstream generators route power to this face. Charging the robot is then just draining the buffer -- no
    // fragile "extract from a push-based pipe" that never actually yields power.
 
-   private static final long POWER_BUFFER_CAP = MjAPI.MJ * 512L;
+   static final long POWER_BUFFER_CAP = MjAPI.MJ * 512L;
    private long powerBuffer;
+   /** Cached RF/E adapter, typed as Object so DockingStationPipe itself never carries team.reborn.energy.EnergyStorage
+    *  in its own signature (see {@link DockingStationRfStorage}). Created lazily by {@link #getEnergyStorage()}, which
+    *  is only reached while the energy mod is installed. */
+   private Object rfStorageCache;
 
    private final IMjReceiver mjReceiver = new IMjReceiver() {
       @Override
@@ -327,59 +331,36 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       }
    };
 
-   private final EnergyStorage rfStorage = new EnergyStorage() {
-      @Override
-      public long insert(long maxAmount, TransactionContext transaction) {
-         long mjPerRf = MjRfConversion.DEFAULT_MJ_PER_RF;
-         long roomRf = DockingStationPipe.this.powerRoom() / mjPerRf;
-         long accepted = Math.max(0L, Math.min(roomRf, maxAmount));
-         if (accepted > 0L) {
-            DockingStationPipe.this.rfJournal.updateSnapshots(transaction);
-            DockingStationPipe.this.powerBuffer += accepted * mjPerRf;
-         }
-
-         return accepted;
-      }
-
-      @Override
-      public long extract(long maxAmount, TransactionContext transaction) {
-         return 0L;
-      }
-
-      @Override
-      public long getAmount() {
-         return DockingStationPipe.this.powerBuffer / MjRfConversion.DEFAULT_MJ_PER_RF;
-      }
-
-      @Override
-      public long getCapacity() {
-         return POWER_BUFFER_CAP / MjRfConversion.DEFAULT_MJ_PER_RF;
-      }
-
-      @Override
-      public boolean supportsInsertion() {
-         return true;
-      }
-
-      @Override
-      public boolean supportsExtraction() {
-         return false;
-      }
-   };
-
    /** The MJ receiver the pipe delivers power to (exposed via the station pluggable's {@code getCapability}). */
    public IMjReceiver getMjReceiver() {
       return this.mjReceiver;
    }
 
-   /** The RF storage the pipe delivers power to (exposed via the station pluggable's {@code energyStorage}). */
+   /** The RF storage the pipe delivers power to (exposed via the station pluggable's {@code energyStorage}). Lazily
+    *  built so the {@link EnergyStorage} class is only touched when the energy mod is present -- see the field note. */
    public EnergyStorage getEnergyStorage() {
-      return this.rfStorage;
+      if (this.rfStorageCache == null) {
+         this.rfStorageCache = new DockingStationRfStorage(this);
+      }
+
+      return (EnergyStorage) this.rfStorageCache;
+   }
+
+   /** Current stored buffer, in micro-joules. Package-private for {@link DockingStationRfStorage}. */
+   long getPowerBuffer() {
+      return this.powerBuffer;
+   }
+
+   /** Add RF-sourced power (already converted to micro-joules) to the buffer inside a transaction, journalling so a
+    *  rolled-back RF transfer does not leak power. Package-private for {@link DockingStationRfStorage}. */
+   void rfInsert(TransactionContext transaction, long microJoules) {
+      this.rfJournal.updateSnapshots(transaction);
+      this.powerBuffer += microJoules;
    }
 
    /** Free MJ the buffer can still take -- but only "wanted" while a live robot bound to this station needs charge,
-    * so an idle station never drains the network. */
-   private long powerRoom() {
+    * so an idle station never drains the network. Package-private for {@link DockingStationRfStorage}. */
+   long powerRoom() {
       // robotTaking() resolves through the registry keyed by world; a detached station (world null) would NPE.
       if (this.world == null) {
          return 0L;
