@@ -49,7 +49,7 @@ public abstract class DockingStation {
    }
 
    public EntityRobotBase robotTaking() {
-      if (this.robotTakingId == Long.MAX_VALUE) {
+      if (this.robotTakingId == Long.MAX_VALUE || this.world == null) {
          return null;
       }
 
@@ -80,6 +80,10 @@ public abstract class DockingStation {
    }
 
    public boolean takeAsMain(EntityRobotBase robot) {
+      if (this.world == null) {
+         return false;
+      }
+
       if (!this.isOccupiedByLiveRobot()) {
          IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
          this.linkIsMain = true;
@@ -95,6 +99,10 @@ public abstract class DockingStation {
    }
 
    public boolean take(EntityRobotBase robot) {
+      if (this.world == null) {
+         return false;
+      }
+
       if (!this.isOccupiedByLiveRobot()) {
          IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
          this.linkIsMain = false;
@@ -109,6 +117,11 @@ public abstract class DockingStation {
    }
 
    public void release(EntityRobotBase robot) {
+      if (this.world == null) {
+         this.unsafeRelease(robot);
+         return;
+      }
+
       if (this.robotTaking == robot && !this.linkIsMain) {
          IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
          this.unsafeRelease(robot);

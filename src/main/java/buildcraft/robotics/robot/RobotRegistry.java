@@ -49,6 +49,7 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
    private final Map<ResourceId, Long> resourcesTaken = new HashMap<>();
    private final Map<Long, Set<ResourceId>> resourcesTakenByRobot = new HashMap<>();
    private final Map<Long, Set<StationIndex>> stationsTakenByRobot = new HashMap<>();
+   private boolean stationsWorldBound;
 
    public RobotRegistry(@Nullable ServerLevel level) {
       this.world = level;
@@ -221,7 +222,11 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
 
    @Override
    public synchronized Collection<DockingStation> getStations() {
-      return this.stations.values();
+      // Defensive copy: callers iterate this collection while methods invoked inside the loop -- station
+      // validation on a DockingStationPipe, ghost-station cleanup -- can removeStation() from the live map.
+      // Iterating the live values() view then throws ConcurrentModificationException (masked until now by the
+      // earlier null-world NPE that aborted the search first).
+      return new ArrayList<>(this.stations.values());
    }
 
    @Override
@@ -359,6 +364,20 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
       } else if (world instanceof ServerLevel) {
          RobotRegistry instance = TYPE.getOrCreate(world, () -> new RobotRegistry(null));
          instance.world = world;
+         if (!instance.stationsWorldBound) {
+            // Stations are decoded from the SavedData NBT before this level is attached, so loadStations() bound
+            // them to a null world. Now that the ServerLevel is known, bind them once: otherwise every station
+            // lookup (robotTaking / isTaken / take) NPEs on world.isClientSide() and any robot that searches for a
+            // station -- deposit inventory, recharge, dock -- crashes its AI every tick after a world reload.
+            for (DockingStation station : instance.stations.values()) {
+               if (station.world == null) {
+                  station.world = world;
+               }
+            }
+
+            instance.stationsWorldBound = true;
+         }
+
          return instance;
       } else {
          throw new IllegalArgumentException("World is not a ServerLevel!");

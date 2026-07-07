@@ -9,6 +9,7 @@ package buildcraft.robotics.plug;
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.DockingStation;
+import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.IDockingStationProvider;
 import buildcraft.api.robots.RobotManager;
 import buildcraft.api.transport.pipe.IPipeHolder;
@@ -16,6 +17,7 @@ import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
 import buildcraft.api.transport.pluggable.PluggableModelKey;
 import buildcraft.robotics.BCRoboticsItems;
+import buildcraft.robotics.entity.EntityRobot;
 import buildcraft.robotics.robot.DockingStationPipe;
 // Client-only model key; only referenced from getModelRenderKey, which is invoked exclusively client-side during
 // model baking -- so the class is never loaded on a dedicated server (same pattern as PluggableBlocker).
@@ -104,6 +106,14 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
    public void onRemove() {
       Level world = this.holder.getPipeWorld();
       if (world != null && !world.isClientSide() && this.station != null) {
+         // Breaking the robot's home (main) station destroys the robot: drop it as its board item (with its stored
+         // energy and any carried tool/loot) where it stood, instead of leaving a homeless robot hanging. Done
+         // before removeStation so the registry then sees the station as free.
+         EntityRobotBase taking = this.station.robotTaking();
+         if (this.station.isMainStation() && taking instanceof EntityRobot robot) {
+            robot.dropAsItemAndDiscard();
+         }
+
          RobotManager.registryProvider.getRegistry(world).removeStation(this.station);
          this.station = null;
       }

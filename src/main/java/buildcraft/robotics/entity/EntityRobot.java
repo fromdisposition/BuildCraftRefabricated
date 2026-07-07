@@ -12,6 +12,8 @@ import buildcraft.lib.nbt.BcValueIn;
 import buildcraft.lib.nbt.BcValueOut;
 import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
+import buildcraft.lib.misc.EntityUtil;
+import buildcraft.robotics.item.ItemRobot;
 import buildcraft.api.core.IZone;
 import buildcraft.api.mj.MjBattery;
 import buildcraft.api.robots.AIRobot;
@@ -35,6 +37,9 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -537,6 +542,95 @@ public class EntityRobot extends EntityRobotBase {
    @Override
    public float getAimPitch() {
       return this.aimPitch;
+   }
+
+   // Entity#interact gained a Vec3 hit-location parameter in the 26.x line; older nodes are 2-arg.
+   //? if >= 26.1 {
+   @Override
+   public InteractionResult interact(Player player, InteractionHand hand, Vec3 hitPos) {
+      return this.wrenchInteract(player, hand);
+   }
+   //?} else {
+   /*@Override
+   public InteractionResult interact(Player player, InteractionHand hand) {
+      return this.wrenchInteract(player, hand);
+   }
+   *///?}
+
+   /**
+    * Wrench right-click removes the robot. Robots are invulnerable (hurtServer returns false), so without this there
+    * is no way to remove a placed one -- breaking its station just leaves it hanging. Rebuild the robot item from
+    * its board + stored energy, hand back whatever it was carrying (equipped tool + collected drops), then discard
+    * it: remove() routes through the registry (killRobot) so the station it held frees up. Non-wrench = PASS.
+    */
+   private InteractionResult wrenchInteract(Player player, InteractionHand hand) {
+      ItemStack held = player.getItemInHand(hand);
+      if (!EntityUtil.isWrench(held)) {
+         return InteractionResult.PASS;
+      }
+
+      if (this.level().isClientSide()) {
+         return InteractionResult.SUCCESS;
+      }
+
+      RedstoneBoardRobot boardRobot = this.getBoard();
+      RedstoneBoardRobotNBT boardNBT = boardRobot != null ? boardRobot.getNBTHandler() : null;
+      if (boardNBT == null) {
+         return InteractionResult.PASS;
+      }
+
+      this.giveOrDrop(player, ItemRobot.createRobotStack(boardNBT, this.getBattery().getStored()));
+      if (!this.itemInUse.isEmpty()) {
+         this.giveOrDrop(player, this.itemInUse.copy());
+      }
+
+      for (ItemStack stack : this.inv) {
+         if (stack != null && !stack.isEmpty()) {
+            this.giveOrDrop(player, stack.copy());
+         }
+      }
+
+      EntityUtil.wrenchUsed(player, hand, held, null);
+      this.discard();
+      return InteractionResult.SUCCESS;
+   }
+
+   private void giveOrDrop(Player player, ItemStack stack) {
+      if (!player.getInventory().add(stack)) {
+         player.drop(stack, false);
+      }
+   }
+
+   /**
+    * Destroy-the-station removal: drop the robot (its board + stored energy, plus whatever tool/loot it carried) as
+    * item entities at its position and discard it. Called when the robot's home (main) station is broken, so that
+    * leaves a picked-up-able board on the ground instead of a hanging, homeless robot.
+    */
+   public void dropAsItemAndDiscard() {
+      if (!this.level().isClientSide()) {
+         RedstoneBoardRobot boardRobot = this.getBoard();
+         RedstoneBoardRobotNBT boardNBT = boardRobot != null ? boardRobot.getNBTHandler() : null;
+         if (boardNBT != null) {
+            this.dropStack(ItemRobot.createRobotStack(boardNBT, this.getBattery().getStored()));
+            if (!this.itemInUse.isEmpty()) {
+               this.dropStack(this.itemInUse.copy());
+            }
+
+            for (ItemStack stack : this.inv) {
+               if (stack != null && !stack.isEmpty()) {
+                  this.dropStack(stack.copy());
+               }
+            }
+         }
+      }
+
+      this.discard();
+   }
+
+   private void dropStack(ItemStack stack) {
+      ItemEntity item = new ItemEntity(this.level(), this.getX(), this.getY() + 0.25, this.getZ(), stack);
+      item.setDefaultPickUpDelay();
+      this.level().addFreshEntity(item);
    }
 
    @Override
