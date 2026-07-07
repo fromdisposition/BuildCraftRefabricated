@@ -64,7 +64,8 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
                   ((ContainerDynamoMJ)this.menu)::getSyncedHeat,
                   ((ContainerDynamoMJ)this.menu)::getSyncedPowerStage,
                   ((ContainerDynamoMJ)this.menu)::isSyncedBurningEngine,
-                  true
+                  true,
+                  false
                )
             );
          this.mainGui

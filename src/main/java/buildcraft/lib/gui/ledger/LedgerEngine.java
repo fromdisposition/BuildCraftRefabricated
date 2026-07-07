@@ -34,7 +34,8 @@ public class LedgerEngine extends Ledger_Neptune {
       Supplier<Float> heatLevel,
       Supplier<EnumPowerStage> powerStage,
       Supplier<Boolean> engineOn,
-      boolean expandPositive
+      boolean expandPositive,
+      boolean showHeat
    ) {
       super(gui, 13921311, expandPositive);
       this.title = "gui.power";
@@ -44,8 +45,13 @@ public class LedgerEngine extends Ledger_Neptune {
       this.appendText(() -> LocaleUtil.localizeMjFlow(currentOutput.getAsLong()), 0);
       this.appendText(LocaleUtil.localize("gui.stored") + ":", 11186104).setDropShadow(true);
       this.appendText(() -> LocaleUtil.localizeMj(storedPower.getAsLong()), 0);
-      this.appendText(LocaleUtil.localize("gui.heat") + ":", 11186104).setDropShadow(true);
-      this.appendText(() -> LocaleUtil.localizeHeat(heatLevel.get()), 0);
+      // Engines with no functional heat mechanic (electric converters) omit the Heat row -- it would always read
+      // the baseline and mean nothing.
+      if (showHeat) {
+         this.appendText(LocaleUtil.localize("gui.heat") + ":", 11186104).setDropShadow(true);
+         this.appendText(() -> LocaleUtil.localizeHeat(heatLevel.get()), 0);
+      }
+
       this.calculateMaxSize();
    }
 

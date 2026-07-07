@@ -16,7 +16,6 @@ import buildcraft.energy.container.ContainerEngineRF;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.engine.EngineConnector;
 import buildcraft.lib.engine.TileEngineBase_BC8;
-import static buildcraft.lib.engine.TileEngineBase_BC8.MAX_HEAT;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.EnergyStorageOps;
 import buildcraft.lib.fabric.transfer.FeEnergyStorage;
@@ -46,9 +45,6 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
    public static final int MAX_FE = 10000;
    public static final float HEAT_RATE = 0.06F;
    public static final float COOLDOWN_RATE = 0.01F;
-   /** Heat is capped just below the OVERHEAT threshold (heatLevel 0.85 == heat 215.5): this coolant-less electric
-    * converter runs hot (RED) but must never cross into the permanent OVERHEAT death state. */
-   private static final float SAFE_MAX_HEAT = 214.0F;
    public static final Map<Item, Long> UPGRADE_VALUES = new LinkedHashMap<>();
    public final ItemHandlerSimple upgrades = new ItemHandlerSimple(4, (handler, slot, bef, aft) -> this.setChanged());
    public final FeEnergyStorage energyStorage;
@@ -138,10 +134,6 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
                this.currentOutput = mjGenerated;
                this.power += mjGenerated;
                this.energyStorage.set(currentFe - feConsumed);
-               this.heat += 0.06F;
-               if (this.heat > SAFE_MAX_HEAT) {
-                  this.heat = SAFE_MAX_HEAT;
-               }
             }
          }
       }

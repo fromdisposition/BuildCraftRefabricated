@@ -50,6 +50,7 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
                   ((ContainerEngineStone_BC8)this.menu)::getSyncedHeat,
                   ((ContainerEngineStone_BC8)this.menu)::getSyncedPowerStage,
                   ((ContainerEngineStone_BC8)this.menu)::isSyncedBurningEngine,
+                  true,
                   true
                )
             );

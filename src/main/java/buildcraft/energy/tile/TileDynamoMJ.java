@@ -16,7 +16,7 @@ import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.container.ContainerDynamoMJ;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.engine.TileEngineBase_BC8;
-import static buildcraft.lib.engine.TileEngineBase_BC8.MAX_HEAT;
+import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.EnergyStorageOps;
 import buildcraft.lib.fabric.transfer.FeEnergyStorage;
@@ -158,10 +158,6 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
             if (this.mjBattery.extractPower(maxFe * mjPerRf)) {
                this.currentOutput = maxFe;
                this.energyStorage.set(currentFe + maxFe);
-               this.heat += 0.06F;
-               if (this.heat >= MAX_HEAT) {
-                  this.heat = MAX_HEAT;
-               }
             }
          } else {
             this.currentOutput = 0L;
@@ -243,6 +239,14 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
       }
 
       this.getPowerStage();
+   }
+
+   @Override
+   protected EnumPowerStage computePowerStage() {
+      // Electric MJ->FE converter with no coolant: never overheat (cap at RED), so it can't latch into the
+      // permanent, manual-clear-only OVERHEAT death state.
+      EnumPowerStage stage = super.computePowerStage();
+      return stage == EnumPowerStage.OVERHEAT ? EnumPowerStage.RED : stage;
    }
 
    @Override

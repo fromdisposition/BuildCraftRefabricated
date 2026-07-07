@@ -64,7 +64,8 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
                   ((ContainerEngineRF)this.menu)::getSyncedHeat,
                   ((ContainerEngineRF)this.menu)::getSyncedPowerStage,
                   ((ContainerEngineRF)this.menu)::isSyncedBurningEngine,
-                  true
+                  true,
+                  false
                )
             );
          this.mainGui
