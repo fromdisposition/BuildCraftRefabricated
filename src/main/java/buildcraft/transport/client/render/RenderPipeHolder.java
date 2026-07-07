@@ -17,6 +17,7 @@ import buildcraft.api.transport.pluggable.IPlugDynamicRenderer;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.client.render.BCLibRenderTypes;
+import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.lib.client.render.tile.BcBerRenderUtil;
 import buildcraft.transport.client.PipeRegistryClient;
 import buildcraft.transport.client.model.ModelPipe;
@@ -330,7 +331,12 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
          }
 
          if (p.flow != null && !(p.flow instanceof PipeFlowItems) && PipeRegistryClient.getFlowRenderer(p.flow) != null) {
-            RenderType flowType = BCLibRenderTypes.cutoutBlockSheet();
+            // Energy flow (power_flow / _overload): use the entity-cutout render type against the block atlas --
+            // the SAME type the fluid path uses. cutoutBlockSheet (the block/item sheet) does not reflect the
+            // atlas's per-tick animation blit in this BER submit path on 26.2 (so the flow sprite froze on one
+            // frame), and its BLOCK vertex format also lacks the overlay that BcFluidVertexEmitter.putVertex
+            // writes. entityCutout samples the live animated atlas and matches the vertex format.
+            RenderType flowType = BCLibRenderTypes.entityCutout(BcTextureAtlases.BLOCKS_TEXTURE);
             if (p.flow instanceof PipeFlowFluids fluids) {
                FluidStack forRender = fluids.getFluidStackForRender();
                if (forRender == null || forRender.isEmpty()) {

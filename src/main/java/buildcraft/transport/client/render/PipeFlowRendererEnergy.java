@@ -8,12 +8,13 @@ package buildcraft.transport.client.render;
 
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IPipe;
-import buildcraft.lib.client.fluid.BcFluidBoxQuads;
+import buildcraft.lib.client.fluid.BcFluidVertexEmitter;
 import buildcraft.transport.BCTransportSprites;
 import buildcraft.transport.pipe.flow.PipeEnergyDisplaySupport;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import java.util.EnumMap;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -24,6 +25,8 @@ public final class PipeFlowRendererEnergy {
    private static final ThreadLocal<double[]> TL_BOUNDS = ThreadLocal.withInitial(() -> new double[6]);
    /** The power-flow sprites are already coloured (cyan / overload red), so the cuboid vertices are plain white. */
    private static final float[] WHITE = {1.0F, 1.0F, 1.0F, 1.0F};
+   /** power_flow / _overload are 32x512 vertical strips = 16 frames of 32x32. */
+   private static final int FRAMES = 16;
 
    private PipeFlowRendererEnergy() {
    }
@@ -71,22 +74,24 @@ public final class PipeFlowRendererEnergy {
          return;
       }
 
-      // Emit the flow as flat cuboids straight into the buffer via the shared, allocation-free BcFluidBoxQuads
-      // emitter (the same path the fluid-flow renderer uses). No MutableQuad / Vector3f / Vec3 / AABB are
-      // allocated per face, so a screen full of powered pipes does not churn the GC on low-end machines. The
-      // animation comes from the power_flow sprite itself being an animated atlas texture (frame strip + .mcmeta).
+      // Drive the flow animation ourselves. MC 26.2's per-tick atlas animation blit is not reflected through this
+      // BER submit path (the fluid sprites are static for the same reason), so relying on an animated .mcmeta gave a
+      // frozen frame. Instead the sprite is the full 32x512, 16-frame strip (its .mcmeta was removed) and we pick
+      // the current frame from client game time, sampling only that frame's 1/16 V-band. Still allocation-free
+      // (ThreadLocal scratch): the geometry is unchanged, only the sampled UV band shifts per frame.
+      int frame = (int) ((pipe.getHolder().getPipeWorld().getGameTime() / 2L) % (long) FRAMES);
       double[] bounds = TL_BOUNDS.get();
 
       for (Direction side : Direction.values()) {
          if (pipe.isConnected(side) && power[side.ordinal()] > 0.0) {
             sideFlowBounds(side, power[side.ordinal()], centrePower, bounds);
             // Skip the inner face (toward the pipe centre) — it is hidden by the centre cuboid.
-            emit(pose, buffer, sprite, bounds, 1 << side.getOpposite().ordinal(), packedLight);
+            emitFrameCuboid(pose, buffer, sprite, bounds, 1 << side.getOpposite().ordinal(), frame, packedLight);
          }
       }
 
       centreFlowBounds(centrePower, bounds);
-      emit(pose, buffer, sprite, bounds, 0, packedLight);
+      emitFrameCuboid(pose, buffer, sprite, bounds, 0, frame, packedLight);
    }
 
    /**
@@ -127,9 +132,87 @@ public final class PipeFlowRendererEnergy {
       out[5] = 0.5 + radius;
    }
 
-   private static void emit(Pose pose, VertexConsumer buffer, TextureAtlasSprite sprite, double[] b, int skipFaceMask, int packedLight) {
-      BcFluidBoxQuads.emitCuboid(
-         pose, buffer, sprite, (float)b[0], (float)b[1], (float)b[2], (float)b[3], (float)b[4], (float)b[5], skipFaceMask, WHITE, packedLight
+   /**
+    * Cuboid emit mirroring {@code BcFluidBoxQuads.emitCuboid}, but sampling only the current animation frame's
+    * 1/16 V-band of the strip sprite. Kept local so the shared fluid emitter (used by tanks / heat exchange) is
+    * untouched. Vertices go straight through {@link BcFluidVertexEmitter}; no per-face allocation.
+    */
+   private static void emitFrameCuboid(Pose pose, VertexConsumer buffer, TextureAtlasSprite s, double[] b, int skipFaceMask, int frame, int packedLight) {
+      float minX = (float)b[0], minY = (float)b[1], minZ = (float)b[2];
+      float maxX = (float)b[3], maxY = (float)b[4], maxZ = (float)b[5];
+      int overlay = OverlayTexture.NO_OVERLAY;
+      if ((skipFaceMask & 1 << Direction.DOWN.ordinal()) == 0) {
+         emitHFrame(pose, buffer, s, minX, maxX, minZ, maxZ, minY, 0.0F, -1.0F, 0.0F, frame, packedLight, overlay);
+      }
+
+      if ((skipFaceMask & 1 << Direction.UP.ordinal()) == 0) {
+         emitHFrame(pose, buffer, s, minX, maxX, maxZ, minZ, maxY, 0.0F, 1.0F, 0.0F, frame, packedLight, overlay);
+      }
+
+      if ((skipFaceMask & 1 << Direction.NORTH.ordinal()) == 0) {
+         emitDFrame(pose, buffer, s, Direction.NORTH, maxX, maxY, minZ, maxX, minY, minZ, minX, minY, minZ, minX, maxY, minZ, frame, packedLight, overlay);
+      }
+
+      if ((skipFaceMask & 1 << Direction.SOUTH.ordinal()) == 0) {
+         emitDFrame(pose, buffer, s, Direction.SOUTH, minX, maxY, maxZ, minX, minY, maxZ, maxX, minY, maxZ, maxX, maxY, maxZ, frame, packedLight, overlay);
+      }
+
+      if ((skipFaceMask & 1 << Direction.WEST.ordinal()) == 0) {
+         emitDFrame(pose, buffer, s, Direction.WEST, minX, maxY, minZ, minX, minY, minZ, minX, minY, maxZ, minX, maxY, maxZ, frame, packedLight, overlay);
+      }
+
+      if ((skipFaceMask & 1 << Direction.EAST.ordinal()) == 0) {
+         emitDFrame(pose, buffer, s, Direction.EAST, maxX, maxY, maxZ, maxX, minY, maxZ, maxX, minY, minZ, maxX, maxY, minZ, frame, packedLight, overlay);
+      }
+   }
+
+   private static void emitHFrame(
+      Pose pose, VertexConsumer buffer, TextureAtlasSprite s, float x0, float x1, float z0, float z1, float y, float nx, float ny, float nz, int frame, int light, int overlay
+   ) {
+      BcFluidVertexEmitter.emitQuadWithAtlasUv(
+         pose, buffer, s,
+         x0, y, z0, s.getU(x0), frameV(s, z0, frame),
+         x1, y, z0, s.getU(x1), frameV(s, z0, frame),
+         x1, y, z1, s.getU(x1), frameV(s, z1, frame),
+         x0, y, z1, s.getU(x0), frameV(s, z1, frame),
+         nx, ny, nz, WHITE[0], WHITE[1], WHITE[2], WHITE[3], light, overlay
       );
+   }
+
+   private static void emitDFrame(
+      Pose pose, VertexConsumer buffer, TextureAtlasSprite s, Direction face,
+      float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3, float x4, float y4, float z4, int frame, int light, int overlay
+   ) {
+      float nx = face.getStepX();
+      float ny = face.getStepY();
+      float nz = face.getStepZ();
+      BcFluidVertexEmitter.emitQuadWithAtlasUv(
+         pose, buffer, s,
+         x1, y1, z1, faceU(s, face, x1, z1), faceV(s, face, y1, z1, frame),
+         x2, y2, z2, faceU(s, face, x2, z2), faceV(s, face, y2, z2, frame),
+         x3, y3, z3, faceU(s, face, x3, z3), faceV(s, face, y3, z3, frame),
+         x4, y4, z4, faceU(s, face, x4, z4), faceV(s, face, y4, z4, frame),
+         nx, ny, nz, WHITE[0], WHITE[1], WHITE[2], WHITE[3], light, overlay
+      );
+   }
+
+   /** Sample only the current frame's 1/16 V-band (the sprite is the full 16-frame strip). */
+   private static float frameV(TextureAtlasSprite s, float coord, int frame) {
+      return s.getV((coord + frame) / FRAMES);
+   }
+
+   private static float faceU(TextureAtlasSprite s, Direction face, float x, float z) {
+      return switch (face) {
+         case EAST, WEST -> s.getU(z);
+         default -> s.getU(x);
+      };
+   }
+
+   private static float faceV(TextureAtlasSprite s, Direction face, float y, float z, int frame) {
+      float coord = switch (face) {
+         case UP, DOWN -> z;
+         default -> y;
+      };
+      return frameV(s, coord, frame);
    }
 }
