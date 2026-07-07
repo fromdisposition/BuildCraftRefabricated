@@ -68,8 +68,19 @@ public abstract class DockingStation {
       return this.robotTakingId;
    }
 
+   /**
+    * The single source of truth for occupancy: this station is taken only while a robot that <b>still exists</b>
+    * holds it. {@link #robotTaking()} resolves the taking id through the registry and returns {@code null} if that
+    * robot is no longer loaded, so a station left reserved by a robot that has since been removed -- a "ghost" take
+    * that used to permanently block re-deploying -- is treated as free again. {@link #isTaken}, {@link #takeAsMain}
+    * and {@link #take} all route through this one check so they can never disagree.
+    */
+   private boolean isOccupiedByLiveRobot() {
+      return this.robotTakingId != Long.MAX_VALUE && this.robotTaking() != null;
+   }
+
    public boolean takeAsMain(EntityRobotBase robot) {
-      if (this.robotTakingId == Long.MAX_VALUE) {
+      if (!this.isOccupiedByLiveRobot()) {
          IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
          this.linkIsMain = true;
          this.robotTaking = robot;
@@ -84,7 +95,7 @@ public abstract class DockingStation {
    }
 
    public boolean take(EntityRobotBase robot) {
-      if (this.robotTaking == null) {
+      if (!this.isOccupiedByLiveRobot()) {
          IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
          this.linkIsMain = false;
          this.robotTaking = robot;
@@ -145,7 +156,7 @@ public abstract class DockingStation {
    }
 
    public boolean isTaken() {
-      return this.robotTakingId != Long.MAX_VALUE;
+      return this.isOccupiedByLiveRobot();
    }
 
    public long robotIdTaking() {

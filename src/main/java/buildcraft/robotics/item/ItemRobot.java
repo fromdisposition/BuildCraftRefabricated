@@ -94,7 +94,7 @@ public class ItemRobot extends Item {
       }
 
       DockingStation station = provider.getStation();
-      if (station == null || station.isTaken()) {
+      if (station == null) {
          return InteractionResult.FAIL;
       }
 
@@ -106,13 +106,18 @@ public class ItemRobot extends Item {
       Vec3 spawn = Vec3.atCenterOf(pos).add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
       robot.setPos(spawn.x, spawn.y, spawn.z);
       robot.getRegistry().registerRobot(robot);
-      level.addFreshEntity(robot);
-      if (station.takeAsMain(robot)) {
-         robot.setLinkedStation(station);
-         robot.dock(station);
+      // One station holds exactly one robot: claim it BEFORE spawning. takeAsMain also links the robot to the
+      // station. If a live robot already holds it, the claim fails -> unregister the just-built robot and abort,
+      // so no orphan entity is ever added to the world.
+      if (!station.takeAsMain(robot)) {
+         robot.getRegistry().killRobot(robot);
+         return InteractionResult.FAIL;
       }
 
-      if (!context.getPlayer().getAbilities().instabuild) {
+      level.addFreshEntity(robot);
+      robot.dock(station);
+
+      if (context.getPlayer() != null && !context.getPlayer().getAbilities().instabuild) {
          stack.shrink(1);
       }
 

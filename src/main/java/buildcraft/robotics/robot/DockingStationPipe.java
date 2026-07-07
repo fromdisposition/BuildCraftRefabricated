@@ -14,8 +14,10 @@ import buildcraft.api.robots.RobotManager;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.StatementSlot;
 import buildcraft.api.transport.IInjectable;
+import buildcraft.api.mj.MjRfConversion;
 import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.api.transport.pipe.IFlowPower;
+import buildcraft.api.transport.pipe.IFlowRedstoneFlux;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
@@ -150,7 +152,13 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       }
 
       IPipe ipipe = holder.getPipe();
-      return ipipe != null && ipipe.getFlow() instanceof IFlowPower;
+      if (ipipe == null) {
+         return false;
+      }
+
+      // A station charges its robot from any energy pipe it sits on: kinesis (MJ, IFlowPower) or RF (IFlowRedstoneFlux).
+      Object flow = ipipe.getFlow();
+      return flow instanceof IFlowPower || flow instanceof IFlowRedstoneFlux;
    }
 
    @Override
@@ -260,7 +268,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
    }
 
    public long tryChargeRobot(EntityRobotBase robot) {
-      if (!this.providesPower() || robot == null || robot.getDockingStation() != this) {
+      if (robot == null || robot.getDockingStation() != this || !(robot instanceof EntityRobot entityRobot)) {
          return 0L;
       }
 
@@ -270,7 +278,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       }
 
       IPipe ipipe = holder.getPipe();
-      if (!(ipipe.getFlow() instanceof IFlowPower flow)) {
+      if (ipipe == null) {
          return 0L;
       }
 
@@ -279,9 +287,29 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
          return 0L;
       }
 
-      long extracted = flow.tryExtractPower(needed, this.side.getOpposite());
-      if (extracted > 0L && robot instanceof EntityRobot entityRobot) {
-         return entityRobot.receivePower(extracted, false);
+      Direction from = this.side.getOpposite();
+      Object flow = ipipe.getFlow();
+      long extractedMj;
+      if (flow instanceof IFlowPower power) {
+         // Kinesis pipe: MJ directly.
+         extractedMj = power.tryExtractPower(needed, from);
+      } else if (flow instanceof IFlowRedstoneFlux rf) {
+         // RF pipe: pull the equivalent amount of RF and convert it back to MJ (standard BuildCraft ratio).
+         long mjPerRf = MjRfConversion.DEFAULT_MJ_PER_RF;
+         // Floor, so we never pull more RF than the robot can bank (any sub-RF remainder tops up next tick).
+         int neededRf = (int) Math.min(Integer.MAX_VALUE, needed / mjPerRf);
+         if (neededRf <= 0) {
+            return 0L;
+         }
+
+         int extractedRf = rf.tryExtractPower(neededRf, from);
+         extractedMj = extractedRf * mjPerRf;
+      } else {
+         return 0L;
+      }
+
+      if (extractedMj > 0L) {
+         return entityRobot.receivePower(extractedMj, false);
       }
 
       return 0L;
