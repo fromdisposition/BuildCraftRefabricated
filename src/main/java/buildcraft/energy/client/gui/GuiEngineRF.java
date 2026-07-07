@@ -8,7 +8,6 @@ package buildcraft.energy.client.gui;
 
 import buildcraft.core.BCCoreItems;
 import buildcraft.api.mj.MjAPI;
-import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.container.ContainerEngineRF;
 import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.lib.gui.BCGraphics;
@@ -100,7 +99,7 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
                long mjPerTick = ((ContainerEngineRF)GuiEngineRF.this.menu).engine.getMjPerTick();
                String rf = LocaleUtil.localizeRfFlow(rfPerTick);
                String mj = LocaleUtil.localizeMjFlow(mjPerTick);
-               String conversion = LocaleUtil.localize(BCEnergyConfig.rfFeKey("buildcraft.help.rf_engine.battery"), rf, mj);
+               String conversion = LocaleUtil.localize("buildcraft.help.rf_engine.battery", rf, mj);
                String titleKey = "buildcraft.help.rf_engine.battery.title_mj";
                ElementHelpInfo help = ElementHelpInfo.preTranslated(titleKey, -13391309, conversion);
                elements.add(help.target(this));

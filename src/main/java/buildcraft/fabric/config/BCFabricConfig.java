@@ -215,7 +215,7 @@ public final class BCFabricConfig {
       BCEnergyConfig.enableOilOnWater.set(bool(generator, "enableOilOnWater", BCEnergyConfig.enableOilOnWater.get()));
       BCEnergyConfig.enableOilGeneration.set(bool(generator, "enableOilGeneration", BCEnergyConfig.enableOilGeneration.get()));
       BCEnergyConfig.enableOilSprings.set(bool(generator, "enableOilSprings", BCEnergyConfig.enableOilSprings.get()));
-      BCEnergyConfig.enableWaterSpringGeneration.set(bool(generator, "enableWaterSpringGeneration", BCEnergyConfig.enableWaterSpringGeneration.get()));
+      BCEnergyConfig.enableWaterSprings.set(bool(generator, "enableWaterSprings", BCEnergyConfig.enableWaterSprings.get()));
       BCEnergyConfig.refreshWaterSpringFlag();
       BCEnergyConfig.oilDesertRichChancePercent.set(clampPercent(intVal(
          generator,
@@ -243,12 +243,8 @@ public final class BCFabricConfig {
 
    private static void applyEnergy(JsonObject energy) {
       if (energy != null) {
-         BCEnergyConfig.enableRfEngine.set(bool(energy, "enableRfEngine", BCEnergyConfig.enableRfEngine.get()));
-         BCEnergyConfig.enableMjDynamo.set(bool(energy, "enableMjDynamo", BCEnergyConfig.enableMjDynamo.get()));
          BCEnergyConfig.oilIsSticky.set(bool(energy, "oilIsSticky", BCEnergyConfig.oilIsSticky.get()));
          BCEnergyConfig.enableOilBurn.set(bool(energy, "enableOilBurn", BCEnergyConfig.enableOilBurn.get()));
-         BCEnergyConfig.useRfNaming.set(bool(energy, "useRfNaming", BCEnergyConfig.useRfNaming.get()));
-         BCEnergyConfig.useFullUnitNames.set(bool(energy, "useFullUnitNames", BCEnergyConfig.useFullUnitNames.get()));
          applyOilGeneratorConfig(energy.has("generator") ? energy.getAsJsonObject("generator") : null);
       }
    }
@@ -282,18 +278,14 @@ public final class BCFabricConfig {
       lib.addProperty("chunkLoadLevel", "SELF_TILES");
       root.add("lib", lib);
       JsonObject energy = new JsonObject();
-      energy.addProperty("enableRfEngine", false);
-      energy.addProperty("enableMjDynamo", false);
       energy.addProperty("oilIsSticky", false);
       energy.addProperty("enableOilBurn", true);
-      energy.addProperty("useRfNaming", false);
-      energy.addProperty("useFullUnitNames", true);
       JsonObject generator = new JsonObject();
       generator.addProperty("worldGen", true);
       generator.addProperty("enableOilGeneration", true);
       generator.addProperty("enableOilOnWater", true);
       generator.addProperty("enableOilSprings", true);
-      generator.addProperty("enableWaterSpringGeneration", true);
+      generator.addProperty("enableWaterSprings", true);
       generator.addProperty("oilDesertRichChancePercent", BCEnergyConfig.oilDesertRichChancePercent.get());
       generator.addProperty("oilOceanPatchChancePercent", BCEnergyConfig.oilOceanPatchChancePercent.get());
       generator.add("excludedDimensions", GSON.toJsonTree(BCEnergyConfig.getExcludedDimensions().stream().map(id -> id.toString()).sorted().toList()));

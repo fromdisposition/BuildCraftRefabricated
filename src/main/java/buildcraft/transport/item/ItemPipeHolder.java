@@ -9,7 +9,6 @@ package buildcraft.transport.item;
 import buildcraft.api.transport.pipe.IItemPipe;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeDefinition;
-import buildcraft.energy.BCEnergyConfig;
 import buildcraft.lib.misc.ColourUtil;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.transport.BCTransportItems;
@@ -44,7 +43,7 @@ public class ItemPipeHolder extends BlockItem implements IItemPipe {
    }
 
    public Component getName(ItemStack stack) {
-      Component baseName = (Component)(this.isFePipe() ? Component.translatable(BCEnergyConfig.rfFeKey(this.getDescriptionId())) : super.getName(stack));
+      Component baseName = (Component)(this.isFePipe() ? Component.translatable(this.getDescriptionId()) : super.getName(stack));
       DyeColor col = (DyeColor)stack.get(BCTransportItems.PIPE_COLOUR);
       if (col != null) {
          Component colourName = Component.literal(ColourUtil.getTextFullTooltip(col));

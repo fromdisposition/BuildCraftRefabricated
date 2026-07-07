@@ -13,7 +13,7 @@ public final class WaterSpringSpawnConditions {
 
    public static boolean canSpawn(Structure.GenerationContext context) {
       if (WorldgenSpawnContext.isChunkDecoration(context)
-         && (!BCCoreConfig.worldGen.get() || !BCEnergyConfig.enableWaterSpringGeneration.get())) {
+         && (!BCCoreConfig.worldGen.get() || !BCEnergyConfig.enableWaterSprings.get())) {
          return false;
       }
       if (context.chunkGenerator() instanceof FlatLevelSource) {

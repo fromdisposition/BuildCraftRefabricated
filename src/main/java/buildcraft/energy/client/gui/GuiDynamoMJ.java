@@ -8,7 +8,6 @@ package buildcraft.energy.client.gui;
 
 import buildcraft.core.BCCoreItems;
 import buildcraft.api.mj.MjAPI;
-import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.container.ContainerDynamoMJ;
 import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.lib.gui.BCGraphics;
@@ -100,7 +99,7 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
                int rfPerTick = ((ContainerDynamoMJ)GuiDynamoMJ.this.menu).dynamo.getFeProductionRate(mjPerTick);
                String mj = LocaleUtil.localizeMjFlow(mjPerTick);
                String rf = LocaleUtil.localizeRfFlow(rfPerTick);
-               String conversion = LocaleUtil.localize(BCEnergyConfig.rfFeKey("buildcraft.help.dynamo.battery"), mj, rf);
+               String conversion = LocaleUtil.localize("buildcraft.help.dynamo.battery", mj, rf);
                String titleKey = "buildcraft.help.dynamo.battery.title_mj";
                ElementHelpInfo help = ElementHelpInfo.preTranslated(titleKey, -13391309, conversion);
                elements.add(help.target(this));
