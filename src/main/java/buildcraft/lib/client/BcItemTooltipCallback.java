@@ -14,6 +14,7 @@ import buildcraft.core.item.ItemMapLocation;
 import buildcraft.core.item.ItemPaintbrush_BC8;
 import buildcraft.lib.item.ItemGuideNote;
 import buildcraft.robotics.ItemRedstoneBoard;
+import buildcraft.robotics.item.ItemRobot;
 import buildcraft.silicon.item.ItemGateCopier;
 import buildcraft.silicon.item.ItemPackage;
 import buildcraft.silicon.item.ItemPluggableFacade;
@@ -58,6 +59,8 @@ public final class BcItemTooltipCallback {
          ItemGateCopier.appendTooltipLines(item, stack, flag, lines);
       } else if (stack.getItem() instanceof ItemRedstoneBoard item) {
          ItemRedstoneBoard.appendTooltipLines(item, stack, flag, lines);
+      } else if (stack.getItem() instanceof ItemRobot item) {
+         ItemRobot.appendTooltipLines(item, stack, flag, lines);
       } else if (stack.getItem() instanceof ItemPackage item) {
          ItemPackage.appendTooltipLines(item, stack, flag, lines);
       }

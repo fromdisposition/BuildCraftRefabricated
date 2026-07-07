@@ -40,10 +40,7 @@ public class ItemRedstoneBoard extends Item {
    }
 
    public static void appendTooltipLines(ItemRedstoneBoard item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
-      RedstoneBoardNBT<?> board = getBoardNBT(stack);
-      List<String> lines = new java.util.ArrayList<>();
-      board.addInformation(stack, null, lines, flag.isAdvanced());
-      lines.forEach(line -> tooltip.add(Component.literal(line)));
+      BCBoardNBT.appendColouredInfo(getBoardNBT(stack), stack, flag.isAdvanced(), tooltip);
    }
 
    public static ItemStack createStack(RedstoneBoardNBT<?> boardNBT) {

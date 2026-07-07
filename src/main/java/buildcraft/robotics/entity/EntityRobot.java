@@ -109,6 +109,9 @@ public class EntityRobot extends EntityRobotBase {
 
    @Override
    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+      // Must register the inherited LivingEntity/Entity accessors (id 8 = LIVING_ENTITY_FLAGS, health, ...)
+      // first, or SynchedEntityData.Builder.build() throws "has not defined synched data value 8".
+      super.defineSynchedData(builder);
       builder.define(DATA_ITEM_ACTIVE, false);
       builder.define(DATA_ENERGY, 0.0F);
       builder.define(DATA_TEXTURE, DEFAULT_TEXTURE.toString());

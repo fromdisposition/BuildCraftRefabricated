@@ -26,8 +26,17 @@ import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 
 public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
-   private static final Identifier OVERLAY_SIDE = Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_side");
-   private static final Identifier OVERLAY_BOTTOM = Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_bottom");
+   private static final Identifier OVERLAY_SIDE = tex(Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_side"));
+   private static final Identifier OVERLAY_BOTTOM = tex(Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_bottom"));
+
+   /**
+    * The robot/overlay texture ids are stored logically as {@code entities/<name>} (as classic BuildCraft used
+    * them, and how they travel over the entity's synched data). A render type needs the resolved file location,
+    * so expand them to {@code textures/<name>.png} exactly like a vanilla entity texture location.
+    */
+   private static Identifier tex(Identifier logical) {
+      return Identifier.fromNamespaceAndPath(logical.getNamespace(), "textures/" + logical.getPath() + ".png");
+   }
 
    
    private static final float RADIUS = 0.25F;
@@ -66,7 +75,7 @@ public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
       poseStack.translate(0.0, 0.25, 0.0);
       poseStack.mulPose(Axis.YP.rotationDegrees(-state.aimYaw));
 
-      RenderType body = BCLibRenderTypes.entityCutout(state.texture);
+      RenderType body = BCLibRenderTypes.entityCutout(tex(state.texture));
       collector.submitCustomGeometry(poseStack, body, (pose, buffer) -> {
          for (Direction face : Direction.values()) {
             ModelUtil.createFace(face, CENTER, EXTENT, uvFor(face)).lighti(light).render(pose, buffer);

@@ -17,15 +17,20 @@ import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.robotics.BCRoboticsItems;
 import buildcraft.robotics.entity.EntityRobot;
+import buildcraft.robotics.boards.BCBoardNBT;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class ItemRobot extends Item {
@@ -57,6 +62,12 @@ public class ItemRobot extends Item {
       return buildcraft.lib.nbt.BcNbt.getLong(NBTUtilBC.getItemData(stack), "energy", 0L);
    }
 
+   /** Show which board (and thus which kind of robot) the stack carries -- the board NBT already localizes its
+    * own name and description, exactly like the redstone board item's tooltip. */
+   public static void appendTooltipLines(ItemRobot item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
+      BCBoardNBT.appendColouredInfo(getRobotNBT(stack), stack, flag.isAdvanced(), tooltip);
+   }
+
    @Override
    public InteractionResult useOn(UseOnContext context) {
       Level level = context.getLevel();
@@ -67,8 +78,8 @@ public class ItemRobot extends Item {
          return InteractionResult.PASS;
       }
 
-      PipePluggable plug = holder.getPluggable(face);
-      if (!(plug instanceof IDockingStationProvider provider)) {
+      IDockingStationProvider provider = resolveStation(holder, face, pos, context.getClickLocation());
+      if (provider == null) {
          return InteractionResult.PASS;
       }
 
@@ -106,5 +117,33 @@ public class ItemRobot extends Item {
       }
 
       return InteractionResult.SUCCESS;
+   }
+
+   /**
+    * Resolve the docking-station pluggable the player aimed at. {@code getClickedFace()} only matches the station's
+    * side when the ray hits the station box's outward face; aiming at the box's protruding side edges yields a
+    * different face, so {@code getPluggable(face)} misses and the deploy silently fails. Fall back to the hit
+    * location tested against each pluggable's bounding box -- the same way {@link buildcraft.transport.block.BlockPipeHolder}
+    * resolves clicks on pluggables.
+    */
+   private static IDockingStationProvider resolveStation(IPipeHolder holder, Direction clickedFace, BlockPos pos, Vec3 hit) {
+      if (holder.getPluggable(clickedFace) instanceof IDockingStationProvider direct) {
+         return direct;
+      }
+
+      double lx = hit.x - pos.getX();
+      double ly = hit.y - pos.getY();
+      double lz = hit.z - pos.getZ();
+      for (Direction dir : Direction.values()) {
+         PipePluggable plug = holder.getPluggable(dir);
+         if (plug instanceof IDockingStationProvider provider) {
+            AABB box = plug.getBoundingBox().inflate(0.02);
+            if (lx >= box.minX && lx <= box.maxX && ly >= box.minY && ly <= box.maxY && lz >= box.minZ && lz <= box.maxZ) {
+               return provider;
+            }
+         }
+      }
+
+      return null;
    }
 }

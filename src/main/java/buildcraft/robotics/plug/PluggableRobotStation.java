@@ -13,8 +13,12 @@ import buildcraft.api.robots.RobotManager;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
+import buildcraft.api.transport.pluggable.PluggableModelKey;
 import buildcraft.robotics.BCRoboticsItems;
 import buildcraft.robotics.robot.DockingStationPipe;
+// Client-only model key; only referenced from getModelRenderKey, which is invoked exclusively client-side during
+// model baking -- so the class is never loaded on a dedicated server (same pattern as PluggableBlocker).
+import buildcraft.transport.client.model.key.KeyPlugBlocker;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -43,6 +47,13 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
    @Override
    public AABB getBoundingBox() {
       return BOXES[this.side.ordinal()];
+   }
+
+   @Override
+   public PluggableModelKey getModelRenderKey(Object layer) {
+      // The port never gave the docking station an in-world model, so it was invisible. Render it as the standard
+      // plug box (reusing the already-registered blocker baker) so it shows on the pipe and can be aimed at.
+      return "cutout".equals(layer) ? new KeyPlugBlocker(this.side) : null;
    }
 
    @Override
