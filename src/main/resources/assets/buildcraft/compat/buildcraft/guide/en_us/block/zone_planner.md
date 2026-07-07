@@ -1,5 +1,5 @@
 <lore>
-Robots need a map before they can patrol. The Zone Planner paints coloured regions on a top-down view of the world so programs know where they may work — even when the robots themselves are still on the drawing board.
+Robots already work near their docking station on their own — a map just tells them to range wider. The Zone Planner paints coloured regions on a top-down view of the world so programs know exactly where they may work, even when the robots themselves are still on the drawing board.
 </lore>
 <no_lore>
 The Zone Planner is a map table for defining coloured zones in the world around it. Zones can be saved to and loaded from Map Location items in the side slots.
