@@ -518,7 +518,11 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
     * BLUE) never enter these stages, so they stay clean.
     */
    private void spawnHeatParticles() {
-      if (this.level == null) {
+      // Only engines that can actually be destroyed by heat give the smoke warning. The Redstone (wooden) engine
+      // warms through the colour stages purely to ramp its piston speed -- it caps below OVERHEAT and never explodes
+      // (explosionRange 0), so smoke there would falsely signal danger. The electric converters never leave BLUE, so
+      // they never reach the stages below regardless.
+      if (this.level == null || this.explosionRange() <= 0.0F) {
          return;
       }
 
