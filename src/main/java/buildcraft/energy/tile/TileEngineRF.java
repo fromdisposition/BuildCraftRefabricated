@@ -6,6 +6,7 @@
 
 package buildcraft.energy.tile;
 
+import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjRfConversion;
@@ -45,6 +46,9 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
    public static final int MAX_FE = 10000;
    public static final float HEAT_RATE = 0.06F;
    public static final float COOLDOWN_RATE = 0.01F;
+   /** Heat is capped just below the OVERHEAT threshold (heatLevel 0.85 == heat 215.5): this coolant-less electric
+    * converter runs hot (RED) but must never cross into the permanent OVERHEAT death state. */
+   private static final float SAFE_MAX_HEAT = 214.0F;
    public static final Map<Item, Long> UPGRADE_VALUES = new LinkedHashMap<>();
    public final ItemHandlerSimple upgrades = new ItemHandlerSimple(4, (handler, slot, bef, aft) -> this.setChanged());
    public final FeEnergyStorage energyStorage;
@@ -124,15 +128,19 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
          long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
          if (mjPerRf != 0L) {
             int maxFe = this.getFeConsumptionRate();
-            int feConsumed = Math.min(currentFe, maxFe);
-            long mjGenerated = feConsumed * mjPerRf;
-            if (this.power + mjGenerated < this.getMaxPower()) {
+            // Convert only as much FE as still fits in the MJ buffer (partial fill), instead of the old
+            // all-or-nothing gate that dropped the WHOLE tick's production -- burning no FE and showing Output 0 --
+            // whenever the buffer was within one tick of full. This is the clamp every other engine already uses.
+            long room = this.getMaxPower() - this.power;
+            int feConsumed = (int) Math.max(0L, Math.min((long) Math.min(currentFe, maxFe), room / mjPerRf));
+            if (feConsumed > 0) {
+               long mjGenerated = feConsumed * mjPerRf;
                this.currentOutput = mjGenerated;
                this.power += mjGenerated;
                this.energyStorage.set(currentFe - feConsumed);
                this.heat += 0.06F;
-               if (this.heat >= MAX_HEAT) {
-                  this.heat = MAX_HEAT;
+               if (this.heat > SAFE_MAX_HEAT) {
+                  this.heat = SAFE_MAX_HEAT;
                }
             }
          }
@@ -178,6 +186,14 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
       }
 
       this.getPowerStage();
+   }
+
+   @Override
+   protected EnumPowerStage computePowerStage() {
+      // Never overheat -- cap at the hottest running stage (RED). Heat still rises visually with load, but the
+      // engine can never latch into the permanent, coolant-less OVERHEAT death state.
+      EnumPowerStage stage = super.computePowerStage();
+      return stage == EnumPowerStage.OVERHEAT ? EnumPowerStage.RED : stage;
    }
 
    @Nonnull

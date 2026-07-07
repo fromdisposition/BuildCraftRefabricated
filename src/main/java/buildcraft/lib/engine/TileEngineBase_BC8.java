@@ -392,7 +392,7 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
                   engine.progress = 0.0F;
                   engine.progressPart = 0;
                }
-            } else if (engine.isRedstonePowered && engine.isBurning() && receiver != null) {
+            } else if (engine.isRedstonePowered && (engine.isBurning() || engine.power > 0L) && receiver != null) {
                long requested = receiver.getPowerRequested();
                if (requested > 0L && engine.extractPower(0L, requested, false) > 0L) {
                   engine.progressPart = 1;
@@ -405,7 +405,11 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
             }
 
             if (!pulsedPower) {
-               if (engine.isRedstonePowered && engine.isBurning()) {
+               // Deliver buffered power whenever the engine is on, even if it is not currently producing (out of
+               // fuel / FE): already-generated MJ must always flow onward to a consumer instead of sitting frozen
+               // in the buffer. Otherwise an FE engine on a slow feed converts a full buffer, runs its fuel to 0,
+               // and then starves the network while holding a full charge until fuel returns.
+               if (engine.isRedstonePowered && (engine.isBurning() || engine.power > 0L)) {
                   engine.sendPower(receiver);
                } else {
                   engine.currentOutput = 0L;
