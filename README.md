@@ -5,8 +5,8 @@ Unofficial **Fabric** port of BuildCraft for **modern Minecraft** — pipes, eng
 
 | Minecraft Version | Support Status | Fabric Loader | Fabric API | Java |
 |-------------------|----------------|------------|------------|------|
-| **26.2**| 🟢 **Active** (Upstream) | ≥ 0.19.3 | ≥ 0.154.1+26.2 | 25 |
-| **26.1.x** | 🟢 **Active** (Long term support) | ≥ 0.19.3 | ≥ 0.154.0+26.1.2 | 25 |
+| **26.2**| 🟢 **Active** (Upstream) | ≥ 0.19.3 | ≥ 0.154.2+26.2 | 25 |
+| **26.1.x** | 🟢 **Active** (Long term support) | ≥ 0.19.3 | ≥ 0.154.2+26.1.2 | 25 |
 | **1.21.11** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.141.4+1.21.11 | 21 |
 | **1.21.10** | 🟡 **Active** (Maintenance)  | ≥ 0.19.3 | ≥ 0.138.4+1.21.10 | 21 |
 | **1.21.1** | 🟠 **Active** (Best effort)  | ≥ 0.19.3 | ≥ 0.116.13+1.21.1 | 21 |

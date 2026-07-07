@@ -23,14 +23,14 @@ deps.jei = "27.14.0.44"
 
 ["26.1"]
 deps.loader = "0.19.3"
-deps.fabric_api = "0.154.0+26.1.2"
+deps.fabric_api = "0.154.2+26.1.2"
 mod.mc_dep_range = ">=26.1 <26.2"
 deps.energy = "5.0.0"
 deps.jei = "29.12.0.40"
 
 ["26.2"]
 deps.loader = "0.19.3"
-deps.fabric_api = "0.154.1+26.2"
+deps.fabric_api = "0.154.2+26.2"
 mod.mc_dep_range = ">=26.2 <27.1"
 deps.energy = "5.0.0"
 deps.jei = "30.7.0.39"
