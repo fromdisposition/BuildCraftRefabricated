@@ -17,7 +17,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
 public class AIRobotSleep extends AIRobot {
-   private static final int SLEEPING_TIME = 60 * 20;
+   // How long a robot rests at its station before re-checking for work. The classic 60s made robots feel dead --
+   // a Knight only re-scanned for mobs once a minute, and a robot that missed its tool on the first try waited a
+   // full minute to retry. 3s keeps them responsive while still parking (and saving CPU) when there is nothing to do.
+   private static final int SLEEPING_TIME = 3 * 20;
    private int sleptTime;
 
    public AIRobotSleep(EntityRobotBase robot) {
