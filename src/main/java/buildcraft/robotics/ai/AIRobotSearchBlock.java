@@ -21,6 +21,9 @@ import net.minecraft.world.phys.Vec3;
 
 public class AIRobotSearchBlock extends AIRobot {
    private static final int SCAN_BUDGET = 200;
+   /** Expanding-scan reach (blocks) when a Zone Planner area is set -- the classic BuildCraft cap, kept so zoned
+    *  harvesters still reach as far as before; zone.contains() does the precise clamp inside it. */
+   private static final int ZONE_SCAN_RADIUS = 64;
    private static final java.util.Random RANDOM = new java.util.Random();
 
    public BlockPos blockFound;
@@ -28,6 +31,7 @@ public class AIRobotSearchBlock extends AIRobot {
    private IZone zone;
    private Iterator<BlockPos> blockIter;
    private BlockPos origin;
+   private Vec3 anchor;
    private boolean random;
    private double maxDistanceToEnd;
    private int randomAttempts;
@@ -46,9 +50,14 @@ public class AIRobotSearchBlock extends AIRobot {
 
    @Override
    public void start() {
-      this.origin = this.robot.blockPosition();
+      // Leash block searches to the home station, not the robot's position, so a harvester cannot ratchet across the
+      // world following a trail of targets. No zone -> expand only DEFAULT_SEARCH_RANGE from the station; a Zone
+      // Planner area overrides it (walk out to the classic reach, then zone.contains() clamps to the drawn region).
+      this.origin = this.robot.getWorkAnchorPos();
+      this.anchor = Vec3.atCenterOf(this.origin);
       if (!this.random) {
-         this.blockIter = new BlockScannerExpanding().iterator();
+         int cap = this.zone != null ? ZONE_SCAN_RADIUS : (int) EntityRobotBase.DEFAULT_SEARCH_RANGE;
+         this.blockIter = new BlockScannerExpanding(cap).iterator();
       }
    }
 
@@ -98,7 +107,7 @@ public class AIRobotSearchBlock extends AIRobot {
                return;
             }
          } else {
-            double r = this.robot.level().getRandom().nextFloat() * 64.0;
+            double r = this.robot.level().getRandom().nextFloat() * EntityRobotBase.DEFAULT_SEARCH_RANGE;
             float a = this.robot.level().getRandom().nextFloat() * 2.0F * (float)Math.PI;
             int x = (int)(Math.cos(a) * r + this.origin.getX());
             int z = (int)(Math.sin(a) * r + this.origin.getZ());
@@ -114,11 +123,17 @@ public class AIRobotSearchBlock extends AIRobot {
    }
 
    private boolean accept(BlockPos pos) {
-      if (this.zone != null && !this.zone.contains(Vec3.atCenterOf(pos))) {
+      Vec3 center = Vec3.atCenterOf(pos);
+      if (this.zone != null) {
+         if (!this.zone.contains(center)) {
+            return false;
+         }
+      } else if (this.anchor.distanceToSqr(center) > (double) EntityRobotBase.DEFAULT_SEARCH_RANGE * EntityRobotBase.DEFAULT_SEARCH_RANGE) {
+         // No zone: keep the target inside the station leash sphere.
          return false;
       }
 
-      if (this.maxDistanceToEnd > 0.0 && this.robot.position().distanceToSqr(Vec3.atCenterOf(pos)) > this.maxDistanceToEnd * this.maxDistanceToEnd) {
+      if (this.maxDistanceToEnd > 0.0 && this.robot.position().distanceToSqr(center) > this.maxDistanceToEnd * this.maxDistanceToEnd) {
          return false;
       }
 

@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public class AIRobotFetchItem extends AIRobot {
    
@@ -91,14 +92,22 @@ public class AIRobotFetchItem extends AIRobot {
 
    private void scanForItem() {
       double best = Double.MAX_VALUE;
-      AABB box = this.robot.getBoundingBox().inflate(this.maxRange);
+      // Same station leash as the mob search: no zone -> a fixed sphere around the home station; a Zone Planner area
+      // overrides it (wider query box, zone.contains clamps). Nearest-to-robot wins among the eligible drops.
+      Vec3 anchor = this.robot.getWorkAnchor();
+      float queryRange = this.zone != null ? EntityRobotBase.ZONE_SEARCH_RANGE : this.maxRange;
+      AABB box = new AABB(anchor, anchor).inflate(queryRange);
 
       for (ItemEntity e : this.robot.level().getEntitiesOfClass(ItemEntity.class, box, ItemEntity::isAlive)) {
          if (targettedItems.contains(e.getId()) || this.robot.isKnownUnreachable(e)) {
             continue;
          }
 
-         if (this.zone != null && !this.zone.contains(e.position())) {
+         if (this.zone != null) {
+            if (!this.zone.contains(e.position())) {
+               continue;
+            }
+         } else if (anchor.distanceToSqr(e.position()) >= (double) this.maxRange * this.maxRange) {
             continue;
          }
 
@@ -107,7 +116,7 @@ public class AIRobotFetchItem extends AIRobot {
          }
 
          double distance = this.robot.position().distanceToSqr(e.position());
-         if (distance < this.maxRange * this.maxRange && distance < best) {
+         if (distance < best) {
             best = distance;
             this.target = e;
          }

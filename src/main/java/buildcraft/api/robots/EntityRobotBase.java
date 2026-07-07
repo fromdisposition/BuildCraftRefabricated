@@ -25,12 +25,27 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 
 public abstract class EntityRobotBase extends LivingEntity {
    public static final long MAX_POWER = 5000L * MjAPI.MJ;
    public static final long SAFETY_POWER = MAX_POWER / 5L;
    public static final long SHUTDOWN_POWER = 0L;
    public static final long NULL_ROBOT_ID = Long.MAX_VALUE;
+   /**
+    * Leash radius (blocks) from the robot's home station for every search that has no explicit zone -- mobs, animals,
+    * dropped items and harvestable blocks alike. The classic 250 let a Knight/Butcher/Picker roam ~15 chunks and clear
+    * half the world; worse, searches centred on the robot's <em>current</em> position, so it ratcheted outward chasing
+    * a trail. Measuring from the station instead makes this a true leash the robot cannot drift past. A Zone Planner
+    * "work area" overrides it (see {@link #ZONE_SEARCH_RANGE}), so a larger patrol is an explicit choice.
+    */
+   public static final float DEFAULT_SEARCH_RANGE = 32.0F;
+   /**
+    * Coarse query bound (blocks) used only when a Zone Planner work area is set: the actual clamp is {@code zone
+    * contains()}, but entity/item lookups still need a finite box around the station to gather candidates, so a large
+    * drawn zone is not silently clipped to {@link #DEFAULT_SEARCH_RANGE}.
+    */
+   public static final float ZONE_SEARCH_RANGE = 128.0F;
 
    public EntityRobotBase(Level par1World) {
       //? if >= 26.2 {
@@ -99,6 +114,19 @@ public abstract class EntityRobotBase extends LivingEntity {
    public abstract IZone getZoneToWork();
 
    public abstract IZone getZoneToLoadUnload();
+
+   /** Centre of the robot's home (linked) station -- the leash origin for all searches. Falls back to the robot's own
+    *  position if it has no linked station yet (e.g. mid-reload), which just reproduces the old robot-centred behaviour. */
+   public Vec3 getWorkAnchor() {
+      DockingStation station = this.getLinkedStation();
+      return station != null ? Vec3.atCenterOf(station.getPos()) : this.position();
+   }
+
+   /** Block form of {@link #getWorkAnchor()} for the block scanners. */
+   public BlockPos getWorkAnchorPos() {
+      DockingStation station = this.getLinkedStation();
+      return station != null ? station.getPos() : this.blockPosition();
+   }
 
    public abstract boolean containsItems();
 

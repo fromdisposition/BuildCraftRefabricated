@@ -40,7 +40,7 @@ public class BoardRobotKnight extends RedstoneBoardRobot {
       } else {
          this.startDelegateAI(new AIRobotSearchEntity(this.robot,
             (IEntityFilter)entity -> entity instanceof Enemy || (entity instanceof NeutralMob neutral && neutral.isAngry()),
-            250.0F, this.robot.getZoneToWork()));
+            EntityRobotBase.DEFAULT_SEARCH_RANGE, this.robot.getZoneToWork()));
       }
    }
 

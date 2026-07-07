@@ -37,7 +37,7 @@ public class BoardRobotButcher extends RedstoneBoardRobot {
       } else if (this.robot.getHeldItem().isDamageableItem() && this.robot.getHeldItem().getDamageValue() >= this.robot.getHeldItem().getMaxDamage()) {
          this.startDelegateAI(new AIRobotGotoStationAndUnload(this.robot));
       } else {
-         this.startDelegateAI(new AIRobotSearchEntity(this.robot, (IEntityFilter)entity -> entity instanceof Animal, 250.0F, this.robot.getZoneToWork()));
+         this.startDelegateAI(new AIRobotSearchEntity(this.robot, (IEntityFilter)entity -> entity instanceof Animal, EntityRobotBase.DEFAULT_SEARCH_RANGE, this.robot.getZoneToWork()));
       }
    }
 

@@ -10,10 +10,20 @@ import java.util.Iterator;
 import net.minecraft.core.BlockPos;
 
 public class BlockScannerExpanding implements Iterable<BlockPos> {
+   private final int maxRadius;
    private int searchRadius = 1;
    private int searchX = -1;
    private int searchY = -1;
    private int searchZ = -1;
+
+   public BlockScannerExpanding() {
+      this(64);
+   }
+
+   /** @param maxRadius how far (in blocks, Chebyshev) the expanding cube walks before it stops. */
+   public BlockScannerExpanding(int maxRadius) {
+      this.maxRadius = maxRadius;
+   }
 
    @Override
    public Iterator<BlockPos> iterator() {
@@ -23,7 +33,7 @@ public class BlockScannerExpanding implements Iterable<BlockPos> {
    private final class BlockIt implements Iterator<BlockPos> {
       @Override
       public boolean hasNext() {
-         return BlockScannerExpanding.this.searchRadius < 64;
+         return BlockScannerExpanding.this.searchRadius < BlockScannerExpanding.this.maxRadius;
       }
 
       @Override

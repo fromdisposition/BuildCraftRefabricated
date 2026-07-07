@@ -21,7 +21,7 @@ public class BoardRobotPicker extends RedstoneBoardRobot {
    }
 
    private void fetchNewItem() {
-      this.startDelegateAI(new AIRobotFetchItem(this.robot, 250.0F,
+      this.startDelegateAI(new AIRobotFetchItem(this.robot, EntityRobotBase.DEFAULT_SEARCH_RANGE,
          StationActions.getGateFilter(this.robot.getLinkedStation()), this.robot.getZoneToWork()));
    }
 
