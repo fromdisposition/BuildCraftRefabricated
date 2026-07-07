@@ -17,8 +17,7 @@ Open the engine's interface (crouch-click, or click without a wrench/pipe in han
 Each filled slot adds independently, and the engine consumes more E per tick as the output rises (it becomes faster; it doesn't generate more MJ from the same amount of E).
 
 <chapter name="Engine Mechanics"/>
-BuildCraft engines have 5 temperature stages, which determines the speed the engine runs at: Blue, Green, Yellow, Red and Black.
-Energy Engines warm through these stages as they run but cap at Black and <bold>cannot overheat</bold>, so they never need to be cooled.
+Unlike the fuel-burning engines, the Energy Engine runs cold: it stays on the <blue>blue</blue> stage and <bold>cannot overheat</bold>, so it never needs cooling and can never explode.
 Engines will always connect to the nearest compatible MJ consumer.
 You can use a Wrench to rotate it to change which block it is powering.
 

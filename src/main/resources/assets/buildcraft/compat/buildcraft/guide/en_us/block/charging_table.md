@@ -6,7 +6,7 @@ The Charging Table is a laser-powered charger. It transfers MJ from adjacent las
 </no_lore>
 <chapter name="Information"/>
 The single slot holds the item to charge. Place an energy-capable item there and the table pushes MJ into it while a laser is aimed at the block. Items can be inserted and pulled from any side, so a pipe can cycle depleted tools through automatically.
-Charging only happens when energy interop is enabled — items that do not accept MJ simply sit in the slot unchanged.
+Only items that can store energy are charged — anything else simply sits in the slot unchanged. The table is a dedicated MJ-to-energy charger, so it always works regardless of any other power settings.
 <recipes_usages stack="buildcraftsilicon:charging_table"/>
 <chapter name="Power"/>
 Like the <link inline="buildcraft:block/assembly_table"/>, the Charging Table is a <link inline="buildcraft:block/laser"/> target. Aim one or more lasers at it; the more lasers, the faster the item charges. The table has no internal engine of its own — the beam is its only power input.

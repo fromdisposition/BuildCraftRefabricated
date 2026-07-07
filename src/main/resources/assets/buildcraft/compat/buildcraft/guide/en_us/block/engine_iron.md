@@ -14,7 +14,7 @@ Using dirty fuels in an engine will cause it to get clogged up with residue whic
 
 <chapter name="Engine Mechanics"/>
 BuildCraft engines have 5 temperature stages, which determines the speed the engine runs at: Blue, Green, Yellow, Red and Black.
-Combustion engines will only turn black if the engines internal power buffer fills up as the power has nowhere to go, thus the engine will overheat and needs to be wrenched to be cooled.
+Combustion engines overheat if they run without enough coolant, or if their internal power buffer fills up with nowhere to go. By default an overheating (black) engine <red>explodes</red>, so keep it cooled and give its power an outlet. (On servers where engine explosions are disabled, it instead stalls and must be wrenched to cool.)
 Engines will always connect to the nearest compatible MJ consumer.
 You can use a Wrench to rotate it to change which block it is powering.
 

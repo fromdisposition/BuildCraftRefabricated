@@ -9,7 +9,7 @@ A Stirling Engines are just as efficient as a regular furnace when it comes to p
 <recipes_usages stack="buildcraftenergy:engine_stone"/>
 <chapter name="Engine Mechanics"/>
 BuildCraft engines have 5 temperature stages, which determines the speed the engine runs at: Blue, Green, Yellow, Red and Black.
-Stirling engines will only turn black if the engines internal power buffer fills up as the power has nowhere to go, thus the engine will overheat and needs to be wrenched to be cooled.
+Stirling engines turn black and overheat if their internal power buffer fills up with nowhere to go. By default an overheating engine <red>explodes</red>, so always give its power an outlet. (On servers where engine explosions are disabled, it instead stalls and must be wrenched to cool.)
 Engines will always connect to the nearest compatible MJ consumer.
 You can use a Wrench to rotate it to change which block it is powering.
 Stirling engines can be "chained" in a line with up to 3 engines in total.

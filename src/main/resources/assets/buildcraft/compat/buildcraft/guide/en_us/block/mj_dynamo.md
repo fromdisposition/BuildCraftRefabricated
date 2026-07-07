@@ -17,8 +17,7 @@ Interact with the dynamo to see its interface to access four upgrade slots. Drop
 Each filled slot adds independently, and the dynamo consumes more MJ per tick as the output rises (it becomes faster; it doesn't generate more E from the same amount of MJ).
 
 <chapter name="Engine Mechanics"/>
-BuildCraft engines have 5 temperature stages, which determines the speed the engine runs at: Blue, Green, Yellow, Red and Black.
-MJ Dynamos warm through these stages as they run but cap at Black and <bold>cannot overheat</bold>, so they never need to be cooled.
+Unlike the fuel-burning engines, the MJ Dynamo runs cold: it stays on the <blue>blue</blue> stage and <bold>cannot overheat</bold>, so it never needs cooling and can never explode.
 The dynamo will always push E to the receiver on its piston face.
 You can use a Wrench to rotate it to change which block it is powering.
 
