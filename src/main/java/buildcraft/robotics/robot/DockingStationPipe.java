@@ -14,11 +14,19 @@ import buildcraft.api.robots.RobotManager;
 import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.StatementSlot;
 import buildcraft.api.transport.IInjectable;
+import buildcraft.api.mj.IMjConnector;
+import buildcraft.api.mj.IMjReceiver;
+import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjRfConversion;
 import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.api.transport.pipe.IFlowPower;
 import buildcraft.api.transport.pipe.IFlowRedstoneFlux;
 import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.transport.pipe.flow.PipeFlowPower;
+import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import team.reborn.energy.api.EnergyStorage;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.robotics.BCRoboticsStatements;
@@ -267,52 +275,154 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       return ItemStack.EMPTY;
    }
 
+   // --- Robot power ---------------------------------------------------------------------------------------------
+   // The station is a small energy buffer that the pipe pushes into like any machine, and that drip-feeds the docked
+   // robot. It exposes an MJ receiver (kinesis pipes) and an RF storage (RF pipes) to the pipe via the station
+   // pluggable's capability hooks, so the pipe's normal push logic delivers here; and it posts its demand each tick
+   // so upstream generators route power to this face. Charging the robot is then just draining the buffer -- no
+   // fragile "extract from a push-based pipe" that never actually yields power.
+
+   private static final long POWER_BUFFER_CAP = MjAPI.MJ * 512L;
+   private long powerBuffer;
+
+   private final IMjReceiver mjReceiver = new IMjReceiver() {
+      @Override
+      public boolean canConnect(IMjConnector other) {
+         return true;
+      }
+
+      @Override
+      public long getPowerRequested() {
+         return DockingStationPipe.this.powerRoom();
+      }
+
+      @Override
+      public long receivePower(long microJoules, boolean simulate) {
+         long accepted = Math.min(DockingStationPipe.this.powerRoom(), microJoules);
+         if (!simulate) {
+            DockingStationPipe.this.powerBuffer += accepted;
+         }
+
+         return microJoules - accepted;
+      }
+   };
+
+   private final SnapshotParticipant<Long> rfJournal = new SnapshotParticipant<Long>() {
+      @Override
+      protected Long createSnapshot() {
+         return DockingStationPipe.this.powerBuffer;
+      }
+
+      @Override
+      protected void readSnapshot(Long snapshot) {
+         DockingStationPipe.this.powerBuffer = snapshot;
+      }
+   };
+
+   private final EnergyStorage rfStorage = new EnergyStorage() {
+      @Override
+      public long insert(long maxAmount, TransactionContext transaction) {
+         long mjPerRf = MjRfConversion.DEFAULT_MJ_PER_RF;
+         long roomRf = DockingStationPipe.this.powerRoom() / mjPerRf;
+         long accepted = Math.max(0L, Math.min(roomRf, maxAmount));
+         if (accepted > 0L) {
+            DockingStationPipe.this.rfJournal.updateSnapshots(transaction);
+            DockingStationPipe.this.powerBuffer += accepted * mjPerRf;
+         }
+
+         return accepted;
+      }
+
+      @Override
+      public long extract(long maxAmount, TransactionContext transaction) {
+         return 0L;
+      }
+
+      @Override
+      public long getAmount() {
+         return DockingStationPipe.this.powerBuffer / MjRfConversion.DEFAULT_MJ_PER_RF;
+      }
+
+      @Override
+      public long getCapacity() {
+         return POWER_BUFFER_CAP / MjRfConversion.DEFAULT_MJ_PER_RF;
+      }
+
+      @Override
+      public boolean supportsInsertion() {
+         return true;
+      }
+
+      @Override
+      public boolean supportsExtraction() {
+         return false;
+      }
+   };
+
+   /** The MJ receiver the pipe delivers power to (exposed via the station pluggable's {@code getCapability}). */
+   public IMjReceiver getMjReceiver() {
+      return this.mjReceiver;
+   }
+
+   /** The RF storage the pipe delivers power to (exposed via the station pluggable's {@code energyStorage}). */
+   public EnergyStorage getEnergyStorage() {
+      return this.rfStorage;
+   }
+
+   /** Free MJ the buffer can still take -- but only "wanted" while a live robot bound to this station needs charge,
+    * so an idle station never drains the network. */
+   private long powerRoom() {
+      EntityRobotBase robot = this.robotTaking();
+      if (robot == null) {
+         return 0L;
+      }
+
+      long need = robot.getBattery().getCapacity() - robot.getBattery().getStored();
+      if (need <= 0L) {
+         return 0L;
+      }
+
+      return Math.max(0L, Math.min(POWER_BUFFER_CAP - this.powerBuffer, need));
+   }
+
+   /** Post this station's power demand into the pipe each tick so upstream generators route power to this face.
+    * A blocking pluggable is skipped by the pipe's own {@code requestFromConnectedTiles}, so we drive the query
+    * directly. The pipe never sleeps while a station is present ({@code needsTick() == true}). */
+   public void tickPower() {
+      long room = this.powerRoom();
+      if (room <= 0L) {
+         return;
+      }
+
+      IPipeHolder holder = this.getPipe();
+      IPipe ipipe = holder == null ? null : holder.getPipe();
+      Object flow = ipipe == null ? null : ipipe.getFlow();
+      if (flow instanceof PipeFlowPower power) {
+         PipeFlowPower.Section section = power.getSection(this.side);
+         if (section != null) {
+            section.nextPowerQuery += room;
+         }
+      } else if (flow instanceof PipeFlowRedstoneFlux rf) {
+         PipeFlowRedstoneFlux.Section section = rf.getSection(this.side);
+         if (section != null) {
+            section.nextPowerQuery += (int) Math.min(Integer.MAX_VALUE, room / MjRfConversion.DEFAULT_MJ_PER_RF);
+         }
+      }
+   }
+
    public long tryChargeRobot(EntityRobotBase robot) {
       if (robot == null || robot.getDockingStation() != this || !(robot instanceof EntityRobot entityRobot)) {
          return 0L;
       }
 
-      IPipeHolder holder = this.getPipe();
-      if (holder == null) {
+      long need = robot.getBattery().getCapacity() - robot.getBattery().getStored();
+      long give = Math.min(need, this.powerBuffer);
+      if (give <= 0L) {
          return 0L;
       }
 
-      IPipe ipipe = holder.getPipe();
-      if (ipipe == null) {
-         return 0L;
-      }
-
-      long needed = robot.getBattery().getCapacity() - robot.getBattery().getStored();
-      if (needed <= 0L) {
-         return 0L;
-      }
-
-      Direction from = this.side.getOpposite();
-      Object flow = ipipe.getFlow();
-      long extractedMj;
-      if (flow instanceof IFlowPower power) {
-         // Kinesis pipe: MJ directly.
-         extractedMj = power.tryExtractPower(needed, from);
-      } else if (flow instanceof IFlowRedstoneFlux rf) {
-         // RF pipe: pull the equivalent amount of RF and convert it back to MJ (standard BuildCraft ratio).
-         long mjPerRf = MjRfConversion.DEFAULT_MJ_PER_RF;
-         // Floor, so we never pull more RF than the robot can bank (any sub-RF remainder tops up next tick).
-         int neededRf = (int) Math.min(Integer.MAX_VALUE, needed / mjPerRf);
-         if (neededRf <= 0) {
-            return 0L;
-         }
-
-         int extractedRf = rf.tryExtractPower(neededRf, from);
-         extractedMj = extractedRf * mjPerRf;
-      } else {
-         return 0L;
-      }
-
-      if (extractedMj > 0L) {
-         return entityRobot.receivePower(extractedMj, false);
-      }
-
-      return 0L;
+      this.powerBuffer -= give;
+      return entityRobot.receivePower(give, false);
    }
 
    @Override

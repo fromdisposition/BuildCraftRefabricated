@@ -7,6 +7,7 @@
 package buildcraft.robotics.plug;
 
 import buildcraft.lib.nbt.BcNbt;
+import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.IDockingStationProvider;
 import buildcraft.api.robots.RobotManager;
@@ -26,6 +27,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import team.reborn.energy.api.EnergyStorage;
 
 public class PluggableRobotStation extends PipePluggable implements IDockingStationProvider {
    private static final AABB[] BOXES = new AABB[6];
@@ -113,12 +115,38 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
    public void onTick() {
       Level world = this.holder.getPipeWorld();
       if (world != null && !world.isClientSide()) {
+         this.getStation();
+         if (this.station != null) {
+            this.station.tickPower();
+         }
+
          RobotStationState newState = this.computeState();
          if (newState != this.renderState) {
             this.renderState = newState;
             this.scheduleNetworkUpdate();
          }
       }
+   }
+
+   // The pipe delivers power to the station like any machine: kinesis pipes push MJ into the receiver, RF pipes
+   // insert into the energy storage. Both feed the station's buffer, which drip-feeds the docked robot.
+   @Override
+   @SuppressWarnings("unchecked")
+   public <T> T getCapability(Object cap) {
+      if (cap == MjAPI.CAP_RECEIVER) {
+         this.getStation();
+         if (this.station != null) {
+            return (T) this.station.getMjReceiver();
+         }
+      }
+
+      return null;
+   }
+
+   @Override
+   public EnergyStorage energyStorage() {
+      this.getStation();
+      return this.station != null ? this.station.getEnergyStorage() : null;
    }
 
    private RobotStationState computeState() {
