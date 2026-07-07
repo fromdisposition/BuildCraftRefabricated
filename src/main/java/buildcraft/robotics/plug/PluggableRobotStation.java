@@ -105,18 +105,33 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
    @Override
    public void onRemove() {
       Level world = this.holder.getPipeWorld();
-      if (world != null && !world.isClientSide() && this.station != null) {
+      if (world == null || world.isClientSide()) {
+         return;
+      }
+
+      var registry = RobotManager.registryProvider.getRegistry(world);
+      // Resolve the authoritative registry station for this position rather than trusting this.station: it is a
+      // lazily-populated transient field and can still be null here (e.g. right after a world reload, before
+      // anything called getStation()) -- the old `this.station != null` guard then skipped everything, so breaking
+      // the pipe left the docked robot hanging instead of dropping it.
+      DockingStation station = this.station != null ? this.station : registry.getStation(this.holder.getPipePos(), this.side);
+      if (station != null) {
+         if (station instanceof DockingStationPipe pipeStation) {
+            // Bind so world/pipe are set and robotTaking() resolves through the registry without NPEing.
+            pipeStation.bindToPipe(this.holder);
+         }
+
          // Breaking the robot's home (main) station destroys the robot: drop it as its board item (with its stored
-         // energy and any carried tool/loot) where it stood, instead of leaving a homeless robot hanging. Done
-         // before removeStation so the registry then sees the station as free.
-         EntityRobotBase taking = this.station.robotTaking();
-         if (this.station.isMainStation() && taking instanceof EntityRobot robot) {
+         // energy and carried tool/loot) where it stood, before removeStation frees the slot.
+         EntityRobotBase taking = station.robotTaking();
+         if (station.isMainStation() && taking instanceof EntityRobot robot) {
             robot.dropAsItemAndDiscard();
          }
 
-         RobotManager.registryProvider.getRegistry(world).removeStation(this.station);
-         this.station = null;
+         registry.removeStation(station);
       }
+
+      this.station = null;
    }
 
    /** Set once the station throws while ticking (usually a legacy/corrupt state); it then stops ticking instead of
