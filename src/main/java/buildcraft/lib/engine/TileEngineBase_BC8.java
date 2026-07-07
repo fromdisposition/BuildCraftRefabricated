@@ -26,6 +26,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -33,6 +35,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import buildcraft.lib.nbt.BcProfiler;
+import net.minecraft.util.RandomSource;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -212,6 +215,11 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       }
 
       this.heat = 20.0F;
+      // Drain the buffer too. For buffer-driven engines (the stone engine derives heat from power/maxPower), a full
+      // buffer is what pushed it into OVERHEAT in the first place; leaving it full means updateHeatLevel re-derives
+      // ~max heat next tick and re-latches OVERHEAT instantly, so the wrench appeared to do nothing. Clearing power
+      // removes the heat source so the reset actually sticks (and is the fair cost of overheating).
+      this.power = 0L;
       this.powerStage = this.computePowerStage();
       this.isPumping = false;
       this.setChanged();
@@ -498,6 +506,57 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
          if (this.clientProgress < 0.0F) {
             this.clientProgress = 0.0F;
          }
+      }
+
+      this.spawnHeatParticles();
+   }
+
+   /**
+    * Ambient smoke rising from the top of an overheating engine. Intensity ramps with the (synced) power stage --
+    * a thin wisp at YELLOW, a steadier plume at RED, and a heavy plume once OVERHEAT latches -- so a dangerously
+    * hot engine reads at a glance. Client-only; engines that never build heat (the electric converters, kept at
+    * BLUE) never enter these stages, so they stay clean.
+    */
+   private void spawnHeatParticles() {
+      if (this.level == null) {
+         return;
+      }
+
+      RandomSource rand = this.level.getRandom();
+      ParticleOptions particle;
+      int count;
+      switch (this.getPowerStage()) {
+         case YELLOW:
+            if (rand.nextInt(3) != 0) {
+               return;
+            }
+
+            particle = ParticleTypes.SMOKE;
+            count = 1;
+            break;
+         case RED:
+            if (rand.nextInt(2) != 0) {
+               return;
+            }
+
+            particle = ParticleTypes.LARGE_SMOKE;
+            count = 1;
+            break;
+         case OVERHEAT:
+            particle = ParticleTypes.LARGE_SMOKE;
+            count = 1 + rand.nextInt(2);
+            break;
+         default:
+            return;
+      }
+
+      BlockPos pos = this.getBlockPos();
+      for (int i = 0; i < count; i++) {
+         double x = pos.getX() + 0.3 + rand.nextDouble() * 0.4;
+         double y = pos.getY() + 1.0 + rand.nextDouble() * 0.2;
+         double z = pos.getZ() + 0.3 + rand.nextDouble() * 0.4;
+         double vy = 0.02 + rand.nextDouble() * 0.02;
+         this.level.addParticle(particle, x, y, z, 0.0, vy, 0.0);
       }
    }
 

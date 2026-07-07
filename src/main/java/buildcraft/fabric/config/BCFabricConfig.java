@@ -265,7 +265,7 @@ public final class BCFabricConfig {
       JsonObject lib = new JsonObject();
       lib.addProperty("colorBlindMode", "AUTO");
       lib.addProperty("mjRfConversion", 0.1);
-      lib.addProperty("canEnginesExplode", false);
+      lib.addProperty("canEnginesExplode", true);
       lib.addProperty("useColouredLabels", true);
       lib.addProperty("useHighContrastLabelColours", false);
       lib.addProperty("useBucketsStatic", true);

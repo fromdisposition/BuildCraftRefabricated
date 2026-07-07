@@ -8,11 +8,9 @@ package buildcraft.energy.client.gui;
 
 import buildcraft.core.BCCoreItems;
 import buildcraft.api.mj.MjAPI;
-import buildcraft.api.mj.MjRfConversion;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.container.ContainerDynamoMJ;
 import buildcraft.energy.tile.TileDynamoMJ;
-import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.GuiElementSimple;
@@ -85,13 +83,10 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
                   TileDynamoMJ.initUpgrades();
                   String unitLabel = LocaleUtil.localize("buildcraft.gui.rf_engine.upgrade_rate_unit_mj");
 
-                  long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
-
                   for (Entry<Item, Long> entry : TileDynamoMJ.UPGRADE_VALUES.entrySet()) {
                      String itemName = new ItemStack((ItemLike)entry.getKey()).getHoverName().getString();
-                     long mj = entry.getValue();
-                     int rfPerTick = mjPerRf != 0L ? (int)(mj / mjPerRf) : 0;
-                     lines.add(itemName + " = +" + rfPerTick * 20 + " " + unitLabel);
+                     long mjPerSecond = entry.getValue() * 20L / MjAPI.MJ;
+                     lines.add(itemName + " = +" + mjPerSecond + " " + unitLabel);
                   }
 
                   tooltips.add(new ToolTip(lines));
