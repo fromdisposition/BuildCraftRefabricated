@@ -43,7 +43,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
     * tracks the power actually flowing in rather than being spent in a burst whenever the buffer happens to be
     * full. Without this a full 500 MJ buffer would break several blocks in a single tick, then stall, which reads
     * as erratic "fast then slow" mining. */
-   public static final long MAX_MJ_PER_TICK = 20L * MjAPI.MJ;
+   public static final long MAX_MJ_PER_TICK = 40L * MjAPI.MJ;
    protected int progress = 0;
    @Nullable
    protected BlockPos currentPos = null;
