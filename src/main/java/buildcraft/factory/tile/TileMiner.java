@@ -38,6 +38,12 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
    public static final double SHAFT_RADIUS = 0.0625D;
    public static final double SHAFT_CROSS_HALF = SHAFT_RADIUS * 4.0D;
    public static final double SHAFT_TOP_INSET = 0.001D;
+   /** Cap on how much power the machine spends toward its work per tick. The battery still requests (and buffers)
+    * a full charge, but consumption is rate-limited like the distiller (MAX_MJ_PER_TICK) -- so digging speed
+    * tracks the power actually flowing in rather than being spent in a burst whenever the buffer happens to be
+    * full. Without this a full 500 MJ buffer would break several blocks in a single tick, then stall, which reads
+    * as erratic "fast then slow" mining. */
+   public static final long MAX_MJ_PER_TICK = 20L * MjAPI.MJ;
    protected int progress = 0;
    @Nullable
    protected BlockPos currentPos = null;
