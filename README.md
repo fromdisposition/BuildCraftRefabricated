@@ -114,7 +114,7 @@ Status vs classic **BuildCraft 8.0.x** (Forge 1.12.2).
 
 ## Energy interop
 
-Internal logic uses **MJ**. By default (`MJ_AUTOCONVERT_RF`):
+Internal logic uses **MJ**:
 
 - BuildCraft's internal energy is **MJ**; it stays MJ everywhere in the UI.
 - **RF/E (Team Reborn) energy** and MJ are separate networks. RF pipes/machines move E natively; MJ pipes/engines move MJ natively — no silent auto-conversion between them.
