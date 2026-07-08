@@ -200,7 +200,9 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
 
    private boolean suckScanBackoff;
    private long lastRequestedPower;
-   private long lastRequestedTick = Long.MIN_VALUE;
+   // -4, not Long.MIN_VALUE: game time minus MIN_VALUE overflows negative, so the "< 4" memo check was always
+   // true and this permanently answered the initial 0 -- engines never powered the extended suction.
+   private long lastRequestedTick = -4L;
 
    @Override
    public long getPowerRequested() {

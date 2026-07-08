@@ -384,6 +384,13 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             }
          }
 
+         // Same identity gate every other intake path applies (insertFluidsForce, Section.insert): the sections are
+         // all labeled currentFluid, so extracting a DIFFERENT neighbour fluid would destroy it at the source and
+         // mint currentFluid in the pipe -- transmutation, and with a cheap source fluid an unbounded dupe.
+         if (!this.currentFluid.isEmpty() && !FluidStack.isSameFluidSameComponents(this.currentFluid, resource)) {
+            return null;
+         }
+
          int extracted = FluidStorageOps.extractFluidMb(storage, resource, millibuckets, !simulate);
          if (extracted <= 0) {
             return null;

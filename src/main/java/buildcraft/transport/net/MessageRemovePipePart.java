@@ -55,7 +55,7 @@ public record MessageRemovePipePart(BlockPos pos, float lx, float ly, float lz) 
 
    public static void handle(MessageRemovePipePart message, BCPayloadContext ctx) {
       if (ctx.player() instanceof ServerPlayer player
-         && player.distanceToSqr(message.pos.getX() + 0.5, message.pos.getY() + 0.5, message.pos.getZ() + 0.5) <= 64.0
+         && player.distanceToSqr(message.pos.getX() + 0.5, message.pos.getY() + 0.5, message.pos.getZ() + 0.5) <= 36.0
          && player.level().getBlockState(message.pos).getBlock() instanceof BlockPipeHolder) {
          BlockPipeHolder.removeHitPart(player.level(), message.pos, player, message.lx, message.ly, message.lz);
       }
