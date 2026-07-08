@@ -121,8 +121,9 @@ public class TileIntegrationTable extends TileLaserTableBase {
       long target = this.getTarget();
       if (target > 0L && this.power >= target) {
          ItemStack output = this.getOutput();
-         if (!output.isEmpty() && this.recipe != null) {
-            this.extract(this.recipe.getCenterStack(), this.recipe.getRequirements(output), false);
+         // Gate the craft on the extraction actually succeeding (like the assembly/stamping tables do): creating
+         // the output while the inputs were not consumed would be an item dupe.
+         if (!output.isEmpty() && this.recipe != null && this.extract(this.recipe.getCenterStack(), this.recipe.getRequirements(output), false)) {
             ItemStack result = this.invResult.getStackInSlot(0);
             if (!result.isEmpty()) {
                result = result.copy();

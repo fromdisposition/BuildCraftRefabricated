@@ -185,6 +185,13 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
    }
 
    protected boolean extract(ItemHandlerSimple inv, Collection<IngredientStack> items, boolean simulate, boolean precise) {
+      // All-or-nothing: the commit loop below mutates slots as it walks the ingredients and bails mid-way when one
+      // cannot be satisfied, which would leave the earlier ingredients already consumed. Verify with a simulate
+      // pass first so a failed extract never eats a partial set of inputs.
+      if (!simulate && !this.extract(inv, items, true, precise)) {
+         return false;
+      }
+
       long remainingStacks = 0L;
       if (precise) {
          for (ItemStack stack : inv.stacks) {
