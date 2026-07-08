@@ -84,7 +84,7 @@ public class TileMiningWell extends TileMiner {
 
       long target = BlockUtil.computeBlockBreakPower(this.level, this.currentPos);
       long draw = Math.min(target - this.progress, MAX_MJ_PER_TICK);
-      this.progress = this.progress + (int)this.battery.extractPower(0L, draw);
+      this.progress = this.progress + this.battery.extractPower(0L, draw);
       if (this.progress >= target) {
          this.progress = 0;
          this.clearBreakProgress(this.currentPos);

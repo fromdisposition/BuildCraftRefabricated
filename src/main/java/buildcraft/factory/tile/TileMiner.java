@@ -43,7 +43,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
     * full. Without this a full 500 MJ buffer would break several blocks in a single tick, then stall, which reads
     * as erratic "fast then slow" mining. */
    public static final long MAX_MJ_PER_TICK = 40L * MjAPI.MJ;
-   protected int progress = 0;
+   protected long progress = 0L;
    @Nullable
    protected BlockPos currentPos = null;
    protected int wantedLength = 0;
@@ -306,7 +306,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
       }
 
       output.putInt("wantedLength", this.wantedLength);
-      output.putInt("progress", this.progress);
+      output.putLong("progress", this.progress);
       output.putLong("mjStored", this.battery.getStored());
    }
 
@@ -325,7 +325,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
       int newWantedLength = input.getIntOr("wantedLength", 0);
       this.wantedLength = newWantedLength;
 
-      this.progress = input.getIntOr("progress", 0);
+      this.progress = input.getLongOr("progress", this.progress);
       this.battery.extractPower(0L, Long.MAX_VALUE);
       this.battery.addPowerChecking(input.getLongOr("mjStored", 0L), false);
 

@@ -334,7 +334,9 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
          }
       }
 
-      byte sides = input.getByteOr("openSides", (byte)31);
+      // 61 = DOWN|NORTH|SOUTH|WEST|EAST -- the same set the field initialises to. (31 was a stale fallback that
+      // wrongly opened UP and dropped EAST for tags missing the key.)
+      byte sides = input.getByteOr("openSides", (byte)61);
       this.openSides.clear();
 
       for (Direction face : Direction.values()) {

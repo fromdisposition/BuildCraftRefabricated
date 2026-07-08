@@ -401,7 +401,7 @@ public class TilePump extends TileMiner implements IDebuggable {
 
          long target = 10L * MjAPI.MJ;
          if (this.currentPos != null && this.paths.containsKey(this.currentPos)) {
-            this.progress = this.progress + (int)this.battery.extractPower(0L, target - this.progress);
+            this.progress = this.progress + this.battery.extractPower(0L, target - this.progress);
             if (this.progress < target) {
                return;
             }
