@@ -85,6 +85,9 @@ public class WireManager implements IWireManager {
          if (!this.holder.getPipeWorld().isClientSide()) {
             this.getWireSystems().buildAndAddWireSystem(new WireSystem.WireElement(this.holder.getPipePos(), part));
             this.holder.getPipeTile().setChanged();
+            // Ship the new part list to every watching client (the pipe's full-state packet carries "wires");
+            // setChanged alone only marks the chunk dirty for disk, so other players never saw wire changes.
+            this.holder.scheduleRenderUpdate();
          }
 
          this.updateBetweens(false);
@@ -108,6 +111,8 @@ public class WireManager implements IWireManager {
          WireSystem.getConnectedElementsOfElement(this.holder, element).forEach(this.getWireSystems()::buildAndAddWireSystem);
          this.getWireSystems().getWireSystemsWithElement(element).forEach(this.getWireSystems()::removeWireSystem);
          this.holder.getPipeTile().setChanged();
+         // Sync the removal to clients, or the broken wire keeps rendering (phantom) until a chunk reload.
+         this.holder.scheduleRenderUpdate();
       }
 
       this.updateBetweens(false);
@@ -122,6 +127,7 @@ public class WireManager implements IWireManager {
       this.invalidatePoweredCache();
       if (!this.holder.getPipeWorld().isClientSide()) {
          this.removePartsFromSystem(toRemove);
+         this.holder.scheduleRenderUpdate();
       }
 
       this.updateBetweens(false);
@@ -142,6 +148,14 @@ public class WireManager implements IWireManager {
 
    @Override
    public void updateBetweens(boolean recursive) {
+      // Never touch a detached holder: block entities are deserialised BEFORE the level is attached, and a world
+      // dereference here would throw inside loadAdditional -- aborting the pipe's data read entirely, which the
+      // next save then overwrites with an empty tile (this exact failure once wiped every loaded pipe in a save).
+      // A freshly loaded pipe gets its betweens built by the first tick() instead.
+      if (this.holder.getPipeWorld() == null) {
+         return;
+      }
+
       this.betweens.clear();
       this.parts
          .forEach(
@@ -165,7 +179,10 @@ public class WireManager implements IWireManager {
                }
             }
          );
-      if (!recursive && !this.holder.getPipeWorld().isClientSide()) {
+      // Refresh the neighbours' halves too (a cross-pipe between is stored on both sides, each checking the other's
+      // parts). This must run on the CLIENT as well: after a synced part change, the neighbouring client pipes hold
+      // stale betweens pointing at parts that no longer exist -- the floating "phantom" wire stubs.
+      if (!recursive) {
          for (Direction side : Direction.values()) {
             BlockEntity tile = this.holder.getPipeWorld().getBlockEntity(this.holder.getPipePos().relative(side));
             if (tile instanceof IPipeHolder) {

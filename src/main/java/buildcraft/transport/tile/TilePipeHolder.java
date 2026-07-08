@@ -136,7 +136,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
-      this.readData(new BcValueIn(input));
+      this.readDataGuarded(new BcValueIn(input));
    }
    //?} else {
    /*protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
@@ -146,9 +146,21 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
    protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
       super.loadAdditional(tag, registries);
-      this.readData(new BcValueIn(tag, registries));
+      this.readDataGuarded(new BcValueIn(tag, registries));
    }
    *///?}
+
+   /** A read exception must never escape loadAdditional: the tile would end up empty/discarded and the NEXT SAVE
+    * would overwrite the stored pipe with that empty state -- permanent world damage (this exact failure mode once
+    * wiped every loaded pipe in a save). Keep whatever was read and log loudly instead. */
+   private void readDataGuarded(BcValueIn input) {
+      try {
+         this.readData(input);
+      } catch (Exception e) {
+         BCLog.logger.error("[transport] Failed to read pipe data at " + this.worldPosition
+            + "; keeping the partially loaded state so the save is not overwritten with an empty tile", e);
+      }
+   }
 
    protected void writeData(BcValueOut output) {
       if (this.owner != null && BcAuth.id(this.owner) != null) {
@@ -263,7 +275,22 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       // live load path. Disk saves contain no "plugsClient", so this no-ops there.
       this.applyClientUpdateData(input);
 
-      input.read("wires", CompoundTag.CODEC).ifPresent(wireTag -> this.wireManager.readFromNbt(wireTag));
+      // Isolated on purpose: a wire failure must NEVER abort the pipe's data read -- an escaped exception here once
+      // left tiles empty, and the next save overwrote the whole pipe with that empty state (permanent world damage).
+      try {
+         input.read("wires", CompoundTag.CODEC).ifPresent(wireTag -> {
+            this.wireManager.readFromNbt(wireTag);
+            // readFromNbt only replaces the part map. On a LIVE sync (level attached) rebuild the visual betweens
+            // immediately -- ours and the neighbours' halves -- so a wire change shows without stale floating
+            // segments. During chunk load the level is not attached yet; the first tick() builds them instead.
+            if (this.level != null) {
+               this.wireManager.updateBetweens(false);
+            }
+         });
+      } catch (Exception e) {
+         BCLog.logger.warn("[transport] Failed to read pipe wires at " + this.worldPosition + "; keeping the pipe alive without them", e);
+      }
+
       this.invalidateShapeCache();
       if (this.level != null && this.level.isClientSide()) {
          this.refreshClientModel();

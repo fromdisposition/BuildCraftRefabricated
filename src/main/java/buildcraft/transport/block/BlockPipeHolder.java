@@ -26,6 +26,8 @@ import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.tile.TilePipeHolder;
 import buildcraft.transport.wire.EnumWireBetween;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -119,12 +121,14 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
          }
       }
 
+      // Wires are 1px geometry; inflated by WIRE_HIT_INFLATE (same growth the hit tests and outline use) so the
+      // raytrace has a 3px target instead of an unaimable 1px one -- otherwise wires were near-impossible to hit.
       for (EnumWirePart part : tile.getWireManager().parts.keySet()) {
-         shape = Shapes.or(shape, Shapes.create(part.boundingBox));
+         shape = Shapes.or(shape, Shapes.create(part.boundingBox.inflate(WIRE_HIT_INFLATE)));
       }
 
       for (EnumWireBetween between : tile.getWireManager().betweens.keySet()) {
-         shape = Shapes.or(shape, Shapes.create(between.boundingBox));
+         shape = Shapes.or(shape, Shapes.create(between.boundingBox.inflate(WIRE_HIT_INFLATE)));
       }
 
       return shape;
@@ -404,7 +408,9 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    @Nullable
    public static EnumWirePart getHitWire(TilePipeHolder tile, double lx, double ly, double lz) {
       for (EnumWirePart part : tile.getWireManager().parts.keySet()) {
-         AABB box = part.boundingBox.inflate(0.0625);
+         // WIRE_HIT_INFLATE matches the wire's inflated box in the composed shape; HIT_EPS absorbs the ulp noise of
+         // a hit point landing exactly on that surface (same boundary lottery the pluggable test guards against).
+         AABB box = part.boundingBox.inflate(WIRE_HIT_INFLATE + HIT_EPS);
          if (lx >= box.minX && lx <= box.maxX && ly >= box.minY && ly <= box.maxY && lz >= box.minZ && lz <= box.maxZ) {
             return part;
          }
@@ -416,7 +422,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    @Nullable
    public static EnumWireBetween getHitWireBetween(TilePipeHolder tile, double lx, double ly, double lz) {
       for (EnumWireBetween between : tile.getWireManager().betweens.keySet()) {
-         AABB box = between.boundingBox.inflate(0.0625);
+         AABB box = between.boundingBox.inflate(WIRE_HIT_INFLATE + HIT_EPS);
          if (lx >= box.minX && lx <= box.maxX && ly >= box.minY && ly <= box.maxY && lz >= box.minZ && lz <= box.maxZ) {
             return between;
          }
@@ -570,6 +576,15 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       if (level.getBlockEntity(pos) instanceof TilePipeHolder tile && tile.getPipe() != null) {
          tile.getPipe().scheduleConnectionRecheck();
          tile.wakePipe();
+         // A neighbouring pipe may just have been destroyed (break, explosion, piston): rebuild our cross-pipe wire
+         // betweens or the half pointing at it keeps floating in mid-air. Only sync when something actually changed.
+         if (!level.isClientSide() && tile.getWireManager().hasParts()) {
+            Map<EnumWireBetween, DyeColor> before = new HashMap<>(tile.getWireManager().betweens);
+            tile.getWireManager().updateBetweens(true);
+            if (!before.equals(tile.getWireManager().betweens)) {
+               tile.scheduleRenderUpdate();
+            }
+         }
       }
    }
 
