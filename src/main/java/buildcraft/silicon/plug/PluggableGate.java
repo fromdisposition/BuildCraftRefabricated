@@ -46,7 +46,7 @@ import net.minecraft.world.phys.HitResult;
 
 public class PluggableGate extends PipePluggable implements IWireEmitter {
    private static final byte ID_UPDATE_PLUG = 1;
-   private static final AABB[] BOXES = new AABB[6];
+   private static final AABB[] BOXES = buildcraft.api.transport.pluggable.PluggableBoxes.CHIP;
    private static final Identifier ADVANCEMENT_PLACE_GATE = Identifier.parse("buildcrafttransport:pipe_logic");
    private static final Identifier ADVANCEMENT_PLACE_ADV_GATE = Identifier.parse("buildcrafttransport:extended_logic");
    public final GateLogic logic;
@@ -253,18 +253,4 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
       return true;
    }
 
-   static {
-      double ll = 0.125;
-      double lu = 0.25;
-      double ul = 0.75;
-      double uu = 0.875;
-      double min = 0.3125;
-      double max = 0.6875;
-      BOXES[Direction.DOWN.get3DDataValue()] = new AABB(min, ll, min, max, lu, max);
-      BOXES[Direction.UP.get3DDataValue()] = new AABB(min, ul, min, max, uu, max);
-      BOXES[Direction.NORTH.get3DDataValue()] = new AABB(min, min, ll, max, max, lu);
-      BOXES[Direction.SOUTH.get3DDataValue()] = new AABB(min, min, ul, max, max, uu);
-      BOXES[Direction.WEST.get3DDataValue()] = new AABB(ll, min, min, lu, max, max);
-      BOXES[Direction.EAST.get3DDataValue()] = new AABB(ul, min, min, uu, max, max);
-   }
 }

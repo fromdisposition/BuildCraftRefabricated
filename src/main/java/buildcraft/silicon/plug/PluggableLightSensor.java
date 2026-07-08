@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 public class PluggableLightSensor extends PipePluggable {
-   private static final AABB[] BOXES = new AABB[6];
+   private static final AABB[] BOXES = buildcraft.api.transport.pluggable.PluggableBoxes.CHIP;
 
    public PluggableLightSensor(PluggableDefinition definition, IPipeHolder holder, Direction side) {
       super(definition, holder, side);
@@ -67,20 +67,5 @@ public class PluggableLightSensor extends PipePluggable {
 
       String name = layer.toString().toLowerCase();
       return name.contains("cutout") ? new KeyPlugSimple("daylight_sensor", false, layer, this.side) : null;
-   }
-
-   static {
-      double ll = 0.125;
-      double lu = 0.25;
-      double ul = 0.75;
-      double uu = 0.875;
-      double min = 0.3125;
-      double max = 0.6875;
-      BOXES[Direction.DOWN.ordinal()] = new AABB(min, ll, min, max, lu, max);
-      BOXES[Direction.UP.ordinal()] = new AABB(min, ul, min, max, uu, max);
-      BOXES[Direction.NORTH.ordinal()] = new AABB(min, min, ll, max, max, lu);
-      BOXES[Direction.SOUTH.ordinal()] = new AABB(min, min, ul, max, max, uu);
-      BOXES[Direction.WEST.ordinal()] = new AABB(ll, min, min, lu, max, max);
-      BOXES[Direction.EAST.ordinal()] = new AABB(ul, min, min, uu, max, max);
    }
 }

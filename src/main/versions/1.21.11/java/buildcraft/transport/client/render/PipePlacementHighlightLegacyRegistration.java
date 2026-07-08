@@ -55,7 +55,13 @@ public final class PipePlacementHighlightLegacyRegistration {
          return true;
       }
 
-      VoxelShape preview = PipePlacementHighlight.previewShape(tile, hit, player);
+      // Placement preview (holding a pluggable/wire), else the tight outline of the existing sub-part under the
+      // crosshair; null means the pipe body -> let vanilla draw the whole-pipe outline.
+      VoxelShape preview = PipePlacementHighlight.placementShape(tile, hit, player);
+      if (preview == null) {
+         preview = PipePlacementHighlight.hoveredPartShape(tile, hit);
+      }
+
       if (preview == null) {
          return true;
       }

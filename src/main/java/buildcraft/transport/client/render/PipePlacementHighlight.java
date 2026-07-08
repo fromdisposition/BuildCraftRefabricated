@@ -47,19 +47,28 @@ public final class PipePlacementHighlight {
    public static void onExtractBlockOutline(ExtractBlockOutlineRenderStateEvent event) {
       if (event.getBlockState().getBlock() instanceof BlockPipeHolder) {
          LocalPlayer player = Minecraft.getInstance().player;
-         if (player != null) {
-            if (event.getLevel().getBlockEntity(event.getBlockPos()) instanceof TilePipeHolder tile && tile.getPipe() != null) {
-               VoxelShape preview = previewShape(tile, event.getHitResult(), player);
-               if (preview != null) {
-                  event.addCustomRenderer(new PipePlacementHighlight.PreviewRenderer(preview));
-               }
+         if (player != null
+            && event.getLevel().getBlockEntity(event.getBlockPos()) instanceof TilePipeHolder tile
+            && tile.getPipe() != null) {
+            // Holding a pluggable/wire: draw a placement preview ON TOP of the vanilla pipe outline.
+            VoxelShape placement = placementShape(tile, event.getHitResult(), player);
+            if (placement != null) {
+               event.addCustomRenderer(new PipePlacementHighlight.PreviewRenderer(placement));
+               return;
             }
+
+            // Otherwise: outline just the sub-part (pluggable/wire/arm/centre) under the crosshair instead of the
+            // vanilla whole-pipe outline -- getShape now returns the full composed shape, so without this the
+            // outline would wrap the entire pipe instead of the part the player is aiming at. NOTE: do NOT
+            // setCanceled here -- cancelling nulls the outline state and drops custom renderers with it (nothing
+            // renders at all); PreviewRenderer.render returning true already suppresses the vanilla outline.
+            event.addCustomRenderer(new PipePlacementHighlight.PreviewRenderer(hoveredPartShape(tile, event.getHitResult())));
          }
       }
    }
 
    @Nullable
-   static VoxelShape previewShape(TilePipeHolder tile, BlockHitResult hit, LocalPlayer player) {
+   static VoxelShape placementShape(TilePipeHolder tile, BlockHitResult hit, LocalPlayer player) {
       ItemStack pluggableStack = heldStackOf(player, IItemPluggable.class);
       if (pluggableStack != null) {
          Direction face = BlockPipeHolder.resolveTargetFace(tile, hit);
@@ -75,6 +84,14 @@ public final class PipePlacementHighlight {
       } else {
          return null;
       }
+   }
+
+   /** The tight shape of the single sub-part (pluggable, wire, arm or centre) under the crosshair. Never null. */
+   static VoxelShape hoveredPartShape(TilePipeHolder tile, BlockHitResult hit) {
+      BlockPos pos = hit.getBlockPos();
+      return BlockPipeHolder.partShapeAt(
+         tile, hit.getLocation().x - pos.getX(), hit.getLocation().y - pos.getY(), hit.getLocation().z - pos.getZ()
+      );
    }
 
    @Nullable

@@ -130,52 +130,12 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return shape;
    }
 
+   // Always the full composed shape. Deriving a per-part shape from the client's crosshair hit (as this used to) is
+   // circular -- the raytrace that produces that hit itself queries getShape -- so it lagged and outlined the wrong
+   // sub-box. Raytracing the full shape resolves the exact hit precisely; the tight per-part OUTLINE is drawn from
+   // that resolved hit by PipePlacementHighlight (the block-outline render event), with no feedback loop.
    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
-      if (level.getBlockEntity(pos) instanceof TilePipeHolder tile
-         && tile.getPipe() != null
-         && level instanceof Level realLevel
-         && realLevel.isClientSide()
-         && clientBlockHit() instanceof BlockHitResult blockHit
-         && pos.equals(blockHit.getBlockPos())) {
-         Pipe pipe = tile.getPipe();
-         double lx = blockHit.getLocation().x - pos.getX();
-         double ly = blockHit.getLocation().y - pos.getY();
-         double lz = blockHit.getLocation().z - pos.getZ();
-
-         for (Direction dir : Direction.values()) {
-            PipePluggable plug = tile.getPluggable(dir);
-            if (plug != null) {
-               AABB box = plug.getBoundingBox();
-               if (lx >= box.minX && lx <= box.maxX && ly >= box.minY && ly <= box.maxY && lz >= box.minZ && lz <= box.maxZ) {
-                  return Shapes.create(box);
-               }
-            }
-         }
-
-         EnumWirePart hitWire = getHitWire(tile, lx, ly, lz);
-         if (hitWire != null) {
-            return Shapes.create(hitWire.boundingBox.inflate(0.0625));
-         } else {
-            EnumWireBetween hitBetween = getHitWireBetween(tile, lx, ly, lz);
-            if (hitBetween != null) {
-               return Shapes.create(hitBetween.boundingBox.inflate(0.0625));
-            } else if (ly < 0.25 && pipe.isConnected(Direction.DOWN)) {
-               return ARMS[Direction.DOWN.ordinal()];
-            } else if (ly > 0.75 && pipe.isConnected(Direction.UP)) {
-               return ARMS[Direction.UP.ordinal()];
-            } else if (lz < 0.25 && pipe.isConnected(Direction.NORTH)) {
-               return ARMS[Direction.NORTH.ordinal()];
-            } else if (lz > 0.75 && pipe.isConnected(Direction.SOUTH)) {
-               return ARMS[Direction.SOUTH.ordinal()];
-            } else if (lx < 0.25 && pipe.isConnected(Direction.WEST)) {
-               return ARMS[Direction.WEST.ordinal()];
-            } else {
-               return lx > 0.75 && pipe.isConnected(Direction.EAST) ? ARMS[Direction.EAST.ordinal()] : CENTER;
-            }
-         }
-      } else {
-         return this.getFullShape(level, pos);
-      }
+      return this.getFullShape(level, pos);
    }
 
    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
@@ -461,6 +421,51 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    }
 
    /**
+    * The tight shape of the single sub-part at the given in-block hit location: a pluggable's box, a wire (inflated
+    * like the hit tests), a connection arm, or the pipe centre as the final fallback. This is the one source of
+    * truth for "what part is the crosshair on" used by the outline renderers on every version -- getShape itself
+    * must stay the full composed shape (the vanilla raytrace queries it to produce the hit this resolves).
+    */
+   public static VoxelShape partShapeAt(TilePipeHolder tile, double lx, double ly, double lz) {
+      Direction plugDir = getHitPluggable(tile, lx, ly, lz);
+      if (plugDir != null) {
+         PipePluggable plug = tile.getPluggable(plugDir);
+         if (plug != null) {
+            return Shapes.create(plug.getBoundingBox());
+         }
+      }
+
+      EnumWirePart hitWire = getHitWire(tile, lx, ly, lz);
+      if (hitWire != null) {
+         return Shapes.create(hitWire.boundingBox.inflate(WIRE_HIT_INFLATE));
+      }
+
+      EnumWireBetween hitBetween = getHitWireBetween(tile, lx, ly, lz);
+      if (hitBetween != null) {
+         return Shapes.create(hitBetween.boundingBox.inflate(WIRE_HIT_INFLATE));
+      }
+
+      Pipe pipe = tile.getPipe();
+      if (pipe != null) {
+         if (ly < 0.25 && pipe.isConnected(Direction.DOWN)) {
+            return ARMS[Direction.DOWN.ordinal()];
+         } else if (ly > 0.75 && pipe.isConnected(Direction.UP)) {
+            return ARMS[Direction.UP.ordinal()];
+         } else if (lz < 0.25 && pipe.isConnected(Direction.NORTH)) {
+            return ARMS[Direction.NORTH.ordinal()];
+         } else if (lz > 0.75 && pipe.isConnected(Direction.SOUTH)) {
+            return ARMS[Direction.SOUTH.ordinal()];
+         } else if (lx < 0.25 && pipe.isConnected(Direction.WEST)) {
+            return ARMS[Direction.WEST.ordinal()];
+         } else if (lx > 0.75 && pipe.isConnected(Direction.EAST)) {
+            return ARMS[Direction.EAST.ordinal()];
+         }
+      }
+
+      return CENTER;
+   }
+
+   /**
     * Left-click removal of a single pluggable (gate, lens, plug, ...) or wire on the pipe. Vanilla has no "break a
     * sub-part" hook, so this is driven by Fabric's {@link net.fabricmc.fabric.api.event.player.AttackBlockCallback}
     * (registered in {@code BuildCraftFabricMod}) rather than a block override -- the old Forge-style
@@ -647,15 +652,10 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       *///?}
    }
 
-   // Client-only crosshair queries are delegated to PipeHolderClientExtensions so this common block class
-   // never names net.minecraft.client.* in its bytecode (the verifier would otherwise resolve LocalPlayer and
-   // crash a dedicated server). Both are only reached behind a Level.isClientSide() guard, so the client
-   // extensions class is never loaded server-side. Return types are common (BlockHitResult / Player).
-   @Nullable
-   private static BlockHitResult clientBlockHit() {
-      return PipeHolderClientExtensions.clientBlockHit();
-   }
-
+   // Client-only crosshair query delegated to PipeHolderClientExtensions so this common block class never names
+   // net.minecraft.client.* in its bytecode (the verifier would otherwise resolve LocalPlayer and crash a dedicated
+   // server). Only reached behind a Level.isClientSide() guard, so the client extensions class is never loaded
+   // server-side. The return type is common (Player).
    @Nullable
    private static Player clientPlayer() {
       return PipeHolderClientExtensions.clientPlayer();
