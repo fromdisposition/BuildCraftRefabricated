@@ -208,23 +208,31 @@ public class FacadeDeduplicator {
 
    private static String computeTextureFingerprint(BlockStateModel model) {
       try {
+         // Identity = the SET of sprites, deliberately direction-agnostic. A facade is a 2px panel built from the
+         // state's own quads (PlugBakerFacade.getTransformedQuads reuses them verbatim) and the player picks the
+         // mounting face -- so two states drawing the same sprites merely arranged on different block faces produce
+         // the same panel looks and must collapse to ONE facade. Keying by "face:sprite" (the old form) kept every
+         // arrangement apart: a mushroom block (6 boolean face properties = 64 states, each face skin-or-inside)
+         // flooded the tab with 64 entries; a plain sprite set folds it to 3 (all-skin, all-inside, mixed), and
+         // pillar/log axis rotations fold into one. Crafting every collapsed state still works via the redirect
+         // map built from these same fingerprints.
          Set<String> textures = new LinkedHashSet<>();
 
          for (Direction dir : Direction.values()) {
             for (BakedQuad quad : getQuadsFromModel(model, dir)) {
                //? if >= 26.1 {
-               textures.add(dir.name() + ":" + quad.materialInfo().sprite().contents().name().toString());
+               textures.add(quad.materialInfo().sprite().contents().name().toString());
                //?} else {
-               /*textures.add(dir.name() + ":" + quad.sprite().contents().name().toString());
+               /*textures.add(quad.sprite().contents().name().toString());
                *///?}
             }
          }
 
          for (BakedQuad quad : getQuadsFromModel(model, null)) {
             //? if >= 26.1 {
-            textures.add("GENERAL:" + quad.materialInfo().sprite().contents().name().toString());
+            textures.add(quad.materialInfo().sprite().contents().name().toString());
             //?} else {
-            /*textures.add("GENERAL:" + quad.sprite().contents().name().toString());
+            /*textures.add(quad.sprite().contents().name().toString());
             *///?}
          }
 
