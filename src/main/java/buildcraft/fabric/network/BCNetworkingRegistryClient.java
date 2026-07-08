@@ -13,7 +13,6 @@ import buildcraft.lib.net.MessageDebugResponse;
 import buildcraft.lib.net.MessageMarker;
 import buildcraft.transport.net.MessageMultiPipeItem;
 import buildcraft.transport.net.MessageMultiPipePayload;
-import buildcraft.transport.net.MessagePipeLandingEffect;
 import buildcraft.transport.net.MessagePipePayload;
 import buildcraft.transport.wire.PayloadWireSync;
 import java.util.function.BiConsumer;
@@ -48,9 +47,7 @@ public final class BCNetworkingRegistryClient {
       registerClientbound(MessageMultiPipeItem.TYPE, MessageMultiPipeItem.STREAM_CODEC, MessageMultiPipeItem::handle);
       registerClientbound(MessagePipePayload.TYPE, MessagePipePayload.STREAM_CODEC, MessagePipePayload::handle);
       registerClientbound(MessageMultiPipePayload.TYPE, MessageMultiPipePayload.STREAM_CODEC, MessageMultiPipePayload::handle);
-      registerClientboundFriendly(PayloadWireSync.TYPE, PayloadWireSync.STREAM_CODEC, PayloadWireSync::handle);
-      registerClientbound(MessagePipeLandingEffect.TYPE, MessagePipeLandingEffect.STREAM_CODEC, MessagePipeLandingEffect::handle);
-      registerClientboundFriendly(BuildersServerPayload.TYPE, BuildersServerPayload.STREAM_CODEC, BuildersServerPayload::handle);
+      registerClientboundFriendly(PayloadWireSync.TYPE, PayloadWireSync.STREAM_CODEC, PayloadWireSync::handle);      registerClientboundFriendly(BuildersServerPayload.TYPE, BuildersServerPayload.STREAM_CODEC, BuildersServerPayload::handle);
    }
 
    private static <T extends CustomPacketPayload> void registerClientbound(

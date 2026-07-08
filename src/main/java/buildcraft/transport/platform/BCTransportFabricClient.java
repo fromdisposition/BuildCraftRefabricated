@@ -9,6 +9,7 @@ import buildcraft.transport.BCTransportBlockEntities;
 import buildcraft.transport.BCTransportMenuTypes;
 import buildcraft.transport.client.BCTransportClient;
 import buildcraft.transport.client.PipeBlockColourHandler;
+import buildcraft.transport.client.PipePartBreakHandler;
 import buildcraft.transport.client.PipeRegistryClient;
 import buildcraft.transport.client.render.PipePlacementHighlight;
 import buildcraft.transport.client.render.RenderPipeHolder;
@@ -40,6 +41,7 @@ public final class BCTransportFabricClient {
       registerLegacyPipeOutlineHook();
       registerBlockTintSources();
       registerClientExtensions();
+      PipePartBreakHandler.register();
    }
 
    private static void registerClientExtensions() {

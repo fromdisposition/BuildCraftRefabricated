@@ -10,8 +10,8 @@ import buildcraft.lib.net.MessageDebugResponse;
 import buildcraft.lib.net.MessageMarker;
 import buildcraft.transport.net.MessageMultiPipeItem;
 import buildcraft.transport.net.MessageMultiPipePayload;
-import buildcraft.transport.net.MessagePipeLandingEffect;
 import buildcraft.transport.net.MessagePipePayload;
+import buildcraft.transport.net.MessageRemovePipePart;
 import buildcraft.transport.wire.PayloadWireSync;
 import java.util.function.BiConsumer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -34,17 +34,17 @@ public final class BCNetworkingRegistry {
       registerCodecClientbound(MessageMultiPipeItem.TYPE, MessageMultiPipeItem.STREAM_CODEC);
       registerCodecClientbound(MessagePipePayload.TYPE, MessagePipePayload.STREAM_CODEC);
       registerCodecClientbound(MessageMultiPipePayload.TYPE, MessageMultiPipePayload.STREAM_CODEC);
-      registerCodecClientboundFriendly(PayloadWireSync.TYPE, PayloadWireSync.STREAM_CODEC);
-      registerCodecClientbound(MessagePipeLandingEffect.TYPE, MessagePipeLandingEffect.STREAM_CODEC);
-      registerCodecClientboundFriendly(BuildersServerPayload.TYPE, BuildersServerPayload.STREAM_CODEC);
+      registerCodecClientboundFriendly(PayloadWireSync.TYPE, PayloadWireSync.STREAM_CODEC);      registerCodecClientboundFriendly(BuildersServerPayload.TYPE, BuildersServerPayload.STREAM_CODEC);
       registerCodecServerbound(MessageDebugRequest.TYPE, MessageDebugRequest.STREAM_CODEC);
       registerCodecServerbound(MessageContainerPayload.TYPE, MessageContainerPayload.STREAM_CODEC);
+      registerCodecServerbound(MessageRemovePipePart.TYPE, MessageRemovePipePart.STREAM_CODEC);
       registerCodecServerboundFriendly(BuildersClientRequestPayload.TYPE, BuildersClientRequestPayload.STREAM_CODEC);
    }
 
    public static void registerServer() {
       registerServerbound(MessageDebugRequest.TYPE, MessageDebugRequest.STREAM_CODEC, MessageDebugRequest::handle);
       registerServerbound(MessageContainerPayload.TYPE, MessageContainerPayload.STREAM_CODEC, MessageContainerPayload::handle);
+      registerServerbound(MessageRemovePipePart.TYPE, MessageRemovePipePart.STREAM_CODEC, MessageRemovePipePart::handle);
       registerServerboundFriendly(BuildersClientRequestPayload.TYPE, BuildersClientRequestPayload.STREAM_CODEC, BuildersClientRequestPayload::handle);
    }
 

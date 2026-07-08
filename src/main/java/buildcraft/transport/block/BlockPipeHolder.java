@@ -17,13 +17,11 @@ import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeDefinition;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.misc.AdvancementUtil;
-import buildcraft.lib.net.BcPacketDistributor;
 import buildcraft.transport.BCTransportAttachments;
 import buildcraft.transport.BCTransportBlockEntities;
 import buildcraft.transport.BCTransportItems;
 import buildcraft.transport.client.PipeHolderClientExtensions;
 import buildcraft.transport.item.ItemWire;
-import buildcraft.transport.net.MessagePipeLandingEffect;
 import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.tile.TilePipeHolder;
 import buildcraft.transport.wire.EnumWireBetween;
@@ -32,17 +30,14 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
@@ -465,81 +460,82 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return null;
    }
 
-   public boolean onDestroyedByPlayer(BlockState state, Level level, BlockPos pos, Player player, ItemStack toolStack, boolean willHarvest, FluidState fluid) {
-      if (level.getBlockEntity(pos) instanceof TilePipeHolder tile
-         && player.pick(5.0, 0.0F, false) instanceof BlockHitResult blockHit
-         && pos.equals(blockHit.getBlockPos())) {
-         double lx = blockHit.getLocation().x - pos.getX();
-         double ly = blockHit.getLocation().y - pos.getY();
-         double lz = blockHit.getLocation().z - pos.getZ();
-         Direction plugDir = getHitPluggable(tile, lx, ly, lz);
-         if (plugDir != null) {
-            PipePluggable plug = tile.getPluggable(plugDir);
-            if (plug != null) {
-               if (!level.isClientSide()) {
-                  ItemStack drop = plug.getPickStack();
-                  if (!player.isCreative() && !drop.isEmpty()) {
-                     Block.popResource(level, pos, drop);
-                  }
-               }
-
-               tile.replacePluggable(plugDir, null);
-               if (!level.isClientSide()) {
-                  level.sendBlockUpdated(pos, state, state, 3);
-               }
-            }
-
-            return false;
-         }
-
-         EnumWirePart hitWire = getHitWire(tile, lx, ly, lz);
-         if (hitWire != null) {
-            if (!level.isClientSide()) {
-               DyeColor col = tile.getWireManager().getColorOfPart(hitWire);
-               if (col != null) {
-                  ItemStack drop = new ItemStack((ItemLike)BCTransportItems.WIRE_ITEMS.get(col));
-                  if (!player.isCreative() && !drop.isEmpty()) {
-                     Block.popResource(level, pos, drop);
-                  }
-               }
-            }
-
-            tile.getWireManager().removePart(hitWire);
-            if (!level.isClientSide()) {
-               level.sendBlockUpdated(pos, state, state, 3);
-            }
-
-            return false;
-         }
-
-         EnumWireBetween hitBetween = getHitWireBetween(tile, lx, ly, lz);
-         if (hitBetween != null) {
-            if (!level.isClientSide()) {
-               DyeColor col = tile.getWireManager().getColorOfPart(hitBetween.parts[0]);
-               if (col != null) {
-                  int dropCount = hitBetween.to == null ? 2 : 1;
-                  ItemStack drop = new ItemStack((ItemLike)BCTransportItems.WIRE_ITEMS.get(col), dropCount);
-                  if (!player.isCreative() && !drop.isEmpty()) {
-                     Block.popResource(level, pos, drop);
-                  }
-               }
-            }
-
-            if (hitBetween.to == null) {
-               tile.getWireManager().removeParts(Arrays.asList(hitBetween.parts));
-            } else {
-               tile.getWireManager().removePart(hitBetween.parts[0]);
-            }
-
-            if (!level.isClientSide()) {
-               level.sendBlockUpdated(pos, state, state, 3);
-            }
-
-            return false;
-         }
+   /**
+    * Left-click removal of a single pluggable (gate, lens, plug, ...) or wire on the pipe. Vanilla has no "break a
+    * sub-part" hook, so this is driven by Fabric's {@link net.fabricmc.fabric.api.event.player.AttackBlockCallback}
+    * (registered in {@code BuildCraftFabricMod}) rather than a block override -- the old Forge-style
+    * {@code onDestroyedByPlayer} was never called on Fabric, so breaking any part destroyed the whole pipe.
+    *
+    * <p>Server-side only. Raytraces the player's look, removes the hit part (popping its item outside creative), and
+    * returns {@code true} so the caller cancels the vanilla break. Returns {@code false} when nothing but the pipe
+    * body was hit, letting the whole pipe break normally.
+    */
+   public static boolean removeHitPart(Level level, BlockPos pos, Player player) {
+      if (!(level.getBlockEntity(pos) instanceof TilePipeHolder tile)
+         || !(player.pick(5.0, 0.0F, false) instanceof BlockHitResult blockHit)
+         || !pos.equals(blockHit.getBlockPos())) {
+         return false;
       }
 
-      return true;
+      double lx = blockHit.getLocation().x - pos.getX();
+      double ly = blockHit.getLocation().y - pos.getY();
+      double lz = blockHit.getLocation().z - pos.getZ();
+      BlockState state = level.getBlockState(pos);
+
+      Direction plugDir = getHitPluggable(tile, lx, ly, lz);
+      if (plugDir != null) {
+         PipePluggable plug = tile.getPluggable(plugDir);
+         if (plug == null) {
+            return false;
+         }
+
+         ItemStack drop = plug.getPickStack();
+         if (!player.isCreative() && !drop.isEmpty()) {
+            Block.popResource(level, pos, drop);
+         }
+
+         tile.replacePluggable(plugDir, null);
+         level.sendBlockUpdated(pos, state, state, 3);
+         return true;
+      }
+
+      EnumWirePart hitWire = getHitWire(tile, lx, ly, lz);
+      if (hitWire != null) {
+         DyeColor col = tile.getWireManager().getColorOfPart(hitWire);
+         if (col != null) {
+            ItemStack drop = new ItemStack((ItemLike)BCTransportItems.WIRE_ITEMS.get(col));
+            if (!player.isCreative() && !drop.isEmpty()) {
+               Block.popResource(level, pos, drop);
+            }
+         }
+
+         tile.getWireManager().removePart(hitWire);
+         level.sendBlockUpdated(pos, state, state, 3);
+         return true;
+      }
+
+      EnumWireBetween hitBetween = getHitWireBetween(tile, lx, ly, lz);
+      if (hitBetween != null) {
+         DyeColor col = tile.getWireManager().getColorOfPart(hitBetween.parts[0]);
+         if (col != null) {
+            int dropCount = hitBetween.to == null ? 2 : 1;
+            ItemStack drop = new ItemStack((ItemLike)BCTransportItems.WIRE_ITEMS.get(col), dropCount);
+            if (!player.isCreative() && !drop.isEmpty()) {
+               Block.popResource(level, pos, drop);
+            }
+         }
+
+         if (hitBetween.to == null) {
+            tile.getWireManager().removeParts(Arrays.asList(hitBetween.parts));
+         } else {
+            tile.getWireManager().removePart(hitBetween.parts[0]);
+         }
+
+         level.sendBlockUpdated(pos, state, state, 3);
+         return true;
+      }
+
+      return false;
    }
 
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
@@ -580,27 +576,6 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
          tile.getPipe().scheduleConnectionRecheck();
          tile.wakePipe();
       }
-   }
-
-   public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
-      if (level.getBlockEntity(pos) instanceof TilePipeHolder tile) {
-         if (direction != null) {
-            Direction face = direction.getOpposite();
-            PipePluggable plug = tile.getPluggable(face);
-            if (plug != null && plug.canConnectToRedstone(face)) {
-               return true;
-            }
-         } else {
-            for (Direction dir : Direction.values()) {
-               PipePluggable plug = tile.getPluggable(dir);
-               if (plug != null && plug.canConnectToRedstone(null)) {
-                  return true;
-               }
-            }
-         }
-      }
-
-      return false;
    }
 
    public boolean isSignalSource(BlockState state) {
@@ -705,30 +680,6 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       }
 
       return stack;
-   }
-
-   public boolean addRunningEffects(BlockState state, Level level, BlockPos pos, Entity entity) {
-      return level.isClientSide()
-         ? PipeHolderClientExtensions.spawnRunningParticle(
-            level,
-            pos,
-            entity.getX(),
-            entity.getZ(),
-            entity.getBbWidth(),
-            entity.getDeltaMovement().x,
-            entity.getDeltaMovement().z,
-            entity.getBoundingBox().minY
-         )
-         : false;
-   }
-
-   public boolean addLandingEffects(BlockState state1, ServerLevel level, BlockPos pos, BlockState state2, LivingEntity entity, int numberOfParticles) {
-      BcPacketDistributor.sendToPlayersTrackingChunk(
-         level,
-         new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4),
-         new MessagePipeLandingEffect(pos, entity.getX(), entity.getY(), entity.getZ(), numberOfParticles)
-      );
-      return true;
    }
 
    @Override
