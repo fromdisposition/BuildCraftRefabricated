@@ -94,9 +94,9 @@ public class BoardRobotBuilder extends BoardRobotBC {
          return;
       }
 
-      
-      
-      
+      // Nothing left in reach to place (centroid == null) but the build still needs materials we couldn't load:
+      // clear the "unavailable" latch so the next pass retries the station, and rest instead of spinning a tight
+      // fail loop. Otherwise (still something to build, or fully stocked) fall through and keep ticking the builder.
       if (centroid == null && missing != null) {
          this.materialsUnavailable = false;
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));

@@ -101,6 +101,6 @@ public class AIRobotUnload extends AIRobot {
 
    @Override
    public long getPowerCost() {
-      return MjAPI.MJ * 10L / 10L;
+      return MjAPI.MJ;
    }
 }

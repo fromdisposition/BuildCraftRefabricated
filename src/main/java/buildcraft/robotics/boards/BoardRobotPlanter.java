@@ -52,7 +52,10 @@ public class BoardRobotPlanter extends RedstoneBoardRobot {
                   && !BoardRobotPlanter.this.robot.getRegistry().isTaken(new ResourceIdBlock(pos));
             }
          };
-         this.startDelegateAI(new AIRobotSearchAndGotoBlock(this.robot, true, blockFilter, 1.0));
+         // maxDistanceToEnd must stay 0: it is measured from the robot's own position, so any positive value (the
+         // old 1.0) rejected every random spot more than a block away and the planter found nothing to plant. The
+         // station leash already bounds where the random scan looks.
+         this.startDelegateAI(new AIRobotSearchAndGotoBlock(this.robot, true, blockFilter, 0.0));
       }
    }
 
