@@ -44,12 +44,15 @@ public class StatementTypeParam extends StatementType<IStatementParameter> {
    public IStatementParameter readFromBuffer(FriendlyByteBuf buffer) {
       if (buffer.readBoolean()) {
          String tag = buffer.readUtf();
+         // The payload is length-prefixed so an unknown parameter type can be SKIPPED cleanly: bailing without
+         // consuming its bytes desynced every later read in the same FullStatement payload.
+         byte[] payload = buffer.readByteArray();
          StatementManager.IParamReaderBuf reader = StatementManager.paramsBuf.get(tag);
          if (reader == null) {
             BCLog.logger.warn("[statement] Unknown parameter type '{}'", tag);
             return null;
          } else {
-            return reader.readFromBuf(buffer);
+            return reader.readFromBuf(new FriendlyByteBuf(io.netty.buffer.Unpooled.wrappedBuffer(payload)));
          }
       } else {
          return null;
@@ -62,7 +65,11 @@ public class StatementTypeParam extends StatementType<IStatementParameter> {
       } else {
          buffer.writeBoolean(true);
          buffer.writeUtf(slot.getUniqueTag());
-         slot.writeToBuf(buffer);
+         FriendlyByteBuf payload = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+         slot.writeToBuf(payload);
+         byte[] bytes = new byte[payload.readableBytes()];
+         payload.readBytes(bytes);
+         buffer.writeByteArray(bytes);
       }
    }
 }

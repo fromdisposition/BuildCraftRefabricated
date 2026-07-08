@@ -51,7 +51,6 @@ import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 //?}
-import team.reborn.energy.api.EnergyStorage;
 
 public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebuggable {
    public static final Identifier ADVANCEMENT_TO_MUCH_POWER = Identifier.parse("buildcraftenergy:to_much_power");

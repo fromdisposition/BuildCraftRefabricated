@@ -229,7 +229,14 @@ public class Blueprint extends Snapshot {
          for (int z = 0; z < this.getSnapshot().size.getZ(); z++) {
             for (int y = 0; y < this.getSnapshot().size.getY(); y++) {
                for (int x = 0; x < this.getSnapshot().size.getX(); x++) {
-                  ISchematicBlock schematicBlock = this.rotatedPalette.get(Blueprint.this.data[Blueprint.this.posToIndex(x, y, z)]);
+                  int cell = Blueprint.this.data[Blueprint.this.posToIndex(x, y, z)];
+                  if (cell < 0 || cell >= this.rotatedPalette.size()) {
+                     // Corrupt/hand-edited blueprint: skip the bad cell instead of crashing the builder tick
+                     // (countNonAirCells/countMatchingCells guard the same way).
+                     continue;
+                  }
+
+                  ISchematicBlock schematicBlock = this.rotatedPalette.get(cell);
                   if (!schematicBlock.isAir()) {
                      this.toPlaceRequiredItems[Blueprint.this.posToIndex(x, y, z)] = schematicBlock.computeRequiredItems();
                      this.toPlaceRequiredFluids[Blueprint.this.posToIndex(x, y, z)] = schematicBlock.computeRequiredFluids();

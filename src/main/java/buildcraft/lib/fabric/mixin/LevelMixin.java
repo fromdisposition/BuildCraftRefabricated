@@ -47,25 +47,7 @@ public abstract class LevelMixin {
       }
    }
 
-   @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z", at = @At("HEAD"), require = 0)
-   private void buildcraft$captureOldState3(BlockPos pos, BlockState newState, int flags, CallbackInfoReturnable<Boolean> cir) {
-      Level level = (Level)(Object)this;
-      if (level instanceof ServerLevel) {
-         BC_OLD_STATE.set(level.getBlockState(pos));
-      }
-   }
-
-   @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z", at = @At("RETURN"), require = 0)
-   private void buildcraft$onSetBlockReturnCompat(BlockPos pos, BlockState newState, int flags, CallbackInfoReturnable<Boolean> cir) {
-      if ((Boolean)cir.getReturnValue()) {
-         BlockState oldState = BC_OLD_STATE.get();
-         BC_OLD_STATE.remove();
-         Level level = (Level)(Object)this;
-         if (level instanceof ServerLevel) {
-            LocalBlockUpdateNotifier.onLevelBlockStateChanged(level, pos, oldState != null ? oldState : newState, newState, flags);
-         }
-      } else {
-         BC_OLD_STATE.remove();
-      }
-   }
+   // Only the 4-arg overload is hooked: the 3-arg setBlock delegates to it on every supported version, so hooking
+   // both fired the notifier twice per call -- the second time with the ThreadLocal already cleared, reporting a
+   // bogus oldState == newState transition.
 }

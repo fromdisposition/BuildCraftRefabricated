@@ -102,7 +102,7 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
          Arrays.fill(this.params, null);
       } else {
          for (int i = 0; i < this.params.length; i++) {
-            if (i > this.statement.maxParameters()) {
+            if (i >= this.statement.maxParameters()) {
                this.params[i] = null;
             } else {
                this.params[i] = this.statement.createParameter(this.params[i], i);

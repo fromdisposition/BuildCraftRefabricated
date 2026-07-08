@@ -92,13 +92,10 @@ public final class BcRegistryUtil {
          return Items.BUCKET;
       }
 
-      Item cached = FLUID_BUCKET_CACHE.get(fluid);
-      if (cached != null) {
-         return cached;
-      }
-
+      // No lock-free fast path: IdentityHashMap reads racing a rehashing put can corrupt the map. The lookup is
+      // rare enough that taking the lock every time is the simple correct answer.
       synchronized (FLUID_BUCKET_CACHE) {
-         cached = FLUID_BUCKET_CACHE.get(fluid);
+         Item cached = FLUID_BUCKET_CACHE.get(fluid);
          if (cached != null) {
             return cached;
          }

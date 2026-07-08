@@ -96,7 +96,9 @@ public enum GuideManager {
    public static final boolean DEBUG = BCDebugging.shouldDebugLog("lib.guide.loader");
    private final List<PageEntry<?>> entries = new ArrayList<>();
    private final Map<Identifier, GuidePageFactory> pages = new HashMap<>();
-   private final Map<ItemStack, GuidePageFactory> generatedPages = new HashMap<>();
+   // Keyed by ItemStackKey: ItemStack has identity equals/hashCode, so a raw-stack key never hits and the
+   // "cache" grew one entry per lookup for the whole session.
+   private final Map<ItemStackKey, GuidePageFactory> generatedPages = new HashMap<>();
    public ISuffixArray<PageLink> quickSearcher;
    private final Set<PageLink> pageLinksAdded = new HashSet<>();
    private final Map<GuideBook, Map<TypeOrder, ContentsNode>> contents = new HashMap<>();
@@ -742,7 +744,7 @@ public enum GuideManager {
          }
       }
 
-      return this.generatedPages.computeIfAbsent(stack, GuideRecipeFallbackPage::createFactory);
+      return this.generatedPages.computeIfAbsent(new ItemStackKey(stack), key -> GuideRecipeFallbackPage.createFactory(stack));
    }
 
    public ContentsNodeGui getGuiContents(GuiGuide gui, GuidePageContents guidePageContents, TypeOrder sortingOrder) {
