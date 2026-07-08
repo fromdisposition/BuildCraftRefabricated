@@ -24,7 +24,13 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState.LayerRenderState;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+//? if >= 26.1 {
+import net.minecraft.client.resources.model.cuboid.ItemTransform;
+//?} else {
+/*import net.minecraft.client.renderer.block.model.ItemTransform;
+*///?}
 import net.minecraft.core.Direction;
+import org.joml.Vector3f;
 import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -60,6 +66,33 @@ public class FacadeItemModel implements ItemModel {
          return quads;
       }));
 
+   // The canonical minecraft:block/block.json display transforms. Vanilla injects them into every block item via
+   // the JSON parent chain, but this ItemModel builds its quads in code, bypassing JSON entirely -- with no
+   // transform set the renderer used identity (scale 1.0), so a dropped/held facade rendered as big as a placed
+   // block. Translations are already /16, exactly as the vanilla deserializer stores them; the left third-person
+   // mirror is applied by ItemTransform itself via the leftHand flag.
+   private static final ItemTransform TRANSFORM_GROUND =
+      new ItemTransform(new Vector3f(), new Vector3f(0.0F, 0.1875F, 0.0F), new Vector3f(0.25F));
+   private static final ItemTransform TRANSFORM_FIXED =
+      new ItemTransform(new Vector3f(), new Vector3f(), new Vector3f(0.5F));
+   private static final ItemTransform TRANSFORM_THIRD_PERSON =
+      new ItemTransform(new Vector3f(75.0F, 45.0F, 0.0F), new Vector3f(0.0F, 0.15625F, 0.0F), new Vector3f(0.375F));
+   private static final ItemTransform TRANSFORM_FIRST_PERSON_RIGHT =
+      new ItemTransform(new Vector3f(0.0F, 45.0F, 0.0F), new Vector3f(), new Vector3f(0.4F));
+   private static final ItemTransform TRANSFORM_FIRST_PERSON_LEFT =
+      new ItemTransform(new Vector3f(0.0F, 225.0F, 0.0F), new Vector3f(), new Vector3f(0.4F));
+
+   private static ItemTransform transformFor(ItemDisplayContext displayContext) {
+      return switch (displayContext) {
+         case GROUND -> TRANSFORM_GROUND;
+         case FIXED -> TRANSFORM_FIXED;
+         case THIRD_PERSON_LEFT_HAND, THIRD_PERSON_RIGHT_HAND -> TRANSFORM_THIRD_PERSON;
+         case FIRST_PERSON_RIGHT_HAND -> TRANSFORM_FIRST_PERSON_RIGHT;
+         case FIRST_PERSON_LEFT_HAND -> TRANSFORM_FIRST_PERSON_LEFT;
+         default -> ItemTransform.NO_TRANSFORM;
+      };
+   }
+
    public static void onModelBake() {
       cache.invalidateAll();
       guiCache.invalidateAll();
@@ -91,6 +124,15 @@ public class FacadeItemModel implements ItemModel {
          renderState.appendModelIdentityElement(key);
          LayerRenderState layer = renderState.newLayer();
          layer.prepareQuadList().addAll(quads);
+         // The GUI icon is the purpose-built flat tile from guiCache (identity transform fills the slot face-on);
+         // every world context gets the standard block-item display transform, or the item renders full block size.
+         if (displayContext != ItemDisplayContext.GUI) {
+            //? if >= 26.1 {
+            layer.setItemTransform(transformFor(displayContext));
+            //?} else {
+            /*layer.setTransform(transformFor(displayContext));
+            *///?}
+         }
          //? if < 26.1 {
          /*layer.setRenderType(buildcraft.lib.client.render.BCLibRenderTypes.cutoutBlockSheet());
          *///?}
