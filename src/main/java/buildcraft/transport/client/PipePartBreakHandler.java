@@ -44,7 +44,9 @@ public final class PipePartBreakHandler {
             if (BlockPipeHolder.getHitPluggable(tile, lx, ly, lz) != null
                || BlockPipeHolder.getHitWire(tile, lx, ly, lz) != null
                || BlockPipeHolder.getHitWireBetween(tile, lx, ly, lz) != null) {
-               BcPacketDistributor.sendToServer(new MessageRemovePipePart(pos));
+               // Ship the exact crosshair hit point: the server must remove precisely the part the player aimed at,
+               // not whatever its own (lagging) re-raytrace would land on -- see MessageRemovePipePart.
+               BcPacketDistributor.sendToServer(new MessageRemovePipePart(pos, (float)lx, (float)ly, (float)lz));
                player.swing(hand);
                // FAIL, not SUCCESS: Fabric's AttackBlockCallback (fabric_fireAttackBlockCallback) sends the vanilla
                // START_DESTROY_BLOCK packet whenever the result consumesAction() (SUCCESS/CONSUME). A creative-mode

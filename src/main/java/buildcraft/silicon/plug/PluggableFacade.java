@@ -30,6 +30,8 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PluggableFacade extends PipePluggable implements IFacade {
    private static final AABB[] BOXES = new AABB[6];
@@ -91,6 +93,17 @@ public class PluggableFacade extends PipePluggable implements IFacade {
    @Override
    public AABB getBoundingBox() {
       return boundingBoxFor(this.side);
+   }
+
+   /**
+    * Hollow facades render a frame with an 8px hole for the pipe (the baker cuts 0.25..0.75), but the bounding box
+    * is the full face panel -- so the vanilla raytrace stopped on invisible geometry when aiming through the hole,
+    * targeting this pipe instead of whatever is visibly behind. Return the true frame-with-hole shape so rays pass
+    * through the hole exactly like the visuals suggest.
+    */
+   @Override
+   public VoxelShape getShape() {
+      return (this.isHollow() ? HOLLOW_SHAPES : SOLID_SHAPES)[this.side.ordinal()];
    }
 
    @Override
@@ -204,6 +217,9 @@ public class PluggableFacade extends PipePluggable implements IFacade {
       this.activeState = MathUtil.clamp(BcNbt.getInt(nbt, "activeState", this.activeState), 0, this.states.phasedStates.length - 1);
    }
 
+   private static final VoxelShape[] SOLID_SHAPES = new VoxelShape[6];
+   private static final VoxelShape[] HOLLOW_SHAPES = new VoxelShape[6];
+
    static {
       double ll = 0.0;
       double lu = 0.125;
@@ -217,5 +233,48 @@ public class PluggableFacade extends PipePluggable implements IFacade {
       BOXES[Direction.SOUTH.ordinal()] = new AABB(min, min, ul, max, max, uu);
       BOXES[Direction.WEST.ordinal()] = new AABB(ll, min, min, lu, max, max);
       BOXES[Direction.EAST.ordinal()] = new AABB(ul, min, min, uu, max, max);
+
+      for (Direction dir : Direction.values()) {
+         AABB box = BOXES[dir.ordinal()];
+         SOLID_SHAPES[dir.ordinal()] = Shapes.create(box);
+         HOLLOW_SHAPES[dir.ordinal()] = buildHollowFrame(dir, box);
+      }
+   }
+
+   /** The full-face panel minus the 8px pipe hole (0.25..0.75 -- the exact cut the hollow baker renders). */
+   private static VoxelShape buildHollowFrame(Direction side, AABB box) {
+      double h1 = 0.25;
+      double h2 = 0.75;
+      AABB a;
+      AABB b;
+      AABB c;
+      AABB d;
+      switch (side.getAxis()) {
+         case Y -> {
+            a = new AABB(0.0, box.minY, 0.0, 1.0, box.maxY, h1);
+            b = new AABB(0.0, box.minY, h2, 1.0, box.maxY, 1.0);
+            c = new AABB(0.0, box.minY, h1, h1, box.maxY, h2);
+            d = new AABB(h2, box.minY, h1, 1.0, box.maxY, h2);
+         }
+         case Z -> {
+            a = new AABB(0.0, 0.0, box.minZ, 1.0, h1, box.maxZ);
+            b = new AABB(0.0, h2, box.minZ, 1.0, 1.0, box.maxZ);
+            c = new AABB(0.0, h1, box.minZ, h1, h2, box.maxZ);
+            d = new AABB(h2, h1, box.minZ, 1.0, h2, box.maxZ);
+         }
+         default -> {
+            a = new AABB(box.minX, 0.0, 0.0, box.maxX, h1, 1.0);
+            b = new AABB(box.minX, h2, 0.0, box.maxX, 1.0, 1.0);
+            c = new AABB(box.minX, h1, 0.0, box.maxX, h2, h1);
+            d = new AABB(box.minX, h1, h2, box.maxX, h2, 1.0);
+         }
+      }
+
+      return Shapes.or(
+         Shapes.create(a),
+         Shapes.create(b),
+         Shapes.create(c),
+         Shapes.create(d)
+      );
    }
 }

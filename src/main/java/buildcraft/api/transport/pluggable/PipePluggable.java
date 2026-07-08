@@ -22,6 +22,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import team.reborn.energy.api.EnergyStorage;
 
 public abstract class PipePluggable {
@@ -71,6 +73,15 @@ public abstract class PipePluggable {
    }
 
    public abstract AABB getBoundingBox();
+
+   /**
+    * The pluggable's true voxel shape for raytracing/collision/outline. Defaults to the bounding box; pluggables
+    * whose visual geometry has holes (a hollow facade) MUST override this to match, or the ray stops on invisible
+    * geometry -- the crosshair points through the visible hole but targets this pipe anyway.
+    */
+   public VoxelShape getShape() {
+      return Shapes.create(this.getBoundingBox());
+   }
 
    public boolean isBlocking() {
       return false;

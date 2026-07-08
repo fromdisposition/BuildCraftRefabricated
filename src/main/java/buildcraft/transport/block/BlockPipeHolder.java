@@ -56,7 +56,6 @@ import net.minecraft.world.level.redstone.Orientation;
 //?}
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -114,8 +113,9 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
 
          PipePluggable plug = tile.getPluggable(dir);
          if (plug != null) {
-            AABB box = plug.getBoundingBox();
-            shape = Shapes.or(shape, Shapes.create(box));
+            // getShape, not the bounding box: a hollow facade's true shape has the 8px pipe hole, and the raytrace
+            // must pass through it exactly like the visuals do (the solid box made rays stop on invisible geometry).
+            shape = Shapes.or(shape, plug.getShape());
          }
       }
 
@@ -381,12 +381,17 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return EnumPipePart.CENTER;
    }
 
+   /** Raytrace hit points land EXACTLY on a box face, so a boundary compare is a rounding-error lottery: aiming down
+    *  at a gate on top of the pipe put the hit a hair ABOVE box.maxY and the gate was missed entirely (the pipe centre
+    *  was outlined/broken instead). Grow the test box by this epsilon to absorb the ulp noise; 0.001 is 1/60 px. */
+   private static final double HIT_EPS = 0.001;
+
    @Nullable
    public static Direction getHitPluggable(TilePipeHolder tile, double lx, double ly, double lz) {
       for (Direction dir : Direction.values()) {
          PipePluggable plug = tile.getPluggable(dir);
          if (plug != null) {
-            AABB box = plug.getBoundingBox();
+            AABB box = plug.getBoundingBox().inflate(HIT_EPS);
             if (lx >= box.minX && lx <= box.maxX && ly >= box.minY && ly <= box.maxY && lz >= box.minZ && lz <= box.maxZ) {
                return dir;
             }
@@ -431,7 +436,8 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       if (plugDir != null) {
          PipePluggable plug = tile.getPluggable(plugDir);
          if (plug != null) {
-            return Shapes.create(plug.getBoundingBox());
+            // True shape: a hollow facade outlines as its frame (with the pipe hole), not a solid panel.
+            return plug.getShape();
          }
       }
 
@@ -471,20 +477,17 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
     * (registered in {@code BuildCraftFabricMod}) rather than a block override -- the old Forge-style
     * {@code onDestroyedByPlayer} was never called on Fabric, so breaking any part destroyed the whole pipe.
     *
-    * <p>Server-side only. Raytraces the player's look, removes the hit part (popping its item outside creative), and
-    * returns {@code true} so the caller cancels the vanilla break. Returns {@code false} when nothing but the pipe
-    * body was hit, letting the whole pipe break normally.
+    * <p>Server-side only. Removes the part at the given in-block hit point (popping its item outside creative). The
+    * point comes from the CLIENT's crosshair via {@code MessageRemovePipePart} -- deliberately not re-raytraced here:
+    * the server-side player position lags the client's (worst while flying/looking down), so a server re-pick could
+    * resolve a different part than the one the player actually aimed at. Returns {@code false} when nothing but the
+    * pipe body is at that point.
     */
-   public static boolean removeHitPart(Level level, BlockPos pos, Player player) {
-      if (!(level.getBlockEntity(pos) instanceof TilePipeHolder tile)
-         || !(player.pick(5.0, 0.0F, false) instanceof BlockHitResult blockHit)
-         || !pos.equals(blockHit.getBlockPos())) {
+   public static boolean removeHitPart(Level level, BlockPos pos, Player player, double lx, double ly, double lz) {
+      if (!(level.getBlockEntity(pos) instanceof TilePipeHolder tile)) {
          return false;
       }
 
-      double lx = blockHit.getLocation().x - pos.getX();
-      double ly = blockHit.getLocation().y - pos.getY();
-      double lz = blockHit.getLocation().z - pos.getZ();
       BlockState state = level.getBlockState(pos);
 
       Direction plugDir = getHitPluggable(tile, lx, ly, lz);
@@ -544,27 +547,14 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    }
 
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (level.getBlockEntity(pos) instanceof TilePipeHolder tile) {
-         HitResult hit = player.pick(5.0, 0.0F, false);
-         boolean hittingPluggable = false;
-         boolean hittingWire = false;
-         if (hit instanceof BlockHitResult blockHit && pos.equals(blockHit.getBlockPos())) {
-            double lx = blockHit.getLocation().x - pos.getX();
-            double ly = blockHit.getLocation().y - pos.getY();
-            double lz = blockHit.getLocation().z - pos.getZ();
-            hittingPluggable = getHitPluggable(tile, lx, ly, lz) != null;
-            hittingWire = getHitWire(tile, lx, ly, lz) != null || getHitWireBetween(tile, lx, ly, lz) != null;
-         }
-
-         if (hittingPluggable || hittingWire) {
-            return super.playerWillDestroy(level, pos, state, player);
-         }
-
-         if (!level.isClientSide()) {
-            // Always run cleanup (pluggable onRemove -> station/robot teardown); pop the item drops only in survival.
-            tile.dropPipeItems(level, pos, !player.isCreative());
-            tile.wireManager.invalidate();
-         }
+      // Reaching here means the pipe BODY is genuinely being destroyed: aiming at a pluggable/wire never starts the
+      // vanilla break at all (PipePartBreakHandler cancels the attack and removes just that part). So always run the
+      // full teardown -- pluggable onRemove (station/robot cleanup) and wire invalidation -- popping item drops only
+      // in survival. The old flow re-raytraced the look here to sometimes skip this, which could silently skip
+      // cleanup on a stale server-side pick.
+      if (level.getBlockEntity(pos) instanceof TilePipeHolder tile && !level.isClientSide()) {
+         tile.dropPipeItems(level, pos, !player.isCreative());
+         tile.wireManager.invalidate();
       }
 
       return super.playerWillDestroy(level, pos, state, player);
