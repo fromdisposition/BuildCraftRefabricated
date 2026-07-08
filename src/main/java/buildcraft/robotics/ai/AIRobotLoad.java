@@ -89,8 +89,17 @@ public class AIRobotLoad extends AIRobot {
 
          ItemStack toAdd = stack.copy();
          toAdd.setCount(want);
-         ItemStack remaining = entityRobot.receiveItem(null, toAdd);
-         int moved = want - remaining.getCount();
+         // The simulate path must never touch the robot's inventory: station search probes EVERY candidate
+         // station with doLoad=false, and mutating here put the items into the robot while the chest kept its
+         // stack -- a straight dupe (a stock Carrier robot minted every matching stack per search cycle).
+         int moved;
+         if (doLoad) {
+            ItemStack remaining = entityRobot.receiveItem(null, toAdd);
+            moved = want - remaining.getCount();
+         } else {
+            moved = entityRobot.roomFor(toAdd);
+         }
+
          if (moved > 0) {
             if (doLoad) {
                input.removeItem(slot, moved);

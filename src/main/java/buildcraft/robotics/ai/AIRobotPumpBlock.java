@@ -55,7 +55,10 @@ public class AIRobotPumpBlock extends AIRobot {
       }
 
       Level world = this.robot.level();
-      FluidStack drainable = BlockUtil.drainBlock(world, this.blockToPump, false);
+      // Simulate with the SAME owner as the real drain below: otherwise the protection check disagrees between the
+      // two calls -- either the robot can't pump its owner's own claimed land, or (before the drainBlock gate) it
+      // committed fluid into its tank that the real drain then refused to remove (a dupe).
+      FluidStack drainable = BlockUtil.drainBlock(world, this.blockToPump, false, this.robot.getOwner());
       if (drainable != null && !drainable.isEmpty()) {
          try (Transaction transaction = Transaction.openOuter()) {
             int inserted = FluidStorageOps.insertFluidMb(this.robot.getFluidStorage(), drainable, drainable.getAmount(), transaction);

@@ -415,6 +415,28 @@ public class EntityRobot extends EntityRobotBase {
       return remaining;
    }
 
+   /**
+    * Non-mutating twin of {@link #receiveItem}: how many of {@code stack} would fit right now. Simulation paths
+    * (station-search probes run {@code AIRobotLoad.load(..., doLoad=false)} against every candidate station) MUST
+    * use this -- calling receiveItem there put items into the robot while the chest kept its stack: a pure dupe.
+    */
+   public int roomFor(ItemStack stack) {
+      int room = 0;
+      for (ItemStack slot : this.inv) {
+         if (slot.isEmpty()) {
+            room += stack.getMaxStackSize();
+         } else if (ItemStack.isSameItemSameComponents(slot, stack)) {
+            room += slot.getMaxStackSize() - slot.getCount();
+         }
+
+         if (room >= stack.getCount()) {
+            break;
+         }
+      }
+
+      return Math.min(room, stack.getCount());
+   }
+
    @Override
    public void unreachableEntityDetected(Entity entity) {
       this.unreachableEntities.add(entity.getId());
