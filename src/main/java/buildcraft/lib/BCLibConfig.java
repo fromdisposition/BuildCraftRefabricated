@@ -13,7 +13,6 @@ import net.minecraft.core.Direction.Axis;
 public final class BCLibConfig {
    public static final BCLibConfig.ColorBlindMode COLOR_BLIND_MODE = BCLibConfig.ColorBlindMode.AUTO;
    public static final BCLibConfig.TimeGap DISPLAY_TIME_GAP = BCLibConfig.TimeGap.SECONDS;
-   public static final BCLibConfig.RenderRotation ROTATE_TRAVELING_ITEMS = BCLibConfig.RenderRotation.ENABLED;
    public static final BCLibConfig.ChunkLoaderLevel CHUNK_LOADING_LEVEL = BCLibConfig.ChunkLoaderLevel.SELF_TILES;
    public static final BCLibConfig.EnumValue<BCLibConfig.ColorBlindMode> colorBlindMode = new BCLibConfig.EnumValue<>(COLOR_BLIND_MODE);
    public static final BCLibConfig.DoubleValue mjRfConversionAmount = new BCLibConfig.DoubleValue(0.1);
@@ -22,15 +21,9 @@ public final class BCLibConfig {
    public static final BCLibConfig.BooleanValue useHighContrastLabelColours = new BCLibConfig.BooleanValue(false);
    public static final BCLibConfig.BooleanValue useBucketsStatic = new BCLibConfig.BooleanValue(true);
    public static final BCLibConfig.BooleanValue useBucketsFlow = new BCLibConfig.BooleanValue(true);
-   public static final BCLibConfig.BooleanValue useLongLocalizedName = new BCLibConfig.BooleanValue(true);
-   public static final BCLibConfig.BooleanValue useSwappableSprites = new BCLibConfig.BooleanValue(true);
-   public static final BCLibConfig.BooleanValue enableAnimatedSprites = new BCLibConfig.BooleanValue(true);
    public static final BCLibConfig.BooleanValue guideShowDetail = new BCLibConfig.BooleanValue(false);
-   public static final BCLibConfig.IntValue itemLifespan = new BCLibConfig.IntValue(60);
-   public static final BCLibConfig.IntValue guideItemSearchLimit = new BCLibConfig.IntValue(10000);
    public static final BCLibConfig.IntValue maxGuideSearchCount = new BCLibConfig.IntValue(1200);
    public static final BCLibConfig.EnumValue<BCLibConfig.TimeGap> displayTimeGap = new BCLibConfig.EnumValue<>(DISPLAY_TIME_GAP);
-   public static final BCLibConfig.EnumValue<BCLibConfig.RenderRotation> rotateTravelingItems = new BCLibConfig.EnumValue<>(ROTATE_TRAVELING_ITEMS);
    public static final BCLibConfig.EnumValue<BCLibConfig.ChunkLoaderLevel> chunkLoadingLevel = new BCLibConfig.EnumValue<>(CHUNK_LOADING_LEVEL);
 
    private BCLibConfig() {
@@ -119,29 +112,6 @@ public final class BCLibConfig {
       public void set(int value) {
          this.value = value;
       }
-   }
-
-   public enum RenderRotation {
-      DISABLED {
-         @Override
-         public Direction changeFacing(Direction dir) {
-            return Direction.EAST;
-         }
-      },
-      HORIZONTALS_ONLY {
-         @Override
-         public Direction changeFacing(Direction dir) {
-            return dir.getAxis() == Axis.Y ? Direction.EAST : dir;
-         }
-      },
-      ENABLED {
-         @Override
-         public Direction changeFacing(Direction dir) {
-            return dir;
-         }
-      };
-
-      public abstract Direction changeFacing(Direction dir);
    }
 
    public enum TimeGap {

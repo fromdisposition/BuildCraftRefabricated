@@ -104,12 +104,7 @@ public final class BCFabricConfig {
          BCLibConfig.useHighContrastLabelColours.set(bool(lib, "useHighContrastLabelColours", BCLibConfig.useHighContrastLabelColours.get()));
          BCLibConfig.useBucketsStatic.set(bool(lib, "useBucketsStatic", BCLibConfig.useBucketsStatic.get()));
          BCLibConfig.useBucketsFlow.set(bool(lib, "useBucketsFlow", BCLibConfig.useBucketsFlow.get()));
-         BCLibConfig.useLongLocalizedName.set(bool(lib, "useLongLocalizedName", BCLibConfig.useLongLocalizedName.get()));
-         BCLibConfig.useSwappableSprites.set(bool(lib, "useSwappableSprites", BCLibConfig.useSwappableSprites.get()));
-         BCLibConfig.enableAnimatedSprites.set(bool(lib, "enableAnimatedSprites", BCLibConfig.enableAnimatedSprites.get()));
          BCLibConfig.guideShowDetail.set(bool(lib, "guideBookEnableDetail", BCLibConfig.guideShowDetail.get()));
-         BCLibConfig.itemLifespan.set(intVal(lib, "itemLifespan", BCLibConfig.itemLifespan.get()));
-         BCLibConfig.guideItemSearchLimit.set(intVal(lib, "guideItemSearchLimit", BCLibConfig.guideItemSearchLimit.get()));
          BCLibConfig.maxGuideSearchCount.set(intVal(lib, "maxGuideSearchCount", BCLibConfig.maxGuideSearchCount.get()));
          String timeGap = string(lib, "displayTimeGap", BCLibConfig.displayTimeGap.get().name());
 
@@ -117,14 +112,6 @@ public final class BCFabricConfig {
             BCLibConfig.displayTimeGap.set(BCLibConfig.TimeGap.valueOf(timeGap.toUpperCase()));
          } catch (IllegalArgumentException e) {
             LOGGER.warn("Unknown displayTimeGap '{}', keeping {}", timeGap, BCLibConfig.displayTimeGap.get());
-         }
-
-         String itemRotation = string(lib, "itemRenderRotation", BCLibConfig.rotateTravelingItems.get().name());
-
-         try {
-            BCLibConfig.rotateTravelingItems.set(BCLibConfig.RenderRotation.valueOf(itemRotation.toUpperCase()));
-         } catch (IllegalArgumentException e) {
-            LOGGER.warn("Unknown itemRenderRotation '{}', keeping {}", itemRotation, BCLibConfig.rotateTravelingItems.get());
          }
 
          String chunkLoadLevel = string(lib, "chunkLoadLevel", BCLibConfig.chunkLoadingLevel.get().name());
@@ -266,15 +253,9 @@ public final class BCFabricConfig {
       lib.addProperty("useHighContrastLabelColours", false);
       lib.addProperty("useBucketsStatic", true);
       lib.addProperty("useBucketsFlow", true);
-      lib.addProperty("useLongLocalizedName", true);
-      lib.addProperty("useSwappableSprites", true);
-      lib.addProperty("enableAnimatedSprites", true);
       lib.addProperty("guideBookEnableDetail", false);
-      lib.addProperty("itemLifespan", 60);
-      lib.addProperty("guideItemSearchLimit", 10000);
       lib.addProperty("maxGuideSearchCount", 1200);
       lib.addProperty("displayTimeGap", "SECONDS");
-      lib.addProperty("itemRenderRotation", "ENABLED");
       lib.addProperty("chunkLoadLevel", "SELF_TILES");
       root.add("lib", lib);
       JsonObject energy = new JsonObject();
