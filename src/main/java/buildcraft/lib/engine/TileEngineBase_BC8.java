@@ -605,7 +605,7 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
 
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
-      this.readData(new BcValueIn(input));
+      this.readDataGuarded(new BcValueIn(input));
    }
    //?} else {
    /*protected void saveAdditional(CompoundTag tag, Provider registries) {
@@ -615,9 +615,20 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
 
    protected void loadAdditional(CompoundTag tag, Provider registries) {
       super.loadAdditional(tag, registries);
-      this.readData(new BcValueIn(tag, registries));
+      this.readDataGuarded(new BcValueIn(tag, registries));
    }
    *///?}
+
+   /** A read exception must never escape loadAdditional: the engine would end up empty/discarded and the next save
+    * would overwrite the stored data with that empty state. Keep whatever was read and log loudly instead. */
+   private void readDataGuarded(BcValueIn input) {
+      try {
+         this.readData(input);
+      } catch (Exception e) {
+         buildcraft.api.core.BCLog.logger.error("[lib.engine] Failed to read engine data at " + this.worldPosition
+            + "; keeping the partially loaded state so the save is not overwritten with an empty tile", e);
+      }
+   }
 
    protected void writeData(BcValueOut output) {
       output.putByte("orientation", (byte)this.orientation.ordinal());

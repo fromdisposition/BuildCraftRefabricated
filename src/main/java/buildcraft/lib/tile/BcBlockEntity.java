@@ -90,7 +90,7 @@ public abstract class BcBlockEntity extends BlockEntity {
 
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
-      this.readData(new BcValueIn(input));
+      this.readDataGuarded(new BcValueIn(input));
    }
    //?} else {
    /*protected void saveAdditional(CompoundTag tag, Provider registries) {
@@ -100,9 +100,30 @@ public abstract class BcBlockEntity extends BlockEntity {
 
    protected void loadAdditional(CompoundTag tag, Provider registries) {
       super.loadAdditional(tag, registries);
-      this.readData(new BcValueIn(tag, registries));
+      this.readDataGuarded(new BcValueIn(tag, registries));
    }
    *///?}
+
+   /**
+    * A read exception must never escape loadAdditional: depending on the version/path the tile is then either
+    * discarded or left empty, and the NEXT SAVE overwrites the stored data with that empty state -- permanent,
+    * silent world damage (this exact failure mode once wiped every loaded pipe in a save). Keep whatever was read
+    * before the failure and log loudly; losing the unread remainder of one tile beats losing the tile forever.
+    */
+   private void readDataGuarded(BcValueIn input) {
+      guardTileRead(this, () -> this.readData(input));
+   }
+
+   /** Shared form of the guard above for BC tiles that do not extend this class (tanks, lasers, markers, ...). */
+   public static void guardTileRead(BlockEntity tile, Runnable reader) {
+      try {
+         reader.run();
+      } catch (Exception e) {
+         buildcraft.api.core.BCLog.logger.error(
+            "[lib] Failed to read block entity data at " + tile.getBlockPos() + " (" + tile.getClass().getName()
+               + "); keeping the partially loaded state so the save is not overwritten with an empty tile", e);
+      }
+   }
 
    protected void writeData(BcValueOut output) {
       if (this.owner != null && BcAuth.id(this.owner) != null) {

@@ -49,7 +49,7 @@ public class TileSpringOil extends BlockEntity implements ITileOilSpring {
    //? if >= 1.21.10 {
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
-      this.readData(new BcValueIn(input));
+      buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(input)));
    }
 
    protected void saveAdditional(ValueOutput output) {
@@ -59,7 +59,7 @@ public class TileSpringOil extends BlockEntity implements ITileOilSpring {
    //?} else {
    /*public void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
       super.loadAdditional(tag, registries);
-      this.readData(new BcValueIn(tag, registries));
+      buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(tag, registries)));
    }
 
    protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {

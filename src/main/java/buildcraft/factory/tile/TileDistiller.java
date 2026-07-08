@@ -510,7 +510,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
 
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
-      this.readData(new BcValueIn(input));
+      buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(input)));
    }
    //?} else {
    /*protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
@@ -520,7 +520,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
 
    protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
       super.loadAdditional(tag, registries);
-      this.readData(new BcValueIn(tag, registries));
+      buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(tag, registries)));
    }
    *///?}
 

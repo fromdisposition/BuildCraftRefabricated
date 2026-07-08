@@ -63,7 +63,12 @@ public final class BcSavedDataType<T extends SavedData> {
    /*public SavedData.Factory<T> factory() {
       return new SavedData.Factory<>(
          this.constructor,
-         (tag, provider) -> this.codec.parse(RegistryOps.create(NbtOps.INSTANCE, provider), tag).result().orElseGet(this.constructor),
+         // Parse failures must FAIL LOUDLY, never fall back to a fresh instance: computeIfAbsent would adopt the
+         // empty replacement and the next autosave would overwrite the file -- silently wiping every robot / wire
+         // system / volume box stored in it. Throwing matches the >=1.21.10 SavedDataType behaviour: the world
+         // refuses to load with a clear report and the data on disk stays untouched until the cause is fixed.
+         (tag, provider) -> this.codec.parse(RegistryOps.create(NbtOps.INSTANCE, provider), tag)
+            .getOrThrow(msg -> new IllegalStateException("Failed to load saved data '" + this.name() + "': " + msg)),
          this.dataFixType
       );
    }
