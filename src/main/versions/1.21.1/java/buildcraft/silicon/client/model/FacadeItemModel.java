@@ -21,11 +21,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.renderer.v1.RendererAccess;
+import net.fabricmc.fabric.api.renderer.v1.material.BlendMode;
 import net.fabricmc.fabric.api.renderer.v1.material.RenderMaterial;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.block.model.ItemTransform;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
@@ -44,7 +47,12 @@ import org.joml.Vector3f;
  * the facade block state read per-stack.
  */
 public class FacadeItemModel implements BakedModel {
-   private static final RenderMaterial MATERIAL = RendererAccess.INSTANCE.getRenderer().materialFinder().find();
+   // Two materials so a facade of a translucent source block (stained glass, ice) keeps its alpha in the item
+   // render; the default finder resolves to an opaque layer, which is why such facades were solid grey in hand.
+   private static final RenderMaterial CUTOUT_MATERIAL =
+      RendererAccess.INSTANCE.getRenderer().materialFinder().blendMode(BlendMode.CUTOUT).find();
+   private static final RenderMaterial TRANSLUCENT_MATERIAL =
+      RendererAccess.INSTANCE.getRenderer().materialFinder().blendMode(BlendMode.TRANSLUCENT).find();
    private static final LoadingCache<KeyPlugFacade, List<BakedQuad>> guiCache = CacheBuilder.newBuilder()
       .expireAfterAccess(1L, TimeUnit.MINUTES)
       .build(CacheLoader.from(key -> {
@@ -52,10 +60,18 @@ public class FacadeItemModel implements BakedModel {
          float offsetZ = 0.4375F;
          for (MutableQuad quad : PlugBakerFacade.INSTANCE.bakeForKey(key)) {
             quad.setShade(false);
-            quad.vertex_0.translatef(0.0F, 0.0F, offsetZ).normalf(0.0F, 1.0F, 0.0F).colouri(255, 255, 255, 255);
-            quad.vertex_1.translatef(0.0F, 0.0F, offsetZ).normalf(0.0F, 1.0F, 0.0F).colouri(255, 255, 255, 255);
-            quad.vertex_2.translatef(0.0F, 0.0F, offsetZ).normalf(0.0F, 1.0F, 0.0F).colouri(255, 255, 255, 255);
-            quad.vertex_3.translatef(0.0F, 0.0F, offsetZ).normalf(0.0F, 1.0F, 0.0F).colouri(255, 255, 255, 255);
+            // Bake the source block's BASE (world-less) tint into the quad -- otherwise a biome-tinted facade
+            // (grass, leaves) drew grey. resolveWorldTint with a null level returns the default colour, the same
+            // green a grass block item shows in the inventory.
+            int tint = quad.getTint();
+            int rgb = tint >= 0 ? key.resolveWorldTint(tint, null, null) : -1;
+            int r = rgb == -1 ? 255 : rgb >> 16 & 0xFF;
+            int g = rgb == -1 ? 255 : rgb >> 8 & 0xFF;
+            int b = rgb == -1 ? 255 : rgb & 0xFF;
+            quad.vertex_0.translatef(0.0F, 0.0F, offsetZ).normalf(0.0F, 1.0F, 0.0F).colouri(r, g, b, 255);
+            quad.vertex_1.translatef(0.0F, 0.0F, offsetZ).normalf(0.0F, 1.0F, 0.0F).colouri(r, g, b, 255);
+            quad.vertex_2.translatef(0.0F, 0.0F, offsetZ).normalf(0.0F, 1.0F, 0.0F).colouri(r, g, b, 255);
+            quad.vertex_3.translatef(0.0F, 0.0F, offsetZ).normalf(0.0F, 1.0F, 0.0F).colouri(r, g, b, 255);
             quads.add(quad.toBakedItem());
          }
          return quads;
@@ -79,9 +95,12 @@ public class FacadeItemModel implements BakedModel {
       FacadePhasedState state = inst.getCurrentStateForStack();
       KeyPlugFacade key = new KeyPlugFacade("item", Direction.NORTH, state.stateInfo.state, inst.isHollow());
       List<BakedQuad> quads = guiCache.getUnchecked(key);
+      RenderMaterial material = ItemBlockRenderTypes.getChunkRenderType(state.stateInfo.state) == RenderType.translucent()
+         ? TRANSLUCENT_MATERIAL
+         : CUTOUT_MATERIAL;
       QuadEmitter emitter = context.getEmitter();
       for (BakedQuad quad : quads) {
-         emitter.fromVanilla(quad, MATERIAL, null);
+         emitter.fromVanilla(quad, material, null);
          emitter.emit();
       }
    }
@@ -98,11 +117,10 @@ public class FacadeItemModel implements BakedModel {
 
    @Override
    public boolean isGui3d() {
-      // MUST be true (like GateItemModel). The emitted geometry is NORTH-facing; 1.21.1's flat-item GUI path
-      // (isGui3d=false) renders it so the NORTH front faces AWAY from the viewer — you saw the slab's back/inside
-      // ("the facade effect"). The 3d-item path orients the NORTH front toward the viewer, same as the gate item.
-      // This does NOT re-introduce the block tilt: that came from the GUI transform rotation (kept at 0 below).
-      return true;
+      // false = flat 2D GUI icon, matching how 26.2 draws the facade face-on (no block-camera tilt). The 3d path
+      // rendered the NORTH slab at the block-item camera angle, showing its back/inside ("the facade effect"). The
+      // flat path faces +Z, so the GUI transform below rotates the NORTH front 180 deg to point at the viewer.
+      return false;
    }
 
    @Override
@@ -144,7 +162,7 @@ public class FacadeItemModel implements BakedModel {
          xform(0, 225, 0, 0, 0, 0, 0.4F),        // firstperson_lefthand
          xform(0, 45, 0, 0, 0, 0, 0.4F),         // firstperson_righthand
          xform(0, 0, 0, 0, 0, 0, 1.0F),          // head
-         xform(0, 0, 0, 0, 0, 0, 1.0F),          // gui — flat face-on tile (matches 26.2), not the 3D block tilt
+         xform(0, 180, 0, 0, 0, 0, 1.0F),        // gui — flat face-on tile (matches 26.2); 180 Y turns the NORTH front toward the viewer
          xform(0, 0, 0, 0, 3, 0, 0.25F),         // ground
          xform(0, 0, 0, 0, 0, 0, 0.5F)           // fixed
       );

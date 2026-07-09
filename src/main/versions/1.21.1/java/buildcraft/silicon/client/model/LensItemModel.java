@@ -142,7 +142,10 @@ public class LensItemModel implements BakedModel {
 
    private static ItemTransforms buildTransforms() {
       EnumMap<ItemDisplayContext, float[]> x = new EnumMap<>(ItemDisplayContext.class);
-      x.put(ItemDisplayContext.GUI, new float[] { 0, 90, 0, 0, 0, 0, 1.8F });
+      // 1.35, not the gate's 1.8: 1.21.1's isGui3d GUI applies scale literally (no fit-to-slot like 26.2's item
+      // pipeline), and the lens plate is an 8px face vs the gate's 6px body -- 8*1.35 matches the gate's 6*1.8
+      // slot fill, so the lens no longer overflows the inventory frame.
+      x.put(ItemDisplayContext.GUI, new float[] { 0, 90, 0, 0, 0, 0, 1.35F });
       x.put(ItemDisplayContext.GROUND, new float[] { 0, 0, 0, 0, 3, 0, 0.9F });
       x.put(ItemDisplayContext.HEAD, new float[] { 0, 0, 0, 0, 0, 0, 1.8F });
       x.put(ItemDisplayContext.FIXED, new float[] { 0, 0, 0, 0, 0, 0, 1.53F });
