@@ -108,7 +108,9 @@ public class BCSiliconClient {
          FacadeDeduplicator.deduplicateVisuallyIdentical(cachedBlockStateModels);
          cachedBlockStateModels = null;
       }
-      //?}
+      //?} else {
+      /*FacadeDeduplicator.deduplicateVisuallyIdentical();
+      *///?}
    }
 
    public static final class GameBus {
