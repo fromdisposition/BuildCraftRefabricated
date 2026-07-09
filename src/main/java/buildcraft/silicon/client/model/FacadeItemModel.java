@@ -98,6 +98,41 @@ public class FacadeItemModel implements ItemModel {
       guiCache.invalidateAll();
    }
 
+   /**
+    * Fill the layer's tint colours so biome-tinted source blocks (grass, leaves) keep their BASE colour in the
+    * item render -- without them every remapped tint index resolved to nothing and the icon drew grey. Uses the
+    * world-less colour (BlockTintSource.color / getColor with no level), i.e. the same default green a grass
+    * block item shows in the inventory.
+    */
+   private static void fillTintLayers(LayerRenderState layer, net.minecraft.world.level.block.state.BlockState state) {
+      //? if >= 26.1 {
+      it.unimi.dsi.fastutil.ints.IntList tints = layer.tintLayers();
+      for (int i = 0; i < PlugBakerFacade.FACADE_TINT_LIST_SIZE; i++) {
+         tints.add(defaultTint(state, i));
+      }
+      //?} else {
+      /*int[] tints = layer.prepareTintLayers(PlugBakerFacade.FACADE_TINT_LIST_SIZE);
+      for (int i = 0; i < tints.length; i++) {
+         tints[i] = defaultTint(state, i);
+      }
+      *///?}
+   }
+
+   private static int defaultTint(net.minecraft.world.level.block.state.BlockState state, int remappedIndex) {
+      if (remappedIndex < PlugBakerFacade.FACADE_TINT_BASE) {
+         return -1;
+      }
+
+      int original = (remappedIndex - PlugBakerFacade.FACADE_TINT_BASE) / Direction.values().length;
+      //? if >= 26.1 {
+      net.minecraft.client.color.block.BlockTintSource source =
+         net.minecraft.client.Minecraft.getInstance().getBlockColors().getTintSource(state, original);
+      return source == null ? -1 : 0xFF000000 | source.color(state);
+      //?} else {
+      /*return 0xFF000000 | net.minecraft.client.Minecraft.getInstance().getBlockColors().getColor(state, null, null, original);
+      *///?}
+   }
+
    public void update(
       ItemStackRenderState renderState,
       ItemStack stack,
@@ -112,10 +147,10 @@ public class FacadeItemModel implements ItemModel {
       List<BakedQuad> quads;
       KeyPlugFacade key;
       if (displayContext == ItemDisplayContext.GUI) {
-         key = new KeyPlugFacade("cutout", Direction.NORTH, state.stateInfo.state, inst.isHollow());
+         key = new KeyPlugFacade("item", Direction.NORTH, state.stateInfo.state, inst.isHollow());
          quads = (List<BakedQuad>)guiCache.getUnchecked(key);
       } else {
-         key = new KeyPlugFacade("cutout", Direction.EAST, state.stateInfo.state, inst.isHollow());
+         key = new KeyPlugFacade("item", Direction.EAST, state.stateInfo.state, inst.isHollow());
          quads = (List<BakedQuad>)cache.getUnchecked(key);
       }
 
@@ -124,6 +159,7 @@ public class FacadeItemModel implements ItemModel {
          renderState.appendModelIdentityElement(key);
          LayerRenderState layer = renderState.newLayer();
          layer.prepareQuadList().addAll(quads);
+         fillTintLayers(layer, state.stateInfo.state);
          // The GUI icon is the purpose-built flat tile from guiCache (identity transform fills the slot face-on);
          // every world context gets the standard block-item display transform, or the item renders full block size.
          if (displayContext != ItemDisplayContext.GUI) {
@@ -134,7 +170,14 @@ public class FacadeItemModel implements ItemModel {
             *///?}
          }
          //? if < 26.1 {
-         /*layer.setRenderType(buildcraft.lib.client.render.BCLibRenderTypes.cutoutBlockSheet());
+         /*// Pre-26.1 quads carry no per-quad item sheet, so pick the layer's sheet from the source block's own
+         // chunk layer -- a translucent block (stained glass, ice) must keep its alpha in hand/on the ground.
+         layer.setRenderType(
+            net.minecraft.client.renderer.ItemBlockRenderTypes.getChunkRenderType(state.stateInfo.state)
+                  == net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT
+               ? buildcraft.lib.client.render.BCLibRenderTypes.translucentBlockSheet()
+               : buildcraft.lib.client.render.BCLibRenderTypes.cutoutBlockSheet()
+         );
          *///?}
       }
    }

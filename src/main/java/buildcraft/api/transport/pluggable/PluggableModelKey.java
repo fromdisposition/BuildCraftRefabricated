@@ -7,7 +7,9 @@
 package buildcraft.api.transport.pluggable;
 
 import java.util.Objects;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 
 public abstract class PluggableModelKey {
    public final Object layer;
@@ -30,6 +32,23 @@ public abstract class PluggableModelKey {
     * glass) is lost through the bake; the tint is instead applied at render time from this key.
     */
    public int getTintColour() {
+      return -1;
+   }
+
+   /**
+    * Whether this pluggable's quads carry world-dependent tint indices (biome colours -- e.g. a grass facade).
+    * Such pluggables are rendered individually so each quad's tint can be resolved against the world; returning
+    * true excludes the key from the merged untinted batch.
+    */
+   public boolean hasWorldTint() {
+      return false;
+   }
+
+   /**
+    * Resolve one of this key's baked tint indices to a packed RGB for the given world position (biome-aware),
+    * or {@code -1} for no tint. Only called when {@link #hasWorldTint()} is true.
+    */
+   public int resolveWorldTint(int tintIndex, Level level, BlockPos pos) {
       return -1;
    }
 

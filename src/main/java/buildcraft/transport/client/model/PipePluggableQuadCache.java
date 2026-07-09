@@ -18,12 +18,22 @@ public final class PipePluggableQuadCache {
    private static final BakedQuadTemplateCache<PluggableModelKey> TRANSLUCENT = new BakedQuadTemplateCache<>(
       PipeModelCachePluggable.cacheTranslucentSingle::bake, false
    );
+   private static final BakedQuadTemplateCache<PluggableModelKey> CUTOUT_SINGLE = new BakedQuadTemplateCache<>(
+      PipeModelCachePluggable.cacheCutoutSingle::bake
+   );
 
    private PipePluggableQuadCache() {
    }
 
    public static void renderCutout(PipeModelCachePluggable.PluggableKey key, Pose pose, VertexConsumer buffer, int light) {
       CUTOUT.render(key, pose, buffer, light);
+   }
+
+   /** Per-pluggable cutout render with a per-quad tint resolver -- see PluggableModelKey.resolveWorldTint. */
+   public static void renderCutoutTintResolved(
+      PluggableModelKey key, Pose pose, VertexConsumer buffer, int light, java.util.function.IntUnaryOperator tintToRgb
+   ) {
+      CUTOUT_SINGLE.renderTintResolved(key, pose, buffer, light, tintToRgb);
    }
 
    /** Rendered per single pluggable (not the merged per-tile set) so each keeps its own tint colour — e.g. the

@@ -49,7 +49,9 @@ public class PipeModelCachePluggable {
             PipePluggable pluggable = holder.getPluggable(side);
             if (pluggable != null) {
                PluggableModelKey key = pluggable.getModelRenderKey(isCutout ? "cutout" : "translucent");
-               if (key != null) {
+               // World-tinted pluggables (facades of biome-coloured blocks) render individually so each quad's
+               // tint resolves against the world; keeping them in the merged untinted batch drew them grey.
+               if (key != null && !(isCutout && key.hasWorldTint())) {
                   builder.add(key);
                }
             }

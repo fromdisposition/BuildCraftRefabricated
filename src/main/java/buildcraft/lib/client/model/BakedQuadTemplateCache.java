@@ -57,6 +57,37 @@ public final class BakedQuadTemplateCache<K> {
       return result;
    }
 
+   /**
+    * As {@link #render}, but resolves a packed RGB per quad from its baked tint index (resolver returns -1 for
+    * untinted). The colour MULTIPLIES the template's vertex colour so the diffuse face shade baked into cutout
+    * templates survives -- used for world-tinted facades (grass/leaves biome colours).
+    */
+   public void renderTintResolved(K key, Pose pose, VertexConsumer buffer, int light, java.util.function.IntUnaryOperator tintToRgb) {
+      MutableQuad scratch = RENDER_SCRATCH.get();
+
+      for (MutableQuad template : this.templates.computeIfAbsent(key, this::buildTemplates)) {
+         scratch.copyFrom(template);
+         int tint = template.getTint();
+         if (tint >= 0) {
+            int rgb = tintToRgb.applyAsInt(tint);
+            if (rgb != -1) {
+               multiplyColour(scratch, rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF);
+            }
+         }
+
+         scratch.lighti(light);
+         scratch.render(pose, buffer);
+      }
+   }
+
+   private static void multiplyColour(MutableQuad quad, int r, int g, int b) {
+      for (MutableVertex vertex : new MutableVertex[]{quad.vertex_0, quad.vertex_1, quad.vertex_2, quad.vertex_3}) {
+         vertex.colouri(
+            (vertex.colour_r & 0xFF) * r / 255, (vertex.colour_g & 0xFF) * g / 255, (vertex.colour_b & 0xFF) * b / 255, vertex.colour_a & 0xFF
+         );
+      }
+   }
+
    public void render(K key, Pose pose, VertexConsumer buffer, int light) {
       MutableQuad scratch = RENDER_SCRATCH.get();
 

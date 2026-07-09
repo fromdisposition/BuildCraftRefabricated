@@ -32,6 +32,21 @@ public class ModelPipe {
       if (tile != null && tile.getPipe() != null) {
          PipeModelCachePluggable.PluggableKey key = new PipeModelCachePluggable.PluggableKey(true, tile);
          PipePluggableQuadCache.renderCutout(key, pose, buffer, light);
+
+         // World-tinted pluggables (facades of biome-coloured blocks like grass/leaves) are excluded from the
+         // merged batch above and rendered one by one, resolving each quad's tint against this position -- the
+         // merged path has no tint at all, which is why such facades rendered grey.
+         for (Direction side : Direction.values()) {
+            PipePluggable plug = tile.getPluggable(side);
+            if (plug != null) {
+               PluggableModelKey plugKey = plug.getModelRenderKey("cutout");
+               if (plugKey != null && plugKey.hasWorldTint()) {
+                  PipePluggableQuadCache.renderCutoutTintResolved(
+                     plugKey, pose, buffer, light, tint -> plugKey.resolveWorldTint(tint, tile.getLevel(), tile.getBlockPos())
+                  );
+               }
+            }
+         }
       }
    }
 
