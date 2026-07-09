@@ -177,7 +177,24 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
             )
          )
          : Optional.empty();
-      return !simulate ? function.get() : this.extractRequiredCache.computeIfAbsent(Pair.of(requiredItems, requiredFluids), pair -> function.get());
+      if (!simulate) {
+         return function.get();
+      }
+
+      // NOT computeIfAbsent: function.get() reads the builder's inventory/tanks, and that access re-entrantly fires
+      // onResourcesChanged -> resourcesChanged() -> extractRequiredCache.clear() on this very map. Clearing a
+      // HashMap inside computeIfAbsent's mapping function trips its modCount guard and throws
+      // ConcurrentModificationException, crashing the builder tick. Plain get/compute/put has no such guard -- a
+      // re-entrant clear simply means the entry we put afterwards is the only survivor, which is still correct.
+      Pair<List<ItemStack>, List<FluidStack>> key = Pair.of(requiredItems, requiredFluids);
+      Optional<List<ItemStack>> cached = this.extractRequiredCache.get(key);
+      if (cached != null) {
+         return cached;
+      }
+
+      Optional<List<ItemStack>> result = function.get();
+      this.extractRequiredCache.put(key, result);
+      return result;
    }
 
    @Override
