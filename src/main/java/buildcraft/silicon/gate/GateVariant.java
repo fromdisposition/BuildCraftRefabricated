@@ -25,7 +25,10 @@ public class GateVariant {
       this.logic = logic;
       this.material = material;
       this.modifier = modifier;
-      this.numSlots = material.numSlots / modifier.slotDivisor;
+      // Clamp to >= 1: an invalid material+modifier combo (e.g. the unmodifiable CLAY_BRICK, numSlots 1, paired
+      // with a slotDivisor-2 modifier via edited/hostile NBT) divides to 0, and GateLogic then allocates
+      // new boolean[numSlots - 1] = new boolean[-1] -> NegativeArraySizeException on the pluggable load path.
+      this.numSlots = Math.max(1, material.numSlots / modifier.slotDivisor);
       this.numTriggerArgs = modifier.triggerParams;
       this.numActionArgs = modifier.actionParams;
       this.hash = Objects.hash(logic, material, modifier);
@@ -35,7 +38,7 @@ public class GateVariant {
       this.logic = EnumGateLogic.getByOrdinal(BcNbt.getByte(nbt, "logic", (byte)0));
       this.material = EnumGateMaterial.getByOrdinal(BcNbt.getByte(nbt, "material", (byte)0));
       this.modifier = EnumGateModifier.getByOrdinal(BcNbt.getByte(nbt, "modifier", (byte)0));
-      this.numSlots = this.material.numSlots / this.modifier.slotDivisor;
+      this.numSlots = Math.max(1, this.material.numSlots / this.modifier.slotDivisor);
       this.numTriggerArgs = this.modifier.triggerParams;
       this.numActionArgs = this.modifier.actionParams;
       this.hash = Objects.hash(this.logic, this.material, this.modifier);
@@ -53,7 +56,7 @@ public class GateVariant {
       this.logic = EnumGateLogic.getByOrdinal(buffer.readUnsignedByte());
       this.material = EnumGateMaterial.getByOrdinal(buffer.readUnsignedByte());
       this.modifier = EnumGateModifier.getByOrdinal(buffer.readUnsignedByte());
-      this.numSlots = this.material.numSlots / this.modifier.slotDivisor;
+      this.numSlots = Math.max(1, this.material.numSlots / this.modifier.slotDivisor);
       this.numTriggerArgs = this.modifier.triggerParams;
       this.numActionArgs = this.modifier.actionParams;
       this.hash = Objects.hash(this.logic, this.material, this.modifier);

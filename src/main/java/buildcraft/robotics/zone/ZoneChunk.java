@@ -99,7 +99,15 @@ public class ZoneChunk {
          x = rand.nextInt(16);
          z = rand.nextInt(16);
       } else {
-         int bitId = rand.nextInt(this.property.cardinality());
+         // A pruned-but-present empty chunk (null/empty BitSet) would make nextInt(0) / a null deref throw. Zone
+         // plans prune empty chunks, so this only guards tampered NBT / malformed layer packets — fall back to a
+         // uniform position rather than throwing inside the AI cycle.
+         int cardinality = this.property == null ? 0 : this.property.cardinality();
+         if (cardinality <= 0) {
+            return new BlockPos(rand.nextInt(16), rand.nextInt(255), rand.nextInt(16));
+         }
+
+         int bitId = rand.nextInt(cardinality);
 
          int bitPosition;
          for (bitPosition = this.property.nextSetBit(0); bitId > 0; bitPosition = this.property.nextSetBit(bitPosition + 1)) {

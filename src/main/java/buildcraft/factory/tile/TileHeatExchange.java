@@ -594,7 +594,10 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
             s.progress = Math.min(120, input.getIntOr("progress", 0));
             s.progressLast = s.progress;
             int stateOrd = input.getIntOr("progressState", 0);
-            s.progressState = TileHeatExchange.EnumProgressState.values()[Math.min(stateOrd, TileHeatExchange.EnumProgressState.values().length - 1)];
+            // Clamp both ends: a negative progressState from edited/corrupt NBT would index the enum array at a
+            // negative offset (AIOOBE). Normal saves write 0..len-1, so this only ever matters for bad input.
+            stateOrd = Math.max(0, Math.min(stateOrd, TileHeatExchange.EnumProgressState.values().length - 1));
+            s.progressState = TileHeatExchange.EnumProgressState.values()[stateOrd];
             this.section = s;
          } else {
             TileHeatExchange.ExchangeSectionEnd e;

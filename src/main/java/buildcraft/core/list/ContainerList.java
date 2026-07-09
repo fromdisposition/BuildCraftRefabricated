@@ -31,7 +31,12 @@ public class ContainerList extends BcMenu {
    private final ItemHandlerSimple[] lineInventories;
 
    public static ContainerList fromNetwork(int containerId, Inventory playerInv, RegistryFriendlyByteBuf buf) {
-      InteractionHand hand = InteractionHand.values()[buf.readByte()];
+      // Bound the index: a byte other than 0/1 from a forged/corrupt server payload would index InteractionHand
+      // out of range. The C2S button path in this class already range-checks; this closes the matching gap.
+      int handOrdinal = buf.readByte();
+      InteractionHand hand = handOrdinal >= 0 && handOrdinal < InteractionHand.values().length
+         ? InteractionHand.values()[handOrdinal]
+         : InteractionHand.MAIN_HAND;
       return new ContainerList(containerId, playerInv, hand);
    }
 

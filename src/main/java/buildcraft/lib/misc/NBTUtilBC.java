@@ -174,7 +174,14 @@ public class NBTUtilBC {
          if (idStr.isEmpty()) {
             return ItemStack.EMPTY;
          } else {
-            Identifier itemId = Identifier.parse(idStr);
+            // tryParse, not parse: the id comes from NBT and a malformed value (uppercase, spaces, ...) makes the
+            // throwing parse abort the whole surrounding tile read mid-way. Degrade one bad stack to EMPTY instead,
+            // matching BcItemInventory.deserializeNBT.
+            Identifier itemId = Identifier.tryParse(idStr);
+            if (itemId == null) {
+               return ItemStack.EMPTY;
+            }
+
             Item item = BcRegistryUtil.getItem(itemId);
             if (item != null && item != Items.AIR) {
                int count = BcNbt.getInt(nbt, "count", 1);

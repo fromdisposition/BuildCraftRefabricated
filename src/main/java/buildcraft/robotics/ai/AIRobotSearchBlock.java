@@ -106,6 +106,12 @@ public class AIRobotSearchBlock extends AIRobot {
                this.terminate();
                return;
             }
+
+            // The zone only knows chunk-local X/Z; its Y is a world-agnostic placeholder (legacy 0..254). Re-roll
+            // Y across the ACTUAL build height here, where the level is known, so zoned random search can reach the
+            // negative-Y region of modern worlds instead of being clamped above y=0.
+            net.minecraft.world.level.Level level = this.robot.level();
+            candidate = new BlockPos(candidate.getX(), level.getMinY() + RANDOM.nextInt(level.getHeight()), candidate.getZ());
          } else {
             double r = this.robot.level().getRandom().nextFloat() * EntityRobotBase.DEFAULT_SEARCH_RANGE;
             float a = this.robot.level().getRandom().nextFloat() * 2.0F * (float)Math.PI;

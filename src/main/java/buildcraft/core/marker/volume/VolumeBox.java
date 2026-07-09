@@ -64,8 +64,11 @@ public class VolumeBox {
 
       this.box = new Box();
       this.box.initialize((CompoundTag)BcNbt.getCompound(nbt, "box"));
-      this.player = nbt.contains("player") ? UUID.fromString(BcNbt.getString(nbt, "player", "")) : null;
-      this.oldPlayer = nbt.contains("oldPlayer") ? UUID.fromString(BcNbt.getString(nbt, "oldPlayer", "")) : null;
+      // Null-safe like the id above: a malformed player/oldPlayer UUID (edited/legacy save) would otherwise throw
+      // out of VolumeBox(world, tag), which is constructed with no try/catch inside the SavedData codec — crashing
+      // the whole volume-boxes load. Recover to null (unclaimed) instead.
+      this.player = parseUuidOrNull(nbt.contains("player") ? BcNbt.getString(nbt, "player", "") : null);
+      this.oldPlayer = parseUuidOrNull(nbt.contains("oldPlayer") ? BcNbt.getString(nbt, "oldPlayer", "") : null);
       if (nbt.contains("held")) {
          CompoundTag heldTag = (CompoundTag)BcNbt.getCompound(nbt, "held");
          this.held = new BlockPos(BcNbt.getInt(heldTag, "X", 0), BcNbt.getInt(heldTag, "Y", 0), BcNbt.getInt(heldTag, "Z", 0));
@@ -129,6 +132,19 @@ public class VolumeBox {
       this.oldMin = this.oldMax = null;
       this.held = null;
       this.dist = 0.0;
+   }
+
+   private static UUID parseUuidOrNull(String s) {
+      if (s == null || s.isEmpty()) {
+         return null;
+      }
+
+      try {
+         return UUID.fromString(s);
+      } catch (IllegalArgumentException e) {
+         BCLog.logger.warn("[core.volume] Invalid volume box owner UUID '{}', treating as unclaimed", s);
+         return null;
+      }
    }
 
    public void cancelEditing() {
