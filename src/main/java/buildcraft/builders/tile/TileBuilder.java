@@ -288,11 +288,17 @@ public class TileBuilder
       Optional.ofNullable(this.getBuilder()).ifPresent(SnapshotBuilder::cancel);
       if (this.snapshot != null && this.getCurrentBasePos() != null) {
          this.snapshotType = this.snapshot.getType();
-         if (canGetFacing) {
-            this.rotation = Arrays.stream(Rotation.values())
-               .filter(r -> r.rotate(this.snapshot.facing) == this.getBlockState().getValue(HorizontalDirectionalBlock.FACING))
-               .findFirst()
-               .orElse(null);
+         // Also compute when rotation is still unset: the snapshot often resolves a tick AFTER the item was
+         // inserted (async SavedData), on the updateSnapshot(false) path -- building with a null rotation NPEs in
+         // getRotated (BlockPos/BlockState.rotate(null)) and crashed the server tick. canGetFacing=false still
+         // never OVERWRITES a rotation restored from NBT.
+         if (canGetFacing || this.rotation == null) {
+            this.rotation = this.snapshot.facing == null
+               ? Rotation.NONE
+               : Arrays.stream(Rotation.values())
+                  .filter(r -> r.rotate(this.snapshot.facing) == this.getBlockState().getValue(HorizontalDirectionalBlock.FACING))
+                  .findFirst()
+                  .orElse(Rotation.NONE);
          }
 
          if (this.snapshot.getType() == EnumSnapshotType.TEMPLATE) {
