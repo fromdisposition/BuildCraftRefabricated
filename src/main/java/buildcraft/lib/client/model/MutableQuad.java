@@ -40,6 +40,9 @@ public class MutableQuad {
    private boolean shade = false;
    private TextureAtlasSprite sprite = null;
    private int lightEmission = 0;
+   /** Whether the source quad came from the translucent chunk layer -- carried into toBakedBlock so item rendering
+    * picks the translucent block-item sheet (stained glass / ice facades kept their alpha in hand). */
+   private boolean translucent = false;
    private boolean hasAmbientOcclusion = true;
    private static final ThreadLocal<Vector3f> TL_POS_SCRATCH = ThreadLocal.withInitial(Vector3f::new);
    private static final ThreadLocal<Vector3f> TL_NORM_SCRATCH = ThreadLocal.withInitial(Vector3f::new);
@@ -67,6 +70,7 @@ public class MutableQuad {
       this.shade = from.shade;
       this.sprite = from.sprite;
       this.lightEmission = from.lightEmission;
+      this.translucent = from.translucent;
       this.hasAmbientOcclusion = from.hasAmbientOcclusion;
       this.vertex_0.copyFrom(from.vertex_0);
       this.vertex_1.copyFrom(from.vertex_1);
@@ -132,7 +136,12 @@ public class MutableQuad {
    public BakedQuad toBakedBlock() {
       //? if >= 26.1 {
       MaterialInfo matInfo = new MaterialInfo(
-         this.sprite, ChunkSectionLayer.CUTOUT, Sheets.cutoutBlockItemSheet(), this.tintIndex, this.shade, this.lightEmission
+         this.sprite,
+         this.translucent ? ChunkSectionLayer.TRANSLUCENT : ChunkSectionLayer.CUTOUT,
+         this.translucent ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet(),
+         this.tintIndex,
+         this.shade,
+         this.lightEmission
       );
       return new BakedQuad(
          this.vertex_0.positionvf(),
@@ -269,6 +278,7 @@ public class MutableQuad {
       this.sprite = mat.sprite();
       this.shade = mat.shade();
       this.lightEmission = mat.lightEmission();
+      this.translucent = mat.layer() == ChunkSectionLayer.TRANSLUCENT;
       //?} else {
       /*//? if >= 1.21.10 {
       this.tintIndex = quad.tintIndex();

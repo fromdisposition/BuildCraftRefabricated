@@ -77,6 +77,36 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       return result;
    }
 
+   /**
+    * Chunk baking asks for the facade once per pass ("cutout" / "translucent"), and every source quad must land on
+    * exactly ONE of them: emitting the full facade into both passes made the alpha-tested cutout copy of a stained
+    * glass / ice facade draw over the translucent copy, killing the transparency (plain glass hid the bug -- it is
+    * a cutout block, so both copies looked identical). Any other layer key (the item model bakes with "item")
+    * keeps the whole facade.
+    */
+   private static boolean keepQuadForLayer(Object layer, BlockState state, BakedQuad quad) {
+      boolean wantTranslucent;
+      if ("translucent".equals(layer)) {
+         wantTranslucent = true;
+      } else if ("cutout".equals(layer)) {
+         wantTranslucent = false;
+      } else {
+         return true;
+      }
+
+      //? if >= 26.1 {
+      // 26.x quads carry their own chunk layer (model-driven render types): filter per quad, so mixed-layer
+      // source models split correctly between the passes.
+      return (quad.materialInfo().layer() == net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT) == wantTranslucent;
+      //?} else if >= 1.21.10 {
+      /*return (net.minecraft.client.renderer.ItemBlockRenderTypes.getChunkRenderType(state)
+         == net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT) == wantTranslucent;
+      *///?} else {
+      /*return (net.minecraft.client.renderer.ItemBlockRenderTypes.getChunkRenderType(state)
+         == net.minecraft.client.renderer.RenderType.translucent()) == wantTranslucent;
+      *///?}
+   }
+
    private int getVertexIndex(List<Vec3> positions, Axis axis, boolean minOrMax1, boolean minOrMax2) {
       Axis axis1;
       Axis axis2;
@@ -114,9 +144,12 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       );
    }
 
-   private List<MutableQuad> getTransformedQuads(BlockState state, BlockStateModel model, Direction side, Vec3 pos0, Vec3 pos1, Vec3 pos2, Vec3 pos3) {
+   private List<MutableQuad> getTransformedQuads(
+      Object layer, BlockState state, BlockStateModel model, Direction side, Vec3 pos0, Vec3 pos1, Vec3 pos2, Vec3 pos3
+   ) {
       return getQuadsFromModel(model, side)
          .stream()
+         .filter(quad -> keepQuadForLayer(layer, state, quad))
          .map(
             quad -> {
                MutableQuad mutableQuad = new MutableQuad().fromBakedItem(quad);
@@ -190,11 +223,11 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
    }
 
    private void addRotatedQuads(
-      List<MutableQuad> quads, BlockState state, BlockStateModel model, Direction side, int rotation, Vec3 pos0, Vec3 pos1, Vec3 pos2, Vec3 pos3
+      List<MutableQuad> quads, Object layer, BlockState state, BlockStateModel model, Direction side, int rotation, Vec3 pos0, Vec3 pos1, Vec3 pos2, Vec3 pos3
    ) {
       quads.addAll(
          this.getTransformedQuads(
-            state, model, side, this.rotate(pos0, rotation), this.rotate(pos1, rotation), this.rotate(pos2, rotation), this.rotate(pos3, rotation)
+            layer, state, model, side, this.rotate(pos0, rotation), this.rotate(pos1, rotation), this.rotate(pos2, rotation), this.rotate(pos3, rotation)
          )
       );
    }
@@ -211,11 +244,13 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       if (!key.isHollow) {
          quads.addAll(
             this.getTransformedQuads(
+               key.layer,
                key.state, model, key.side, new Vec3(0.0, 1.0, 0.0), new Vec3(1.0, 1.0, 0.0), new Vec3(1.0, 0.0, 0.0), new Vec3(0.0, 0.0, 0.0)
             )
          );
          quads.addAll(
             this.getTransformedQuads(
+               key.layer,
                key.state,
                model,
                key.side.getOpposite(),
@@ -231,6 +266,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
          if (key.isHollow) {
             this.addRotatedQuads(
                quads,
+               key.layer,
                key.state,
                model,
                key.side,
@@ -244,6 +280,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
 
          this.addRotatedQuads(
             quads,
+            key.layer,
             key.state,
             model,
             key.side.getOpposite(),
@@ -256,6 +293,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
          if (key.isHollow) {
             this.addRotatedQuads(
                quads,
+               key.layer,
                key.state,
                model,
                key.side.getOpposite(),
@@ -277,6 +315,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
                   || key.side.getAxis() == Axis.Y && facing.getAxis() == Axis.Z) {
                   quads.addAll(
                      this.getTransformedQuads(
+                        key.layer,
                         key.state,
                         model,
                         facing,
@@ -289,6 +328,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
                } else {
                   quads.addAll(
                      this.getTransformedQuads(
+                        key.layer,
                         key.state,
                         model,
                         facing,

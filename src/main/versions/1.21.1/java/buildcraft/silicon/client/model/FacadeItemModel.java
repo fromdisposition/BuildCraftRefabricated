@@ -77,7 +77,7 @@ public class FacadeItemModel implements BakedModel {
    public void emitItemQuads(ItemStack stack, Supplier<RandomSource> randomSupplier, RenderContext context) {
       FacadeInstance inst = ItemPluggableFacade.getStates(stack);
       FacadePhasedState state = inst.getCurrentStateForStack();
-      KeyPlugFacade key = new KeyPlugFacade("cutout", Direction.NORTH, state.stateInfo.state, inst.isHollow());
+      KeyPlugFacade key = new KeyPlugFacade("item", Direction.NORTH, state.stateInfo.state, inst.isHollow());
       List<BakedQuad> quads = guiCache.getUnchecked(key);
       QuadEmitter emitter = context.getEmitter();
       for (BakedQuad quad : quads) {
