@@ -22,12 +22,12 @@ import net.minecraft.world.entity.player.Inventory;
 public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
    private int lastSectionSyncHash = Integer.MIN_VALUE;
    private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/heat_exchanger.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 171.0);
-   private static final GuiIcon OVERLAY_VERTICAL = new GuiIcon(TEXTURE, 0.0, 171.0, 16.0, 38.0);
-   private static final GuiIcon OVERLAY_HORIZONTAL = new GuiIcon(TEXTURE, 17.0, 171.0, 34.0, 17.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 183.0);
+   private static final GuiIcon OVERLAY_VERTICAL = new GuiIcon(TEXTURE, 0.0, 183.0, 16.0, 38.0);
+   private static final GuiIcon OVERLAY_HORIZONTAL = new GuiIcon(TEXTURE, 17.0, 183.0, 34.0, 17.0);
 
    public GuiHeatExchange(ContainerHeatExchange menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, heightForSlots(menu, 171));
+      super(menu, playerInv, title, 176, heightForSlots(menu, 183));
    }
 
    @Override
@@ -40,7 +40,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
             .add(
                new GuiElementFluidTank(
                   this.mainGui,
-                  new GuiRectangle(44.0, 64.0, 34.0, 17.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(44.0, 69.0, 34.0, 17.0).offset(this.mainGui.rootElement),
                   ((ContainerHeatExchange)this.menu).widgetTankStartInput.getTankStorage(),
                   ((ContainerHeatExchange)this.menu).widgetTankStartInput,
                   OVERLAY_HORIZONTAL
@@ -51,7 +51,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
             .add(
                new GuiElementFluidTank(
                   this.mainGui,
-                  new GuiRectangle(116.0, 43.0, 16.0, 38.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(116.0, 48.0, 16.0, 38.0).offset(this.mainGui.rootElement),
                   ((ContainerHeatExchange)this.menu).widgetTankStartOutput.getTankStorage(),
                   ((ContainerHeatExchange)this.menu).widgetTankStartOutput,
                   OVERLAY_VERTICAL
@@ -61,7 +61,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  new GuiRectangle(44.0, 64.0, 34.0, 17.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(44.0, 69.0, 34.0, 17.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.heat_exchange.cold_in.title", -11162881, "buildcraft.help.heat_exchange.cold_in.desc")
                )
             );
@@ -69,7 +69,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  new GuiRectangle(116.0, 43.0, 16.0, 38.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(116.0, 48.0, 16.0, 38.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.heat_exchange.cooled_out.title", -5583617, "buildcraft.help.heat_exchange.cooled_out.desc")
                )
             );
@@ -81,7 +81,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
             .add(
                new GuiElementFluidTank(
                   this.mainGui,
-                  new GuiRectangle(44.0, 12.0, 16.0, 38.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(44.0, 17.0, 16.0, 38.0).offset(this.mainGui.rootElement),
                   ((ContainerHeatExchange)this.menu).widgetTankEndInput.getTankStorage(),
                   ((ContainerHeatExchange)this.menu).widgetTankEndInput,
                   OVERLAY_VERTICAL
@@ -92,7 +92,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
             .add(
                new GuiElementFluidTank(
                   this.mainGui,
-                  new GuiRectangle(98.0, 12.0, 34.0, 17.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(98.0, 17.0, 34.0, 17.0).offset(this.mainGui.rootElement),
                   ((ContainerHeatExchange)this.menu).widgetTankEndOutput.getTankStorage(),
                   ((ContainerHeatExchange)this.menu).widgetTankEndOutput,
                   OVERLAY_HORIZONTAL
@@ -102,7 +102,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  new GuiRectangle(44.0, 12.0, 16.0, 38.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(44.0, 17.0, 16.0, 38.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.heat_exchange.hot_in.title", -43691, "buildcraft.help.heat_exchange.hot_in.desc")
                )
             );
@@ -110,7 +110,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  new GuiRectangle(98.0, 12.0, 34.0, 17.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(98.0, 17.0, 34.0, 17.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.heat_exchange.heated_out.title", -21931, "buildcraft.help.heat_exchange.heated_out.desc")
                )
             );
@@ -120,7 +120,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(73.0, 36.0, 30.0, 21.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(73.0, 41.0, 30.0, 21.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo(
                   "buildcraft.help.heat_exchange.progress.title",
                   -7811960,
@@ -144,6 +144,18 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
+   }
+
+   @Override
+   protected void drawForegroundLayer() {
+      // Block name, centred over the machine (the tanks/slots are spread symmetrically across the width). Centred
+      // on imageWidth, no hardcoded coordinate; sits in the 5px top band added to the texture.
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
+      String titleStr = this.title.getString();
+      graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
+      // "Inventory" label: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from
+      // the real slot rows (firstPlayerRowY() - 12), so it follows the +7px inventory shift automatically.
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 
    @Override
@@ -172,7 +184,9 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
 
             if (visibleW > 0) {
                int absX = this.leftPos + 61 + leftOffset;
-               int absY = this.topPos + 11;
+               // draw Y +5 (the machine centre moved down with the left panel), but the sprite SOURCE stays at
+               // atlas y=71 — it lives in the right column (x>=176) which did not move.
+               int absY = this.topPos + 16;
                new GuiIcon(TEXTURE, 176 + leftOffset, 71.0, visibleW, 71.0).drawAt(absX, absY);
             }
          }
