@@ -98,9 +98,13 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
 
    @Override
    protected void drawForegroundLayer() {
-      // "Inventory" label only: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY()
-      // derives from the real slot rows (firstPlayerRowY() - 12), not hardcoded.
       BCGraphics graphics = GuiIcon.getGuiGraphics();
+      // Block name, centred: this.title is the menu's display name ("Auto Workbench"). Centred on imageWidth, no
+      // hardcoded coordinate.
+      String titleStr = this.title.getString();
+      graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
+      // "Inventory" label: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from
+      // the real slot rows (firstPlayerRowY() - 12), not hardcoded.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 
