@@ -308,7 +308,7 @@
   "item.buildcrafttransport.pipe_diamond_power": "Diamond Kinesis Pipe",
   "item.buildcrafttransport.pipe_diamond_wood_power": "Wooden Diamond Kinesis Pipe",
   "gui.buildcraft.pipe_diamond.title": "Filters",
-  "gui.buildcraft.pipe_diamond_wood.title": "Wooden Diamond Pipe",
+  "gui.buildcraft.pipe_diamond_wood.title": "Extraction Filter",
   "gui.pipes.emzuli.title": "Extraction Presets",
   "gui.pipes.emzuli.paint": "Paint Items %s",
   "gui.pipes.emzuli.nopaint": "Don't Paint Items",

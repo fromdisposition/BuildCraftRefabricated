@@ -37,8 +37,8 @@ public class GuiDiamondPipe extends BcScreen<ContainerDiamondPipe> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      // Pipe name, centred: this.title is the actual pipe item's name (set at menu open), so the item and fluid
-      // diamond pipes each show their own name. Centred on imageWidth, no hardcoded coordinate.
+      // Title, centred: this.title is the name passed at menu open (the gui.buildcraft.pipe_diamond.title lang
+      // string). Centred on imageWidth, no hardcoded coordinate.
       String titleStr = this.title.getString();
       graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
       // "Inventory" label: X = 8 matches the player inventory's left edge (addFullPlayerInventory(8, 140)),
