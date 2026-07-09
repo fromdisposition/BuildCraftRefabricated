@@ -147,7 +147,10 @@ public class LensItemModel implements ItemModel {
    }
 
    static {
-      XFORMS.put(ItemDisplayContext.GUI, new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.8F));
+      // 1.35, not the gate's 1.8: the GUI scale is applied literally to the baked quads (no fit-to-slot), and the
+      // lens/filter plate is an 8px face (0.25..0.75) vs the gate's 6px body — 8*1.35 = 6*1.8 = 10.8px, so filters
+      // fill the inventory slot with the same visual weight as gates instead of overflowing the frame.
+      XFORMS.put(ItemDisplayContext.GUI, new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.35F));
       XFORMS.put(ItemDisplayContext.GROUND, new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 3.0F, 0.0F, 0.9F));
       XFORMS.put(ItemDisplayContext.HEAD, new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.8F));
       XFORMS.put(ItemDisplayContext.FIXED, new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.53F));
