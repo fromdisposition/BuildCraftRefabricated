@@ -62,11 +62,17 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
    }
 
    private ISchematicBlock getSchematicBlock(BlockPos blockPos) {
-      return this.getBuildingInfo().box.contains(blockPos)
-         ? this.getBuildingInfo()
-            .rotatedPalette
-            .get(this.getBuildingInfo().getSnapshot().data[this.getBuildingInfo().getSnapshot().posToIndex(this.getBuildingInfo().fromWorld(blockPos))])
-         : null;
+      Blueprint.BuildingInfo info = this.getBuildingInfo();
+      if (info == null || !info.box.contains(blockPos)) {
+         return null;
+      }
+
+      // Bounds-check the palette index every read, not just in the BuildingInfo constructor: getSchematicBlock runs
+      // on every tick (isAir/isBlockCorrect/canPlace/doPlaceTask), and a corrupt or foreign blueprint whose data
+      // holds an out-of-range index would otherwise throw IndexOutOfBoundsException out of ImmutableList.get and
+      // crash the builder tick. Treat a bad cell as absent (null -> air), matching the constructor guard.
+      int cell = info.getSnapshot().data[info.getSnapshot().posToIndex(info.fromWorld(blockPos))];
+      return cell >= 0 && cell < info.rotatedPalette.size() ? info.rotatedPalette.get(cell) : null;
    }
 
    @Override
@@ -132,7 +138,11 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
    }
 
    private Optional<List<ItemStack>> tryExtractRequired(List<ItemStack> requiredItems, List<FluidStack> requiredFluids, boolean simulate) {
-      Supplier<Optional<List<ItemStack>>> function = () -> StackUtil.mergeSameItems(requiredItems)
+      // Entity requirement maps can return null for an entity with no cost; the block path always passes non-null
+      // arrays but treat both defensively so the streams below never NPE.
+      List<ItemStack> items = requiredItems == null ? Collections.emptyList() : requiredItems;
+      List<FluidStack> fluids = requiredFluids == null ? Collections.emptyList() : requiredFluids;
+      Supplier<Optional<List<ItemStack>>> function = () -> StackUtil.mergeSameItems(items)
                .stream()
                .noneMatch(
                   stack -> this.tile
@@ -140,19 +150,19 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                      .extract(extracted -> StackUtil.canMerge(stack, extracted), stack.getCount(), stack.getCount(), true)
                      .isEmpty()
                )
-            && FluidIdentity.mergeSameFluids(requiredFluids)
+            && FluidIdentity.mergeSameFluids(fluids)
                .stream()
                .allMatch(stack -> this.tile.getFluidTanks().extractMillibuckets(stack, stack.getAmount(), false) == stack.getAmount())
          ? Optional.of(
             StackUtil.mergeSameItems(
                Stream.concat(
-                     requiredItems.stream()
+                     items.stream()
                         .map(
                            stack -> this.tile
                               .getInvResources()
                               .extract(extracted -> StackUtil.canMerge(stack, extracted), stack.getCount(), stack.getCount(), simulate)
                         ),
-                     FluidIdentity.mergeSameFluids(requiredFluids).stream().map(fluidStack -> {
+                     FluidIdentity.mergeSameFluids(fluids).stream().map(fluidStack -> {
                         int extracted = this.tile.getFluidTanks().extractMillibuckets(fluidStack, fluidStack.getAmount(), !simulate);
                         return new FluidStack(fluidStack.getFluid(), extracted);
                      }).map(fluidStack -> {
@@ -186,7 +196,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
       // HashMap inside computeIfAbsent's mapping function trips its modCount guard and throws
       // ConcurrentModificationException, crashing the builder tick. Plain get/compute/put has no such guard -- a
       // re-entrant clear simply means the entry we put afterwards is the only survivor, which is still correct.
-      Pair<List<ItemStack>, List<FluidStack>> key = Pair.of(requiredItems, requiredFluids);
+      Pair<List<ItemStack>, List<FluidStack>> key = Pair.of(items, fluids);
       Optional<List<ItemStack>> cached = this.extractRequiredCache.get(key);
       if (cached != null) {
          return cached;
