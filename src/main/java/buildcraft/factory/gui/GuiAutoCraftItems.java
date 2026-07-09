@@ -97,6 +97,14 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    }
 
    @Override
+   protected void drawForegroundLayer() {
+      // "Inventory" label only: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY()
+      // derives from the real slot rows (firstPlayerRowY() - 12), not hardcoded.
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
+   }
+
+   @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
       if (((ContainerAutoCraftItems)this.menu).tile != null) {

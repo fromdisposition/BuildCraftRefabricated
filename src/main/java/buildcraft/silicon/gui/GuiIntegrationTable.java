@@ -79,5 +79,6 @@ public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       String title = I18n.get("block.buildcraftsilicon.integration_table", new Object[0]);
       graphics.text(this.font, title, (this.imageWidth - this.font.width(title)) / 2, 10, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 }

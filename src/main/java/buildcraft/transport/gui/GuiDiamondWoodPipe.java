@@ -40,6 +40,18 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
    }
 
    @Override
+   protected void drawForegroundLayer() {
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
+      // Pipe name, centred: this.title is the actual pipe item's name (set at menu open), so the wooden item and
+      // wooden fluid diamond pipes each show their own name. Centred on imageWidth, no hardcoded coordinate.
+      String titleStr = this.title.getString();
+      graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
+      // "Inventory" label: X = 8 matches the player inventory's left edge (addFullPlayerInventory(8, 79)),
+      // Y = playerInventoryLabelY() derives from the real slot rows, not hardcoded.
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
+   }
+
+   @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
       if (((ContainerDiamondWoodPipe)this.menu).behaviour.pipe.getFlow() instanceof IFlowItems

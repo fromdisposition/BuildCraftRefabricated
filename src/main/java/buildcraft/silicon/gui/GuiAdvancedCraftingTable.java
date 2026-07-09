@@ -130,6 +130,7 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       String title = I18n.get("block.buildcraftsilicon.advanced_crafting_table", new Object[0]);
       graphics.text(this.font, title, (this.imageWidth - this.font.width(title)) / 2, 5, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 
    @Override

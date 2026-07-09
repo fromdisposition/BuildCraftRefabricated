@@ -182,6 +182,10 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       String titleStr = this.title.getString();
       int titleWidth = this.font.width(titleStr);
       graphics.text(this.font, titleStr, (176 - titleWidth) / 2, 6, -12566464, false);
+      // "Inventory" label, matching the fully-labelled screens (Tank, engines, ...). X = 8 is the inventory's own
+      // left edge (addFullPlayerInventory(8, 140)); Y comes from playerInventoryLabelY() = firstPlayerRowY() - 12,
+      // i.e. derived from the real slot rows (vanilla convention), not a hardcoded coordinate.
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
       int leftToBreak = ((ContainerBuilder)this.menu).getSyncedLeftToBreak();
       int leftToPlace = ((ContainerBuilder)this.menu).getSyncedLeftToPlace();
       int y = 50;

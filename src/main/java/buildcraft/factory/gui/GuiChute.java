@@ -31,6 +31,14 @@ public class GuiChute extends BcScreen<ContainerChute> {
    }
 
    @Override
+   protected void drawForegroundLayer() {
+      // "Inventory" label only: X = 8 matches the player inventory's left edge (addFullPlayerInventory(8, 71)),
+      // Y = playerInventoryLabelY() derives from the real slot rows (firstPlayerRowY() - 12), not hardcoded.
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
+   }
+
+   @Override
    protected void initGuiElements() {
       this.mainGui
          .shownElements

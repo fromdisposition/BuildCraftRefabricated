@@ -65,5 +65,8 @@ public class GuiStampingTable extends BcScreen<ContainerStampingTable> {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       String title = I18n.get("block.buildcraftsilicon.stamping_table", new Object[0]);
       graphics.text(this.font, title, (this.imageWidth - this.font.width(title)) / 2, 6, -12566464, false);
+      // "Inventory" label: X = 8 matches the player inventory's left edge (addFullPlayerInventory(8, 69)),
+      // Y = playerInventoryLabelY() derives from the real slot rows (firstPlayerRowY() - 12), not hardcoded.
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 }

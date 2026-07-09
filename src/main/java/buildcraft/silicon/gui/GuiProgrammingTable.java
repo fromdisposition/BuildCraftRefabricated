@@ -107,6 +107,7 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       String title = I18n.get("block.buildcraftsilicon.programming_table", new Object[0]);
       graphics.text(this.font, title, (this.imageWidth - this.font.width(title)) / 2, 15, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 
    @Override
