@@ -148,11 +148,10 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
 
    @Override
    protected void drawForegroundLayer() {
-      // Block name, centred over the machine (the tanks/slots are spread symmetrically across the width). Centred
-      // on imageWidth, no hardcoded coordinate; sits in the 5px top band added to the texture.
+      // Block name, left-anchored at x=8 (canonical vanilla title anchor), y=6.
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       String titleStr = this.title.getString();
-      graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
+      graphics.text(this.font, titleStr, 8, 6, -12566464, false);
       // "Inventory" label: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from
       // the real slot rows (firstPlayerRowY() - 12), so it follows the +7px inventory shift automatically.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);

@@ -75,11 +75,11 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
       }
 
       this.addDataSlots(this.data);
-      this.addSlot(new SlotOutput(tile.invDownOut, 0, 175, 57));
-      this.addSlot(new SlotBase(tile.invDownIn, 0, 219, 57));
-      this.addSlot(new SlotBase(tile.invUpIn, 0, 175, 79));
-      this.addSlot(new SlotOutput(tile.invUpOut, 0, 219, 79));
-      this.addFullPlayerInventory(8, 138, playerInv);
+      this.addSlot(new SlotOutput(tile.invDownOut, 0, 175, 53));
+      this.addSlot(new SlotBase(tile.invDownIn, 0, 219, 53));
+      this.addSlot(new SlotBase(tile.invUpIn, 0, 175, 75));
+      this.addSlot(new SlotOutput(tile.invUpOut, 0, 219, 75));
+      this.addFullPlayerInventory(8, 142, playerInv);
    }
 
    private static TileElectronicLibrary getTile(Inventory playerInv, BlockPos pos) {

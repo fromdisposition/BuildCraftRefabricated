@@ -57,7 +57,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    private volatile boolean asyncPreviewPending;
 
    public GuiReplacer(ContainerReplacer container, Inventory playerInv, Component title) {
-      super(container, playerInv, title, 176, heightForSlots(container, 241));
+      super(container, playerInv, title, 176, heightForSlots(container, 256));
       this.inventoryLabelY = this.imageHeight - 94;
    }
 
@@ -77,7 +77,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(8.0, 9.0, 160.0, 100.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(8.0, 18.0, 160.0, 95.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo(
                   "buildcraft.help.replacer.preview.title", -7811841, "buildcraft.help.replacer.preview.desc1", "buildcraft.help.replacer.preview.desc2"
                )
@@ -87,7 +87,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(8.0, 115.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(8.0, 120.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.replacer.snapshot.title", -7811960, "buildcraft.help.replacer.snapshot.desc")
             )
          );
@@ -95,7 +95,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(30.0, 117.0, 138.0, 12.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(30.0, 122.0, 138.0, 12.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.replacer.name.title", -1980113, "buildcraft.help.replacer.name.desc")
             )
          );
@@ -103,7 +103,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(8.0, 137.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(8.0, 142.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.replacer.from.title", -30584, "buildcraft.help.replacer.from.desc")
             )
          );
@@ -111,7 +111,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(56.0, 137.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(56.0, 142.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.replacer.to.title", -7798904, "buildcraft.help.replacer.to.desc")
             )
          );
@@ -119,7 +119,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(80.0, 135.0, 60.0, 20.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(80.0, 140.0, 60.0, 20.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo(
                   "buildcraft.help.replacer.replace.title", -3364216, "buildcraft.help.replacer.replace.desc1", "buildcraft.help.replacer.replace.desc2"
                )
@@ -130,14 +130,14 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    @Override
    protected void init() {
       super.init();
-      this.nameField = new EditBox(this.font, this.leftPos + 30, this.topPos + 117, 138, 12, Component.empty());
+      this.nameField = new EditBox(this.font, this.leftPos + 30, this.topPos + 122, 138, 12, Component.empty());
       this.nameField.setMaxLength(64);
       this.nameField.setValue(((ContainerReplacer)this.menu).getBlueprintName());
       this.nameField.setFocused(false);
       this.lastSeededKey = this.currentBlueprintKey();
       this.addRenderableWidget(this.nameField);
       this.replaceButton = Button.builder(Component.translatable("gui.buildcraft.replacer.replace"), b -> this.onReplacePressed())
-         .bounds(this.leftPos + 80, this.topPos + 135, 60, 20)
+         .bounds(this.leftPos + 80, this.topPos + 140, 60, 20)
          .build();
       this.addRenderableWidget(this.replaceButton);
       this.updateReplaceButtonActive();
@@ -296,10 +296,10 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 241, 256, 256);
+      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 256, 256, 256);
       Blueprint toRender = this.getPreviewBlueprint();
       if (toRender != null) {
-         BlueprintRenderer.renderSnapshot(graphics, toRender, this.leftPos + 8, this.topPos + 9, 160, 100);
+         BlueprintRenderer.renderSnapshot(graphics, toRender, this.leftPos + 8, this.topPos + 18, 160, 95);
       }
    }
 
@@ -337,12 +337,20 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
 
    @Override
    protected void drawForegroundLayer() {
-      String summary = this.getSummaryText();
-      if (summary != null) {
-         BCGraphics graphics = GuiIcon.getGuiGraphics();
-         if (graphics != null) {
-            int color = -12566464;
-            graphics.text(this.font, summary, 8, 156, color, false);
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
+      if (graphics != null) {
+         // Block name, left-anchored at x=8, y=6 (canonical vanilla title anchor); sits in the top band.
+         graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
+         // "Inventory" label at the canonical anchor (12px above the first player row).
+         graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
+         // Replacement summary as a caption bar flush with the bottom of the preview box (it describes the shown
+         // blueprint). The preview interior is y 18..113; the translucent bar spans the full width (x 8..168) and
+         // sits at the bottom, light text centred over it.
+         String summary = this.getSummaryText();
+         if (summary != null) {
+            graphics.fill(8, 102, 168, 114, -2013265920);
+            int sx = 8 + (160 - this.font.width(summary)) / 2;
+            graphics.text(this.font, summary, sx, 104, -1, false);
          }
       }
    }

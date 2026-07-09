@@ -29,12 +29,12 @@ public class ContainerReplacer extends ContainerBCTile<TileReplacer> {
    public ContainerReplacer(int containerId, Inventory playerInv, TileReplacer tile) {
       super(BCBuildersMenuTypes.REPLACER, containerId, playerInv.player, tile);
       if (tile != null) {
-         this.addSlot(new SlotBase(tile.invSnapshot, 0, 8, 115));
-         this.addSlot(new SlotBase(tile.invSchematicFrom, 0, 8, 137));
-         this.addSlot(new SlotBase(tile.invSchematicTo, 0, 56, 137));
+         this.addSlot(new SlotBase(tile.invSnapshot, 0, 8, 120));
+         this.addSlot(new SlotBase(tile.invSchematicFrom, 0, 8, 142));
+         this.addSlot(new SlotBase(tile.invSchematicTo, 0, 56, 142));
       }
 
-      this.addFullPlayerInventory(8, 159, playerInv);
+      this.addFullPlayerInventory(8, 174, playerInv);
    }
 
    private static TileReplacer getTile(Inventory playerInv, BlockPos pos) {

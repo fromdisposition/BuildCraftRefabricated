@@ -30,7 +30,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
    private Button deleteButton;
 
    public GuiElectronicLibrary(ContainerElectronicLibrary container, Inventory playerInv, Component title) {
-      super(container, playerInv, title, 244, heightForSlots(container, 220));
+      super(container, playerInv, title, 244, heightForSlots(container, 224));
       this.inventoryLabelY = this.imageHeight - 94;
    }
 
@@ -38,7 +38,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
    protected void init() {
       super.init();
       this.deleteButton = Button.builder(Component.translatable("gui.del"), b -> this.onDeletePressed())
-         .bounds(this.leftPos + 174, this.topPos + 109, 60, 20)
+         .bounds(this.leftPos + 174, this.topPos + 112, 60, 20)
          .build();
       this.addRenderableWidget(this.deleteButton);
       this.updateDeleteButtonActive();
@@ -62,7 +62,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(7.0, 22.0, 155.0, 108.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(7.0, 17.0, 155.0, 109.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.library.list.title", -1376, "buildcraft.help.library.list.desc1", "buildcraft.help.library.list.desc2")
             )
          );
@@ -70,7 +70,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(219.0, 57.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(219.0, 53.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo(
                   "buildcraft.help.library.download_in.title",
                   -7811960,
@@ -83,7 +83,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(194.0, 58.0, 22.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(194.0, 54.0, 22.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.library.download_arrow.title", -7811841, "buildcraft.help.library.download_arrow.desc")
             )
          );
@@ -91,7 +91,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(175.0, 57.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(175.0, 53.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.library.download_out.title", -7798904, "buildcraft.help.library.download_out.desc")
             )
          );
@@ -99,7 +99,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(175.0, 79.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(175.0, 75.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo(
                   "buildcraft.help.library.upload_in.title", -13176, "buildcraft.help.library.upload_in.desc1", "buildcraft.help.library.upload_in.desc2"
                )
@@ -109,7 +109,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(194.0, 79.0, 22.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(194.0, 75.0, 22.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.library.upload_arrow.title", -7820545, "buildcraft.help.library.upload_arrow.desc")
             )
          );
@@ -117,7 +117,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(219.0, 79.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(219.0, 75.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.library.upload_out.title", -3364216, "buildcraft.help.library.upload_out.desc")
             )
          );
@@ -125,7 +125,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(174.0, 109.0, 60.0, 20.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(174.0, 112.0, 60.0, 20.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.library.delete.title", -30584, "buildcraft.help.library.delete.desc")
             )
          );
@@ -161,17 +161,17 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 220, 256, 256);
+      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 224, 256, 256);
       int progressDown = ((ContainerElectronicLibrary)this.menu).getSyncedProgressDown();
       if (progressDown > 0) {
          int w = Math.min(22, Math.max(1, (int)Math.ceil(22.0F * (progressDown / 50.0F))));
-         graphics.blit(TEXTURE, this.leftPos + 194 + 22 - w, this.topPos + 58, 256 - w, 240.0F, w, 16, 256, 256);
+         graphics.blit(TEXTURE, this.leftPos + 194 + 22 - w, this.topPos + 54, 256 - w, 240.0F, w, 16, 256, 256);
       }
 
       int progressUp = ((ContainerElectronicLibrary)this.menu).getSyncedProgressUp();
       if (progressUp > 0) {
          int w = Math.min(22, Math.max(1, (int)Math.ceil(22.0F * (progressUp / 50.0F))));
-         graphics.blit(TEXTURE, this.leftPos + 194, this.topPos + 79, 234.0F, 224.0F, w, 16, 256, 256);
+         graphics.blit(TEXTURE, this.leftPos + 194, this.topPos + 75, 234.0F, 224.0F, w, 16, 256, 256);
       }
    }
 
@@ -182,7 +182,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          GlobalSavedDataSnapshots snapshots = GlobalSavedDataSnapshots.get(GlobalSavedDataSnapshots.Side.CLIENT);
          List<Snapshot.Key> list = snapshots.getList();
          Snapshot.Key selected = ((ContainerElectronicLibrary)this.menu).tile != null ? ((ContainerElectronicLibrary)this.menu).tile.selected : null;
-         int rowY = 22;
+         int rowY = 18;
 
          for (int i = 0; i < list.size() && i < 13; i++) {
             Snapshot.Key key = list.get(i);
@@ -198,7 +198,10 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          }
 
          String titleStr = Component.translatable("tile.buildcraftbuilders.library.name").getString();
-         graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
+         graphics.text(this.font, titleStr, 8, 6, -12566464, false);
+         // "Inventory" label: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives
+         // from the real slot rows, so it follows the +7px inventory shift automatically.
+         graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
       }
    }
 
@@ -216,7 +219,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
    private boolean bcMouseClicked(int mouseX, int mouseY, int button) {
       GlobalSavedDataSnapshots snapshots = GlobalSavedDataSnapshots.get(GlobalSavedDataSnapshots.Side.CLIENT);
       List<Snapshot.Key> list = snapshots.getList();
-      int rowY = this.topPos + 22;
+      int rowY = this.topPos + 18;
 
       for (int i = 0; i < list.size() && i < 13; i++) {
          if (mouseX >= this.leftPos + 8 && mouseX < this.leftPos + 8 + 154 && mouseY >= rowY && mouseY < rowY + 8) {
