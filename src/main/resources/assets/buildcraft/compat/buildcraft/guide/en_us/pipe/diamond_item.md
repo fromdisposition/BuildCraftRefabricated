@@ -10,8 +10,8 @@ A Diamond Transport Pipe is used to transport items from a pipe in a direction s
 <chapter name="Setting the Filter"/>
 The Diamond Transport Pipe has each of its sides distinguished by a different colour.
 Opening up the Diamond Transport Pipe GUI will allow you to setup a filter.
-Placing a items you want in a certain slots colour will allow you to filter which items can go in which direction.
-Having multiple of the same items in a colour will allow you to add 'weight' to where you fluids will go.
+Placing the items you want in a certain slot's colour will allow you to filter which items can go in which direction.
+Having multiple of the same items in a colour will allow you to add 'weight' to where your items will go.
 
 A List can be used in a filtering slots to give you expanded filtering options.
 <link to="buildcraft:item/list"/> 

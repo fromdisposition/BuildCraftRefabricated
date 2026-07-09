@@ -8,11 +8,14 @@ package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.EnumPipePart;
+import buildcraft.api.core.IFluidFilter;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.transport.IItemPluggable;
+import buildcraft.api.transport.pipe.IFlowFluid;
 import buildcraft.api.transport.pipe.IFlowItems;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.transport.container.ContainerDiamondWoodPipe;
@@ -155,6 +158,40 @@ public class PipeBehaviourWoodDiamond extends PipeBehaviourWood {
       }
 
       return extracted;
+   }
+
+   // Fluid counterpart of extractItems. Only Whitelist/Blacklist: Round Robin is an item-only mode (the GUI hides
+   // its button for fluid pipes — see GuiDiamondWoodPipe), so there is no per-slot cycling here. Without this
+   // override the base wooden pipe extracted any fluid (null filter), ignoring the filter entirely. The filter
+   // slots hold items; FilterFluidStacks maps each to the fluid it contains (bucket/container). tryExtractFluidAdv
+   // probes the neighbour and pulls only when the predicate matches; an empty whitelist extracts any fluid.
+   @Override
+   protected FluidStack extractFluid(IFlowFluid flow, Direction dir, int millibuckets, boolean simulate) {
+      return (FluidStack)flow.tryExtractFluidAdv(millibuckets, this.getCurrentDir(), this.getFluidFilter(), simulate);
+   }
+
+   private boolean filterContainsFluid(FluidStack fluid) {
+      for (int i = 0; i < this.filters.getSlots(); i++) {
+         FluidStack target = FilterFluidStacks.fluidFromFilter(this.filters.getStackInSlot(i));
+         if (!target.isEmpty() && FluidStack.isSameFluidSameComponents(target, fluid)) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   private IFluidFilter getFluidFilter() {
+      if (this.filterMode == PipeBehaviourWoodDiamond.FilterMode.BLACK_LIST) {
+         return fluid -> !this.filterContainsFluid(fluid);
+      }
+
+      // Whitelist (the only other mode a fluid pipe can be in): an empty filter extracts anything.
+      if (!this.hasAnyFilter()) {
+         return fluid -> true;
+      }
+
+      return this::filterContainsFluid;
    }
 
    private void advanceFilter() {
