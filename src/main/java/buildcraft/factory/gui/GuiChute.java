@@ -19,10 +19,10 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiChute extends BcScreen<ContainerChute> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/chute.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 153.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 156.0);
 
    public GuiChute(ContainerChute menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, heightForSlots(menu, 153));
+      super(menu, playerInv, title, 176, heightForSlots(menu, 156));
    }
 
    @Override
@@ -32,9 +32,13 @@ public class GuiChute extends BcScreen<ContainerChute> {
 
    @Override
    protected void drawForegroundLayer() {
-      // "Inventory" label only: X = 8 matches the player inventory's left edge (addFullPlayerInventory(8, 71)),
-      // Y = playerInventoryLabelY() derives from the real slot rows (firstPlayerRowY() - 12), not hardcoded.
       BCGraphics graphics = GuiIcon.getGuiGraphics();
+      // Block name, centred: the chute's slots are a small centred cluster, so a centred title balances over them
+      // (vanilla centres the title for compact machines like the furnace/dispenser). Centred on imageWidth.
+      String titleStr = this.title.getString();
+      graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
+      // "Inventory" label: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from
+      // the real slot rows (firstPlayerRowY() - 12), so it follows the +3px shift automatically.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 
@@ -44,7 +48,7 @@ public class GuiChute extends BcScreen<ContainerChute> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(62.0, 18.0, 52.0, 34.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(62.0, 21.0, 52.0, 34.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.chute.slots.title", -7811960, "buildcraft.help.chute.slots.desc1", "buildcraft.help.chute.slots.desc2")
             )
          );
