@@ -20,10 +20,10 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiStampingTable extends BcScreen<ContainerStampingTable> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/stamper.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 151.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 162.0);
 
    public GuiStampingTable(ContainerStampingTable container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, heightForSlots(container, 151));
+      super(container, playerInventory, title, 176, heightForSlots(container, 162));
    }
 
    @Override
@@ -33,7 +33,7 @@ public class GuiStampingTable extends BcScreen<ContainerStampingTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(15.0, 18.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(14.0, 22.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.stamping_table.input.title", -13176, "buildcraft.help.stamping_table.input.desc")
             )
          );
@@ -41,7 +41,7 @@ public class GuiStampingTable extends BcScreen<ContainerStampingTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(143.0, 18.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(142.0, 22.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.stamping_table.output.title", -10665929, "buildcraft.help.stamping_table.output.desc")
             )
          );
@@ -49,7 +49,7 @@ public class GuiStampingTable extends BcScreen<ContainerStampingTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(111.0, 45.0, 52.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(110.0, 48.0, 52.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.stamping_table.output.title", -10665929, "buildcraft.help.stamping_table.output.desc")
             )
          );

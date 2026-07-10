@@ -23,14 +23,14 @@ public class ContainerStampingTable extends ContainerBCTile<TileStampingTable> {
    public ContainerStampingTable(int containerId, Player player, TileStampingTable tile) {
       super(BCSiliconMenuTypes.STAMPING_TABLE, containerId, player, tile);
       if (tile != null) {
-         this.addSlot(new SlotBase(tile.invInput, 0, 15, 18));
-         this.addSlot(new SlotOutput(tile.invOutput, 0, 143, 18));
-         this.addSlot(new SlotOutput(tile.invOutput, 1, 111, 45));
-         this.addSlot(new SlotOutput(tile.invOutput, 2, 129, 45));
-         this.addSlot(new SlotOutput(tile.invOutput, 3, 147, 45));
+         this.addSlot(new SlotBase(tile.invInput, 0, 14, 22));
+         this.addSlot(new SlotOutput(tile.invOutput, 0, 142, 22));
+         this.addSlot(new SlotOutput(tile.invOutput, 1, 110, 48));
+         this.addSlot(new SlotOutput(tile.invOutput, 2, 128, 48));
+         this.addSlot(new SlotOutput(tile.invOutput, 3, 146, 48));
       }
 
-      this.addFullPlayerInventory(8, 69);
+      this.addFullPlayerInventory(8, 80);
    }
 
    private static TileStampingTable getTile(Inventory inv, BlockPos pos) {
