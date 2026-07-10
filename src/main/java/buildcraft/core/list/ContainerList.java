@@ -54,11 +54,11 @@ public class ContainerList extends BcMenu {
          }
 
          for (int slot = 0; slot < 9; slot++) {
-            this.addSlot(new ContainerList.ListPhantomSlot(this.lineInventories[line], slot, 8 + slot * 18, 32 + line * 34, line));
+            this.addSlot(new ContainerList.ListPhantomSlot(this.lineInventories[line], slot, 8 + slot * 18, 48 + line * 36, line));
          }
       }
 
-      this.addFullPlayerInventory(8, 103);
+      this.addFullPlayerInventory(8, 116);
    }
 
    @Override

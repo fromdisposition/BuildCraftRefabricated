@@ -15,6 +15,7 @@ import buildcraft.lib.gui.help.DummyHelpElement;
 import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.lib.list.ListHandler;
+import buildcraft.lib.misc.LocaleUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,15 +36,15 @@ import net.minecraft.world.item.ItemStack;
 
 public class GuiList extends BcScreen<ContainerList> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftcore:textures/gui/list_new.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 191.0);
-   private static final GuiIcon ICON_ONE_STACK = new GuiIcon(TEXTURE_BASE, 0.0, 191.0, 20.0, 20.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 198.0);
+   private static final GuiIcon ICON_ONE_STACK = new GuiIcon(TEXTURE_BASE, 0.0, 198.0, 20.0, 20.0);
    private static final GuiIcon ICON_HIGHLIGHT = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 16.0, 16.0);
    private GuiList.ToggleButton[][] toggleButtons;
    private EditBox labelField;
    private final Map<Integer, GuiList.GhostCache> ghostCache = new HashMap<>();
 
    public GuiList(ContainerList menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, heightForSlots(menu, 191));
+      super(menu, playerInv, title, 176, heightForSlots(menu, 198));
    }
 
    @Override
@@ -53,13 +54,13 @@ public class GuiList extends BcScreen<ContainerList> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(10.0, 10.0, 156.0, 12.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(7.0, 17.0, 162.0, 12.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.list.label.title", -1980113, "buildcraft.help.list.label.desc")
             )
          );
 
       for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
-         int rowY = 32 + line * 34;
+         int rowY = 48 + line * 36;
          this.mainGui
             .shownElements
             .add(
@@ -68,7 +69,9 @@ public class GuiList extends BcScreen<ContainerList> {
                   new ElementHelpInfo("buildcraft.help.list.slots.title", -7811960, "buildcraft.help.list.slots.desc1", "buildcraft.help.list.slots.desc2")
                )
             );
-         int btnRowY = rowY + 18;
+         // Buttons sit in the 18px band above their slot row (14px tall, 2px clear of the wells), so the caption on
+         // the band's left can describe them.
+         int btnRowY = rowY - 17;
          int bOffX = 127;
          this.mainGui
             .shownElements
@@ -106,7 +109,7 @@ public class GuiList extends BcScreen<ContainerList> {
             );
       }
 
-      this.labelField = new EditBox(this.font, this.leftPos + 10, this.topPos + 10, 156, 12, Component.empty());
+      this.labelField = new EditBox(this.font, this.leftPos + 7, this.topPos + 17, 162, 12, Component.empty());
       this.labelField.setMaxLength(32);
       this.labelField.setBordered(true);
       if (((ContainerList)this.menu).getListItemStack().getItem() instanceof ItemList_BC8 listItem) {
@@ -123,7 +126,7 @@ public class GuiList extends BcScreen<ContainerList> {
 
       for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
          int bOffX = this.leftPos + 8 + 162 - 42 - 1;
-         int bOffY = this.topPos + 32 + line * 34 + 18;
+         int bOffY = this.topPos + 31 + line * 36;
 
          for (int btn = 0; btn < 3; btn++) {
             int lineIdx = line;
@@ -146,18 +149,34 @@ public class GuiList extends BcScreen<ContainerList> {
    }
 
    @Override
+   protected void drawForegroundLayer() {
+      BCGraphics graphics = GuiIcon.getGuiGraphics();
+      // Generic item name ("List") on the canonical title anchor; the custom label lives in the edit box below it.
+      graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
+      // X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from the real slot rows
+      // (firstPlayerRowY() - 12), so it follows the inventory automatically.
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
+      // Caption on the left of each row's button band. The two rows are independent filters, so number them rather
+      // than repeat one label; the P/T/M toggles to the right set that filter's match mode. Y is centred against the
+      // 14px buttons at rowY - 16 (rowY = 48 + line * 36).
+      for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
+         graphics.text(this.font, LocaleUtil.localize("gui.list.filter_line", line + 1), 8, 35 + line * 36, -12566464, false);
+      }
+   }
+
+   @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
 
       for (int i = 0; i < ((ContainerList)this.menu).lines.length; i++) {
          ListHandler.Line line = ((ContainerList)this.menu).lines[i];
          if (line.isOneStackMode()) {
-            ICON_ONE_STACK.drawAt(this.leftPos + 6, this.topPos + 30 + i * 34);
+            ICON_ONE_STACK.drawAt(this.leftPos + 6, this.topPos + 46 + i * 36);
             List<ItemStack> examples = this.ghostExamplesFor(i);
 
             for (int slot = 1; slot < 9; slot++) {
                int x = this.leftPos + 8 + slot * 18;
-               int y = this.topPos + 32 + i * 34;
+               int y = this.topPos + 48 + i * 36;
                ICON_HIGHLIGHT.drawAt(x, y);
                int exampleIdx = slot - 1;
                if (exampleIdx < examples.size()) {
@@ -188,7 +207,7 @@ public class GuiList extends BcScreen<ContainerList> {
                ItemStack ex = examples.get(idx);
                if (!ex.isEmpty()) {
                   int x = this.leftPos + 8 + slot * 18;
-                  int y = this.topPos + 32 + line * 34;
+                  int y = this.topPos + 48 + line * 36;
                   if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
                      graphics.setTooltipForNextFrame(this.font, ex, mouseX, mouseY);
                      return;

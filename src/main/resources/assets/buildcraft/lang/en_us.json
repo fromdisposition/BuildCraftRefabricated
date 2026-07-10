@@ -253,6 +253,7 @@
   "gui.stored": "Stored",
   "gui.assemblyRate": "Rate",
   "gui.buildcraft.list": "List",
+  "gui.list.filter_line": "Filter %s",
   "gui.list.nbt": "Require Exact Match\n§7(Enchantments, names and stored data must precisely match)",
   "gui.list.metadata": "Accept Variations\n§7(Same Type)",
   "gui.list.oredict": "Accept Equivalents\n§7(Same Material)",
