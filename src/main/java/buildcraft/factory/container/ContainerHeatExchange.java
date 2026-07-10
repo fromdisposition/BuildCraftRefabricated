@@ -40,11 +40,11 @@ public class ContainerHeatExchange extends BcMenu {
       super(BCFactoryMenuTypes.HEAT_EXCHANGE, containerId, playerInv.player);
       this.tile = tile;
       ItemHandlerSimple machineSlots = tile != null && tile.getContainerSlots() != null ? tile.getContainerSlots() : FALLBACK_SLOTS;
-      this.addSlot(new SlotBase(machineSlots, 0, 8, 28));
-      this.addSlot(new SlotBase(machineSlots, 1, 8, 69));
-      this.addSlot(new SlotBase(machineSlots, 2, 152, 17));
-      this.addSlot(new SlotBase(machineSlots, 3, 152, 59));
-      this.addFullPlayerInventory(8, 101);
+      this.addSlot(new SlotBase(machineSlots, 0, 8, 29));
+      this.addSlot(new SlotBase(machineSlots, 1, 8, 70));
+      this.addSlot(new SlotBase(machineSlots, 2, 152, 18));
+      this.addSlot(new SlotBase(machineSlots, 3, 152, 60));
+      this.addFullPlayerInventory(8, 103);
       TileHeatExchange.ExchangeSectionStart start = startSection(tile);
       TileHeatExchange.ExchangeSectionEnd end = start != null ? start.getEndSection() : null;
       this.widgetTankStartInput = this.addWidget(new WidgetFluidTank(this, start != null ? start.tankInput : null));

@@ -48,7 +48,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
    private static final Identifier LOCK_TEXTURE = Identifier.parse("buildcraftlib:textures/icons/lock.png");
 
    public GuiFiller(ContainerFiller container, Inventory playerInv, Component title) {
-      super(container, playerInv, Component.translatable("block.buildcraftbuilders.filler"), 176, heightForSlots(container, 241));
+      super(container, playerInv, Component.translatable("block.buildcraftbuilders.filler"), 176, heightForSlots(container, 235));
    }
 
    @Override
@@ -199,7 +199,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 241, 256, 256);
+      graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 235, 256, 256);
       int mx = (int)this.mainGui.mouse.getX() - this.leftPos;
       int my = (int)this.mainGui.mouse.getY() - this.topPos;
       boolean excavateHover = mx >= 130 && mx < 146 && my >= 40 && my < 56;
