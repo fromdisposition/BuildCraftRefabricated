@@ -27,8 +27,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/autobench_item.png");
-   private static final Identifier TEXTURE_MISC = Identifier.parse("buildcraftlib:textures/gui/misc_slots.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/bcr/autobench_item.png");
+   private static final Identifier TEXTURE_MISC = Identifier.parse("buildcraftlib:textures/gui/bcr/misc_slots.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 200.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE, 176.0, 0.0, 23.0, 10.0);
    private static final GuiIcon ICON_FILTER_OVERLAY_SAME = new GuiIcon(TEXTURE_MISC, 54.0, 0.0, 18.0, 18.0);

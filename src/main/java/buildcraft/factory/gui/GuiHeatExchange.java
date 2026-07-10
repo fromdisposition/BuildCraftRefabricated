@@ -21,7 +21,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
    private int lastSectionSyncHash = Integer.MIN_VALUE;
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/heat_exchanger.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/bcr/heat_exchanger.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 185.0);
    // The atlas rows just below these sprites (y=223 / y=202) are solid black separators, not part of the overlays:
    // start both at y=185 (the first fully transparent row under the panel) so they stay out of the drawn region.

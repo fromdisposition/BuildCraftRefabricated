@@ -26,7 +26,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
-   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/assembly_table.png");
+   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/bcr/assembly_table.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 186.0);
    private static final GuiIcon ICON_SAVED = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 16.0, 16.0);
    private static final GuiIcon ICON_SAVED_ENOUGH = new GuiIcon(TEXTURE_BASE, 176.0, 16.0, 16.0, 16.0);

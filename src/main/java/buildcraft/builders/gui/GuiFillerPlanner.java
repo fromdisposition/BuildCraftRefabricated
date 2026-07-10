@@ -38,7 +38,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/filler_planner.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/bcr/filler_planner.png");
 
    public GuiFillerPlanner(ContainerFillerPlanner container, Inventory playerInv, Component title) {
       super(container, playerInv, Component.translatable("item.buildcraftbuilders.filler_planner"), 176, 81);

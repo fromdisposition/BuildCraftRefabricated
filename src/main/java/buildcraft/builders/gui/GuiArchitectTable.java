@@ -30,7 +30,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
-   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftbuilders:textures/gui/architect.png");
+   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftbuilders:textures/gui/bcr/architect.png");
    private EditBox nameField;
    private int previewRefreshCounter = 0;
 

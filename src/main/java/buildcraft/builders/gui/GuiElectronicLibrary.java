@@ -26,7 +26,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/electronic_library.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/bcr/electronic_library.png");
    private Button deleteButton;
 
    public GuiElectronicLibrary(ContainerElectronicLibrary container, Inventory playerInv, Component title) {

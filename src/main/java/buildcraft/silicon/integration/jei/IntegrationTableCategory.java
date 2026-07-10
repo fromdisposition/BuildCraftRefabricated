@@ -25,7 +25,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 public class IntegrationTableCategory extends AbstractRecipeCategory<IntegrationRecipeJei> {
-   private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/integration_table.png");
+   private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/bcr/integration_table.png");
    private static final int BG_U = 4, BG_V = 14, BG_W = 152, BG_H = 74;
    private static final int CENTER_X = 30, CENTER_Y = 31, OUTPUT_X = 129, OUTPUT_Y = 31;
    private static final int POWER_ALIGN_W = OUTPUT_X + 18;

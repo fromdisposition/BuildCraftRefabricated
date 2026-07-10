@@ -19,7 +19,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
-   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/integration_table.png");
+   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/bcr/integration_table.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 186.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 4.0, 70.0);
 

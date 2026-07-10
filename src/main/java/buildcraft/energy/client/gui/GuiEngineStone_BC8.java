@@ -21,7 +21,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/steam_engine_gui.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/bcr/steam_engine_gui.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 150.0);
 
    public GuiEngineStone_BC8(ContainerEngineStone_BC8 menu, Inventory playerInv, Component title) {

@@ -26,7 +26,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
 public class DistillerCategory extends AbstractRecipeCategory<IRefineryRecipeManager.IDistillationRecipe> {
-   private static final Identifier TEX = Identifier.parse("buildcraftfactory:textures/gui/distiller.png");
+   private static final Identifier TEX = Identifier.parse("buildcraftfactory:textures/gui/bcr/distiller.png");
    private static final int BG_U = 3, BG_V = 12, BG_W = 170, BG_H = 74;
    private static final int IN_X = 41, IN_Y = 19, IN_W = 16, IN_H = 38;
    private static final int GAS_X = 95, GAS_Y = 6, GAS_W = 34, GAS_H = 17;

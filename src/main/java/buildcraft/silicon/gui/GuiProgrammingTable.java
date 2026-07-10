@@ -24,7 +24,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
-   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/programming_table.png");
+   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/bcr/programming_table.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 186.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 18.0, 4.0, 70.0);
    private static final GuiIcon ICON_OPTION_SELECTED = new GuiIcon(TEXTURE_BASE, 196.0, 1.0, 16.0, 16.0);

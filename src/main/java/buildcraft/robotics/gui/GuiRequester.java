@@ -19,7 +19,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiRequester extends BcScreen<ContainerRequester> {
-   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftrobotics:textures/gui/requester.png");
+   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftrobotics:textures/gui/bcr/requester.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 196.0, 204.0);
    // The 196-wide texture leaves machine chrome on BOTH sides of the 176-wide player inventory (panel at x=11..187).
    // A mod-extended inventory draws the generic vanilla panel whose opaque edges (left: black outline + white bevel

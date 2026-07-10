@@ -18,7 +18,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiChute extends BcScreen<ContainerChute> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/chute.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/bcr/chute.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 158.0);
 
    public GuiChute(ContainerChute menu, Inventory playerInv, Component title) {

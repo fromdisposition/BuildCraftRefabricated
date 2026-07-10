@@ -28,7 +28,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.DyeColor;
 
 public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/pipe_emzuli.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/bcr/pipe_emzuli.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 166.0);
    private GuiEmzuliPipe_BC8.PaintButton[] paintButtons = new GuiEmzuliPipe_BC8.PaintButton[4];
    private GuiEmzuliPipe_BC8.PaintButton activePressedButton = null;

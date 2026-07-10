@@ -19,7 +19,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiPackager extends BcScreen<ContainerPackager> {
-   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/packager.png");
+   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/bcr/packager.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 222.0);
    private static final GuiIcon ICON_PATTERN_SET = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 18.0, 18.0);
 

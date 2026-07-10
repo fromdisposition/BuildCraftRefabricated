@@ -31,8 +31,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 public class GuiBuilder extends BcScreen<ContainerBuilder> {
-   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftbuilders:textures/gui/builder.png");
-   private static final Identifier TEXTURE_BLUEPRINT = Identifier.parse("buildcraftbuilders:textures/gui/builder_blueprint.png");
+   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftbuilders:textures/gui/bcr/builder.png");
+   private static final Identifier TEXTURE_BLUEPRINT = Identifier.parse("buildcraftbuilders:textures/gui/bcr/builder_blueprint.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 222.0);
    private static final GuiIcon ICON_BLUEPRINT_GUI = new GuiIcon(TEXTURE_BLUEPRINT, 169.0, 0.0, 87.0, 222.0);
    // Box left divider (x=169..178), down to just above its solid bottom frame (tex y=214). Restores the box's

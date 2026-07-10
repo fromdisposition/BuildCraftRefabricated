@@ -40,7 +40,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class GuiReplacer extends BcScreen<ContainerReplacer> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/replacer.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/bcr/replacer.png");
    private EditBox nameField;
    private Button replaceButton;
    private Snapshot.Key lastSeededKey;

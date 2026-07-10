@@ -21,7 +21,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiDistiller extends BcScreen<ContainerDistiller> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/distiller.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/bcr/distiller.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 177.0);
    // The atlas rows just below these sprites (y=215 / y=194) are solid black separators, not part of the overlays.
    private static final GuiIcon OVERLAY_VERTICAL = new GuiIcon(TEXTURE, 0.0, 177.0, 16.0, 38.0);

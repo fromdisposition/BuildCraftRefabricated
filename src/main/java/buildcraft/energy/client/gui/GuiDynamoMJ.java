@@ -33,7 +33,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 
 public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/mj_dynamo_gui.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/bcr/mj_dynamo_gui.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 176.0);
    private static final GuiIcon ICON_RF = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 60.0);
 

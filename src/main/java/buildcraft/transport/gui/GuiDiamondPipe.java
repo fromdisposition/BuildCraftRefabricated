@@ -19,8 +19,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiDiamondPipe extends BcScreen<ContainerDiamondPipe> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/filter.png");
-   private static final Identifier TEXTURE_CB = Identifier.parse("buildcrafttransport:textures/gui/filter_cb.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/bcr/filter.png");
+   private static final Identifier TEXTURE_CB = Identifier.parse("buildcrafttransport:textures/gui/bcr/filter_cb.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 175.0, 225.0);
    private static final GuiIcon ICON_GUI_CB = new GuiIcon(TEXTURE_CB, 0.0, 0.0, 175.0, 225.0);
 

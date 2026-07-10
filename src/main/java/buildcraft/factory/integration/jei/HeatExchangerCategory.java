@@ -25,7 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
 public class HeatExchangerCategory extends AbstractRecipeCategory<HeatExchangerRecipePair> {
-   private static final Identifier TEX = Identifier.parse("buildcraftfactory:textures/gui/heat_exchanger.png");
+   private static final Identifier TEX = Identifier.parse("buildcraftfactory:textures/gui/bcr/heat_exchanger.png");
    private static final int BG_U = 3, BG_V = 10, BG_W = 170, BG_H = 84;
    private static final int HOT_IN_X = 41, HOT_IN_Y = 60, HOT_IN_W = 34, HOT_IN_H = 17;
    private static final int COOL_IN_X = 41, COOL_IN_Y = 8, COOL_IN_W = 16, COOL_IN_H = 38;

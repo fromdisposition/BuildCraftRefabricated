@@ -44,7 +44,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class GuiFiller extends BcScreen<ContainerFiller> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/filler.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftbuilders:textures/gui/bcr/filler.png");
    private static final Identifier LOCK_TEXTURE = Identifier.parse("buildcraftlib:textures/icons/lock.png");
 
    public GuiFiller(ContainerFiller container, Inventory playerInv, Component title) {

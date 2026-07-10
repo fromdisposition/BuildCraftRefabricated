@@ -29,7 +29,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiGate extends BcScreen<ContainerGate> {
-   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/gate_interface.png");
+   private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/bcr/gate_interface.png");
    private static final GuiIcon BACKGROUND_TOP = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 16.0);
    private static final GuiIcon BACKGROUND_BOTTOM = new GuiIcon(TEXTURE_BASE, 0.0, 48.0, 176.0, 98.0);
    private static final GuiIcon BACKGROUND_ROW = new GuiIcon(TEXTURE_BASE, 0.0, 23.0, 176.0, 18.0);

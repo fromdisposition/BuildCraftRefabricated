@@ -24,7 +24,7 @@ import java.util.List;
 import net.minecraft.resources.Identifier;
 
 public class GuiElementStatement<S extends IStatement> extends GuiElementSimple implements IInteractionElement, IReference<S> {
-   public static final Identifier TEXTURE_SELECTOR = Identifier.parse("buildcraftlib:textures/gui/misc_slots.png");
+   public static final Identifier TEXTURE_SELECTOR = Identifier.parse("buildcraftlib:textures/gui/bcr/misc_slots.png");
    public static final GuiIcon SLOT_COLOUR = new GuiIcon(TEXTURE_SELECTOR, 0.0, 0.0, 18.0, 18.0);
    public static final GuiIcon ICON_SLOT_BLOCKED = SLOT_COLOUR.offset(18.0, 0.0);
    public static final GuiIcon ICON_SLOT_NOT_SET = ICON_SLOT_BLOCKED.offset(18.0, 0.0);

@@ -20,13 +20,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/filtered_buffer.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/bcr/filtered_buffer.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 166.0);
    private static final GuiIcon ICON_EMPTY_SLOT = new GuiIcon(
-      Identifier.parse("buildcrafttransport:textures/gui/empty_filtered_buffer_slot.png"), 0.0, 0.0, 16.0, 16.0, 16
+      Identifier.parse("buildcrafttransport:textures/gui/bcr/empty_filtered_buffer_slot.png"), 0.0, 0.0, 16.0, 16.0, 16
    );
    private static final GuiIcon ICON_NOTHING_SLOT = new GuiIcon(
-      Identifier.parse("buildcrafttransport:textures/gui/nothing_filtered_buffer_slot.png"), 0.0, 0.0, 16.0, 16.0, 16
+      Identifier.parse("buildcrafttransport:textures/gui/bcr/nothing_filtered_buffer_slot.png"), 0.0, 0.0, 16.0, 16.0, 16
    );
 
    public GuiFilteredBuffer(ContainerFilteredBuffer_BC8 menu, Inventory playerInv, Component title) {

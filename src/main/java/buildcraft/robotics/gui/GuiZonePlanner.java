@@ -23,7 +23,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftrobotics:textures/gui/zone_planner.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftrobotics:textures/gui/bcr/zone_planner.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 256.0, 244.0);
    // The texture only carries the right-pointing (import) arrow now. The export arrow is the same sprite drawn
    // transposed -- see drawProgressDown.

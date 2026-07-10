@@ -19,7 +19,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiTank extends BcScreen<ContainerTank> {
-   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/tank.png");
+   private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/bcr/tank.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 180.0);
    private static final GuiIcon ICON_TANK_OVERLAY = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 64.0);
 
