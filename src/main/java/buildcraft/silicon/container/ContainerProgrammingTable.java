@@ -24,24 +24,24 @@ public class ContainerProgrammingTable extends ContainerBCTile<TileProgrammingTa
    public ContainerProgrammingTable(int containerId, Player player, TileProgrammingTable tile) {
       super(BCSiliconMenuTypes.PROGRAMMING_TABLE, containerId, player, tile);
       if (tile != null) {
-         this.addSlot(new SlotBase(tile.invInput, 0, 8, 36) {
+         this.addSlot(new SlotBase(tile.invInput, 0, 8, 18) {
             @Override
             public void setChanged() {
                super.setChanged();
                tile.onInputChanged();
             }
          });
-         this.addSlot(new SlotOutput(tile.invOutput, 0, 8, 90));
+         this.addSlot(new SlotOutput(tile.invOutput, 0, 8, 72));
 
          for (int y = 0; y < TileProgrammingTable.HEIGHT; y++) {
             for (int x = 0; x < TileProgrammingTable.WIDTH; x++) {
                int index = y * TileProgrammingTable.WIDTH + x;
-               this.addSlot(new SlotDisplay(i -> tile.getOptionStack(index), index, 43 + x * 18, 36 + y * 18));
+               this.addSlot(new SlotDisplay(i -> tile.getOptionStack(index), index, 43 + x * 18, 18 + y * 18));
             }
          }
       }
 
-      this.addFullPlayerInventory(8, 123);
+      this.addFullPlayerInventory(8, 104);
    }
 
    public boolean clickMenuButton(Player player, int index) {

@@ -38,21 +38,21 @@ public class ContainerAssemblyTable extends ContainerBCTile<TileAssemblyTable> {
       // client. Still add the player inventory so the slot count matches the server (else the content packet
       // indexes past an empty slot list and disconnects).
       if (tile == null) {
-         this.addFullPlayerInventory(8, 123);
+         this.addFullPlayerInventory(8, 104);
       } else {
          for (int y = 0; y < 4; y++) {
             for (int x = 0; x < 3; x++) {
-               this.addSlot(new SlotBase(tile.inv, x + y * 3, 8 + x * 18, 36 + y * 18));
+               this.addSlot(new SlotBase(tile.inv, x + y * 3, 8 + x * 18, 18 + y * 18));
             }
          }
 
          for (int y = 0; y < 4; y++) {
             for (int x = 0; x < 3; x++) {
-               this.addSlot(new SlotDisplay(this::getDisplay, x + y * 3, 116 + x * 18, 36 + y * 18));
+               this.addSlot(new SlotDisplay(this::getDisplay, x + y * 3, 116 + x * 18, 18 + y * 18));
             }
          }
 
-         this.addFullPlayerInventory(8, 123);
+         this.addFullPlayerInventory(8, 104);
       }
    }
 
