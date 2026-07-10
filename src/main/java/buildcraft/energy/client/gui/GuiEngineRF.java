@@ -34,11 +34,11 @@ import net.minecraft.world.level.ItemLike;
 
 public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/rf_engine_gui.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 177.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 176.0);
    private static final GuiIcon ICON_RF = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 60.0);
 
    public GuiEngineRF(ContainerEngineRF menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, heightForSlots(menu, 177));
+      super(menu, playerInv, title, 176, heightForSlots(menu, 176));
    }
 
    @Override

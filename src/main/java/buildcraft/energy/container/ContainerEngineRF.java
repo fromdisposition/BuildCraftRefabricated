@@ -88,7 +88,7 @@ public class ContainerEngineRF extends BcMenu {
          });
       }
 
-      this.addFullPlayerInventory(8, 95, playerInv);
+      this.addFullPlayerInventory(8, 94, playerInv);
    }
 
    public long getSyncedPower() {

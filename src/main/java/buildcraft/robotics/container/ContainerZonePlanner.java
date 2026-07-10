@@ -58,20 +58,20 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
 
    public ContainerZonePlanner(int containerId, Inventory playerInv, TileZonePlanner tile) {
       super(BCRoboticsMenuTypes.ZONE_PLANNER, containerId, playerInv.player, tile);
-      this.addFullPlayerInventory(88, 146);
+      this.addFullPlayerInventory(88, 162);
 
       for (int x = 0; x < 4; x++) {
          for (int y = 0; y < 4; y++) {
-            this.addSlot(filtered(tile.invPaintbrushes, x * 4 + y, 8 + x * 18, 146 + y * 18, IS_BRUSH));
+            this.addSlot(filtered(tile.invPaintbrushes, x * 4 + y, 8 + x * 18, 162 + y * 18, IS_BRUSH));
          }
       }
 
-      this.addSlot(filtered(tile.invInputPaintbrush, 0, 8, 125, IS_BRUSH));
-      this.addSlot(filtered(tile.invInputMapLocation, 0, 26, 125, IS_MAP));
-      this.addSlot(new SlotOutput(tile.invInputResult, 0, 74, 125));
-      this.addSlot(filtered(tile.invOutputPaintbrush, 0, 233, 9, IS_BRUSH));
-      this.addSlot(filtered(tile.invOutputMapLocation, 0, 233, 27, IS_MAP));
-      this.addSlot(new SlotOutput(tile.invOutputResult, 0, 233, 75));
+      this.addSlot(filtered(tile.invInputPaintbrush, 0, 8, 130, IS_BRUSH));
+      this.addSlot(filtered(tile.invInputMapLocation, 0, 26, 130, IS_MAP));
+      this.addSlot(new SlotOutput(tile.invInputResult, 0, 74, 130));
+      this.addSlot(filtered(tile.invOutputPaintbrush, 0, 233, 18, IS_BRUSH));
+      this.addSlot(filtered(tile.invOutputMapLocation, 0, 233, 36, IS_MAP));
+      this.addSlot(new SlotOutput(tile.invOutputResult, 0, 233, 84));
 
       this.addDataSlot(new DataSlot() {
          @Override

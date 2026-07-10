@@ -30,7 +30,7 @@ public class ContainerPackager extends ContainerBCTile<TilePackager> {
    public ContainerPackager(int containerId, Player player, TilePackager tile) {
       super(BCSiliconMenuTypes.PACKAGER, containerId, player, tile);
       if (tile != null) {
-         this.addSlot(new SlotBase(tile.invInput, 0, 124, 7) {
+         this.addSlot(new SlotBase(tile.invInput, 0, 124, 18) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                return !stack.isEmpty() && (stack.is(Items.PAPER) || ItemPackage.isPackage(stack));
@@ -38,19 +38,19 @@ public class ContainerPackager extends ContainerBCTile<TilePackager> {
          });
 
          for (int x = 0; x < 9; x++) {
-            this.addSlot(new SlotBase(tile.invStorage, x, 8 + x * 18, 84));
+            this.addSlot(new SlotBase(tile.invStorage, x, 8 + x * 18, 108));
          }
 
          for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {
-               this.addSlot(new SlotPackager(tile.invPattern, x + y * 3, 30 + x * 18, 17 + y * 18));
+               this.addSlot(new SlotPackager(tile.invPattern, x + y * 3, 30 + x * 18, 28 + y * 18));
             }
          }
 
-         this.addSlot(new SlotOutput(tile.invOutput, 0, 123, 59));
+         this.addSlot(new SlotOutput(tile.invOutput, 0, 124, 72));
       }
 
-      this.addFullPlayerInventory(8, 115);
+      this.addFullPlayerInventory(8, 140);
    }
 
    @Override

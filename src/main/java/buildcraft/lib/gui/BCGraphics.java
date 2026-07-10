@@ -123,6 +123,19 @@ public final class BCGraphics {
       *///?}
    }
 
+   /**
+    * Rotates the GUI pose around its origin by {@code radians}. Screen space is y-down, so a positive angle turns
+    * clockwise: local (x, y) lands at (-y, x). Determinant stays +1, which matters because GUI_TEXTURED is a
+    * back-face-culling pipeline -- a mirroring pose would flip the quad winding and drop the draw entirely.
+    */
+   public void rotateGui(float radians) {
+      //? if >= 1.21.10 {
+      this.raw.pose().rotate(radians);
+      //?} else {
+      /*this.raw.pose().mulPose(com.mojang.math.Axis.ZP.rotation(radians));
+      *///?}
+   }
+
    public void blitSprite(TextureAtlasSprite sprite, int x, int y, int width, int height) {
       //? if >= 1.21.10 {
       this.raw.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, height);

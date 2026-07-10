@@ -82,7 +82,7 @@ public class ContainerEngineIron_BC8 extends BcMenu {
       }
 
       this.addDataSlots(this.data);
-      this.addFullPlayerInventory(8, 95);
+      this.addFullPlayerInventory(8, 94);
       this.widgetFuel = this.addWidget(new WidgetFluidTank(this, engine != null ? engine.tankFuel : null));
       this.widgetCoolant = this.addWidget(new WidgetFluidTank(this, engine != null ? engine.tankCoolant : null));
       this.widgetResidue = this.addWidget(new WidgetFluidTank(this, engine != null ? engine.tankResidue : null));

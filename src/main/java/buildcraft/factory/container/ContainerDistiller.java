@@ -37,10 +37,10 @@ public class ContainerDistiller extends BcMenu {
       super(BCFactoryMenuTypes.DISTILLER, containerId, playerInv.player);
       this.tile = tile;
       ItemHandlerSimple machineSlots = tile != null ? tile.containerSlots : FALLBACK_SLOTS;
-      this.addSlot(new SlotBase(machineSlots, 0, 8, 35));
-      this.addSlot(new SlotBase(machineSlots, 1, 152, 10));
-      this.addSlot(new SlotBase(machineSlots, 2, 152, 55));
-      this.addFullPlayerInventory(8, 79);
+      this.addSlot(new SlotBase(machineSlots, 0, 8, 43));
+      this.addSlot(new SlotBase(machineSlots, 1, 152, 18));
+      this.addSlot(new SlotBase(machineSlots, 2, 152, 63));
+      this.addFullPlayerInventory(8, 95);
       this.widgetTankIn = this.addWidget(new WidgetFluidTank(this, tile != null ? tile.getTankIn() : null));
       this.widgetTankGasOut = this.addWidget(new WidgetFluidTank(this, tile != null ? tile.getTankGasOut() : null));
       this.widgetTankLiquidOut = this.addWidget(new WidgetFluidTank(this, tile != null ? tile.getTankLiquidOut() : null));
