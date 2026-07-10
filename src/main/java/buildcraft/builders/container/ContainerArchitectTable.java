@@ -65,9 +65,9 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
 
       this.addDataSlots(this.data);
       this.snapshotContainer = new ContainerArchitectTable.SnapshotContainer(tile);
-      this.addSlot(new ContainerArchitectTable.SnapshotInputSlot(this.snapshotContainer, 0, 52, 125));
-      this.addSlot(new ContainerArchitectTable.SnapshotOutputSlot(this.snapshotContainer, 1, 111, 125));
-      this.addFullPlayerInventory(8, 158, playerInv);
+      this.addSlot(new ContainerArchitectTable.SnapshotInputSlot(this.snapshotContainer, 0, 8, 142));
+      this.addSlot(new ContainerArchitectTable.SnapshotOutputSlot(this.snapshotContainer, 1, 56, 142));
+      this.addFullPlayerInventory(8, 174, playerInv);
    }
 
    private static TileArchitectTable getTile(Inventory playerInv, BlockPos pos) {

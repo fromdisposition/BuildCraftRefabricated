@@ -55,6 +55,8 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    @Nullable
    private volatile Blueprint asyncPreviewResult;
    private volatile boolean asyncPreviewPending;
+   private static final int REPLACE_ANIM_DURATION = 20;
+   private int replaceAnimTicks;
 
    public GuiReplacer(ContainerReplacer container, Inventory playerInv, Component title) {
       super(container, playerInv, title, 176, heightForSlots(container, 256));
@@ -146,6 +148,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    private void onReplacePressed() {
       String newName = this.nameField.getValue().trim();
       ((ContainerReplacer)this.menu).sendMessage(10, buf -> buf.writeUtf(newName));
+      this.replaceAnimTicks = REPLACE_ANIM_DURATION;
    }
 
    @Override
@@ -158,6 +161,10 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
          this.lastSeededKey = currentKey;
       } else if (keyChanged && this.nameField != null) {
          this.lastSeededKey = currentKey;
+      }
+
+      if (this.replaceAnimTicks > 0) {
+         this.replaceAnimTicks--;
       }
 
       this.invalidatePreviewCacheIfNeeded();
@@ -297,6 +304,14 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 256, 256, 256);
+      if (this.replaceAnimTicks > 0) {
+         // The server replace is instant, so play a one-shot cosmetic fill sweep over the from->to arrow: source
+         // sprite at atlas (176, 0), drawn over the base arrow at GUI (29, 142), revealed left-to-right.
+         float t = (REPLACE_ANIM_DURATION - this.replaceAnimTicks) / (float) REPLACE_ANIM_DURATION;
+         int progressWidth = Math.min(22, Math.max(1, (int) Math.ceil(22.0F * t)));
+         graphics.blit(TEXTURE, this.leftPos + 29, this.topPos + 142, 176.0F, 0.0F, progressWidth, 16, 256, 256);
+      }
+
       Blueprint toRender = this.getPreviewBlueprint();
       if (toRender != null) {
          BlueprintRenderer.renderSnapshot(graphics, toRender, this.leftPos + 8, this.topPos + 18, 160, 95);

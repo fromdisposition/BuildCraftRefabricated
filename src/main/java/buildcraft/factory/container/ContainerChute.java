@@ -22,12 +22,12 @@ public class ContainerChute extends ContainerBCTile<TileChute> {
    public ContainerChute(int containerId, Inventory playerInv, TileChute tile) {
       super(BCFactoryMenuTypes.CHUTE, containerId, playerInv.player, tile);
       if (tile != null) {
-         this.addSlot(new SlotBase(tile.inv, 0, 62, 21));
-         this.addSlot(new SlotBase(tile.inv, 1, 80, 21));
-         this.addSlot(new SlotBase(tile.inv, 2, 98, 21));
-         this.addSlot(new SlotBase(tile.inv, 3, 80, 39));
+         this.addSlot(new SlotBase(tile.inv, 0, 62, 22));
+         this.addSlot(new SlotBase(tile.inv, 1, 80, 22));
+         this.addSlot(new SlotBase(tile.inv, 2, 98, 22));
+         this.addSlot(new SlotBase(tile.inv, 3, 80, 40));
       }
 
-      this.addFullPlayerInventory(8, 74);
+      this.addFullPlayerInventory(8, 76);
    }
 }

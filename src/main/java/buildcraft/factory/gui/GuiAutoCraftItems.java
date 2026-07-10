@@ -29,7 +29,7 @@ import net.minecraft.world.item.ItemStack;
 public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/autobench_item.png");
    private static final Identifier TEXTURE_MISC = Identifier.parse("buildcraftlib:textures/gui/misc_slots.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 197.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 200.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE, 176.0, 0.0, 23.0, 10.0);
    private static final GuiIcon ICON_FILTER_OVERLAY_SAME = new GuiIcon(TEXTURE_MISC, 54.0, 0.0, 18.0, 18.0);
    private static final GuiIcon ICON_FILTER_OVERLAY_DIFFERENT = new GuiIcon(TEXTURE_MISC, 72.0, 0.0, 18.0, 18.0);
@@ -38,7 +38,7 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    private boolean widthTooNarrow;
 
    public GuiAutoCraftItems(ContainerAutoCraftItems menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, heightForSlots(menu, 197));
+      super(menu, playerInv, title, 176, heightForSlots(menu, 200));
    }
 
    @Override
@@ -117,7 +117,7 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
             int progressWidth = (int)(ICON_PROGRESS.width * Math.min(progress, 1.0));
             if (progressWidth > 0) {
                int px = 90 + (int)this.mainGui.rootElement.getX();
-               int py = 47 + (int)this.mainGui.rootElement.getY();
+               int py = 48 + (int)this.mainGui.rootElement.getY();
                ICON_PROGRESS.drawCutInside(px, py, progressWidth, ICON_PROGRESS.height);
             }
          }

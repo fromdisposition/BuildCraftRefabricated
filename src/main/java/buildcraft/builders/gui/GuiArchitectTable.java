@@ -35,7 +35,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    private int previewRefreshCounter = 0;
 
    public GuiArchitectTable(ContainerArchitectTable container, Inventory playerInv, Component title) {
-      super(container, playerInv, title, 176, heightForSlots(container, 240));
+      super(container, playerInv, title, 176, heightForSlots(container, 256));
       this.inventoryLabelY = this.imageHeight - 94;
    }
 
@@ -55,7 +55,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(8.0, 8.0, 160.0, 100.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(8.0, 18.0, 160.0, 95.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo(
                   "buildcraft.help.architect.preview.title", -7811841, "buildcraft.help.architect.preview.desc1", "buildcraft.help.architect.preview.desc2"
                )
@@ -65,7 +65,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(52.0, 125.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(8.0, 142.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo(
                   "buildcraft.help.architect.snapshot_in.title",
                   -7811960,
@@ -78,7 +78,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(77.0, 125.0, 22.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(29.0, 142.0, 22.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.architect.progress.title", -13176, "buildcraft.help.architect.progress.desc")
             )
          );
@@ -86,7 +86,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(111.0, 125.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(56.0, 142.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo(
                   "buildcraft.help.architect.snapshot_out.title",
                   -7798904,
@@ -99,7 +99,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(8.0, 145.0, 160.0, 12.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(8.0, 122.0, 160.0, 12.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.architect.name.title", -1980113, "buildcraft.help.architect.name.desc")
             )
          );
@@ -108,7 +108,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    @Override
    protected void init() {
       super.init();
-      this.nameField = new EditBox(this.font, this.leftPos + 8, this.topPos + 145, 160, 12, Component.empty());
+      this.nameField = new EditBox(this.font, this.leftPos + 8, this.topPos + 122, 160, 12, Component.empty());
       this.nameField.setValue(((ContainerArchitectTable)this.menu).getTileName());
       this.nameField.setFocused(false);
       this.nameField.setResponder(newText -> {
@@ -179,13 +179,15 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      graphics.blit(TEXTURE_BASE, this.leftPos, this.topPos, 0.0F, 0.0F, 176, 240, 256, 256);
+      graphics.blit(TEXTURE_BASE, this.leftPos, this.topPos, 0.0F, 0.0F, 176, 256, 256, 256);
       int total = ((ContainerArchitectTable)this.menu).getSyncedTotal();
       if (total > 0) {
          int progress = ((ContainerArchitectTable)this.menu).getSyncedProgress();
          int progressWidth = Math.min(22, (int)(22.0F * progress / total));
          if (progressWidth > 0) {
-            graphics.blit(TEXTURE_BASE, this.leftPos + 77, this.topPos + 125, 0.0F, 240.0F, progressWidth, 16, 256, 256);
+            // Progress-fill arrow: source sprite is at the top-right of the atlas (176, 0), drawn over the base
+            // arrow between the snapshot slots (GUI x 29, y 142) and revealed left-to-right as the scan advances.
+            graphics.blit(TEXTURE_BASE, this.leftPos + 29, this.topPos + 142, 176.0F, 0.0F, progressWidth, 16, 256, 256);
          }
       }
 
@@ -207,7 +209,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
       }
 
       if (snapshot != null) {
-         BlueprintRenderer.renderSnapshot(graphics, snapshot, this.leftPos + 8, this.topPos + 8, 160, 100);
+         BlueprintRenderer.renderSnapshot(graphics, snapshot, this.leftPos + 8, this.topPos + 18, 160, 95);
       }
    }
 
@@ -233,7 +235,11 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      String titleStr = this.title.getString();
-      graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 111, -12566464, false);
+      if (graphics != null) {
+         // Block name, left-anchored at x=8, y=6 (canonical vanilla title anchor).
+         graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
+         // "Inventory" label at the canonical anchor (12px above the first player row).
+         graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
+      }
    }
 }

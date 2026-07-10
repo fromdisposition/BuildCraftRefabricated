@@ -47,11 +47,11 @@ public class ContainerAutoCraftItems extends ContainerBCTileRecipeBook<TileAutoW
       ItemHandlerSimple invBlueprint = tile != null ? tile.invBlueprint : FALLBACK_BLUEPRINT;
       ItemHandlerSimple invMaterialFilter = tile != null ? tile.invMaterialFilter : FALLBACK_MATERIAL_FILTER;
       ItemHandlerSimple invMaterials = tile != null ? tile.invMaterials : FALLBACK_MATERIALS;
-      this.resultSlot = this.addSlot(new SlotOutput(invResult, 0, 124, 35));
+      this.resultSlot = this.addSlot(new SlotOutput(invResult, 0, 124, 36));
 
       for (int y = 0; y < 3; y++) {
          for (int x = 0; x < 3; x++) {
-            Slot slot = new SlotPhantom(invBlueprint, x + y * 3, 30 + x * 18, 17 + y * 18, false);
+            Slot slot = new SlotPhantom(invBlueprint, x + y * 3, 30 + x * 18, 18 + y * 18, false);
             this.addSlot(slot);
             this.blueprintSlots.add(slot);
          }
@@ -64,11 +64,11 @@ public class ContainerAutoCraftItems extends ContainerBCTileRecipeBook<TileAutoW
       this.materialSlots = new SlotBase[9];
 
       for (int x = 0; x < 9; x++) {
-         this.materialSlots[x] = new SlotBase(invMaterials, x, 8 + x * 18, 84);
+         this.materialSlots[x] = new SlotBase(invMaterials, x, 8 + x * 18, 86);
          this.addSlot(this.materialSlots[x]);
       }
 
-      this.addSlot(new SlotDisplay(i -> tile != null ? tile.resultClient : ItemStack.EMPTY, 0, 93, 27));
+      this.addSlot(new SlotDisplay(i -> tile != null ? tile.resultClient : ItemStack.EMPTY, 0, 93, 28));
 
       // Vanilla data slots are 16-bit on the wire (see BcMenu.chunk16), so the stored-power long travels as
       // four unsigned 16-bit chunks; each client-side set() splices its chunk back into the mirror tile.
@@ -88,7 +88,7 @@ public class ContainerAutoCraftItems extends ContainerBCTileRecipeBook<TileAutoW
          });
       }
 
-      this.addFullPlayerInventory(8, 115);
+      this.addFullPlayerInventory(8, 118);
    }
 
    public List<Slot> getInputGridSlots() {

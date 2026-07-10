@@ -20,11 +20,11 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiTank extends BcScreen<ContainerTank> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/tank.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 178.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 180.0);
    private static final GuiIcon ICON_TANK_OVERLAY = new GuiIcon(TEXTURE, 176.0, 0.0, 16.0, 64.0);
 
    public GuiTank(ContainerTank menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, heightForSlots(menu, 178));
+      super(menu, playerInv, title, 176, heightForSlots(menu, 180));
    }
 
    @Override
@@ -35,7 +35,7 @@ public class GuiTank extends BcScreen<ContainerTank> {
             .add(
                new GuiElementFluidTank(
                   this.mainGui,
-                  new GuiRectangle(80.0, 17.0, 16.0, 64.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(80.0, 18.0, 16.0, 64.0).offset(this.mainGui.rootElement),
                   ((ContainerTank)this.menu).widgetTank.getTankStorage(),
                   ((ContainerTank)this.menu).widgetTank,
                   ICON_TANK_OVERLAY
@@ -45,7 +45,7 @@ public class GuiTank extends BcScreen<ContainerTank> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  new GuiRectangle(80.0, 17.0, 16.0, 64.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(80.0, 18.0, 16.0, 64.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo(
                      "buildcraft.help.tank.title.tankGeneric", -11162881, "buildcraft.help.tank.generic_block.desc", "buildcraft.help.tank.generic"
                   )
