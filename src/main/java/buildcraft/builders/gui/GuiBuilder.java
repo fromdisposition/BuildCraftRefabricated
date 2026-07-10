@@ -18,7 +18,6 @@ import buildcraft.lib.gui.help.DummyHelpElement;
 import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.lib.gui.widget.WidgetFluidTank;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 //? if >= 1.21.10 {
@@ -188,13 +187,16 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       int leftToBreak = ((ContainerBuilder)this.menu).getSyncedLeftToBreak();
       int leftToPlace = ((ContainerBuilder)this.menu).getSyncedLeftToPlace();
       int y = 50;
+      // Draw these as plain strings in the vanilla label colour (-12566464 = 0xFF404040), the same as the title and
+      // Inventory labels above. A Component with .withStyle(DARK_GRAY) would override that colour with 0x555555, which
+      // is both inconsistent with the other labels and nearly invisible against a dark-mode resource pack's panel.
       if (leftToBreak > 0) {
-         graphics.text(this.font, Component.literal("Break: " + leftToBreak).withStyle(ChatFormatting.DARK_GRAY), 10, y, -12566464, false);
+         graphics.text(this.font, "Break: " + leftToBreak, 10, y, -12566464, false);
          y += 10;
       }
 
       if (leftToPlace > 0) {
-         graphics.text(this.font, Component.literal("Place: " + leftToPlace).withStyle(ChatFormatting.DARK_GRAY), 10, y, -12566464, false);
+         graphics.text(this.font, "Place: " + leftToPlace, 10, y, -12566464, false);
       }
    }
 
