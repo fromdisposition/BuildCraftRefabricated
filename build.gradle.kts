@@ -69,6 +69,9 @@ if (isGeneratorNode) {
     fabricApi {
         configureDataGeneration {
             client = true
+            // Write straight to the committed, shared src/main/generated at the repo root. Without this the output
+            // lands in the 26.2 node's own versions/26.2/src/main/generated and never reaches the consumed copy.
+            outputDirectory = rootProject.layout.projectDirectory.file("src/main/generated")
         }
     }
 }

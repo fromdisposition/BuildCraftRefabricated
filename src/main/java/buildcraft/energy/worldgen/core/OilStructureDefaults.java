@@ -32,6 +32,16 @@ public final class OilStructureDefaults {
    public static final int BEDROCK_SHAFT_MIN_WORLD_Y = SPRING_TEMPLATE_Y + 1;
    public static final int BEDROCK_SHAFT_MAX_WORLD_Y = DEPOSIT_MIN_WORLD_Y - 1;
 
+   /**
+    * Well templates use negative template Y as placement markers (deposit/shaft/spring), but Minecraft's structure
+    * NBT format requires every stored block position to be non-negative -- Structure Blocks and NBT tooling reject
+    * negatives, and the jigsaw placer drops out-of-bounds blocks so the deposit never spawns. Every well block's Y is
+    * shifted up by this constant on export to keep all positions {@code >= 0}, and
+    * {@link buildcraft.energy.worldgen.processor.OilWellProjectionProcessor} subtracts it back to recover the semantic
+    * template Y. Equals {@code -SPRING_TEMPLATE_Y}, the lowest template Y any well uses.
+    */
+   public static final int WELL_TEMPLATE_Y_OFFSET = -SPRING_TEMPLATE_Y;
+
    /** Base seed; each {@link PlacementSet} offsets by ordinal so placement grids stay independent. */
    private static final int BASE_SEED = 0x5046_B4_E4;
 

@@ -37,8 +37,8 @@ public final class BCEnergyStructureProvider implements DataProvider {
 
          try {
             var blocks = registry.lookupOrThrow(Registries.BLOCK);
-            OilStructureTemplateBuilder.generateAll(structuresDir, blocks);
-            WaterSpringTemplateBuilder.generate(structuresDir, blocks);
+            OilStructureTemplateBuilder.generateAll(cache, structuresDir, blocks);
+            WaterSpringTemplateBuilder.generate(cache, structuresDir, blocks);
          } catch (java.io.IOException e) {
             return CompletableFuture.failedFuture(e);
          }

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import net.minecraft.core.HolderGetter;
+import net.minecraft.data.CachedOutput;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -32,45 +33,48 @@ public final class OilStructureTemplateBuilder {
    private OilStructureTemplateBuilder() {
    }
 
-   public static void generateAll(final Path structuresDir, final HolderGetter<Block> blocks) throws IOException {
-      writeLake(structuresDir.resolve("oil_lake_patch.nbt"), blocks, 0x51AF1001L, 6, 26);
-      writeLake(structuresDir.resolve("oil_lake_patch_b.nbt"), blocks, 0x51AF1002L, 6, 32);
-      writeLake(structuresDir.resolve("oil_lake_patch_c.nbt"), blocks, 0x51AF1003L, 6, 38);
-      writeLake(structuresDir.resolve("oil_lake_patch_d.nbt"), blocks, 0x51AF1004L, 6, 30);
-      writeLake(structuresDir.resolve("oil_lake_patch_e.nbt"), blocks, 0x51AF1005L, 6, 42);
+   public static void generateAll(final CachedOutput cache, final Path structuresDir, final HolderGetter<Block> blocks) throws IOException {
+      writeLake(cache, structuresDir.resolve("oil_lake_patch.nbt"), blocks, 0x51AF1001L, 6, 26);
+      writeLake(cache, structuresDir.resolve("oil_lake_patch_b.nbt"), blocks, 0x51AF1002L, 6, 32);
+      writeLake(cache, structuresDir.resolve("oil_lake_patch_c.nbt"), blocks, 0x51AF1003L, 6, 38);
+      writeLake(cache, structuresDir.resolve("oil_lake_patch_d.nbt"), blocks, 0x51AF1004L, 6, 30);
+      writeLake(cache, structuresDir.resolve("oil_lake_patch_e.nbt"), blocks, 0x51AF1005L, 6, 42);
 
-      writeWell(structuresDir.resolve("oil_well_medium_s.nbt"), blocks, 2, 5, 4, 6, 0, false);
-      writeWell(structuresDir.resolve("oil_well_medium_alt.nbt"), blocks, 2, 9, 5, 8, 0, false);
-      writeWell(structuresDir.resolve("oil_well_medium.nbt"), blocks, 2, 11, 6, 10, 0, false);
-      writeWell(structuresDir.resolve("oil_well_medium_l.nbt"), blocks, 2, 14, 7, 12, 0, false);
+      writeWell(cache, structuresDir.resolve("oil_well_medium_s.nbt"), blocks, 2, 5, 4, 6, 0, false);
+      writeWell(cache, structuresDir.resolve("oil_well_medium_alt.nbt"), blocks, 2, 9, 5, 8, 0, false);
+      writeWell(cache, structuresDir.resolve("oil_well_medium.nbt"), blocks, 2, 11, 6, 10, 0, false);
+      writeWell(cache, structuresDir.resolve("oil_well_medium_l.nbt"), blocks, 2, 14, 7, 12, 0, false);
 
-      writeWell(structuresDir.resolve("oil_well_large_s.nbt"), blocks, 4, 28, 10, 12, 1, true);
-      writeWell(structuresDir.resolve("oil_well_large_m.nbt"), blocks, 4, 31, 12, 14, 1, true);
-      writeWell(structuresDir.resolve("oil_well_large.nbt"), blocks, 4, 35, 14, 18, 1, true);
-      writeWell(structuresDir.resolve("oil_well_large_l.nbt"), blocks, 4, 42, 16, 20, 1, true);
+      writeWell(cache, structuresDir.resolve("oil_well_large_s.nbt"), blocks, 4, 28, 10, 12, 1, true);
+      writeWell(cache, structuresDir.resolve("oil_well_large_m.nbt"), blocks, 4, 31, 12, 14, 1, true);
+      writeWell(cache, structuresDir.resolve("oil_well_large.nbt"), blocks, 4, 35, 14, 18, 1, true);
+      writeWell(cache, structuresDir.resolve("oil_well_large_l.nbt"), blocks, 4, 42, 16, 20, 1, true);
    }
 
    private static BlockState blockState(final HolderGetter<Block> blocks, final Identifier id) {
       return blocks.getOrThrow(ResourceKey.create(Registries.BLOCK, id)).value().defaultBlockState();
    }
 
-   private static void writeLake(final Path path, final HolderGetter<Block> blocks, final long seed, final int lakeRadius, final int tendrilRadius)
+   private static void writeLake(final CachedOutput cache, final Path path, final HolderGetter<Block> blocks, final long seed, final int lakeRadius, final int tendrilRadius)
       throws IOException {
       BlockState oil = blockState(blocks, OIL_BLOCK_ID);
       List<StructureTemplateExporter.BlockEntry> entries = new ArrayList<>();
       boolean[][] pattern = bcTendrilPattern(lakeRadius, tendrilRadius, seed);
       blitSurfacePattern(entries, pattern, oil);
       StructureTemplateExporter.write(
+         cache,
          path,
          blocks,
          OilStructureDefaults.TEMPLATE_SIZE,
-         StructureTemplateExporter.computeSizeY(entries, 4),
          OilStructureDefaults.TEMPLATE_SIZE,
+         0,
+         4,
          entries
       );
    }
 
    private static void writeWell(
+      final CachedOutput cache,
       final Path path,
       final HolderGetter<Block> blocks,
       final int lakeRadius,
@@ -146,11 +150,13 @@ public final class OilStructureTemplateBuilder {
       }
 
       StructureTemplateExporter.write(
+         cache,
          path,
          blocks,
          OilStructureDefaults.TEMPLATE_SIZE,
-         StructureTemplateExporter.computeSizeY(entries, 64),
          OilStructureDefaults.TEMPLATE_SIZE,
+         OilStructureDefaults.WELL_TEMPLATE_Y_OFFSET,
+         64,
          entries
       );
    }

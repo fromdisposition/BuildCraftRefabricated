@@ -56,6 +56,9 @@ public final class OilWellProjectionProcessor implements StructureProcessor {
    ) {
       int templateY = originalBlockInfo.pos().getY();
    *///?}
+      // Stored positions were shifted up by WELL_TEMPLATE_Y_OFFSET on export so the NBT holds no negative
+      // coordinates; undo it to recover the semantic template Y the bands below decode.
+      templateY -= OilStructureDefaults.WELL_TEMPLATE_Y_OFFSET;
       BlockPos pos = processedBlockInfo.pos();
       int x = pos.getX();
       int z = pos.getZ();
