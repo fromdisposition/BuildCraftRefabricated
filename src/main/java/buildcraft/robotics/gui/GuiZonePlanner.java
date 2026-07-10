@@ -12,6 +12,7 @@ import buildcraft.lib.gui.GuiIcon;
 import buildcraft.lib.gui.help.DummyHelpElement;
 import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.pos.GuiRectangle;
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.robotics.container.ContainerZonePlanner;
 import buildcraft.robotics.tile.TileZonePlanner;
 //? if >= 1.21.10 {
@@ -109,9 +110,12 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       // x=8 is the canonical title anchor and also the map's left edge; the label sits in the 14px band above it.
       graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
-      // X = 88 matches the player inventory's left edge (this GUI is 256 wide, so it is not the vanilla x=8);
-      // Y = playerInventoryLabelY() derives from the real slot rows, so it follows the inventory automatically.
-      graphics.text(this.font, this.playerInventoryTitle, 88, this.playerInventoryLabelY(), -12566464, false);
+      // The brush grid and the player inventory share a first row, so both labels share playerInventoryLabelY()
+      // (firstPlayerRowY() - 12) and stay level. Each sits on its own grid's left edge: this GUI is 256 wide, so the
+      // 176-wide player inventory is inset to x=88 rather than the vanilla x=8.
+      int labelY = this.playerInventoryLabelY();
+      graphics.text(this.font, LocaleUtil.localize("buildcraft.gui.zone_planner.brushes"), 8, labelY, -12566464, false);
+      graphics.text(this.font, this.playerInventoryTitle, 88, labelY, -12566464, false);
    }
 
    private static double progressFraction(int progress) {

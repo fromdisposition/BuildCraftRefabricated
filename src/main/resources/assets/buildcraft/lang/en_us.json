@@ -1005,6 +1005,7 @@
   "buildcraft.gui.rf_engine.upgrade_rate_unit": "E per second",
   "buildcraft.gui.rf_engine.upgrade_rate_unit.rf": "E per second",
   "buildcraft.gui.rf_engine.upgrade_rate_unit_mj": "MJ per second",
+  "buildcraft.gui.zone_planner.brushes": "Brushes",
   "gui.filling.resources": "Filling Resources",
   "gui.progress": "Progress",
   "gui.leftToBreak": "Left to Break",
