@@ -39,7 +39,7 @@ public class ContainerAdvancedCraftingTable extends ContainerBCTileRecipeBook<Ti
       if (tile == null) {
          this.addFullPlayerInventory(8, 162);
       } else {
-         this.addSlot(new SlotDisplay(i -> tile.resultClient, 0, 126, 35));
+         this.addSlot(new SlotDisplay(i -> tile.resultClient, 0, 127, 36));
 
          for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 5; x++) {
