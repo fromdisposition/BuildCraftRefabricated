@@ -23,7 +23,7 @@ public class ContainerChargingTable extends ContainerBCTile<TileChargingTable> {
    public ContainerChargingTable(int containerId, Player player, TileChargingTable tile) {
       super(BCSiliconMenuTypes.CHARGING_TABLE, containerId, player, tile);
       if (tile != null) {
-         this.addSlot(new SlotBase(tile.inv, 0, 80, 18) {
+         this.addSlot(new SlotBase(tile.inv, 0, 80, 21) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                return tile.isValidChargeItem(stack);
@@ -31,7 +31,7 @@ public class ContainerChargingTable extends ContainerBCTile<TileChargingTable> {
          });
       }
 
-      this.addFullPlayerInventory(8, 50);
+      this.addFullPlayerInventory(8, 56);
    }
 
    private static TileChargingTable getTile(Inventory inv, BlockPos pos) {

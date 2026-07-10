@@ -20,10 +20,10 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiChargingTable extends BcScreen<ContainerChargingTable> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/charging_table.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 132.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 138.0);
 
    public GuiChargingTable(ContainerChargingTable container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, heightForSlots(container, 132));
+      super(container, playerInventory, title, 176, heightForSlots(container, 138));
    }
 
    @Override
@@ -33,7 +33,7 @@ public class GuiChargingTable extends BcScreen<ContainerChargingTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(80.0, 18.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(80.0, 21.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.charging_table.input.title", -13176, "buildcraft.help.charging_table.input.desc")
             )
          );
