@@ -188,6 +188,12 @@ public final class OilStructureTemplateBuilder {
          int radius = h >= height - 1 ? 0 : maxRadius;
          writeCylinderY(entries, center, h, center, radius, oil);
       }
+      if (maxRadius > 0) {
+         // Large wells (cross-shaped spout): a thin single-block spire above the base so the tip is clearly visible.
+         for (int h = height + 1; h <= height + OilStructureDefaults.LARGE_SPOUT_TIP_HEIGHT; h++) {
+            writeCylinderY(entries, center, h, center, 0, oil);
+         }
+      }
    }
 
    private static void blitSurfacePattern(

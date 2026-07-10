@@ -1,6 +1,8 @@
 {
   "values": [
     "minecraft:the_void",
-    "minecraft:river"
+    "minecraft:river",
+    "minecraft:deep_frozen_ocean",
+    "minecraft:frozen_ocean"
   ]
 }

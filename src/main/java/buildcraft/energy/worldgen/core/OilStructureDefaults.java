@@ -7,8 +7,16 @@ public final class OilStructureDefaults {
    /** Rich/patch tiers form contiguous 8×8-chunk (128×128 block) sectors. */
    public static final int SLICE_SECTOR_CHUNKS = 8;
 
+   /** Flatness gate: sample the surface height on a 3x3 ring at this radius and skip the deposit if the spread
+    *  exceeds {@link #MAX_SURFACE_SLOPE}. Bigger radius / smaller slope = flatter sites but rarer oil. */
+   public static final int FLATNESS_SAMPLE_RADIUS = 12;
+   public static final int MAX_SURFACE_SLOPE = 8;
+
    /** Surface tendril/spout template Y ({@code GravityProcessor}: {@code heightmap - 1 + templateY}). */
    public static final int SURFACE_TEMPLATE_Y = 0;
+
+   /** Extra single-block spire above a large well's spout so the tip is clearly visible (blocks). */
+   public static final int LARGE_SPOUT_TIP_HEIGHT = 6;
 
    /** Fixed overworld Y for the underground deposit body (template Y equals world Y). */
    public static final int DEPOSIT_MIN_WORLD_Y = -42;

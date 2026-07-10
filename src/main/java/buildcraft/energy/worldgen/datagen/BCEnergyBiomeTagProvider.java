@@ -27,8 +27,6 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
       Biomes.DEEP_OCEAN,
       Biomes.COLD_OCEAN,
       Biomes.DEEP_COLD_OCEAN,
-      Biomes.FROZEN_OCEAN,
-      Biomes.DEEP_FROZEN_OCEAN,
       Biomes.LUKEWARM_OCEAN,
       Biomes.DEEP_LUKEWARM_OCEAN,
       Biomes.WARM_OCEAN
@@ -46,7 +44,9 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
       Biomes.SOUL_SAND_VALLEY,
       Biomes.BASALT_DELTAS
    );
-   private static final Set<ResourceKey<Biome>> EXCLUDED = Set.of(Biomes.THE_VOID, Biomes.RIVER);
+   private static final Set<ResourceKey<Biome>> EXCLUDED = Set.of(
+      Biomes.THE_VOID, Biomes.RIVER, Biomes.FROZEN_OCEAN, Biomes.DEEP_FROZEN_OCEAN
+   );
 
    BCEnergyBiomeTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
       super(output, Registries.BIOME, registriesFuture);

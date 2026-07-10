@@ -131,6 +131,22 @@ public final class OilDepositStructure extends Structure {
          return Optional.empty();
       }
       ChunkPos chunkPos = context.chunkPos();
+      // Skip steep sites (cliffs, mountain edges): reject if the surface spread over a 3x3 sample is too large.
+      int cx = chunkPos.getMiddleBlockX();
+      int cz = chunkPos.getMiddleBlockZ();
+      int r = OilStructureDefaults.FLATNESS_SAMPLE_RADIUS;
+      int minH = Integer.MAX_VALUE;
+      int maxH = Integer.MIN_VALUE;
+      for (int dx = -r; dx <= r; dx += r) {
+         for (int dz = -r; dz <= r; dz += r) {
+            int h = context.chunkGenerator().getBaseHeight(cx + dx, cz + dz, Heightmap.Types.WORLD_SURFACE_WG, context.heightAccessor(), context.randomState());
+            minH = Math.min(minH, h);
+            maxH = Math.max(maxH, h);
+         }
+      }
+      if (maxH - minH > OilStructureDefaults.MAX_SURFACE_SLOPE) {
+         return Optional.empty();
+      }
       int height = this.startHeight.sample(context.random(), new WorldGenerationContext(context.chunkGenerator(), context.heightAccessor()));
       BlockPos startPos = new BlockPos(
          chunkPos.getMiddleBlockX() - OilStructureDefaults.TEMPLATE_CENTER,
