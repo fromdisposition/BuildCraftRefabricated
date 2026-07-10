@@ -86,7 +86,8 @@ public final class OilWellProjectionProcessor implements StructureProcessor {
       }
 
       if (templateY >= OilStructureDefaults.SURFACE_TEMPLATE_Y) {
-         return processedBlockInfo;
+         // Re-drop with the decoded Y: the earlier gravity pass used the offset stored Y and floated this up.
+         return fixedY(processedBlockInfo, surfaceY(level, x, z, templateY));
       }
 
       return processedBlockInfo;
