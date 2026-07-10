@@ -130,7 +130,7 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       String title = I18n.get("block.buildcraftsilicon.assembly_table", new Object[0]);
-      graphics.text(this.font, title, (this.imageWidth - this.font.width(title)) / 2, 6, -12566464, false);
+      graphics.text(this.font, title, 8, 6, -12566464, false);
       // "Inventory" label: X = 8 matches the player inventory's own left edge (addFullPlayerInventory(8, ...)),
       // Y = playerInventoryLabelY() is derived from the real slot rows (firstPlayerRowY() - 12), not hardcoded.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);

@@ -26,14 +26,14 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCraftingTable> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/advanced_crafting_table.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 241.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 244.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 4.0, 70.0);
    private ACTRecipeBookComponent recipeBookComponent;
    private ImageButton recipeBookButton;
    private boolean widthTooNarrow;
 
    public GuiAdvancedCraftingTable(ContainerAdvancedCraftingTable container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, heightForSlots(container, 241));
+      super(container, playerInventory, title, 176, heightForSlots(container, 244));
    }
 
    @Override
@@ -101,8 +101,8 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
          double v = (double)((ContainerAdvancedCraftingTable)this.menu).tile.power / target;
          ICON_PROGRESS.drawCutInside(
             new GuiRectangle(
-                  164.0,
-                  (int)(7.0 + 70.0 * Math.max(1.0 - v, 0.0)),
+                  157.0,
+                  (int)(18.0 + 70.0 * Math.max(1.0 - v, 0.0)),
                   4.0,
                   (int)Math.ceil(70.0 * Math.min(v, 1.0))
                )
@@ -129,7 +129,7 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       String title = I18n.get("block.buildcraftsilicon.advanced_crafting_table", new Object[0]);
-      graphics.text(this.font, title, (this.imageWidth - this.font.width(title)) / 2, 5, -12566464, false);
+      graphics.text(this.font, title, 8, 6, -12566464, false);
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 

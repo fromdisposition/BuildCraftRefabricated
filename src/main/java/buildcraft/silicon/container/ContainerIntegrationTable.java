@@ -24,19 +24,19 @@ public class ContainerIntegrationTable extends ContainerBCTile<TileIntegrationTa
    public ContainerIntegrationTable(int containerId, Player player, TileIntegrationTable tile) {
       super(BCSiliconMenuTypes.INTEGRATION_TABLE, containerId, player, tile);
       if (tile == null) {
-         this.addFullPlayerInventory(8, 109);
+         this.addFullPlayerInventory(8, 104);
       } else {
          int[] indexes = new int[]{0, 1, 2, 3, 0, 4, 5, 6, 7};
 
          for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {
-               this.addSlot(new SlotBase(x == 1 && y == 1 ? tile.invTarget : tile.invToIntegrate, indexes[x + y * 3], 19 + x * 25, 24 + y * 25));
+               this.addSlot(new SlotBase(x == 1 && y == 1 ? tile.invTarget : tile.invToIntegrate, indexes[x + y * 3], 9 + x * 25, 20 + y * 25));
             }
          }
 
-         this.addSlot(new SlotDisplay(i -> tile.getOutput(), 0, 101, 36));
-         this.addSlot(new SlotOutput(tile.invResult, 0, 138, 49));
-         this.addFullPlayerInventory(8, 109);
+         this.addSlot(new SlotDisplay(i -> tile.getOutput(), 0, 94, 27));
+         this.addSlot(new SlotOutput(tile.invResult, 0, 133, 45));
+         this.addFullPlayerInventory(8, 104);
       }
    }
 
