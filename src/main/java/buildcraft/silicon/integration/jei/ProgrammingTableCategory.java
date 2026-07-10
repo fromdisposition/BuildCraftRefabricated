@@ -26,8 +26,10 @@ import net.minecraft.resources.Identifier;
 
 public class ProgrammingTableCategory extends AbstractRecipeCategory<ProgrammingRecipeJei> {
    private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/programming_table.png");
-   private static final int BG_U = 3, BG_V = 18, BG_W = 153, BG_H = 89;
-   private static final int INPUT_X = 5, INPUT_Y = 18, OPTIONS_X = 40, OPTIONS_Y = 18, OUTPUT_X = 5, OUTPUT_Y = 72;
+   // Crop keeps a 4px panel margin on every side: the panel's own dark border (row/col 0) and white bevel (1..2)
+   // must stay outside it, or they show up as a stray white line at the top of the recipe card.
+   private static final int BG_U = 3, BG_V = 13, BG_W = 153, BG_H = 81;
+   private static final int INPUT_X = 5, INPUT_Y = 5, OPTIONS_X = 40, OPTIONS_Y = 5, OUTPUT_X = 5, OUTPUT_Y = 59;
    private static final int POWER_ALIGN_W = OPTIONS_X + TileProgrammingTable.WIDTH * 18;
    private static final int POWER_Y = BG_H + 5;
    private static final int CARD_H = BG_H + 16;

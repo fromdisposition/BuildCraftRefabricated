@@ -98,10 +98,10 @@ public class BCFactoryJeiPlugin implements IModPlugin {
 
    @SuppressWarnings("unchecked")
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-      registration.addRecipeClickArea(GuiAutoCraftItems.class, 90, 47, 23, 10, new mezz.jei.api.recipe.types.IRecipeType[]{RecipeTypes.CRAFTING});
+      registration.addRecipeClickArea(GuiAutoCraftItems.class, 90, 48, 23, 10, new mezz.jei.api.recipe.types.IRecipeType[]{RecipeTypes.CRAFTING});
       registration.addGhostIngredientHandler(GuiAutoCraftItems.class, new BCGhostIngredientHandler());
-      registration.addRecipeClickArea(GuiDistiller.class, 61, 12, 36, 57, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.DISTILLER});
-      registration.addRecipeClickArea(GuiHeatExchange.class, 73, 36, 30, 21, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.HEAT_EXCHANGER});
+      registration.addRecipeClickArea(GuiDistiller.class, 61, 20, 36, 57, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.DISTILLER});
+      registration.addRecipeClickArea(GuiHeatExchange.class, 73, 42, 30, 21, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.HEAT_EXCHANGER});
    }
 
    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
