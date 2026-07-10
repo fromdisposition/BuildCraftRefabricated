@@ -65,7 +65,7 @@ public class GuiTank extends BcScreen<ContainerTank> {
       String titleStr = this.title.getString();
       int titleWidth = this.font.width(titleStr);
       int titleX = (this.imageWidth - titleWidth) / 2;
-      graphics.text(this.font, titleStr, titleX, 5, -12566464, false);
+      graphics.text(this.font, titleStr, titleX, 6, -12566464, false);
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 }

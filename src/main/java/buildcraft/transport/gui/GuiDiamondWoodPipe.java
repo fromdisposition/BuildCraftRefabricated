@@ -28,7 +28,7 @@ import net.minecraft.world.entity.player.Inventory;
 public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
    private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/pipe_emerald.png");
    private static final Identifier TEXTURE_BUTTON = Identifier.parse("buildcrafttransport:textures/gui/pipe_emerald_button.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 175.0, 161.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 175.0, 156.0);
    private static final GuiIcon ICON_ROUND_ROBIN_INDEX = new GuiIcon(TEXTURE, 176.0, 0.0, 20.0, 20.0);
    private static final GuiIcon ICON_ROUND_ROBIN_NONE = new GuiIcon(TEXTURE, 176.0, 20.0, 20.0, 20.0);
    private GuiDiamondWoodPipe.FilterButton whiteListButton;
@@ -36,7 +36,7 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
    private GuiDiamondWoodPipe.FilterButton roundRobinButton;
 
    public GuiDiamondWoodPipe(ContainerDiamondWoodPipe menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 175, heightForSlots(menu, 161));
+      super(menu, playerInv, title, 175, heightForSlots(menu, 156));
    }
 
    @Override
@@ -64,8 +64,8 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
 
    @Override
    protected void initGuiElements() {
-      int bx = this.leftPos + 7;
-      int by = this.topPos + 41;
+      int bx = this.leftPos + 8;
+      int by = this.topPos + 40;
       this.whiteListButton = new GuiDiamondWoodPipe.FilterButton(
          bx, by, PipeBehaviourWoodDiamond.FilterMode.WHITE_LIST, 19, 19, "tip.PipeItemsEmerald.whitelist"
       );
@@ -98,7 +98,7 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(7.0, 41.0, 54.0, 18.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(8.0, 40.0, 54.0, 18.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.diamond_wood_pipe.mode.title", -13176, "buildcraft.help.diamond_wood_pipe.mode.desc")
             )
          );

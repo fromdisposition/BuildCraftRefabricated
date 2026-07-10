@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
    private static final Identifier TEXTURE = Identifier.parse("buildcrafttransport:textures/gui/filtered_buffer.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 169.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 166.0);
    private static final GuiIcon ICON_EMPTY_SLOT = new GuiIcon(
       Identifier.parse("buildcrafttransport:textures/gui/empty_filtered_buffer_slot.png"), 0.0, 0.0, 16.0, 16.0, 16
    );
@@ -30,7 +30,7 @@ public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
    );
 
    public GuiFilteredBuffer(ContainerFilteredBuffer_BC8 menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, heightForSlots(menu, 169));
+      super(menu, playerInv, title, 176, heightForSlots(menu, 166));
    }
 
    @Override
@@ -43,8 +43,8 @@ public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
          ItemStack stackFilter = ((ContainerFilteredBuffer_BC8)this.menu).tile.invFilter.getStackInSlot(i);
          ItemStack stackMain = ((ContainerFilteredBuffer_BC8)this.menu).tile.invMain.getStackInSlot(i);
          int x = rootX + 8 + i * 18;
-         int filterY = rootY + 27;
-         int mainY = rootY + 61;
+         int filterY = rootY + 18;
+         int mainY = rootY + 52;
          if (stackFilter.isEmpty()) {
             ICON_EMPTY_SLOT.drawAt(x, filterY);
          }
@@ -78,7 +78,7 @@ public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(8.0, 27.0, 160.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(8.0, 18.0, 160.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.filtered_buffer.filter.title", -11184641, "buildcraft.help.filtered_buffer.filter")
             )
          );
@@ -86,7 +86,7 @@ public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(8.0, 61.0, 160.0, 16.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(8.0, 52.0, 160.0, 16.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.filtered_buffer.main.title", -11141291, "buildcraft.help.filtered_buffer.main")
             )
          );
@@ -95,9 +95,10 @@ public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      String titleStr = this.title.getString();
-      int titleWidth = this.font.width(titleStr);
-      int titleX = (this.imageWidth - titleWidth) / 2;
-      graphics.text(this.font, titleStr, titleX, 10, -12566464, false);
+      // Block name on the canonical left title anchor.
+      graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
+      // X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from the real slot rows
+      // (firstPlayerRowY() - 12), so it follows the inventory automatically.
+      graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 }

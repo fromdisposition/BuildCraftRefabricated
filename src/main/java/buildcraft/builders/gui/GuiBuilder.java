@@ -179,9 +179,8 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      String titleStr = this.title.getString();
-      int titleWidth = this.font.width(titleStr);
-      graphics.text(this.font, titleStr, (176 - titleWidth) / 2, 6, -12566464, false);
+      // Block name on the canonical left title anchor (x=8, y=6).
+      graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
       // "Inventory" label, matching the fully-labelled screens (Tank, engines, ...). X = 8 is the inventory's own
       // left edge (addFullPlayerInventory(8, 140)); Y comes from playerInventoryLabelY() = firstPlayerRowY() - 12,
       // i.e. derived from the real slot rows (vanilla convention), not a hardcoded coordinate.

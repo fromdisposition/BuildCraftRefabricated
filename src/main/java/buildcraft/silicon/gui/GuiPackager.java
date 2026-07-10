@@ -80,9 +80,9 @@ public class GuiPackager extends BcScreen<ContainerPackager> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      // Block name, left-anchored at x=8, y=6 (canonical vanilla title anchor).
+      // Block name, centred on imageWidth at y=6.
       String title = I18n.get("block.buildcraftsilicon.packager", new Object[0]);
-      graphics.text(this.font, title, 8, 6, -12566464, false);
+      graphics.text(this.font, title, (this.imageWidth - this.font.width(title)) / 2, 6, -12566464, false);
       // "Inventory" label: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from
       // the real slot rows (firstPlayerRowY() - 12), so it follows the inventory automatically.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);

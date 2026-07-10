@@ -25,13 +25,13 @@ public class ContainerDiamondWoodPipe extends AbstractPipeFilterContainer<PipeBe
    public ContainerDiamondWoodPipe(int containerId, Inventory playerInv, PipeBehaviourWoodDiamond behaviour) {
       super(BCTransportMenuTypes.DIAMOND_WOOD_PIPE, containerId, playerInv, behaviour, behaviour == null ? null : behaviour.pipe.getHolder());
       if (behaviour == null) {
-         this.addFullPlayerInventory(8, 79);
+         this.addFullPlayerInventory(8, 74);
       } else {
          for (int i = 0; i < 9; i++) {
             this.addSlot(new SlotPhantom(behaviour.filters, i, 8 + i * 18, 18));
          }
 
-         this.addFullPlayerInventory(8, 79);
+         this.addFullPlayerInventory(8, 74);
       }
    }
 

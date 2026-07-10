@@ -23,12 +23,12 @@ public class ContainerFilteredBuffer_BC8 extends ContainerBCTile<TileFilteredBuf
       super(BCTransportMenuTypes.FILTERED_BUFFER, containerId, playerInv.player, tile);
 
       for (int i = 0; i < 9; i++) {
-         this.addSlot(new SlotPhantom(tile.invFilter, i, 8 + i * 18, 27, false));
-         SlotBase mainSlot = new SlotBase(tile.invMain, i, 8 + i * 18, 61);
+         this.addSlot(new SlotPhantom(tile.invFilter, i, 8 + i * 18, 18, false));
+         SlotBase mainSlot = new SlotBase(tile.invMain, i, 8 + i * 18, 52);
          this.addSlot(mainSlot);
       }
 
-      this.addFullPlayerInventory(8, 86);
+      this.addFullPlayerInventory(8, 84);
    }
 
    private static TileFilteredBuffer getTile(Inventory playerInv, BlockPos pos) {
