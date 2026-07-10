@@ -99,7 +99,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(8.0, 122.0, 160.0, 12.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(7.0, 122.0, 162.0, 12.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.architect.name.title", -1980113, "buildcraft.help.architect.name.desc")
             )
          );
@@ -108,7 +108,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    @Override
    protected void init() {
       super.init();
-      this.nameField = new EditBox(this.font, this.leftPos + 8, this.topPos + 122, 160, 12, Component.empty());
+      this.nameField = new EditBox(this.font, this.leftPos + 7, this.topPos + 122, 162, 12, Component.empty());
       this.nameField.setValue(((ContainerArchitectTable)this.menu).getTileName());
       this.nameField.setFocused(false);
       this.nameField.setResponder(newText -> {

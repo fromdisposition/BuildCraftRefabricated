@@ -55,7 +55,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    @Nullable
    private volatile Blueprint asyncPreviewResult;
    private volatile boolean asyncPreviewPending;
-   private static final int REPLACE_ANIM_DURATION = 20;
+   private static final int REPLACE_ANIM_DURATION = 10;
    private int replaceAnimTicks;
 
    public GuiReplacer(ContainerReplacer container, Inventory playerInv, Component title) {
@@ -97,7 +97,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
          .shownElements
          .add(
             new DummyHelpElement(
-               new GuiRectangle(30.0, 122.0, 138.0, 12.0).offset(this.mainGui.rootElement),
+               new GuiRectangle(29.0, 122.0, 140.0, 12.0).offset(this.mainGui.rootElement),
                new ElementHelpInfo("buildcraft.help.replacer.name.title", -1980113, "buildcraft.help.replacer.name.desc")
             )
          );
@@ -132,7 +132,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    @Override
    protected void init() {
       super.init();
-      this.nameField = new EditBox(this.font, this.leftPos + 30, this.topPos + 122, 138, 12, Component.empty());
+      this.nameField = new EditBox(this.font, this.leftPos + 29, this.topPos + 122, 140, 12, Component.empty());
       this.nameField.setMaxLength(64);
       this.nameField.setValue(((ContainerReplacer)this.menu).getBlueprintName());
       this.nameField.setFocused(false);

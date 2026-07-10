@@ -22,10 +22,10 @@ import net.minecraft.world.entity.player.Inventory;
 
 public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
    private static final Identifier TEXTURE = Identifier.parse("buildcraftenergy:textures/gui/steam_engine_gui.png");
-   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 166.0);
+   private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 150.0);
 
    public GuiEngineStone_BC8(ContainerEngineStone_BC8 menu, Inventory playerInv, Component title) {
-      super(menu, playerInv, title, 176, heightForSlots(menu, 166));
+      super(menu, playerInv, title, 176, heightForSlots(menu, 150));
    }
 
    @Override
@@ -58,7 +58,7 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  new GuiRectangle(81.0, 25.0, 14.0, 14.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(81.0, 20.0, 14.0, 14.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.stone_engine.flame.title", -225, "buildcraft.help.stone_engine.flame")
                )
             );
@@ -66,7 +66,7 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
             .shownElements
             .add(
                new DummyHelpElement(
-                  new GuiRectangle(80.0, 41.0, 16.0, 16.0).offset(this.mainGui.rootElement),
+                  new GuiRectangle(80.0, 36.0, 16.0, 16.0).offset(this.mainGui.rootElement),
                   new ElementHelpInfo("buildcraft.help.stone_engine.fuel.title", -5622989, "buildcraft.help.stone_engine.fuel")
                )
             );
@@ -82,7 +82,7 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
          graphics.blit(
             TEXTURE,
             this.leftPos + 81,
-            this.topPos + 25 + 14 - flameHeight,
+            this.topPos + 20 + 14 - flameHeight,
             176.0F,
             14 - flameHeight,
             14,

@@ -105,7 +105,7 @@ public class ContainerGate extends BcMenu {
             this.gate.sendResolveData();
          }
 
-         this.addFullPlayerInventory(8, 33 + this.slotHeight * 18);
+         this.addFullPlayerInventory(8, 32 + this.slotHeight * 18);
       }
    }
 

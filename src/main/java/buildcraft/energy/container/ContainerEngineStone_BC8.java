@@ -72,8 +72,8 @@ public class ContainerEngineStone_BC8 extends BcMenu {
       }
 
       this.addDataSlots(this.data);
-      this.addSlot(new ContainerEngineStone_BC8.FuelSlot(engine, 0, 80, 41));
-      this.addFullPlayerInventory(8, 84, playerInv);
+      this.addSlot(new ContainerEngineStone_BC8.FuelSlot(engine, 0, 80, 36));
+      this.addFullPlayerInventory(8, 68, playerInv);
    }
 
    public int getBurnTime() {

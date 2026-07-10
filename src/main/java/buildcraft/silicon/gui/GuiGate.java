@@ -31,12 +31,12 @@ import net.minecraft.world.entity.player.Inventory;
 public class GuiGate extends BcScreen<ContainerGate> {
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/gate_interface.png");
    private static final GuiIcon BACKGROUND_TOP = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 16.0);
-   private static final GuiIcon BACKGROUND_BOTTOM = new GuiIcon(TEXTURE_BASE, 0.0, 48.0, 176.0, 101.0);
+   private static final GuiIcon BACKGROUND_BOTTOM = new GuiIcon(TEXTURE_BASE, 0.0, 48.0, 176.0, 98.0);
    private static final GuiIcon BACKGROUND_ROW = new GuiIcon(TEXTURE_BASE, 0.0, 23.0, 176.0, 18.0);
    private final int numRows;
 
    public GuiGate(ContainerGate container, Inventory playerInventory, Component title) {
-      super(container, playerInventory, title, 176, heightForSlots(container, 117 + container.slotHeight * 18));
+      super(container, playerInventory, title, 176, heightForSlots(container, 114 + container.slotHeight * 18));
       this.numRows = container.slotHeight;
    }
 
