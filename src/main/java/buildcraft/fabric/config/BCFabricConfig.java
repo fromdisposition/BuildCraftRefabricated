@@ -199,10 +199,20 @@ public final class BCFabricConfig {
       }
 
       BCCoreConfig.worldGen.set(bool(generator, "worldGen", BCCoreConfig.worldGen.get()));
-      BCEnergyConfig.enableOilOnWater.set(bool(generator, "enableOilOnWater", BCEnergyConfig.enableOilOnWater.get()));
-      BCEnergyConfig.enableOilGeneration.set(bool(generator, "enableOilGeneration", BCEnergyConfig.enableOilGeneration.get()));
-      BCEnergyConfig.enableOilSprings.set(bool(generator, "enableOilSprings", BCEnergyConfig.enableOilSprings.get()));
-      BCEnergyConfig.enableWaterSprings.set(bool(generator, "enableWaterSprings", BCEnergyConfig.enableWaterSprings.get()));
+
+      if (generator.has("oil") && generator.get("oil").isJsonObject()) {
+         JsonObject oil = generator.getAsJsonObject("oil");
+         BCEnergyConfig.enableOilGeneration.set(bool(oil, "enabled", BCEnergyConfig.enableOilGeneration.get()));
+         BCEnergyConfig.oilWells.set(bool(oil, "wells", BCEnergyConfig.oilWells.get()));
+         BCEnergyConfig.oilDesertFields.set(bool(oil, "desertFields", BCEnergyConfig.oilDesertFields.get()));
+         BCEnergyConfig.oilOceanFields.set(bool(oil, "oceanFields", BCEnergyConfig.oilOceanFields.get()));
+         BCEnergyConfig.enableOilSprings.set(bool(oil, "springs", BCEnergyConfig.enableOilSprings.get()));
+         BCEnergyConfig.oilWellFrequencyPercent.set(intVal(oil, "wellFrequencyPercent", BCEnergyConfig.oilWellFrequencyPercent.get()));
+         BCEnergyConfig.oilDesertFieldFrequencyPercent.set(intVal(oil, "desertFieldFrequencyPercent", BCEnergyConfig.oilDesertFieldFrequencyPercent.get()));
+         BCEnergyConfig.oilOceanFieldFrequencyPercent.set(intVal(oil, "oceanFieldFrequencyPercent", BCEnergyConfig.oilOceanFieldFrequencyPercent.get()));
+      }
+
+      BCEnergyConfig.enableWaterSprings.set(bool(generator, "waterSprings", BCEnergyConfig.enableWaterSprings.get()));
       BCEnergyConfig.refreshWaterSpringFlag();
 
       if (generator.has("excludedDimensions")) {
@@ -253,10 +263,17 @@ public final class BCFabricConfig {
       energy.addProperty("enableOilBurn", true);
       JsonObject generator = new JsonObject();
       generator.addProperty("worldGen", true);
-      generator.addProperty("enableOilGeneration", true);
-      generator.addProperty("enableOilOnWater", true);
-      generator.addProperty("enableOilSprings", true);
-      generator.addProperty("enableWaterSprings", true);
+      JsonObject generatorOil = new JsonObject();
+      generatorOil.addProperty("enabled", true);
+      generatorOil.addProperty("wells", true);
+      generatorOil.addProperty("desertFields", true);
+      generatorOil.addProperty("oceanFields", true);
+      generatorOil.addProperty("springs", true);
+      generatorOil.addProperty("wellFrequencyPercent", 100);
+      generatorOil.addProperty("desertFieldFrequencyPercent", 100);
+      generatorOil.addProperty("oceanFieldFrequencyPercent", 100);
+      generator.add("oil", generatorOil);
+      generator.addProperty("waterSprings", true);
       generator.add("excludedDimensions", GSON.toJsonTree(BCEnergyConfig.getExcludedDimensions().stream().map(id -> id.toString()).sorted().toList()));
       generator.addProperty("dimensionListMode", "BLACKLIST");
       energy.add("generator", generator);

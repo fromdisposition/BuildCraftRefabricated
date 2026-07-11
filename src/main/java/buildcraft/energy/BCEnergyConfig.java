@@ -15,10 +15,17 @@ import net.minecraft.resources.Identifier;
 
 public class BCEnergyConfig {
    public static final BCCoreConfig.BooleanValue oilIsSticky = new BCCoreConfig.BooleanValue(false);
-   /** Master switch: oil patch feature in ocean biomes (default on). */
-   public static final BCCoreConfig.BooleanValue enableOilOnWater = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableOilBurn = new BCCoreConfig.BooleanValue(true);
+   /** Master switch for all oil worldgen; the per-type toggles below refine it. */
    public static final BCCoreConfig.BooleanValue enableOilGeneration = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue oilWells = new BCCoreConfig.BooleanValue(true);
+   public static final BCCoreConfig.BooleanValue oilDesertFields = new BCCoreConfig.BooleanValue(true);
+   /** Also gates normal wells inside ocean biomes. */
+   public static final BCCoreConfig.BooleanValue oilOceanFields = new BCCoreConfig.BooleanValue(true);
+   /** 0..100, seeded per-position roll on top of the structure_set spacing grid. */
+   public static final BCCoreConfig.IntValue oilWellFrequencyPercent = new BCCoreConfig.IntValue(100);
+   public static final BCCoreConfig.IntValue oilDesertFieldFrequencyPercent = new BCCoreConfig.IntValue(100);
+   public static final BCCoreConfig.IntValue oilOceanFieldFrequencyPercent = new BCCoreConfig.IntValue(100);
    public static final BCCoreConfig.BooleanValue enableOilSprings = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.BooleanValue enableWaterSprings = new BCCoreConfig.BooleanValue(true);
    public static final BCCoreConfig.StringListValue excludedDimensions = new BCCoreConfig.StringListValue(List.of("minecraft:the_nether", "minecraft:the_end"));
