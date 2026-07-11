@@ -101,7 +101,7 @@ public class BCFactoryJeiPlugin implements IModPlugin {
    @Override
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
       registration.addRecipeClickArea(GuiAutoCraftItems.class, 90, 48, 23, 10, RecipeTypes.CRAFTING);
-      registration.addGhostIngredientHandler(GuiAutoCraftItems.class, new BCGhostIngredientHandler());
+      registration.addGhostIngredientHandler(GuiAutoCraftItems.class, new BCGhostIngredientHandler<>());
       registration.addRecipeClickArea(GuiDistiller.class, 61, 20, 36, 57, BCJeiRecipeTypes.DISTILLER);
       registration.addRecipeClickArea(GuiHeatExchange.class, 73, 42, 30, 21, BCJeiRecipeTypes.HEAT_EXCHANGER);
    }

@@ -124,7 +124,7 @@ public class BCSiliconJeiPlugin implements IModPlugin {
    @Override
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
       registration.addRecipeClickArea(GuiAdvancedCraftingTable.class, 93, 36, 22, 15, RecipeTypes.CRAFTING);
-      registration.addGhostIngredientHandler(GuiAdvancedCraftingTable.class, new BCGhostIngredientHandler());
+      registration.addGhostIngredientHandler(GuiAdvancedCraftingTable.class, new BCGhostIngredientHandler<>());
       registration.addRecipeClickArea(GuiAssemblyTable.class, 86, 18, 4, 70, BCJeiRecipeTypes.ASSEMBLY);
       registration.addRecipeClickArea(GuiIntegrationTable.class, 84, 48, 41, 10, BCJeiRecipeTypes.INTEGRATION);
       // Spans both arrows flanking the options grid: the upper one (input -> options) at y 22..29 and the lower one

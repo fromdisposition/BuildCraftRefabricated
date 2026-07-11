@@ -86,12 +86,12 @@ final class BcReiCategory<D extends BcReiDisplay> implements DisplayCategory<D> 
    }
 
    static Widget slot(EntryIngredient entries, Point o, int x, int y, boolean output) {
-      var slot = Widgets.createSlot(new Point(o.x + x - 1, o.y + y - 1)).entries(entries);
+      var slot = Widgets.createSlot(new Point(o.x + x, o.y + y)).entries(entries);
       return output ? slot.markOutput() : slot.markInput();
    }
 
    static Widget texSlot(EntryIngredient entries, Point o, int x, int y, boolean output) {
-      var slot = Widgets.createSlot(new Point(o.x + x - 1, o.y + y - 1)).entries(entries).disableBackground();
+      var slot = Widgets.createSlot(new Point(o.x + x, o.y + y)).entries(entries).disableBackground();
       return output ? slot.markOutput() : slot.markInput();
    }
 
