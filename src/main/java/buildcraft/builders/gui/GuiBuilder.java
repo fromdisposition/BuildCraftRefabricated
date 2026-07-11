@@ -191,12 +191,12 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       // Inventory labels above. A Component with .withStyle(DARK_GRAY) would override that colour with 0x555555, which
       // is both inconsistent with the other labels and nearly invisible against a dark-mode resource pack's panel.
       if (leftToBreak > 0) {
-         graphics.text(this.font, "Break: " + leftToBreak, 10, y, -12566464, false);
+         graphics.text(this.font, "Break: " + leftToBreak, 8, y, -12566464, false);
          y += 10;
       }
 
       if (leftToPlace > 0) {
-         graphics.text(this.font, "Place: " + leftToPlace, 10, y, -12566464, false);
+         graphics.text(this.font, "Place: " + leftToPlace, 8, y, -12566464, false);
       }
    }
 
