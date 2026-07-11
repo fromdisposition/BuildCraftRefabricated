@@ -41,13 +41,7 @@ base {
 
 repositories {
     maven("https://maven.blamejared.com")
-    // EMI lives on TerraformersMC only; scope it so a flaky mirror can't abort resolution of the group.
-    maven("https://maven.terraformersmc.com/releases") {
-        content { includeGroup("dev.emi") }
-    }
-    maven("https://maven.teamreborn.org") {
-        content { excludeGroup("dev.emi") }
-    }
+    maven("https://maven.teamreborn.org")
 }
 
 // ---------------------------------------------------------------------------
@@ -227,12 +221,6 @@ dependencies {
         modCompileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
     } else {
         compileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
-    }
-
-    // EMI exists only for the 1.21.x line; the plugin sources live in versions/1.21.1/java so only
-    // that node compiles against it. Intermediary-mapped mod jar — modCompileOnly remaps it.
-    sc.properties.rawOrNull("deps", "emi")?.let { emiVer ->
-        modCompileOnly("dev.emi:emi-fabric:$emiVer")
     }
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
@@ -451,11 +439,6 @@ tasks.processResources {
     inputs.properties(props)
     filesMatching("fabric.mod.json") {
         expand(props)
-        // The raw file stays valid JSON (Loom parses it before expansion). Nodes without deps.emi drop the
-        // emi entrypoint line entirely — the plugin class only exists on nodes with the dependency.
-        if (sc.properties.rawOrNull("deps", "emi") == null) {
-            filter { line -> if (line.trimStart().startsWith("\"emi\":")) null else line }
-        }
     }
     filesMatching("buildcraft.mixins.json") {
         expand(props)
