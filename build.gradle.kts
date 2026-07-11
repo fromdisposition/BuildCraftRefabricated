@@ -41,7 +41,13 @@ base {
 
 repositories {
     maven("https://maven.blamejared.com")
-    maven("https://maven.teamreborn.org")
+    // EMI lives on TerraformersMC only; scope it so a flaky mirror can't abort resolution of the group.
+    maven("https://maven.terraformersmc.com/releases") {
+        content { includeGroup("dev.emi") }
+    }
+    maven("https://maven.teamreborn.org") {
+        content { excludeGroup("dev.emi") }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -221,6 +227,12 @@ dependencies {
         modCompileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
     } else {
         compileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
+    }
+
+    // EMI exists only for the 1.21.x line; the plugin sources live in versions/1.21.1/java so only
+    // that node compiles against it. Intermediary-mapped mod jar — modCompileOnly remaps it.
+    sc.properties.rawOrNull("deps", "emi")?.let { emiVer ->
+        modCompileOnly("dev.emi:emi-fabric:$emiVer")
     }
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
@@ -427,8 +439,15 @@ tasks.processResources {
     // never mutates shared source. Refresh the committed assets explicitly via `:26.2:generateAssets`.
 
     val mixinCompatLevel = if (javaRelease >= 25) "JAVA_25" else "JAVA_21"
+    // EMI plugin class exists only on nodes that declare deps.emi (its sources live in versions/1.21.1/java).
+    val emiEntrypoints = if (sc.properties.rawOrNull("deps", "emi") != null) {
+        "\"buildcraft.fabric.integration.emi.BCEmiPlugin\""
+    } else {
+        ""
+    }
     val props = mapOf(
         "mod_version" to version,
+        "emi_entrypoints" to emiEntrypoints,
         "mc_dep_range" to sc.properties.raw("mod", "mc_dep_range").toString(),
         "loader_version" to sc.properties.raw("deps", "loader").toString(),
         "fabric_api_version" to sc.properties.raw("deps", "fabric_api").toString(),

@@ -42,6 +42,7 @@
       "buildcraft.factory.integration.jei.BCFactoryJeiPlugin",
       "buildcraft.silicon.integration.jei.BCSiliconJeiPlugin"
     ],
+    "emi": [${emi_entrypoints}],
     "fabric-datagen": [
       "buildcraft.energy.worldgen.datagen.BuildCraftWorldgenDataGenerator"
     ]
