@@ -32,8 +32,17 @@ import org.joml.Vector3f;
  * delegates to super for the name tag / shadow.
  */
 public class RenderRobot extends EntityRenderer<EntityRobot> {
-   private static final Identifier OVERLAY_SIDE = Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_side");
-   private static final Identifier OVERLAY_BOTTOM = Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_bottom");
+   private static final Identifier OVERLAY_SIDE = tex(Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_side"));
+   private static final Identifier OVERLAY_BOTTOM = tex(Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_bottom"));
+
+   /**
+    * The robot/overlay texture ids are stored logically as {@code entities/<name>} (as classic BuildCraft used
+    * them, and how they travel over the entity's synched data). A render type needs the resolved file location,
+    * so expand them to {@code textures/<name>.png} exactly like a vanilla entity texture location.
+    */
+   private static Identifier tex(Identifier logical) {
+      return Identifier.fromNamespaceAndPath(logical.getNamespace(), "textures/" + logical.getPath() + ".png");
+   }
    private static final float RADIUS = 0.25F;
    private static final Vector3f CENTER = new Vector3f(0.0F, 0.0F, 0.0F);
    private static final Vector3f EXTENT = new Vector3f(RADIUS, RADIUS, RADIUS);
@@ -58,7 +67,7 @@ public class RenderRobot extends EntityRenderer<EntityRobot> {
 
    @Override
    public Identifier getTextureLocation(EntityRobot entity) {
-      return EntityRobot.DEFAULT_TEXTURE;
+      return tex(EntityRobot.DEFAULT_TEXTURE);
    }
 
    @Override
@@ -71,7 +80,7 @@ public class RenderRobot extends EntityRenderer<EntityRobot> {
       poseStack.translate(0.0, 0.25, 0.0);
       poseStack.mulPose(Axis.YP.rotationDegrees(-aimYaw));
 
-      VertexConsumer body = buffers.getBuffer(BCLibRenderTypes.entityCutout(texture));
+      VertexConsumer body = buffers.getBuffer(BCLibRenderTypes.entityCutout(tex(texture)));
       Pose bodyPose = poseStack.last();
       for (MutableQuad face : FACES) {
          face.colourf(1.0F, 1.0F, 1.0F, 1.0F).lighti(light).render(bodyPose, body);
