@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.fabric.integration.rei;
 
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
@@ -32,6 +38,7 @@ import buildcraft.silicon.gui.GuiIntegrationTable;
 import buildcraft.silicon.gui.GuiProgrammingTable;
 import buildcraft.silicon.integration.jei.ProgrammingRecipeCollector;
 import buildcraft.silicon.integration.jei.ProgrammingRecipeJei;
+import buildcraft.silicon.tile.TileProgrammingTable;
 import dev.architectury.event.CompoundEventResult;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,15 +55,13 @@ import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-/**
- * Native REI integration mirroring the JEI plugin: categories/displays reuse its collectors and lang keys,
- * plus screen click areas, ledger/statement exclusion zones, hovered-tank fluid lookup and recipe transfer.
- */
 public final class BCReiPlugin implements REIClientPlugin {
+   private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
    static final CategoryIdentifier<BcReiDisplay> ASSEMBLY = CategoryIdentifier.of("buildcraftsilicon", "assembly_table");
    static final CategoryIdentifier<BcReiDisplay> INTEGRATION = CategoryIdentifier.of("buildcraftsilicon", "integration_table");
    static final CategoryIdentifier<BcReiDisplay> PROGRAMMING = CategoryIdentifier.of("buildcraftsilicon", "programming_table");
@@ -68,68 +73,128 @@ public final class BCReiPlugin implements REIClientPlugin {
 
    private static final String KEY_PREFIX = "gui.jei.category.buildcraft.";
 
+   private static final Identifier ASSEMBLY_TEX = Identifier.parse("buildcraftsilicon:textures/gui/bcr/assembly_table.png");
+   private static final Identifier INTEGRATION_TEX = Identifier.parse("buildcraftsilicon:textures/gui/bcr/integration_table.png");
+   private static final Identifier PROGRAMMING_TEX = Identifier.parse("buildcraftsilicon:textures/gui/bcr/programming_table.png");
+   private static final Identifier DISTILLER_TEX = Identifier.parse("buildcraftfactory:textures/gui/bcr/distiller.png");
+   private static final Identifier HEAT_EXCHANGER_TEX = Identifier.parse("buildcraftfactory:textures/gui/bcr/heat_exchanger.png");
+
    @Override
    public void registerCategories(CategoryRegistry registry) {
-      registry.add(new BcReiCategory<>(ASSEMBLY, BCSiliconItems.ASSEMBLY_TABLE, KEY_PREFIX + "assembly_table", 90, (d, o, w) -> {
-         List<EntryIngredient> in = d.getInputEntries();
-         for (int i = 0; i < in.size(); i++) {
-            w.add(BcReiCategory.slot(in.get(i), o, (i % 3) * 18, (i / 3) * 18, false));
+      registry.add(new BcReiCategory<>(ASSEMBLY, BCSiliconItems.ASSEMBLY_TABLE, KEY_PREFIX + "assembly_table", 180, 106, (d, o, w) -> {
+         w.add(BcReiCategory.texture(ASSEMBLY_TEX, o, 3, 13, 170, 80));
+         List<EntryIngredient> in = d.inputs();
+         for (int i = 0; i < in.size() && i < 12; i++) {
+            if (!in.get(i).isEmpty()) {
+               w.add(BcReiCategory.texSlot(in.get(i), o, 5 + (i % 3) * 18, 5 + (i / 3) * 18, false));
+            }
          }
-         int rows = Math.max(1, (in.size() + 2) / 3);
-         int midY = (rows * 18 - 18) / 2;
-         w.add(BcReiCategory.arrow(o, 62, midY));
-         w.add(BcReiCategory.slot(d.getOutputEntries().get(0), o, 92, midY, true));
+         if (!d.outputs().isEmpty() && !d.outputs().get(0).isEmpty()) {
+            w.add(BcReiCategory.texSlot(d.outputs().get(0), o, 113, 5, true));
+         }
+         if (!d.lines.isEmpty()) {
+            w.add(BcReiCategory.textRight(o, 167, 83, d.lines.get(0)));
+         }
       }));
-      registry.add(new BcReiCategory<>(INTEGRATION, BCSiliconItems.INTEGRATION_TABLE, KEY_PREFIX + "integration_table", 92, (d, o, w) -> {
-         List<EntryIngredient> in = d.getInputEntries();
-         // input 0 = centre, the rest ring a 3x3 around it
-         int[][] ring = {{0, 0}, {18, 0}, {36, 0}, {0, 18}, {36, 18}, {0, 36}, {18, 36}, {36, 36}};
-         w.add(BcReiCategory.slot(in.get(0), o, 18, 18, false));
+      registry.add(new BcReiCategory<>(INTEGRATION, BCSiliconItems.INTEGRATION_TABLE, KEY_PREFIX + "integration_table", 162, 100, (d, o, w) -> {
+         w.add(BcReiCategory.texture(INTEGRATION_TEX, o, 4, 14, 152, 74));
+         int[][] ring = {{5, 6}, {30, 6}, {55, 6}, {5, 31}, {55, 31}, {5, 56}, {30, 56}, {55, 56}};
+         List<EntryIngredient> in = d.inputs();
+         if (!in.isEmpty() && !in.get(0).isEmpty()) {
+            w.add(BcReiCategory.texSlot(in.get(0), o, 30, 31, false));
+         }
          for (int i = 1; i < in.size() && i <= ring.length; i++) {
-            w.add(BcReiCategory.slot(in.get(i), o, ring[i - 1][0], ring[i - 1][1], false));
+            if (!in.get(i).isEmpty()) {
+               w.add(BcReiCategory.texSlot(in.get(i), o, ring[i - 1][0], ring[i - 1][1], false));
+            }
          }
-         w.add(BcReiCategory.arrow(o, 62, 18));
-         w.add(BcReiCategory.slot(d.getOutputEntries().get(0), o, 92, 18, true));
-      }));
-      registry.add(new BcReiCategory<>(PROGRAMMING, BCSiliconItems.PROGRAMMING_TABLE, KEY_PREFIX + "programming_table", 64, (d, o, w) -> {
-         w.add(BcReiCategory.slot(d.getInputEntries().get(0), o, 0, 0, false));
-         w.add(BcReiCategory.arrow(o, 26, 0));
-         w.add(BcReiCategory.slot(d.getOutputEntries().get(0), o, 56, 0, true));
-      }));
-      registry.add(new BcReiCategory<>(DISTILLER, BCFactoryItems.DISTILLER, KEY_PREFIX + "distiller", 78, (d, o, w) -> {
-         w.add(BcReiCategory.slot(d.getInputEntries().get(0), o, 0, 9, false));
-         w.add(BcReiCategory.arrow(o, 26, 9));
-         List<EntryIngredient> out = d.getOutputEntries();
-         w.add(BcReiCategory.slot(out.get(0), o, 60, 0, true));
-         if (out.size() > 1) {
-            w.add(BcReiCategory.slot(out.get(1), o, 60, 18, true));
+         if (!d.outputs().isEmpty() && !d.outputs().get(0).isEmpty()) {
+            w.add(BcReiCategory.texSlot(d.outputs().get(0), o, 129, 31, true));
+         }
+         if (!d.lines.isEmpty()) {
+            w.add(BcReiCategory.textRight(o, 147, 77, d.lines.get(0)));
          }
       }));
-      registry.add(new BcReiCategory<>(HEAT_EXCHANGER, BCFactoryItems.HEAT_EXCHANGE, KEY_PREFIX + "heat_exchanger", 64, (d, o, w) -> {
-         List<EntryIngredient> in = d.getInputEntries();
-         List<EntryIngredient> out = d.getOutputEntries();
-         w.add(BcReiCategory.slot(in.get(0), o, 0, 0, false));
-         w.add(BcReiCategory.arrow(o, 26, 0));
-         w.add(BcReiCategory.slot(out.get(0), o, 60, 0, true));
-         w.add(BcReiCategory.slot(in.get(1), o, 0, 18, false));
-         w.add(BcReiCategory.arrow(o, 26, 18));
-         w.add(BcReiCategory.slot(out.get(1), o, 60, 18, true));
-      }));
-      registry.add(new BcReiCategory<>(COMBUSTION_FUEL, BCEnergyItems.ENGINE_IRON, KEY_PREFIX + "combustion_engine_fuel", 70, (d, o, w) -> {
-         w.add(BcReiCategory.slot(d.getInputEntries().get(0), o, 0, 0, false));
-         if (!d.getOutputEntries().isEmpty()) {
-            w.add(BcReiCategory.slot(d.getOutputEntries().get(0), o, 60, 0, true));
+      registry.add(new BcReiCategory<>(PROGRAMMING, BCSiliconItems.PROGRAMMING_TABLE, KEY_PREFIX + "programming_table", 163, 107, (d, o, w) -> {
+         w.add(BcReiCategory.texture(PROGRAMMING_TEX, o, 3, 13, 153, 81));
+         if (!d.inputs().isEmpty() && !d.inputs().get(0).isEmpty()) {
+            w.add(BcReiCategory.texSlot(d.inputs().get(0), o, 5, 5, false));
+         }
+         if (!d.outputs().isEmpty() && !d.outputs().get(0).isEmpty()) {
+            EntryIngredient option = d.outputs().get(0);
+            if (d.recipe instanceof ProgrammingRecipeJei r) {
+               int col = r.optionIndex() % TileProgrammingTable.WIDTH;
+               int row = r.optionIndex() / TileProgrammingTable.WIDTH;
+               w.add(BcReiCategory.texSlot(option, o, 40 + col * 18, 5 + row * 18, true));
+            }
+            w.add(BcReiCategory.texSlot(option, o, 5, 59, true));
+         }
+         if (!d.lines.isEmpty()) {
+            w.add(BcReiCategory.textRight(o, 148, 84, d.lines.get(0)));
          }
       }));
-      registry.add(new BcReiCategory<>(COMBUSTION_COOLANT, BCEnergyItems.ENGINE_IRON, KEY_PREFIX + "combustion_engine_coolant", 60, (d, o, w) -> {
-         List<EntryIngredient> in = d.getInputEntries();
-         for (int i = 0; i < in.size(); i++) {
-            w.add(BcReiCategory.slot(in.get(i), o, i * 18, 0, false));
+      registry.add(new BcReiCategory<>(DISTILLER, BCFactoryItems.DISTILLER, KEY_PREFIX + "distiller", 180, 96, (d, o, w) -> {
+         w.add(BcReiCategory.texture(DISTILLER_TEX, o, 3, 12, 170, 74));
+         BcReiCategory.tank(w, d.inputs().get(0), o, 41, 19, 16, 38, false);
+         List<EntryIngredient> out = d.outputs();
+         if (!out.get(0).isEmpty()) {
+            BcReiCategory.tank(w, out.get(0), o, 95, 6, 34, 17, true);
+         }
+         if (out.size() > 1 && !out.get(1).isEmpty()) {
+            BcReiCategory.tank(w, out.get(1), o, 95, 50, 34, 17, true);
+         }
+         if (!d.lines.isEmpty()) {
+            w.add(BcReiCategory.textRight(o, 170, 77, d.lines.get(0)));
          }
       }));
-      registry.add(new BcReiCategory<>(STIRLING_FUEL, BCEnergyItems.ENGINE_STONE, KEY_PREFIX + "stirling_engine_fuel", 64, (d, o, w) ->
-         w.add(BcReiCategory.slot(d.getInputEntries().get(0), o, 0, 0, false))
-      ));
+      registry.add(new BcReiCategory<>(HEAT_EXCHANGER, BCFactoryItems.HEAT_EXCHANGE, KEY_PREFIX + "heat_exchanger", 180, 94, (d, o, w) -> {
+         w.add(BcReiCategory.texture(HEAT_EXCHANGER_TEX, o, 3, 10, 170, 84));
+         List<EntryIngredient> in = d.inputs();
+         List<EntryIngredient> out = d.outputs();
+         if (!in.isEmpty() && !in.get(0).isEmpty()) {
+            BcReiCategory.tank(w, in.get(0), o, 41, 60, 34, 17, false);
+         }
+         if (in.size() > 1 && !in.get(1).isEmpty()) {
+            BcReiCategory.tank(w, in.get(1), o, 41, 8, 16, 38, false);
+         }
+         if (!out.isEmpty() && !out.get(0).isEmpty()) {
+            BcReiCategory.tank(w, out.get(0), o, 95, 8, 34, 17, true);
+         }
+         if (out.size() > 1 && !out.get(1).isEmpty()) {
+            BcReiCategory.tank(w, out.get(1), o, 113, 39, 16, 38, true);
+         }
+      }));
+      registry.add(new BcReiCategory<>(COMBUSTION_FUEL, BCEnergyItems.ENGINE_IRON, KEY_PREFIX + "combustion_engine_fuel", 186, 76, (d, o, w) -> {
+         w.add(BcReiCategory.tankBase(o, 8, 4, 16, 40));
+         BcReiCategory.tank(w, d.inputs().get(0), o, 8, 4, 16, 40, false);
+         if (!d.outputs().isEmpty() && !d.outputs().get(0).isEmpty()) {
+            w.add(BcReiCategory.tankBase(o, 32, 4, 16, 40));
+            BcReiCategory.tank(w, d.outputs().get(0), o, 32, 4, 16, 40, true);
+         }
+         for (int i = 0; i < d.lines.size(); i++) {
+            w.add(BcReiCategory.textLeft(o, 8, 48 + i * 10, d.lines.get(i)));
+         }
+      }));
+      registry.add(new BcReiCategory<>(COMBUSTION_COOLANT, BCEnergyItems.ENGINE_IRON, KEY_PREFIX + "combustion_engine_coolant", 186, 68, (d, o, w) -> {
+         List<EntryIngredient> in = d.inputs();
+         if (in.size() > 1 && !in.get(1).isEmpty()) {
+            w.add(BcReiCategory.slot(in.get(0), o, 8, 4, false));
+            w.add(BcReiCategory.tankBase(o, 40, 4, 16, 40));
+            BcReiCategory.tank(w, in.get(1), o, 40, 4, 16, 40, true);
+         } else if (!in.isEmpty() && !in.get(0).isEmpty()) {
+            w.add(BcReiCategory.tankBase(o, 8, 4, 16, 40));
+            BcReiCategory.tank(w, in.get(0), o, 8, 4, 16, 40, false);
+         }
+         for (int i = 0; i < d.lines.size(); i++) {
+            w.add(BcReiCategory.textLeft(o, 8, 48 + i * 10, d.lines.get(i)));
+         }
+      }));
+      registry.add(new BcReiCategory<>(STIRLING_FUEL, BCEnergyItems.ENGINE_STONE, KEY_PREFIX + "stirling_engine_fuel", 186, 58, (d, o, w) -> {
+         w.add(BcReiCategory.slot(d.inputs().get(0), o, 8, 4, false));
+         for (int i = 0; i < d.lines.size(); i++) {
+            w.add(BcReiCategory.textLeft(o, 30, 5 + i * 10, d.lines.get(i)));
+         }
+      }));
 
       registry.addWorkstations(ASSEMBLY, EntryStacks.of(new ItemStack(BCSiliconItems.ASSEMBLY_TABLE)));
       registry.addWorkstations(INTEGRATION, EntryStacks.of(new ItemStack(BCSiliconItems.INTEGRATION_TABLE)));
@@ -146,7 +211,6 @@ public final class BCReiPlugin implements REIClientPlugin {
 
    @Override
    public void registerScreens(ScreenRegistry registry) {
-      // Same gui-relative rects as the JEI click areas.
       registry.registerContainerClickArea(new Rectangle(93, 36, 22, 15), GuiAdvancedCraftingTable.class, BuiltinPlugin.CRAFTING);
       registry.registerContainerClickArea(new Rectangle(90, 48, 23, 10), GuiAutoCraftItems.class, BuiltinPlugin.CRAFTING);
       registry.registerContainerClickArea(new Rectangle(86, 18, 4, 70), GuiAssemblyTable.class, ASSEMBLY);
@@ -157,7 +221,8 @@ public final class BCReiPlugin implements REIClientPlugin {
       registry.registerContainerClickArea(new Rectangle(81, 25, 14, 14), GuiEngineStone_BC8.class, STIRLING_FUEL);
       registry.registerContainerClickArea(new Rectangle(44, 22, 34, 52), GuiEngineIron_BC8.class, COMBUSTION_FUEL, COMBUSTION_COOLANT);
 
-      // Hovered fluid tanks become focusable entries (R/U lookups), like JEI's clickable ingredients.
+      registry.registerDraggableStackVisitor(new BcReiGhostDrag());
+
       registry.registerFocusedStack((screen, mouse) -> {
          if (screen instanceof BcScreen<?> bcScreen) {
             for (IGuiElement element : bcScreen.mainGui.shownElements) {
@@ -178,7 +243,6 @@ public final class BCReiPlugin implements REIClientPlugin {
    @Override
    @SuppressWarnings({"unchecked", "rawtypes"})
    public void registerExclusionZones(ExclusionZones zones) {
-      // Ledgers on every BC screen plus the gate statement-source panels push the REI overlay aside.
       zones.register(BcScreen.class, (BcScreen screen) -> {
          List<Rectangle> areas = new ArrayList<>();
          for (Object obj : screen.mainGui.shownElements) {
@@ -199,8 +263,21 @@ public final class BCReiPlugin implements REIClientPlugin {
 
    @Override
    public void registerDisplays(DisplayRegistry registry) {
+      section("silicon", () -> registerSiliconDisplays(registry));
+      section("refinery", () -> registerRefineryDisplays(registry));
+      section("energy", () -> registerEnergyDisplays(registry));
+   }
+
+   private static void section(String name, Runnable body) {
+      try {
+         body.run();
+      } catch (Exception e) {
+         LOGGER.error("BuildCraft REI: {} display registration failed", name, e);
+      }
+   }
+
+   private static void registerSiliconDisplays(DisplayRegistry registry) {
       BCJeiBootstrap.initSiliconRecipes();
-      BCJeiBootstrap.initEnergyRecipes();
 
       for (AssemblyRecipeJei r : AssemblyRecipeCollector.collect()) {
          List<EntryIngredient> inputs = new ArrayList<>(r.inputSlots().size());
@@ -223,39 +300,49 @@ public final class BCReiPlugin implements REIClientPlugin {
 
       for (ProgrammingRecipeJei r : ProgrammingRecipeCollector.collect()) {
          registry.add(new BcReiDisplay(PROGRAMMING, List.of(BcRei.item(r.input())), List.of(BcRei.item(r.option())),
-            List.of(powerLine("assembly_table.power", r.microJoules()))));
+            List.of(powerLine("assembly_table.power", r.microJoules())), r));
+      }
+   }
+
+   private static void registerRefineryDisplays(DisplayRegistry registry) {
+      if (BuildcraftRecipeRegistry.refineryRecipes == null) {
+         return;
       }
 
-      if (BuildcraftRecipeRegistry.refineryRecipes != null) {
-         for (IRefineryRecipeManager.IDistillationRecipe r : BuildcraftRecipeRegistry.refineryRecipes.getDistillationRegistry().getAllRecipes()) {
-            if (r.in() == null || r.in().isEmpty()) {
-               continue;
-            }
-            List<EntryIngredient> outputs = new ArrayList<>(2);
-            if (r.outGas() != null && !r.outGas().isEmpty()) {
-               outputs.add(BcRei.fluid(r.outGas()));
-            }
-            if (r.outLiquid() != null && !r.outLiquid().isEmpty()) {
-               outputs.add(BcRei.fluid(r.outLiquid()));
-            }
-            if (outputs.isEmpty()) {
-               continue;
-            }
-            registry.add(new BcReiDisplay(DISTILLER, List.of(BcRei.fluid(r.in())), outputs,
-               List.of(powerLine("assembly_table.power", r.powerRequired())), r));
+      for (IRefineryRecipeManager.IDistillationRecipe r : BuildcraftRecipeRegistry.refineryRecipes.getDistillationRegistry().getAllRecipes()) {
+         EntryIngredient in = BcRei.fluid(r.in());
+         EntryIngredient gas = BcRei.fluid(r.outGas());
+         EntryIngredient liquid = BcRei.fluid(r.outLiquid());
+         if (in.isEmpty() || (gas.isEmpty() && liquid.isEmpty())) {
+            continue;
          }
 
-         for (IRefineryRecipeManager.IHeatableRecipe h : BuildcraftRecipeRegistry.refineryRecipes.getHeatableRegistry().getAllRecipes()) {
-            for (IRefineryRecipeManager.ICoolableRecipe c : BuildcraftRecipeRegistry.refineryRecipes.getCoolableRegistry().getAllRecipes()) {
-               if (c.heatFrom() > h.heatFrom()) {
-                  registry.add(new BcReiDisplay(HEAT_EXCHANGER,
-                     List.of(BcRei.fluid(h.in()), BcRei.fluid(c.in())),
-                     List.of(BcRei.fluid(h.out()), BcRei.fluid(c.out())),
-                     List.of(), new HeatExchangerRecipePair(h, c)));
-               }
+         registry.add(new BcReiDisplay(DISTILLER, List.of(in), List.of(gas, liquid),
+            List.of(powerLine("assembly_table.power", r.powerRequired())), r));
+      }
+
+      for (IRefineryRecipeManager.IHeatableRecipe h : BuildcraftRecipeRegistry.refineryRecipes.getHeatableRegistry().getAllRecipes()) {
+         for (IRefineryRecipeManager.ICoolableRecipe c : BuildcraftRecipeRegistry.refineryRecipes.getCoolableRegistry().getAllRecipes()) {
+            if (c.heatFrom() <= h.heatFrom()) {
+               continue;
             }
+
+            EntryIngredient heatIn = BcRei.fluid(h.in());
+            EntryIngredient coolIn = BcRei.fluid(c.in());
+            if (heatIn.isEmpty() || coolIn.isEmpty()) {
+               continue;
+            }
+
+            registry.add(new BcReiDisplay(HEAT_EXCHANGER,
+               List.of(heatIn, coolIn),
+               List.of(BcRei.fluid(h.out()), BcRei.fluid(c.out())),
+               List.of(), new HeatExchangerRecipePair(h, c)));
          }
       }
+   }
+
+   private static void registerEnergyDisplays(DisplayRegistry registry) {
+      BCJeiBootstrap.initEnergyRecipes();
 
       for (RecipeHolder<?> holder : clientRecipes()) {
          if (holder.value() instanceof CombustionFuelRecipe r) {
@@ -286,8 +373,7 @@ public final class BCReiPlugin implements REIClientPlugin {
             addStirlingDisplay(registry, new ItemStack(item), fuelValues.burnDuration(new ItemStack(item)));
          }
          //?} else {
-         /*// 1.21.1 has no FuelValues registry; the fuel->burn-time map lives on AbstractFurnaceBlockEntity.
-         for (var entry : net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.getFuel().entrySet()) {
+         /*for (var entry : net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.getFuel().entrySet()) {
             addStirlingDisplay(registry, new ItemStack(entry.getKey()), entry.getValue());
          }
          *///?}

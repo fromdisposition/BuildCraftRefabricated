@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.fabric.integration.rei;
 
 import java.util.List;
@@ -6,17 +12,13 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 
-/**
- * Shared display base: precomputed input/output ingredients plus optional per-recipe text lines the
- * category layout renders below the slots (MJ cost, burn time, ...). No serializer is registered —
- * displays are rebuilt client-side from the recipe registries, exactly like the JEI integration.
- */
 class BcReiDisplay implements Display {
    private final CategoryIdentifier<? extends BcReiDisplay> category;
    private final List<EntryIngredient> inputs;
    private final List<EntryIngredient> outputs;
+   private final List<EntryIngredient> lookupInputs;
+   private final List<EntryIngredient> lookupOutputs;
    final List<net.minecraft.network.chat.Component> lines;
-   /** Source recipe object, kept for the transfer handlers (null for view-only displays). */
    final Object recipe;
 
    BcReiDisplay(
@@ -38,6 +40,8 @@ class BcReiDisplay implements Display {
       this.category = category;
       this.inputs = inputs;
       this.outputs = outputs;
+      this.lookupInputs = BcRei.withFluidAliases(inputs);
+      this.lookupOutputs = BcRei.withFluidAliases(outputs);
       this.lines = lines;
       this.recipe = recipe;
    }
@@ -47,18 +51,24 @@ class BcReiDisplay implements Display {
       return this.category;
    }
 
+   List<EntryIngredient> inputs() {
+      return this.inputs;
+   }
+
+   List<EntryIngredient> outputs() {
+      return this.outputs;
+   }
+
    @Override
    public List<EntryIngredient> getInputEntries() {
-      return this.inputs;
+      return this.lookupInputs;
    }
 
    @Override
    public List<EntryIngredient> getOutputEntries() {
-      return this.outputs;
+      return this.lookupOutputs;
    }
 
-   // No @Override on getSerializer: REI 26.x made it abstract on Display, REI 16.x has no such method.
-   // Null/empty = not synced or serialized; displays are rebuilt client-side, same as the JEI integration.
    public me.shedaniel.rei.api.common.display.DisplaySerializer<? extends Display> getSerializer() {
       return null;
    }

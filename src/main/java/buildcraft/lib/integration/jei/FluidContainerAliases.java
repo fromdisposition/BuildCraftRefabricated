@@ -32,18 +32,28 @@ public final class FluidContainerAliases {
    public static void addAliases(IRecipeLayoutBuilder builder, FluidStack stack, RecipeIngredientRole role) {
       if (stack != null && !stack.isEmpty()) {
          IIngredientAcceptor<?> slot = builder.addInvisibleIngredients(role);
+         collectAliases(stack, alias -> {
+            //? if >= 1.21.10 {
+            slot.add(alias);
+            //?} else {
+            /*slot.addItemStack(alias);
+            *///?}
+         });
+      }
+   }
 
-         for (FluidContainerAliases.Provider provider : providers) {
-            provider.addAliases(stack, alias -> {
-               if (alias != null && !alias.isEmpty()) {
-                  //? if >= 1.21.10 {
-                  slot.add(alias);
-                  //?} else {
-                  /*slot.addItemStack(alias);
-                  *///?}
-               }
-            });
-         }
+   /** Viewer-agnostic collection of the container items (bucket, fragile shard) for a fluid; used by JEI and REI. */
+   public static void collectAliases(FluidStack stack, Consumer<ItemStack> sink) {
+      if (stack == null || stack.isEmpty()) {
+         return;
+      }
+
+      for (FluidContainerAliases.Provider provider : providers) {
+         provider.addAliases(stack, alias -> {
+            if (alias != null && !alias.isEmpty()) {
+               sink.accept(alias);
+            }
+         });
       }
    }
 

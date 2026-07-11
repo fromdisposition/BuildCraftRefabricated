@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
 package buildcraft.fabric.integration.rei;
 
 import buildcraft.api.recipes.IRefineryRecipeManager;
@@ -24,10 +30,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-/**
- * Recipe-transfer handlers mirroring the JEI ones. They reuse the exact same container messages
- * (blueprint id 100, assembly items 102, bucket moves), so the server-side fill logic is shared.
- */
 final class BcReiTransfer {
    private BcReiTransfer() {
    }
@@ -39,7 +41,6 @@ final class BcReiTransfer {
       registry.register(BcReiTransfer::heatExchanger);
    }
 
-   /** Autoworkbench + advanced crafting table: send the vanilla recipe id, the tile sets its blueprint. */
    private static TransferHandler.Result craftingBlueprint(TransferHandler.Context context) {
       if (!(context.getMenu() instanceof ContainerAutoCraftItems) && !(context.getMenu() instanceof ContainerAdvancedCraftingTable)) {
          return TransferHandler.Result.createNotApplicable();
