@@ -24,6 +24,14 @@ import net.minecraft.world.phys.Vec3;
 
 public class ZonePlan implements IZone {
    private final HashMap<ChunkPos, ZoneChunk> chunkMapping = new HashMap<>();
+   // Robot scans probe contains() for thousands of nearby positions per tick, which walk the plan chunk by chunk.
+   // Remember the last chunk column looked up (including "absent") so consecutive probes in the same chunk skip
+   // the ChunkPos allocation and map lookup entirely. Single-slot on purpose: each plan instance is used by one
+   // consumer on one thread (server AI or the client GUI copy).
+   private ZoneChunk lastChunk;
+   private int lastChunkX;
+   private int lastChunkZ;
+   private boolean lastChunkValid;
 
    public ZonePlan() {
    }
@@ -37,13 +45,18 @@ public class ZonePlan implements IZone {
    public boolean get(int x, int z) {
       int xChunk = x >> 4;
       int zChunk = z >> 4;
-      ChunkPos chunkId = new ChunkPos(xChunk, zChunk);
-      if (!this.chunkMapping.containsKey(chunkId)) {
-         return false;
+      ZoneChunk property;
+      if (this.lastChunkValid && this.lastChunkX == xChunk && this.lastChunkZ == zChunk) {
+         property = this.lastChunk;
+      } else {
+         property = this.chunkMapping.get(new ChunkPos(xChunk, zChunk));
+         this.lastChunk = property;
+         this.lastChunkX = xChunk;
+         this.lastChunkZ = zChunk;
+         this.lastChunkValid = true;
       }
 
-      ZoneChunk property = this.chunkMapping.get(chunkId);
-      return property.get(x & 15, z & 15);
+      return property != null && property.get(x & 15, z & 15);
    }
 
    public void set(int x, int z, boolean val) {
@@ -66,6 +79,8 @@ public class ZonePlan implements IZone {
       if (property.isEmpty()) {
          this.chunkMapping.remove(chunkId);
       }
+
+      this.lastChunkValid = false;
    }
 
    public List<int[]> getAll() {
@@ -116,6 +131,7 @@ public class ZonePlan implements IZone {
 
    public void readFromNBT(CompoundTag nbt) {
       this.chunkMapping.clear();
+      this.lastChunkValid = false;
       ListTag list = BcNbt.getList(nbt, "chunkMapping");
       for (int i = 0; i < list.size(); i++) {
          CompoundTag zoneChunkTag = BcNbt.getCompound(list, i);
@@ -148,9 +164,12 @@ public class ZonePlan implements IZone {
 
    @Override
    public boolean contains(Vec3 point) {
-      int xBlock = (int)Math.floor(point.x);
-      int zBlock = (int)Math.floor(point.z);
-      return this.get(xBlock, zBlock);
+      return this.contains(point.x, point.y, point.z);
+   }
+
+   @Override
+   public boolean contains(double x, double y, double z) {
+      return this.get((int)Math.floor(x), (int)Math.floor(z));
    }
 
    @Override
@@ -177,6 +196,7 @@ public class ZonePlan implements IZone {
 
    public ZonePlan readFromByteBuf(FriendlyByteBuf buf) {
       this.chunkMapping.clear();
+      this.lastChunkValid = false;
       int size = buf.readInt();
 
       for (int i = 0; i < size; i++) {

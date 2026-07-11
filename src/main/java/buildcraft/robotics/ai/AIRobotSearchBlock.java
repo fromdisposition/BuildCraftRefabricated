@@ -20,7 +20,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.phys.Vec3;
 
 public class AIRobotSearchBlock extends AIRobot {
-   private static final int SCAN_BUDGET = 200;
+   /** Cheap positions walked per expensive check allowed: most of an expanding cube is sky, void, out-of-zone or
+    * unloaded, all rejected by pure math (no chunk access), so skipping them must not eat the expensive-check
+    * budget -- otherwise a zoned sweep (radius 64 = ~2.1M positions) took ~9 minutes to notice new work. Still
+    * bounded so a tiny zone inside a big cube cannot spin the loop unbounded in one tick. The expensive budget
+    * itself (block-state + filter checks per tick) comes from {@code BCRoboticsConfig.scanBudgetPerTick}. */
+   private static final int ITERATIONS_PER_CHECK = 20;
    /** Expanding-scan reach (blocks) when a Zone Planner area is set -- the classic BuildCraft cap, kept so zoned
     *  harvesters still reach as far as before; zone.contains() does the precise clamp inside it. */
    private static final int ZONE_SCAN_RADIUS = 64;
@@ -35,6 +40,8 @@ public class AIRobotSearchBlock extends AIRobot {
    private boolean random;
    private double maxDistanceToEnd;
    private int randomAttempts;
+   /** Scratch position handed to the expensive checks; {@link #blockFound} always stores an immutable copy. */
+   private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
 
    public AIRobotSearchBlock(EntityRobotBase robot) {
       super(robot);
@@ -68,40 +75,54 @@ public class AIRobotSearchBlock extends AIRobot {
          return;
       }
 
+      int scanBudget = buildcraft.robotics.BCRoboticsConfig.scanBudgetPerTick.get();
       if (this.random) {
-         this.scanRandom();
+         this.scanRandom(scanBudget);
       } else {
-         this.scanExpanding();
+         this.scanExpanding(scanBudget);
       }
    }
 
-   private void scanExpanding() {
-      for (int i = 0; i < SCAN_BUDGET; i++) {
+   private void scanExpanding(int scanBudget) {
+      int iterationBudget = scanBudget * ITERATIONS_PER_CHECK;
+      int checks = 0;
+      for (int i = 0; i < iterationBudget && checks < scanBudget; i++) {
          if (this.blockIter == null || !this.blockIter.hasNext()) {
             this.terminate();
             return;
          }
 
-         BlockPos candidate = this.origin.offset(this.blockIter.next());
-         if (this.accept(candidate)) {
-            this.blockFound = candidate;
+         // The scanner's iterator reuses one mutable position; consume its coordinates immediately.
+         BlockPos step = this.blockIter.next();
+         int bx = this.origin.getX() + step.getX();
+         int by = this.origin.getY() + step.getY();
+         int bz = this.origin.getZ() + step.getZ();
+         if (!this.cheapAccept(bx, by, bz)) {
+            continue;
+         }
+
+         checks++;
+         if (this.fullAccept(this.cursor.set(bx, by, bz))) {
+            this.blockFound = this.cursor.immutable();
             this.terminate();
             return;
          }
       }
    }
 
-   private void scanRandom() {
-      for (int i = 0; i < SCAN_BUDGET; i++) {
+   private void scanRandom(int scanBudget) {
+      for (int i = 0; i < scanBudget; i++) {
          this.randomAttempts++;
          if (this.randomAttempts > 4096) {
             this.terminate();
             return;
          }
 
-         BlockPos candidate;
+         int bx;
+         int by;
+         int bz;
          if (this.zone != null) {
-            candidate = this.zone.getRandomBlockPos(RANDOM);
+            BlockPos candidate = this.zone.getRandomBlockPos(RANDOM);
             if (candidate == null) {
                this.terminate();
                return;
@@ -111,38 +132,56 @@ public class AIRobotSearchBlock extends AIRobot {
             // Y across the ACTUAL build height here, where the level is known, so zoned random search can reach the
             // negative-Y region of modern worlds instead of being clamped above y=0.
             net.minecraft.world.level.Level level = this.robot.level();
-            candidate = new BlockPos(candidate.getX(), level.getMinY() + RANDOM.nextInt(level.getHeight()), candidate.getZ());
+            bx = candidate.getX();
+            by = level.getMinY() + RANDOM.nextInt(level.getHeight());
+            bz = candidate.getZ();
          } else {
             double r = this.robot.level().getRandom().nextFloat() * EntityRobotBase.DEFAULT_SEARCH_RANGE;
             float a = this.robot.level().getRandom().nextFloat() * 2.0F * (float)Math.PI;
-            int x = (int)(Math.cos(a) * r + this.origin.getX());
-            int z = (int)(Math.sin(a) * r + this.origin.getZ());
-            candidate = new BlockPos(x, this.origin.getY(), z);
+            bx = (int)(Math.cos(a) * r + this.origin.getX());
+            by = this.origin.getY();
+            bz = (int)(Math.sin(a) * r + this.origin.getZ());
          }
 
-         if (this.accept(candidate)) {
-            this.blockFound = candidate;
+         if (this.cheapAccept(bx, by, bz) && this.fullAccept(this.cursor.set(bx, by, bz))) {
+            this.blockFound = this.cursor.immutable();
             this.terminate();
             return;
          }
       }
    }
 
-   private boolean accept(BlockPos pos) {
-      Vec3 center = Vec3.atCenterOf(pos);
+   /** Pure-math rejects, allocation-free (runs for every walked position): build height, zone / station leash,
+    * caller's reach limit, and whether the chunk is even loaded. Touching an unloaded chunk in {@code fullAccept}
+    * would sync-load it -- both a lag spike and a world-load side effect a scan must never have. */
+   private boolean cheapAccept(int bx, int by, int bz) {
+      net.minecraft.world.level.Level level = this.robot.level();
+      if (by < level.getMinY() || by >= level.getMinY() + level.getHeight()) {
+         return false;
+      }
+
+      double cx = bx + 0.5;
+      double cy = by + 0.5;
+      double cz = bz + 0.5;
       if (this.zone != null) {
-         if (!this.zone.contains(center)) {
+         if (!this.zone.contains(cx, cy, cz)) {
             return false;
          }
-      } else if (this.anchor.distanceToSqr(center) > (double) EntityRobotBase.DEFAULT_SEARCH_RANGE * EntityRobotBase.DEFAULT_SEARCH_RANGE) {
+      } else if (this.anchor.distanceToSqr(cx, cy, cz) > (double) EntityRobotBase.DEFAULT_SEARCH_RANGE * EntityRobotBase.DEFAULT_SEARCH_RANGE) {
          // No zone: keep the target inside the station leash sphere.
          return false;
       }
 
-      if (this.maxDistanceToEnd > 0.0 && this.robot.position().distanceToSqr(center) > this.maxDistanceToEnd * this.maxDistanceToEnd) {
+      if (this.maxDistanceToEnd > 0.0 && this.robot.position().distanceToSqr(cx, cy, cz) > this.maxDistanceToEnd * this.maxDistanceToEnd) {
          return false;
       }
 
+      // Same check BcRegistryUtil.isChunkLoaded does, without materialising a BlockPos for it.
+      return level.getChunkSource().hasChunk(bx >> 4, bz >> 4);
+   }
+
+   /** The per-candidate work worth budgeting: reservation lookup + the board's block filter (block-state reads). */
+   private boolean fullAccept(BlockPos pos) {
       if (this.robot.getRegistry().isTaken(new ResourceIdBlock(pos))) {
          return false;
       }

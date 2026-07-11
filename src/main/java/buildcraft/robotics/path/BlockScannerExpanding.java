@@ -9,6 +9,11 @@ package buildcraft.robotics.path;
 import java.util.Iterator;
 import net.minecraft.core.BlockPos;
 
+/**
+ * Walks the shells of an expanding cube around the origin (relative coordinates). Like vanilla
+ * {@code BlockPos.betweenClosed}, the iterator returns one reused {@link BlockPos.MutableBlockPos} instance --
+ * read or copy ({@code immutable()}) the position before calling {@code next()} again, never store it directly.
+ */
 public class BlockScannerExpanding implements Iterable<BlockPos> {
    private final int maxRadius;
    private int searchRadius = 1;
@@ -31,6 +36,8 @@ public class BlockScannerExpanding implements Iterable<BlockPos> {
    }
 
    private final class BlockIt implements Iterator<BlockPos> {
+      private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+
       @Override
       public boolean hasNext() {
          return BlockScannerExpanding.this.searchRadius < BlockScannerExpanding.this.maxRadius;
@@ -38,7 +45,8 @@ public class BlockScannerExpanding implements Iterable<BlockPos> {
 
       @Override
       public BlockPos next() {
-         BlockPos next = new BlockPos(BlockScannerExpanding.this.searchX, BlockScannerExpanding.this.searchY, BlockScannerExpanding.this.searchZ);
+         BlockPos next = this.cursor
+            .set(BlockScannerExpanding.this.searchX, BlockScannerExpanding.this.searchY, BlockScannerExpanding.this.searchZ);
 
          if (Math.abs(BlockScannerExpanding.this.searchX) == BlockScannerExpanding.this.searchRadius
             || Math.abs(BlockScannerExpanding.this.searchZ) == BlockScannerExpanding.this.searchRadius) {

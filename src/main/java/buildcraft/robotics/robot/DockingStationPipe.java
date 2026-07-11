@@ -42,6 +42,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class DockingStationPipe extends DockingStation implements IRequestProvider {
+   /** Direction.values() clones the array per call; hasActiveAction runs every tick, so walk a shared copy. */
+   private static final Direction[] DIRECTIONS = Direction.values();
+
    private IPipeHolder pipe;
 
    public DockingStationPipe() {
@@ -97,6 +100,34 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       }
 
       return actions;
+   }
+
+   @Override
+   public boolean hasActiveAction(String uniqueTag) {
+      // Same walk as getActiveActions, but straight over the gates' own cached lists: this runs every tick from
+      // the docked robot's sleep preempt, so it must not build a fresh list (or any iterator) per call.
+      IPipeHolder holder = this.getPipe();
+      if (holder == null) {
+         return false;
+      }
+
+      for (Direction face : DIRECTIONS) {
+         PipePluggable plug = holder.getPluggable(face);
+         if (plug instanceof PluggableGate gate) {
+            GateLogic logic = gate.logic;
+            if (logic != null) {
+               List<StatementSlot> active = logic.getActiveActions();
+               for (int i = 0; i < active.size(); i++) {
+                  StatementSlot slot = active.get(i);
+                  if (slot.statement != null && uniqueTag.equals(slot.statement.getUniqueTag())) {
+                     return true;
+                  }
+               }
+            }
+         }
+      }
+
+      return false;
    }
 
    @Override

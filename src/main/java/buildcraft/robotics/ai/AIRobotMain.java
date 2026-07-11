@@ -53,7 +53,10 @@ public class AIRobotMain extends AIRobot {
    @Override
    public void delegateAIEnded(AIRobot ai) {
       if (ai instanceof AIRobotRecharge && !ai.success()) {
-         this.rechargeCooldown = 120;
+         // A failed recharge means no station was found or the supply stalled mid-charge. Back off a full minute
+         // before retrying: with the old 6s cooldown a robot near a dead station spent most of its time docked in
+         // doomed recharge attempts instead of working on the power it still has.
+         this.rechargeCooldown = 60 * 20;
       }
 
       if (ai == this.overridingAI) {

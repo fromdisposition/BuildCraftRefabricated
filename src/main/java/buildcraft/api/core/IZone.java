@@ -17,5 +17,11 @@ public interface IZone {
 
    boolean contains(Vec3 var1);
 
+   /** Same containment test as {@link #contains(Vec3)} without requiring a Vec3. Robot block scans call this for
+    * thousands of candidate positions per tick, so implementations should override it allocation-free. */
+   default boolean contains(double x, double y, double z) {
+      return this.contains(new Vec3(x, y, z));
+   }
+
    BlockPos getRandomBlockPos(Random var1);
 }

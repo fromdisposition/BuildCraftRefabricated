@@ -199,6 +199,19 @@ public abstract class DockingStation {
 
    public abstract Iterable<StatementSlot> getActiveActions();
 
+   /** True if any active gate action on this station carries the given unique tag. A sleeping docked robot polls
+    * this every tick for the wakeup action (a gate pulse can be active for a single tick, so sampling less often
+    * would miss it) -- subclasses should override it allocation-free instead of building the full action list. */
+   public boolean hasActiveAction(String uniqueTag) {
+      for (StatementSlot slot : this.getActiveActions()) {
+         if (slot.statement != null && uniqueTag.equals(slot.statement.getUniqueTag())) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
    public IInjectable getItemOutput() {
       return null;
    }

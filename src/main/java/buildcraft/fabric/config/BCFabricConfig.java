@@ -11,6 +11,7 @@ import buildcraft.lib.client.guide.loader.XmlPageLoader;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.fabric.loader.GamePaths;
 import buildcraft.lib.misc.BlockUtil;
+import buildcraft.robotics.BCRoboticsConfig;
 import buildcraft.transport.BCTransportConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -78,6 +79,32 @@ public final class BCFabricConfig {
       applyFactory(root.getAsJsonObject("factory"));
       applyBuilders(root.getAsJsonObject("builders"));
       applyTransport(root.getAsJsonObject("transport"));
+      applyRobotics(root.getAsJsonObject("robotics"));
+   }
+
+   private static void applyRobotics(JsonObject robotics) {
+      if (robotics != null) {
+         // Clamped: these pace the robot AI, and out-of-range values either stall it (speed ~0 never reaches the
+         // dock) or turn a single scanning robot into a per-tick lag source (unbounded scan budget).
+         BCRoboticsConfig.flightSpeed
+            .set(clamp(doubleVal(robotics, "flightSpeed", BCRoboticsConfig.flightSpeed.get()), 0.02, 1.0));
+         BCRoboticsConfig.scanBudgetPerTick
+            .set(clamp(intVal(robotics, "scanBudgetPerTick", BCRoboticsConfig.scanBudgetPerTick.get()), 50, 2000));
+         BCRoboticsConfig.sleepSeconds
+            .set(clamp(intVal(robotics, "sleepSeconds", BCRoboticsConfig.sleepSeconds.get()), 1, 60));
+         BCRoboticsConfig.attackPeriodTicks
+            .set(clamp(intVal(robotics, "attackPeriodTicks", BCRoboticsConfig.attackPeriodTicks.get()), 5, 100));
+         BCRoboticsConfig.workSpeedMultiplier
+            .set(clamp(doubleVal(robotics, "workSpeedMultiplier", BCRoboticsConfig.workSpeedMultiplier.get()), 0.25, 10.0));
+      }
+   }
+
+   private static int clamp(int value, int min, int max) {
+      return Math.max(min, Math.min(max, value));
+   }
+
+   private static double clamp(double value, double min, double max) {
+      return Math.max(min, Math.min(max, value));
    }
 
    private static void applyBuilders(JsonObject builders) {
@@ -301,6 +328,13 @@ public final class BCFabricConfig {
       transport.addProperty("baseRfRate", 40);
       transport.addProperty("baseFlowRate", 10);
       root.add("transport", transport);
+      JsonObject robotics = new JsonObject();
+      robotics.addProperty("flightSpeed", 0.15);
+      robotics.addProperty("scanBudgetPerTick", 200);
+      robotics.addProperty("sleepSeconds", 3);
+      robotics.addProperty("attackPeriodTicks", 20);
+      robotics.addProperty("workSpeedMultiplier", 1.0);
+      root.add("robotics", robotics);
       return root;
    }
 

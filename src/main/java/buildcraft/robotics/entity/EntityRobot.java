@@ -69,7 +69,12 @@ public class EntityRobot extends EntityRobotBase {
    private final MjBattery battery = new MjBattery(MAX_POWER);
    private final ItemStack[] inv = new ItemStack[NB_ITEMS_SLOTS];
    private final buildcraft.lib.fabric.transfer.fluid.SingleFluidTank fluidTank = new buildcraft.lib.fabric.transfer.fluid.SingleFluidTank(MAX_FLUID_MB);
-   private final Set<Integer> unreachableEntities = new HashSet<>();
+   /** Entity id -> gameTime deadline after which the "unreachable" verdict expires. A permanent blacklist made a
+    * knight ignore a mob forever (until world reload) even after the obstacle between them was removed. */
+   private final java.util.Map<Integer, Long> unreachableEntities = new java.util.HashMap<>();
+   private static final long UNREACHABLE_TTL_TICKS = 60 * 20;
+   /** Work / load-unload zones parsed from the linked station's gate, keyed by action tag. See getZone. */
+   private final java.util.Map<String, CachedZone> zoneCache = new java.util.HashMap<>(2);
 
    private RedstoneBoardRobot board;
    private AIRobotMain mainAI;
@@ -222,7 +227,7 @@ public class EntityRobot extends EntityRobotBase {
          this.setDeltaMovement(Vec3.ZERO);
          this.destination = null;
       } else {
-         double speed = Math.min(0.15, dist);
+         double speed = Math.min(buildcraft.robotics.BCRoboticsConfig.flightSpeed.get(), dist);
          Vec3 move = diff.normalize().scale(speed);
          this.setDeltaMovement(move);
          this.setPos(current.add(move));
@@ -341,6 +346,7 @@ public class EntityRobot extends EntityRobotBase {
 
    private IZone getZone(String actionTag) {
       if (this.linkedStation == null) {
+         this.zoneCache.remove(actionTag);
          return null;
       }
 
@@ -349,15 +355,40 @@ public class EntityRobot extends EntityRobotBase {
             && slot.parameters.length > 0 && slot.parameters[0] != null) {
             ItemStack stack = slot.parameters[0].getItemStack();
             if (!stack.isEmpty() && stack.getItem() instanceof buildcraft.api.items.IMapLocation map) {
+               // Parsing a zone map copies the item's whole NBT (CustomData.copyTag) and rebuilds a ZonePlan --
+               // far too heavy to redo every search cycle. CustomData is immutable and replaced wholesale on any
+               // edit (setCustomTag -> CustomData.of), so (item, component reference) identity is an exact
+               // freshness key: any change to the map produces a new CustomData instance and misses the cache.
+               Object data = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
+               CachedZone cached = this.zoneCache.get(actionTag);
+               if (cached != null && cached.sourceItem == stack.getItem() && cached.sourceData == data) {
+                  return cached.zone;
+               }
+
                IZone zone = map.getZone(stack);
                if (zone != null) {
+                  this.zoneCache.put(actionTag, new CachedZone(stack.getItem(), data, zone));
                   return zone;
                }
             }
          }
       }
 
+      this.zoneCache.remove(actionTag);
       return null;
+   }
+
+   /** One successfully parsed zone, remembered with the identity of the map item + data component it came from. */
+   private static final class CachedZone {
+      final net.minecraft.world.item.Item sourceItem;
+      final Object sourceData;
+      final IZone zone;
+
+      CachedZone(net.minecraft.world.item.Item sourceItem, Object sourceData, IZone zone) {
+         this.sourceItem = sourceItem;
+         this.sourceData = sourceData;
+         this.zone = zone;
+      }
    }
 
    @Override
@@ -439,12 +470,26 @@ public class EntityRobot extends EntityRobotBase {
 
    @Override
    public void unreachableEntityDetected(Entity entity) {
-      this.unreachableEntities.add(entity.getId());
+      long now = this.level().getGameTime();
+      // Adds are rare (one per failed approach), so this is the cheap place to drop expired entries and keep the
+      // map from accumulating ids of long-gone entities.
+      this.unreachableEntities.values().removeIf(deadline -> deadline <= now);
+      this.unreachableEntities.put(entity.getId(), now + UNREACHABLE_TTL_TICKS);
    }
 
    @Override
    public boolean isKnownUnreachable(Entity entity) {
-      return this.unreachableEntities.contains(entity.getId());
+      Long deadline = this.unreachableEntities.get(entity.getId());
+      if (deadline == null) {
+         return false;
+      }
+
+      if (deadline <= this.level().getGameTime()) {
+         this.unreachableEntities.remove(entity.getId());
+         return false;
+      }
+
+      return true;
    }
 
    @Override

@@ -47,7 +47,7 @@ public class AIRobotAttack extends AIRobot {
          return;
       }
 
-      if (this.delay++ > 20) {
+      if (this.delay++ > buildcraft.robotics.BCRoboticsConfig.attackPeriodTicks.get()) {
          this.delay = 0;
          if (this.robot instanceof EntityRobot entityRobot) {
             entityRobot.attackTargetEntityWithCurrentItem(this.target);

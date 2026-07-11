@@ -169,12 +169,23 @@ public class Box implements IBox {
 
    @Override
    public boolean contains(Vec3 p) {
-      AABB bb = this.getBoundingBox();
-      if (p.x < bb.minX || p.x >= bb.maxX) {
+      return this.contains(p.x, p.y, p.z);
+   }
+
+   @Override
+   public boolean contains(double x, double y, double z) {
+      // Same bounds as getBoundingBox() ([min, max + 1)), tested directly so the hot robot-scan path does not
+      // allocate an AABB (or a Vec3, via the IZone overload) per candidate position. An unset box contains nothing.
+      if (this.min == null || this.max == null) {
          return false;
-      } else {
-         return p.y < bb.minY || p.y >= bb.maxY ? false : !(p.z < bb.minZ) && !(p.z >= bb.maxZ);
       }
+
+      return x >= this.min.getX()
+         && x < this.max.getX() + 1.0
+         && y >= this.min.getY()
+         && y < this.max.getY() + 1.0
+         && z >= this.min.getZ()
+         && z < this.max.getZ() + 1.0;
    }
 
    public boolean contains(BlockPos i) {

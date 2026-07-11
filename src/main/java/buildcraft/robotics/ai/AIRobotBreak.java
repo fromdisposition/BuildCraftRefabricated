@@ -52,7 +52,9 @@ public class AIRobotBreak extends AIRobotGoto {
          return;
       }
 
-      long want = Math.max(1L, this.energyNeeded / 30L);
+      // workSpeedMultiplier only widens (or narrows) the per-tick spend cap: the block still costs its full
+      // energyNeeded, a faster robot just pays it over fewer ticks (and drains its battery correspondingly faster).
+      long want = Math.max(1L, (long)(this.energyNeeded / 30.0 * buildcraft.robotics.BCRoboticsConfig.workSpeedMultiplier.get()));
       long extracted = this.robot.getBattery().extractPower(1L, want);
       this.energySpent += extracted;
 
