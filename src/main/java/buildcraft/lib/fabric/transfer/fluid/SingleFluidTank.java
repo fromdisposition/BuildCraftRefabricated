@@ -7,8 +7,6 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fabric.transfer.TransferCommits;
 
 import com.mojang.serialization.Codec;
-import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -17,11 +15,12 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.core.NonNullList;
 import buildcraft.lib.nbt.BcValueIn;
 import buildcraft.lib.nbt.BcValueOut;
 
-public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializable {
+public class SingleFluidTank extends SnapshotParticipant<FluidStack> implements Storage<FluidVariant>, ValueIOSerializable {
    public static final String VALUE_IO_KEY = "fluidStack";
    private static final String LEGACY_VALUE_IO_KEY = "stacks";
    private static final Codec<NonNullList<FluidStack>> STACKS_CODEC = FluidStack.OPTIONAL_CODEC.listOf().xmap(SingleFluidTank::copyStacks, Function.identity());
@@ -29,8 +28,6 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
    private final int capacityMb;
    private final SingleFluidTank.TankAccess access;
    private final Runnable onContentsChanged;
-   private final ArrayList<FluidStack> transactionSnapshots = new ArrayList<>();
-   private final BitSet transactionHooked = new BitSet();
 
    public SingleFluidTank(int capacityMb) {
       this(capacityMb, SingleFluidTank.TankAccess.OPEN, null);
@@ -177,7 +174,6 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
             this.contents = this.getFluidStack().copyWithAmount(this.getAmountMb() + acceptedMb);
          }
 
-         this.notifyContentsChanged();
          return FluidVariants.mbToDroplets(acceptedMb);
       } else {
          return 0L;
@@ -204,7 +200,6 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
          this.updateSnapshots(transaction);
          int remaining = this.getAmountMb() - extractMb;
          this.contents = remaining <= 0 ? FluidStack.EMPTY : this.getFluidStack().copyWithAmount(remaining);
-         this.notifyContentsChanged();
          return FluidVariants.mbToDroplets(extractMb);
       } else {
          return 0L;
@@ -217,34 +212,20 @@ public class SingleFluidTank implements Storage<FluidVariant>, ValueIOSerializab
       }
    }
 
-   private void updateSnapshots(TransactionContext transaction) {
-      int depth = transaction.nestingDepth();
-
-      while (this.transactionSnapshots.size() <= depth) {
-         this.transactionSnapshots.add(null);
-      }
-
-      if (this.transactionSnapshots.get(depth) == null) {
-         this.transactionSnapshots.set(depth, this.copyContents());
-         if (!this.transactionHooked.get(depth)) {
-            int hookedDepth = depth;
-            transaction.getOpenTransaction(depth).addCloseCallback((context, result) -> this.onTransactionClose(hookedDepth, result.wasCommitted()));
-            this.transactionHooked.set(depth);
-         }
-      }
-   }
-
-   private void onTransactionClose(int depth, boolean committed) {
-      this.transactionHooked.clear(depth);
-      if (!committed) {
-         this.contents = this.transactionSnapshots.get(depth);
-      }
-
-      this.transactionSnapshots.set(depth, null);
-   }
-
-   private FluidStack copyContents() {
+   @Override
+   protected FluidStack createSnapshot() {
       return this.isEmpty() ? FluidStack.EMPTY : this.contents.copy();
+   }
+
+   @Override
+   protected void readSnapshot(FluidStack snapshot) {
+      this.contents = snapshot;
+   }
+
+   // Change notifications fire once per ROOT commit; speculative or rolled-back states never leak out.
+   @Override
+   protected void onFinalCommit() {
+      this.notifyContentsChanged();
    }
 
    private static NonNullList<FluidStack> copyStacks(List<FluidStack> stacks) {
