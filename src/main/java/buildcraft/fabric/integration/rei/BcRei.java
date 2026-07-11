@@ -34,7 +34,7 @@ final class BcRei {
       EntryStack<FluidStack> stack = EntryStacks.of(FluidStack.create(fluid, droplets));
       ClientEntryStacks.setFluidRenderRatio(stack, 0.0F);
       String dropletLine = LocaleUtil.localize("tooltip.rei.fluid_amount", droplets);
-      Component mbLine = Component.literal(LocaleUtil.localizeFluidStaticAmount(milliBuckets, 0));
+      Component mbLine = Component.literal(milliBuckets + " mB");
       stack.tooltipProcessor((s, tooltip) -> {
          tooltip.entries().removeIf(entry -> entry.isText() && dropletLine.equals(entry.getAsText().getString()));
          tooltip.add(mbLine);
