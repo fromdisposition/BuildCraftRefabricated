@@ -458,6 +458,10 @@ tasks.processResources {
     inputs.properties(props)
     filesMatching("fabric.mod.json") {
         expand(props)
+        // Nodes without deps.emi drop the entrypoint line entirely — no empty "emi": [] in their jars.
+        if (emiEntrypoints.isEmpty()) {
+            filter { line -> if (line.trim() == "\"emi\": [],") null else line }
+        }
     }
     filesMatching("buildcraft.mixins.json") {
         expand(props)
