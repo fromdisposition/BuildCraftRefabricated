@@ -177,10 +177,11 @@ public final class BCReiPlugin implements REIClientPlugin {
       }));
       registry.add(new BcReiCategory<>(COMBUSTION_COOLANT, BCEnergyItems.ENGINE_IRON, KEY_PREFIX + "combustion_engine_coolant", 186, 68, (d, o, w) -> {
          List<EntryIngredient> in = d.inputs();
-         if (in.size() > 1 && !in.get(1).isEmpty()) {
+         List<EntryIngredient> out = d.outputs();
+         if (!out.isEmpty() && !out.get(0).isEmpty()) {
             w.add(BcReiCategory.slot(in.get(0), o, 8, 4, false));
             w.add(BcReiCategory.tankBase(o, 40, 4, 16, 40));
-            BcReiCategory.tank(w, in.get(1), o, 40, 4, 16, 40, true);
+            BcReiCategory.tank(w, out.get(0), o, 40, 4, 16, 40, true);
          } else if (!in.isEmpty() && !in.get(0).isEmpty()) {
             w.add(BcReiCategory.tankBase(o, 8, 4, 16, 40));
             BcReiCategory.tank(w, in.get(0), o, 8, 4, 16, 40, false);
@@ -359,7 +360,8 @@ public final class BCReiPlugin implements REIClientPlugin {
             )));
          } else if (holder.value() instanceof SolidCoolantRecipe r) {
             registry.add(new BcReiDisplay(COMBUSTION_COOLANT,
-               List.of(BcRei.item(new ItemStack(r.item())), BcRei.fluid(r.coolantFluid(), r.coolantAmountPerItem())), List.of(), List.of(
+               List.of(BcRei.item(new ItemStack(r.item()))),
+               List.of(BcRei.fluid(r.coolantFluid(), r.coolantAmountPerItem())), List.of(
                   Component.literal(LocaleUtil.localize(KEY_PREFIX + "combustion_engine_coolant.melts", r.coolantAmountPerItem()))
                )));
          }

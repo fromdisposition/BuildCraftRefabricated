@@ -134,11 +134,18 @@ public enum FacadeStateManager implements IFacadeRegistry {
       }
    }
 
+   // isSolid is deprecated without a replacement and vanilla still relies on it itself; it is the
+   // only carrier of the forceSolidOff flag that growing blocks like the chorus flower declare.
+   @SuppressWarnings("deprecation")
    private static String isValidFacadeState(BlockState state) {
       if (state.hasBlockEntity()) {
          return "it has a block entity";
       } else if (state.getRenderShape() != RenderShape.MODEL) {
          return "it doesn't have a normal model";
+      } else if (!state.isSolid()) {
+         // Vanilla's own solidity flag: full collision cube but forceSolidOff (chorus flower);
+         // leaves and glass-likes stay solid.
+         return "it isn't a solid block";
       } else {
          return !state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO) ? "it isn't a full cube" : "ok";
       }
