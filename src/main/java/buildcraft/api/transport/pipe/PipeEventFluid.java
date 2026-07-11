@@ -302,6 +302,7 @@ public abstract class PipeEventFluid extends PipeEvent {
       }
 
       public void prepare(Direction from, @Nonnull FluidStack fluid) {
+         this.resetCanceled();
          this.from = from;
          this.fluid = fluid;
       }

@@ -31,6 +31,11 @@ public abstract class PipeEvent {
       return this.canceled;
    }
 
+   /** Pooled events call this from {@code prepare()} — a reused event must not inherit a previous fire's cancellation. */
+   protected final void resetCanceled() {
+      this.canceled = false;
+   }
+
    public String checkStateForErrors() {
       return this.canceled && !this.canBeCancelled ? "Somehow cancelled an event that isn't marked as such!" : null;
    }

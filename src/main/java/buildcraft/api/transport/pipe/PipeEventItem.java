@@ -381,6 +381,7 @@ public abstract class PipeEventItem extends PipeEvent {
       }
 
       public void prepare(DyeColor colour, Direction from, @Nonnull ItemStack attempting) {
+         this.resetCanceled();
          this.colour = colour;
          this.from = from;
          this.attempting = attempting;
