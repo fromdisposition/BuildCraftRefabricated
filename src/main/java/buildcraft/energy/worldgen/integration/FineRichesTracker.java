@@ -3,12 +3,9 @@ package buildcraft.energy.worldgen.integration;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.energy.BCEnergyConfig;
 import buildcraft.energy.worldgen.BCEnergyWorldgen;
-import buildcraft.energy.worldgen.structure.OilStructureSpawnConditions;
+import buildcraft.energy.worldgen.structure.BCEnergyStructures;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.biome.Biome;
 
 public final class FineRichesTracker {
    private static final int FINE_RICHES_TICK_STRIDE = 20;
@@ -33,9 +30,8 @@ public final class FineRichesTracker {
          return;
       }
 
-      Holder<Biome> biome = player.level().getBiome(player.blockPosition());
-      ChunkPos chunkPos = player.chunkPosition();
-      if (!OilStructureSpawnConditions.isRichOilSlice(biome, chunkPos)) {
+      // Vanilla inside-a-structure check against the oil-field tag (how adventure triggers do it).
+      if (!((net.minecraft.server.level.ServerLevel) player.level()).structureManager().getStructureWithPieceAt(player.blockPosition(), BCEnergyStructures.OIL_FIELD_TAG).isValid()) {
          return;
       }
 

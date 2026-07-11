@@ -19,26 +19,12 @@ final class BCEnergyStructureSetsBootstrap {
    static void bootstrap(BootstrapContext<StructureSet> context) {
       HolderGetter<Structure> structures = context.lookup(Registries.STRUCTURE);
 
-      registerOilSet(context, structures, BCEnergyStructures.OIL_DEPOSIT_NORMAL_SET, BCEnergyStructures.OIL_DEPOSIT_NORMAL, OilStructureDefaults.PlacementSet.NORMAL);
+      registerOilSet(context, structures, BCEnergyStructures.OIL_WELL_SET, BCEnergyStructures.OIL_WELL, OilStructureDefaults.PlacementSet.NORMAL);
       registerOilSet(
-         context, structures, BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT_SET, BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT, OilStructureDefaults.PlacementSet.PATCH_DESERT
+         context, structures, BCEnergyStructures.OIL_FIELD_DESERT_SET, BCEnergyStructures.OIL_FIELD_DESERT, OilStructureDefaults.PlacementSet.FIELD_DESERT
       );
       registerOilSet(
-         context, structures, BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN_SET, BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN, OilStructureDefaults.PlacementSet.PATCH_OCEAN
-      );
-      registerOilSet(
-         context,
-         structures,
-         BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT_DENSE_SET,
-         BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT,
-         OilStructureDefaults.PlacementSet.PATCH_DESERT_DENSE
-      );
-      registerOilSet(
-         context,
-         structures,
-         BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN_DENSE_SET,
-         BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN,
-         OilStructureDefaults.PlacementSet.PATCH_OCEAN_DENSE
+         context, structures, BCEnergyStructures.OIL_FIELD_OCEAN_SET, BCEnergyStructures.OIL_FIELD_OCEAN, OilStructureDefaults.PlacementSet.FIELD_OCEAN
       );
 
       context.register(
@@ -62,11 +48,22 @@ final class BCEnergyStructureSetsBootstrap {
       ResourceKey<Structure> structureKey,
       OilStructureDefaults.PlacementSet placement
    ) {
+      // locate_offset (8,0,8): /locate reports the structure chunk's MIN corner; the well template centres
+      // on the chunk middle, so shift the report there — vanilla's own field for exactly this.
       context.register(
          setKey,
          new StructureSet(
             structures.getOrThrow(structureKey),
-            new RandomSpreadStructurePlacement(placement.spacing(), placement.separation(), RandomSpreadType.LINEAR, placement.salt())
+            new RandomSpreadStructurePlacement(
+               new net.minecraft.core.Vec3i(8, 0, 8),
+               net.minecraft.world.level.levelgen.structure.placement.StructurePlacement.FrequencyReductionMethod.DEFAULT,
+               1.0F,
+               placement.salt(),
+               java.util.Optional.empty(),
+               placement.spacing(),
+               placement.separation(),
+               RandomSpreadType.LINEAR
+            )
          )
       );
    }

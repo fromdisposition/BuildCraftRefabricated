@@ -148,11 +148,9 @@ public final class OilDepositStructure extends Structure {
          return Optional.empty();
       }
       int height = this.startHeight.sample(context.random(), new WorldGenerationContext(context.chunkGenerator(), context.heightAccessor()));
-      BlockPos startPos = new BlockPos(
-         chunkPos.getMiddleBlockX() - OilStructureDefaults.TEMPLATE_CENTER,
-         height,
-         chunkPos.getMiddleBlockZ() - OilStructureDefaults.TEMPLATE_CENTER
-      );
+      // With start_jigsaw_name the placer aligns the template's centre anchor onto this pos, so the start
+      // IS the oil column position: the chunk middle, matching locate_offset (8,0,8).
+      BlockPos startPos = new BlockPos(chunkPos.getMiddleBlockX(), height, chunkPos.getMiddleBlockZ());
       return JigsawPlacement.addPieces(
          context,
          this.startPool,

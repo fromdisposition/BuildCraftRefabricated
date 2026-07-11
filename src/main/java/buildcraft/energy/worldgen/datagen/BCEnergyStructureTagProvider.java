@@ -17,8 +17,11 @@ final class BCEnergyStructureTagProvider extends FabricTagsProvider<Structure> {
    @Override
    protected void addTags(HolderLookup.Provider provider) {
       builder(BCEnergyStructures.OIL_TAG)
-         .add(BCEnergyStructures.OIL_DEPOSIT_NORMAL)
-         .add(BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT)
-         .add(BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN);
+         .add(BCEnergyStructures.OIL_WELL)
+         .add(BCEnergyStructures.OIL_FIELD_DESERT)
+         .add(BCEnergyStructures.OIL_FIELD_OCEAN);
+      builder(BCEnergyStructures.OIL_FIELD_TAG)
+         .add(BCEnergyStructures.OIL_FIELD_DESERT)
+         .add(BCEnergyStructures.OIL_FIELD_OCEAN);
    }
 }

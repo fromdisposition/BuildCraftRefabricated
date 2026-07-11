@@ -27,6 +27,9 @@ import net.minecraft.world.level.block.state.BlockState;
 public final class OilStructureTemplateBuilder {
    private static final Identifier OIL_BLOCK_ID = Identifier.parse("buildcraftenergy:oil");
    private static final Identifier SPRING_BLOCK_ID = Identifier.parse("buildcraftcore:spring_oil");
+   private static final Identifier JIGSAW_BLOCK_ID = Identifier.parse("minecraft:jigsaw");
+   /** start_jigsaw_name anchor (ancient-city pattern): keeps the template CENTRE on the start pos under random rotation. */
+   public static final String ANCHOR_NAME = "buildcraftenergy:well_anchor";
    /** Single-block surface film at template y=0 (wells, lakes, desert and ocean). */
    private static final int SURFACE_FILM_DEPTH = 1;
 
@@ -42,8 +45,9 @@ public final class OilStructureTemplateBuilder {
 
       // Four unified tiers (~x3 buckets per step: 925 / 3071 / 7153 / 14147). Every sphere bottom rests
       // on DEPOSIT_BOTTOM_WORLD_Y; large/giant get the 3x3 shaft, spout spire and the spring marker.
-      writeWell(cache, structuresDir.resolve("oil_well_small.nbt"), blocks, 2, 8, 6, 6, 0, false);
-      writeWell(cache, structuresDir.resolve("oil_well_medium.nbt"), blocks, 2, 12, 9, 10, 0, false);
+      // Thin small/medium spouts are tall enough to clear tree cover, so a located well is visible.
+      writeWell(cache, structuresDir.resolve("oil_well_small.nbt"), blocks, 2, 8, 6, 10, 0, false);
+      writeWell(cache, structuresDir.resolve("oil_well_medium.nbt"), blocks, 2, 12, 9, 14, 0, false);
       writeWell(cache, structuresDir.resolve("oil_well_large.nbt"), blocks, 4, 30, 12, 14, 1, true);
       writeWell(cache, structuresDir.resolve("oil_well_giant.nbt"), blocks, 4, 40, 15, 18, 1, true);
    }
@@ -58,6 +62,7 @@ public final class OilStructureTemplateBuilder {
       List<StructureTemplateExporter.BlockEntry> entries = new ArrayList<>();
       boolean[][] pattern = bcTendrilPattern(lakeRadius, tendrilRadius, seed);
       blitSurfacePattern(entries, pattern, oil);
+      addCenterAnchor(entries, blocks);
       StructureTemplateExporter.write(
          cache,
          path,
@@ -134,6 +139,7 @@ public final class OilStructureTemplateBuilder {
          blitSurfaceSpout(entries, center, surfaceSpoutHeight, spoutRadius, oil);
       }
 
+      addCenterAnchor(entries, blocks);
       StructureTemplateExporter.write(
          cache,
          path,
@@ -200,6 +206,25 @@ public final class OilStructureTemplateBuilder {
             }
          }
       }
+   }
+
+   /**
+    * Centre anchor for {@code start_jigsaw_name}: the jigsaw placer aligns this block onto the structure
+    * start pos, so random rotation spins the template around its CENTRE and the oil column always lands on
+    * the chunk middle (= /locate target). JigsawReplacementProcessor turns it into plain oil on placement.
+    */
+   private static void addCenterAnchor(final List<StructureTemplateExporter.BlockEntry> entries, final HolderGetter<Block> blocks) {
+      int center = OilStructureDefaults.TEMPLATE_CENTER;
+      entries.removeIf(e -> e.x() == center && e.y() == OilStructureDefaults.SURFACE_TEMPLATE_Y && e.z() == center);
+      net.minecraft.nbt.CompoundTag nbt = new net.minecraft.nbt.CompoundTag();
+      nbt.putString("name", ANCHOR_NAME);
+      nbt.putString("pool", "minecraft:empty");
+      nbt.putString("target", "minecraft:empty");
+      nbt.putString("final_state", "buildcraftenergy:oil");
+      nbt.putString("joint", "rollable");
+      entries.add(new StructureTemplateExporter.BlockEntry(
+         center, OilStructureDefaults.SURFACE_TEMPLATE_Y, center, blockState(blocks, JIGSAW_BLOCK_ID), nbt
+      ));
    }
 
    /** Port of BC 8.0 {@code OilGenerator.createTendril}. */

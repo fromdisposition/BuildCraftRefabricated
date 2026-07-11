@@ -204,16 +204,6 @@ public final class BCFabricConfig {
       BCEnergyConfig.enableOilSprings.set(bool(generator, "enableOilSprings", BCEnergyConfig.enableOilSprings.get()));
       BCEnergyConfig.enableWaterSprings.set(bool(generator, "enableWaterSprings", BCEnergyConfig.enableWaterSprings.get()));
       BCEnergyConfig.refreshWaterSpringFlag();
-      BCEnergyConfig.oilDesertRichChancePercent.set(clampPercent(intVal(
-         generator,
-         "oilDesertRichChancePercent",
-         BCEnergyConfig.oilDesertRichChancePercent.get()
-      )));
-      BCEnergyConfig.oilOceanPatchChancePercent.set(clampPercent(intVal(
-         generator,
-         "oilOceanPatchChancePercent",
-         BCEnergyConfig.oilOceanPatchChancePercent.get()
-      )));
 
       if (generator.has("excludedDimensions")) {
          BCEnergyConfig.excludedDimensions.set(stringList(generator.getAsJsonArray("excludedDimensions")));
@@ -267,8 +257,6 @@ public final class BCFabricConfig {
       generator.addProperty("enableOilOnWater", true);
       generator.addProperty("enableOilSprings", true);
       generator.addProperty("enableWaterSprings", true);
-      generator.addProperty("oilDesertRichChancePercent", BCEnergyConfig.oilDesertRichChancePercent.get());
-      generator.addProperty("oilOceanPatchChancePercent", BCEnergyConfig.oilOceanPatchChancePercent.get());
       generator.add("excludedDimensions", GSON.toJsonTree(BCEnergyConfig.getExcludedDimensions().stream().map(id -> id.toString()).sorted().toList()));
       generator.addProperty("dimensionListMode", "BLACKLIST");
       energy.add("generator", generator);
@@ -349,7 +337,4 @@ public final class BCFabricConfig {
       return new ArrayList<>(array.asList().stream().map(e -> e.getAsString()).toList());
    }
 
-   private static int clampPercent(int value) {
-      return Math.max(0, Math.min(100, value));
-   }
 }

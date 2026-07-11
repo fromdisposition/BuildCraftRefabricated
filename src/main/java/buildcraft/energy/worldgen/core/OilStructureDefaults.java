@@ -4,9 +4,6 @@ public final class OilStructureDefaults {
    public static final int TEMPLATE_SIZE = 91;
    public static final int TEMPLATE_CENTER = TEMPLATE_SIZE / 2;
 
-   /** Rich/patch tiers form contiguous 8×8-chunk (128×128 block) sectors. */
-   public static final int SLICE_SECTOR_CHUNKS = 8;
-
    /** Flatness gate: sample the surface height on a 3x3 ring at this radius and skip the deposit if the spread
     *  exceeds {@link #MAX_SURFACE_SLOPE}. Bigger radius / smaller slope = flatter sites but rarer oil. */
    public static final int FLATNESS_SAMPLE_RADIUS = 12;
@@ -66,11 +63,9 @@ public final class OilStructureDefaults {
    public enum PlacementSet {
       /** BC rarity_filter 667 (~0.15%/chunk on eligible slices). */
       NORMAL(26, 8),
-      /** Desert grids tightened one step (~+33% attempts) to offset the flatness-gate rejections. */
-      PATCH_DESERT(7, 2),
-      PATCH_DESERT_DENSE(6, 2),
-      PATCH_OCEAN(8, 2),
-      PATCH_OCEAN_DENSE(5, 2);
+      /** One field per ~32x32 desert/ocean chunks; separation 16 keeps 250-block-wide fields from touching. */
+      FIELD_DESERT(32, 16),
+      FIELD_OCEAN(32, 16);
 
       private final int spacing;
       private final int separation;
@@ -91,11 +86,6 @@ public final class OilStructureDefaults {
       public int salt() {
          return BASE_SEED + this.ordinal();
       }
-   }
-
-   /** Salt for rich-sector slicing — separate offset so sector rolls do not track structure grids. */
-   public static long sectorRollSalt() {
-      return BASE_SEED + 0x20L;
    }
 
    private OilStructureDefaults() {

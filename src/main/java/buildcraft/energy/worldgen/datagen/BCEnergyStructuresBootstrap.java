@@ -31,26 +31,26 @@ final class BCEnergyStructuresBootstrap {
       registerTier(
          context,
          biomes,
-         BCEnergyStructures.OIL_DEPOSIT_NORMAL,
+         BCEnergyStructures.OIL_WELL,
          pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.NORMAL_START),
          BCEnergyBiomeTags.OIL_SPAWN_NORMAL,
          OilStructureSpawnConditions.Tier.NORMAL
       );
-      registerTier(
+      registerField(
          context,
          biomes,
-         BCEnergyStructures.OIL_DEPOSIT_PATCH_DESERT,
-         pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_DESERT_START),
+         BCEnergyStructures.OIL_FIELD_DESERT,
+         pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.FIELD_DESERT_START),
          BCEnergyBiomeTags.OIL_DESERT,
-         OilStructureSpawnConditions.Tier.PATCH_DESERT
+         OilStructureSpawnConditions.Tier.FIELD_DESERT
       );
-      registerTier(
+      registerField(
          context,
          biomes,
-         BCEnergyStructures.OIL_DEPOSIT_PATCH_OCEAN,
-         pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.PATCH_OCEAN_START),
+         BCEnergyStructures.OIL_FIELD_OCEAN,
+         pools.getOrThrow(BCEnergyTemplatePoolsBootstrap.FIELD_OCEAN_START),
          BCEnergyBiomeTags.OIL_OCEAN,
-         OilStructureSpawnConditions.Tier.PATCH_OCEAN
+         OilStructureSpawnConditions.Tier.FIELD_OCEAN
       );
 
       context.register(
@@ -78,6 +78,30 @@ final class BCEnergyStructuresBootstrap {
       );
    }
 
+   /** A field is ONE structure clustering several wells/lakes (mineshaft-style pieces) around its centre. */
+   private static void registerField(
+      BootstrapContext<Structure> context,
+      HolderGetter<Biome> biomes,
+      net.minecraft.resources.ResourceKey<Structure> key,
+      Holder<StructureTemplatePool> pool,
+      TagKey<Biome> biomeTag,
+      OilStructureSpawnConditions.Tier tier
+   ) {
+      context.register(
+         key,
+         new buildcraft.energy.worldgen.structure.OilFieldStructure(
+            new Structure.StructureSettings.Builder(biomes.getOrThrow(biomeTag))
+               .generationStep(net.minecraft.world.level.levelgen.GenerationStep.Decoration.UNDERGROUND_STRUCTURES)
+               .terrainAdapation(TerrainAdjustment.NONE)
+               .build(),
+            pool,
+            net.minecraft.util.valueproviders.UniformInt.of(6, 9),
+            80,
+            tier
+         )
+      );
+   }
+
    private static void registerTier(
       BootstrapContext<Structure> context,
       HolderGetter<Biome> biomes,
@@ -94,7 +118,9 @@ final class BCEnergyStructuresBootstrap {
                .terrainAdapation(TerrainAdjustment.NONE)
                .build(),
             startPool,
-            java.util.Optional.empty(),
+            // Centre anchor: random rotation spins the template around the chunk middle, so the oil column
+            // always sits exactly where /locate (chunk corner + locate_offset 8,8) points.
+            java.util.Optional.of(buildcraft.fabric.BCRegistries.id("buildcraftenergy", "well_anchor")),
             1,
             ConstantHeight.of(VerticalAnchor.absolute(0)),
             false,

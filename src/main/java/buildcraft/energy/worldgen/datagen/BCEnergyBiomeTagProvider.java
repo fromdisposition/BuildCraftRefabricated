@@ -22,8 +22,8 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
    // biome the target lacks makes MC drop the WHOLE tag, so normal oil stops spawning there.
    // Compared by id string (RegistryKeyUtil) to stay independent of each node's mappings.
    private static final Set<String> OPTIONAL_NORMAL_SPAWN = Set.of("minecraft:pale_garden", "minecraft:sulfur_caves");
-   private static final List<ResourceKey<Biome>> PATCH_DESERT = List.of(Biomes.DESERT, Biomes.BADLANDS, Biomes.WOODED_BADLANDS);
-   private static final List<ResourceKey<Biome>> PATCH_OCEAN = List.of(
+   private static final List<ResourceKey<Biome>> FIELD_DESERT = List.of(Biomes.DESERT, Biomes.BADLANDS, Biomes.WOODED_BADLANDS);
+   private static final List<ResourceKey<Biome>> FIELD_OCEAN = List.of(
       Biomes.OCEAN,
       Biomes.DEEP_OCEAN,
       Biomes.COLD_OCEAN,
@@ -55,18 +55,19 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
 
    @Override
    protected void addTags(HolderLookup.Provider provider) {
+      // Sorted by id: Set.of iteration order varies per JVM run and would churn the generated JSON.
       var excluded = builder(BCEnergyBiomeTags.OIL_EXCLUDED_BIOME);
-      for (ResourceKey<Biome> key : EXCLUDED) {
-         excluded.add(key);
-      }
+      EXCLUDED.stream()
+         .sorted(Comparator.comparing(key -> buildcraft.lib.misc.RegistryKeyUtil.id(key).toString()))
+         .forEach(excluded::add);
 
       var ocean = builder(BCEnergyBiomeTags.OIL_OCEAN);
-      for (ResourceKey<Biome> key : PATCH_OCEAN) {
+      for (ResourceKey<Biome> key : FIELD_OCEAN) {
          ocean.add(key);
       }
 
       var desert = builder(BCEnergyBiomeTags.OIL_DESERT);
-      for (ResourceKey<Biome> key : PATCH_DESERT) {
+      for (ResourceKey<Biome> key : FIELD_DESERT) {
          desert.add(key);
       }
 

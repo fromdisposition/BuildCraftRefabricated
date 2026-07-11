@@ -296,7 +296,9 @@ public class TilePump extends TileMiner implements IDebuggable {
          List<BlockPos> springPositions = new ArrayList<>();
          BlockPos center = VecUtil.replaceValue(this.worldPosition, Axis.Y, this.level.getMinY());
 
-         for (BlockPos spring : BlockPos.betweenClosed(center.offset(-10, 0, -10), center.offset(10, 0, 10))) {
+         // The spring sits one block under the deposit sphere's bottom (just above bedrock), not on the
+         // world floor itself — scan a short vertical band, not a single Y plane.
+         for (BlockPos spring : BlockPos.betweenClosed(center.offset(-10, 0, -10), center.offset(10, 8, 10))) {
             if (this.level.getBlockState(spring).is(BCCoreBlocks.SPRING_OIL)) {
                BlockEntity tile = this.level.getBlockEntity(spring);
                if (tile instanceof ITileOilSpring) {

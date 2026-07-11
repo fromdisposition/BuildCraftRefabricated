@@ -1,15 +1,14 @@
 {
-  "type": "buildcraftenergy:oil_deposit",
+  "type": "buildcraftenergy:oil_field",
   "biomes": "#buildcraftenergy:has_structure/oil_field_ocean",
-  "max_distance_from_center": 1,
-  "project_start_to_heightmap": "WORLD_SURFACE_WG",
-  "size": 1,
-  "spawn_overrides": {},
-  "start_height": {
-    "absolute": 0
+  "count": {
+    "type": "minecraft:uniform",
+    "max_inclusive": 9,
+    "min_inclusive": 6
   },
-  "start_pool": "buildcraftenergy:oil_field_ocean/start",
+  "pool": "buildcraftenergy:oil_field_ocean/start",
+  "spawn_overrides": {},
+  "spread_radius": 80,
   "step": "underground_structures",
-  "tier": "patch_ocean",
-  "use_expansion_hack": false
+  "tier": "field_ocean"
 }

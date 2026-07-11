@@ -20,10 +20,10 @@ final class BCEnergyTemplatePoolsBootstrap {
    static final ResourceKey<StructureTemplatePool> NORMAL_START = ResourceKey.create(
       Registries.TEMPLATE_POOL, BCRegistries.id("buildcraftenergy", "oil_well/start")
    );
-   static final ResourceKey<StructureTemplatePool> PATCH_DESERT_START = ResourceKey.create(
+   static final ResourceKey<StructureTemplatePool> FIELD_DESERT_START = ResourceKey.create(
       Registries.TEMPLATE_POOL, BCRegistries.id("buildcraftenergy", "oil_field_desert/start")
    );
-   static final ResourceKey<StructureTemplatePool> PATCH_OCEAN_START = ResourceKey.create(
+   static final ResourceKey<StructureTemplatePool> FIELD_OCEAN_START = ResourceKey.create(
       Registries.TEMPLATE_POOL, BCRegistries.id("buildcraftenergy", "oil_field_ocean/start")
    );
    static final ResourceKey<StructureTemplatePool> WATER_SPRING_START = ResourceKey.create(
@@ -45,7 +45,7 @@ final class BCEnergyTemplatePoolsBootstrap {
          new StructureTemplatePool(
             empty,
             ImmutableList.of(
-               // Mostly small finds in the open world (~62/28/10%); the giant tier is patch-pool exclusive.
+               // Mostly small finds in the open world (~62/28/10%); the giant tier is field-pool exclusive.
                Pair.of(well(oilWell, "oil_well_small"), 50),
                Pair.of(well(oilWell, "oil_well_medium"), 22),
                Pair.of(well(oilWell, "oil_well_large"), 8)
@@ -55,13 +55,13 @@ final class BCEnergyTemplatePoolsBootstrap {
       );
 
       context.register(
-         PATCH_DESERT_START,
-         new StructureTemplatePool(empty, patchElements(oilWell, surfaceGravity), StructureTemplatePool.Projection.RIGID)
+         FIELD_DESERT_START,
+         new StructureTemplatePool(empty, fieldElements(oilWell, surfaceGravity), StructureTemplatePool.Projection.RIGID)
       );
 
       context.register(
-         PATCH_OCEAN_START,
-         new StructureTemplatePool(empty, patchElements(oilWell, surfaceGravity), StructureTemplatePool.Projection.RIGID)
+         FIELD_OCEAN_START,
+         new StructureTemplatePool(empty, fieldElements(oilWell, surfaceGravity), StructureTemplatePool.Projection.RIGID)
       );
 
       context.register(
@@ -79,8 +79,8 @@ final class BCEnergyTemplatePoolsBootstrap {
       );
    }
 
-   /** Oil-biome pools (desert and ocean share the composition): richer wells incl. the giant tier, plus lakes. */
-   private static ImmutableList<Pair<Function<StructureTemplatePool.Projection, ? extends StructurePoolElement>, Integer>> patchElements(
+   /** Field pools (desert and ocean share the composition): richer wells incl. the giant tier, plus lakes. */
+   private static ImmutableList<Pair<Function<StructureTemplatePool.Projection, ? extends StructurePoolElement>, Integer>> fieldElements(
       Holder<StructureProcessorList> oilWell,
       Holder<StructureProcessorList> surfaceGravity
    ) {

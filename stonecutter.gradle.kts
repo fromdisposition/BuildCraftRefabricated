@@ -9,6 +9,8 @@ stonecutter parameters {
     replacements {
         // BakedQuad moved packages in 26.1
         string(current.parsed < "26.1") {
+            // 26.x moved IntProvider's static codecs to IntProviders; 1.21.x keeps them on IntProvider.
+            replace("net.minecraft.util.valueproviders.IntProviders.codec(", "net.minecraft.util.valueproviders.IntProvider.codec(")
             replace(
                 "net.minecraft.client.resources.model.geometry.BakedQuad",
                 "net.minecraft.client.renderer.block.model.BakedQuad"

@@ -8,6 +8,7 @@
   "start_height": {
     "absolute": 0
   },
+  "start_jigsaw_name": "buildcraftenergy:well_anchor",
   "start_pool": "buildcraftenergy:oil_well/start",
   "step": "underground_structures",
   "tier": "normal",

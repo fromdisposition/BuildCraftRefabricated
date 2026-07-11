@@ -21,7 +21,11 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 /** Writes compressed structure template NBT files for the oil worldgen jigsaw pools. */
 public final class StructureTemplateExporter {
-   public record BlockEntry(int x, int y, int z, BlockState state) {}
+   public record BlockEntry(int x, int y, int z, BlockState state, CompoundTag nbt) {
+      public BlockEntry(int x, int y, int z, BlockState state) {
+         this(x, y, z, state, null);
+      }
+   }
 
    private StructureTemplateExporter() {
    }
@@ -68,6 +72,9 @@ public final class StructureTemplateExporter {
          CompoundTag blockTag = new CompoundTag();
          blockTag.put("pos", toIntList(entry.x(), entry.y() + yOffset, entry.z()));
          blockTag.putInt("state", paletteIndex.get(entry.state()));
+         if (entry.nbt() != null) {
+            blockTag.put("nbt", entry.nbt());
+         }
          blockList.add(blockTag);
       }
 
