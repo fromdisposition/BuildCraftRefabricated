@@ -33,19 +33,23 @@ public class HeatExchangerTransferHandler implements IRecipeTransferHandler<Cont
       this.helper = helper;
    }
 
+   @Override
    public Class<? extends ContainerHeatExchange> getContainerClass() {
       return ContainerHeatExchange.class;
    }
 
+   @Override
    public Optional<MenuType<ContainerHeatExchange>> getMenuType() {
       return Optional.of(BCFactoryMenuTypes.HEAT_EXCHANGE);
    }
 
+   @Override
    public mezz.jei.api.recipe.types.IRecipeType<HeatExchangerRecipePair> getRecipeType() {
       return BCJeiRecipeTypes.HEAT_EXCHANGER;
    }
 
    @Nullable
+   @Override
    public IRecipeTransferError transferRecipe(
       ContainerHeatExchange container, HeatExchangerRecipePair pair, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer
    ) {

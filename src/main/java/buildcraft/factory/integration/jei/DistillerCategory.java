@@ -44,11 +44,13 @@ public class DistillerCategory extends AbstractRecipeCategory<IRefineryRecipeMan
       this.background = guiHelper.createDrawable(TEX, BG_U, BG_V, BG_W, BG_H);
    }
 
+   @Override
    public void draw(IRefineryRecipeManager.IDistillationRecipe recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
       JeiCategoryDraw.mjPower(graphics, "gui.jei.category.buildcraft.distiller.power", recipe.powerRequired(), BG_W, BG_H);
    }
 
+   @Override
    public void setRecipe(IRecipeLayoutBuilder builder, IRefineryRecipeManager.IDistillationRecipe recipe, IFocusGroup focuses) {
       FluidStack in = recipe.in();
       if (!in.isEmpty()) {

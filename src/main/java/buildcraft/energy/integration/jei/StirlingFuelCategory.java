@@ -34,10 +34,12 @@ public class StirlingFuelCategory extends AbstractRecipeCategory<StirlingFuelJei
       );
    }
 
+   @Override
    public void setRecipe(IRecipeLayoutBuilder builder, StirlingFuelJei recipe, IFocusGroup focuses) {
       builder.addInputSlot(IN_X, IN_Y).addItemStacks(List.of(recipe.fuel()));
    }
 
+   @Override
    public void draw(StirlingFuelJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       JeiCategoryDraw.text(graphics, LocaleUtil.localize("gui.jei.category.buildcraft.stirling_engine_fuel.rate", LocaleUtil.localizeMjFlow(MjAPI.MJ)), INFO_X, 5);
       JeiCategoryDraw.text(graphics, LocaleUtil.localize("gui.jei.category.buildcraft.stirling_engine_fuel.burn", recipe.burnTime()), INFO_X, 15);

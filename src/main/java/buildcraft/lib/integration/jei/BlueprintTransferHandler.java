@@ -30,19 +30,23 @@ public class BlueprintTransferHandler<C extends AbstractContainerMenu> implement
       this.menuType = menuType;
    }
 
+   @Override
    public Class<? extends C> getContainerClass() {
       return this.containerClass;
    }
 
+   @Override
    public Optional<MenuType<C>> getMenuType() {
       return Optional.of(this.menuType);
    }
 
+   @Override
    public mezz.jei.api.recipe.types.IRecipeType<RecipeHolder<CraftingRecipe>> getRecipeType() {
       return RecipeTypes.CRAFTING;
    }
 
    @Nullable
+   @Override
    public IRecipeTransferError transferRecipe(
       C container, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer
    ) {

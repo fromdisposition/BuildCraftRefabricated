@@ -15,7 +15,6 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 
@@ -23,13 +22,15 @@ import net.minecraft.resources.Identifier;
 public class BCCoreJeiPlugin implements IModPlugin {
    private static final Identifier UID = Identifier.parse("buildcraftrefabricated:core_jei_plugin");
 
+   @Override
    public Identifier getPluginUid() {
       return UID;
    }
 
+   @Override
    public void registerItemSubtypes(ISubtypeRegistration registration) {
       //? if >= 1.21.10 {
-      registration.registerFromDataComponentTypes(BCCoreItems.PAINTBRUSH, new DataComponentType[]{BCCore.BRUSH_COLOR});
+      registration.registerFromDataComponentTypes(BCCoreItems.PAINTBRUSH, BCCore.BRUSH_COLOR);
       registration.registerSubtypeInterpreter(BCCoreItems.FRAGILE_FLUID_CONTAINER, (stack, context) -> {
          FluidStack fluid = ItemFragileFluidContainer.getFluid(stack);
          return fluid.isEmpty() ? null : BuiltInRegistries.FLUID.getKey(fluid.getFluid()).toString();
@@ -62,6 +63,7 @@ public class BCCoreJeiPlugin implements IModPlugin {
       *///?}
    }
 
+   @Override
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
       registration.addGenericGuiContainerHandler(BcScreen.class, new BCGuiContainerHandler());
    }

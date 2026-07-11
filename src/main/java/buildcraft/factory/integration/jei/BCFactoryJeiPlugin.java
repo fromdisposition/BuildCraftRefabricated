@@ -30,21 +30,23 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.level.ItemLike;
 
 @JeiPlugin
 public class BCFactoryJeiPlugin implements IModPlugin {
    private static final Identifier UID = Identifier.parse("buildcraftrefabricated:factory_jei_plugin");
 
+   @Override
    public Identifier getPluginUid() {
       return UID;
    }
 
+   @Override
    public void registerCategories(IRecipeCategoryRegistration registration) {
       IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
       registration.addRecipeCategories(new HeatExchangerCategory(guiHelper), new DistillerCategory(guiHelper));
    }
 
+   @Override
    public void registerRecipes(IRecipeRegistration registration) {
       BCJeiBootstrap.initEnergyRecipes();
       registration.addRecipes(BCJeiRecipeTypes.HEAT_EXCHANGER, enumerateHeatExchangerPairs());
@@ -87,26 +89,27 @@ public class BCFactoryJeiPlugin implements IModPlugin {
       return recipes;
    }
 
-   @SuppressWarnings("unchecked")
+   @Override
    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
       registration.addRecipeTransferHandler(
-         new BlueprintTransferHandler(ContainerAutoCraftItems.class, BCFactoryMenuTypes.AUTO_WORKBENCH_ITEMS), RecipeTypes.CRAFTING
+         new BlueprintTransferHandler<>(ContainerAutoCraftItems.class, BCFactoryMenuTypes.AUTO_WORKBENCH_ITEMS), RecipeTypes.CRAFTING
       );
       registration.addRecipeTransferHandler(new DistillerTransferHandler(registration.getTransferHelper()), BCJeiRecipeTypes.DISTILLER);
       registration.addRecipeTransferHandler(new HeatExchangerTransferHandler(registration.getTransferHelper()), BCJeiRecipeTypes.HEAT_EXCHANGER);
    }
 
-   @SuppressWarnings("unchecked")
+   @Override
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-      registration.addRecipeClickArea(GuiAutoCraftItems.class, 90, 48, 23, 10, new mezz.jei.api.recipe.types.IRecipeType[]{RecipeTypes.CRAFTING});
+      registration.addRecipeClickArea(GuiAutoCraftItems.class, 90, 48, 23, 10, RecipeTypes.CRAFTING);
       registration.addGhostIngredientHandler(GuiAutoCraftItems.class, new BCGhostIngredientHandler());
-      registration.addRecipeClickArea(GuiDistiller.class, 61, 20, 36, 57, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.DISTILLER});
-      registration.addRecipeClickArea(GuiHeatExchange.class, 73, 42, 30, 21, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.HEAT_EXCHANGER});
+      registration.addRecipeClickArea(GuiDistiller.class, 61, 20, 36, 57, BCJeiRecipeTypes.DISTILLER);
+      registration.addRecipeClickArea(GuiHeatExchange.class, 73, 42, 30, 21, BCJeiRecipeTypes.HEAT_EXCHANGER);
    }
 
+   @Override
    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-      registration.addCraftingStation(RecipeTypes.CRAFTING, new ItemLike[]{BCFactoryItems.AUTOWORKBENCH_ITEM});
-      registration.addCraftingStation(BCJeiRecipeTypes.HEAT_EXCHANGER, new ItemLike[]{BCFactoryItems.HEAT_EXCHANGE});
-      registration.addCraftingStation(BCJeiRecipeTypes.DISTILLER, new ItemLike[]{BCFactoryItems.DISTILLER});
+      registration.addCraftingStation(RecipeTypes.CRAFTING, BCFactoryItems.AUTOWORKBENCH_ITEM);
+      registration.addCraftingStation(BCJeiRecipeTypes.HEAT_EXCHANGER, BCFactoryItems.HEAT_EXCHANGE);
+      registration.addCraftingStation(BCJeiRecipeTypes.DISTILLER, BCFactoryItems.DISTILLER);
    }
 }

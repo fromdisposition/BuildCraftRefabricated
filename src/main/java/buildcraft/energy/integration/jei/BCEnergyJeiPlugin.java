@@ -29,7 +29,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.crafting.RecipeHolder;
 //? if >= 1.21.10 {
@@ -40,10 +39,12 @@ import net.minecraft.world.level.block.entity.FuelValues;
 public class BCEnergyJeiPlugin implements IModPlugin {
    private static final Identifier UID = Identifier.parse("buildcraftrefabricated:energy_jei_plugin");
 
+   @Override
    public Identifier getPluginUid() {
       return UID;
    }
 
+   @Override
    public void registerCategories(IRecipeCategoryRegistration registration) {
       IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
       registration.addRecipeCategories(
@@ -51,6 +52,7 @@ public class BCEnergyJeiPlugin implements IModPlugin {
       );
    }
 
+   @Override
    public void registerRecipes(IRecipeRegistration registration) {
       BCJeiBootstrap.initEnergyRecipes();
       registration.addRecipes(BCJeiRecipeTypes.COMBUSTION_FUEL, collectCombustionFuels());
@@ -113,16 +115,18 @@ public class BCEnergyJeiPlugin implements IModPlugin {
       return out;
    }
 
+   @Override
    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-      registration.addCraftingStation(BCJeiRecipeTypes.COMBUSTION_FUEL, new ItemLike[]{BCEnergyItems.ENGINE_IRON});
-      registration.addCraftingStation(BCJeiRecipeTypes.COMBUSTION_COOLANT, new ItemLike[]{BCEnergyItems.ENGINE_IRON});
-      registration.addCraftingStation(BCJeiRecipeTypes.STIRLING_FUEL, new ItemLike[]{BCEnergyItems.ENGINE_STONE});
+      registration.addCraftingStation(BCJeiRecipeTypes.COMBUSTION_FUEL, BCEnergyItems.ENGINE_IRON);
+      registration.addCraftingStation(BCJeiRecipeTypes.COMBUSTION_COOLANT, BCEnergyItems.ENGINE_IRON);
+      registration.addCraftingStation(BCJeiRecipeTypes.STIRLING_FUEL, BCEnergyItems.ENGINE_STONE);
    }
 
+   @Override
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-      registration.addRecipeClickArea(GuiEngineStone_BC8.class, 81, 25, 14, 14, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.STIRLING_FUEL});
+      registration.addRecipeClickArea(GuiEngineStone_BC8.class, 81, 25, 14, 14, BCJeiRecipeTypes.STIRLING_FUEL);
       registration.addRecipeClickArea(
-         GuiEngineIron_BC8.class, 44, 22, 34, 52, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.COMBUSTION_FUEL, BCJeiRecipeTypes.COMBUSTION_COOLANT}
+         GuiEngineIron_BC8.class, 44, 22, 34, 52, BCJeiRecipeTypes.COMBUSTION_FUEL, BCJeiRecipeTypes.COMBUSTION_COOLANT
       );
    }
 }

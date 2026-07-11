@@ -33,19 +33,23 @@ public class DistillerTransferHandler implements IRecipeTransferHandler<Containe
       this.helper = helper;
    }
 
+   @Override
    public Class<? extends ContainerDistiller> getContainerClass() {
       return ContainerDistiller.class;
    }
 
+   @Override
    public Optional<MenuType<ContainerDistiller>> getMenuType() {
       return Optional.of(BCFactoryMenuTypes.DISTILLER);
    }
 
+   @Override
    public mezz.jei.api.recipe.types.IRecipeType<IRefineryRecipeManager.IDistillationRecipe> getRecipeType() {
       return BCJeiRecipeTypes.DISTILLER;
    }
 
    @Nullable
+   @Override
    public IRecipeTransferError transferRecipe(
       ContainerDistiller container,
       IRefineryRecipeManager.IDistillationRecipe recipe,

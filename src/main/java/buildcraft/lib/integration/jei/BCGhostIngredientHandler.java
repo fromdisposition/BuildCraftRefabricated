@@ -21,6 +21,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 public class BCGhostIngredientHandler<T extends BcScreen<?>> implements IGhostIngredientHandler<T> {
+   @Override
    public <I> List<Target<I>> getTargetsTyped(T gui, ITypedIngredient<I> ingredient, boolean doStart) {
       List<Target<I>> targets = new ArrayList<>();
       if (!(ingredient.getIngredient() instanceof ItemStack)) {
@@ -45,6 +46,7 @@ public class BCGhostIngredientHandler<T extends BcScreen<?>> implements IGhostIn
       return targets;
    }
 
+   @Override
    public void onComplete() {
    }
 
@@ -59,10 +61,12 @@ public class BCGhostIngredientHandler<T extends BcScreen<?>> implements IGhostIn
          this.area = new Rect2i(x, y, 16, 16);
       }
 
+      @Override
       public Rect2i getArea() {
          return this.area;
       }
 
+      @Override
       public void accept(I ingredient) {
          if (ingredient instanceof ItemStack stack) {
             String itemId = BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();

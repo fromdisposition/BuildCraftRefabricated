@@ -39,16 +39,17 @@ import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
-import net.minecraft.world.level.ItemLike;
 
 @JeiPlugin
 public class BCSiliconJeiPlugin implements IModPlugin {
    private static final Identifier UID = Identifier.parse("buildcraftrefabricated:silicon_jei_plugin");
 
+   @Override
    public Identifier getPluginUid() {
       return UID;
    }
 
+   @Override
    public void registerItemSubtypes(ISubtypeRegistration registration) {
       //? if >= 1.21.10 {
       registration.registerSubtypeInterpreter(BCSiliconItems.PLUG_LENS, (stack, context) -> {
@@ -96,6 +97,7 @@ public class BCSiliconJeiPlugin implements IModPlugin {
       *///?}
    }
 
+   @Override
    public void registerCategories(IRecipeCategoryRegistration registration) {
       IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
       registration.addRecipeCategories(
@@ -103,6 +105,7 @@ public class BCSiliconJeiPlugin implements IModPlugin {
       );
    }
 
+   @Override
    public void registerRecipes(IRecipeRegistration registration) {
       BCJeiBootstrap.initSiliconRecipes();
       registration.addRecipes(BCJeiRecipeTypes.ASSEMBLY, AssemblyRecipeCollector.collect());
@@ -110,24 +113,25 @@ public class BCSiliconJeiPlugin implements IModPlugin {
       registration.addRecipes(BCJeiRecipeTypes.PROGRAMMING, ProgrammingRecipeCollector.collect());
    }
 
-   @SuppressWarnings("unchecked")
+   @Override
    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
       registration.addRecipeTransferHandler(
-         new BlueprintTransferHandler(ContainerAdvancedCraftingTable.class, BCSiliconMenuTypes.ADVANCED_CRAFTING_TABLE), RecipeTypes.CRAFTING
+         new BlueprintTransferHandler<>(ContainerAdvancedCraftingTable.class, BCSiliconMenuTypes.ADVANCED_CRAFTING_TABLE), RecipeTypes.CRAFTING
       );
       registration.addRecipeTransferHandler(new AssemblyTableTransferHandler(registration.getTransferHelper()), BCJeiRecipeTypes.ASSEMBLY);
    }
 
-   @SuppressWarnings("unchecked")
+   @Override
    public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-      registration.addRecipeClickArea(GuiAdvancedCraftingTable.class, 93, 36, 22, 15, new mezz.jei.api.recipe.types.IRecipeType[]{RecipeTypes.CRAFTING});
+      registration.addRecipeClickArea(GuiAdvancedCraftingTable.class, 93, 36, 22, 15, RecipeTypes.CRAFTING);
       registration.addGhostIngredientHandler(GuiAdvancedCraftingTable.class, new BCGhostIngredientHandler());
-      registration.addRecipeClickArea(GuiAssemblyTable.class, 86, 18, 4, 70, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.ASSEMBLY});
-      registration.addRecipeClickArea(GuiIntegrationTable.class, 84, 48, 41, 10, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.INTEGRATION});
+      registration.addRecipeClickArea(GuiAssemblyTable.class, 86, 18, 4, 70, BCJeiRecipeTypes.ASSEMBLY);
+      registration.addRecipeClickArea(GuiIntegrationTable.class, 84, 48, 41, 10, BCJeiRecipeTypes.INTEGRATION);
       // Spans both arrows flanking the options grid: the upper one (input -> options) at y 22..29 and the lower one
       // (options -> output) at y 76..83, with the arrows' exact x extent 28..38.
-      registration.addRecipeClickArea(GuiProgrammingTable.class, 28, 22, 11, 62, new mezz.jei.api.recipe.types.IRecipeType[]{BCJeiRecipeTypes.PROGRAMMING});
+      registration.addRecipeClickArea(GuiProgrammingTable.class, 28, 22, 11, 62, BCJeiRecipeTypes.PROGRAMMING);
       registration.addGuiContainerHandler(GuiGate.class, new IGuiContainerHandler<GuiGate>() {
+         @Override
          public List<Rect2i> getGuiExtraAreas(GuiGate containerScreen) {
             List<Rect2i> extraAreas = new ArrayList<>();
 
@@ -142,10 +146,11 @@ public class BCSiliconJeiPlugin implements IModPlugin {
       });
    }
 
+   @Override
    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-      registration.addCraftingStation(RecipeTypes.CRAFTING, new ItemLike[]{BCSiliconItems.ADVANCED_CRAFTING_TABLE});
-      registration.addCraftingStation(BCJeiRecipeTypes.ASSEMBLY, new ItemLike[]{BCSiliconItems.ASSEMBLY_TABLE});
-      registration.addCraftingStation(BCJeiRecipeTypes.INTEGRATION, new ItemLike[]{BCSiliconItems.INTEGRATION_TABLE});
-      registration.addCraftingStation(BCJeiRecipeTypes.PROGRAMMING, new ItemLike[]{BCSiliconItems.PROGRAMMING_TABLE});
+      registration.addCraftingStation(RecipeTypes.CRAFTING, BCSiliconItems.ADVANCED_CRAFTING_TABLE);
+      registration.addCraftingStation(BCJeiRecipeTypes.ASSEMBLY, BCSiliconItems.ASSEMBLY_TABLE);
+      registration.addCraftingStation(BCJeiRecipeTypes.INTEGRATION, BCSiliconItems.INTEGRATION_TABLE);
+      registration.addCraftingStation(BCJeiRecipeTypes.PROGRAMMING, BCSiliconItems.PROGRAMMING_TABLE);
    }
 }

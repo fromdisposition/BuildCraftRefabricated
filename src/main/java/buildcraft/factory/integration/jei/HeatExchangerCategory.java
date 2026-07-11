@@ -44,10 +44,12 @@ public class HeatExchangerCategory extends AbstractRecipeCategory<HeatExchangerR
       this.background = guiHelper.createDrawable(TEX, BG_U, BG_V, BG_W, BG_H);
    }
 
+   @Override
    public void draw(HeatExchangerRecipePair pair, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
    }
 
+   @Override
    public void setRecipe(IRecipeLayoutBuilder builder, HeatExchangerRecipePair pair, IFocusGroup focuses) {
       IRefineryRecipeManager.IHeatableRecipe heatable = pair.heatable();
       IRefineryRecipeManager.ICoolableRecipe coolable = pair.coolable();

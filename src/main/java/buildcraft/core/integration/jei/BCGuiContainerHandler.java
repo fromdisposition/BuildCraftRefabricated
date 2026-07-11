@@ -21,6 +21,7 @@ import mezz.jei.api.runtime.IClickableIngredient;
 import net.minecraft.client.renderer.Rect2i;
 
 public class BCGuiContainerHandler implements IGuiContainerHandler<BcScreen<?>> {
+   @Override
    public List<Rect2i> getGuiExtraAreas(BcScreen<?> screen) {
       List<Rect2i> areas = new ArrayList<>();
 
@@ -39,6 +40,7 @@ public class BCGuiContainerHandler implements IGuiContainerHandler<BcScreen<?>> 
       return areas;
    }
 
+   @Override
    public Optional<? extends IClickableIngredient<?>> getClickableIngredientUnderMouse(
       IClickableIngredientFactory builder, BcScreen<?> screen, double mouseX, double mouseY
    ) {

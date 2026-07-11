@@ -11,7 +11,6 @@ import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.silicon.BCSiliconItems;
 import java.util.List;
-import mezz.jei.api.gui.builder.IIngredientAcceptor;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -45,6 +44,7 @@ public class IntegrationTableCategory extends AbstractRecipeCategory<Integration
       this.background = guiHelper.createDrawable(TEX, BG_U, BG_V, BG_W, BG_H);
    }
 
+   @Override
    public void draw(IntegrationRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
       String mj = LocaleUtil.localizeMj(recipe.microJoules());
@@ -53,9 +53,10 @@ public class IntegrationTableCategory extends AbstractRecipeCategory<Integration
       }
    }
 
+   @Override
    public void setRecipe(IRecipeLayoutBuilder builder, IntegrationRecipeJei recipe, IFocusGroup focuses) {
-      IRecipeSlotBuilder centerBuilder = (IRecipeSlotBuilder)builder.addInputSlot(CENTER_X, CENTER_Y).addItemStacks(List.of(recipe.center()));
-      IRecipeSlotBuilder outputBuilder = (IRecipeSlotBuilder)builder.addInputSlot(OUTPUT_X, OUTPUT_Y).addItemStacks(List.of(recipe.output()));
+      IRecipeSlotBuilder centerBuilder = builder.addInputSlot(CENTER_X, CENTER_Y).addItemStacks(List.of(recipe.center()));
+      IRecipeSlotBuilder outputBuilder = builder.addInputSlot(OUTPUT_X, OUTPUT_Y).addItemStacks(List.of(recipe.output()));
       List<ItemStack> ring = recipe.ring();
 
       for (int i = 0; i < RING.length; i++) {
@@ -64,6 +65,6 @@ public class IntegrationTableCategory extends AbstractRecipeCategory<Integration
          }
       }
 
-      builder.createFocusLink(new IIngredientAcceptor[]{centerBuilder, outputBuilder});
+      builder.createFocusLink(centerBuilder, outputBuilder);
    }
 }

@@ -11,7 +11,6 @@ import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.silicon.BCSiliconItems;
 import java.util.List;
-import mezz.jei.api.gui.builder.IIngredientAcceptor;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -47,6 +46,7 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
       this.background = guiHelper.createDrawable(TEX, BG_U, BG_V, BG_W, BG_H);
    }
 
+   @Override
    public void draw(AssemblyRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
       String mj = LocaleUtil.localizeMj(recipe.microJoules());
@@ -55,6 +55,7 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
       }
    }
 
+   @Override
    public void setRecipe(IRecipeLayoutBuilder builder, AssemblyRecipeJei recipe, IFocusGroup focuses) {
       List<List<ItemStack>> inputs = recipe.inputSlots();
       int inputCount = Math.min(inputs.size(), 12);
@@ -63,18 +64,18 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
       for (int i = 0; i < inputCount; i++) {
          List<ItemStack> slot = inputs.get(i);
          if (!slot.isEmpty()) {
-            inputSlotBuilders[i] = (IRecipeSlotBuilder)builder.addInputSlot(INPUT_X + i % 3 * 18, INPUT_Y + i / 3 * 18).addItemStacks(slot);
+            inputSlotBuilders[i] = builder.addInputSlot(INPUT_X + i % 3 * 18, INPUT_Y + i / 3 * 18).addItemStacks(slot);
          }
       }
 
       IRecipeSlotBuilder outputSlotBuilder = null;
       if (!recipe.outputs().isEmpty()) {
-         outputSlotBuilder = (IRecipeSlotBuilder)builder.addOutputSlot(DISPLAY_X, DISPLAY_Y).addItemStacks(recipe.outputs());
+         outputSlotBuilder = builder.addOutputSlot(DISPLAY_X, DISPLAY_Y).addItemStacks(recipe.outputs());
       }
 
       int linkIdx = recipe.focusLinkInputIndex();
       if (linkIdx >= 0 && linkIdx < inputCount && inputSlotBuilders[linkIdx] != null && outputSlotBuilder != null) {
-         builder.createFocusLink(new IIngredientAcceptor[]{inputSlotBuilders[linkIdx], outputSlotBuilder});
+         builder.createFocusLink(inputSlotBuilders[linkIdx], outputSlotBuilder);
       }
    }
 }

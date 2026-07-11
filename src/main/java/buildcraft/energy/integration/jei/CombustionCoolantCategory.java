@@ -36,6 +36,7 @@ public class CombustionCoolantCategory extends AbstractRecipeCategory<Combustion
       );
    }
 
+   @Override
    public void setRecipe(IRecipeLayoutBuilder builder, CombustionCoolantJei recipe, IFocusGroup focuses) {
       if (recipe.isSolid()) {
          builder.addInputSlot(IN_X, IN_Y).addItemStacks(List.of(recipe.item()));
@@ -53,6 +54,7 @@ public class CombustionCoolantCategory extends AbstractRecipeCategory<Combustion
       }
    }
 
+   @Override
    public void draw(CombustionCoolantJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       String line = recipe.isSolid()
          ? LocaleUtil.localize("gui.jei.category.buildcraft.combustion_engine_coolant.melts", recipe.fluid().getAmount())

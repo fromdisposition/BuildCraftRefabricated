@@ -32,19 +32,23 @@ public class AssemblyTableTransferHandler implements IRecipeTransferHandler<Cont
       this.helper = helper;
    }
 
+   @Override
    public Class<? extends ContainerAssemblyTable> getContainerClass() {
       return ContainerAssemblyTable.class;
    }
 
+   @Override
    public Optional<MenuType<ContainerAssemblyTable>> getMenuType() {
       return Optional.of(BCSiliconMenuTypes.ASSEMBLY_TABLE);
    }
 
+   @Override
    public mezz.jei.api.recipe.types.IRecipeType<AssemblyRecipeJei> getRecipeType() {
       return BCJeiRecipeTypes.ASSEMBLY;
    }
 
    @Nullable
+   @Override
    public IRecipeTransferError transferRecipe(
       ContainerAssemblyTable container, AssemblyRecipeJei recipe, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer
    ) {

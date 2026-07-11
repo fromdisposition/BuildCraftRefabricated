@@ -37,6 +37,7 @@ public class CombustionFuelCategory extends AbstractRecipeCategory<CombustionFue
       );
    }
 
+   @Override
    public void setRecipe(IRecipeLayoutBuilder builder, CombustionFuelRecipe recipe, IFocusGroup focuses) {
       FluidStack fuel = new FluidStack(recipe.fluid(), 1000);
       if (!fuel.isEmpty()) {
@@ -53,6 +54,7 @@ public class CombustionFuelCategory extends AbstractRecipeCategory<CombustionFue
       }
    }
 
+   @Override
    public void draw(CombustionFuelRecipe recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       JeiCategoryDraw.text(graphics, LocaleUtil.localizeMjFlow(recipe.powerPerCycle()), FUEL_X, 48);
       JeiCategoryDraw.text(
