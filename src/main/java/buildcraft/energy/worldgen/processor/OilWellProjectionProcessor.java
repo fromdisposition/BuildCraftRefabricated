@@ -4,7 +4,6 @@ import buildcraft.energy.worldgen.core.OilStructureDefaults;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
@@ -17,8 +16,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 
 /**
  * Runs after {@link net.minecraft.world.level.levelgen.structure.templatesystem.GravityProcessor}.
- * Surface tendrils/spouts keep gravity; the deposit and bedrock shaft use fixed world Y; the connector
- * is a fixed bridge ({@code template 100+}) from Y {@code -11} up to the terrain-relative shaft ({@code template -11..-1}).
+ * Surface tendrils/spouts keep gravity; the deposit body and the spring marker use fixed world Y; the connector
+ * is a fixed bridge ({@code template 100+}) up to the terrain-relative shaft ({@code template -11..-1}).
  * Bridge must be handled before the surface gravity pass-through ({@code templateY >= 0}).
  */
 //? if >= 26.2 {
@@ -64,9 +63,8 @@ public final class OilWellProjectionProcessor implements StructureProcessor {
       int z = pos.getZ();
 
       if (templateY == OilStructureDefaults.SPRING_TEMPLATE_Y) {
-         return new StructureTemplate.StructureBlockInfo(
-            new BlockPos(x, minBuildY(level), z), processedBlockInfo.state(), processedBlockInfo.nbt()
-         );
+         // Fixed world Y directly under the sphere bottom — the tile's advancement checks springPos.above().
+         return fixedY(processedBlockInfo, OilStructureDefaults.SPRING_TEMPLATE_Y);
       }
 
       if (isConnectorBridgeTemplateY(templateY)) {
@@ -74,10 +72,6 @@ public final class OilWellProjectionProcessor implements StructureProcessor {
       }
 
       if (isDepositWorldY(templateY)) {
-         return fixedY(processedBlockInfo, templateY);
-      }
-
-      if (isBedrockShaftWorldY(templateY)) {
          return fixedY(processedBlockInfo, templateY);
       }
 
@@ -137,11 +131,6 @@ public final class OilWellProjectionProcessor implements StructureProcessor {
       return templateY >= OilStructureDefaults.DEPOSIT_MIN_WORLD_Y && templateY <= OilStructureDefaults.DEPOSIT_MAX_WORLD_Y;
    }
 
-   static boolean isBedrockShaftWorldY(final int templateY) {
-      return templateY >= OilStructureDefaults.BEDROCK_SHAFT_MIN_WORLD_Y
-         && templateY <= OilStructureDefaults.BEDROCK_SHAFT_MAX_WORLD_Y;
-   }
-
    static boolean isConnectorBridgeTemplateY(final int templateY) {
       return templateY >= OilStructureDefaults.CONNECTOR_BRIDGE_TEMPLATE_BASE
          && templateY < OilStructureDefaults.CONNECTOR_BRIDGE_TEMPLATE_BASE + OilStructureDefaults.CONNECTOR_BRIDGE_LAYER_COUNT;
@@ -158,13 +147,6 @@ public final class OilWellProjectionProcessor implements StructureProcessor {
          heightmap = Heightmap.Types.WORLD_SURFACE;
       }
       return level.getHeight(heightmap, x, z) - 1 + templateY;
-   }
-
-   private static int minBuildY(final LevelReader level) {
-      if (level instanceof LevelHeightAccessor heightAccessor) {
-         return heightAccessor.getMinY();
-      }
-      return -64;
    }
 
    //? if >= 26.2 {

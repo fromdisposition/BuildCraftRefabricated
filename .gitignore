@@ -42,3 +42,6 @@ Thumbs.db
 # Decompiler junk at repo root
 /com/
 /net/
+
+# fabric-datagen hash cache (per-machine, not content)
+src/main/generated/.cache/

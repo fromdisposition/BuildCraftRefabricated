@@ -19,10 +19,10 @@ import net.minecraft.world.level.block.state.BlockState;
  * Builds oil deposit NBT templates for jigsaw pools.
  *
  * <p>Well template Y convention ({@link OilWellProjectionProcessor} + gravity):
- * y&ge;0 surface/spout via gravity; deposit body fixed at world {@code -42..-12}; connector bridge
- * ({@code template 100+} &rarr; fixed world Y) then terrain shaft ({@code template -11..-1} &rarr; surface);
- * bedrock shaft {@code -56..-43} on large wells.
- * Shaft width: BC 8.0 medium radius 0 (1 block), large radius 1 (3×3).
+ * y&ge;0 surface/spout via gravity; deposit body fixed-Y with every sphere's bottom resting on
+ * {@code DEPOSIT_BOTTOM_WORLD_Y} (just above bedrock, spring marker one block below); connector bridge
+ * ({@code template 100+} &rarr; fixed world Y) then terrain shaft ({@code template -11..-1} &rarr; surface).
+ * Shaft width: BC 8.0 small/medium radius 0 (1 block), large/giant radius 1 (3×3).
  */
 public final class OilStructureTemplateBuilder {
    private static final Identifier OIL_BLOCK_ID = Identifier.parse("buildcraftenergy:oil");
@@ -40,15 +40,12 @@ public final class OilStructureTemplateBuilder {
       writeLake(cache, structuresDir.resolve("oil_lake_patch_d.nbt"), blocks, 0x51AF1004L, 6, 30);
       writeLake(cache, structuresDir.resolve("oil_lake_patch_e.nbt"), blocks, 0x51AF1005L, 6, 42);
 
-      writeWell(cache, structuresDir.resolve("oil_well_medium_s.nbt"), blocks, 2, 5, 4, 6, 0, false);
-      writeWell(cache, structuresDir.resolve("oil_well_medium_alt.nbt"), blocks, 2, 9, 5, 8, 0, false);
-      writeWell(cache, structuresDir.resolve("oil_well_medium.nbt"), blocks, 2, 11, 6, 10, 0, false);
-      writeWell(cache, structuresDir.resolve("oil_well_medium_l.nbt"), blocks, 2, 14, 7, 12, 0, false);
-
-      writeWell(cache, structuresDir.resolve("oil_well_large_s.nbt"), blocks, 4, 28, 10, 12, 1, true);
-      writeWell(cache, structuresDir.resolve("oil_well_large_m.nbt"), blocks, 4, 31, 12, 14, 1, true);
-      writeWell(cache, structuresDir.resolve("oil_well_large.nbt"), blocks, 4, 35, 14, 18, 1, true);
-      writeWell(cache, structuresDir.resolve("oil_well_large_l.nbt"), blocks, 4, 42, 16, 20, 1, true);
+      // Four unified tiers (~x3 buckets per step: 925 / 3071 / 7153 / 14147). Every sphere bottom rests
+      // on DEPOSIT_BOTTOM_WORLD_Y; large/giant get the 3x3 shaft, spout spire and the spring marker.
+      writeWell(cache, structuresDir.resolve("oil_well_small.nbt"), blocks, 2, 8, 6, 6, 0, false);
+      writeWell(cache, structuresDir.resolve("oil_well_medium.nbt"), blocks, 2, 12, 9, 10, 0, false);
+      writeWell(cache, structuresDir.resolve("oil_well_large.nbt"), blocks, 4, 30, 12, 14, 1, true);
+      writeWell(cache, structuresDir.resolve("oil_well_giant.nbt"), blocks, 4, 40, 15, 18, 1, true);
    }
 
    private static BlockState blockState(final HolderGetter<Block> blocks, final Identifier id) {
@@ -92,9 +89,8 @@ public final class OilStructureTemplateBuilder {
       blitSurfacePattern(entries, pattern, oil);
 
       int center = OilStructureDefaults.TEMPLATE_CENTER;
-      int sphereCenterY = OilStructureDefaults.SPHERE_TEMPLATE_CENTER_Y;
-      int depositMinY = OilStructureDefaults.DEPOSIT_MIN_WORLD_Y;
-      int depositMaxY = OilStructureDefaults.DEPOSIT_MAX_WORLD_Y;
+      // Bottom-anchored: the sphere always rests on the deposit floor, so the centre depends on the radius.
+      int sphereCenterY = OilStructureDefaults.DEPOSIT_BOTTOM_WORLD_Y + sphereRadius;
 
       for (int dx = -sphereRadius; dx <= sphereRadius; dx++) {
          for (int dy = -sphereRadius; dy <= sphereRadius; dy++) {
@@ -102,16 +98,12 @@ public final class OilStructureTemplateBuilder {
                if (dx * dx + dy * dy + dz * dz > sphereRadius * sphereRadius) {
                   continue;
                }
-               int y = sphereCenterY + dy;
-               if (y < depositMinY || y > depositMaxY) {
-                  continue;
-               }
-               entries.add(new StructureTemplateExporter.BlockEntry(center + dx, y, center + dz, oil));
+               entries.add(new StructureTemplateExporter.BlockEntry(center + dx, sphereCenterY + dy, center + dz, oil));
             }
          }
       }
 
-      int sphereTop = Math.min(sphereCenterY + sphereRadius, depositMaxY);
+      int sphereTop = sphereCenterY + sphereRadius;
       if (sphereTop + 1 < OilStructureDefaults.CONNECTOR_MIN_WORLD_Y) {
          blitShaftColumn(entries, center, sphereTop + 1, OilStructureDefaults.CONNECTOR_MIN_WORLD_Y - 1, spoutRadius, oil);
       }
@@ -134,14 +126,7 @@ public final class OilStructureTemplateBuilder {
       );
 
       if (withSpring) {
-         blitShaftColumn(
-            entries,
-            center,
-            OilStructureDefaults.BEDROCK_SHAFT_MIN_WORLD_Y,
-            OilStructureDefaults.BEDROCK_SHAFT_MAX_WORLD_Y,
-            spoutRadius,
-            oil
-         );
+         // Directly under the sphere bottom: the tile's advancement checks that springPos.above() is oil.
          entries.add(new StructureTemplateExporter.BlockEntry(center, OilStructureDefaults.SPRING_TEMPLATE_Y, center, spring));
       }
 

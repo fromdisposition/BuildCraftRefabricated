@@ -45,13 +45,10 @@ final class BCEnergyTemplatePoolsBootstrap {
          new StructureTemplatePool(
             empty,
             ImmutableList.of(
-               Pair.of(well(oilWell, "oil_well_large"), 8),
-               Pair.of(well(oilWell, "oil_well_large_s"), 6),
-               Pair.of(well(oilWell, "oil_well_large_m"), 6),
-               Pair.of(well(oilWell, "oil_well_medium"), 20),
-               Pair.of(well(oilWell, "oil_well_medium_l"), 15),
-               Pair.of(well(oilWell, "oil_well_medium_alt"), 12),
-               Pair.of(well(oilWell, "oil_well_medium_s"), 13)
+               // The giant tier is exclusive to the oil-biome patch pools.
+               Pair.of(well(oilWell, "oil_well_small"), 25),
+               Pair.of(well(oilWell, "oil_well_medium"), 35),
+               Pair.of(well(oilWell, "oil_well_large"), 20)
             ),
             StructureTemplatePool.Projection.RIGID
          )
@@ -59,12 +56,12 @@ final class BCEnergyTemplatePoolsBootstrap {
 
       context.register(
          PATCH_DESERT_START,
-         new StructureTemplatePool(empty, patchDesertElements(oilWell, surfaceGravity), StructureTemplatePool.Projection.RIGID)
+         new StructureTemplatePool(empty, patchElements(oilWell, surfaceGravity), StructureTemplatePool.Projection.RIGID)
       );
 
       context.register(
          PATCH_OCEAN_START,
-         new StructureTemplatePool(empty, patchOceanElements(oilWell, surfaceGravity), StructureTemplatePool.Projection.RIGID)
+         new StructureTemplatePool(empty, patchElements(oilWell, surfaceGravity), StructureTemplatePool.Projection.RIGID)
       );
 
       context.register(
@@ -82,40 +79,16 @@ final class BCEnergyTemplatePoolsBootstrap {
       );
    }
 
-   private static ImmutableList<Pair<Function<StructureTemplatePool.Projection, ? extends StructurePoolElement>, Integer>> patchDesertElements(
+   /** Oil-biome pools (desert and ocean share the composition): richer wells incl. the giant tier, plus lakes. */
+   private static ImmutableList<Pair<Function<StructureTemplatePool.Projection, ? extends StructurePoolElement>, Integer>> patchElements(
       Holder<StructureProcessorList> oilWell,
       Holder<StructureProcessorList> surfaceGravity
    ) {
       return ImmutableList.of(
-         Pair.of(well(oilWell, "oil_well_large"), 8),
-         Pair.of(well(oilWell, "oil_well_large_s"), 6),
-         Pair.of(well(oilWell, "oil_well_large_m"), 3),
-         Pair.of(well(oilWell, "oil_well_large_l"), 3),
-         Pair.of(well(oilWell, "oil_well_medium"), 25),
-         Pair.of(well(oilWell, "oil_well_medium_l"), 15),
-         Pair.of(well(oilWell, "oil_well_medium_alt"), 12),
-         Pair.of(well(oilWell, "oil_well_medium_s"), 8),
-         Pair.of(lake(surfaceGravity, "oil_lake_patch"), 10),
-         Pair.of(lake(surfaceGravity, "oil_lake_patch_b"), 10),
-         Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 10),
-         Pair.of(lake(surfaceGravity, "oil_lake_patch_d"), 10),
-         Pair.of(lake(surfaceGravity, "oil_lake_patch_e"), 10)
-      );
-   }
-
-   private static ImmutableList<Pair<Function<StructureTemplatePool.Projection, ? extends StructurePoolElement>, Integer>> patchOceanElements(
-      Holder<StructureProcessorList> oilWell,
-      Holder<StructureProcessorList> surfaceGravity
-   ) {
-      return ImmutableList.of(
-         Pair.of(well(oilWell, "oil_well_large"), 8),
-         Pair.of(well(oilWell, "oil_well_large_s"), 6),
-         Pair.of(well(oilWell, "oil_well_large_m"), 3),
-         Pair.of(well(oilWell, "oil_well_large_l"), 3),
-         Pair.of(well(oilWell, "oil_well_medium"), 25),
-         Pair.of(well(oilWell, "oil_well_medium_l"), 15),
-         Pair.of(well(oilWell, "oil_well_medium_alt"), 12),
-         Pair.of(well(oilWell, "oil_well_medium_s"), 8),
+         Pair.of(well(oilWell, "oil_well_small"), 20),
+         Pair.of(well(oilWell, "oil_well_medium"), 40),
+         Pair.of(well(oilWell, "oil_well_large"), 14),
+         Pair.of(well(oilWell, "oil_well_giant"), 6),
          Pair.of(lake(surfaceGravity, "oil_lake_patch"), 10),
          Pair.of(lake(surfaceGravity, "oil_lake_patch_b"), 10),
          Pair.of(lake(surfaceGravity, "oil_lake_patch_c"), 10),

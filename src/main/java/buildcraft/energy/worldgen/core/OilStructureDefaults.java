@@ -18,10 +18,18 @@ public final class OilStructureDefaults {
    /** Extra single-block spire above a large well's spout so the tip is clearly visible (blocks). */
    public static final int LARGE_SPOUT_TIP_HEIGHT = 6;
 
-   /** Fixed overworld Y for the underground deposit body (template Y equals world Y). */
-   public static final int DEPOSIT_MIN_WORLD_Y = -42;
-   public static final int DEPOSIT_MAX_WORLD_Y = -12;
-   public static final int SPHERE_TEMPLATE_CENTER_Y = (DEPOSIT_MIN_WORLD_Y + DEPOSIT_MAX_WORLD_Y) / 2;
+   /**
+    * Every deposit sphere sits with its BOTTOM on this Y — one block above the first bedrock (the bedrock
+    * gradient starts at -60, and the jigsaw replaces whatever the template covers, bedrock included, so the
+    * sphere must not reach into it). The sphere centre is radius-dependent: {@code DEPOSIT_BOTTOM_WORLD_Y + r}.
+    */
+   public static final int DEPOSIT_BOTTOM_WORLD_Y = -59;
+   /** Largest sphere radius any well template uses (giant). */
+   public static final int MAX_SPHERE_RADIUS = 15;
+
+   /** Fixed overworld Y band for the underground deposit body (template Y equals world Y). */
+   public static final int DEPOSIT_MIN_WORLD_Y = DEPOSIT_BOTTOM_WORLD_Y;
+   public static final int DEPOSIT_MAX_WORLD_Y = DEPOSIT_BOTTOM_WORLD_Y + 2 * MAX_SPHERE_RADIUS;
 
    /** Connector from deposit top ({@code DEPOSIT_MAX_WORLD_Y + 1}) up to just below the surface film. */
    public static final int CONNECTOR_MIN_WORLD_Y = DEPOSIT_MAX_WORLD_Y + 1;
@@ -35,10 +43,12 @@ public final class OilStructureDefaults {
    public static final int CONNECTOR_TERRAIN_MIN_TEMPLATE_Y = -11;
    public static final int CONNECTOR_TERRAIN_MAX_TEMPLATE_Y = -1;
 
-   /** Bedrock spring marker (pinned to {@code minY} after gravity). */
-   public static final int SPRING_TEMPLATE_Y = -57;
-   public static final int BEDROCK_SHAFT_MIN_WORLD_Y = SPRING_TEMPLATE_Y + 1;
-   public static final int BEDROCK_SHAFT_MAX_WORLD_Y = DEPOSIT_MIN_WORLD_Y - 1;
+   /**
+    * Spring marker, placed at this fixed world Y — directly under the sphere bottom so the tile's
+    * advancement check ({@code springPos.above()} is the last pumped source) can actually pass.
+    * Must stay OUTSIDE the deposit band or the projection decoder would read it as deposit oil.
+    */
+   public static final int SPRING_TEMPLATE_Y = DEPOSIT_BOTTOM_WORLD_Y - 1;
 
    /**
     * Well templates use negative template Y as placement markers (deposit/shaft/spring), but Minecraft's structure
