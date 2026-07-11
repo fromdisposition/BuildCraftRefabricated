@@ -16,6 +16,8 @@ class BcReiDisplay implements Display {
    private final List<EntryIngredient> inputs;
    private final List<EntryIngredient> outputs;
    final List<net.minecraft.network.chat.Component> lines;
+   /** Source recipe object, kept for the transfer handlers (null for view-only displays). */
+   final Object recipe;
 
    BcReiDisplay(
       CategoryIdentifier<? extends BcReiDisplay> category,
@@ -23,10 +25,21 @@ class BcReiDisplay implements Display {
       List<EntryIngredient> outputs,
       List<net.minecraft.network.chat.Component> lines
    ) {
+      this(category, inputs, outputs, lines, null);
+   }
+
+   BcReiDisplay(
+      CategoryIdentifier<? extends BcReiDisplay> category,
+      List<EntryIngredient> inputs,
+      List<EntryIngredient> outputs,
+      List<net.minecraft.network.chat.Component> lines,
+      Object recipe
+   ) {
       this.category = category;
       this.inputs = inputs;
       this.outputs = outputs;
       this.lines = lines;
+      this.recipe = recipe;
    }
 
    @Override

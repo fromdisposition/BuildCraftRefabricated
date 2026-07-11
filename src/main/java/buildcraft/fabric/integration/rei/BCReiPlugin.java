@@ -7,21 +7,43 @@ import buildcraft.energy.recipe.CombustionFuelRecipe;
 import buildcraft.energy.recipe.CoolantRecipe;
 import buildcraft.energy.recipe.SolidCoolantRecipe;
 import buildcraft.factory.BCFactoryItems;
+import buildcraft.factory.gui.GuiAutoCraftItems;
+import buildcraft.factory.gui.GuiDistiller;
+import buildcraft.factory.gui.GuiHeatExchange;
+import buildcraft.factory.integration.jei.HeatExchangerRecipePair;
+import buildcraft.energy.client.gui.GuiEngineIron_BC8;
+import buildcraft.energy.client.gui.GuiEngineStone_BC8;
 import buildcraft.fabric.integration.jei.BCJeiBootstrap;
+import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
+import buildcraft.lib.gui.BcScreen;
+import buildcraft.lib.gui.IGuiElement;
+import buildcraft.lib.gui.elem.GuiElementFluidTank;
+import buildcraft.lib.gui.ledger.Ledger_Neptune;
+import buildcraft.lib.gui.statement.GuiElementStatementSource;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.integration.jei.AssemblyRecipeCollector;
 import buildcraft.silicon.integration.jei.AssemblyRecipeJei;
 import buildcraft.silicon.integration.jei.IntegrationRecipeCollector;
 import buildcraft.silicon.integration.jei.IntegrationRecipeJei;
+import buildcraft.silicon.gui.GuiAdvancedCraftingTable;
+import buildcraft.silicon.gui.GuiAssemblyTable;
+import buildcraft.silicon.gui.GuiIntegrationTable;
+import buildcraft.silicon.gui.GuiProgrammingTable;
 import buildcraft.silicon.integration.jei.ProgrammingRecipeCollector;
 import buildcraft.silicon.integration.jei.ProgrammingRecipeJei;
+import dev.architectury.event.CompoundEventResult;
 import java.util.ArrayList;
 import java.util.List;
+import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
+import me.shedaniel.rei.api.client.registry.screen.ExclusionZones;
+import me.shedaniel.rei.api.client.registry.screen.ScreenRegistry;
+import me.shedaniel.rei.api.client.registry.transfer.TransferHandlerRegistry;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
+import me.shedaniel.rei.plugin.common.BuiltinPlugin;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.Minecraft;
@@ -30,7 +52,10 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
-/** Native REI recipe viewing (view-only, mirroring the JEI categories; reuses its collectors and lang keys). */
+/**
+ * Native REI integration mirroring the JEI plugin: categories/displays reuse its collectors and lang keys,
+ * plus screen click areas, ledger/statement exclusion zones, hovered-tank fluid lookup and recipe transfer.
+ */
 public final class BCReiPlugin implements REIClientPlugin {
    static final CategoryIdentifier<BcReiDisplay> ASSEMBLY = CategoryIdentifier.of("buildcraftsilicon", "assembly_table");
    static final CategoryIdentifier<BcReiDisplay> INTEGRATION = CategoryIdentifier.of("buildcraftsilicon", "integration_table");
@@ -114,6 +139,62 @@ public final class BCReiPlugin implements REIClientPlugin {
       registry.addWorkstations(COMBUSTION_FUEL, EntryStacks.of(new ItemStack(BCEnergyItems.ENGINE_IRON)));
       registry.addWorkstations(COMBUSTION_COOLANT, EntryStacks.of(new ItemStack(BCEnergyItems.ENGINE_IRON)));
       registry.addWorkstations(STIRLING_FUEL, EntryStacks.of(new ItemStack(BCEnergyItems.ENGINE_STONE)));
+      registry.addWorkstations(BuiltinPlugin.CRAFTING,
+         EntryStacks.of(new ItemStack(BCFactoryItems.AUTOWORKBENCH_ITEM)),
+         EntryStacks.of(new ItemStack(BCSiliconItems.ADVANCED_CRAFTING_TABLE)));
+   }
+
+   @Override
+   public void registerScreens(ScreenRegistry registry) {
+      // Same gui-relative rects as the JEI click areas.
+      registry.registerContainerClickArea(new Rectangle(93, 36, 22, 15), GuiAdvancedCraftingTable.class, BuiltinPlugin.CRAFTING);
+      registry.registerContainerClickArea(new Rectangle(90, 48, 23, 10), GuiAutoCraftItems.class, BuiltinPlugin.CRAFTING);
+      registry.registerContainerClickArea(new Rectangle(86, 18, 4, 70), GuiAssemblyTable.class, ASSEMBLY);
+      registry.registerContainerClickArea(new Rectangle(84, 48, 41, 10), GuiIntegrationTable.class, INTEGRATION);
+      registry.registerContainerClickArea(new Rectangle(28, 22, 11, 62), GuiProgrammingTable.class, PROGRAMMING);
+      registry.registerContainerClickArea(new Rectangle(61, 20, 36, 57), GuiDistiller.class, DISTILLER);
+      registry.registerContainerClickArea(new Rectangle(73, 42, 30, 21), GuiHeatExchange.class, HEAT_EXCHANGER);
+      registry.registerContainerClickArea(new Rectangle(81, 25, 14, 14), GuiEngineStone_BC8.class, STIRLING_FUEL);
+      registry.registerContainerClickArea(new Rectangle(44, 22, 34, 52), GuiEngineIron_BC8.class, COMBUSTION_FUEL, COMBUSTION_COOLANT);
+
+      // Hovered fluid tanks become focusable entries (R/U lookups), like JEI's clickable ingredients.
+      registry.registerFocusedStack((screen, mouse) -> {
+         if (screen instanceof BcScreen<?> bcScreen) {
+            for (IGuiElement element : bcScreen.mainGui.shownElements) {
+               if (element instanceof GuiElementFluidTank tankElem
+                  && mouse.x >= tankElem.getX() && mouse.y >= tankElem.getY()
+                  && mouse.x < tankElem.getX() + tankElem.getWidth() && mouse.y < tankElem.getY() + tankElem.getHeight()) {
+                  FluidStorageSnapshot snapshot = FluidStorageSnapshot.of(tankElem.getTankStorage());
+                  if (!snapshot.isEmpty()) {
+                     return CompoundEventResult.interruptTrue(BcRei.fluid(snapshot.fluid()).get(0));
+                  }
+               }
+            }
+         }
+         return CompoundEventResult.pass();
+      });
+   }
+
+   @Override
+   @SuppressWarnings({"unchecked", "rawtypes"})
+   public void registerExclusionZones(ExclusionZones zones) {
+      // Ledgers on every BC screen plus the gate statement-source panels push the REI overlay aside.
+      zones.register(BcScreen.class, (BcScreen screen) -> {
+         List<Rectangle> areas = new ArrayList<>();
+         for (Object obj : screen.mainGui.shownElements) {
+            IGuiElement element = (IGuiElement) obj;
+            if (element instanceof Ledger_Neptune || element instanceof GuiElementStatementSource) {
+               areas.add(new Rectangle((int)element.getX(), (int)element.getY(),
+                  (int)Math.ceil(element.getWidth()), (int)Math.ceil(element.getHeight())));
+            }
+         }
+         return areas;
+      });
+   }
+
+   @Override
+   public void registerTransferHandlers(TransferHandlerRegistry registry) {
+      BcReiTransfer.registerAll(registry);
    }
 
    @Override
@@ -127,7 +208,7 @@ public final class BCReiPlugin implements REIClientPlugin {
             inputs.add(BcRei.itemAlternatives(slot));
          }
          registry.add(new BcReiDisplay(ASSEMBLY, inputs, List.of(BcRei.itemAlternatives(r.outputs())),
-            List.of(powerLine("assembly_table.power", r.microJoules()))));
+            List.of(powerLine("assembly_table.power", r.microJoules())), r));
       }
 
       for (IntegrationRecipeJei r : IntegrationRecipeCollector.collect()) {
@@ -161,7 +242,7 @@ public final class BCReiPlugin implements REIClientPlugin {
                continue;
             }
             registry.add(new BcReiDisplay(DISTILLER, List.of(BcRei.fluid(r.in())), outputs,
-               List.of(powerLine("assembly_table.power", r.powerRequired()))));
+               List.of(powerLine("assembly_table.power", r.powerRequired())), r));
          }
 
          for (IRefineryRecipeManager.IHeatableRecipe h : BuildcraftRecipeRegistry.refineryRecipes.getHeatableRegistry().getAllRecipes()) {
@@ -170,7 +251,7 @@ public final class BCReiPlugin implements REIClientPlugin {
                   registry.add(new BcReiDisplay(HEAT_EXCHANGER,
                      List.of(BcRei.fluid(h.in()), BcRei.fluid(c.in())),
                      List.of(BcRei.fluid(h.out()), BcRei.fluid(c.out())),
-                     List.of()));
+                     List.of(), new HeatExchangerRecipePair(h, c)));
                }
             }
          }
