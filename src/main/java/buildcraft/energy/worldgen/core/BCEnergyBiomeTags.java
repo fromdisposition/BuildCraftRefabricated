@@ -15,18 +15,18 @@ public final class BCEnergyBiomeTags {
     * sector roll ({@code oilOceanPatchChancePercent}).
     */
    public static final TagKey<Biome> OIL_OCEAN = TagKey.create(
-      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_ocean")
+      Registries.BIOME, BCRegistries.id("buildcraftenergy", "has_structure/oil_field_ocean")
    );
    /**
     * Desert/badlands where oil tier routing applies. Tag membership ≠ rich sector;
     * rich sectors use {@code oilDesertRichChancePercent} on 8×8 chunk sectors.
     */
    public static final TagKey<Biome> OIL_DESERT = TagKey.create(
-      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_desert")
+      Registries.BIOME, BCRegistries.id("buildcraftenergy", "has_structure/oil_field_desert")
    );
-   /** Overworld minus excluded biomes; base {@code oil_deposit_normal} tier (includes ocean and desert). */
+   /** Overworld minus excluded biomes; base {@code oil_well} tier (includes ocean and desert). */
    public static final TagKey<Biome> OIL_SPAWN_NORMAL = TagKey.create(
-      Registries.BIOME, BCRegistries.id("buildcraftenergy", "oil_spawn_normal")
+      Registries.BIOME, BCRegistries.id("buildcraftenergy", "has_structure/oil_well")
    );
 
    private BCEnergyBiomeTags() {

@@ -7,7 +7,7 @@
         "processors": "buildcraftenergy:oil_well",
         "projection": "rigid"
       },
-      "weight": 25
+      "weight": 50
     },
     {
       "element": {
@@ -16,7 +16,7 @@
         "processors": "buildcraftenergy:oil_well",
         "projection": "rigid"
       },
-      "weight": 35
+      "weight": 22
     },
     {
       "element": {
@@ -25,7 +25,7 @@
         "processors": "buildcraftenergy:oil_well",
         "projection": "rigid"
       },
-      "weight": 20
+      "weight": 8
     }
   ],
   "fallback": "minecraft:empty"

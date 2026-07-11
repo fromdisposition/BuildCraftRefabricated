@@ -1,13 +1,13 @@
 {
   "placement": {
     "type": "minecraft:random_spread",
-    "salt": 1346811112,
+    "salt": 1346811110,
     "separation": 2,
-    "spacing": 5
+    "spacing": 6
   },
   "structures": [
     {
-      "structure": "buildcraftenergy:oil_deposit_patch_ocean",
+      "structure": "buildcraftenergy:oil_field_desert",
       "weight": 1
     }
   ]

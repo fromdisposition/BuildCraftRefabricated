@@ -3,11 +3,11 @@
     "type": "minecraft:random_spread",
     "salt": 1346811109,
     "separation": 2,
-    "spacing": 8
+    "spacing": 7
   },
   "structures": [
     {
-      "structure": "buildcraftenergy:oil_deposit_patch_desert",
+      "structure": "buildcraftenergy:oil_field_desert",
       "weight": 1
     }
   ]

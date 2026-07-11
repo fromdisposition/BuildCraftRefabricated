@@ -66,9 +66,9 @@ public final class OilStructureDefaults {
    public enum PlacementSet {
       /** BC rarity_filter 667 (~0.15%/chunk on eligible slices). */
       NORMAL(26, 8),
-      /** ~40% fewer patch placements vs 7/5 (spacing² scales grid density). */
-      PATCH_DESERT(8, 2),
-      PATCH_DESERT_DENSE(7, 2),
+      /** Desert grids tightened one step (~+33% attempts) to offset the flatness-gate rejections. */
+      PATCH_DESERT(7, 2),
+      PATCH_DESERT_DENSE(6, 2),
       PATCH_OCEAN(8, 2),
       PATCH_OCEAN_DENSE(5, 2);
 

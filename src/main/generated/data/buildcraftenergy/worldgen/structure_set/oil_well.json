@@ -7,7 +7,7 @@
   },
   "structures": [
     {
-      "structure": "buildcraftenergy:oil_deposit_normal",
+      "structure": "buildcraftenergy:oil_well",
       "weight": 1
     }
   ]

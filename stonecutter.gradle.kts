@@ -206,6 +206,7 @@ stonecutter parameters {
             // Fabric FabricTagProvider.builder(TagKey) was getOrCreateTagBuilder(TagKey) before the 26.x-era API.
             // Scoped to the BC tag-provider call sites (BCEnergyBiomeTags is unique to that file), reverse-safe.
             replace("builder(BCEnergyBiomeTags.", "getOrCreateTagBuilder(BCEnergyBiomeTags.")
+            replace("builder(BCEnergyStructures.", "getOrCreateTagBuilder(BCEnergyStructures.")
             // JEI's recipe-type holder was the concrete class mezz.jei.api.recipe.RecipeType in JEI 19
             // (1.21.1); it became the interface mezz.jei.api.recipe.types.IRecipeType in newer JEI (26.x+).
             // Both expose the same static create(namespace, path, class) factory, so the BC jei integration is

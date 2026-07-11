@@ -5,36 +5,40 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElementType;
 
 public final class BCEnergyStructures {
+   /** Groups every oil structure: {@code /locate structure #buildcraftenergy:oil}. */
+   public static final TagKey<Structure> OIL_TAG = TagKey.create(Registries.STRUCTURE, BCRegistries.id("buildcraftenergy", "oil"));
+
    public static final ResourceKey<Structure> OIL_DEPOSIT_NORMAL = ResourceKey.create(
-      Registries.STRUCTURE, BCRegistries.id("buildcraftenergy", "oil_deposit_normal")
+      Registries.STRUCTURE, BCRegistries.id("buildcraftenergy", "oil_well")
    );
    public static final ResourceKey<Structure> OIL_DEPOSIT_PATCH_DESERT = ResourceKey.create(
-      Registries.STRUCTURE, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_desert")
+      Registries.STRUCTURE, BCRegistries.id("buildcraftenergy", "oil_field_desert")
    );
    public static final ResourceKey<Structure> OIL_DEPOSIT_PATCH_OCEAN = ResourceKey.create(
-      Registries.STRUCTURE, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_ocean")
+      Registries.STRUCTURE, BCRegistries.id("buildcraftenergy", "oil_field_ocean")
    );
 
    public static final ResourceKey<StructureSet> OIL_DEPOSIT_NORMAL_SET = ResourceKey.create(
-      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_deposit_normal")
+      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_well")
    );
    public static final ResourceKey<StructureSet> OIL_DEPOSIT_PATCH_DESERT_SET = ResourceKey.create(
-      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_desert")
+      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_field_desert")
    );
    public static final ResourceKey<StructureSet> OIL_DEPOSIT_PATCH_OCEAN_SET = ResourceKey.create(
-      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_ocean")
+      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_field_ocean")
    );
    public static final ResourceKey<StructureSet> OIL_DEPOSIT_PATCH_DESERT_DENSE_SET = ResourceKey.create(
-      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_desert_dense")
+      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_field_desert_dense")
    );
    public static final ResourceKey<StructureSet> OIL_DEPOSIT_PATCH_OCEAN_DENSE_SET = ResourceKey.create(
-      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_deposit_patch_ocean_dense")
+      Registries.STRUCTURE_SET, BCRegistries.id("buildcraftenergy", "oil_field_ocean_dense")
    );
 
    public static final ResourceKey<Structure> WATER_SPRING = ResourceKey.create(
