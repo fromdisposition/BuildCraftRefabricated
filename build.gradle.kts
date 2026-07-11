@@ -439,15 +439,8 @@ tasks.processResources {
     // never mutates shared source. Refresh the committed assets explicitly via `:26.2:generateAssets`.
 
     val mixinCompatLevel = if (javaRelease >= 25) "JAVA_25" else "JAVA_21"
-    // EMI plugin class exists only on nodes that declare deps.emi (its sources live in versions/1.21.1/java).
-    val emiEntrypoints = if (sc.properties.rawOrNull("deps", "emi") != null) {
-        "\"buildcraft.fabric.integration.emi.BCEmiPlugin\""
-    } else {
-        ""
-    }
     val props = mapOf(
         "mod_version" to version,
-        "emi_entrypoints" to emiEntrypoints,
         "mc_dep_range" to sc.properties.raw("mod", "mc_dep_range").toString(),
         "loader_version" to sc.properties.raw("deps", "loader").toString(),
         "fabric_api_version" to sc.properties.raw("deps", "fabric_api").toString(),
@@ -458,9 +451,10 @@ tasks.processResources {
     inputs.properties(props)
     filesMatching("fabric.mod.json") {
         expand(props)
-        // Nodes without deps.emi drop the entrypoint line entirely — no empty "emi": [] in their jars.
-        if (emiEntrypoints.isEmpty()) {
-            filter { line -> if (line.trim() == "\"emi\": [],") null else line }
+        // The raw file stays valid JSON (Loom parses it before expansion). Nodes without deps.emi drop the
+        // emi entrypoint line entirely — the plugin class only exists on nodes with the dependency.
+        if (sc.properties.rawOrNull("deps", "emi") == null) {
+            filter { line -> if (line.trimStart().startsWith("\"emi\":")) null else line }
         }
     }
     filesMatching("buildcraft.mixins.json") {
