@@ -36,6 +36,7 @@
     "client": [
       "buildcraft.fabric.BuildCraftFabricClient"
     ],
+    "rei_client": ["buildcraft.fabric.integration.rei.BCReiPlugin"],
     "jei_mod_plugin": [
       "buildcraft.core.integration.jei.BCCoreJeiPlugin",
       "buildcraft.energy.integration.jei.BCEnergyJeiPlugin",
@@ -57,6 +58,7 @@
   },
   "suggests": {
     "jei": "*",
+    "roughlyenoughitems": "*",
     "team_reborn_energy": ">=${energy_version}"
   }
 }

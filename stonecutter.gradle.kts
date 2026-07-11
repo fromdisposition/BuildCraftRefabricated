@@ -133,6 +133,9 @@ stonecutter parameters {
         string(current.parsed < "1.21.11") {
             // command argument class was renamed too (ResourceLocationArgument -> IdentifierArgument)
             replace("IdentifierArgument", "ResourceLocationArgument")
+            // REI's CategoryIdentifier is NOT MC's Identifier — the longer identity rule wins over the
+            // delimiter-bounded renames below and keeps the REI API name intact on every node.
+            replace("CategoryIdentifier", "CategoryIdentifier")
             replace("Identifier ", "ResourceLocation ")
             replace("Identifier.", "ResourceLocation.")
             replace("Identifier;", "ResourceLocation;")
@@ -178,6 +181,8 @@ stonecutter parameters {
         // 1.21.10/1.21.11/26.x sources). 1.21.10+ already have the short names, so this block is a no-op there.
         string(current.parsed < "1.21.10") {
             // LevelHeightAccessor.getMaxY()/getMinY() were getMaxBuildHeight()/getMinBuildHeight() on 1.21.1.
+            // REI's Rectangle.getMaxY() must stay untouched — the longer identity rule wins.
+            replace("bounds.getMaxY()", "bounds.getMaxY()")
             replace(".getMaxY()", ".getMaxBuildHeight()")
             replace(".getMinY()", ".getMinBuildHeight()")
             // Minecraft.getDeltaTracker() (DeltaTracker accessor) was getTimer() on 1.21.1.

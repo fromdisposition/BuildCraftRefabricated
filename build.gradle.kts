@@ -41,7 +41,19 @@ base {
 
 repositories {
     maven("https://maven.blamejared.com")
-    maven("https://maven.teamreborn.org")
+    // teamreborn's maven times out on foreign groups — scope every repo so one flaky mirror can never
+    // abort resolution for the others.
+    maven("https://maven.teamreborn.org") {
+        content { includeGroup("teamreborn") }
+    }
+    maven("https://maven.shedaniel.me") {
+        content {
+            includeGroupByRegex("me\\.shedaniel.*")
+        }
+    }
+    maven("https://maven.architectury.dev") {
+        content { includeGroup("dev.architectury") }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -221,6 +233,26 @@ dependencies {
         modCompileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
     } else {
         compileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
+    }
+
+    // REI ships for every node (per-node versions in stonecutter.properties.toml); its own libs
+    // (architectury, cloth-config) come transitively from the REI pom — compile-only either way,
+    // nothing of this reaches the jar or the player. Like JEI/energy, 1.21.x jars are
+    // intermediary-mapped (modCompileOnly remaps), 26.x jars use Mojang names.
+    run {
+        val reiVer = sc.properties.raw("deps", "rei")
+        if (sc.current.parsed < "26.1") {
+            // The 1.21.x REI jar bundles its libs; loom pulls the rest transitively for remapping.
+            modCompileOnly("me.shedaniel:RoughlyEnoughItems-fabric:$reiVer")
+        } else {
+            // The 26.x REI pom marks its libs (architectury, cloth) runtime-scope, which plain compileOnly
+            // ignores. Requesting the module's RUNTIME variant pulls them transitively - one line, no pins.
+            compileOnly("me.shedaniel:RoughlyEnoughItems-fabric:$reiVer") {
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+                }
+            }
+        }
     }
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
