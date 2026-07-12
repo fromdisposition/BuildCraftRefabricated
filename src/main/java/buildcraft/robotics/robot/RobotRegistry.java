@@ -82,8 +82,20 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
          robot.setUniqueRobotId(this.getNextRobotId());
       }
 
-      if (this.robotsLoaded.containsKey(robot.getRobotId())) {
-         BCLog.logger.warn("Robot with id " + robot.getRobotId() + " was not unregistered properly");
+      EntityRobotBase previous = this.robotsLoaded.get(robot.getRobotId());
+      if (previous != null && previous != robot) {
+         if (previous.isRemoved()) {
+            BCLog.logger.warn("Robot with id " + robot.getRobotId() + " was not unregistered properly (old instance removed)");
+         } else {
+            // Two LIVE entities with one id = a duplicated robot entity. The map can only resolve one of them, so
+            // station claims and charging break for the other. Give the newcomer a fresh id so both stay functional;
+            // its station claim self-heals on the next dock (take() re-claims under the new id).
+            long fresh = this.getNextRobotId();
+            BCLog.logger.error("[robots] DUPLICATE robot id " + robot.getRobotId() + ": live instance at "
+               + previous.blockPosition() + " and new one at " + robot.blockPosition()
+               + "; reassigning the new instance id " + fresh);
+            robot.setUniqueRobotId(fresh);
+         }
       }
 
       this.robotsLoaded.put(robot.getRobotId(), robot);

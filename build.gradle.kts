@@ -257,6 +257,20 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.2")
+
+    // fabric-loader is plain `implementation`, so the transformer stack never reaches the runClient/runServer
+    // classpath on its own ("ASM not detected", MixinBootstrap CNFE). runtimeOnly only affects dev run tasks --
+    // nothing of this reaches the jar. sponge-mixin 0.17.3 matches fabric-loader 0.19.3 (0.15.x lacks
+    // IAdviceProvider and crashes at boot).
+    runtimeOnly("org.ow2.asm:asm:9.7.1")
+    runtimeOnly("org.ow2.asm:asm-analysis:9.7.1")
+    runtimeOnly("org.ow2.asm:asm-commons:9.7.1")
+    runtimeOnly("org.ow2.asm:asm-tree:9.7.1")
+    runtimeOnly("org.ow2.asm:asm-util:9.7.1")
+    if (sc.current.parsed < "26.1") {
+        runtimeOnly("net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7")
+        runtimeOnly("io.github.llamalad7:mixinextras-fabric:0.4.1")
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -505,8 +519,10 @@ tasks.named<Test>("test") {
     }
 }
 
-/** Always rebuild from scratch so stale build/resources (e.g. regenerated fluid PNGs) never linger in the JAR. */
-tasks.named("clean") {
+/** Always rebuild from scratch so stale build/resources (e.g. regenerated fluid PNGs) never linger in the JAR.
+ * Typed as Delete: the untyped block bound delete() to Project.delete(), which executed at CONFIGURE time of
+ * EVERY gradle invocation and silently wiped run/ (dev-server worlds, eula, properties) even for unrelated tasks. */
+tasks.named<Delete>("clean") {
     delete(layout.projectDirectory.dir("run"))
     delete(layout.projectDirectory.dir("run_server"))
 }

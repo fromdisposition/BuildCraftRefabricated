@@ -229,7 +229,11 @@ public class EntityRobot extends EntityRobotBase {
       } else {
          double speed = Math.min(buildcraft.robotics.BCRoboticsConfig.flightSpeed.get(), dist);
          Vec3 move = diff.normalize().scale(speed);
-         this.setDeltaMovement(move);
+         // Position-driven flight: leave NO residual velocity for LivingEntity.travel to re-apply next tick.
+         // The double-move (setPos here + physics applying the same delta again) overshot the destination by a
+         // full step every tick, so the final approach ping-ponged around the dock spot at exactly the 0.1
+         // arrival threshold -- the robot hovered "docked" forever, never called dock(), and never charged.
+         this.setDeltaMovement(Vec3.ZERO);
          this.setPos(current.add(move));
       }
    }
