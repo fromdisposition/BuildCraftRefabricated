@@ -129,7 +129,7 @@ Config: `config/buildcraft/buildcraftrefabricated-common.json` → `mjRfConversi
 1. Fabric Loader for Minecraft
 2. Fabric API in `mods/`
 3. BuildCraft Refabricated JAR in `mods/`
-4. Optional: JEI, TechReborn
+4. Optional: JEI or REI, TechReborn
 
 ---
 
