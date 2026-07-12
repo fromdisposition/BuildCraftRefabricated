@@ -4,7 +4,7 @@
 deps.loader = "0.19.3"
 deps.fabric_api = "0.116.7+1.21.1"
 mod.mc_dep_range = ">=1.21 <1.21.2"
-deps.energy = "4.0.0"
+deps.energy = "4.1.0"
 deps.jei = "19.32.0.358"
 deps.rei = "16.0.799"
 
