@@ -1,0 +1,14 @@
+{
+  "type": "buildcraftenergy:oil_field",
+  "biomes": "#buildcraftenergy:has_structure/oil_field_desert",
+  "count": {
+    "type": "minecraft:uniform",
+    "max_inclusive": 9,
+    "min_inclusive": 6
+  },
+  "pool": "buildcraftenergy:oil_field_desert/start",
+  "spawn_overrides": {},
+  "spread_radius": 80,
+  "step": "underground_structures",
+  "tier": "field_desert"
+}

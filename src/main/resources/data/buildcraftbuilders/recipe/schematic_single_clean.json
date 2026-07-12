@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "minecraft:paper",
+    "minecraft:paper",
+    "#c:gems/lapis"
+  ],
+  "result": {
+    "id": "buildcraftbuilders:schematic_single_clean",
+    "count": 4
+  }
+}

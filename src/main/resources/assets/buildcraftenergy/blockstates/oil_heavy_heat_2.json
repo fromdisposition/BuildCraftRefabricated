@@ -1,0 +1,11 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "buildcraftenergy:block/oil_heavy_heat_2",
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

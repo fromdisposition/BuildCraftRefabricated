@@ -1,0 +1,11 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "buildcraftenergy:block/oil",
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

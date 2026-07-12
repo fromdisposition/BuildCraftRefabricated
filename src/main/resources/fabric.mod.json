@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "id": "buildcraftrefabricated",
+  "version": "${mod_version}",
+  "name": "BuildCraft Refabricated",
+  "description": "Unofficial Fabric port of BuildCraft  — pipes, engines, quarries, oil processing, gates, and automation.",
+  "provides": [
+    "buildcraftcore",
+    "buildcraftlib",
+    "buildcraftbuilders",
+    "buildcrafttransport",
+    "buildcraftenergy",
+    "buildcraftfactory",
+    "buildcraftsilicon",
+    "buildcraftrobotics"
+  ],
+  "authors": [
+    "fromdisposition"
+  ],
+  "contributors": [
+    "SpaceToad",
+    "BuildCraft Team",
+    "legoj15"
+  ],
+  "contact": {
+    "homepage": "https://github.com/fromdisposition/BuildCraftRefabricated",
+    "issues": "https://github.com/fromdisposition/BuildCraftRefabricated/issues",
+    "sources": "https://github.com/fromdisposition/BuildCraftRefabricated"
+  },
+  "license": "MPL-2.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "buildcraft.fabric.BuildCraftFabricMod"
+    ],
+    "client": [
+      "buildcraft.fabric.BuildCraftFabricClient"
+    ],
+    "rei_client": ["buildcraft.fabric.integration.rei.BCReiPlugin"],
+    "jei_mod_plugin": [
+      "buildcraft.core.integration.jei.BCCoreJeiPlugin",
+      "buildcraft.energy.integration.jei.BCEnergyJeiPlugin",
+      "buildcraft.factory.integration.jei.BCFactoryJeiPlugin",
+      "buildcraft.silicon.integration.jei.BCSiliconJeiPlugin"
+    ],
+    "fabric-datagen": [
+      "buildcraft.energy.worldgen.datagen.BuildCraftWorldgenDataGenerator"
+    ]
+  },
+  "mixins": [
+    "buildcraft.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${mc_dep_range}",
+    "java": ">=${java_version}",
+    "fabric-api": ">=${fabric_api_version}"
+  },
+  "suggests": {
+    "jei": "*",
+    "roughlyenoughitems": "*",
+    "team_reborn_energy": ">=${energy_version}"
+  }
+}

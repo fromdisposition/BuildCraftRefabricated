@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " s ",
+    "srs",
+    " s "
+  ],
+  "key": {
+    "s": "minecraft:sand",
+    "r": "buildcraftenergy:oil_residue_bucket"
+  },
+  "result": {
+    "id": "buildcraftfactory:water_gel_spawn",
+    "count": 1
+  }
+}

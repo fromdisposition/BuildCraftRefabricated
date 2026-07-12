@@ -1,0 +1,11 @@
+{
+  "fabric:load_conditions": [{ "condition": "fabric:all_mods_loaded", "values": ["team_reborn_energy"] }],
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "buildcrafttransport:pipe_cobble_rf"
+  ],
+  "result": {
+    "id": "buildcrafttransport:pipe_cobble_power"
+  }
+}

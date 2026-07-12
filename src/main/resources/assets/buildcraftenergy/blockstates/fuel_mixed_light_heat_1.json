@@ -1,0 +1,11 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "buildcraftenergy:block/fuel_mixed_light_heat_1",
+        "x": 0,
+        "y": 0
+      }
+    }
+  ]
+}

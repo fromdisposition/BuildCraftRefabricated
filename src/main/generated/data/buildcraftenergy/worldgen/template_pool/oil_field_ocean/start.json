@@ -1,0 +1,86 @@
+{
+  "elements": [
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_small",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 20
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_medium",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 40
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_large",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 14
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_well_giant",
+        "processors": "buildcraftenergy:oil_well",
+        "projection": "rigid"
+      },
+      "weight": 6
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_lake_patch",
+        "processors": "buildcraftenergy:oil_surface_gravity",
+        "projection": "rigid"
+      },
+      "weight": 10
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_lake_patch_b",
+        "processors": "buildcraftenergy:oil_surface_gravity",
+        "projection": "rigid"
+      },
+      "weight": 10
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_lake_patch_c",
+        "processors": "buildcraftenergy:oil_surface_gravity",
+        "projection": "rigid"
+      },
+      "weight": 10
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_lake_patch_d",
+        "processors": "buildcraftenergy:oil_surface_gravity",
+        "projection": "rigid"
+      },
+      "weight": 10
+    },
+    {
+      "element": {
+        "element_type": "buildcraftenergy:oil_deposit",
+        "location": "buildcraftenergy:oil_lake_patch_e",
+        "processors": "buildcraftenergy:oil_surface_gravity",
+        "projection": "rigid"
+      },
+      "weight": 10
+    }
+  ],
+  "fallback": "minecraft:empty"
+}

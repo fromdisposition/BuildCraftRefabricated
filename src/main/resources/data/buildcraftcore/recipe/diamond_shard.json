@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "D"
+  ],
+  "key": {
+    "D": "#c:gems/diamond"
+  },
+  "result": {
+    "id": "buildcraftcore:diamond_shard",
+    "count": 4
+  }
+}

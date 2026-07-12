@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "buildcraft_gears",
+  "pattern": [
+    " c ",
+    "cGc",
+    " c "
+  ],
+  "key": {
+    "c": "#minecraft:stone_crafting_materials",
+    "G": "#c:gears/wooden"
+  },
+  "result": {
+    "id": "buildcraftcore:gear_stone"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftfactory:tank"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.fluid_storage.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.fluid_storage.description"
+    }
+  },
+  "parent": "buildcraftcore:root",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

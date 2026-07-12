@@ -1,0 +1,63 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcrafttransport:pipe_wood_item",
+      "buildcrafttransport:pipe_wood_fluid",
+      "buildcrafttransport:pipe_wood_power",
+      "buildcrafttransport:pipe_cobble_item",
+      "buildcrafttransport:pipe_cobble_fluid",
+      "buildcrafttransport:pipe_cobble_power",
+      "buildcrafttransport:pipe_stone_item",
+      "buildcrafttransport:pipe_stone_fluid",
+      "buildcrafttransport:pipe_stone_power",
+      "buildcrafttransport:pipe_sandstone_item",
+      "buildcrafttransport:pipe_sandstone_fluid",
+      "buildcrafttransport:pipe_sandstone_power",
+      "buildcrafttransport:pipe_quartz_item",
+      "buildcrafttransport:pipe_quartz_fluid",
+      "buildcrafttransport:pipe_quartz_power",
+      "buildcrafttransport:pipe_iron_item",
+      "buildcrafttransport:pipe_iron_fluid",
+      "buildcrafttransport:pipe_iron_power",
+      "buildcrafttransport:pipe_gold_item",
+      "buildcrafttransport:pipe_gold_fluid",
+      "buildcrafttransport:pipe_gold_power",
+      "buildcrafttransport:pipe_diamond_item",
+      "buildcrafttransport:pipe_diamond_fluid",
+      "buildcrafttransport:pipe_diamond_power",
+      "buildcrafttransport:pipe_diamond_wood_item",
+      "buildcrafttransport:pipe_diamond_wood_fluid",
+      "buildcrafttransport:pipe_diamond_wood_power",
+      "buildcrafttransport:pipe_clay_item",
+      "buildcrafttransport:pipe_clay_fluid",
+      "buildcrafttransport:pipe_obsidian_item",
+      "buildcrafttransport:pipe_void_item",
+      "buildcrafttransport:pipe_void_fluid",
+      "buildcrafttransport:pipe_lapis_item",
+      "buildcrafttransport:pipe_daizuli_item",
+      "buildcrafttransport:pipe_emzuli_item",
+      "buildcrafttransport:pipe_stripes_item",
+      "buildcrafttransport:pipe_structure",
+      "buildcrafttransport:pipe_sealant",
+      "buildcrafttransport:pipe_sealant_from_green_dye"
+    ]
+  },
+  "criteria": {
+    "has_glass": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:glass_blocks/colorless"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_glass"
+    ]
+  ]
+}

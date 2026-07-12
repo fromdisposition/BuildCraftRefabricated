@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "buildcraftcore:engine_redstone",
+    "buildcraftcore:engine_creative",
+    "buildcraftenergy:engine_stone",
+    "buildcraftenergy:engine_iron",
+    "buildcraftfactory:heat_exchange"
+  ]
+}

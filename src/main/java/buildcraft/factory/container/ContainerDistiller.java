@@ -1,0 +1,96 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.factory.container;
+
+import buildcraft.factory.BCFactoryMenuTypes;
+import buildcraft.factory.tile.TileDistiller;
+import buildcraft.lib.fabric.menu.MenuBlockEntityLookup;
+import buildcraft.lib.gui.BcMenu;
+import buildcraft.lib.gui.slot.SlotBase;
+import buildcraft.lib.gui.widget.WidgetFluidTank;
+import buildcraft.lib.tile.ItemHandlerSimple;
+import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+
+public class ContainerDistiller extends BcMenu {
+   private static final ItemHandlerSimple FALLBACK_SLOTS = createFallbackSlots();
+   public final TileDistiller tile;
+   public final WidgetFluidTank widgetTankIn;
+   public final WidgetFluidTank widgetTankGasOut;
+   public final WidgetFluidTank widgetTankLiquidOut;
+
+   public ContainerDistiller(int containerId, Inventory playerInv, BlockPos pos) {
+      this(containerId, playerInv, MenuBlockEntityLookup.get(playerInv, pos, TileDistiller.class));
+   }
+
+   public ContainerDistiller(int containerId, Inventory playerInv, TileDistiller tile) {
+      super(BCFactoryMenuTypes.DISTILLER, containerId, playerInv.player);
+      this.tile = tile;
+      ItemHandlerSimple machineSlots = tile != null ? tile.containerSlots : FALLBACK_SLOTS;
+      this.addSlot(new SlotBase(machineSlots, 0, 8, 43));
+      this.addSlot(new SlotBase(machineSlots, 1, 152, 18));
+      this.addSlot(new SlotBase(machineSlots, 2, 152, 63));
+      this.addFullPlayerInventory(8, 95);
+      this.widgetTankIn = this.addWidget(new WidgetFluidTank(this, tile != null ? tile.getTankIn() : null));
+      this.widgetTankGasOut = this.addWidget(new WidgetFluidTank(this, tile != null ? tile.getTankGasOut() : null));
+      this.widgetTankLiquidOut = this.addWidget(new WidgetFluidTank(this, tile != null ? tile.getTankLiquidOut() : null));
+   }
+
+   private static ItemHandlerSimple createFallbackSlots() {
+      ItemHandlerSimple slots = new ItemHandlerSimple(3, 1);
+      slots.setChecker((slot, stack) -> false);
+      return slots;
+   }
+
+   @Override
+   @Nullable
+   protected ItemHandlerSimple getJeiBucketTransferSlots() {
+      return this.tile != null ? this.tile.containerSlots : null;
+   }
+
+   @Override
+   public boolean stillValid(Player player) {
+      return this.tile != null && Container.stillValidBlockEntity(this.tile, player);
+   }
+
+   @Override
+   public ItemStack quickMoveStack(Player player, int index) {
+      ItemStack itemstack = ItemStack.EMPTY;
+      Slot slot = (Slot)this.slots.get(index);
+      if (slot != null && slot.hasItem()) {
+         ItemStack itemstack1 = slot.getItem();
+         itemstack = itemstack1.copy();
+         if (index < 3) {
+            if (!this.moveItemStackTo(itemstack1, 3, 39, true)) {
+               return ItemStack.EMPTY;
+            }
+         } else if (!this.moveItemStackTo(itemstack1, 0, 3, false)) {
+            return ItemStack.EMPTY;
+         }
+
+         if (itemstack1.isEmpty()) {
+            slot.set(ItemStack.EMPTY);
+         } else {
+            slot.setChanged();
+         }
+
+         if (itemstack1.getCount() == itemstack.getCount()) {
+            return ItemStack.EMPTY;
+         }
+
+         slot.onTake(player, itemstack1);
+      }
+
+      return itemstack;
+   }
+}

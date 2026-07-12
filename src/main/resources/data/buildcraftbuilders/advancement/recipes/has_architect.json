@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftbuilders:replacer"
+    ]
+  },
+  "criteria": {
+    "has_architect": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftbuilders:architect"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_architect"
+    ]
+  ]
+}

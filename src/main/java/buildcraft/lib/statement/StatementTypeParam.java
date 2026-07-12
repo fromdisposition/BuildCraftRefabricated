@@ -1,0 +1,75 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.lib.statement;
+
+import buildcraft.lib.nbt.BcNbt;
+import net.minecraft.network.FriendlyByteBuf;
+import buildcraft.api.core.BCLog;
+import buildcraft.api.statements.IStatementParameter;
+import buildcraft.api.statements.StatementManager;
+import buildcraft.lib.net.PacketBufferBC;
+import net.minecraft.nbt.CompoundTag;
+
+public class StatementTypeParam extends StatementType<IStatementParameter> {
+   public static final StatementTypeParam INSTANCE = new StatementTypeParam();
+
+   public StatementTypeParam() {
+      super(IStatementParameter.class, null);
+   }
+
+   public IStatementParameter convertToType(Object value) {
+      return value instanceof IStatementParameter ? (IStatementParameter)value : null;
+   }
+
+   public IStatementParameter readFromNbt(CompoundTag nbt) {
+      String kind = BcNbt.getString(nbt, "kind", "");
+      StatementManager.IParameterReader reader = StatementManager.getParameterReader(kind);
+      return reader == null ? null : reader.readFromNbt(nbt);
+   }
+
+   public CompoundTag writeToNbt(IStatementParameter slot) {
+      CompoundTag nbt = new CompoundTag();
+      if (slot != null) {
+         slot.writeToNbt(nbt);
+         nbt.putString("kind", slot.getUniqueTag());
+      }
+
+      return nbt;
+   }
+
+   public IStatementParameter readFromBuffer(FriendlyByteBuf buffer) {
+      if (buffer.readBoolean()) {
+         String tag = buffer.readUtf();
+         // The payload is length-prefixed so an unknown parameter type can be SKIPPED cleanly: bailing without
+         // consuming its bytes desynced every later read in the same FullStatement payload.
+         byte[] payload = buffer.readByteArray();
+         StatementManager.IParamReaderBuf reader = StatementManager.paramsBuf.get(tag);
+         if (reader == null) {
+            BCLog.logger.warn("[statement] Unknown parameter type '{}'", tag);
+            return null;
+         } else {
+            return reader.readFromBuf(new FriendlyByteBuf(io.netty.buffer.Unpooled.wrappedBuffer(payload)));
+         }
+      } else {
+         return null;
+      }
+   }
+
+   public void writeToBuffer(FriendlyByteBuf buffer, IStatementParameter slot) {
+      if (slot == null) {
+         buffer.writeBoolean(false);
+      } else {
+         buffer.writeBoolean(true);
+         buffer.writeUtf(slot.getUniqueTag());
+         FriendlyByteBuf payload = new FriendlyByteBuf(io.netty.buffer.Unpooled.buffer());
+         slot.writeToBuf(payload);
+         byte[] bytes = new byte[payload.readableBytes()];
+         payload.readBytes(bytes);
+         buffer.writeByteArray(bytes);
+      }
+   }
+}

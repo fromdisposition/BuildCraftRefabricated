@@ -1,0 +1,8 @@
+{
+  "processors": [
+    {
+      "offset": -1,
+      "processor_type": "minecraft:gravity"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "fabric:type": "buildcraftlib:variable",
+  "textures": {
+    "#back": "buildcraftenergy:block/engine/fe_back",
+    "#side": "buildcraftenergy:block/engine/fe_side"
+  },
+  "parent": "buildcraftlib:models/compat/engine_base"
+}

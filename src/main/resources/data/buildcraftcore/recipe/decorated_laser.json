@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "sss",
+    "scs",
+    "sss"
+  ],
+  "key": {
+    "s": "minecraft:obsidian",
+    "c": "minecraft:redstone_block"
+  },
+  "result": {
+    "id": "buildcraftcore:decorated_laser",
+    "count": 16
+  }
+}

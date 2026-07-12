@@ -1,0 +1,151 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.factory.entity;
+
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.network.syncher.SynchedEntityData.Builder;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
+//? if >= 1.21.10 {
+import net.minecraft.world.entity.InterpolationHandler;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+//?}
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+
+/** Invisible collider for miner/pump shafts — same pattern as {@link buildcraft.builders.entity.EntityQuarryRig}. */
+public class EntityMinerShaft extends Entity {
+   private static final EntityDataAccessor<Float> SIZE_X = SynchedEntityData.defineId(EntityMinerShaft.class, EntityDataSerializers.FLOAT);
+   private static final EntityDataAccessor<Float> SIZE_Y = SynchedEntityData.defineId(EntityMinerShaft.class, EntityDataSerializers.FLOAT);
+   private static final EntityDataAccessor<Float> SIZE_Z = SynchedEntityData.defineId(EntityMinerShaft.class, EntityDataSerializers.FLOAT);
+
+   public EntityMinerShaft(EntityType<?> type, Level level) {
+      super(type, level);
+      this.noPhysics = true;
+      // Never frustum-cull this invisible collision shaft (see EntityQuarryRig). >= 1.21.10 uses the renderer's
+      // affectedByCulling()=false (set in BCFactoryFabricClient); 1.21.1 uses Entity.noCulling.
+      //? if < 1.21.10 {
+      /*this.noCulling = true;
+      *///?}
+   }
+
+   @Override
+   protected void defineSynchedData(Builder builder) {
+      builder.define(SIZE_X, 0.0F);
+      builder.define(SIZE_Y, 0.0F);
+      builder.define(SIZE_Z, 0.0F);
+   }
+
+   //? if >= 1.21.10 {
+   @Override
+   protected void readAdditionalSaveData(ValueInput input) {
+   }
+
+   @Override
+   protected void addAdditionalSaveData(ValueOutput output) {
+   }
+   //?} else {
+   /*@Override
+   public void readAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+   }
+
+   @Override
+   public void addAdditionalSaveData(net.minecraft.nbt.CompoundTag tag) {
+   }
+   *///?}
+
+   @Override
+   public boolean shouldBeSaved() {
+      return false;
+   }
+
+   //? if >= 1.21.10 {
+   @Override
+   protected AABB makeBoundingBox(Vec3 position) {
+      float halfX = this.entityData.get(SIZE_X) / 2.0F;
+      float halfY = this.entityData.get(SIZE_Y) / 2.0F;
+      float halfZ = this.entityData.get(SIZE_Z) / 2.0F;
+      return halfX <= 0.0F
+         ? super.makeBoundingBox(position)
+         : new AABB(position.x - halfX, position.y - halfY, position.z - halfZ, position.x + halfX, position.y + halfY, position.z + halfZ);
+   }
+   //?} else {
+   /*@Override
+   protected AABB makeBoundingBox() {
+      Vec3 position = this.position();
+      float halfX = this.entityData.get(SIZE_X) / 2.0F;
+      float halfY = this.entityData.get(SIZE_Y) / 2.0F;
+      float halfZ = this.entityData.get(SIZE_Z) / 2.0F;
+      return halfX <= 0.0F
+         ? super.makeBoundingBox()
+         : new AABB(position.x - halfX, position.y - halfY, position.z - halfZ, position.x + halfX, position.y + halfY, position.z + halfZ);
+   }
+   *///?}
+
+   //? if >= 1.21.10 {
+   @Override
+   public boolean canBeCollidedWith(Entity other) {
+      return true;
+   }
+   //?} else {
+   /*@Override
+   public boolean canBeCollidedWith() {
+      return true;
+   }
+   *///?}
+
+   @Override
+   public boolean isPickable() {
+      return true;
+   }
+
+   @Override
+   public boolean isPushable() {
+      return false;
+   }
+
+   // Snap to each synced position instead of the default 3-tick client interpolation, so the collider tracks the
+   // shaft tightly as it extends (see EntityQuarryRig — same moving-collision-platform desync).
+   //? if >= 1.21.10 {
+   private final InterpolationHandler interpolation = new InterpolationHandler(this, 0);
+
+   @Override
+   public InterpolationHandler getInterpolation() {
+      return this.interpolation;
+   }
+   //?} else {
+   /*@Override
+   public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
+      this.setPos(x, y, z);
+   }
+   *///?}
+
+   //? if >= 1.21.10 {
+   @Override
+   public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+      return false;
+   }
+   //?} else {
+   /*@Override
+   public boolean hurt(DamageSource source, float amount) {
+      return false;
+   }
+   *///?}
+
+   public void setShaftBox(AABB box) {
+      this.entityData.set(SIZE_X, (float)(box.maxX - box.minX));
+      this.entityData.set(SIZE_Y, (float)(box.maxY - box.minY));
+      this.entityData.set(SIZE_Z, (float)(box.maxZ - box.minZ));
+      this.setPos((box.minX + box.maxX) / 2.0, (box.minY + box.maxY) / 2.0, (box.minZ + box.maxZ) / 2.0);
+   }
+}
