@@ -19,7 +19,6 @@ import buildcraft.lib.tile.TileMarker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import java.util.List;
-import javax.annotation.Nonnull;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
@@ -30,7 +29,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import buildcraft.lib.nbt.BcValueIn;
 import buildcraft.lib.nbt.BcValueOut;
-import net.minecraft.world.phys.AABB;
 
 public class TileMarkerVolume extends TileMarker<VolumeConnection> implements ITileAreaProvider {
    private static final Identifier ADVANCEMENT_MARKERS = Identifier.parse("buildcraftcore:markers");
@@ -68,18 +66,6 @@ public class TileMarkerVolume extends TileMarker<VolumeConnection> implements IT
          this.showSignals = !this.showSignals;
          this.setChanged();
       }
-   }
-
-   @Nonnull
-   public AABB getRenderBoundingBox() {
-      return new AABB(
-         Double.NEGATIVE_INFINITY,
-         Double.NEGATIVE_INFINITY,
-         Double.NEGATIVE_INFINITY,
-         Double.POSITIVE_INFINITY,
-         Double.POSITIVE_INFINITY,
-         Double.POSITIVE_INFINITY
-      );
    }
 
    public void onManualConnectionAttempt(Player player) {

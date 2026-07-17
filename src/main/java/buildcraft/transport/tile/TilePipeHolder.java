@@ -310,6 +310,15 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       this.scheduleRenderUpdate = true;
    }
 
+   /** Server-side chunk-unload notification (wired to Fabric's BLOCK_ENTITY_UNLOAD in BCTransportFabric). */
+   public void onChunkUnload() {
+      for (PipePluggable plug : this.pluggables) {
+         if (plug != null) {
+            plug.onChunkUnload();
+         }
+      }
+   }
+
    /** The model key snapshot the section was last meshed with; see {@link #refreshClientModel()}. */
    private Object lastChunkModelKey;
 

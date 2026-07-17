@@ -70,6 +70,9 @@ public final class BCTransportFabric {
       ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((blockEntity, level) -> {
          if (blockEntity instanceof TilePipeHolder pipeHolder) pipeHolder.onLoad();
       });
+      ServerBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, level) -> {
+         if (blockEntity instanceof TilePipeHolder pipeHolder) pipeHolder.onChunkUnload();
+      });
       ServerTickEvents.END_SERVER_TICK.register((EndTick)server -> {
          PipeItemMessageQueue.serverTick();
          PipePayloadMessageQueue.serverTick();

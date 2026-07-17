@@ -109,6 +109,14 @@ public abstract class PipePluggable {
    public void onRemove() {
    }
 
+   /**
+    * Called on the server when the holder block entity unloads with its chunk (NOT when the pluggable is broken --
+    * that is {@link #onRemove()}). Pluggables that hand references to the holder to long-lived registries (e.g. the
+    * robot docking station) must drop them here, or the next lookup sees a removed block entity.
+    */
+   public void onChunkUnload() {
+   }
+
    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
       ItemStack stack = this.getPickStack();
       if (!stack.isEmpty()) {

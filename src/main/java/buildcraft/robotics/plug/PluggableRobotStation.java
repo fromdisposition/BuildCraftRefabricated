@@ -140,6 +140,15 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
       this.station = null;
    }
 
+   @Override
+   public void onChunkUnload() {
+      // The station outlives this pluggable in the robot registry; drop its reference to the now-removed holder
+      // so the next getPipe() re-resolves through the level instead of self-deleting on a stale isRemoved() hit.
+      if (this.station != null) {
+         this.station.onChunkUnload();
+      }
+   }
+
    /** Set once the station throws while ticking (usually a legacy/corrupt state); it then stops ticking instead of
     * crashing the pipe every tick. */
    private boolean tickFaulted;

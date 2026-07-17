@@ -497,21 +497,4 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
    public boolean getIsValid() {
       return this.isValid;
    }
-
-   public AABB getRenderBoundingBox() {
-      if (this.box.isInitialized()) {
-         BlockPos min = this.box.min();
-         BlockPos max = this.box.max();
-         return new AABB(
-            Math.min(this.worldPosition.getX(), min.getX()),
-            Math.min(this.worldPosition.getY(), min.getY()),
-            Math.min(this.worldPosition.getZ(), min.getZ()),
-            Math.max(this.worldPosition.getX() + 1, max.getX() + 1),
-            Math.max(this.worldPosition.getY() + 1, max.getY() + 1),
-            Math.max(this.worldPosition.getZ() + 1, max.getZ() + 1)
-         );
-      } else {
-         return new AABB(this.worldPosition);
-      }
-   }
 }
