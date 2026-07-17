@@ -10,7 +10,6 @@
     "ShapelessRecipeAccessor"
   ],
   "client": [
-    "client.ItemTintSourcesBootstrapMixin",
     "client.GhostSlotsInvokerMixin",
     "client.ClientLevelParticleMixin",
     "client.GuiGraphicsExtractorAccessor",
