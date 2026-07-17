@@ -29,6 +29,13 @@ import org.spongepowered.asm.mixin.Mixin;
  * on 1.21.1 (no BakingResult/ItemModel split) it redirects ModelManager.apply's
  * ModelBakery.getBakedTopLevelModels() call into a mutable copy, lets listeners swap entries, and returns it
  * (so the mutated map becomes ModelManager.bakedRegistry).
+ *
+ * <p>Not replaceable by Fabric's model-loading API: the per-item half would map onto
+ * {@code ModelLoadingPlugin.Context.modifyItemModelAfterBake()}, but the listener also needs the COMPLETE baked
+ * {@code blockStateModels()} map in one shot -- {@code FacadeDeduplicator} compares every block-state model
+ * against every other to collapse visually identical facades. {@code ModelModifier.AfterBakeBlock} is per-model
+ * and {@code FabricModelManager} only exposes extra models, so neither can hand over that global view; splitting
+ * just the item half out would leave this mixin in place anyway.
  */
 @Mixin(ModelManager.class)
 public class ModelManagerMixin {

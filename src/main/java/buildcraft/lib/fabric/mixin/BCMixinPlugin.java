@@ -28,10 +28,8 @@ public class BCMixinPlugin implements IMixinConfigPlugin {
       /*// 1.21.1 has no Fabric UnbakedModelDeserializer, so vanilla's bulk model pre-load chokes on BC's
       // "buildcraftlib:variable" engine models; this mixin skips them at parse time (see the mixin javadoc).
       return List.of("client.BlockModelVariableSkipMixin");
-      *///?} else if < 26.2 {
-      /*return List.of();
       *///?} else {
-      return List.of("client.LevelExtractorMixin");
+      return List.of();
       //?}
    }
 

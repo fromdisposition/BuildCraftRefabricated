@@ -379,30 +379,12 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       return tag;
    }
 
-   //? if >= 1.21.10 {
-   public void handleUpdateTag(ValueInput input) {
-      this.applyClientUpdateData(new BcValueIn(input));
-      this.refreshClientModel();
-   }
-
-   public void onDataPacket(Connection net, ValueInput input) {
-      this.applyClientUpdateData(new BcValueIn(input));
-      this.refreshClientModel();
-   }
-   //?} else {
-   /*public void handleUpdateTag(CompoundTag tag, Provider registries) {
-      this.applyClientUpdateData(new BcValueIn(tag, registries));
-      this.refreshClientModel();
-   }
-
-   public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, Provider registries) {
-      CompoundTag t = pkt.getTag();
-      if (t != null) {
-         this.applyClientUpdateData(new BcValueIn(t, registries));
-         this.refreshClientModel();
-      }
-   }
-   *///?}
+   // NOTE: no handleUpdateTag/onDataPacket overrides here on purpose. Neither is a BlockEntity method modern
+   // Minecraft calls -- the update packet is applied through loadAdditional (which reads "plugs" AND, at its end,
+   // the client-only "plugsClient" state). Re-adding them is worse than dead code: a loader that DOES call them
+   // (NeoForge, i.e. anything running this jar through Sinytra Connector) routes the packet into them INSTEAD of
+   // loadAdditional, so only "plugsClient" gets applied and the pluggables themselves are never created client
+   // side -- gates and facades then never render and their GUIs open with a null gate.
 
    private void applyClientUpdateData(BcValueIn input) {
       input.read("plugsClient", CompoundTag.CODEC).ifPresent(plugsClient -> {

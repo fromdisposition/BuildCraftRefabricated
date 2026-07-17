@@ -124,12 +124,8 @@ public final class PipePlacementHighlight {
    /*private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
       @Override
       public boolean render(
-         BlockOutlineRenderState renderState, BufferSource buffer, PoseStack poseStack, boolean translucentPass, LevelRenderState levelRenderState
+         BlockOutlineRenderState renderState, BufferSource buffer, PoseStack poseStack, LevelRenderState levelRenderState
       ) {
-         if (translucentPass != renderState.isTranslucent()) {
-            return false;
-         }
-
          Vec3 cam = levelRenderState.cameraRenderState.pos;
          BlockPos pos = renderState.pos();
          VertexConsumer lines = buffer.getBuffer(BCLibRenderTypes.lines());

@@ -18,6 +18,7 @@ import buildcraft.lib.gui.statement.GuiElementStatementDrag;
 import buildcraft.lib.gui.statement.GuiElementStatementParam;
 import buildcraft.lib.gui.statement.GuiElementStatementSource;
 import buildcraft.silicon.container.ContainerGate;
+import buildcraft.silicon.gate.GateLogic;
 import net.minecraft.client.Minecraft;
 //? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
@@ -286,8 +287,14 @@ public class GuiGate extends BcScreen<ContainerGate> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      String titleStr = ((ContainerGate)this.menu).gate.variant.getLocalizedName().getString();
-      graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
+      // The gate is null when this side could not resolve the pluggable (see ContainerGate); every other draw
+      // path here already guards for it, this one did not and took the whole screen render down with an NPE.
+      GateLogic gate = ((ContainerGate)this.menu).gate;
+      if (gate != null) {
+         String titleStr = gate.variant.getLocalizedName().getString();
+         graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
+      }
+
       String invStr = Component.translatable("container.inventory").getString();
       graphics.text(this.font, invStr, 8, 16 + this.numRows * 18 + 4, -12566464, false);
    }

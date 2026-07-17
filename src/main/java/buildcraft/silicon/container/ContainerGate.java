@@ -78,6 +78,11 @@ public class ContainerGate extends BcMenu {
          this.possibleActions = new TreeSet<>();
          this.possibleTriggersContext = new GateContext<>(new ArrayList<>());
          this.possibleActionsContext = new GateContext<>(new ArrayList<>());
+         // Only this side failed to resolve the gate (the other side opened the menu, so it has one) -- but both
+         // sides must still agree on the slot list, because the server sends one stack per slot it built. Leaving
+         // the inventory out here made the client menu slot-less, so initializeContents indexed slot 0 of an empty
+         // list, threw, and DISCONNECTED the player. With the slots present a failed resolve is just an inert GUI.
+         this.addFullPlayerInventory(8, 32);
       } else {
          this.gate = pluggable.logic;
          this.pipeHolder = pluggable.holder;

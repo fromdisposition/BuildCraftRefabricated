@@ -6,6 +6,8 @@ import buildcraft.energy.platform.BCEnergyFabricClient;
 import buildcraft.fabric.network.BCNetworkingRegistryClient;
 import buildcraft.factory.platform.BCFactoryFabricClient;
 import buildcraft.lib.fabric.client.BCClientBlockEntityLifecycleEvents;
+import buildcraft.lib.fabric.client.BlockOutlineRegistration;
+import buildcraft.lib.fabric.client.PictureInPictureRegistration;
 import buildcraft.lib.marker.MarkerCache;
 import buildcraft.robotics.platform.BCRoboticsFabricClient;
 import buildcraft.silicon.platform.BCSiliconFabricClient;
@@ -30,17 +32,9 @@ public class BuildCraftFabricClient implements ClientModInitializer {
       BCSiliconFabricClient.init();
       BCRoboticsFabricClient.init();
       BCLibFabricClient.init();
-      registerLegacyPictureInPictureHooks();
-   }
-
-   private static void registerLegacyPictureInPictureHooks() {
-      try {
-         Class.forName("buildcraft.lib.fabric.client.PictureInPictureLegacyRegistration")
-            .getMethod("register")
-            .invoke(null);
-      } catch (ClassNotFoundException ignored) {
-      } catch (ReflectiveOperationException e) {
-         throw new IllegalStateException("Failed to register 1.21.x picture-in-picture renderers", e);
-      }
+      // Per-version classes: both APIs differ by name/context across MC versions and are absent on the oldest
+      // nodes, which shadow them with no-op stubs. See versions/{1.21.1,_lt_26.1,_ge_1.21.10_lt_26.1,_ge_26.1}.
+      PictureInPictureRegistration.register();
+      BlockOutlineRegistration.install();
    }
 }

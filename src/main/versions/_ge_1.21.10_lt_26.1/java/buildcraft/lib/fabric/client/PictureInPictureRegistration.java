@@ -6,12 +6,13 @@ import buildcraft.robotics.client.render.pip.ZoneMapPipRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry;
 
 /**
- * 1.21.x registers PiP renderers through Fabric's {@link SpecialGuiElementRegistry}; 26.x hooks
- * {@code GameRenderer} directly via mixin. Loaded only on 1.21.x builds via reflection from
- * {@link buildcraft.fabric.BuildCraftFabricClient}.
+ * 1.21.x names the PiP registry {@link SpecialGuiElementRegistry}; 26.x renamed it to
+ * {@code PictureInPictureRendererRegistry} (see the _ge_26.1 copy). Loaded via reflection from
+ * {@link buildcraft.fabric.BuildCraftFabricClient}, which skips nodes without this class -- 1.21.1 has no
+ * picture-in-picture system at all.
  */
-public final class PictureInPictureLegacyRegistration {
-   private PictureInPictureLegacyRegistration() {
+public final class PictureInPictureRegistration {
+   private PictureInPictureRegistration() {
    }
 
    public static void register() {

@@ -4,21 +4,27 @@ import buildcraft.lib.nbt.BcAuth;
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.core.IFakePlayerProvider;
 import com.mojang.authlib.GameProfile;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.entity.FakePlayer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStopping;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
+/**
+ * Hands BC machines a fake player, straight from Fabric's {@link FakePlayer} cache.
+ *
+ * <p>Deliberately keeps no cache of its own. Fabric already caches per <em>(level, profile)</em> in a concurrent,
+ * {@code weakValues()} map, which is exactly the right shape: a BC-side map keyed by profile alone handed every
+ * level the first level's player (so a machine in another dimension dragged it across with a teleport, every
+ * single check, in loops as hot as the quarry frame scanner), was not thread-safe, and -- by holding strong
+ * references -- pinned every fake player, and through it its ServerLevel, alive until the server stopped.
+ *
+ * <p>Because Fabric's cache is per level, the player handed back always belongs to {@code level}; positioning it
+ * is a plain setPos, never a cross-dimension teleport.
+ */
 public final class BCLibFakePlayerProvider implements IFakePlayerProvider {
    public static final GameProfile NULL_PROFILE = new GameProfile(FakePlayer.DEFAULT_UUID, "[BuildCraft]");
    private static final BCLibFakePlayerProvider INSTANCE = new BCLibFakePlayerProvider();
-   private final Map<GameProfile, FakePlayer> players = new HashMap<>();
 
    @Override
    public ServerPlayer getBuildCraftPlayer(ServerLevel world) {
@@ -32,25 +38,9 @@ public final class BCLibFakePlayerProvider implements IFakePlayerProvider {
 
    @Override
    public ServerPlayer getFakePlayer(ServerLevel world, GameProfile profile, BlockPos pos) {
-      profile = normalizeProfile(profile);
-      FakePlayer player = this.players.computeIfAbsent(profile, p -> FakePlayer.get(world, p));
-      reposition(player, world, pos);
+      FakePlayer player = FakePlayer.get(world, normalizeProfile(profile));
+      player.setPos(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
       return player;
-   }
-
-   private static void reposition(FakePlayer player, ServerLevel world, BlockPos pos) {
-      double x = pos.getX() + 0.5;
-      double y = pos.getY() + 0.5;
-      double z = pos.getZ() + 0.5;
-      if (player.level() != world) {
-         //? if >= 1.21.10 {
-         player.teleportTo(world, x, y, z, Set.of(), player.getYRot(), player.getXRot(), false);
-         //?} else {
-         /*player.teleportTo(world, x, y, z, Set.of(), player.getYRot(), player.getXRot());
-         *///?}
-      } else {
-         player.setPos(x, y, z);
-      }
    }
 
    private static GameProfile normalizeProfile(@Nullable GameProfile profile) {
@@ -61,12 +51,7 @@ public final class BCLibFakePlayerProvider implements IFakePlayerProvider {
       }
    }
 
-   private void unloadAll() {
-      this.players.clear();
-   }
-
    public static void register() {
       BuildCraftAPI.fakePlayerProvider = INSTANCE;
-      ServerLifecycleEvents.SERVER_STOPPING.register((ServerStopping)server -> INSTANCE.unloadAll());
    }
 }
