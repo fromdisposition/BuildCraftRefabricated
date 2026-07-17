@@ -14,8 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * Notifies {@link LocalBlockUpdateNotifier} whenever a block state changes on the server, so BC's
  * pipe networks and gate statements can react to neighbour block changes without polling.
  *
- * Fabric API has no block-set event on {@code Level} (tracking issue:
- * https://github.com/FabricMC/fabric/issues/1500). Keep this mixin until upstream ships one.
+ * Fabric API has no generic block-set event on {@code Level}: verified against the actual jars up to
+ * fabric-api 0.154.3+26.3 (2026-07-17) — the whole event surface has only ServerBlockEntityEvents/
+ * ServerChunkEvents/ServerLevelEvents lifecycle plus player interaction events (AttackBlock/UseBlock/
+ * PlayerBlockBreakEvents), none of which fire for pistons, fluids, plants or any non-player setBlock.
+ * Re-check the api/event tree in the jar on fabric-api bumps before touching this.
  * {@code require = 0} on both injections so the mixin degrades silently if the target shifts.
  *
  * Old state is captured at HEAD (before setBlock overwrites it) via a ThreadLocal so the RETURN
