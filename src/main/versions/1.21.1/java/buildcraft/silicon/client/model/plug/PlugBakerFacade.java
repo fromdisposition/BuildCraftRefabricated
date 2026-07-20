@@ -52,6 +52,28 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       return model.getQuads(state, side, RANDOM);
    }
 
+   /**
+    * The renderer asks for the facade once per pass ("cutout" / "translucent"), and the source quads must land on
+    * exactly ONE of them: without this filter the translucent pass re-drew the whole facade over the cutout copy,
+    * untinted and unshaded -- biome-tinted facades (grass, leaves) showed grey because the untinted translucent
+    * copy painted over the tint-resolved cutout one. Mirrors keepQuadForLayer in the shared (26.x) baker; on
+    * 1.21.1 a block state has a single chunk render type, so the whole facade picks its pass from
+    * ItemBlockRenderTypes. Any other layer key (the item model bakes with "item") keeps the whole facade.
+    */
+   private static boolean keepQuadsForLayer(Object layer, BlockState state) {
+      boolean wantTranslucent;
+      if ("translucent".equals(layer)) {
+         wantTranslucent = true;
+      } else if ("cutout".equals(layer)) {
+         wantTranslucent = false;
+      } else {
+         return true;
+      }
+
+      return (net.minecraft.client.renderer.ItemBlockRenderTypes.getChunkRenderType(state)
+         == net.minecraft.client.renderer.RenderType.translucent()) == wantTranslucent;
+   }
+
    private int getVertexIndex(List<Vec3> positions, Axis axis, boolean minOrMax1, boolean minOrMax2) {
       Axis axis1;
       Axis axis2;
@@ -175,6 +197,11 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
    }
 
    public List<MutableQuad> bakeForKey(KeyPlugFacade key) {
+      // One chunk render type per state on 1.21.1, so the pass filter applies to the facade as a whole.
+      if (!keepQuadsForLayer(key.layer, key.state)) {
+         return new ArrayList<>();
+      }
+
       BakedModel model = Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getBlockModel(key.state);
       List<MutableQuad> quads = new ArrayList<>();
       int pS = 2;
