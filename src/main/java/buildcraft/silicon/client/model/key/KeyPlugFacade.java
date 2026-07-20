@@ -28,6 +28,12 @@ public class KeyPlugFacade extends PluggableModelKey {
       this.hash = Objects.hash(layer, side, state, isHollow);
    }
 
+   /**
+    * Conservatively true for every facade (even ones whose block has no colour provider): the wrapped state's
+    * tinted quads are only known after the baker runs, and a wrong {@code false} here would re-introduce the
+    * grey-facade bug. Untinted facades just lose the merged batch and render per side — the quads themselves
+    * carry tint -1 and skip the resolver.
+    */
    @Override
    public boolean hasWorldTint() {
       return true;
@@ -36,7 +42,9 @@ public class KeyPlugFacade extends PluggableModelKey {
    /**
     * Reverse of the bake-time remap in PlugBakerFacade (2 + originalIndex * 6 + mountSide): recover the source
     * block's tint index and ask its own colour provider with the real world position, so biome-tinted facades
-    * (grass, leaves) match the terrain around them. Mirrors FacadeTintSource, which handles the chunk path.
+    * (grass, leaves) match the terrain around them. This BER resolver is the ONLY in-world facade tint path on
+    * every node — facades are never chunk-baked (PipeBlockStateModel emits just the pipe body and paint), so
+    * there is no block-colour/chunk fallback to lean on.
     */
    @Override
    public int resolveWorldTint(int tintIndex, Level level, BlockPos pos) {

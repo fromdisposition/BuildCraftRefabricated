@@ -304,8 +304,8 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       for (MutableQuad quad : quads) {
          int tint = quad.getTint();
          if (tint >= 0) {
-            if (tint < 4) {
-               quad.setTint(2 + tint * Direction.values().length + key.side.ordinal());
+            if (tint < FACADE_TINT_MAX_DATA) {
+               quad.setTint(FACADE_TINT_BASE + tint * Direction.values().length + key.side.ordinal());
             } else {
                quad.setTint(-1);
             }

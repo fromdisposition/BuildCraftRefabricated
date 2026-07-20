@@ -284,7 +284,10 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
             break;
          case DOWN:
             ps.mulPose(Axis.XP.rotationDegrees(90.0F));
+            break;
          case SOUTH:
+         default:
+            break;
       }
    }
 

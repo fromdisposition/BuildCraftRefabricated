@@ -98,12 +98,11 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       // 26.x quads carry their own chunk layer (model-driven render types): filter per quad, so mixed-layer
       // source models split correctly between the passes.
       return (quad.materialInfo().layer() == net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT) == wantTranslucent;
-      //?} else if >= 1.21.10 {
-      /*return (net.minecraft.client.renderer.ItemBlockRenderTypes.getChunkRenderType(state)
+      //?} else {
+      /*// 1.21.10/1.21.11: one chunk render type per state. (1.21.1 never compiles this file -- it has its own
+      // override with a state-level keepQuadsForLayer.)
+      return (net.minecraft.client.renderer.ItemBlockRenderTypes.getChunkRenderType(state)
          == net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT) == wantTranslucent;
-      *///?} else {
-      /*return (net.minecraft.client.renderer.ItemBlockRenderTypes.getChunkRenderType(state)
-         == net.minecraft.client.renderer.RenderType.translucent()) == wantTranslucent;
       *///?}
    }
 
@@ -346,8 +345,8 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       for (MutableQuad quad : quads) {
          int tint = quad.getTint();
          if (tint >= 0) {
-            if (tint < 4) {
-               quad.setTint(2 + tint * Direction.values().length + key.side.ordinal());
+            if (tint < FACADE_TINT_MAX_DATA) {
+               quad.setTint(FACADE_TINT_BASE + tint * Direction.values().length + key.side.ordinal());
             } else {
                quad.setTint(-1);
             }

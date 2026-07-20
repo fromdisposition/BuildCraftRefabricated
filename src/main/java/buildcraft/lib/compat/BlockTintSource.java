@@ -14,10 +14,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * 1.21.x stand-in for 26.1's {@code net.minecraft.client.color.block.BlockTintSource}.
  *
  * <p>26.1 models block colours as a list of per-tint-index {@code BlockTintSource}s registered on a
- * block; 1.21.x instead registers a single {@link net.minecraft.client.color.block.BlockColor} that
- * switches on the tint index. BuildCraft keeps writing tint logic against this small interface, and
- * {@code RegisterColorHandlersEvent} adapts a {@code List<BlockTintSource>} into a {@code BlockColor}
- * for the 1.21.x registry.
+ * block; 1.21.x has no such type. This stand-in exists so shared code that imports the 26.1 class in a
+ * gated-out branch (e.g. {@code KeyPlugFacade}) still compiles on 1.21.x — the stonecutter import
+ * redirect in {@code stonecutter.gradle.kts} swaps the vanilla import for this one.
  */
 @FunctionalInterface
 public interface BlockTintSource {
