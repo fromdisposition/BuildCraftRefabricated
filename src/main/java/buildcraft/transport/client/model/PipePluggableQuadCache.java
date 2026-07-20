@@ -25,6 +25,19 @@ public final class PipePluggableQuadCache {
    private PipePluggableQuadCache() {
    }
 
+   /**
+    * Drops the render templates AND the baked-quad caches underneath them on a resource/model reload — without
+    * this, every pluggable kept rendering with the pre-reload atlas sprites until a full restart.
+    */
+   public static void clearCaches() {
+      CUTOUT.clear();
+      TRANSLUCENT.clear();
+      CUTOUT_SINGLE.clear();
+      PipeModelCachePluggable.cacheCutoutSingle.clear();
+      PipeModelCachePluggable.cacheTranslucentSingle.clear();
+      PipeModelCachePluggable.cacheCutoutAll.clear();
+   }
+
    public static void renderCutout(PipeModelCachePluggable.PluggableKey key, Pose pose, VertexConsumer buffer, int light) {
       CUTOUT.render(key, pose, buffer, light);
    }

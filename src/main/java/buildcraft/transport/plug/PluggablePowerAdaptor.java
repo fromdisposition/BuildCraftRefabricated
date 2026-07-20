@@ -22,14 +22,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 public class PluggablePowerAdaptor extends PipePluggable {
-   private static final AABB[] BOXES = new AABB[6];
+   private static final AABB[] BOXES = buildcraft.api.transport.pluggable.PluggableBoxes.faceBoxes(0.1875, 0.8125, 0.0, 0.25, 0.75, 1.0);
 
    public PluggablePowerAdaptor(PluggableDefinition definition, IPipeHolder holder, Direction side) {
       super(definition, holder, side);
    }
 
    public static AABB boundingBoxFor(Direction side) {
-      return BOXES[side.ordinal()];
+      return BOXES[side.get3DDataValue()];
    }
 
    @Override
@@ -66,18 +66,4 @@ public class PluggablePowerAdaptor extends PipePluggable {
          : this.holder.getPipe().getBehaviour().getCapability(cap, this.side);
    }
 
-   static {
-      double ll = 0.0;
-      double lu = 0.25;
-      double ul = 0.75;
-      double uu = 1.0;
-      double min = 0.1875;
-      double max = 0.8125;
-      BOXES[Direction.DOWN.ordinal()] = new AABB(min, ll, min, max, lu, max);
-      BOXES[Direction.UP.ordinal()] = new AABB(min, ul, min, max, uu, max);
-      BOXES[Direction.NORTH.ordinal()] = new AABB(min, min, ll, max, max, lu);
-      BOXES[Direction.SOUTH.ordinal()] = new AABB(min, min, ul, max, max, uu);
-      BOXES[Direction.WEST.ordinal()] = new AABB(ll, min, min, lu, max, max);
-      BOXES[Direction.EAST.ordinal()] = new AABB(ul, min, min, uu, max, max);
-   }
 }

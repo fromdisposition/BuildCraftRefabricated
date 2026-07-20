@@ -48,6 +48,42 @@ public class ModelUtil {
       return createFace(face, center, radius, uvs).copyAndInvertNormal();
    }
 
+   /**
+    * Adds the six sprite-mapped faces of the box {@code [x0,y0,z0]..[x1,y1,z1]} to {@code quads}. Per-face UVs come
+    * from {@code faceUvs} (indexed by {@link Direction#ordinal()}), or are derived from the box bounds via
+    * {@link #mapBoxToUvs} when {@code faceUvs} is null. Shared by the small static plug/pulsar box builders.
+    */
+   public static void addSpriteBox(
+      java.util.List<MutableQuad> quads,
+      TextureAtlasSprite sprite,
+      float x0,
+      float y0,
+      float z0,
+      float x1,
+      float y1,
+      float z1,
+      ModelUtil.UvFaceData[] faceUvs
+   ) {
+      Vector3f center = new Vector3f((x0 + x1) / 2.0F, (y0 + y1) / 2.0F, (z0 + z1) / 2.0F);
+      Vector3f radius = new Vector3f((x1 - x0) / 2.0F, (y1 - y0) / 2.0F, (z1 - z0) / 2.0F);
+      AABB box = new AABB(x0, y0, z0, x1, y1, z1);
+
+      for (Direction face : Direction.values()) {
+         ModelUtil.UvFaceData uvs = faceUvs != null ? faceUvs[face.ordinal()] : new ModelUtil.UvFaceData();
+         if (faceUvs == null) {
+            mapBoxToUvs(box, face, uvs);
+         }
+
+         MutableQuad q = createFace(face, center, radius, uvs);
+         q.setSprite(sprite);
+         q.vertex_0.texFromSprite(sprite);
+         q.vertex_1.texFromSprite(sprite);
+         q.vertex_2.texFromSprite(sprite);
+         q.vertex_3.texFromSprite(sprite);
+         quads.add(q);
+      }
+   }
+
    public static MutableQuad[] createDoubleFace(Direction face, Vector3f center, Vector3f radius, ModelUtil.UvFaceData uvs) {
       MutableQuad norm = createFace(face, center, radius, uvs);
       return new MutableQuad[]{norm, norm.copyAndInvertNormal()};

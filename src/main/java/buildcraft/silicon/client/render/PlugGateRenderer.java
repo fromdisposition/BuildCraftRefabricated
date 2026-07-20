@@ -14,12 +14,10 @@ import buildcraft.silicon.client.model.plug.GateQuadGeometry;
 import buildcraft.silicon.plug.PluggableGate;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
@@ -65,26 +63,7 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
 
       ps.pushPose();
       ps.translate(x, y, z);
-      ps.translate(0.5F, 0.5F, 0.5F);
-      switch (plug.side) {
-         case EAST:
-            ps.mulPose(Axis.YP.rotationDegrees(180.0F));
-            break;
-         case NORTH:
-            ps.mulPose(Axis.YP.rotationDegrees(-90.0F));
-            break;
-         case SOUTH:
-            ps.mulPose(Axis.YP.rotationDegrees(90.0F));
-            break;
-         case DOWN:
-            ps.mulPose(Axis.ZP.rotationDegrees(90.0F));
-            break;
-         case UP:
-            ps.mulPose(Axis.ZP.rotationDegrees(-90.0F));
-         case WEST:
-      }
-
-      ps.translate(-0.5F, -0.5F, -0.5F);
+      IPlugDynamicRenderer.rotateToSide(ps, plug.side);
 
       // Only the animated on/off indicator box is drawn here; the static gate body comes from the baked cutout
       // path (PlugGateBaker). Drawing both here and in the baker was the Z-fighting cause, now removed.

@@ -11,17 +11,17 @@ import buildcraft.silicon.gate.GateVariant;
 import net.minecraft.core.Direction;
 
 public class KeyPlugGate extends PluggableModelKey {
-   public final Direction side;
    public final GateVariant variant;
-   public final boolean active;
 
-   public KeyPlugGate(Direction side, GateVariant variant, boolean active) {
-      super(null, side);
-      this.side = side;
+   public KeyPlugGate(Object layer, Direction side, GateVariant variant) {
+      super(layer, side);
       this.variant = variant;
-      this.active = active;
    }
 
+   /**
+    * Identity is deliberately side+variant only: the baker bakes just the static gate body, and the on/off
+    * indicator is drawn by the dynamic renderer — so the active state must NOT split the model cache.
+    */
    @Override
    public boolean equals(Object obj) {
       if (obj == this) {

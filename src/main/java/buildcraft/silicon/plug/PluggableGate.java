@@ -146,7 +146,7 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
 
    @Override
    public PluggableModelKey getModelRenderKey(Object layer) {
-      return "cutout".equals(layer) ? new KeyPlugGate(this.side, this.logic.variant, this.logic.isOn) : null;
+      return "cutout".equals(layer) ? new KeyPlugGate(layer, this.side, this.logic.variant) : null;
    }
 
    @Override

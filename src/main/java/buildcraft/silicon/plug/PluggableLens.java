@@ -26,7 +26,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 
 public class PluggableLens extends PipePluggable {
-   private static final AABB[] BOXES = new AABB[6];
+   private static final AABB[] BOXES = buildcraft.api.transport.pluggable.PluggableBoxes.faceBoxes(0.1875, 0.8125, 0.0, 0.125, 0.875, 1.0);
    @Nullable
    public final DyeColor colour;
    public final boolean isFilter;
@@ -74,7 +74,7 @@ public class PluggableLens extends PipePluggable {
    }
 
    public static AABB boundingBoxFor(Direction side) {
-      return BOXES[side.ordinal()];
+      return BOXES[side.get3DDataValue()];
    }
 
    @Override
@@ -149,18 +149,4 @@ public class PluggableLens extends PipePluggable {
       bus.on(PipeEventItem.ReachEnd.class, this, this::reachEnd);
    }
 
-   static {
-      double ll = 0.0;
-      double lu = 0.125;
-      double ul = 0.875;
-      double uu = 1.0;
-      double min = 0.1875;
-      double max = 0.8125;
-      BOXES[Direction.DOWN.ordinal()] = new AABB(min, ll, min, max, lu, max);
-      BOXES[Direction.UP.ordinal()] = new AABB(min, ul, min, max, uu, max);
-      BOXES[Direction.NORTH.ordinal()] = new AABB(min, min, ll, max, max, lu);
-      BOXES[Direction.SOUTH.ordinal()] = new AABB(min, min, ul, max, max, uu);
-      BOXES[Direction.WEST.ordinal()] = new AABB(ll, min, min, lu, max, max);
-      BOXES[Direction.EAST.ordinal()] = new AABB(ul, min, min, uu, max, max);
-   }
 }

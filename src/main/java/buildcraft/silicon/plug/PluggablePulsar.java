@@ -31,7 +31,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 
 public class PluggablePulsar extends PipePluggable {
-   private static final int PULSE_STAGE = 20;
+   /** Ticks per pulse cycle; the renderer's animation period must match, so it reads this constant too. */
+   public static final int PULSE_STAGE = 20;
    private static final AABB[] BOXES = buildcraft.api.transport.pluggable.PluggableBoxes.CHIP;
    private boolean manuallyEnabled = false;
    private int pulseStage = 0;
@@ -50,7 +51,12 @@ public class PluggablePulsar extends PipePluggable {
       this.manuallyEnabled = BcNbt.getBoolean(nbt, "manuallyEnabled", false);
       this.gateEnabledTicks = BcNbt.getInt(nbt, "gateEnabledTicks", 0);
       this.gateSinglePulses = BcNbt.getInt(nbt, "gateSinglePulses", 0);
-      this.pulseStage = MathUtil.clamp(BcNbt.getInt(nbt, "pulseStage", 0), 0, 20);
+      this.pulseStage = MathUtil.clamp(BcNbt.getInt(nbt, "pulseStage", 0), 0, PULSE_STAGE);
+      // The gate counters are server-only; derive the client-facing flags from them the same way writeData
+      // does, so a client rebuilt from this NBT (chunk sync) starts in the correct visual state instead of
+      // waiting for the next on/off edge broadcast.
+      this.autoEnabled = this.gateEnabledTicks > 0 || this.gateSinglePulses > 0;
+      this.isPulsing = this.manuallyEnabled || this.autoEnabled;
    }
 
    @Override
@@ -109,7 +115,7 @@ public class PluggablePulsar extends PipePluggable {
 
    @Override
    public AABB getBoundingBox() {
-      return BOXES[this.side.ordinal()];
+      return BOXES[this.side.get3DDataValue()];
    }
 
    @Override
@@ -136,10 +142,13 @@ public class PluggablePulsar extends PipePluggable {
    @Override
    public void onTick() {
       if (this.holder.getPipeWorld().isClientSide()) {
-         this.isPulsing = this.isPulsing();
+         // Drive the animation from the SYNCED flags only. isPulsing() reads the gate counters, which are
+         // server-only (always 0 on a live client) — recomputing it here used to clobber the network-sent
+         // state, so gate-driven pulsing never animated on the client.
+         this.isPulsing = this.manuallyEnabled || this.autoEnabled;
          if (this.isPulsing) {
             this.pulseStage++;
-            if (this.pulseStage == 20) {
+            if (this.pulseStage == PULSE_STAGE) {
                this.pulseStage = 0;
             }
          } else {
@@ -157,7 +166,7 @@ public class PluggablePulsar extends PipePluggable {
             this.gateEnabledTicks--;
          }
 
-         if (this.pulseStage == 20) {
+         if (this.pulseStage == PULSE_STAGE) {
             this.pulseStage = 0;
             if (this.holder.getPipe().getBehaviour() instanceof IMjRedstoneReceiver rsRec) {
                long power = MjAPI.MJ;
