@@ -41,7 +41,7 @@ public class TileEngineRedstone_BC8 extends TileEngineBase_BC8 {
 
    @Override
    protected void engineUpdate() {
-      if (this.isRedstonePowered) {
+      if (this.isRedstonePowered && this.getReceiverToPower(this.orientation) != null) {
          this.power = this.getMaxPower();
          if (this.level != null && this.level.getGameTime() % 16L == 0L) {
             if (this.getHeatLevel() < 0.8F) {
