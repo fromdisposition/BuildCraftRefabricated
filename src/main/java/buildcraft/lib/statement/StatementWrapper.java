@@ -14,11 +14,11 @@ import buildcraft.api.statements.IStatementContainer;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.ITrigger;
 import buildcraft.lib.misc.ColourUtil;
+import buildcraft.lib.misc.LocaleUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public abstract class StatementWrapper implements IStatement, Comparable<StatementWrapper> {
@@ -82,7 +82,7 @@ public abstract class StatementWrapper implements IStatement, Comparable<Stateme
       if (this.sourcePart != EnumPipePart.CENTER) {
          list = new ArrayList<>(list);
          String translated = ColourUtil.getTextFullTooltip(this.sourcePart.face);
-         list.add(I18n.get("gate.side", new Object[]{translated}));
+         list.add(LocaleUtil.localize("gate.side", translated));
       }
 
       return list;

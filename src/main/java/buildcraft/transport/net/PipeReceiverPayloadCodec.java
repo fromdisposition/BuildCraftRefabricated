@@ -68,6 +68,11 @@ public final class PipeReceiverPayloadCodec {
                return;
             }
 
+            if (pipe == null) {
+               BCLog.logger.warn("[transport.net] Unexpected pipe flow payload without pipe at {}", holder.getPipePos());
+               return;
+            }
+
             PipeFlow flow = pipe.getFlow();
             if (flow != null) {
                int id = buffer.readShort();

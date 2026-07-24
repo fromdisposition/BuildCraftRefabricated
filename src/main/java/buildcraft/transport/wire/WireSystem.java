@@ -298,10 +298,10 @@ public final class WireSystem {
       }
 
       public WireElement(FriendlyByteBuf buf) {
-         this.type = WireSystem.WireElement.Type.values()[buf.readInt()];
+         this.type = decodeIndex(WireSystem.WireElement.Type.values(), buf.readInt(), "wire element type");
          this.blockPos = buf.readBlockPos();
          if (this.type == WireSystem.WireElement.Type.WIRE_PART) {
-            this.wirePart = EnumWirePart.VALUES[buf.readInt()];
+            this.wirePart = decodeIndex(EnumWirePart.VALUES, buf.readInt(), "wire part");
             this.emitterSide = null;
          } else if (this.type == WireSystem.WireElement.Type.EMITTER_SIDE) {
             this.wirePart = null;
@@ -312,14 +312,28 @@ public final class WireSystem {
          }
       }
 
+      /** Network decode: an out-of-range ordinal means a corrupt/hostile packet — reject it loudly. */
+      private static <T> T decodeIndex(T[] values, int index, String what) {
+         if (index < 0 || index >= values.length) {
+            throw new io.netty.handler.codec.DecoderException("Invalid " + what + " index " + index);
+         }
+
+         return values[index];
+      }
+
+      /** Load path: an out-of-range ordinal in saved data must never crash the world — fall back to the default. */
+      private static <T> T loadIndex(T[] values, int index) {
+         return index >= 0 && index < values.length ? values[index] : values[0];
+      }
+
       public WireElement(CompoundTag nbt) {
-         this.type = WireSystem.WireElement.Type.values()[BcNbt.getInt(nbt, "type", 0)];
+         this.type = loadIndex(WireSystem.WireElement.Type.values(), BcNbt.getInt(nbt, "type", 0));
          int bpX = BcNbt.getInt(nbt, "bpX", 0);
          int bpY = BcNbt.getInt(nbt, "bpY", 0);
          int bpZ = BcNbt.getInt(nbt, "bpZ", 0);
          this.blockPos = new BlockPos(bpX, bpY, bpZ);
          if (this.type == WireSystem.WireElement.Type.WIRE_PART) {
-            this.wirePart = EnumWirePart.VALUES[BcNbt.getInt(nbt, "wirePart", 0)];
+            this.wirePart = loadIndex(EnumWirePart.VALUES, BcNbt.getInt(nbt, "wirePart", 0));
             this.emitterSide = null;
          } else if (this.type == WireSystem.WireElement.Type.EMITTER_SIDE) {
             this.wirePart = null;

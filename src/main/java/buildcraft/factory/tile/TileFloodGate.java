@@ -90,7 +90,9 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
 
    @Nullable
    public Storage<FluidVariant> getSidedFluidStorage(@Nullable Direction direction) {
-      return direction == null ? null : this.fluidTank;
+      // Fill-only from the outside (matches upstream): exposing the raw OPEN tank let pipes pump the
+      // buffered fluid back out of the gate.
+      return direction == null ? null : buildcraft.lib.fabric.transfer.fluid.SidedFluidStorages.insertOnly(this.fluidTank);
    }
 
    @Nullable

@@ -590,11 +590,9 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
    private void setFluid(@Nonnull FluidStack fluid) {
       this.currentFluid = fluid;
-      if (!fluid.isEmpty()) {
-         this.currentDelay = (int)PipeApi.getFluidTransferInfo(this.pipe.getDefinition()).transferDelayMultiplier;
-      } else {
-         this.currentDelay = (int)PipeApi.getFluidTransferInfo(this.pipe.getDefinition()).transferDelayMultiplier;
-      }
+      // Delay is per-pipe here (upstream's per-fluid viscosity branch collapsed into one value during the
+      // port). Must stay >= 1: currentTime is taken % currentDelay every tick and incoming[] is sized by it.
+      this.currentDelay = Math.max(1, (int)PipeApi.getFluidTransferInfo(this.pipe.getDefinition()).transferDelayMultiplier);
 
       for (PipeFlowFluids.Section section : this.sections.values()) {
          section.incoming = new int[this.currentDelay];

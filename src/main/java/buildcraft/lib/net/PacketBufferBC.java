@@ -219,6 +219,12 @@ public class PacketBufferBC extends FriendlyByteBuf {
 
    public String readString() {
       int length = this.readVarInt();
+      // The length is network-controlled: bound it before allocating (a string can never legitimately
+      // exceed one payload).
+      if (length < 0 || length > BCPacketLimits.MAX_PAYLOAD_BYTES) {
+         throw new DecoderException("String length " + length + " out of bounds");
+      }
+
       byte[] array = new byte[length];
 
       for (int i = 0; i < length; i++) {

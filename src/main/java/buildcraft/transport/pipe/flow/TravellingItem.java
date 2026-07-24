@@ -108,6 +108,10 @@ public class TravellingItem {
 
    public double getWayThrough(long now) {
       long diff = this.tickFinished - this.tickStarted;
+      if (diff <= 0L) {
+         return 1.0;
+      }
+
       long nowDiff = now - this.tickStarted;
       return (double)nowDiff / diff;
    }

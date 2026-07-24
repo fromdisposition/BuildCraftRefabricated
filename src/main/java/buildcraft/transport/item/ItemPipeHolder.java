@@ -15,7 +15,6 @@ import buildcraft.transport.BCTransportItems;
 import java.util.List;
 import java.util.function.Supplier;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
@@ -64,12 +63,11 @@ public class ItemPipeHolder extends BlockItem implements IItemPipe {
       int colon = id.indexOf(58);
       String path = colon >= 0 ? id.substring(colon + 1) : id;
       String tipKey = "tip.pipe." + path;
-      //? if >= 26.2 {
-      if (!I18n.get(tipKey).equals(tipKey)) {
-      //?} else {
-      /*if (I18n.exists(tipKey)) {
-      *///?}
-         tooltip.add(Component.literal(I18n.get(tipKey, new Object[0])).withStyle(ChatFormatting.GRAY));
+      // LocaleUtil (Component.translatable) instead of client-only I18n: this class is loaded on the
+      // dedicated server, so it must not name client types.
+      String tip = LocaleUtil.localize(tipKey);
+      if (!tip.equals(tipKey)) {
+         tooltip.add(Component.literal(tip).withStyle(ChatFormatting.GRAY));
       }
 
       if (def.flowType == PipeApi.flowFluids) {

@@ -36,7 +36,7 @@ public class TileSpringOil extends BlockEntity implements ITileOilSpring {
 
    @Override
    public void onPumpOil(GameProfile profile, BlockPos oilPos) {
-      if (profile != null) {
+      if (profile != null && this.level != null) {
          TileSpringOil.PlayerPumpInfo info = this.pumpProgress.computeIfAbsent(profile, TileSpringOil.PlayerPumpInfo::new);
          info.lastPumpTick = this.level.getGameTime();
          info.sourcesPumped++;
@@ -70,7 +70,8 @@ public class TileSpringOil extends BlockEntity implements ITileOilSpring {
 
    protected void readData(BcValueIn input) {
       this.totalSources = input.getIntOr("totalSources", 0);
-      int pumpCount = input.getIntOr("pumpCount", 0);
+      // Cap: the count is one entry per player that ever pumped this spring; anything huge is corrupt data.
+      int pumpCount = Math.min(input.getIntOr("pumpCount", 0), 1024);
 
       for (int i = 0; i < pumpCount; i++) {
          String prefix = "pump_" + i + "_";
