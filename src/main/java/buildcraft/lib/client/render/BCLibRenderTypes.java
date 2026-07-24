@@ -222,9 +222,11 @@ public final class BCLibRenderTypes {
       *///?} else if >= 1.21.11 {
       /*// 1.21.11 translucentBlockItemSheet() is the BLOCK-atlas translucent type.
       return Sheets.translucentBlockItemSheet();
-      *///?} else {
+      *///?} else if >= 1.21.10 {
       /*// 1.21.10 only has translucentItemSheet(), already bound to the BLOCK atlas.
       return Sheets.translucentItemSheet();
+      *///?} else {
+      /*return Sheets.translucentCullBlockSheet();
       *///?}
    }
 
