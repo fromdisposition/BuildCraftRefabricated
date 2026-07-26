@@ -1062,6 +1062,7 @@
   "buildcraft.unit.millibuckets_per_tick": "%s mB/t",
   "buildcraft.unit.millibuckets": "%s mB",
   "buildcraft.unit.fluid_of": "%s / %s",
+  "buildcraft.boardRobotClean": "Clean",
   "buildcraft.colour.clean": "Clean",
   "gui.buildcraft.filler.locked": "Locked",
   "gui.buildcraft.architect.unnamed": "<unnamed>",
