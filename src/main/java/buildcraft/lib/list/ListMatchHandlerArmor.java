@@ -6,6 +6,7 @@
 
 package buildcraft.lib.list;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.api.lists.ListMatchHandler;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -56,7 +57,7 @@ public class ListMatchHandlerArmor extends ListMatchHandler {
       }
 
       EquipmentSlot slot = slotOf(stack);
-      return slot == null ? List.of() : List.of("equipment slot: " + slot.getName());
+      return slot == null ? List.of() : List.of(LocaleUtil.localize("gui.list.match.equipment_slot", slot.getName()));
    }
 
    @Nullable

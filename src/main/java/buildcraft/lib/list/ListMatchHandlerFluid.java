@@ -6,6 +6,7 @@
 
 package buildcraft.lib.list;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.api.lists.ListMatchHandler;
 import buildcraft.lib.fabric.transfer.fluid.ItemFluidLookup;
 import buildcraft.lib.fluid.stack.FluidStack;
@@ -48,7 +49,7 @@ public class ListMatchHandlerFluid extends ListMatchHandler {
       switch (type) {
          case TYPE:
             if (storageOf(stack) != null) {
-               return List.of("any fluid container");
+               return List.of(LocaleUtil.localize("gui.list.match.any_fluid_container"));
             }
 
             return List.of();
@@ -56,7 +57,7 @@ public class ListMatchHandlerFluid extends ListMatchHandler {
             FluidStack fluid = firstFluid(stack);
             if (fluid != null && !fluid.isEmpty()) {
                Identifier id = BuiltInRegistries.FLUID.getKey(fluid.getFluid());
-               return List.of("fluid: " + (id != null ? id.toString() : fluid.getFluid().toString()));
+               return List.of(LocaleUtil.localize("gui.list.match.fluid", id != null ? id.toString() : fluid.getFluid().toString()));
             }
 
             return List.of();

@@ -304,7 +304,11 @@ public enum GuideManager {
    /** A "not written yet" placeholder page, also used as a fallback when a real page fails to parse. */
    private GuidePageFactory stubFactory(Identifier entryKey, PageEntry<?> entry) {
       String title = entry.title != null ? entry.title : entryKey.getPath();
-      String stubContent = "<chapter name=\"" + title + " (WIP)\"/>\nThis guide book entry is a placeholder and has not been written yet.\n";
+      String stubContent = "<chapter name=\""
+         + LocaleUtil.localize("buildcraft.guide.stub.title", title)
+         + "\"/>\n"
+         + LocaleUtil.localize("buildcraft.guide.stub.body")
+         + "\n";
       try (BufferedReader stubReader = new BufferedReader(new StringReader(stubContent))) {
          return XmlPageLoader.INSTANCE.loadPage(stubReader, entryKey, entry, InactiveProfiler.INSTANCE);
       } catch (IOException io) {
@@ -553,7 +557,7 @@ public enum GuideManager {
          new String[]{"buildcraft.guide.contents.actions"},
          new String[]{"buildcraft.guide.chapter.subtype.automation"},
          icon,
-         "Filler Patterns",
+         LocaleUtil.localize("buildcraft.guide.page.filler_patterns"),
          null
       );
    }
@@ -567,7 +571,7 @@ public enum GuideManager {
          new String[]{"buildcraft.guide.contents.actions"},
          new String[]{"buildcraft.guide.chapter.subtype.pipe_item"},
          icon,
-         "Emzuli Extraction Presets",
+         LocaleUtil.localize("buildcraft.guide.page.extraction_presets"),
          g -> {
             ItemStack emzuliStack = new ItemStack(BCTransportItems.PIPE_EMZULI_ITEM);
             PageLink emzuliLink = PageLinkItemStack.create(true, emzuliStack, InactiveProfiler.INSTANCE);
@@ -585,7 +589,7 @@ public enum GuideManager {
          new String[]{"buildcraft.guide.contents.triggers", "buildcraft.guide.contents.actions"},
          new String[]{"buildcraft.guide.chapter.subtype.pipe_plug", "buildcraft.guide.chapter.subtype.pipe_plug"},
          icon,
-         "Pipe Signals",
+         LocaleUtil.localize("buildcraft.guide.page.pipe_signals"),
          null
       );
    }
@@ -608,7 +612,7 @@ public enum GuideManager {
          new String[]{"buildcraft.guide.contents.actions"},
          new String[]{"buildcraft.guide.chapter.subtype.pipe_item"},
          icon,
-         "Set Pipe Direction",
+         LocaleUtil.localize("buildcraft.guide.page.set_pipe_direction"),
          null
       );
    }
@@ -622,7 +626,7 @@ public enum GuideManager {
          new String[]{"buildcraft.guide.contents.actions"},
          new String[]{"buildcraft.guide.chapter.subtype.pipe_item"},
          icon,
-         "Paint Passing Items",
+         LocaleUtil.localize("buildcraft.guide.page.paint_pipe_colour"),
          null
       );
    }
@@ -636,7 +640,7 @@ public enum GuideManager {
          new String[]{"buildcraft.guide.contents.actions"},
          new String[]{"buildcraft.guide.chapter.subtype.pipe_item"},
          icon,
-         "Set Power Limit",
+         LocaleUtil.localize("buildcraft.guide.page.set_power_limit"),
          null
       );
    }

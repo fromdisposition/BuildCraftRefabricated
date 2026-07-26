@@ -131,18 +131,18 @@ public class GuidePageContents extends GuidePageBase {
       if (index == 0) {
          int xMiddle = x + width / 2;
          int _y = y;
-         String text = this.gui.book == null ? "Everything" : this.gui.book.title.getString();
+         String text = this.gui.book == null ? LocaleUtil.localize("buildcraft.guide.book.all") : this.gui.book.title.getString();
          _y += 3;
          f.drawString(text, xMiddle, _y, 0, false, true);
          _y += f.getFontHeight(text) + 5;
-         String vers = "BuildCraft";
+         String vers = LocaleUtil.localize("buildcraft.guide.subtitle");
          f.drawString(vers, xMiddle, _y, 0, false, true);
          _y = y + height - 80;
          f.drawString(LocaleUtil.localize("options.title"), xMiddle, _y, 0, false, true, 2.0F);
          _y += 28;
-         f.drawString("Show Lore " + (XmlPageLoader.SHOW_LORE ? "[x]" : "[ ]"), xMiddle, _y, 0, false, true);
+         f.drawString(toggleLabel("buildcraft.guide.option.show_lore", XmlPageLoader.SHOW_LORE), xMiddle, _y, 0, false, true);
          _y += 14;
-         f.drawString("Show Hints " + (XmlPageLoader.SHOW_HINTS ? "[x]" : "[ ]"), xMiddle, _y, 0, false, true);
+         f.drawString(toggleLabel("buildcraft.guide.option.show_hints", XmlPageLoader.SHOW_HINTS), xMiddle, _y, 0, false, true);
       } else if (index == 1) {
          int _height = this.gui.bookData.loadedMods.size() + 1;
          if (this.gui.bookData.loadedOther.size() > 0) {
@@ -153,7 +153,7 @@ public class GuidePageContents extends GuidePageBase {
          _height *= perLineHeight;
          int _y = y + (height - _height) / 2;
          if (this.gui.bookData.loadedMods.size() > 0) {
-            this.drawCenteredText(ChatFormatting.BOLD + "Loaded Mods:", x, _y, width);
+            this.drawCenteredText(ChatFormatting.BOLD + LocaleUtil.localize("buildcraft.guide.contents.loaded_mods"), x, _y, width);
             _y += perLineHeight;
 
             for (String text : this.gui.bookData.loadedMods) {
@@ -163,7 +163,7 @@ public class GuidePageContents extends GuidePageBase {
          }
 
          if (this.gui.bookData.loadedOther.size() > 0) {
-            this.drawCenteredText(ChatFormatting.BOLD + "Loaded Resource Packs:", x, _y, width);
+            this.drawCenteredText(ChatFormatting.BOLD + LocaleUtil.localize("buildcraft.guide.contents.loaded_resource_packs"), x, _y, width);
             _y += perLineHeight;
 
             for (String text : this.gui.bookData.loadedOther) {
@@ -236,6 +236,10 @@ public class GuidePageContents extends GuidePageBase {
       f.drawString(text, x + (width - fWidth) / 2, y, 0);
    }
 
+   private static String toggleLabel(String key, boolean enabled) {
+      return LocaleUtil.localize(key) + " " + (enabled ? "[x]" : "[ ]");
+   }
+
    @Override
    public void handleMouseClick(int x, int y, int width, int height, int mouseX, int mouseY, int mouseButton, int index, boolean isEditing) {
       super.handleMouseClick(x, y, width, height, mouseX, mouseY, mouseButton, index, isEditing);
@@ -260,14 +264,14 @@ public class GuidePageContents extends GuidePageBase {
 
       if (mouseButton == 0 && index == 0) {
          IFontRenderer f = this.getFontRenderer();
-         String text = XmlPageLoader.SHOW_LORE ? "Show Lore [x]" : "Show Lore [ ]";
+         String text = toggleLabel("buildcraft.guide.option.show_lore", XmlPageLoader.SHOW_LORE);
          int fWidth = f.getStringWidth(text);
          GuiRectangle rect = new GuiRectangle(x + (width - fWidth) / 2, y + height - 52, fWidth, f.getFontHeight(text));
          if (rect.contains(mouseX, mouseY)) {
             XmlPageLoader.SHOW_LORE = !XmlPageLoader.SHOW_LORE;
          }
 
-         text = XmlPageLoader.SHOW_HINTS ? "Show Hints [x]" : "Show Hints [ ]";
+         text = toggleLabel("buildcraft.guide.option.show_hints", XmlPageLoader.SHOW_HINTS);
          fWidth = f.getStringWidth(text);
          rect = new GuiRectangle(x + (width - fWidth) / 2, y + height - 38, fWidth, f.getFontHeight(text));
          if (rect.contains(mouseX, mouseY)) {

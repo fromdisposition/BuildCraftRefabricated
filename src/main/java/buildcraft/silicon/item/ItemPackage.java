@@ -108,7 +108,7 @@ public class ItemPackage extends Item {
       for (int i = 0; i < SLOTS; i++) {
          ItemStack content = getStack(stack, i);
          if (!content.isEmpty()) {
-            tooltip.add(content.getHoverName().copy().append(" x" + content.getCount()));
+            tooltip.add(Component.translatable("tip.item.package.entry", content.getHoverName(), content.getCount()));
          }
       }
    }

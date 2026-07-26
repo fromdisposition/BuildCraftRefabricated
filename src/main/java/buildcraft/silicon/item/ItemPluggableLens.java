@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.item;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.transport.IItemPluggable;
 import buildcraft.api.transport.pipe.IFlowItems;
@@ -39,9 +40,11 @@ public class ItemPluggableLens extends Item implements IItemPluggable {
    public Component getName(ItemStack stack) {
       DyeColor colour = getColour(stack);
       boolean filter = isFilter(stack);
-      String colourName = colour == null ? "Clear" : ColourUtil.getTextFullTooltip(colour);
-      String typeName = filter ? "Filter" : "Lens";
-      return Component.literal(colourName + " " + typeName);
+      String colourName = colour == null
+         ? LocaleUtil.localize("item.buildcraftsilicon.plug_lens.clear")
+         : ColourUtil.getTextFullTooltip(colour);
+      String typeName = LocaleUtil.localize(filter ? "item.buildcraftsilicon.plug_filter" : "item.buildcraftsilicon.plug_lens");
+      return Component.translatable("item.buildcraftsilicon.plug_lens.coloured", colourName, typeName);
    }
 
    @Nonnull

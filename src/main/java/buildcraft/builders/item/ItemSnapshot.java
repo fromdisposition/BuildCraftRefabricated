@@ -74,9 +74,9 @@ public class ItemSnapshot extends Item {
          }
 
          if (flag.isAdvanced()) {
-            tooltip.add(Component.literal("Hash: " + HashUtil.convertHashToString(header.key.hash)).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("Date: " + header.created).withStyle(ChatFormatting.GRAY));
-            tooltip.add(Component.literal("Owner UUID: " + header.owner).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("tip.item.snapshot.hash", HashUtil.convertHashToString(header.key.hash)).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("tip.item.snapshot.date", String.valueOf(header.created)).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("tip.item.snapshot.owner_uuid", String.valueOf(header.owner)).withStyle(ChatFormatting.GRAY));
          }
       }
    }

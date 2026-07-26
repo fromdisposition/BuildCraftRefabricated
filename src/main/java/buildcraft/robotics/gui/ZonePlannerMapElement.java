@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.gui;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.core.BCCore;
 import buildcraft.core.item.ItemPaintbrush_BC8;
 import buildcraft.fabric.client.GuiGraphicsCompat;
@@ -233,7 +234,9 @@ public class ZonePlannerMapElement implements IInteractionElement {
    public void drawForeground(float partialTicks) {
       BCGraphics g = GuiIcon.getGuiGraphics();
       if (g != null && this.hasHover) {
-         String text = "X:" + this.hoverBlockX + " Z:" + this.hoverBlockZ + (this.hoverBlockY != ZonePlannerMapColours.NO_HEIGHT ? " Y:" + this.hoverBlockY : "");
+         String text = this.hoverBlockY != ZonePlannerMapColours.NO_HEIGHT
+            ? LocaleUtil.localize("gui.buildcraft.zone_planner.coords_y", this.hoverBlockX, this.hoverBlockZ, this.hoverBlockY)
+            : LocaleUtil.localize("gui.buildcraft.zone_planner.coords", this.hoverBlockX, this.hoverBlockZ);
          Minecraft mc = Minecraft.getInstance();
          int tw = mc.font.width(text);
          int tx = this.mapX() + 2;

@@ -6,6 +6,7 @@
 
 package buildcraft.builders.gui;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.builders.container.ContainerBuilder;
 import buildcraft.builders.snapshot.EnumContainerContentsMode;
 import buildcraft.builders.snapshot.EnumFluidHandlingMode;
@@ -191,12 +192,12 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       // Inventory labels above. A Component with .withStyle(DARK_GRAY) would override that colour with 0x555555, which
       // is both inconsistent with the other labels and nearly invisible against a dark-mode resource pack's panel.
       if (leftToBreak > 0) {
-         graphics.text(this.font, "Break: " + leftToBreak, 8, y, -12566464, false);
+         graphics.text(this.font, LocaleUtil.localize("gui.leftToBreak") + ": " + leftToBreak, 8, y, -12566464, false);
          y += 10;
       }
 
       if (leftToPlace > 0) {
-         graphics.text(this.font, "Place: " + leftToPlace, 8, y, -12566464, false);
+         graphics.text(this.font, LocaleUtil.localize("gui.leftToPlace") + ": " + leftToPlace, 8, y, -12566464, false);
       }
    }
 

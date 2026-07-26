@@ -6,6 +6,7 @@
 
 package buildcraft.builders.container;
 
+import buildcraft.lib.misc.LocaleUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.builders.BCBuildersMenuTypes;
 import buildcraft.builders.item.ItemSnapshot;
@@ -91,7 +92,7 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
    }
 
    public String getTileName() {
-      return this.tile != null ? this.tile.name : "<unnamed>";
+      return this.tile != null ? this.tile.name : LocaleUtil.localize("gui.buildcraft.architect.unnamed");
    }
 
    public void setTileName(String newName) {

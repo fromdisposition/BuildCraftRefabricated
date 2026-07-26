@@ -31,7 +31,7 @@ public final class LocaleUtil {
          return "";
       }
 
-      return String.format("%.2f MJ", microMj / 1000000.0);
+      return localize("buildcraft.unit.mj", String.format("%.2f", microMj / 1000000.0));
    }
 
    public static String localizeMjFlow(long microMjPerTick) {
@@ -40,8 +40,8 @@ public final class LocaleUtil {
       }
 
       long scaled = BCLibConfig.displayTimeGap.get().convertTicksToGap(microMjPerTick);
-      String suffix = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? " MJ/s" : " MJ/t";
-      return String.format("%.2f", scaled / 1000000.0) + suffix;
+      String key = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? "buildcraft.unit.mj_per_second" : "buildcraft.unit.mj_per_tick";
+      return localize(key, String.format("%.2f", scaled / 1000000.0));
    }
 
    public static String localizeHeat(float heat) {
@@ -54,9 +54,10 @@ public final class LocaleUtil {
       }
 
       int scaled = (int)BCLibConfig.displayTimeGap.get().convertTicksToGap(ePerTick);
-      String unit = MjAPI.EXTERNAL_ENERGY_UNIT;
-      String suffix = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS ? " " + unit + "/s" : " " + unit + "/t";
-      return scaled + suffix;
+      String key = BCLibConfig.displayTimeGap.get() == BCLibConfig.TimeGap.SECONDS
+         ? "buildcraft.unit.energy_per_second"
+         : "buildcraft.unit.energy_per_tick";
+      return localize(key, scaled, MjAPI.EXTERNAL_ENERGY_UNIT);
    }
 
    public static String localizeRf(int e) {
@@ -64,7 +65,7 @@ public final class LocaleUtil {
          return "";
       }
 
-      return e + " " + MjAPI.EXTERNAL_ENERGY_UNIT;
+      return localize("buildcraft.unit.energy", e, MjAPI.EXTERNAL_ENERGY_UNIT);
    }
 
    public static String localizeExternalBuffer(int currentE, int maxE) {
@@ -72,7 +73,7 @@ public final class LocaleUtil {
          return "";
       }
 
-      return currentE + " / " + maxE + " " + MjAPI.EXTERNAL_ENERGY_UNIT;
+      return localize("buildcraft.unit.energy_of", currentE, maxE, MjAPI.EXTERNAL_ENERGY_UNIT);
    }
 
    public static String localizeFluidFlow(int mbPerTick) {
@@ -81,10 +82,10 @@ public final class LocaleUtil {
       }
 
       if (BCLibConfig.useBucketsFlow.get()) {
-         return String.format("%.2f B/s", mbPerTick / 50.0);
+         return localize("buildcraft.unit.buckets_per_second", String.format("%.2f", mbPerTick / 50.0));
       }
 
-      return mbPerTick + " mB/t";
+      return localize("buildcraft.unit.millibuckets_per_tick", mbPerTick);
    }
 
    public static String localizeFluidStaticAmount(int fluidAmount, int capacity) {
@@ -93,7 +94,9 @@ public final class LocaleUtil {
       }
 
       if (fluidAmount <= 0) {
-         return capacity > 0 ? "0 / " + formatFluidAmount(capacity) : "0 mB";
+         return capacity > 0
+            ? localize("buildcraft.unit.fluid_of", "0", formatFluidAmount(capacity))
+            : localize("buildcraft.unit.millibuckets", "0");
       }
 
       String amount = formatFluidAmount(fluidAmount);
@@ -101,7 +104,9 @@ public final class LocaleUtil {
          return amount;
       }
 
-      return capacity > 0 ? amount + " / " + formatFluidAmount(capacity) : amount + " mB";
+      return capacity > 0
+         ? localize("buildcraft.unit.fluid_of", amount, formatFluidAmount(capacity))
+         : localize("buildcraft.unit.millibuckets", amount);
    }
 
    private static String formatFluidAmount(int milliBuckets) {

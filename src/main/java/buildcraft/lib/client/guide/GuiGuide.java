@@ -159,7 +159,7 @@ public class GuiGuide extends Screen {
    }
 
    private GuiGuide(@Nullable GuideBook book) {
-      super(Component.literal("BuildCraft Guide"));
+      super(Component.translatable("buildcraft.guide.title"));
       this.book = book;
       this.bookData = book != null ? book.data : GuideManager.BOOK_ALL_DATA;
       this.openPage(new GuidePageContents(this));

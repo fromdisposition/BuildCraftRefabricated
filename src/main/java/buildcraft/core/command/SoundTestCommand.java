@@ -90,7 +90,7 @@ public class SoundTestCommand {
       /*SoundEvent event = (SoundEvent)BuiltInRegistries.SOUND_EVENT.get(soundId);
       *///?}
       if (event == null) {
-         source.sendFailure(Component.literal("Unknown sound: " + soundId).withStyle(ChatFormatting.RED));
+         source.sendFailure(Component.translatable("command.buildcraft.soundtest.unknown_sound", soundId.toString()).withStyle(ChatFormatting.RED));
          return 0;
       }
 
@@ -98,21 +98,27 @@ public class SoundTestCommand {
       try {
          player = source.getPlayerOrException();
       } catch (CommandSyntaxException e) {
-         source.sendFailure(Component.literal("/bcsoundtest must be run by a player"));
+         source.sendFailure(Component.translatable("command.buildcraft.soundtest.player_only"));
          return 0;
       }
 
       BlockPos pos = player.blockPosition();
       player.level().playSound(null, pos, event, SoundSource.BLOCKS, volume, pitch);
-      source.sendSuccess(() -> Component.literal(String.format("▶ %s @ pitch %.2f, volume %.2f", soundId, pitch, volume)).withStyle(ChatFormatting.GRAY), false);
+      source.sendSuccess(
+         () -> Component.translatable(
+               "command.buildcraft.soundtest.playing", soundId.toString(), String.format("%.2f", pitch), String.format("%.2f", volume)
+            )
+            .withStyle(ChatFormatting.GRAY),
+         false
+      );
       return 1;
    }
 
    private static int printMenu(CommandContext<CommandSourceStack> ctx) {
       CommandSourceStack source = (CommandSourceStack)ctx.getSource();
-      source.sendSystemMessage(Component.literal("=== BuildCraft Sound Test ===").withStyle(ChatFormatting.GOLD));
-      source.sendSystemMessage(Component.literal("Click a pitch button below to play that sound. Each row is one sound ID.").withStyle(ChatFormatting.GRAY));
-      source.sendSystemMessage(Component.literal("Custom: /bcsoundtest <sound_id> [pitch 0-2] [volume 0-4]").withStyle(ChatFormatting.DARK_GRAY));
+      source.sendSystemMessage(Component.translatable("command.buildcraft.soundtest.header").withStyle(ChatFormatting.GOLD));
+      source.sendSystemMessage(Component.translatable("command.buildcraft.soundtest.usage").withStyle(ChatFormatting.GRAY));
+      source.sendSystemMessage(Component.translatable("command.buildcraft.soundtest.custom").withStyle(ChatFormatting.DARK_GRAY));
 
       for (String sound : SOUNDS) {
          MutableComponent line = Component.literal("").append(Component.literal(padRight(sound, 32)).withStyle(ChatFormatting.AQUA));
@@ -134,9 +140,7 @@ public class SoundTestCommand {
          source.sendSystemMessage(line);
       }
 
-      source.sendSystemMessage(
-         Component.literal("Tip: pair the chosen sound with the wrench rotation paths in the engine blocks.").withStyle(ChatFormatting.DARK_GRAY)
-      );
+      source.sendSystemMessage(Component.translatable("command.buildcraft.soundtest.tip").withStyle(ChatFormatting.DARK_GRAY));
       return 1;
    }
 

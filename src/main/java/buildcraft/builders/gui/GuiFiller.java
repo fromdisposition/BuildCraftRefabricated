@@ -180,7 +180,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
          @Override
          public void addToolTips(List<ToolTip> tooltips) {
             if (this.contains(GuiFiller.this.mainGui.mouse) && ((ContainerFiller)GuiFiller.this.menu).getSyncedLocked()) {
-               tooltips.add(new ToolTip("Locked"));
+               tooltips.add(new ToolTip(LocaleUtil.localize("gui.buildcraft.filler.locked")));
             }
          }
 

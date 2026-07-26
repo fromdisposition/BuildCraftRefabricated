@@ -6,6 +6,7 @@
 
 package buildcraft.builders.item;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.InvalidInputDataException;
@@ -157,21 +158,21 @@ public class ItemSchematicSingle extends Item {
                   } else {
                      MessageUtil.sendOverlayMessage(
                         player,
-                        Component.literal(
-                           "Not enough items. Total needed: "
-                              + StackUtil.mergeSameItems(requiredItems)
-                                 .stream()
-                                 .map(s -> s.getHoverName().getString() + " x " + s.getCount())
-                                 .collect(Collectors.joining(", "))
+                        Component.translatable(
+                           "chat.schematic.not_enough_items",
+                           StackUtil.mergeSameItems(requiredItems)
+                              .stream()
+                              .map(s -> LocaleUtil.localize("chat.schematic.item_entry", s.getHoverName().getString(), s.getCount()))
+                              .collect(Collectors.joining(", "))
                         )
                      );
                   }
                } else {
-                  MessageUtil.sendOverlayMessage(player, Component.literal("Schematic requires fluids"));
+                  MessageUtil.sendOverlayMessage(player, Component.translatable("chat.schematic.requires_fluids"));
                }
             }
          } catch (InvalidInputDataException e) {
-            MessageUtil.sendOverlayMessage(player, Component.literal("Invalid schematic: " + e.getMessage()));
+            MessageUtil.sendOverlayMessage(player, Component.translatable("chat.schematic.invalid", String.valueOf(e.getMessage())));
             BCLog.logger.warn("[builders.schematic] Player tried to use an invalid schematic", e);
          }
 

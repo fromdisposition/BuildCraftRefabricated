@@ -6,6 +6,7 @@
 
 package buildcraft.lib.client.guide.parts;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.entry.ItemStackValueFilter;
 import buildcraft.lib.client.guide.entry.PageEntryItemStack;
@@ -27,7 +28,7 @@ public class GuideRecipeFallbackPage extends GuidePage {
          List<GuidePart> parts = new ArrayList<>();
          List<GuidePartFactory> recipes = RecipeLookupHelper.getAllRecipes(stack);
          if (!recipes.isEmpty()) {
-            parts.add(new GuideText(gui, "Recipes:"));
+            parts.add(new GuideText(gui, LocaleUtil.localize("buildcraft.guide.recipe.create") + ":"));
 
             for (GuidePartFactory factory : recipes) {
                GuidePart part = factory.createNew(gui);
@@ -39,7 +40,7 @@ public class GuideRecipeFallbackPage extends GuidePage {
 
          List<GuidePartFactory> usages = RecipeLookupHelper.getAllUsages(stack);
          if (!usages.isEmpty()) {
-            parts.add(new GuideText(gui, "Usages:"));
+            parts.add(new GuideText(gui, LocaleUtil.localize("buildcraft.guide.recipe.use") + ":"));
 
             for (GuidePartFactory factory : usages) {
                GuidePart part = factory.createNew(gui);
@@ -50,7 +51,7 @@ public class GuideRecipeFallbackPage extends GuidePage {
          }
 
          if (parts.isEmpty()) {
-            parts.add(new GuideText(gui, "No recipes found."));
+            parts.add(new GuideText(gui, LocaleUtil.localize("buildcraft.guide.recipe.none")));
          }
 
          return new GuideRecipeFallbackPage(gui, parts, stack);

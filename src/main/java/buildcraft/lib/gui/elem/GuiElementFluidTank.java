@@ -6,6 +6,7 @@
 
 package buildcraft.lib.gui.elem;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.client.fluid.FluidGuiRenderer;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
 import buildcraft.lib.fluid.stack.FluidStack;
@@ -111,8 +112,8 @@ public class GuiElementFluidTank implements IInteractionElement {
    public void addToolTips(List<ToolTip> tooltips) {
       if (this.contains(this.gui.mouse.getX(), this.gui.mouse.getY())) {
          FluidStorageSnapshot snapshot = this.snapshotSupplier.get();
-         String name = snapshot.isEmpty() ? "Empty" : snapshot.toFluidStack().getHoverName().getString();
-         tooltips.add(new ToolTip(name, "" + ChatFormatting.GRAY + snapshot.amountMb() + " / " + snapshot.capacityMb() + " mB"));
+         String name = snapshot.isEmpty() ? LocaleUtil.localize("gui.buildcraft.tank.empty") : snapshot.toFluidStack().getHoverName().getString();
+         tooltips.add(new ToolTip(name, "" + ChatFormatting.GRAY + LocaleUtil.localizeFluidStaticAmount(snapshot.amountMb(), snapshot.capacityMb())));
       }
    }
 

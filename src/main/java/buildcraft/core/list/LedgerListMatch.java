@@ -102,7 +102,7 @@ public class LedgerListMatch extends Ledger_Neptune {
          if (handler.isValidSource(mode, exemplar)) {
             List<String> descriptions = handler.describeMatch(mode, exemplar);
             if (descriptions.isEmpty()) {
-               this.appendText("- " + handler.getClass().getSimpleName(), 13421772);
+               this.appendText("- " + LocaleUtil.localize("gui.list.match.unnamed_handler"), 13421772);
                any = true;
             } else {
                for (String desc : descriptions) {

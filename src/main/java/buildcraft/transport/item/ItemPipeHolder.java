@@ -80,13 +80,13 @@ public class ItemPipeHolder extends BlockItem implements IItemPipe {
          PipeApi.PowerTransferInfo pti = PipeApi.getPowerTransferInfo(def);
          String flow = LocaleUtil.localizeMjFlow(pti.transferPerTick);
          if (!flow.isEmpty()) {
-            tooltip.add(Component.literal(flow + " per face").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("tip.pipe.flow_per_face", flow).withStyle(ChatFormatting.GRAY));
          }
       } else if (def.flowType == PipeApi.flowRf) {
          PipeApi.RedstoneFluxTransferInfo rti = PipeApi.getRfTransferInfo(def);
          String flow = LocaleUtil.localizeRfFlow(rti.transferPerTick);
          if (!flow.isEmpty()) {
-            tooltip.add(Component.literal(flow + " per face").withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.translatable("tip.pipe.flow_per_face", flow).withStyle(ChatFormatting.GRAY));
          }
       }
    }

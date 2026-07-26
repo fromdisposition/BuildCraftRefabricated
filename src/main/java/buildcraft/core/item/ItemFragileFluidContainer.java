@@ -7,6 +7,7 @@
 package buildcraft.core.item;
 
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.api.items.IItemFluidShard;
 import buildcraft.core.BCCore;
@@ -37,7 +38,7 @@ public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
    public static void appendTooltipLines(ItemFragileFluidContainer item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       FluidStack fluid = getFluid(stack);
       if (!fluid.isEmpty() && fluid.getAmount() > 0) {
-         tooltip.add(Component.literal(fluid.getAmount() + " mB / 500 mB"));
+         tooltip.add(Component.literal(LocaleUtil.localizeFluidStaticAmount(fluid.getAmount(), 500)));
       }
    }
 

@@ -6,6 +6,7 @@
 
 package buildcraft.lib.gui.ledger;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.nbt.BcAuth;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BuildCraftGui;
@@ -35,7 +36,7 @@ public class LedgerOwnership extends Ledger_Neptune {
       this.title = "gui.owner";
       this.appendText(() -> {
          GameProfile profile = ownerSupplier.get();
-         return profile != null ? BcAuth.name(profile) : "Unknown";
+         return profile != null ? BcAuth.name(profile) : LocaleUtil.localize("gui.owner.unknown");
       }, 0);
       this.calculateMaxSize();
    }

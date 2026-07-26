@@ -6,6 +6,7 @@
 
 package buildcraft.lib.client.guide.parts.recipe;
 
+import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.parts.GuidePart;
 import buildcraft.lib.client.guide.parts.GuidePartItem;
@@ -79,7 +80,7 @@ public class GuideAssembly extends GuidePartItem {
 
          this.drawItemStack(this.output.get(), x + (int)OUT_POSITION.x, y + (int)OUT_POSITION.y);
          if (MJ_POSITION.offset(x, y).contains(this.gui.mouse)) {
-            this.gui.tooltips.add(Collections.singletonList(this.mjCost.get() + " MJ"));
+            this.gui.tooltips.add(Collections.singletonList(LocaleUtil.localizeMj(this.mjCost.get())));
          }
       }
 

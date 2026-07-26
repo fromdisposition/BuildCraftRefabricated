@@ -27,28 +27,16 @@ public class ColourUtil {
 
    public static String getTextFullTooltip(@Nullable DyeColor colour) {
       if (colour == null) {
-         return "Clean";
+         return LocaleUtil.localize("buildcraft.colour.clean");
       }
 
-      String name = colour.getName();
-      String[] parts = name.split("_");
-      StringBuilder sb = new StringBuilder();
-
-      for (int i = 0; i < parts.length; i++) {
-         if (i > 0) {
-            sb.append(' ');
-         }
-
-         sb.append(Character.toUpperCase(parts[i].charAt(0)));
-         sb.append(parts[i].substring(1));
-      }
-
+      String localized = LocaleUtil.localize("color.minecraft." + colour.getName());
       if (!BCLibConfig.useColouredLabels.get()) {
-         return sb.toString();
+         return localized;
       }
 
       ChatFormatting format = BCLibConfig.useHighContrastLabelColours.get() ? highContrastFormat(colour) : COLOUR_TO_FORMAT[colour.ordinal()];
-      return format.toString() + sb + ChatFormatting.RESET;
+      return format.toString() + localized + ChatFormatting.RESET;
    }
 
    public static String getTextFullTooltip(Direction direction) {

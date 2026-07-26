@@ -149,7 +149,11 @@ public class ItemMapLocation extends Item implements IMapLocation {
                if (firstTag != null) {
                   BlockPos first = readBlockPosNbt(firstTag);
                   tooltip.add(
-                     Component.literal("{" + first.getX() + ", " + first.getY() + ", " + first.getZ() + "}, (+" + (pathNBT.size() - 1) + " elements)")
+                     Component.translatable(
+                        "tip.item.map_location.path",
+                        first.getX() + ", " + first.getY() + ", " + first.getZ(),
+                        pathNBT.size() - 1
+                     )
                   );
                }
             }
