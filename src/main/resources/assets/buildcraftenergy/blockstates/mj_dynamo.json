@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "buildcraftenergy:block/mj_dynamo"
+    },
+    "facing=down": {
+      "model": "buildcraftenergy:block/mj_dynamo",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "buildcraftenergy:block/mj_dynamo",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south": {
+      "model": "buildcraftenergy:block/mj_dynamo",
+      "x": 90
+    },
+    "facing=west": {
+      "model": "buildcraftenergy:block/mj_dynamo",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east": {
+      "model": "buildcraftenergy:block/mj_dynamo",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

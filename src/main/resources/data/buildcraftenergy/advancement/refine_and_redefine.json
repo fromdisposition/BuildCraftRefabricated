@@ -1,0 +1,47 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftenergy:glob_of_oil"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.refine_and_redefine.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.refine_and_redefine.description"
+    },
+    "frame": "challenge"
+  },
+  "parent": "buildcraftenergy:sticky_dipping",
+  "criteria": {
+    "oil": {
+      "trigger": "minecraft:impossible"
+    },
+    "oil_residue": {
+      "trigger": "minecraft:impossible"
+    },
+    "oil_heavy": {
+      "trigger": "minecraft:impossible"
+    },
+    "oil_dense": {
+      "trigger": "minecraft:impossible"
+    },
+    "oil_distilled": {
+      "trigger": "minecraft:impossible"
+    },
+    "fuel_dense": {
+      "trigger": "minecraft:impossible"
+    },
+    "fuel_mixed_heavy": {
+      "trigger": "minecraft:impossible"
+    },
+    "fuel_light": {
+      "trigger": "minecraft:impossible"
+    },
+    "fuel_mixed_light": {
+      "trigger": "minecraft:impossible"
+    },
+    "fuel_gaseous": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

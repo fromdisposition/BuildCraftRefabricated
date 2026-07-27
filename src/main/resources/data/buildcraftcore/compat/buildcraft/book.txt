@@ -1,0 +1,5 @@
+~{buildcraft/json/insn}
+add "main" `{
+    "title": "buildcraft.guide.book.buildcraftcore_main",
+    "all_entries": true
+}`

@@ -1,0 +1,8 @@
+{
+  "parent": "buildcrafttransport:item/pipe_item",
+  "textures": {
+    "top": "buildcrafttransport:pipes/sandstone_rf",
+    "center": "buildcrafttransport:pipes/sandstone_rf",
+    "bottom": "buildcrafttransport:pipes/sandstone_rf"
+  }
+}

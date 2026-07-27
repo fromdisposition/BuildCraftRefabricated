@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "buildcraft_pipes",
+  "pattern": [
+    "lgr"
+  ],
+  "key": {
+    "l": "#c:cobblestones/normal",
+    "g": "#c:glass_blocks/colorless",
+    "r": "#c:cobblestones/normal"
+  },
+  "result": {
+    "id": "buildcrafttransport:pipe_cobble_item",
+    "count": 8
+  }
+}

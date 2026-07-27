@@ -1,0 +1,59 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:directory",
+      "source": "lasers",
+      "prefix": "lasers/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "pipes",
+      "prefix": "pipes/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "wires",
+      "prefix": "wires/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "icons",
+      "prefix": "icons/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "filler",
+      "prefix": "filler/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "addons",
+      "prefix": "addons/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "triggers",
+      "prefix": "triggers/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "block/engine",
+      "prefix": "block/engine/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "block/pump",
+      "prefix": "block/pump/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "block/fluids/baked",
+      "prefix": "block/fluids/baked/"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "block/fluids/underwater",
+      "prefix": "block/fluids/underwater/"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcrafttransport:waterproof"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.sealing_fluids.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.sealing_fluids.description"
+    }
+  },
+  "parent": "buildcrafttransport:pipe_dream",
+  "criteria": {
+    "crafted_sealant": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "buildcrafttransport:pipe_sealant"
+      }
+    },
+    "crafted_sealant_dye": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "buildcrafttransport:pipe_sealant_from_green_dye"
+      }
+    },
+    "crafted_sealant_residue": {
+      "trigger": "minecraft:recipe_crafted",
+      "conditions": {
+        "recipe_id": "buildcrafttransport:residue_to_pipe_sealant"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "crafted_sealant",
+      "crafted_sealant_dye",
+      "crafted_sealant_residue"
+    ]
+  ]
+}

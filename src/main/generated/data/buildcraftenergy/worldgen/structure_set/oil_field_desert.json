@@ -1,0 +1,19 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "locate_offset": [
+      8,
+      0,
+      8
+    ],
+    "salt": 1346811109,
+    "separation": 16,
+    "spacing": 32
+  },
+  "structures": [
+    {
+      "structure": "buildcraftenergy:oil_field_desert",
+      "weight": 1
+    }
+  ]
+}

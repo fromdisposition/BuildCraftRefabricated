@@ -1,0 +1,65 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcrafttransport:wire_lime"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.colorful_electrician.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.colorful_electrician.description"
+    },
+    "frame": "challenge"
+  },
+  "parent": "buildcrafttransport:logic_transportation",
+  "criteria": {
+    "white": {
+      "trigger": "minecraft:impossible"
+    },
+    "orange": {
+      "trigger": "minecraft:impossible"
+    },
+    "magenta": {
+      "trigger": "minecraft:impossible"
+    },
+    "light_blue": {
+      "trigger": "minecraft:impossible"
+    },
+    "yellow": {
+      "trigger": "minecraft:impossible"
+    },
+    "lime": {
+      "trigger": "minecraft:impossible"
+    },
+    "pink": {
+      "trigger": "minecraft:impossible"
+    },
+    "gray": {
+      "trigger": "minecraft:impossible"
+    },
+    "light_gray": {
+      "trigger": "minecraft:impossible"
+    },
+    "cyan": {
+      "trigger": "minecraft:impossible"
+    },
+    "purple": {
+      "trigger": "minecraft:impossible"
+    },
+    "blue": {
+      "trigger": "minecraft:impossible"
+    },
+    "brown": {
+      "trigger": "minecraft:impossible"
+    },
+    "green": {
+      "trigger": "minecraft:impossible"
+    },
+    "red": {
+      "trigger": "minecraft:impossible"
+    },
+    "black": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

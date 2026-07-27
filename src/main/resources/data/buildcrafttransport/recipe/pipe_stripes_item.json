@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "buildcraft_pipes",
+  "pattern": [
+    "lgr"
+  ],
+  "key": {
+    "l": "buildcraftcore:gear_gold",
+    "g": "#c:glass_blocks/colorless",
+    "r": "buildcraftcore:gear_gold"
+  },
+  "result": {
+    "id": "buildcrafttransport:pipe_stripes_item",
+    "count": 8
+  }
+}

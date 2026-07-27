@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "buildcraftbuilders:block/construction_marker"
+    },
+    "facing=east": {
+      "model": "buildcraftbuilders:block/construction_marker",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "buildcraftbuilders:block/construction_marker",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "buildcraftbuilders:block/construction_marker",
+      "y": 270
+    }
+  }
+}

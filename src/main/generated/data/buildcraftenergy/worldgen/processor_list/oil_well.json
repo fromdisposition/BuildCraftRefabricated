@@ -1,0 +1,11 @@
+{
+  "processors": [
+    {
+      "offset": -1,
+      "processor_type": "minecraft:gravity"
+    },
+    {
+      "processor_type": "buildcraftenergy:oil_well_projection"
+    }
+  ]
+}

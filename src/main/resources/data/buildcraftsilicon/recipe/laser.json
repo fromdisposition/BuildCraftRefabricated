@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "rro",
+    "rdd",
+    "rro"
+  ],
+  "key": {
+    "r": "#c:dusts/redstone",
+    "d": "#c:gems/diamond",
+    "o": "minecraft:obsidian"
+  },
+  "result": {
+    "id": "buildcraftsilicon:laser"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftfactory:autoworkbench_item",
+      "buildcraftfactory:chute",
+      "buildcraftenergy:engine_stone"
+    ]
+  },
+  "criteria": {
+    "has_gear_stone": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftcore:gear_stone"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_gear_stone"
+    ]
+  ]
+}

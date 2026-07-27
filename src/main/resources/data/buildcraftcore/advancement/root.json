@@ -1,0 +1,28 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftcore:gear_wood"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.root.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.root.description"
+    },
+    "background": "minecraft:block/sandstone",
+    "show_toast": false,
+    "announce_to_chat": false
+  },
+  "criteria": {
+    "has_stick": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:rods/wooden"
+          }
+        ]
+      }
+    }
+  }
+}

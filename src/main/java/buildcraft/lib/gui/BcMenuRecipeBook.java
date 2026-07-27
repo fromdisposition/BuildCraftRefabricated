@@ -1,0 +1,360 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.lib.gui;
+
+import buildcraft.api.core.BCLog;
+import buildcraft.fabric.network.BCPayloadContext;
+import buildcraft.lib.gui.slot.SlotPhantom;
+//? if has_jei {
+import buildcraft.lib.integration.jei.BucketJeiTransfer;
+//?}
+import buildcraft.lib.net.BcEnvelopeCodec;
+import buildcraft.lib.net.BcPacketDistributor;
+import buildcraft.lib.net.IPayloadWriter;
+import buildcraft.lib.net.MessageContainerPayload;
+import buildcraft.lib.tile.ItemHandlerSimple;
+import net.minecraft.network.FriendlyByteBuf;
+import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+//? if >= 1.21.10 {
+import net.minecraft.world.entity.player.StackedItemContents;
+//?} else {
+/*import net.minecraft.world.entity.player.StackedContents;
+*///?}
+import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.RecipeBookMenu;
+import net.minecraft.world.inventory.RecipeBookType;
+import net.minecraft.world.inventory.Slot;
+//? if >= 1.21.10 {
+import net.minecraft.world.inventory.RecipeBookMenu.PostPlaceAction;
+//?}
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.ItemLike;
+
+/**
+ * RecipeBookMenu variant of BcMenu — used only by the three crafting containers
+ * (AdvancedCraftingTable, AutoWorkbenchItems, AutoWorkbenchFluids) that show a recipe book panel.
+ * All other BC containers extend the leaner {@link BcMenu}.
+ */
+//? if >= 1.21.10 {
+public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu {
+//?} else {
+/*public abstract class BcMenuRecipeBook extends RecipeBookMenu<net.minecraft.world.item.crafting.CraftingInput, net.minecraft.world.item.crafting.CraftingRecipe> implements IBcMenu {
+*///?}
+   public static final int NET_WIDGET = 0;
+   public static final int NET_JEI_RECIPE_TRANSFER = 100;
+   public static final int NET_GHOST_SLOT_SET = 101;
+   public static final int NET_JEI_TRANSFER_ITEMS = 102;
+   public static final int NET_JEI_TRANSFER_BUCKETS = 103;
+   public final Player player;
+   private final List<Widget_Neptune<?>> widgets = new ArrayList<>();
+
+   protected BcMenuRecipeBook(MenuType<?> menuType, int containerId, Player player) {
+      super(menuType, containerId);
+      this.player = player;
+   }
+
+   protected void addFullPlayerInventory(int startX, int startY) {
+      this.addFullPlayerInventory(startX, startY, this.player.getInventory());
+   }
+
+   protected void addFullPlayerInventory(int startX, int startY, Inventory inv) {
+      // Build the player-inventory slots through vanilla's addStandardInventorySlots (same 36-slot layout the
+      // manual loop produced) so mods that extend the player inventory by mixin-ing that helper -- e.g.
+      // Inventory Extended -- add their extra rows to BuildCraft GUIs too. 1.21.1 has no such helper, so it
+      // keeps the manual loop.
+      //? if >= 1.21.10 {
+      this.addStandardInventorySlots(inv, startX, startY);
+      //?} else {
+      /*for (int sy = 0; sy < 3; sy++) {
+         for (int sx = 0; sx < 9; sx++) {
+            this.addSlot(new Slot(inv, sx + sy * 9 + 9, startX + sx * 18, startY + sy * 18));
+         }
+      }
+
+      for (int sx = 0; sx < 9; sx++) {
+         this.addSlot(new Slot(inv, sx, startX + sx * 18, startY + 58));
+      }
+      *///?}
+   }
+
+   public <W extends Widget_Neptune<?>> W addWidget(W widget) {
+      if (widget == null) {
+         throw new NullPointerException("widget");
+      }
+
+      this.widgets.add(widget);
+      return widget;
+   }
+
+   public ImmutableList<Widget_Neptune<?>> getWidgets() {
+      return ImmutableList.copyOf(this.widgets);
+   }
+
+   public final void sendMessage(int id, IPayloadWriter writer) {
+      byte[] bytes = BcEnvelopeCodec.encode(writer);
+      if (bytes == null) {
+         BCLog.logger.warn("[lib.container] Container message {} exceeds payload limit", id);
+      } else {
+         MessageContainerPayload payload = new MessageContainerPayload(this.containerId, id, bytes);
+         if (this.player.level().isClientSide()) {
+            BcPacketDistributor.sendToServer(payload);
+         } else if (this.player instanceof ServerPlayer serverPlayer) {
+            BcPacketDistributor.sendToPlayer(serverPlayer, payload);
+         }
+      }
+   }
+
+   @Override
+   public Player getPlayer() { return player; }
+
+   @Override
+   public void sendWidgetData(Widget_Neptune<?> widget, IPayloadWriter writer) {
+      int widgetId = this.widgets.indexOf(widget);
+      if (widgetId == -1) {
+         BCLog.logger.warn("[lib.container] sendWidgetData: widget not found! (" + (widget == null ? "null" : widget.getClass()) + ") in " + this.getClass());
+      } else {
+         this.sendMessage(0, buf -> {
+            buf.writeShort(widgetId);
+            writer.write(buf);
+         });
+      }
+   }
+
+   public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
+      if (id == 0) {
+         int widgetId = buffer.readUnsignedShort();
+         if (widgetId < 0 || widgetId >= this.widgets.size()) {
+            BCLog.logger.warn("[lib.container] Received invalid widget ID " + widgetId + " (have " + this.widgets.size() + " widgets)");
+            return;
+         }
+
+         Widget_Neptune<?> widget = this.widgets.get(widgetId);
+
+         try {
+            if (isClient) {
+               widget.handleWidgetDataClient(ctx, buffer);
+            } else {
+               widget.handleWidgetDataServer(ctx, buffer);
+            }
+         } catch (Exception e) {
+            BCLog.logger.warn("[lib.container] Error handling widget data for widget " + widgetId, e);
+         }
+      } else if (id == 100 && !isClient) {
+         Identifier recipeId = Identifier.tryParse(buffer.readUtf());
+         if (recipeId == null) {
+            return;
+         }
+
+         if (this.player.level() instanceof ServerLevel serverLevel) {
+            ResourceKey<Recipe<?>> key = ResourceKey.create(Registries.RECIPE, recipeId);
+            //? if >= 1.21.10 {
+            Optional<RecipeHolder<CraftingRecipe>> holder = serverLevel.recipeAccess()
+               .byKey(key)
+               .flatMap(r -> r.value() instanceof CraftingRecipe crafting ? Optional.of(new RecipeHolder<>(r.id(), crafting)) : Optional.empty());
+            //?} else {
+            /*Optional<RecipeHolder<CraftingRecipe>> holder = serverLevel.getRecipeManager()
+               .byKey(recipeId)
+               .flatMap(r -> r.value() instanceof CraftingRecipe crafting ? Optional.of(new RecipeHolder<>(r.id(), crafting)) : Optional.empty());
+            *///?}
+            holder.ifPresent(recipe -> this.handleRecipeTransfer(recipe, serverLevel, this.player.getInventory()));
+         }
+      } else if (id == 101 && !isClient) {
+         int slotIdx = buffer.readUnsignedShort();
+         String itemId = buffer.readUtf();
+         if (slotIdx >= 0 && slotIdx < this.slots.size() && this.slots.get(slotIdx) instanceof SlotPhantom phantom) {
+            Identifier itemIdentifier = Identifier.tryParse(itemId);
+            if (itemIdentifier == null) {
+               return;
+            }
+
+            //? if >= 1.21.10 {
+            BuiltInRegistries.ITEM.get(itemIdentifier).ifPresent(itemRef -> {
+               ItemStack stack = new ItemStack((ItemLike)itemRef.value(), 1);
+               phantom.set(stack);
+            });
+            //?} else {
+            /*net.minecraft.world.item.Item bcItem = BuiltInRegistries.ITEM.get(itemIdentifier);
+            if (bcItem != null) {
+               phantom.set(new ItemStack((ItemLike) bcItem, 1));
+            }
+            *///?}
+         }
+      //? if has_jei {
+      } else if (id == NET_JEI_TRANSFER_BUCKETS && !isClient) {
+         ItemHandlerSimple machineSlots = this.getJeiBucketTransferSlots();
+         if (machineSlots != null) {
+            BucketJeiTransfer.apply(buffer, this.player.getInventory(), machineSlots);
+         }
+      //?}
+      }
+   }
+
+   /** Override to populate blueprint/grid when a recipe is transferred (JEI or vanilla recipe book). */
+   protected void handleRecipeTransfer(RecipeHolder<CraftingRecipe> recipe, ServerLevel level, Inventory playerInv) {
+   }
+
+   @javax.annotation.Nullable
+   protected ItemHandlerSimple getJeiBucketTransferSlots() {
+      return null;
+   }
+
+   public void clicked(int slotId, int dragType, ContainerInput containerInput, Player player) {
+      if ((slotId < 0 ? null : (Slot)this.slots.get(slotId)) instanceof SlotPhantom phantom) {
+         ItemStack held = this.getCarried();
+         if (held.isEmpty()) {
+            phantom.set(ItemStack.EMPTY);
+         } else {
+            ItemStack copy = held.copy();
+            copy.setCount(1);
+            phantom.set(copy);
+         }
+      } else {
+         super.clicked(slotId, dragType, containerInput, player);
+      }
+   }
+
+   public ItemStack quickMoveStack(Player playerIn, int index) {
+      ItemStack itemstack = ItemStack.EMPTY;
+      Slot slot = (Slot)this.slots.get(index);
+      if (slot != null && slot.hasItem()) {
+         ItemStack slotStack = slot.getItem();
+         itemstack = slotStack.copy();
+         int playerInvSize = 36;
+         int containerSlots = this.slots.size() - playerInvSize;
+         if (index < containerSlots) {
+            if (!this.moveItemStackTo(slotStack, containerSlots, this.slots.size(), true)) {
+               return ItemStack.EMPTY;
+            }
+         } else if (!this.moveItemStackToValid(slotStack, 0, containerSlots)) {
+            return ItemStack.EMPTY;
+         }
+
+         if (slotStack.isEmpty()) {
+            slot.set(ItemStack.EMPTY);
+         } else {
+            slot.setChanged();
+         }
+
+         return itemstack;
+      } else {
+         return itemstack;
+      }
+   }
+
+   private boolean moveItemStackToValid(ItemStack stack, int startIndex, int endIndex) {
+      boolean moved = false;
+
+      for (int i = startIndex; i < endIndex && !stack.isEmpty(); i++) {
+         Slot targetSlot = (Slot)this.slots.get(i);
+         if (targetSlot.mayPlace(stack)) {
+            ItemStack existing = targetSlot.getItem();
+            if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(stack, existing)) {
+               int maxSize = Math.min(targetSlot.getMaxStackSize(stack), stack.getMaxStackSize());
+               int space = maxSize - existing.getCount();
+               if (space > 0) {
+                  int transfer = Math.min(space, stack.getCount());
+                  existing.grow(transfer);
+                  stack.shrink(transfer);
+                  targetSlot.set(existing);
+                  moved = true;
+               }
+            }
+         }
+      }
+
+      for (int i = startIndex; i < endIndex && !stack.isEmpty(); i++) {
+         Slot targetSlot = (Slot)this.slots.get(i);
+         if (targetSlot.mayPlace(stack) && targetSlot.getItem().isEmpty()) {
+            int maxSize = Math.min(targetSlot.getMaxStackSize(stack), stack.getMaxStackSize());
+            int transfer = Math.min(maxSize, stack.getCount());
+            targetSlot.set(stack.split(transfer));
+            moved = true;
+         }
+      }
+
+      return moved;
+   }
+
+   public boolean stillValid(Player player) {
+      return player.isAlive() && !player.isRemoved();
+   }
+
+   //? if >= 1.21.10 {
+   @Override
+   public PostPlaceAction handlePlacement(boolean useMaxItems, boolean isCreative, RecipeHolder<?> recipe, ServerLevel level, Inventory playerInv) {
+      if (recipe.value() instanceof CraftingRecipe crafting) {
+         handleRecipeTransfer(new RecipeHolder<>(recipe.id(), crafting), level, playerInv);
+         return PostPlaceAction.PLACE_GHOST_RECIPE;
+      }
+      return PostPlaceAction.NOTHING;
+   }
+
+   @Override
+   public void fillCraftSlotsStackedContents(StackedItemContents contents) {
+   }
+   //?} else {
+   /*// 1.21.1 RecipeBookMenu<I,R> abstract surface. The recipe-book panel is largely non-functional on 1.21.1
+   // (BC's components are versions/1.21.1 stubs); these satisfy the contract with safe defaults.
+   @Override
+   public void fillCraftSlotsStackedContents(StackedContents contents) {
+   }
+
+   @Override
+   public void clearCraftingContent() {
+   }
+
+   @Override
+   public boolean recipeMatches(RecipeHolder<net.minecraft.world.item.crafting.CraftingRecipe> recipe) {
+      return false;
+   }
+
+   @Override
+   public int getResultSlotIndex() {
+      return -1;
+   }
+
+   @Override
+   public int getGridWidth() {
+      return 3;
+   }
+
+   @Override
+   public int getGridHeight() {
+      return 3;
+   }
+
+   @Override
+   public int getSize() {
+      return 10;
+   }
+
+   @Override
+   public boolean shouldMoveToInventory(int slotIndex) {
+      return true;
+   }
+   *///?}
+
+   @Override
+   public RecipeBookType getRecipeBookType() {
+      return RecipeBookType.CRAFTING;
+   }
+}

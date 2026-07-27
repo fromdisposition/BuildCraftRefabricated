@@ -1,0 +1,60 @@
+[
+  {
+    "selectors": [
+      "minecraft:armor_stand"
+    ],
+    "capture": true,
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:armor_stand"
+          }
+        ]
+      },
+      {
+        "type": "item",
+        "path": [
+          "equipment",
+          "mainhand"
+        ]
+      },
+      {
+        "type": "item",
+        "path": [
+          "equipment",
+          "offhand"
+        ]
+      },
+      {
+        "type": "item",
+        "path": [
+          "equipment",
+          "head"
+        ]
+      },
+      {
+        "type": "item",
+        "path": [
+          "equipment",
+          "chest"
+        ]
+      },
+      {
+        "type": "item",
+        "path": [
+          "equipment",
+          "legs"
+        ]
+      },
+      {
+        "type": "item",
+        "path": [
+          "equipment",
+          "feet"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "igi",
+    "###",
+    "igi"
+  ],
+  "key": {
+    "i": "#c:ingots/iron",
+    "g": "buildcraftcore:gear_iron",
+    "#": "#c:glass_blocks/colorless"
+  },
+  "result": {
+    "id": "buildcraftfactory:heat_exchange"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "buildcraft_pipes",
+  "ingredients": [
+    "buildcrafttransport:pipe_diamond_wood_item",
+    "minecraft:lapis_block"
+  ],
+  "result": {
+    "id": "buildcrafttransport:pipe_emzuli_item"
+  }
+}

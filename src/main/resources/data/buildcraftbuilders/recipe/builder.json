@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "pmf",
+    "gcg",
+    "tbl"
+  ],
+  "key": {
+    "p": "buildcraftfactory:pump",
+    "m": "buildcraftcore:marker_volume",
+    "f": "buildcraftfactory:flood_gate",
+    "g": "buildcraftcore:gear_diamond",
+    "c": "buildcraftfactory:chute",
+    "t": "buildcraftfactory:tank",
+    "b": "buildcraftbuilders:blueprint_clean",
+    "l": "buildcraftbuilders:filler"
+  },
+  "result": {
+    "id": "buildcraftbuilders:builder"
+  }
+}

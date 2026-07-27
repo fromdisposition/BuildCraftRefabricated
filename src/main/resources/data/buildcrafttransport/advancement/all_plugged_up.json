@@ -1,0 +1,41 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftsilicon:plug_light_sensor"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.all_plugged_up.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.all_plugged_up.description"
+    },
+    "frame": "goal"
+  },
+  "parent": "buildcrafttransport:pipe_logic",
+  "criteria": {
+    "blocker": {
+      "trigger": "minecraft:impossible"
+    },
+    "power_adaptor": {
+      "trigger": "minecraft:impossible"
+    },
+    "wire": {
+      "trigger": "minecraft:impossible"
+    },
+    "gate": {
+      "trigger": "minecraft:impossible"
+    },
+    "lens": {
+      "trigger": "minecraft:impossible"
+    },
+    "pulsar": {
+      "trigger": "minecraft:impossible"
+    },
+    "light_sensor": {
+      "trigger": "minecraft:impossible"
+    },
+    "timer": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

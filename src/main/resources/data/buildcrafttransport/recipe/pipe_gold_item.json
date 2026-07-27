@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "buildcraft_pipes",
+  "pattern": [
+    "lgr"
+  ],
+  "key": {
+    "l": "#c:ingots/gold",
+    "g": "#c:glass_blocks/colorless",
+    "r": "#c:ingots/gold"
+  },
+  "result": {
+    "id": "buildcrafttransport:pipe_gold_item",
+    "count": 8
+  }
+}

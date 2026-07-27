@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftenergy:glob_of_oil"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.sticky_dipping.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.sticky_dipping.description"
+    },
+    "hidden": true
+  },
+  "parent": "buildcraftenergy:fine_riches",
+  "criteria": {
+    "in_oil": {
+      "trigger": "minecraft:location",
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:location_check",
+            "predicate": {
+              "block": {
+                "blocks": "#buildcraftenergy:oil_fluids"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcrafttransport:wire_white"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.logic_transportation.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.logic_transportation.description"
+    }
+  },
+  "parent": "buildcrafttransport:pipe_dream",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

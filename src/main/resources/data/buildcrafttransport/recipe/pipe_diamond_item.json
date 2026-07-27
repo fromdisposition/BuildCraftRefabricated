@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "buildcraft_pipes",
+  "pattern": [
+    "lgr"
+  ],
+  "key": {
+    "l": "#c:gems/diamond",
+    "g": "#c:glass_blocks/colorless",
+    "r": "#c:gems/diamond"
+  },
+  "result": {
+    "id": "buildcrafttransport:pipe_diamond_item",
+    "count": 8
+  }
+}

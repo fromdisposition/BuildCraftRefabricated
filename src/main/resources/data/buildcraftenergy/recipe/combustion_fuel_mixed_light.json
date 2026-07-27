@@ -1,0 +1,6 @@
+{
+  "type": "buildcraftenergy:combustion_fuel",
+  "fluid": "buildcraftenergy:fuel_mixed_light",
+  "power_per_cycle": 3145728,
+  "total_burning_time": 10000
+}

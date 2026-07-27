@@ -1,0 +1,645 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.transport.client.model;
+
+import buildcraft.api.transport.pipe.EnumPipeColourType;
+import buildcraft.api.transport.pipe.PipeApi;
+import buildcraft.api.transport.pipe.PipeDefinition;
+import buildcraft.api.transport.pipe.PipeFaceTex;
+import buildcraft.lib.client.ColorBlindUtil;
+import buildcraft.lib.client.model.ModelUtil;
+import buildcraft.lib.client.model.MutableQuad;
+import buildcraft.lib.misc.ColourUtil;
+import buildcraft.lib.misc.SpriteUtil;
+import buildcraft.transport.BCTransportSprites;
+import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nullable;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+
+public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
+   INSTANCE;
+
+   // Concurrent: the mask path feeds the chunk-baked paint shell, so it is read (and lazily filled) from
+   // chunk-build worker threads, not just the render thread.
+   private static final Map<Long, TextureAtlasSprite[]> SPRITES = new ConcurrentHashMap<>();
+   private static final Map<Long, TextureAtlasSprite[]> MASK_SPRITES = new ConcurrentHashMap<>();
+   private static final Map<String, String> MASK_MAP = new HashMap<>();
+   private static final MutableQuad[][][] QUADS;
+   private static final MutableQuad[][][] QUADS_COLOURED;
+
+   private static boolean isCb() {
+      return ColorBlindUtil.isActive();
+   }
+
+   static long defKey(PipeDefinition def, boolean cb) {
+      return (long)System.identityHashCode(def) << 32 | (cb ? 1L : 0L);
+   }
+
+   private static String maybeCbName(String texName, boolean cb) {
+      if (!cb) {
+         return texName;
+      }
+
+      String candidate = texName + "_cb";
+      TextureAtlasSprite probe = SpriteUtil.getSprite(candidate);
+      return probe != null && probe != SpriteUtil.missingSprite() ? candidate : texName;
+   }
+
+   @Override
+   public TextureAtlasSprite[] getItemSprites(PipeDefinition def) {
+      return SPRITES.get(defKey(def, isCb()));
+   }
+
+   private static TextureAtlasSprite[] ensureSprites(PipeDefinition def) {
+      boolean cb = isCb();
+      long key = defKey(def, cb);
+      TextureAtlasSprite[] cached = SPRITES.get(key);
+      if (cached != null) {
+         return cached;
+      }
+
+      TextureAtlasSprite missing = SpriteUtil.missingSprite();
+      TextureAtlasSprite[] array = new TextureAtlasSprite[def.textures.length];
+      boolean allResolved = true;
+
+      for (int i = 0; i < array.length; i++) {
+         String name = maybeCbName(def.textures[i], cb);
+         array[i] = SpriteUtil.getSprite(name);
+         if (array[i] == null || array[i] == missing) {
+            array[i] = missing;
+            allResolved = false;
+         }
+      }
+
+      if (allResolved) {
+         SPRITES.put(key, array);
+      }
+
+      return array;
+   }
+
+   static TextureAtlasSprite[] ensureMaskSprites(PipeDefinition def) {
+      boolean cb = isCb();
+      long key = defKey(def, cb);
+      TextureAtlasSprite[] cached = MASK_SPRITES.get(key);
+      if (cached != null) {
+         return cached;
+      }
+
+      TextureAtlasSprite missing = SpriteUtil.missingSprite();
+      TextureAtlasSprite[] array = new TextureAtlasSprite[def.textures.length];
+      boolean allResolved = true;
+
+      for (int i = 0; i < array.length; i++) {
+         String texName = maybeCbName(def.textures[i], cb);
+         int colonIdx = texName.indexOf(58);
+         String namespace = colonIdx >= 0 ? texName.substring(0, colonIdx) : "minecraft";
+         String path = colonIdx >= 0 ? texName.substring(colonIdx + 1) : texName;
+         int lastSlash = path.lastIndexOf(47);
+         String baseName = lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
+         String maskBaseName = MASK_MAP.getOrDefault(baseName, "mask_" + baseName);
+         String maskPath = lastSlash >= 0 ? path.substring(0, lastSlash + 1) + maskBaseName : maskBaseName;
+         String maskLoc = namespace + ":" + maskPath;
+         array[i] = SpriteUtil.getSprite(Identifier.parse(maskLoc));
+         if (array[i] == null || array[i] == missing) {
+            array[i] = missing;
+            allResolved = false;
+         }
+      }
+
+      if (allResolved) {
+         MASK_SPRITES.put(key, array);
+      }
+
+      return array;
+   }
+
+   public static void onColorBlindToggle() {
+      // The quad template caches bake the colour-blind sprite variant in without it being part of the key,
+      // so they must be dropped alongside the sprite maps or later remeshes keep serving the old variant.
+      PipeMutableQuadCache.clearCaches();
+      Minecraft mc = Minecraft.getInstance();
+      if (mc != null && mc.levelRenderer != null && mc.level != null) {
+         //? if >= 26.2 {
+         // 26.2 renamed allChanged(); this is its successor and remeshes every compiled section.
+         mc.levelRenderer.invalidateCompiledGeometry(mc.level, mc.options, mc.gameRenderer.mainCamera(), mc.getBlockColors());
+         //?} else {
+         /*mc.levelRenderer.allChanged();
+         *///?}
+      }
+   }
+
+   public static void clearSpriteCaches() {
+      SPRITES.clear();
+      MASK_SPRITES.clear();
+   }
+
+   private static void dupDarker(MutableQuad[] quads) {
+      int halfLength = quads.length / 2;
+      float mult = OPTION_INSIDE_COLOUR_MULT.getAsFloat();
+
+      for (int i = 0; i < halfLength; i++) {
+         int n = i + halfLength;
+         MutableQuad from = quads[i];
+         if (from != null) {
+            MutableQuad to = from.copyAndInvertNormal();
+            to.setCalculatedDiffuse();
+            to.multColourd(mult);
+            quads[n] = to;
+         }
+      }
+   }
+
+   private static void dupInverted(MutableQuad[] quads) {
+      int halfLength = quads.length / 2;
+
+      for (int i = 0; i < halfLength; i++) {
+         int n = i + halfLength;
+         MutableQuad from = quads[i];
+         if (from != null) {
+            quads[n] = from.copyAndInvertNormal();
+         }
+      }
+   }
+
+   @Override
+   public List<MutableQuad> generateCutoutMutable(PipeModelCacheBase.PipeBaseCutoutKey key) {
+      List<MutableQuad> quads = new ArrayList<>();
+      TextureAtlasSprite[] spriteArray = key.definition != null ? ensureSprites(key.definition) : null;
+      boolean seeThrough = isSeeThrough(spriteArray);
+      TextureAtlasSprite borderSprite = getBorderSprite(key);
+      int colour = borderSprite == null ? -1 : getPipeModelColour(key.colour);
+      int border_r = colour >> 0 & 0xFF;
+      int border_g = colour >> 8 & 0xFF;
+      int border_b = colour >> 16 & 0xFF;
+
+      for (Direction face : Direction.values()) {
+         float size = key.connections[face.ordinal()];
+         PipeFaceTex tex = size > 0.0F ? key.sideSprites[face.ordinal()] : key.centerSprite;
+         int quadsIndex = size > 0.0F ? 1 : 0;
+         MutableQuad[] quadArray = QUADS[quadsIndex][face.ordinal()];
+         // An opaque pipe's interior is sealed everywhere except a tube whose end opens against a TILE (the
+         // machine face can be inset, letting the player peek in), so only those tubes keep their inner shell.
+         boolean fullQuads = seeThrough || quadsIndex == 1 && (key.tileConnections & 1 << face.ordinal()) != 0;
+         int startIndex = quads.size();
+
+         for (int i = 0; i < tex.getCount(); i++) {
+            TextureAtlasSprite sprite = getSprite(spriteArray, tex, i);
+            if (fullQuads) {
+               addQuads(quadArray, quads, sprite);
+            } else {
+               addOuterQuads(quadArray, quads, sprite);
+            }
+
+            int c = tex.getColour(i);
+            int r = c >> 0 & 0xFF;
+            int g = c >> 8 & 0xFF;
+            int b = c >> 16 & 0xFF;
+
+            for (int q = startIndex; q < quads.size(); q++) {
+               quads.get(q).multColouri(r, g, b, 255);
+            }
+
+            startIndex = quads.size();
+         }
+
+         if (borderSprite != null) {
+            if (fullQuads) {
+               addQuads(quadArray, quads, borderSprite);
+            } else {
+               addOuterQuads(quadArray, quads, borderSprite);
+            }
+
+            for (int ii = startIndex; ii < quads.size(); ii++) {
+               quads.get(ii).multColouri(border_r, border_g, border_b, 255);
+            }
+         }
+      }
+
+      return quads;
+   }
+
+   /**
+    * Whether any of the pipe's textures can be seen through. An opaque pipe (gold, stone, …) can never show the
+    * dupDarker inner shell, so the model drops it — inner faces are half of every pipe's quads, and in dense
+    * builds they double what the chunk mesher has to build, sort and upload for nothing. 26.1+ exposes each
+    * sprite's precomputed transparency; older versions keep the full geometry.
+    */
+   private static boolean isSeeThrough(@Nullable TextureAtlasSprite[] sprites) {
+      //? if >= 26.1 {
+      if (sprites == null) {
+         return true;
+      }
+
+      for (TextureAtlasSprite sprite : sprites) {
+         if (sprite == null || !sprite.contents().transparency().isOpaque()) {
+            return true;
+         }
+      }
+
+      return false;
+      //?} else {
+      /*return true;
+      *///?}
+   }
+
+   /**
+    * How far the paint shell is pushed off the pipe body along each quad's normal. The body renders through the
+    * block-entity transform while the shell is chunk geometry; exactly-coplanar quads through the two matrix
+    * paths round to slightly different depths per pixel and checkerboard-z-fight, so the shell must not share
+    * the body's planes.
+    */
+   private static final float MASK_SHELL_OFFSET = 0.001F;
+
+   public List<MutableQuad> generateMaskMutable(PipeModelCacheBase.PipeBaseCutoutKey key, int alpha) {
+      if (key.colour != null && key.colourType == EnumPipeColourType.TRANSLUCENT) {
+         List<MutableQuad> quads = new ArrayList<>();
+         TextureAtlasSprite[] maskArray = key.definition != null ? ensureMaskSprites(key.definition) : null;
+         int dyeColour = getPipeModelColour(key.colour);
+         int dye_r = dyeColour >> 0 & 0xFF;
+         int dye_g = dyeColour >> 8 & 0xFF;
+         int dye_b = dyeColour >> 16 & 0xFF;
+
+         for (Direction face : Direction.values()) {
+            float size = key.connections[face.ordinal()];
+            PipeFaceTex tex = size > 0.0F ? key.sideSprites[face.ordinal()] : key.centerSprite;
+            int quadsIndex = size > 0.0F ? 1 : 0;
+            MutableQuad[] quadArray = QUADS[quadsIndex][face.ordinal()];
+            int startIndex = quads.size();
+
+            for (int i = 0; i < tex.getCount(); i++) {
+               TextureAtlasSprite maskSprite = getSprite(maskArray, tex, i);
+               if (maskSprite != SpriteUtil.missingSprite()) {
+                  // Outer faces only: the second template half is the dupDarker inner shell, which for the paint
+                  // is only visible by peering into an open pipe end — but doubles the translucent quads the
+                  // chunk mesher has to build, sort and upload for every painted pipe in the section.
+                  addOuterQuads(quadArray, quads, maskSprite);
+
+                  for (int q = startIndex; q < quads.size(); q++) {
+                     quads.get(q).multColouri(dye_r, dye_g, dye_b, alpha);
+                  }
+               }
+
+               startIndex = quads.size();
+            }
+         }
+
+         for (MutableQuad quad : quads) {
+            inflate(quad, MASK_SHELL_OFFSET);
+         }
+
+         return quads;
+      } else {
+         return Collections.emptyList();
+      }
+   }
+
+   @Override
+   public List<BakedQuad> generateCutout(PipeModelCacheBase.PipeBaseCutoutKey key) {
+      List<MutableQuad> quads = this.generateCutoutMutable(key);
+      List<BakedQuad> bakedQuads = new ArrayList<>();
+
+      for (MutableQuad q : quads) {
+         bakedQuads.add(q.toBakedBlock());
+      }
+
+      return bakedQuads;
+   }
+
+   @Nullable
+   private static TextureAtlasSprite getBorderSprite(PipeModelCacheBase.PipeBaseCutoutKey key) {
+      if (key.colour == null) {
+         return null;
+      } else if (key.colourType == EnumPipeColourType.BORDER_INNER) {
+         return BCTransportSprites.PIPE_COLOUR_BORDER_INNER.getSprite();
+      } else {
+         return key.colourType == EnumPipeColourType.BORDER_OUTER ? BCTransportSprites.PIPE_COLOUR_BORDER_OUTER.getSprite() : null;
+      }
+   }
+
+   private static TextureAtlasSprite getSprite(TextureAtlasSprite[] array, PipeFaceTex tex, int spriteIndex) {
+      int index = tex.getTexture(spriteIndex);
+      return getSprite(array, index);
+   }
+
+   private static TextureAtlasSprite getSprite(TextureAtlasSprite[] array, int index) {
+      return array != null && index >= 0 && index < array.length ? array[index] : SpriteUtil.missingSprite();
+   }
+
+   @Override
+   public List<BakedQuad> generateTranslucent(PipeModelCacheBase.PipeBaseTranslucentKey key) {
+      if (!key.shouldRender()) {
+         return ImmutableList.of();
+      }
+
+      List<MutableQuad> mutableQuads;
+      if (key.cutoutKey != null && key.cutoutKey.definition != null && key.cutoutKey.definition.flowType == PipeApi.flowFluids) {
+         if (key.cutoutKey.colour != null) {
+            return ImmutableList.of();
+         }
+
+         mutableQuads = this.generateMaskMutable(key.cutoutKey, 255);
+      } else {
+         mutableQuads = this.generateTranslucentMutable(key);
+      }
+
+      List<BakedQuad> bakedQuads = new ArrayList<>();
+
+      for (MutableQuad q : mutableQuads) {
+         bakedQuads.add(q.toBakedTranslucent());
+      }
+
+      return bakedQuads;
+   }
+
+   @Override
+   public List<MutableQuad> generateTranslucentMutable(PipeModelCacheBase.PipeBaseTranslucentKey key) {
+      if (!key.shouldRender()) {
+         return ImmutableList.of();
+      }
+
+      List<MutableQuad> quads = new ArrayList<>();
+      TextureAtlasSprite[] maskArray = key.cutoutKey != null && key.cutoutKey.definition != null ? ensureMaskSprites(key.cutoutKey.definition) : null;
+
+      for (Direction face : Direction.values()) {
+         float size = key.connections[face.ordinal()];
+         PipeFaceTex tex = key.cutoutKey != null ? (size > 0.0F ? key.cutoutKey.sideSprites[face.ordinal()] : key.cutoutKey.centerSprite) : null;
+         int quadsIndex = size > 0.0F ? 1 : 0;
+         if (tex != null) {
+            for (int i = 0; i < tex.getCount(); i++) {
+               TextureAtlasSprite maskSprite = getSprite(maskArray, tex, i);
+               int startIndex = quads.size();
+               addQuads(QUADS[quadsIndex][face.ordinal()], quads, maskSprite);
+
+               for (int q = startIndex; q < quads.size(); q++) {
+                  quads.get(q).multColouri(255, 255, 255, 76);
+               }
+            }
+         } else {
+            TextureAtlasSprite sprite = BCTransportSprites.PIPE_COLOUR.getSprite();
+            if (sprite == null) {
+               sprite = SpriteUtil.missingSprite();
+            }
+
+            addQuads(QUADS[quadsIndex][face.ordinal()], quads, sprite);
+         }
+      }
+
+      for (MutableQuad q : quads) {
+         q.setTint(1);
+      }
+
+      return quads;
+   }
+
+   private static int getPipeModelColour(DyeColor c) {
+      return c == null ? -1 : 0xFF000000 | ColourUtil.swapArgbToAbgr(ColourUtil.getLightHex(c));
+   }
+
+   public static int getDyeTintColour(DyeColor c) {
+      return getPipeModelColour(c);
+   }
+
+   /** Moves the quad along its face normal by {@code by} blocks. */
+   private static void inflate(MutableQuad quad, float by) {
+      Vector3f normal = quad.getCalculatedNormal();
+      float length = normal.length();
+      if (length > 1.0E-6F) {
+         float dx = normal.x() * by / length;
+         float dy = normal.y() * by / length;
+         float dz = normal.z() * by / length;
+         quad.vertex_0.translatef(dx, dy, dz);
+         quad.vertex_1.translatef(dx, dy, dz);
+         quad.vertex_2.translatef(dx, dy, dz);
+         quad.vertex_3.translatef(dx, dy, dz);
+      }
+   }
+
+   private static void addQuads(MutableQuad[] from, List<MutableQuad> to, TextureAtlasSprite sprite) {
+      for (MutableQuad f : from) {
+         if (f != null) {
+            MutableQuad copy = new MutableQuad(f);
+            copy.setSprite(sprite);
+            copy.texFromSprite(sprite);
+            to.add(copy);
+         }
+      }
+   }
+
+   /** Adds only the first template half — the outer faces; the second half is the dupDarker inner shell. */
+   private static void addOuterQuads(MutableQuad[] from, List<MutableQuad> to, TextureAtlasSprite sprite) {
+      int halfLength = from.length / 2;
+
+      for (int i = 0; i < halfLength; i++) {
+         MutableQuad f = from[i];
+         if (f != null) {
+            MutableQuad copy = new MutableQuad(f);
+            copy.setSprite(sprite);
+            copy.texFromSprite(sprite);
+            to.add(copy);
+         }
+      }
+   }
+
+   static {
+      for (String s : new String[]{
+         "clay_item",
+         "cobblestone_item",
+         "diamond_item",
+         "diamond_wood_item_clear",
+         "emzuli_item_clear",
+         "gold_item",
+         "iron_item_clear",
+         "obsidian_item",
+         "quartz_item",
+         "sandstone_item",
+         "stone_item",
+         "stripes_item",
+         "wood_item_clear"
+      }) {
+         MASK_MAP.put(s, "mask_shared_item");
+      }
+
+      for (String s : new String[]{
+         "cobblestone_power",
+         "cobblestone_rf",
+         "diamond_wood_power_clear",
+         "diamond_wood_rf_clear",
+         "gold_power",
+         "gold_rf",
+         "quartz_power",
+         "quartz_rf",
+         "sandstone_power",
+         "sandstone_rf",
+         "stone_power",
+         "stone_rf",
+         "wood_power_clear",
+         "wood_rf_clear"
+      }) {
+         MASK_MAP.put(s, "mask_shared_power");
+      }
+
+      for (String prefix : new String[]{"diamond_power_m", "diamond_rf_m", "iron_power_m", "iron_rf_m"}) {
+         for (String suffix : new String[]{"0", "4", "8", "16", "32", "64", "128"}) {
+            MASK_MAP.put(prefix + suffix, "mask_shared_power_limiter");
+         }
+      }
+
+      for (String s : new String[]{"diamond_wood_power_filled", "diamond_wood_rf_filled", "wood_power_filled", "wood_rf_filled"}) {
+         MASK_MAP.put(s, "mask_shared_power_filled");
+      }
+
+      for (String s : new String[]{
+         "clay_fluid",
+         "cobblestone_fluid",
+         "diamond_fluid",
+         "diamond_fluid_down",
+         "diamond_fluid_east",
+         "diamond_fluid_north",
+         "diamond_fluid_south",
+         "diamond_fluid_up",
+         "diamond_fluid_west",
+         "diamond_fluid_west_cb",
+         "diamond_wood_fluid_clear",
+         "diamond_wood_fluid_filled",
+         "gold_fluid",
+         "iron_fluid_clear",
+         "iron_fluid_filled",
+         "quartz_fluid",
+         "sandstone_fluid",
+         "stone_fluid",
+         "void_fluid",
+         "wood_fluid_clear",
+         "wood_fluid_filled"
+      }) {
+         MASK_MAP.put(s, "mask_shared_fluid");
+      }
+
+      for (String prefix : new String[]{"daizuli_item_", "lapis_item_"}) {
+         for (String colour : new String[]{
+            "black",
+            "blue",
+            "brown",
+            "cyan",
+            "gray",
+            "green",
+            "light_blue",
+            "light_gray",
+            "lime",
+            "magenta",
+            "orange",
+            "pink",
+            "purple",
+            "red",
+            "white",
+            "yellow"
+         }) {
+            MASK_MAP.put(prefix + colour, "mask_shared_daizuli");
+         }
+      }
+
+      for (String s : new String[]{
+         "daizuli_item_filled",
+         "diamond_item_down",
+         "diamond_item_east",
+         "diamond_item_north",
+         "diamond_item_south",
+         "diamond_item_up",
+         "diamond_item_west",
+         "diamond_item_west_cb",
+         "diamond_wood_item_filled",
+         "emzuli_item_filled",
+         "iron_item_filled",
+         "wood_item_filled"
+      }) {
+         MASK_MAP.put(s, "mask_shared_diamond_filled");
+      }
+
+      MASK_MAP.put("diamond_fluid_itemstack", "mask_shared_fluid");
+      MASK_MAP.put("diamond_item_itemstack", "mask_diamond_item_itemstack");
+      MASK_MAP.put("void_item", "mask_void_item");
+      QUADS = new MutableQuad[2][][];
+      QUADS_COLOURED = new MutableQuad[2][][];
+      double colourOffset = 0.01;
+      Vec3[] faceOffset = new Vec3[6];
+
+      for (Direction face : Direction.values()) {
+         Vec3 dir = Vec3.atLowerCornerOf(face.getOpposite().getUnitVec3i());
+         faceOffset[face.ordinal()] = dir.scale(0.01);
+      }
+
+      QUADS[0] = new MutableQuad[6][2];
+      QUADS_COLOURED[0] = new MutableQuad[6][2];
+      Vector3f center = new Vector3f(0.5F, 0.5F, 0.5F);
+      Vector3f radius = new Vector3f(0.25F, 0.25F, 0.25F);
+      ModelUtil.UvFaceData uvs = new ModelUtil.UvFaceData();
+      uvs.minU = uvs.minV = 0.25F;
+      uvs.maxU = uvs.maxV = 0.75F;
+
+      for (Direction face : Direction.values()) {
+         MutableQuad quad = ModelUtil.createFace(face, center, radius, uvs);
+         quad.setDiffuse(quad.normalvf());
+         QUADS[0][face.ordinal()][0] = quad;
+         dupDarker(QUADS[0][face.ordinal()]);
+         MutableQuad[] colQuads = ModelUtil.createDoubleFace(face, center, radius, uvs);
+
+         for (MutableQuad q : colQuads) {
+            q.translatevd(faceOffset[face.ordinal()]);
+         }
+
+         QUADS_COLOURED[0][face.ordinal()] = colQuads;
+      }
+
+      int[][] uvsRot = new int[][]{{2, 0, 3, 3}, {0, 2, 1, 1}, {2, 0, 0, 2}, {0, 2, 2, 0}, {3, 3, 0, 2}, {1, 1, 2, 0}};
+      ModelUtil.UvFaceData[] types = new ModelUtil.UvFaceData[]{
+         ModelUtil.UvFaceData.from16(4, 0, 12, 4),
+         ModelUtil.UvFaceData.from16(4, 12, 12, 16),
+         ModelUtil.UvFaceData.from16(0, 4, 4, 12),
+         ModelUtil.UvFaceData.from16(12, 4, 16, 12)
+      };
+      QUADS[1] = new MutableQuad[6][8];
+      QUADS_COLOURED[1] = new MutableQuad[6][8];
+
+      for (Direction side : Direction.values()) {
+         Vector3f sCenter = new Vector3f(side.getStepX() * 0.375F, side.getStepY() * 0.375F, side.getStepZ() * 0.375F);
+         Vector3f sRadius = new Vector3f(
+            side.getAxis() == Axis.X ? 0.125F : 0.25F, side.getAxis() == Axis.Y ? 0.125F : 0.25F, side.getAxis() == Axis.Z ? 0.125F : 0.25F
+         );
+         sCenter.add(new Vector3f(0.5F, 0.5F, 0.5F));
+         int i = 0;
+
+         for (Direction face : Direction.values()) {
+            if (face.getAxis() != side.getAxis()) {
+               MutableQuad quad = ModelUtil.createFace(face, sCenter, sRadius, types[i]);
+               quad.rotateTextureUp(uvsRot[side.ordinal()][i]);
+               MutableQuad col = new MutableQuad(quad);
+               quad.setDiffuse(quad.normalvf());
+               QUADS[1][side.ordinal()][i] = quad;
+               col.translatevd(faceOffset[face.ordinal()]);
+               QUADS_COLOURED[1][side.ordinal()][i++] = col;
+            }
+         }
+
+         dupDarker(QUADS[1][side.ordinal()]);
+         dupInverted(QUADS_COLOURED[1][side.ordinal()]);
+      }
+   }
+}

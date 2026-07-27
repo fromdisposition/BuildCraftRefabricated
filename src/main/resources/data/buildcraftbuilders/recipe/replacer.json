@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "gqg",
+    "sAs",
+    "gqg"
+  ],
+  "key": {
+    "g": "buildcraftcore:gear_gold",
+    "q": "minecraft:quartz_block",
+    "s": "buildcraftbuilders:schematic_single_clean",
+    "A": "buildcraftbuilders:architect"
+  },
+  "result": {
+    "id": "buildcraftbuilders:replacer"
+  }
+}

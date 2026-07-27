@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "buildcraft_pipes",
+  "pattern": [
+    "lgr"
+  ],
+  "key": {
+    "l": "#c:dyes/black",
+    "g": "#c:glass_blocks/colorless",
+    "r": "#c:dusts/redstone"
+  },
+  "result": {
+    "id": "buildcrafttransport:pipe_void_item",
+    "count": 8
+  }
+}

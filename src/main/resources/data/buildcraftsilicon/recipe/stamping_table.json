@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OWO",
+    "ORO",
+    "OgO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "W": "minecraft:crafting_table",
+    "R": "buildcraftsilicon:chipset_redstone",
+    "g": "buildcraftcore:gear_gold"
+  },
+  "result": {
+    "id": "buildcraftsilicon:stamping_table"
+  }
+}

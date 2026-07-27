@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftcore:decorated_laser"
+    ]
+  },
+  "criteria": {
+    "has_laser": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftsilicon:laser"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_laser"
+    ]
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "buildcraft_pipes",
+  "pattern": [
+    "lgr"
+  ],
+  "key": {
+    "l": "minecraft:lapis_block",
+    "g": "#c:glass_blocks/colorless",
+    "r": "#c:gems/diamond"
+  },
+  "result": {
+    "id": "buildcrafttransport:pipe_daizuli_item",
+    "count": 8
+  }
+}

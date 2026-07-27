@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftbuilders:architect"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.architect.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.architect.description"
+    }
+  },
+  "parent": "buildcraftcore:markers",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

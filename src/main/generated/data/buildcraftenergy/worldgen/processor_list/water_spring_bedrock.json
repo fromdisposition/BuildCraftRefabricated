@@ -1,0 +1,7 @@
+{
+  "processors": [
+    {
+      "processor_type": "buildcraftenergy:water_spring_bedrock"
+    }
+  ]
+}

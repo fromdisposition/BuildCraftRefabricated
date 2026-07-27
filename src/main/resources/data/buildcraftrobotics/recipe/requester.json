@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IPI",
+    "GCG",
+    "IRI"
+  ],
+  "key": {
+    "I": "#c:ingots/iron",
+    "P": "minecraft:piston",
+    "G": "buildcraftcore:gear_iron",
+    "C": "minecraft:chest",
+    "R": "minecraft:redstone"
+  },
+  "result": {
+    "id": "buildcraftrobotics:requester"
+  }
+}

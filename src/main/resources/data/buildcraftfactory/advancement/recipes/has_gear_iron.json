@@ -1,0 +1,31 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftfactory:pump",
+      "buildcraftfactory:flood_gate",
+      "buildcraftfactory:mining_well",
+      "buildcraftfactory:heat_exchange",
+      "buildcraftenergy:engine_iron",
+      "buildcraftenergy:engine_rf",
+      "buildcraftenergy:mj_dynamo"
+    ]
+  },
+  "criteria": {
+    "has_gear_iron": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftcore:gear_iron"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_gear_iron"
+    ]
+  ]
+}

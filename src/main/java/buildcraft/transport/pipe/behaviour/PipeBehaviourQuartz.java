@@ -1,0 +1,34 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.transport.pipe.behaviour;
+
+import buildcraft.api.transport.pipe.IPipe;
+import buildcraft.api.transport.pipe.IPipeEventBus;
+import buildcraft.api.transport.pipe.PipeEventItem;
+import net.minecraft.nbt.CompoundTag;
+
+public class PipeBehaviourQuartz extends PipeBehaviourSeparate {
+   private static final double SPEED_DELTA = 0.002;
+   private static final double SPEED_TARGET = 0.01;
+
+   public PipeBehaviourQuartz(IPipe pipe) {
+      super(pipe);
+   }
+
+   public PipeBehaviourQuartz(IPipe pipe, CompoundTag nbt) {
+      super(pipe, nbt);
+   }
+
+   public static void modifySpeed(PipeEventItem.ModifySpeed event) {
+      event.modifyTo(0.01, 0.002);
+   }
+
+   @Override
+   public void registerEventHandlers(IPipeEventBus bus) {
+      bus.on(PipeEventItem.ModifySpeed.class, this, PipeBehaviourQuartz::modifySpeed);
+   }
+}

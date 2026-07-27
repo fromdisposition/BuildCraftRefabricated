@@ -1,0 +1,26 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftsilicon:laser"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.laser_power.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.laser_power.description"
+    }
+  },
+  "parent": "buildcraftcore:root",
+  "criteria": {
+    "get_laser": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftsilicon:laser"
+          }
+        ]
+      }
+    }
+  }
+}

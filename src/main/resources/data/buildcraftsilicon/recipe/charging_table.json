@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OiO",
+    "OCO",
+    "OgO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "i": "#c:dusts/redstone",
+    "C": "buildcraftsilicon:chipset_redstone",
+    "g": "buildcraftcore:gear_gold"
+  },
+  "result": {
+    "id": "buildcraftsilicon:charging_table"
+  }
+}

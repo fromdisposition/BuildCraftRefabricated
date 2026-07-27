@@ -1,0 +1,164 @@
+{
+  "defaults": {
+    "liquid": {
+      "environmental_start": 0.18,
+      "environmental_end": 1.5,
+      "liquid_alpha": 0.95,
+      "gaseous_alpha": 0.55,
+      "overlay_alpha": 0.10
+    },
+    "gaseous": {
+      "environmental_start": 0.20,
+      "environmental_end": 1.5,
+      "liquid_alpha": 0.55,
+      "gaseous_alpha": 0.58,
+      "overlay_alpha": 0.10
+    },
+    "heat_clarity_liquid": 0.06,
+    "heat_clarity_gaseous": 0.03
+  },
+  "fluids": {
+    "oil": {
+      "liquid": {
+        "environmental_start": 0.18,
+        "environmental_end": 1.5,
+        "liquid_alpha": 0.95,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.06
+    },
+    "oil_residue": {
+      "liquid": {
+        "environmental_start": 0.25,
+        "environmental_end": 1.0,
+        "liquid_alpha": 0.97,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.04
+    },
+    "oil_heavy": {
+      "liquid": {
+        "environmental_start": 0.22,
+        "environmental_end": 1.2,
+        "liquid_alpha": 0.96,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.04
+    },
+    "oil_dense": {
+      "liquid": {
+        "environmental_start": 0.20,
+        "environmental_end": 1.3,
+        "liquid_alpha": 0.96,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.04
+    },
+    "oil_distilled": {
+      "liquid": {
+        "environmental_start": 0.10,
+        "environmental_end": 3.0,
+        "liquid_alpha": 0.90,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.10
+      },
+      "gaseous": {
+        "environmental_start": 0.21,
+        "environmental_end": 1.4,
+        "liquid_alpha": 0.55,
+        "gaseous_alpha": 0.58,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.08
+    },
+    "fuel_dense": {
+      "liquid": {
+        "environmental_start": 0.08,
+        "environmental_end": 4.0,
+        "liquid_alpha": 0.85,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.09
+      },
+      "gaseous": {
+        "environmental_start": 0.25,
+        "environmental_end": 1.0,
+        "liquid_alpha": 0.55,
+        "gaseous_alpha": 0.58,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.09
+    },
+    "fuel_mixed_heavy": {
+      "liquid": {
+        "environmental_start": 0.09,
+        "environmental_end": 3.5,
+        "liquid_alpha": 0.86,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.09
+      },
+      "gaseous": {
+        "environmental_start": 0.24,
+        "environmental_end": 1.1,
+        "liquid_alpha": 0.55,
+        "gaseous_alpha": 0.58,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.09
+    },
+    "fuel_light": {
+      "liquid": {
+        "environmental_start": 0.05,
+        "environmental_end": 8.0,
+        "liquid_alpha": 0.75,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.08
+      },
+      "gaseous": {
+        "environmental_start": 0.22,
+        "environmental_end": 1.8,
+        "liquid_alpha": 0.55,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.10
+    },
+    "fuel_mixed_light": {
+      "liquid": {
+        "environmental_start": 0.06,
+        "environmental_end": 6.0,
+        "liquid_alpha": 0.78,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.08
+      },
+      "gaseous": {
+        "environmental_start": 0.20,
+        "environmental_end": 1.6,
+        "liquid_alpha": 0.55,
+        "gaseous_alpha": 0.58,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.10
+    },
+    "fuel_gaseous": {
+      "liquid": {
+        "environmental_start": 0.06,
+        "environmental_end": 5.5,
+        "liquid_alpha": 0.80,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.08
+      },
+      "gaseous": {
+        "environmental_start": 0.20,
+        "environmental_end": 1.5,
+        "liquid_alpha": 0.55,
+        "gaseous_alpha": 0.55,
+        "overlay_alpha": 0.10
+      },
+      "heat_clarity": 0.10
+    }
+  }
+}

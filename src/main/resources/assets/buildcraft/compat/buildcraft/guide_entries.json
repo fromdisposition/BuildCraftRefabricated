@@ -1,0 +1,1141 @@
+{
+  "book": "buildcraftcore:main",
+  "entries": {
+    "concept/getting_started": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "getting_started",
+      "sort": -100
+    },
+    "concept/power_mj": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "power_mj",
+      "sort": -99
+    },
+    "concept/oil_and_fuel": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "oil_and_fuel",
+      "sort": -98
+    },
+    "concept/item_transport": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "item_transport",
+      "sort": -97
+    },
+    "concept/fluid_transport": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "fluid_transport",
+      "sort": -96
+    },
+    "concept/power_transport": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "power_transport",
+      "sort": -95
+    },
+    "concept/gates_and_wires": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "gates_and_wires",
+      "sort": -94
+    },
+    "concept/pluggables": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "pluggables",
+      "sort": -93
+    },
+    "concept/builders_and_blueprints": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "builders_and_blueprints",
+      "sort": -92
+    },
+    "concept/quarrying": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "quarrying",
+      "sort": -91
+    },
+    "concept/silicon_and_chipsets": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "silicon_and_chipsets",
+      "sort": -90
+    },
+    "concept/robots_and_zones": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "robots_and_zones",
+      "sort": -89
+    },
+    "concept/markers": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "markers",
+      "sort": -88
+    },
+    "concept/tools": {
+      "type": "external",
+      "tag_type": "concept",
+      "tag_subtype": "concepts",
+      "title": "tools",
+      "sort": -87
+    },
+    "block/advanced_crafting_table": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftsilicon:advanced_crafting_table"
+    },
+    "block/architect": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftbuilders:architect"
+    },
+    "block/assembly_table": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftsilicon:assembly_table"
+    },
+    "block/autoworkbench_item": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftfactory:autoworkbench_item"
+    },
+    "block/builder": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftbuilders:builder"
+    },
+    "block/charging_table": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftsilicon:charging_table"
+    },
+    "block/chute": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftfactory:chute"
+    },
+    "block/filler": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftbuilders:filler"
+    },
+    "block/filtered_buffer": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcrafttransport:filtered_buffer"
+    },
+    "block/integration_table": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftsilicon:integration_table"
+    },
+    "block/library": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftbuilders:library"
+    },
+    "block/packager": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftsilicon:packager"
+    },
+    "block/programming_table": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftsilicon:programming_table"
+    },
+    "block/replacer": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftbuilders:replacer"
+    },
+    "block/requester": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftrobotics:requester"
+    },
+    "block/stamping_table": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftsilicon:stamping_table"
+    },
+    "block/zone_planner": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "automation",
+      "stack": "buildcraftrobotics:zone_planner"
+    },
+    "block/engine_redstone": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "engine",
+      "stack": "buildcraftcore:engine_redstone"
+    },
+    "block/engine_stone": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "engine",
+      "stack": "buildcraftenergy:engine_stone"
+    },
+    "block/engine_iron": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "engine",
+      "stack": "buildcraftenergy:engine_iron"
+    },
+    "block/engine_rf": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "engine",
+      "stack": "buildcraftenergy:engine_rf"
+    },
+    "block/mj_dynamo": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "engine",
+      "stack": "buildcraftenergy:mj_dynamo"
+    },
+    "block/engine_creative": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "engine",
+      "stack": "buildcraftcore:engine_creative",
+      "creative_only": true
+    },
+    "block/flood_gate": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "fluid",
+      "stack": "buildcraftfactory:flood_gate"
+    },
+    "block/pump": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "fluid",
+      "stack": "buildcraftfactory:pump"
+    },
+    "block/tank": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "fluid",
+      "stack": "buildcraftfactory:tank"
+    },
+    "block/laser": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "laser",
+      "stack": "buildcraftsilicon:laser"
+    },
+    "block/mining_well": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "mining",
+      "stack": "buildcraftfactory:mining_well"
+    },
+    "block/quarry": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "mining",
+      "stack": "buildcraftbuilders:quarry"
+    },
+    "block/distiller": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "refining",
+      "stack": "buildcraftfactory:distiller"
+    },
+    "block/heat_exchange": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "refining",
+      "stack": "buildcraftfactory:heat_exchange"
+    },
+    "block/decorated_laser": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "specialized",
+      "stack": "buildcraftcore:decorated_laser"
+    },
+    "block/marker_path": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "specialized",
+      "stack": "buildcraftcore:marker_path"
+    },
+    "block/marker_volume": {
+      "type": "item_stack",
+      "tag_type": "block",
+      "tag_subtype": "specialized",
+      "stack": "buildcraftcore:marker_volume"
+    },
+    "item/waterproof": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "basic",
+      "stack": "buildcrafttransport:waterproof"
+    },
+    "item/chipset_redstone": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "chipset",
+      "stack": "buildcraftsilicon:chipset_redstone"
+    },
+    "item/chipset_iron": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "chipset",
+      "stack": "buildcraftsilicon:chipset_iron"
+    },
+    "item/chipset_gold": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "chipset",
+      "stack": "buildcraftsilicon:chipset_gold"
+    },
+    "item/chipset_diamond": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "chipset",
+      "stack": "buildcraftsilicon:chipset_diamond"
+    },
+    "item/chipset_quartz": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "chipset",
+      "stack": "buildcraftsilicon:chipset_quartz"
+    },
+    "item/fragile_fluid_container": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "fluid",
+      "stack": "buildcraftcore:fragile_fluid_container"
+    },
+    "item/gelled_water": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "fluid",
+      "stack": "buildcraftfactory:gelled_water"
+    },
+    "item/gear_wood": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "gear",
+      "stack": "buildcraftcore:gear_wood"
+    },
+    "item/gear_stone": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "gear",
+      "stack": "buildcraftcore:gear_stone"
+    },
+    "item/gear_iron": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "gear",
+      "stack": "buildcraftcore:gear_iron"
+    },
+    "item/gear_gold": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "gear",
+      "stack": "buildcraftcore:gear_gold"
+    },
+    "item/gear_diamond": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "gear",
+      "stack": "buildcraftcore:gear_diamond"
+    },
+    "item/blueprint_clean": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "paperwork",
+      "stack": "buildcraftbuilders:blueprint_clean"
+    },
+    "item/schematic_single_used": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "paperwork",
+      "stack": "buildcraftbuilders:schematic_single_used"
+    },
+    "item/template_clean": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "paperwork",
+      "stack": "buildcraftbuilders:template_clean"
+    },
+    "item/plug_blocker": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "pipe_plug",
+      "stack": "buildcraftsilicon:plug_blocker"
+    },
+    "item/plug_power_adaptor": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "pipe_plug",
+      "stack": "buildcraftsilicon:plug_power_adaptor"
+    },
+    "item/plug_facade": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "pipe_plug",
+      "stack": "buildcraftsilicon:plug_facade"
+    },
+    "item/plug_gate": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "pipe_plug",
+      "stack": "buildcraftsilicon:plug_gate",
+      "title": "logic_gates"
+    },
+    "item/plug_lens": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "pipe_plug",
+      "stack": "buildcraftsilicon:plug_lens"
+    },
+    "item/plug_light_sensor": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "pipe_plug",
+      "stack": "buildcraftsilicon:plug_light_sensor"
+    },
+    "item/plug_pulsar": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "pipe_plug",
+      "stack": "buildcraftsilicon:plug_pulsar"
+    },
+    "item/plug_timer": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "pipe_plug",
+      "stack": "buildcraftsilicon:plug_timer"
+    },
+    "item/wrench": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "tool",
+      "stack": "buildcraftcore:wrench"
+    },
+    "item/paintbrush": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "tool",
+      "stack": "buildcraftcore:paintbrush"
+    },
+    "item/box_volume": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "tool",
+      "stack": "buildcraftcore:volume_box",
+      "creative_only": true
+    },
+    "item/debugger": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "tool",
+      "stack": "buildcraftlib:debugger",
+      "creative_only": true
+    },
+    "item/filler_planner": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "tool",
+      "stack": "buildcraftbuilders:filler_planner",
+      "creative_only": true
+    },
+    "item/marker_connector": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "tool",
+      "stack": "buildcraftcore:marker_connector"
+    },
+    "item/list": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "tool",
+      "stack": "buildcraftcore:list"
+    },
+    "item/gate_copier": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "tool",
+      "stack": "buildcraftsilicon:gate_copier"
+    },
+    "item/wire": {
+      "type": "item_stack",
+      "tag_type": "item",
+      "tag_subtype": "wire",
+      "stack": "buildcrafttransport:wire_orange",
+      "title": "pipe_wires"
+    },
+    "pipe/wood_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_wood_item",
+      "sort": 0
+    },
+    "pipe/cobble_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_cobble_item",
+      "sort": 10
+    },
+    "pipe/stone_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_stone_item",
+      "sort": 20
+    },
+    "pipe/quartz_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_quartz_item",
+      "sort": 30
+    },
+    "pipe/iron_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_iron_item",
+      "sort": 40
+    },
+    "pipe/gold_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_gold_item",
+      "sort": 50
+    },
+    "pipe/clay_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_clay_item",
+      "sort": 21
+    },
+    "pipe/sandstone_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_sandstone_item",
+      "sort": 22
+    },
+    "pipe/void_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_void_item",
+      "sort": 145
+    },
+    "pipe/obsidian_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_obsidian_item",
+      "sort": 90
+    },
+    "pipe/diamond_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_diamond_item",
+      "sort": 100
+    },
+    "pipe/diamond_wood_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_diamond_wood_item",
+      "sort": 110
+    },
+    "pipe/lapis_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_lapis_item",
+      "sort": 120
+    },
+    "pipe/daizuli_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_daizuli_item",
+      "sort": 130
+    },
+    "pipe/emzuli_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_emzuli_item",
+      "sort": 125
+    },
+    "pipe/stripes_item": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_item",
+      "stack": "buildcrafttransport:pipe_stripes_item",
+      "sort": 150
+    },
+    "pipe/wood_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_wood_fluid",
+      "sort": 1000
+    },
+    "pipe/cobble_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_cobble_fluid",
+      "sort": 1010
+    },
+    "pipe/stone_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_stone_fluid",
+      "sort": 1020
+    },
+    "pipe/quartz_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_quartz_fluid",
+      "sort": 1030
+    },
+    "pipe/iron_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_iron_fluid",
+      "sort": 1040
+    },
+    "pipe/gold_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_gold_fluid",
+      "sort": 1050
+    },
+    "pipe/clay_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_clay_fluid",
+      "sort": 1021
+    },
+    "pipe/sandstone_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_sandstone_fluid",
+      "sort": 1022
+    },
+    "pipe/void_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_void_fluid",
+      "sort": 1101
+    },
+    "pipe/diamond_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_diamond_fluid",
+      "sort": 1090
+    },
+    "pipe/diamond_wood_fluid": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_fluid",
+      "stack": "buildcrafttransport:pipe_diamond_wood_fluid",
+      "sort": 1100
+    },
+    "pipe/wood_power": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_power",
+      "stack": "buildcrafttransport:pipe_wood_power",
+      "sort": 2000
+    },
+    "pipe/cobble_power": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_power",
+      "stack": "buildcrafttransport:pipe_cobble_power",
+      "sort": 2010
+    },
+    "pipe/stone_power": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_power",
+      "stack": "buildcrafttransport:pipe_stone_power",
+      "sort": 2020
+    },
+    "pipe/quartz_power": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_power",
+      "stack": "buildcrafttransport:pipe_quartz_power",
+      "sort": 2030
+    },
+    "pipe/iron_power": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_power",
+      "stack": "buildcrafttransport:pipe_iron_power",
+      "sort": 2040
+    },
+    "pipe/gold_power": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_power",
+      "stack": "buildcrafttransport:pipe_gold_power",
+      "sort": 2050
+    },
+    "pipe/sandstone_power": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_power",
+      "stack": "buildcrafttransport:pipe_sandstone_power",
+      "sort": 2060
+    },
+    "pipe/diamond_power": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_power",
+      "stack": "buildcrafttransport:pipe_diamond_power",
+      "sort": 2070
+    },
+    "pipe/diamond_wood_power": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_power",
+      "stack": "buildcrafttransport:pipe_diamond_wood_power",
+      "sort": 2080
+    },
+    "pipe/structure": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_structure",
+      "stack": "buildcrafttransport:pipe_structure",
+      "sort": 3000
+    },
+    "pipe/wood_rf": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_rf",
+      "stack": "buildcrafttransport:pipe_wood_rf",
+      "sort": 9000
+    },
+    "pipe/cobble_rf": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_rf",
+      "stack": "buildcrafttransport:pipe_cobble_rf",
+      "sort": 9010
+    },
+    "pipe/stone_rf": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_rf",
+      "stack": "buildcrafttransport:pipe_stone_rf",
+      "sort": 9020
+    },
+    "pipe/quartz_rf": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_rf",
+      "stack": "buildcrafttransport:pipe_quartz_rf",
+      "sort": 9030
+    },
+    "pipe/iron_rf": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_rf",
+      "stack": "buildcrafttransport:pipe_iron_rf",
+      "sort": 9040
+    },
+    "pipe/gold_rf": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_rf",
+      "stack": "buildcrafttransport:pipe_gold_rf",
+      "sort": 9050
+    },
+    "pipe/sandstone_rf": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_rf",
+      "stack": "buildcrafttransport:pipe_sandstone_rf",
+      "sort": 9060
+    },
+    "pipe/diamond_rf": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_rf",
+      "stack": "buildcrafttransport:pipe_diamond_rf",
+      "sort": 9070
+    },
+    "pipe/diamond_wood_rf": {
+      "type": "item_stack",
+      "tag_type": "pipe",
+      "tag_subtype": "pipe_rf",
+      "stack": "buildcrafttransport:pipe_diamond_wood_rf",
+      "sort": 9080
+    },
+    "trigger/machine_active": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "automation",
+      "statement": "buildcraft:work.scheduled"
+    },
+    "trigger/machine_inactive": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "automation",
+      "statement": "buildcraft:work.done"
+    },
+    "trigger/timer_short": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "automation",
+      "statement": "buildcraft:timer_short"
+    },
+    "trigger/timer_medium": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "automation",
+      "statement": "buildcraft:timer_medium"
+    },
+    "trigger/timer_long": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "automation",
+      "statement": "buildcraft:timer_long"
+    },
+    "trigger/always_on": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "basic",
+      "statement": "buildcraft:trigger.true"
+    },
+    "trigger/redstone_active": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "basic",
+      "statement": "buildcraft:redstone.input.active"
+    },
+    "trigger/redstone_inactive": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "basic",
+      "statement": "buildcraft:redstone.input.inactive"
+    },
+    "trigger/engine_blue": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "engine",
+      "statement": "buildcraft:engine.stage.blue"
+    },
+    "trigger/engine_green": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "engine",
+      "statement": "buildcraft:engine.stage.green"
+    },
+    "trigger/engine_yellow": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "engine",
+      "statement": "buildcraft:engine.stage.yellow"
+    },
+    "trigger/engine_red": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "engine",
+      "statement": "buildcraft:engine.stage.red"
+    },
+    "trigger/engine_overheat": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "engine",
+      "statement": "buildcraft:engine.stage.overheat"
+    },
+    "trigger/fluid_empty": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "fluid",
+      "statement": "buildcraft:fluid.empty"
+    },
+    "trigger/fluid_contains": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "fluid",
+      "statement": "buildcraft:fluid.contains"
+    },
+    "trigger/fluid_space": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "fluid",
+      "statement": "buildcraft:fluid.space"
+    },
+    "trigger/fluid_full": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "fluid",
+      "statement": "buildcraft:fluid.full"
+    },
+    "trigger/fluid_below_25": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "fluid",
+      "statement": "buildcraft:fluid.below25"
+    },
+    "trigger/fluid_below_50": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "fluid",
+      "statement": "buildcraft:fluid.below50"
+    },
+    "trigger/fluid_below_75": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "fluid",
+      "statement": "buildcraft:fluid.below75"
+    },
+    "trigger/fluids_traversing": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "pipe_fluid",
+      "statement": "buildcraft:pipe_contains_fluids"
+    },
+    "trigger/inventory_empty": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "item",
+      "statement": "buildcraft:inventory.empty"
+    },
+    "trigger/inventory_contains": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "item",
+      "statement": "buildcraft:inventory.contains"
+    },
+    "trigger/inventory_space": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "item",
+      "statement": "buildcraft:inventory.space"
+    },
+    "trigger/inventory_full": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "item",
+      "statement": "buildcraft:inventory.full"
+    },
+    "trigger/inventory_below_25": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "item",
+      "statement": "buildcraft:inventorylevel.below25"
+    },
+    "trigger/inventory_below_50": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "item",
+      "statement": "buildcraft:inventorylevel.below50"
+    },
+    "trigger/inventory_below_75": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "item",
+      "statement": "buildcraft:inventorylevel.below75"
+    },
+    "trigger/items_traversing": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "pipe_item",
+      "statement": "buildcraft:pipe_contains_items"
+    },
+    "trigger/pipe_empty": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "pipe_fluid",
+      "statement": "buildcraft:pipe_empty"
+    },
+    "trigger/light_high": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "pipe_plug",
+      "statement": "buildcraft:light_bright"
+    },
+    "trigger/light_low": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "pipe_plug",
+      "statement": "buildcraft:light_dark"
+    },
+    "trigger/power_high": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "power_delivery",
+      "statement": "buildcraft:energyStoredhigh"
+    },
+    "trigger/power_low": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "power_delivery",
+      "statement": "buildcraft:energyStoredlow"
+    },
+    "trigger/power_requested": {
+      "type": "statement",
+      "tag_type": "trigger",
+      "tag_subtype": "power_delivery",
+      "statement": "buildcraft:powerRequested"
+    },
+    "action/machine_control_on": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "automation",
+      "statement": "buildcraft:machine.on"
+    },
+    "action/machine_control_off": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "automation",
+      "statement": "buildcraft:machine.off"
+    },
+    "action/machine_control_loop": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "automation",
+      "statement": "buildcraft:machine.loop"
+    },
+    "action/redstone": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "basic",
+      "statement": "buildcraft:redstone.output"
+    },
+    "action/pipe_direction_north": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_item",
+      "statement": "buildcraft:pipe.dir.north"
+    },
+    "action/pipe_direction_east": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_item",
+      "statement": "buildcraft:pipe.dir.east"
+    },
+    "action/pipe_direction_south": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_item",
+      "statement": "buildcraft:pipe.dir.south"
+    },
+    "action/pipe_direction_west": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_item",
+      "statement": "buildcraft:pipe.dir.west"
+    },
+    "action/pipe_direction_above": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_item",
+      "statement": "buildcraft:pipe.dir.up"
+    },
+    "action/pipe_direction_below": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_item",
+      "statement": "buildcraft:pipe.dir.down"
+    },
+    "action/pipe_colour": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_item",
+      "statement": "buildcraft:pipe.color.black"
+    },
+    "action/extraction_preset": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_item",
+      "statement": "buildcraft:extraction.preset.red"
+    },
+    "action/power_pulsar": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_plug",
+      "statement": "buildcraft:pulsar.constant"
+    },
+    "action/single_power_pulse": {
+      "type": "statement",
+      "tag_type": "action",
+      "tag_subtype": "pipe_plug",
+      "statement": "buildcraft:pulsar.single"
+    },
+    "config/json_insn_format": {
+      "type": "external",
+      "book": "buildcraftlib:config",
+      "tag_type": "config",
+      "tag_subtype": "resourcepack",
+      "title": "json_insn_format"
+    },
+    "config/guide_page_format": {
+      "type": "external",
+      "book": "buildcraftlib:config",
+      "tag_type": "config",
+      "tag_subtype": "resourcepack",
+      "title": "guide_page_format"
+    }
+  }
+}

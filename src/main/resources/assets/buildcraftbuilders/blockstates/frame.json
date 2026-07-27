@@ -1,0 +1,202 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "OR": [
+          {
+            "connected_north": "false"
+          },
+          {
+            "connected_east": "true"
+          },
+          {
+            "connected_west": "true"
+          },
+          {
+            "connected_up": "true"
+          },
+          {
+            "connected_down": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/base_face_north"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "connected_south": "false"
+          },
+          {
+            "connected_east": "true"
+          },
+          {
+            "connected_west": "true"
+          },
+          {
+            "connected_up": "true"
+          },
+          {
+            "connected_down": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/base_face_south"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "connected_east": "false"
+          },
+          {
+            "connected_north": "true"
+          },
+          {
+            "connected_south": "true"
+          },
+          {
+            "connected_up": "true"
+          },
+          {
+            "connected_down": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/base_face_east"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "connected_west": "false"
+          },
+          {
+            "connected_north": "true"
+          },
+          {
+            "connected_south": "true"
+          },
+          {
+            "connected_up": "true"
+          },
+          {
+            "connected_down": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/base_face_west"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "connected_up": "false"
+          },
+          {
+            "connected_north": "true"
+          },
+          {
+            "connected_south": "true"
+          },
+          {
+            "connected_east": "true"
+          },
+          {
+            "connected_west": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/base_face_up"
+      }
+    },
+    {
+      "when": {
+        "OR": [
+          {
+            "connected_down": "false"
+          },
+          {
+            "connected_north": "true"
+          },
+          {
+            "connected_south": "true"
+          },
+          {
+            "connected_east": "true"
+          },
+          {
+            "connected_west": "true"
+          }
+        ]
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/base_face_down"
+      }
+    },
+    {
+      "when": {
+        "connected_north": "true"
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/connection"
+      }
+    },
+    {
+      "when": {
+        "connected_south": "true"
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/connection",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "connected_up": "true"
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/connection",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "connected_down": "true"
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/connection",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "connected_east": "true"
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/connection",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "connected_west": "true"
+      },
+      "apply": {
+        "model": "buildcraftbuilders:block/frame/connection",
+        "x": 180,
+        "y": 90
+      }
+    }
+  ]
+}

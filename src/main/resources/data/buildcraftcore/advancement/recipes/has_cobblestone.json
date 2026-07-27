@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftcore:gear_stone"
+    ]
+  },
+  "criteria": {
+    "has_cobblestone": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:cobblestones/normal"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_cobblestone"
+    ]
+  ]
+}

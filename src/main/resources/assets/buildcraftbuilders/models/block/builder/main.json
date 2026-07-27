@@ -1,0 +1,13 @@
+{
+  "parent": "block/cube",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "buildcraftbuilders:block/builder/side",
+    "down": "buildcraftbuilders:block/builder/bottom",
+    "up": "buildcraftbuilders:block/builder/top",
+    "north": "buildcraftbuilders:block/builder/front",
+    "east": "buildcraftbuilders:block/builder/side",
+    "south": "buildcraftbuilders:block/builder/back",
+    "west": "buildcraftbuilders:block/builder/side"
+  }
+}

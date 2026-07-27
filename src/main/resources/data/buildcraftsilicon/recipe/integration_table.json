@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OiO",
+    "OrO",
+    "OgO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "i": "#c:ingots/gold",
+    "r": "buildcraftsilicon:chipset_iron",
+    "g": "buildcraftcore:gear_diamond"
+  },
+  "result": {
+    "id": "buildcraftsilicon:integration_table"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "GdG",
+    "III"
+  ],
+  "key": {
+    "P": "minecraft:paper",
+    "G": "buildcraftcore:gear_gold",
+    "d": "buildcraftsilicon:chipset_diamond",
+    "I": "#c:ingots/iron"
+  },
+  "result": {
+    "id": "buildcraftrobotics:zone_planner"
+  }
+}

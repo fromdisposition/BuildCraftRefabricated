@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "pRp",
+    "pGp",
+    "ppp"
+  ],
+  "key": {
+    "p": "minecraft:paper",
+    "R": "#c:dusts/redstone",
+    "G": "minecraft:green_dye"
+  },
+  "result": {
+    "id": "buildcraftcore:list"
+  }
+}

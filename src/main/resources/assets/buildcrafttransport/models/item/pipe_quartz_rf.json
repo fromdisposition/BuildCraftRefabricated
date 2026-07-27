@@ -1,0 +1,8 @@
+{
+  "parent": "buildcrafttransport:item/pipe_item",
+  "textures": {
+    "top": "buildcrafttransport:pipes/quartz_rf",
+    "center": "buildcrafttransport:pipes/quartz_rf",
+    "bottom": "buildcrafttransport:pipes/quartz_rf"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "OCO",
+    "ORO",
+    "OgO"
+  ],
+  "key": {
+    "O": "minecraft:obsidian",
+    "R": "buildcraftsilicon:chipset_redstone",
+    "C": "minecraft:emerald",
+    "g": "buildcraftcore:gear_diamond"
+  },
+  "result": {
+    "id": "buildcraftsilicon:programming_table"
+  }
+}
