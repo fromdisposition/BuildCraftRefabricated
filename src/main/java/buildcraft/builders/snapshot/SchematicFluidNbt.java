@@ -23,9 +23,13 @@ import net.minecraft.world.level.material.Fluids;
  * Finds every fluid stored anywhere in a captured tile's NBT, whatever key it hides under. The builder has to charge
  * for exactly what {@link SchematicBlockDefault#build} restores, and that restore is a verbatim NBT copy, so the two
  * must be driven off the same scan rather than off hand written paths that go stale when a tile changes its keys.
+ * <p>
+ * Item component data is skipped: a fluid held by an item (a fragile fluid container in a chest, say) is already paid
+ * for as part of that item, so counting it here would charge for it twice.
  */
 public final class SchematicFluidNbt {
    private static final int MAX_DEPTH = 32;
+   private static final String ITEM_COMPONENTS_KEY = "components";
 
    private SchematicFluidNbt() {
    }
@@ -50,6 +54,10 @@ public final class SchematicFluidNbt {
    private static void walk(CompoundTag tag, List<FluidStack> found, boolean remove, int depth) {
       if (depth <= MAX_DEPTH) {
          for (String key : List.copyOf(BcNbt.keys(tag))) {
+            if (ITEM_COMPONENTS_KEY.equals(key)) {
+               continue;
+            }
+
             Tag value = tag.get(key);
             if (value instanceof CompoundTag compound) {
                FluidStack stack = asFluidStack(compound);
