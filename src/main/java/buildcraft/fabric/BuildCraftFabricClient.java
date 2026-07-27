@@ -32,7 +32,6 @@ public class BuildCraftFabricClient implements ClientModInitializer {
       BCSiliconFabricClient.init();
       BCRoboticsFabricClient.init();
       BCLibFabricClient.init();
-      buildcraft.silicon.plug.FacadeStateManager.ensureInitialized();
       // Per-version classes: both APIs differ by name/context across MC versions and are absent on the oldest
       // nodes, which shadow them with no-op stubs. See versions/{1.21.1,_lt_26.1,_ge_1.21.10_lt_26.1,_ge_26.1}.
       PictureInPictureRegistration.register();

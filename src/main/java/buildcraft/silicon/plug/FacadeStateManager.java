@@ -186,6 +186,10 @@ public enum FacadeStateManager implements IFacadeRegistry {
                publishedStackFacades.put(e.getKey(), List.copyOf(e.getValue()));
             }
 
+            if (nextValid.isEmpty()) {
+               return;
+            }
+
             validFacadeStates = Collections.unmodifiableSortedMap(nextValid);
             stackFacades = Map.copyOf(publishedStackFacades);
             initialized = true;

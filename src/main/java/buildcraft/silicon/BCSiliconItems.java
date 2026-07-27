@@ -69,5 +69,7 @@ public final class BCSiliconItems {
       PLUG_LENS = BCRegistries.registerItemDynamicName("buildcraftsilicon", "plug_lens", ItemPluggableLens::new);
       PLUG_LIGHT_SENSOR = BCRegistries.registerItem("buildcraftsilicon", "plug_light_sensor", ItemPluggableLightSensor::new);
       PLUG_TIMER = BCRegistries.registerItem("buildcraftsilicon", "plug_timer", ItemPluggableTimer::new);
+      buildcraft.api.facades.FacadeAPI.facadeItem = PLUG_FACADE;
+      buildcraft.api.facades.FacadeAPI.registry = buildcraft.silicon.plug.FacadeStateManager.INSTANCE;
    }
 }

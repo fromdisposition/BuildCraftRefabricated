@@ -29,9 +29,7 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 //?} else {
 /*import net.minecraft.client.renderer.block.model.BlockModelPart;
 *///?}
-import net.minecraft.client.resources.model.SimpleModelWrapper;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
-import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.RandomSource;
@@ -266,10 +264,7 @@ public class FacadeDeduplicator {
       //?} else {
       /*for (BlockModelPart part : parts) {
       *///?}
-         if (part instanceof SimpleModelWrapper smw) {
-            QuadCollection qc = smw.quads();
-            result.addAll(qc.getQuads(side));
-         }
+         result.addAll(part.getQuads(side));
       }
 
       return result;
