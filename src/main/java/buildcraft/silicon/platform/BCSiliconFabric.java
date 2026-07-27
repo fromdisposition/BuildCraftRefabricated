@@ -37,6 +37,7 @@ public final class BCSiliconFabric {
       BCSiliconMenuTypes.register();
       BCSiliconEntities.register();
       BCSiliconRecipeSerializers.register();
+      BCSiliconPlugs.registerAll();
       BCSiliconCreativeTabs.register();
       registerMjCapabilities();
       registerNativeTransfer();
