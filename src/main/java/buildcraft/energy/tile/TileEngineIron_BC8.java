@@ -416,21 +416,15 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
       output.putDouble("burnTime", this.burnTime);
       output.putDouble("residueAmount", this.residueAmount);
       if (!this.tankFuel.isEmpty()) {
-         Identifier fuelId = BuiltInRegistries.FLUID.getKey(this.tankFuel.getFluidStack().getFluid());
-         output.putString("fuelFluid", fuelId.toString());
-         output.putInt("fuelAmount", this.tankFuel.getAmountMb());
+         output.store("fluidFuel", FluidStack.CODEC, this.tankFuel.getFluidStack());
       }
 
       if (!this.tankCoolant.isEmpty()) {
-         Identifier coolId = BuiltInRegistries.FLUID.getKey(this.tankCoolant.getFluidStack().getFluid());
-         output.putString("coolantFluid", coolId.toString());
-         output.putInt("coolantAmount", this.tankCoolant.getAmountMb());
+         output.store("fluidCoolant", FluidStack.CODEC, this.tankCoolant.getFluidStack());
       }
 
       if (!this.tankResidue.isEmpty()) {
-         Identifier resId = BuiltInRegistries.FLUID.getKey(this.tankResidue.getFluidStack().getFluid());
-         output.putString("residueFluid", resId.toString());
-         output.putInt("residueAmountTank", this.tankResidue.getAmountMb());
+         output.store("fluidResidue", FluidStack.CODEC, this.tankResidue.getFluidStack());
       }
    }
 
@@ -440,25 +434,17 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
       this.penaltyCooling = input.getIntOr("penaltyCooling", 0);
       this.burnTime = input.getDoubleOr("burnTime", 0.0);
       this.residueAmount = Math.max(0.0, input.getDoubleOr("residueAmount", 0.0));
-      this.loadTank(input, "fuelFluid", "fuelAmount", this.tankFuel);
-      this.loadTank(input, "coolantFluid", "coolantAmount", this.tankCoolant);
-      this.loadTank(input, "residueFluid", "residueAmountTank", this.tankResidue);
+      this.loadTank(input, "fluidFuel", this.tankFuel);
+      this.loadTank(input, "fluidCoolant", this.tankCoolant);
+      this.loadTank(input, "fluidResidue", this.tankResidue);
    }
 
-   private void loadTank(BcValueIn input, String fluidKey, String amountKey, SingleFluidTank tank) {
-      String fluidId = input.getStringOr(fluidKey, "");
-      if (!fluidId.isEmpty()) {
-         Identifier id = Identifier.tryParse(fluidId);
-         if (id != null) {
-            Fluid fluid = BcRegistryUtil.getFluid(id);
-            if (fluid != null && fluid != Fluids.EMPTY) {
-               int amount = input.getIntOr(amountKey, 0);
-               if (amount > 0) {
-                  tank.setContents(new FluidStack(fluid, amount));
-               }
-            }
+   private void loadTank(BcValueIn input, String key, SingleFluidTank tank) {
+      input.read(key, FluidStack.CODEC).ifPresent(stack -> {
+         if (!stack.isEmpty() && stack.getAmount() > 0) {
+            tank.setContents(stack);
          }
-      }
+      });
    }
 
    @Override

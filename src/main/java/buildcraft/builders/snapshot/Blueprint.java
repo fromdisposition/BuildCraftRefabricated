@@ -283,8 +283,10 @@ public class Blueprint extends Snapshot {
                   if (!schematicBlock.isAir()) {
                      if (schematicBlock instanceof SchematicBlockDefault def) {
                         this.toPlaceRequiredItems[idx] = def.computeRequiredItems(include);
+                        this.toPlaceRequiredFluids[idx] = def.computeRequiredFluids(include);
                      } else {
                         this.toPlaceRequiredItems[idx] = schematicBlock.computeRequiredItems();
+                        this.toPlaceRequiredFluids[idx] = schematicBlock.computeRequiredFluids();
                      }
                   }
                }

@@ -261,6 +261,20 @@ public class SchematicBlockDefault implements ISchematicBlock {
    @Nonnull
    @Override
    public List<FluidStack> computeRequiredFluids() {
+      return this.computeRequiredFluids(true);
+   }
+
+   @Nonnull
+   public List<FluidStack> computeRequiredFluids(boolean includeContainerContents) {
+      if (!includeContainerContents) {
+         return Collections.emptyList();
+      }
+
+      List<FluidStack> stored = SchematicFluidNbt.collect(this.tileNbt);
+      if (!stored.isEmpty()) {
+         return stored;
+      }
+
       Set<JsonRule> rules = RulesLoader.getRules(this.blockState, this.tileNbt);
       return rules.stream()
          .map(rule -> rule.requiredExtractors)
@@ -512,6 +526,8 @@ public class SchematicBlockDefault implements ISchematicBlock {
    }
 
    private void stripContainerContentsFromNbt(CompoundTag tileNbt) {
+      SchematicFluidNbt.clear(tileNbt);
+
       for (JsonRule rule : RulesLoader.getRules(this.blockState, tileNbt)) {
          if (rule.requiredExtractors != null) {
             for (RequiredExtractor extractor : rule.requiredExtractors) {
