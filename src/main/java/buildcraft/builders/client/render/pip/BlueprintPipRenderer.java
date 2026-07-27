@@ -8,6 +8,8 @@ package buildcraft.builders.client.render.pip;
 
 import buildcraft.lib.client.texture.BcTextureAtlases;
 import buildcraft.api.schematics.ISchematicBlock;
+import buildcraft.api.transport.pluggable.PluggableModelKey;
+import buildcraft.transport.client.model.PipePluggableQuadCache;
 import buildcraft.builders.snapshot.Blueprint;
 import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.builders.snapshot.Template;
@@ -902,10 +904,9 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       return quads;
    }
 
-   private static void renderPluggables(List<buildcraft.api.transport.pluggable.PluggableModelKey> plugs, Pose pose, VertexConsumer vc) {
-      for (buildcraft.api.transport.pluggable.PluggableModelKey key : plugs) {
-         buildcraft.transport.client.model.PipePluggableQuadCache
-            .renderCutoutTintResolved(key, pose, vc, FULL_BRIGHT, tint -> key.resolveWorldTint(tint, null, null));
+   private static void renderPluggables(List<PluggableModelKey> plugs, Pose pose, VertexConsumer vc) {
+      for (PluggableModelKey key : plugs) {
+         PipePluggableQuadCache.renderCutoutTintResolved(key, pose, vc, FULL_BRIGHT, tint -> key.resolveWorldTint(tint, null, null));
       }
    }
 
@@ -927,7 +928,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    private record ItemEntry(int x, int y, int z, TrackingItemStackRenderState renderState) {
    }
 
-   private record PipeEntry(int x, int y, int z, PipeModelKey pipeKey, List<buildcraft.api.transport.pluggable.PluggableModelKey> plugs) {
+   private record PipeEntry(int x, int y, int z, PipeModelKey pipeKey, List<PluggableModelKey> plugs) {
    }
 
    private record PlanKey(Class<?> type, int sizeX, int sizeY, int sizeZ, int snapshotHash, int hashLength, int identity) {

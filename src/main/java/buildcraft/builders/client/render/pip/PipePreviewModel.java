@@ -6,20 +6,26 @@
 
 package buildcraft.builders.client.render.pip;
 
-import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.transport.IWireManager;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeEvent;
 import buildcraft.api.transport.pluggable.PipePluggable;
+import buildcraft.api.transport.pluggable.PluggableDefinition;
+import buildcraft.api.transport.pluggable.PluggableModelKey;
+import buildcraft.lib.nbt.BcNbt;
 import buildcraft.transport.block.BlockPipeHolder;
 import buildcraft.transport.client.model.key.PipeModelKey;
 import buildcraft.transport.pipe.Pipe;
 import com.mojang.authlib.GameProfile;
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -128,34 +134,33 @@ public final class PipePreviewModel {
       return state != null && state.getBlock() instanceof BlockPipeHolder;
    }
 
-   public static java.util.List<buildcraft.api.transport.pluggable.PluggableModelKey> pluggableKeys(@Nullable CompoundTag tileNbt) {
-      if (tileNbt == null || buildcraft.api.transport.pipe.PipeApi.pluggableRegistry == null) {
-         return java.util.List.of();
+   public static List<PluggableModelKey> pluggableKeys(@Nullable CompoundTag tileNbt) {
+      if (tileNbt == null || PipeApi.pluggableRegistry == null) {
+         return List.of();
       }
 
       CompoundTag plugTag = BcNbt.getCompound(tileNbt, "plugs");
       if (plugTag.isEmpty()) {
-         return java.util.List.of();
+         return List.of();
       }
 
-      java.util.List<buildcraft.api.transport.pluggable.PluggableModelKey> keys = new java.util.ArrayList<>();
+      List<PluggableModelKey> keys = new ArrayList<>();
 
       for (Direction face : Direction.values()) {
          CompoundTag entry = BcNbt.getCompound(plugTag, face.getName());
          String id = BcNbt.getString(entry, "id", "");
          if (!id.isEmpty()) {
-            buildcraft.api.transport.pluggable.PluggableDefinition def = buildcraft.api.transport.pipe.PipeApi.pluggableRegistry
-               .getDefinition(net.minecraft.resources.Identifier.parse(id));
-            if (def != null) {
+            PluggableDefinition definition = PipeApi.pluggableRegistry.getDefinition(Identifier.parse(id));
+            if (definition != null) {
                try {
-                  PipePluggable plug = def.readFromNbt(STUB_HOLDER, face, BcNbt.getCompound(entry, "data"));
+                  PipePluggable plug = definition.readFromNbt(STUB_HOLDER, face, BcNbt.getCompound(entry, "data"));
                   if (plug != null) {
-                     buildcraft.api.transport.pluggable.PluggableModelKey key = plug.getModelRenderKey("cutout");
+                     PluggableModelKey key = plug.getModelRenderKey("cutout");
                      if (key != null) {
                         keys.add(key);
                      }
                   }
-               } catch (Throwable var9) {
+               } catch (RuntimeException | LinkageError ignored) {
                }
             }
          }

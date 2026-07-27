@@ -88,7 +88,6 @@ public final class BcNbt {
       /*return tag.getCompound(key); *///?}
    }
 
-   /** Every key present in the compound. */
    public static java.util.Set<String> keys(CompoundTag tag) {
       //? if >= 1.21.10 {
       return tag.keySet();
