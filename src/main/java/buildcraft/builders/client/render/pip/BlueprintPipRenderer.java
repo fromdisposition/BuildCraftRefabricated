@@ -153,12 +153,12 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          this.submitFluidCube26(poseStack, entry, FULL_BRIGHT, storage);
       }
 
-      for (BlueprintPipRenderer.BlockEntry entry : plan.blockEntries) {
-         poseStack.pushPose();
-         poseStack.translate(entry.x, entry.y, entry.z);
-         com.mojang.blaze3d.vertex.PoseStack.Pose blockPose = poseStack.last();
-         storage.submitCustomGeometry(poseStack, BCLibRenderTypes.cutoutBlockSheet(), (p, vc) -> renderBlockQuads(entry.quads, blockPose, vc));
-         poseStack.popPose();
+      if (!plan.blockEntries.isEmpty()) {
+         Pose blockPose = new Pose();
+         blockPose.set(poseStack.last());
+         storage.submitCustomGeometry(
+            poseStack, BCLibRenderTypes.cutoutBlockSheet(), (p, vc) -> renderBlockEntries(plan.blockEntries, blockPose, vc)
+         );
       }
 
       featureRenderDispatcher.renderAllFeatures(storage);
@@ -181,7 +181,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    private void submitTemplateGhostCube26(PoseStack poseStack, BlueprintPipRenderer.TemplateEntry entry, SubmitNodeStorage storage) {
       poseStack.pushPose();
       poseStack.translate(entry.x, entry.y, entry.z);
-      com.mojang.blaze3d.vertex.PoseStack.Pose pose = poseStack.last();
+      com.mojang.blaze3d.vertex.PoseStack.Pose pose = new com.mojang.blaze3d.vertex.PoseStack.Pose();
+      pose.set(poseStack.last());
       storage.submitCustomGeometry(poseStack, BCLibRenderTypes.entityTranslucent(SCAN_TEXTURE), (p, vc) -> {
          for (Direction face : entry.faces) {
             ModelUtil.createFace(face, GHOST_CENTER, GHOST_RADIUS, GHOST_UVS).lighti(15, 15).colouri(255, 255, 255, 128).render(pose, vc);
@@ -193,9 +194,11 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    private void submitPipeEntry26(PoseStack poseStack, BlueprintPipRenderer.PipeEntry entry, SubmitNodeStorage storage) {
       poseStack.pushPose();
       poseStack.translate(entry.x, entry.y, entry.z);
-      com.mojang.blaze3d.vertex.PoseStack.Pose pipePose = poseStack.last();
+      com.mojang.blaze3d.vertex.PoseStack.Pose pipePose = new com.mojang.blaze3d.vertex.PoseStack.Pose();
+      pipePose.set(poseStack.last());
       storage.submitCustomGeometry(poseStack, BCLibRenderTypes.cutoutBlockSheet(), (p, vc) -> {
          ModelPipe.renderDirect(entry.pipeKey, pipePose, vc, FULL_BRIGHT);
+         renderPluggables(entry.plugs, pipePose, vc);
       });
       storage.submitCustomGeometry(poseStack, BCLibRenderTypes.translucentBlockSheet(), (p, vc) -> {
          ModelPipe.renderMaskOverlay(entry.pipeKey, pipePose, vc, FULL_BRIGHT, 76);
@@ -217,7 +220,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          float h = entry.fluidState.isSource() ? 1.0F : Math.max(0.125F, entry.fluidState.getOwnHeight());
          poseStack.pushPose();
          poseStack.translate(entry.x, entry.y, entry.z);
-         com.mojang.blaze3d.vertex.PoseStack.Pose pose = poseStack.last();
+         com.mojang.blaze3d.vertex.PoseStack.Pose pose = new com.mojang.blaze3d.vertex.PoseStack.Pose();
+         pose.set(poseStack.last());
          storage.submitCustomGeometry(poseStack, BcFluidAppearanceCache.renderType(appearance), (p, vc) -> {
             int overlay = OverlayTexture.NO_OVERLAY;
             if (!entry.cullTop) {
@@ -315,11 +319,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          this.submitFluidCube(poseStack, entry, 15728880);
       }
 
-      for (BlueprintPipRenderer.BlockEntry entry : plan.blockEntries) {
-         poseStack.pushPose();
-         poseStack.translate(entry.x, entry.y, entry.z);
-         renderBlockQuads(entry.quads, poseStack.last(), this.bufferSource.getBuffer(BCLibRenderTypes.cutoutBlockSheet()));
-         poseStack.popPose();
+      if (!plan.blockEntries.isEmpty()) {
+         renderBlockEntries(plan.blockEntries, poseStack.last(), this.bufferSource.getBuffer(BCLibRenderTypes.cutoutBlockSheet()));
       }
 
       featureRenderDispatcher.renderAllFeatures();
@@ -392,7 +393,16 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
                            if (PipePreviewModel.isPipe(state)) {
                               PipeModelKey pipeKey = PipePreviewModel.modelKey(schBlock.getTileNbtForRender());
                               if (pipeKey != null) {
-                                 plan.pipeEntries.add(new BlueprintPipRenderer.PipeEntry(x, y, z, pipeKey));
+                                 plan.pipeEntries
+                                    .add(
+                                       new BlueprintPipRenderer.PipeEntry(
+                                          x,
+                                          y,
+                                          z,
+                                          withBlueprintConnections(pipeKey, blueprint, size, x, y, z),
+                                          PipePreviewModel.pluggableKeys(schBlock.getTileNbtForRender())
+                                       )
+                                    );
                                  continue;
                               }
                            }
@@ -751,6 +761,38 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    }
    *///?}
 
+   private static boolean neighborIsPipe(Blueprint blueprint, BlockPos size, int nx, int ny, int nz) {
+      if (nx < 0 || ny < 0 || nz < 0 || nx >= size.getX() || ny >= size.getY() || nz >= size.getZ()) {
+         return false;
+      }
+
+      BlockPos neighbor = NEIGHBOR_SCRATCH.get().set(nx, ny, nz);
+      int idx = blueprint.data[Snapshot.posToIndex(size, neighbor)];
+      if (idx < 0 || idx >= blueprint.palette.size()) {
+         return false;
+      }
+
+      ISchematicBlock schBlock = blueprint.palette.get(idx);
+      if (schBlock == null) {
+         return false;
+      }
+
+      BlockState nState = schBlock.getBlockStateForRender();
+      return nState != null && PipePreviewModel.isPipe(nState);
+   }
+
+   private static PipeModelKey withBlueprintConnections(PipeModelKey base, Blueprint blueprint, BlockPos size, int x, int y, int z) {
+      float[] connected = new float[6];
+
+      for (Direction face : Direction.values()) {
+         if (neighborIsPipe(blueprint, size, x + face.getStepX(), y + face.getStepY(), z + face.getStepZ())) {
+            connected[face.ordinal()] = 0.25F;
+         }
+      }
+
+      return new PipeModelKey(base.definition, base.center, base.sides, connected, base.colour, 0);
+   }
+
    private static boolean neighborIsSameFluid(Blueprint blueprint, BlockPos size, int nx, int ny, int nz, Fluid fluid) {
       if (nx >= 0 && ny >= 0 && nz >= 0 && nx < size.getX() && ny < size.getY() && nz < size.getZ()) {
          BlockPos neighbor = NEIGHBOR_SCRATCH.get().set(nx, ny, nz);
@@ -860,9 +902,22 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       return quads;
    }
 
-   private static void renderBlockQuads(List<MutableQuad> quads, com.mojang.blaze3d.vertex.PoseStack.Pose pose, VertexConsumer vc) {
-      for (MutableQuad quad : quads) {
-         quad.render(pose, vc);
+   private static void renderPluggables(List<buildcraft.api.transport.pluggable.PluggableModelKey> plugs, Pose pose, VertexConsumer vc) {
+      for (buildcraft.api.transport.pluggable.PluggableModelKey key : plugs) {
+         buildcraft.transport.client.model.PipePluggableQuadCache
+            .renderCutoutTintResolved(key, pose, vc, FULL_BRIGHT, tint -> key.resolveWorldTint(tint, null, null));
+      }
+   }
+
+   private static void renderBlockEntries(List<BlueprintPipRenderer.BlockEntry> entries, Pose pose, VertexConsumer vc) {
+      MutableQuad scratch = new MutableQuad();
+
+      for (BlueprintPipRenderer.BlockEntry entry : entries) {
+         for (MutableQuad quad : entry.quads) {
+            scratch.copyFrom(quad);
+            scratch.translatef(entry.x, entry.y, entry.z);
+            scratch.render(pose, vc);
+         }
       }
    }
 
@@ -872,7 +927,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    private record ItemEntry(int x, int y, int z, TrackingItemStackRenderState renderState) {
    }
 
-   private record PipeEntry(int x, int y, int z, PipeModelKey pipeKey) {
+   private record PipeEntry(int x, int y, int z, PipeModelKey pipeKey, List<buildcraft.api.transport.pluggable.PluggableModelKey> plugs) {
    }
 
    private record PlanKey(Class<?> type, int sizeX, int sizeY, int sizeZ, int snapshotHash, int hashLength, int identity) {

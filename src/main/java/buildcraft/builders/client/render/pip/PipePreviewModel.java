@@ -128,6 +128,42 @@ public final class PipePreviewModel {
       return state != null && state.getBlock() instanceof BlockPipeHolder;
    }
 
+   public static java.util.List<buildcraft.api.transport.pluggable.PluggableModelKey> pluggableKeys(@Nullable CompoundTag tileNbt) {
+      if (tileNbt == null || buildcraft.api.transport.pipe.PipeApi.pluggableRegistry == null) {
+         return java.util.List.of();
+      }
+
+      CompoundTag plugTag = BcNbt.getCompound(tileNbt, "plugs");
+      if (plugTag.isEmpty()) {
+         return java.util.List.of();
+      }
+
+      java.util.List<buildcraft.api.transport.pluggable.PluggableModelKey> keys = new java.util.ArrayList<>();
+
+      for (Direction face : Direction.values()) {
+         CompoundTag entry = BcNbt.getCompound(plugTag, face.getName());
+         String id = BcNbt.getString(entry, "id", "");
+         if (!id.isEmpty()) {
+            buildcraft.api.transport.pluggable.PluggableDefinition def = buildcraft.api.transport.pipe.PipeApi.pluggableRegistry
+               .getDefinition(net.minecraft.resources.Identifier.parse(id));
+            if (def != null) {
+               try {
+                  PipePluggable plug = def.readFromNbt(STUB_HOLDER, face, BcNbt.getCompound(entry, "data"));
+                  if (plug != null) {
+                     buildcraft.api.transport.pluggable.PluggableModelKey key = plug.getModelRenderKey("cutout");
+                     if (key != null) {
+                        keys.add(key);
+                     }
+                  }
+               } catch (Throwable var9) {
+               }
+            }
+         }
+      }
+
+      return keys;
+   }
+
    @Nullable
    public static PipeModelKey modelKey(@Nullable CompoundTag tileNbt) {
       if (tileNbt == null) {
