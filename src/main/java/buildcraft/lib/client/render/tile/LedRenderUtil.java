@@ -13,23 +13,12 @@ import com.mojang.blaze3d.vertex.PoseStack.Pose;
 //? if >= 1.21.10 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
 //?}
-//? if >= 26.2 {
-//?} else {
-/*import net.minecraft.client.renderer.MultiBufferSource;
-*///?}
 import net.minecraft.core.Direction;
 
 public final class LedRenderUtil {
    public static final int COLOUR_OFF = -14741477;
    public static final int COLOUR_GREEN_ON = -8921737;
    public static final int COLOUR_RED_ON = -14540067;
-
-   //? if >= 26.2 {
-   //?} else {
-   /*public static VertexConsumer begin(MultiBufferSource bufferSource) {
-      return bufferSource.getBuffer(BCLibRenderTypes.led());
-   }
-   *///?}
 
    //? if >= 1.21.10 {
    public static void submit(PoseStack poseStack, SubmitNodeCollector collector, RenderPartCube led, Direction skipFace, int colour) {
@@ -41,13 +30,6 @@ public final class LedRenderUtil {
       led.center.colouri(colour);
       led.render(pose, consumer, skipFace);
    }
-
-   //? if >= 26.2 {
-   //?} else {
-   /*public static void flush(MultiBufferSource.BufferSource bufferSource) {
-      bufferSource.endBatch(BCLibRenderTypes.led());
-   }
-   *///?}
 
    public static void setFacePosition(RenderPartCube led, Direction face, double insetBlocks, double sideOffset, double y) {
       double ledX;
