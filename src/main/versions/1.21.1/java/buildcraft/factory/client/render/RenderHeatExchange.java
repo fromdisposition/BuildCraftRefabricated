@@ -22,7 +22,6 @@ import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -37,7 +36,7 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * 1.21.1 (versions/1.21.1) heat-exchange renderer: immediate-mode port of the shared render-state/submit BER.
- * Draws the input/output tanks (via the version-neutral BcFluidBerHelper BufferSource overload) and the moving
+ * Draws the input/output tanks (via the version-neutral BcFluidBerHelper MultiBufferSource overload) and the moving
  * coolant/heatant flow through the exchanger middle. Geometry duplicated from the shared RenderHeatExchange,
  * which this override replaces on 1.21.1.
  */
@@ -96,7 +95,7 @@ public class RenderHeatExchange implements BlockEntityRenderer<TileHeatExchange>
          }
       }
 
-      BufferSource bufferSource = (BufferSource)buffers;
+      MultiBufferSource bufferSource = buffers;
       poseStack.pushPose();
       BcFluidBerHelper.renderSmoothedFluid(section.smoothedTankInput, TANK_BOTTOM, poseStack, bufferSource, light, partialTick);
       BcFluidBerHelper.renderSmoothedFluid(section.smoothedTankOutput, sideTank.start, poseStack, bufferSource, light, partialTick);

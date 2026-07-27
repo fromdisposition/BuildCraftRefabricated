@@ -17,7 +17,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 //?}
 //? if >= 26.2 {
 //?} else {
-/*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
+/*import net.minecraft.client.renderer.MultiBufferSource;
 *///?}
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -29,7 +29,7 @@ public final class BcFluidBerHelper {
    //? if >= 26.2 {
    //?} else {
    /*public static void renderSmoothedFluid(
-      FluidSmoother smoother, BcFluidBerHelper.TankBounds bounds, PoseStack poseStack, BufferSource bufferSource, int light, float partialTicks
+      FluidSmoother smoother, BcFluidBerHelper.TankBounds bounds, PoseStack poseStack, MultiBufferSource bufferSource, int light, float partialTicks
    ) {
       renderSmoothedFluidInternal(smoother, bounds, poseStack, light, partialTicks, (renderType, draw) -> {
          VertexConsumer buffer = bufferSource.getBuffer(renderType);
