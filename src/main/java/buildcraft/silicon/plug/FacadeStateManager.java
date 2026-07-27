@@ -68,7 +68,7 @@ public enum FacadeStateManager implements IFacadeRegistry {
       return initialized;
    }
 
-   public static void ensureInitialized() {
+   public static synchronized void ensureInitialized() {
       if (!initialized) {
          init();
       }

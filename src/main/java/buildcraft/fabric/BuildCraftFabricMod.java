@@ -59,6 +59,7 @@ public class BuildCraftFabricMod implements ModInitializer {
       BCSiliconFabric.register();
       BCRoboticsFabric.register();
       ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> {
+         buildcraft.silicon.plug.FacadeStateManager.ensureInitialized();
          //? if has_jei {
          BCJeiBootstrap.initSiliconRecipes();
          BCJeiBootstrap.initEnergyRecipes();

@@ -33,6 +33,7 @@ public class FacadePhasedState implements IFacadePhasedState {
    }
 
    public static FacadePhasedState readFromNbt(CompoundTag nbt) {
+      FacadeStateManager.ensureInitialized();
       FacadeBlockStateInfo stateInfo = FacadeStateManager.defaultState;
       if (nbt.contains("state")) {
          try {
