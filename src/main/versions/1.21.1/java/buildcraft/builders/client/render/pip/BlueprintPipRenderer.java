@@ -7,6 +7,7 @@
 package buildcraft.builders.client.render.pip;
 
 import buildcraft.api.schematics.ISchematicBlock;
+import buildcraft.api.transport.pluggable.PluggableModelKey;
 import buildcraft.builders.snapshot.Blueprint;
 import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.builders.snapshot.Template;
@@ -14,12 +15,13 @@ import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.fluid.BcFluidVertexEmitter;
 import buildcraft.lib.client.model.ModelUtil;
+import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.client.render.BCLibRenderTypes;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.transport.client.model.ModelPipe;
+import buildcraft.transport.client.model.PipePluggableQuadCache;
 import buildcraft.transport.client.model.key.PipeModelKey;
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
@@ -36,12 +38,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.BlockPos.MutableBlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -52,9 +55,9 @@ import org.joml.Vector3f;
  * 1.21.1 (versions/1.21.1) blueprint/template preview renderer. The shared class extends the 1.21.5
  * PictureInPictureRenderer (+ GPU lighting UBOs + ItemStackRenderState), none of which exist on 1.21.1.
  * Here the rotating 3D structure is drawn directly in the GUI pose space (like an enlarged 3D item icon):
- * each block is rendered via ItemRenderer.renderStatic, pipes via ModelPipe.renderDirect, fluids/template
- * ghosts via immediate quads, all clipped to the preview rect. The plan (block->ItemStack/pipe/fluid/ghost)
- * mirrors the shared buildPlan but stores ItemStacks instead of the 1.21.4 render-state.
+ * blocks from their block model's quads, pipes via ModelPipe.renderDirect, fluids/template ghosts via
+ * immediate quads, all clipped to the preview rect. The plan mirrors the shared buildPlan, but reads block
+ * quads through the classic 1.21.1 BakedModel.getQuads API instead of the BlockStateModel pipeline.
  */
 public final class BlueprintPipRenderer {
    private static final int FULL_BRIGHT = 15728880;
@@ -122,25 +125,31 @@ public final class BlueprintPipRenderer {
          poseStack.pushPose();
          poseStack.translate(entry.x, entry.y, entry.z);
          Pose pipePose = poseStack.last();
-         ModelPipe.renderDirect(entry.pipeKey, pipePose, buffers.getBuffer(BCLibRenderTypes.cutoutBlockSheet()), FULL_BRIGHT);
+         VertexConsumer cutout = buffers.getBuffer(BCLibRenderTypes.cutoutBlockSheet());
+         ModelPipe.renderDirect(entry.pipeKey, pipePose, cutout, FULL_BRIGHT);
+         renderPluggables(entry.plugs, pipePose, cutout);
          ModelPipe.renderMaskOverlay(entry.pipeKey, pipePose, buffers.getBuffer(BCLibRenderTypes.translucentBlockSheet()), FULL_BRIGHT, 76);
          poseStack.popPose();
+      }
+
+      if (!plan.blockEntries.isEmpty()) {
+         VertexConsumer blockBuffer = buffers.getBuffer(BCLibRenderTypes.cutoutBlockSheet());
+         MutableQuad scratch = new MutableQuad();
+
+         for (BlockEntry entry : plan.blockEntries) {
+            for (MutableQuad quad : entry.quads) {
+               scratch.copyFrom(quad);
+               scratch.translatef(entry.x, entry.y, entry.z);
+               scratch.render(poseStack.last(), blockBuffer);
+            }
+         }
       }
 
       for (FluidEntry entry : plan.fluidEntries) {
          renderFluidTop(poseStack, buffers, entry);
       }
 
-      Lighting.setupFor3DItems();
-      for (ItemEntry entry : plan.itemEntries) {
-         poseStack.pushPose();
-         poseStack.translate(entry.x + 0.5F, entry.y + 0.5F, entry.z + 0.5F);
-         mc.getItemRenderer().renderStatic(entry.stack, ItemDisplayContext.NONE, FULL_BRIGHT, OverlayTexture.NO_OVERLAY, poseStack, buffers, mc.level, 0);
-         poseStack.popPose();
-      }
-
       buffers.endBatch();
-      Lighting.setupForFlatItems();
       poseStack.popPose();
       g.raw.disableScissor();
    }
@@ -191,7 +200,7 @@ public final class BlueprintPipRenderer {
       int sizeZ = Math.max(1, size.getZ());
       Blueprint blueprint = snapshot instanceof Blueprint bp ? bp : null;
       Template template = snapshot instanceof Template tp ? tp : null;
-      Map<BlockState, ItemStack> stateCache = new java.util.HashMap<>();
+      Map<BlockState, List<MutableQuad>> stateCache = new java.util.HashMap<>();
       MutableBlockPos pos = new MutableBlockPos();
 
       for (int z = 0; z < sizeZ; z++) {
@@ -216,7 +225,16 @@ public final class BlueprintPipRenderer {
                            if (PipePreviewModel.isPipe(state)) {
                               PipeModelKey pipeKey = PipePreviewModel.modelKey(schBlock.getTileNbtForRender());
                               if (pipeKey != null) {
-                                 plan.pipeEntries.add(new PipeEntry(x, y, z, pipeKey));
+                                 plan.pipeEntries
+                                    .add(
+                                       new PipeEntry(
+                                          x,
+                                          y,
+                                          z,
+                                          withBlueprintConnections(pipeKey, blueprint, size, x, y, z),
+                                          PipePreviewModel.pluggableKeys(schBlock.getTileNbtForRender())
+                                       )
+                                    );
                                  continue;
                               }
                            }
@@ -226,14 +244,9 @@ public final class BlueprintPipRenderer {
                               Fluid fluid = fluidState.getType();
                               plan.fluidEntries.add(new FluidEntry(x, y, z, fluidState, neighborIsSameFluid(blueprint, size, x, y + 1, z, fluid)));
                            } else if (!shouldCullItemBlock(blueprint, size, x, y, z, state)) {
-                              ItemStack stack = stateCache.get(state);
-                              if (stack == null) {
-                                 stack = new ItemStack(state.getBlock());
-                                 stateCache.put(state, stack);
-                              }
-
-                              if (!stack.isEmpty()) {
-                                 plan.itemEntries.add(new ItemEntry(x, y, z, stack));
+                              List<MutableQuad> quads = stateCache.computeIfAbsent(state, BlueprintPipRenderer::buildBlockQuads);
+                              if (!quads.isEmpty()) {
+                                 plan.blockEntries.add(new BlockEntry(x, y, z, quads));
                               }
                            }
                         }
@@ -296,10 +309,73 @@ public final class BlueprintPipRenderer {
       return false;
    }
 
-   private record ItemEntry(int x, int y, int z, ItemStack stack) {
+   private static final List<MutableQuad> NO_QUADS = List.of();
+   private static final RandomSource QUAD_RANDOM = RandomSource.create(42L);
+
+   private static List<MutableQuad> buildBlockQuads(BlockState state) {
+      Minecraft mc = Minecraft.getInstance();
+      BakedModel model = mc.getBlockRenderer().getBlockModelShaper().getBlockModel(state);
+      if (model == null) {
+         return NO_QUADS;
+      }
+
+      List<BakedQuad> baked = new ArrayList<>(model.getQuads(state, null, QUAD_RANDOM));
+
+      for (Direction face : Direction.values()) {
+         baked.addAll(model.getQuads(state, face, QUAD_RANDOM));
+      }
+
+      if (baked.isEmpty()) {
+         return NO_QUADS;
+      }
+
+      List<MutableQuad> quads = new ArrayList<>(baked.size());
+
+      for (BakedQuad quad : baked) {
+         MutableQuad mutable = new MutableQuad().fromBakedBlock(quad);
+         mutable.setCalculatedDiffuse();
+         int tintIndex = mutable.getTint();
+         if (tintIndex >= 0) {
+            int rgb = mc.getBlockColors().getColor(state, null, null, tintIndex);
+            if (rgb != -1) {
+               mutable.multColouri(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF, 255);
+            }
+         }
+
+         mutable.lighti(15, 15);
+         quads.add(mutable);
+      }
+
+      return quads;
    }
 
-   private record PipeEntry(int x, int y, int z, PipeModelKey pipeKey) {
+   private static void renderPluggables(List<PluggableModelKey> plugs, Pose pose, VertexConsumer vc) {
+      for (PluggableModelKey key : plugs) {
+         PipePluggableQuadCache.renderCutoutTintResolved(key, pose, vc, FULL_BRIGHT, tint -> key.resolveWorldTint(tint, null, null));
+      }
+   }
+
+   private static PipeModelKey withBlueprintConnections(PipeModelKey base, Blueprint blueprint, BlockPos size, int x, int y, int z) {
+      float[] connected = new float[6];
+
+      for (Direction face : Direction.values()) {
+         if (neighborIsPipe(blueprint, size, x + face.getStepX(), y + face.getStepY(), z + face.getStepZ())) {
+            connected[face.ordinal()] = 0.25F;
+         }
+      }
+
+      return new PipeModelKey(base.definition, base.center, base.sides, connected, base.colour, 0);
+   }
+
+   private static boolean neighborIsPipe(Blueprint blueprint, BlockPos size, int nx, int ny, int nz) {
+      BlockState nState = blueprintState(blueprint, size, nx, ny, nz);
+      return nState != null && PipePreviewModel.isPipe(nState);
+   }
+
+   private record BlockEntry(int x, int y, int z, List<MutableQuad> quads) {
+   }
+
+   private record PipeEntry(int x, int y, int z, PipeModelKey pipeKey, List<PluggableModelKey> plugs) {
    }
 
    private record FluidEntry(int x, int y, int z, FluidState fluidState, boolean cullTop) {
@@ -327,7 +403,7 @@ public final class BlueprintPipRenderer {
    }
 
    private static final class PreviewPlan {
-      private final List<ItemEntry> itemEntries = new ArrayList<>();
+      private final List<BlockEntry> blockEntries = new ArrayList<>();
       private final List<PipeEntry> pipeEntries = new ArrayList<>();
       private final List<FluidEntry> fluidEntries = new ArrayList<>();
       private final List<TemplateEntry> templateEntries = new ArrayList<>();
