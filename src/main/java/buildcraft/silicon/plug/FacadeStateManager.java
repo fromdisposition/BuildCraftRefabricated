@@ -28,8 +28,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map.Entry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -60,12 +62,21 @@ public enum FacadeStateManager implements IFacadeRegistry {
    public static volatile Map<ItemStackKey, List<FacadeBlockStateInfo>> stackRedirects = Map.of();
    public static FacadeBlockStateInfo defaultState;
    public static FacadeBlockStateInfo previewState;
+   /** Stand-in for a facade whose block is gone: a plain opaque panel, so it stays visible and breakable. */
+   public static FacadeBlockStateInfo unresolvedState;
+   private static final Set<String> WARNED_UNRESOLVED = ConcurrentHashMap.newKeySet();
    private static volatile boolean initialized = false;
    private static final Map<Block, String> disabledBlocks = new HashMap<>();
    private static final Map<BlockState, ItemStack> customBlocks = new HashMap<>();
 
    public static boolean isInitialized() {
       return initialized;
+   }
+
+   public static void warnUnresolvedState(String blockName) {
+      if (WARNED_UNRESOLVED.add(blockName)) {
+         BCLog.logger.warn("[silicon.facade] Facade block {} no longer exists; showing a stone panel and keeping the saved state untouched.", blockName);
+      }
    }
 
    public static synchronized void ensureInitialized() {
@@ -165,6 +176,7 @@ public enum FacadeStateManager implements IFacadeRegistry {
    public static void init() {
       if (!initialized) {
          defaultState = new FacadeBlockStateInfo(Blocks.AIR.defaultBlockState(), ItemStack.EMPTY, ImmutableSet.of());
+         unresolvedState = defaultState;
          if (FacadeAPI.facadeItem == null) {
             previewState = defaultState;
          } else {
@@ -178,6 +190,11 @@ public enum FacadeStateManager implements IFacadeRegistry {
             previewState = nextValid.get(Blocks.BRICKS.defaultBlockState());
             if (previewState == null) {
                previewState = defaultState;
+            }
+
+            unresolvedState = nextValid.get(Blocks.STONE.defaultBlockState());
+            if (unresolvedState == null) {
+               unresolvedState = defaultState;
             }
 
             Map<ItemStackKey, List<FacadeBlockStateInfo>> publishedStackFacades = new HashMap<>(nextStackFacades.size());
