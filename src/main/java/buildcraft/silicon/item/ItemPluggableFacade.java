@@ -46,6 +46,31 @@ public class ItemPluggableFacade extends Item implements IItemPluggable, IFacade
       super(properties);
    }
 
+   //? if >= 1.21.10 {
+   @Override
+   public void inventoryTick(ItemStack stack, net.minecraft.server.level.ServerLevel level, net.minecraft.world.entity.Entity entity, net.minecraft.world.entity.EquipmentSlot slot) {
+      normalizeUnresolved(stack);
+   }
+   //?} else {
+   /*@Override
+   public void inventoryTick(ItemStack stack, net.minecraft.world.level.Level level, net.minecraft.world.entity.Entity entity, int slot, boolean selected) {
+      if (!level.isClientSide()) {
+         normalizeUnresolved(stack);
+      }
+   }
+   *///?}
+
+   private static void normalizeUnresolved(@Nonnull ItemStack stack) {
+      CompoundTag nbt = NBTUtilBC.getItemData(stack);
+      if (nbt.contains("facade")) {
+         FacadeInstance states = FacadeInstance.readFromNbt(BcNbt.getCompound(nbt, "facade"));
+         if (states.hasUnresolved()) {
+            nbt.put("facade", states.writeToNbt());
+            NBTUtilBC.setItemData(stack, nbt);
+         }
+      }
+   }
+
    @Nonnull
    public ItemStack createItemStack(FacadeInstance state) {
       ItemStack item = new ItemStack(this);

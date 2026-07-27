@@ -26,15 +26,22 @@ public class FacadePhasedState implements IFacadePhasedState {
    public final FacadeBlockStateInfo stateInfo;
    @Nullable
    public final DyeColor activeColour;
+   public final boolean wasUnresolved;
 
    public FacadePhasedState(FacadeBlockStateInfo stateInfo, @Nullable DyeColor activeColour) {
+      this(stateInfo, activeColour, false);
+   }
+
+   private FacadePhasedState(FacadeBlockStateInfo stateInfo, @Nullable DyeColor activeColour, boolean wasUnresolved) {
       this.stateInfo = stateInfo;
       this.activeColour = activeColour;
+      this.wasUnresolved = wasUnresolved;
    }
 
    public static FacadePhasedState readFromNbt(CompoundTag nbt) {
       FacadeStateManager.ensureInitialized();
       FacadeBlockStateInfo stateInfo = FacadeStateManager.defaultState;
+      boolean unresolved = false;
       if (nbt.contains("state")) {
          CompoundTag stateTag = BcNbt.getCompound(nbt, "state");
 
@@ -44,6 +51,7 @@ public class FacadePhasedState implements IFacadePhasedState {
             if (blockState.isAir() && !"minecraft:air".equals(storedName)) {
                FacadeStateManager.warnUnresolvedState(storedName);
                stateInfo = FacadeStateManager.unresolvedState;
+               unresolved = true;
             } else {
                stateInfo = FacadeStateManager.validFacadeStates.get(blockState);
                if (stateInfo == null) {
@@ -56,7 +64,7 @@ public class FacadePhasedState implements IFacadePhasedState {
       }
 
       DyeColor colour = NBTUtilBC.readEnum(nbt.get("activeColour"), DyeColor.class);
-      return new FacadePhasedState(stateInfo, colour);
+      return new FacadePhasedState(stateInfo, colour, unresolved);
    }
 
    public CompoundTag writeToNbt() {
@@ -112,7 +120,7 @@ public class FacadePhasedState implements IFacadePhasedState {
    }
 
    public FacadePhasedState withColour(DyeColor colour) {
-      return new FacadePhasedState(this.stateInfo, colour);
+      return new FacadePhasedState(this.stateInfo, colour, this.wasUnresolved);
    }
 
    public boolean isSideSolid(Direction side) {

@@ -112,6 +112,16 @@ public class FacadeInstance implements IFacade {
       }
    }
 
+   public boolean hasUnresolved() {
+      for (FacadePhasedState state : this.phasedStates) {
+         if (state.wasUnresolved) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
    public boolean canAddColour(DyeColor colour) {
       for (FacadePhasedState state : this.phasedStates) {
          if (state.activeColour == colour) {
