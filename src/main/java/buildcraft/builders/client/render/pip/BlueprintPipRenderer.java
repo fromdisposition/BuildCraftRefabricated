@@ -15,6 +15,7 @@ import buildcraft.lib.client.fluid.BcFluidVertexEmitter;
 import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.model.ModelUtil;
+import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.client.render.BCLibRenderTypes;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.transport.client.model.ModelPipe;
@@ -50,6 +51,13 @@ import net.minecraft.client.renderer.SubmitNodeStorage;
 /*import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 *///?}
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+//? if >= 26.1 {
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+//?} else {
+/*import net.minecraft.client.renderer.block.model.BlockModelPart;
+*///?}
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.item.TrackingItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -145,10 +153,11 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          this.submitFluidCube26(poseStack, entry, FULL_BRIGHT, storage);
       }
 
-      for (BlueprintPipRenderer.ItemEntry entry : plan.itemEntries) {
+      for (BlueprintPipRenderer.BlockEntry entry : plan.blockEntries) {
          poseStack.pushPose();
-         poseStack.translate(entry.x + 0.5F, entry.y + 0.5F, entry.z + 0.5F);
-         entry.renderState.submit(poseStack, submitNodeCollector, FULL_BRIGHT, OverlayTexture.NO_OVERLAY, 0);
+         poseStack.translate(entry.x, entry.y, entry.z);
+         com.mojang.blaze3d.vertex.PoseStack.Pose blockPose = poseStack.last();
+         storage.submitCustomGeometry(poseStack, BCLibRenderTypes.cutoutBlockSheet(), (p, vc) -> renderBlockQuads(entry.quads, blockPose, vc));
          poseStack.popPose();
       }
 
@@ -160,7 +169,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
             new Object[]{
                snapshot.getClass().getSimpleName(),
                sizeX, sizeY, sizeZ,
-               plan.itemEntries.size(), plan.fluidEntries.size(),
+               plan.blockEntries.size(), plan.fluidEntries.size(),
                plan.templateEntries.size(), plan.pipeEntries.size(),
                plan.skippedNoItem, plan.skippedAirOrEmpty, plan.skippedHidden,
                plan.sampleClassName, plan.distinctStates
@@ -306,10 +315,10 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          this.submitFluidCube(poseStack, entry, 15728880);
       }
 
-      for (BlueprintPipRenderer.ItemEntry entry : plan.itemEntries) {
+      for (BlueprintPipRenderer.BlockEntry entry : plan.blockEntries) {
          poseStack.pushPose();
-         poseStack.translate(entry.x + 0.5F, entry.y + 0.5F, entry.z + 0.5F);
-         entry.renderState.submit(poseStack, submitNodeStorage, 15728880, OverlayTexture.NO_OVERLAY, 0);
+         poseStack.translate(entry.x, entry.y, entry.z);
+         renderBlockQuads(entry.quads, poseStack.last(), this.bufferSource.getBuffer(BCLibRenderTypes.cutoutBlockSheet()));
          poseStack.popPose();
       }
 
@@ -324,7 +333,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
                sizeX,
                sizeY,
                sizeZ,
-               plan.itemEntries.size(),
+               plan.blockEntries.size(),
                plan.fluidEntries.size(),
                plan.templateEntries.size(),
                plan.pipeEntries.size(),
@@ -352,7 +361,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       int sizeZ = Math.max(1, size.getZ());
       Blueprint blueprint = snapshot instanceof Blueprint bp ? bp : null;
       Template template = snapshot instanceof Template tp ? tp : null;
-      Map<BlockState, TrackingItemStackRenderState> stateCache = new HashMap<>();
+      Map<BlockState, List<MutableQuad>> stateCache = new HashMap<>();
       MutableBlockPos pos = new MutableBlockPos();
 
       for (int z = 0; z < sizeZ; z++) {
@@ -409,24 +418,17 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
                            } else if (shouldCullItemBlock(blueprint, size, x, y, z, state)) {
                               plan.skippedHidden++;
                            } else {
-                              TrackingItemStackRenderState itemRenderState = stateCache.get(state);
-                              if (itemRenderState == null) {
-                                 ItemStack stack = new ItemStack(state.getBlock());
-                                 if (stack.isEmpty()) {
-                                    stateCache.put(state, MARKER_EMPTY);
-                                    plan.skippedNoItem++;
-                                    continue;
-                                 }
-
-                                 itemRenderState = new TrackingItemStackRenderState();
-                                 mc.getItemModelResolver().updateForTopItem(itemRenderState, stack, ItemDisplayContext.NONE, mc.level, null, 0);
-                                 stateCache.put(state, itemRenderState);
-                              } else if (itemRenderState == MARKER_EMPTY) {
-                                 plan.skippedNoItem++;
-                                 continue;
+                              List<MutableQuad> quads = stateCache.get(state);
+                              if (quads == null) {
+                                 quads = buildBlockQuads(state);
+                                 stateCache.put(state, quads);
                               }
 
-                              plan.itemEntries.add(new BlueprintPipRenderer.ItemEntry(x, y, z, itemRenderState));
+                              if (quads.isEmpty()) {
+                                 plan.skippedNoItem++;
+                              } else {
+                                 plan.blockEntries.add(new BlueprintPipRenderer.BlockEntry(x, y, z, quads));
+                              }
                            }
                         } else {
                            plan.skippedAirOrEmpty++;
@@ -795,6 +797,78 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    ) {
    }
 
+   private static final List<MutableQuad> NO_QUADS = List.of();
+   private static final net.minecraft.util.RandomSource QUAD_RANDOM = net.minecraft.util.RandomSource.create(42L);
+
+   private static List<MutableQuad> buildBlockQuads(BlockState state) {
+      Minecraft mc = Minecraft.getInstance();
+      //? if >= 26.1 {
+      BlockStateModel model = mc.getModelManager().getBlockStateModelSet().get(state);
+      //?} else {
+      /*BlockStateModel model = mc.getBlockRenderer().getBlockModelShaper().getBlockModel(state);
+      *///?}
+      //? if >= 26.1 {
+      List<BlockStateModelPart> parts = new ArrayList<>();
+      //?} else {
+      /*List<BlockModelPart> parts = new ArrayList<>();
+      *///?}
+      if (model == null) {
+         return NO_QUADS;
+      }
+
+      model.collectParts(QUAD_RANDOM, parts);
+      List<BakedQuad> baked = new ArrayList<>();
+
+      //? if >= 26.1 {
+      for (BlockStateModelPart part : parts) {
+      //?} else {
+      /*for (BlockModelPart part : parts) {
+      *///?}
+         baked.addAll(part.getQuads(null));
+
+         for (Direction face : Direction.values()) {
+            baked.addAll(part.getQuads(face));
+         }
+      }
+
+      if (baked.isEmpty()) {
+         return NO_QUADS;
+      }
+
+      List<MutableQuad> quads = new ArrayList<>(baked.size());
+
+      for (BakedQuad quad : baked) {
+         MutableQuad mutable = new MutableQuad().fromBakedBlock(quad);
+         mutable.setCalculatedDiffuse();
+         int tintIndex = mutable.getTint();
+         if (tintIndex >= 0) {
+            //? if >= 26.1 {
+            net.minecraft.client.color.block.BlockTintSource source = mc.getBlockColors().getTintSource(state, tintIndex);
+            int rgb = source == null ? -1 : source.color(state);
+            //?} else {
+            /*int rgb = mc.getBlockColors().getColor(state, null, null, tintIndex);
+            *///?}
+            if (rgb != -1) {
+               mutable.multColouri(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF, 255);
+            }
+         }
+
+         mutable.lighti(15, 15);
+         quads.add(mutable);
+      }
+
+      return quads;
+   }
+
+   private static void renderBlockQuads(List<MutableQuad> quads, com.mojang.blaze3d.vertex.PoseStack.Pose pose, VertexConsumer vc) {
+      for (MutableQuad quad : quads) {
+         quad.render(pose, vc);
+      }
+   }
+
+   private record BlockEntry(int x, int y, int z, List<MutableQuad> quads) {
+   }
+
    private record ItemEntry(int x, int y, int z, TrackingItemStackRenderState renderState) {
    }
 
@@ -820,6 +894,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    }
 
    private static final class PreviewPlan {
+      private final List<BlueprintPipRenderer.BlockEntry> blockEntries = new ArrayList<>();
       private final List<BlueprintPipRenderer.ItemEntry> itemEntries = new ArrayList<>();
       private final List<BlueprintPipRenderer.PipeEntry> pipeEntries = new ArrayList<>();
       private final List<BlueprintPipRenderer.FluidEntry> fluidEntries = new ArrayList<>();
