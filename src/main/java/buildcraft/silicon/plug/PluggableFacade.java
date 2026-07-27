@@ -34,7 +34,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PluggableFacade extends PipePluggable implements IFacade {
-   private static final AABB[] BOXES = new AABB[6];
+   private static final AABB[] BOXES = buildcraft.api.transport.pluggable.PluggableBoxes.faceBoxes(0.0, 1.0, 0.0, 0.125, 0.875, 1.0);
    public static final int SIZE = 2;
    public final FacadeInstance states;
    public final boolean isSideSolid;
@@ -87,7 +87,7 @@ public class PluggableFacade extends PipePluggable implements IFacade {
    }
 
    public static AABB boundingBoxFor(Direction side) {
-      return BOXES[side.ordinal()];
+      return BOXES[side.get3DDataValue()];
    }
 
    @Override
@@ -103,7 +103,7 @@ public class PluggableFacade extends PipePluggable implements IFacade {
     */
    @Override
    public VoxelShape getShape() {
-      return (this.isHollow() ? HOLLOW_SHAPES : SOLID_SHAPES)[this.side.ordinal()];
+      return (this.isHollow() ? HOLLOW_SHAPES : SOLID_SHAPES)[this.side.get3DDataValue()];
    }
 
    @Override
@@ -221,23 +221,10 @@ public class PluggableFacade extends PipePluggable implements IFacade {
    private static final VoxelShape[] HOLLOW_SHAPES = new VoxelShape[6];
 
    static {
-      double ll = 0.0;
-      double lu = 0.125;
-      double ul = 0.875;
-      double uu = 1.0;
-      double min = 0.0;
-      double max = 1.0;
-      BOXES[Direction.DOWN.ordinal()] = new AABB(min, ll, min, max, lu, max);
-      BOXES[Direction.UP.ordinal()] = new AABB(min, ul, min, max, uu, max);
-      BOXES[Direction.NORTH.ordinal()] = new AABB(min, min, ll, max, max, lu);
-      BOXES[Direction.SOUTH.ordinal()] = new AABB(min, min, ul, max, max, uu);
-      BOXES[Direction.WEST.ordinal()] = new AABB(ll, min, min, lu, max, max);
-      BOXES[Direction.EAST.ordinal()] = new AABB(ul, min, min, uu, max, max);
-
       for (Direction dir : Direction.values()) {
-         AABB box = BOXES[dir.ordinal()];
-         SOLID_SHAPES[dir.ordinal()] = Shapes.create(box);
-         HOLLOW_SHAPES[dir.ordinal()] = buildHollowFrame(dir, box);
+         AABB box = BOXES[dir.get3DDataValue()];
+         SOLID_SHAPES[dir.get3DDataValue()] = Shapes.create(box);
+         HOLLOW_SHAPES[dir.get3DDataValue()] = buildHollowFrame(dir, box);
       }
    }
 

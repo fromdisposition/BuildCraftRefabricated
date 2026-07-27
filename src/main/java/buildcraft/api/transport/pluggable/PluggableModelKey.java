@@ -67,7 +67,9 @@ public abstract class PluggableModelKey {
       }
 
       PluggableModelKey other = (PluggableModelKey)obj;
-      return this.layer != other.layer ? false : this.side == other.side;
+      // Objects.equals, not ==: layers are usually interned string literals, but the contract must not
+      // silently break cache hits for a computed layer object.
+      return Objects.equals(this.layer, other.layer) && this.side == other.side;
    }
 
    @Override

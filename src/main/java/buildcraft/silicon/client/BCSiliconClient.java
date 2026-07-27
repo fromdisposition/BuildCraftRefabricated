@@ -81,8 +81,10 @@ public class BCSiliconClient {
       LensItemModel.onModelBake();
       PlugGateBaker.onModelBake();
       PlugGateRenderer.onModelBake();
+      PlugPulsarRenderer.onModelBake();
       PipeModelCacheAll.clearAll();
       PlugBakerSimpleItems.onModelBake();
+      PlugBakerLens.onModelBake();
       cachedBlockStateModels = event.getBakingResult().blockStateModels();
       //?} else {
       /*java.util.Map<net.minecraft.client.resources.model.ModelIdentifier, net.minecraft.client.resources.model.BakedModel> models = event.getModels();
@@ -97,8 +99,10 @@ public class BCSiliconClient {
       LensItemModel.onModelBake();
       PlugGateBaker.onModelBake();
       PlugGateRenderer.onModelBake();
+      PlugPulsarRenderer.onModelBake();
       PipeModelCacheAll.clearAll();
       PlugBakerSimpleItems.onModelBake();
+      PlugBakerLens.onModelBake();
       *///?}
    }
 

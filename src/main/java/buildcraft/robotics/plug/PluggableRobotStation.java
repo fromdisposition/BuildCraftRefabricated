@@ -32,7 +32,7 @@ import net.minecraft.world.phys.AABB;
 import team.reborn.energy.api.EnergyStorage;
 
 public class PluggableRobotStation extends PipePluggable implements IDockingStationProvider {
-   private static final AABB[] BOXES = new AABB[6];
+   private static final AABB[] BOXES = buildcraft.api.transport.pluggable.PluggableBoxes.faceBoxes(0.25, 0.75, 0.0, 0.25, 0.75, 1.0);
 
    public enum RobotStationState {
       None,
@@ -50,7 +50,7 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
 
    @Override
    public AABB getBoundingBox() {
-      return BOXES[this.side.ordinal()];
+      return BOXES[this.side.get3DDataValue()];
    }
 
    @Override
@@ -174,7 +174,10 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
          RobotStationState newState = this.computeState();
          if (newState != this.renderState) {
             this.renderState = newState;
-            this.scheduleNetworkUpdate();
+            // renderState travels in writeClientUpdateData (the "plugsClient" bundle), which is re-sent by the
+            // holder's block update — scheduleNetworkUpdate() would dispatch the PLUGGABLES payload, and this
+            // class writes nothing into that channel, so it never delivered the new state.
+            this.holder.scheduleRenderUpdate();
          }
       } catch (Exception e) {
          // A broken docking station must not crash the pipe tick; disable it and keep the world alive.
@@ -241,18 +244,4 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
       buffer.writeByte(this.renderState.ordinal());
    }
 
-   static {
-      double min = 0.25;
-      double max = 0.75;
-      double l = 0.0;
-      double h = 0.25;
-      double ll = 0.75;
-      double hh = 1.0;
-      BOXES[Direction.DOWN.ordinal()] = new AABB(min, l, min, max, h, max);
-      BOXES[Direction.UP.ordinal()] = new AABB(min, ll, min, max, hh, max);
-      BOXES[Direction.NORTH.ordinal()] = new AABB(min, min, l, max, max, h);
-      BOXES[Direction.SOUTH.ordinal()] = new AABB(min, min, ll, max, max, hh);
-      BOXES[Direction.WEST.ordinal()] = new AABB(l, min, min, h, max, max);
-      BOXES[Direction.EAST.ordinal()] = new AABB(ll, min, min, hh, max, max);
-   }
 }

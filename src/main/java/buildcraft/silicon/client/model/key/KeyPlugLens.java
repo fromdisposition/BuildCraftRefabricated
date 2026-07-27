@@ -13,6 +13,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
 
 public class KeyPlugLens extends PluggableModelKey {
+   /** The default blue an undyed lens glass is drawn with — single source for the key tint and the baker. */
+   public static final int DEFAULT_GLASS_ARGB = 0xFF3F76E4;
    @Nullable
    public final DyeColor colour;
    public final boolean isFilter;
@@ -34,7 +36,7 @@ public class KeyPlugLens extends PluggableModelKey {
          return 0xFF000000 | this.colour.getTextureDiffuseColor() & 0xFFFFFF;
       }
 
-      return 0xFF3F76E4;
+      return DEFAULT_GLASS_ARGB;
    }
 
    @Override
@@ -57,6 +59,6 @@ public class KeyPlugLens extends PluggableModelKey {
       }
 
       KeyPlugLens other = (KeyPlugLens)obj;
-      return other.isFilter == this.isFilter && other.layer == this.layer && other.colour == this.colour && other.side == this.side;
+      return other.isFilter == this.isFilter && Objects.equals(other.layer, this.layer) && other.colour == this.colour && other.side == this.side;
    }
 }

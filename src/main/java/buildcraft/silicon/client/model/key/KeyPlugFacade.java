@@ -88,6 +88,6 @@ public class KeyPlugFacade extends PluggableModelKey {
       }
 
       KeyPlugFacade other = (KeyPlugFacade)obj;
-      return other.isHollow == this.isHollow && other.layer == this.layer && other.state == this.state && other.side == this.side;
+      return other.isHollow == this.isHollow && Objects.equals(other.layer, this.layer) && other.state == this.state && other.side == this.side;
    }
 }

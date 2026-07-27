@@ -96,9 +96,8 @@ public class FacadeDeduplicator {
          for (Entry<BlockState, FacadeBlockStateInfo> removal : toRemove.entrySet()) {
             BlockState state = removal.getKey();
             FacadeBlockStateInfo surviving = removal.getValue();
-            FacadeBlockStateInfo removed = nextValid.get(state);
+            FacadeBlockStateInfo removed = nextValid.remove(state);
             if (removed != null && !removed.requiredStack.isEmpty()) {
-               removed.isVisible = false;
                ItemStackKey stackKey = new ItemStackKey(removed.requiredStack);
                List<FacadeBlockStateInfo> list = nextStackFacades.get(stackKey);
                if (list != null) {

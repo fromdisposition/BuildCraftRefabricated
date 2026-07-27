@@ -12,9 +12,9 @@ import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.misc.SpriteUtil;
 import buildcraft.silicon.client.model.key.KeyPlugLens;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
@@ -26,7 +26,7 @@ import org.joml.Vector3f;
 public enum PlugBakerLens implements IPluggableStaticBaker<KeyPlugLens> {
    INSTANCE;
 
-   private static final Map<KeyPlugLens, List<BakedQuad>> cached = new HashMap<>();
+   private static final Map<KeyPlugLens, List<BakedQuad>> cached = new ConcurrentHashMap<>();
 
    public static void onModelBake() {
       cached.clear();
@@ -218,8 +218,10 @@ public enum PlugBakerLens implements IPluggableStaticBaker<KeyPlugLens> {
                q.colouri(r, g, b, 255);
             }
          } else {
+            int argb = KeyPlugLens.DEFAULT_GLASS_ARGB;
+
             for (MutableQuad q : rawQuads) {
-               q.colouri(63, 118, 228, 255);
+               q.colouri(argb >> 16 & 0xFF, argb >> 8 & 0xFF, argb & 0xFF, 255);
             }
          }
       }
