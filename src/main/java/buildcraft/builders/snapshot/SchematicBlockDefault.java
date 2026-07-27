@@ -78,10 +78,6 @@ public class SchematicBlockDefault implements ISchematicBlock {
          return false;
       }
 
-      if (!RulesLoader.READ_DOMAINS.contains(registryName.getNamespace())) {
-         return false;
-      }
-
       BlockEntity be = context.world.getBlockEntity(context.pos);
       CompoundTag beNbt = be != null ? be.saveWithoutMetadata(context.world.registryAccess()) : null;
       return RulesLoader.getRules(context.blockState, beNbt).stream().noneMatch(rule -> rule.ignore);
@@ -160,11 +156,20 @@ public class SchematicBlockDefault implements ISchematicBlock {
       }
    }
 
+   /**
+    * Block-entity data is only captured for domains that ship compat rules. Without them BuildCraft cannot know
+    * which parts of the tag hold items, fluids or energy, so {@link #stripContainerContentsFromNbt} would leave
+    * them in and building the blueprint would materialise that content for free. Third-party blocks are still
+    * copied as blocks -- they just rebuild empty, exactly like a freshly placed one.
+    */
    protected void setTileNbt(SchematicBlockContext context, Set<JsonRule> rules) {
       this.tileNbt = null;
-      BlockEntity tileEntity = context.world.getBlockEntity(context.pos);
-      if (tileEntity != null) {
-         this.tileNbt = tileEntity.saveWithoutMetadata(context.world.registryAccess());
+      Identifier registryName = BuiltInRegistries.BLOCK.getKey(context.block);
+      if (registryName != null && RulesLoader.READ_DOMAINS.contains(registryName.getNamespace())) {
+         BlockEntity tileEntity = context.world.getBlockEntity(context.pos);
+         if (tileEntity != null) {
+            this.tileNbt = tileEntity.saveWithoutMetadata(context.world.registryAccess());
+         }
       }
    }
 
