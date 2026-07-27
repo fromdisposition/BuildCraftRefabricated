@@ -29,7 +29,7 @@ public class PluggableLightSensor extends PipePluggable {
 
    @Override
    public AABB getBoundingBox() {
-      return BOXES[this.side.get3DDataValue()];
+      return BOXES[this.side.ordinal()];
    }
 
    @Override

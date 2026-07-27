@@ -323,10 +323,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
          baked.add(quad.toBakedItem());
       }
 
-      // The opaque plug nub belongs to the cutout pass only (and the "item" bake). Appending it after the
-      // per-layer facade filter used to put it in BOTH pass keys, so it drew twice and z-fought through
-      // transparent (stained glass / ice) facades on the translucent pass.
-      if (!key.isHollow && !"translucent".equals(key.layer)) {
+      if (!key.isHollow) {
          baked.addAll(createPlugQuads(key.side));
       }
 

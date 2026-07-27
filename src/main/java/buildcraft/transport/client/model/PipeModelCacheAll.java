@@ -24,6 +24,5 @@ public final class PipeModelCacheAll {
       PipeBaseModelGenStandard.clearSpriteCaches();
       PipeWireRenderer.clearCaches();
       PipeBehaviourRendererStripes.clearCaches();
-      PipePluggableQuadCache.clearCaches();
    }
 }
