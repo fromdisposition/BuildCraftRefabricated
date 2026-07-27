@@ -501,7 +501,9 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       poseStack.pushPose();
       poseStack.translate(entry.x, entry.y, entry.z);
       Pose pipePose = poseStack.last();
-      ModelPipe.renderDirect(entry.pipeKey, pipePose, this.bufferSource.getBuffer(BCLibRenderTypes.cutoutBlockSheet()), 15728880);
+      VertexConsumer cutout = this.bufferSource.getBuffer(BCLibRenderTypes.cutoutBlockSheet());
+      ModelPipe.renderDirect(entry.pipeKey, pipePose, cutout, 15728880);
+      renderPluggables(entry.plugs, pipePose, cutout);
       ModelPipe.renderMaskOverlay(
          entry.pipeKey, pipePose, this.bufferSource.getBuffer(BCLibRenderTypes.translucentBlockSheet()), 15728880, 76
       );
