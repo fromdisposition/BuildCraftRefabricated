@@ -156,12 +156,6 @@ public class SchematicBlockDefault implements ISchematicBlock {
       }
    }
 
-   /**
-    * Block-entity data is only captured for domains that ship compat rules. Without them BuildCraft cannot know
-    * which parts of the tag hold items, fluids or energy, so {@link #stripContainerContentsFromNbt} would leave
-    * them in and building the blueprint would materialise that content for free. Third-party blocks are still
-    * copied as blocks -- they just rebuild empty, exactly like a freshly placed one.
-    */
    protected void setTileNbt(SchematicBlockContext context, Set<JsonRule> rules) {
       this.tileNbt = null;
       Identifier registryName = BuiltInRegistries.BLOCK.getKey(context.block);

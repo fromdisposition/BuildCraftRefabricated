@@ -18,6 +18,10 @@ public final class FabricModResources {
       return FabricLoader.getInstance().getAllMods().stream().map(container -> container.getMetadata().getId()).toList();
    }
 
+   public static List<String> getProvidedIds(String modId) {
+      return FabricLoader.getInstance().getModContainer(modId).map(container -> List.copyOf(container.getMetadata().getProvides())).orElse(List.of());
+   }
+
    public static @Nullable Path getModRootPath(String modId) {
       return FabricLoader.getInstance().getModContainer(modId).map(FabricModResources::rootPathOf).orElse(null);
    }

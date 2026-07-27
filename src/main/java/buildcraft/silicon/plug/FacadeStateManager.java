@@ -62,8 +62,6 @@ public enum FacadeStateManager implements IFacadeRegistry {
    public static volatile Map<ItemStackKey, List<FacadeBlockStateInfo>> stackRedirects = Map.of();
    public static FacadeBlockStateInfo defaultState;
    public static FacadeBlockStateInfo previewState;
-   /** What a facade becomes when its block is gone: a plain stone panel, identical to a normally crafted one
-    * so the two stack together. */
    public static FacadeBlockStateInfo unresolvedState;
    private static final Set<String> WARNED_UNRESOLVED = ConcurrentHashMap.newKeySet();
    private static volatile boolean initialized = false;

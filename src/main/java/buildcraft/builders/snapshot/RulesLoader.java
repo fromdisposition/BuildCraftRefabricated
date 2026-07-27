@@ -71,9 +71,7 @@ public class RulesLoader {
 
       loadDomain("buildcraftbuilders");
       READ_DOMAINS.add("minecraft");
-      net.fabricmc.loader.api.FabricLoader.getInstance()
-         .getModContainer("buildcraftrefabricated")
-         .ifPresent(container -> READ_DOMAINS.addAll(container.getMetadata().getProvides()));
+      READ_DOMAINS.addAll(FabricModResources.getProvidedIds("buildcraftrefabricated"));
    }
 
    private static void loadDomain(String domain) {

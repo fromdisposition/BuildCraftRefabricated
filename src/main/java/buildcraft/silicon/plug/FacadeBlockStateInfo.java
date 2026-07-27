@@ -22,9 +22,6 @@ public class FacadeBlockStateInfo implements IFacadeState {
    public final ItemStack requiredStack;
    public final ImmutableSet<Property<?>> varyingProperties;
    public final boolean isTransparent;
-   /** Whether this state is offered in the creative tab / recipes. Cleared by the visual deduplicator for
-    * states that look identical to another one — the entry itself must stay in the registry so facades saved
-    * with it still resolve. */
    public boolean isVisible;
    public final boolean[] isSideSolid = new boolean[6];
 
