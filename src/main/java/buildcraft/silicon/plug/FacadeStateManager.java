@@ -62,7 +62,8 @@ public enum FacadeStateManager implements IFacadeRegistry {
    public static volatile Map<ItemStackKey, List<FacadeBlockStateInfo>> stackRedirects = Map.of();
    public static FacadeBlockStateInfo defaultState;
    public static FacadeBlockStateInfo previewState;
-   /** Stand-in for a facade whose block is gone: a plain opaque panel, so it stays visible and breakable. */
+   /** What a facade becomes when its block is gone: a plain stone panel, identical to a normally crafted one
+    * so the two stack together. */
    public static FacadeBlockStateInfo unresolvedState;
    private static final Set<String> WARNED_UNRESOLVED = ConcurrentHashMap.newKeySet();
    private static volatile boolean initialized = false;
@@ -75,7 +76,7 @@ public enum FacadeStateManager implements IFacadeRegistry {
 
    public static void warnUnresolvedState(String blockName) {
       if (WARNED_UNRESOLVED.add(blockName)) {
-         BCLog.logger.warn("[silicon.facade] Facade block {} no longer exists; showing a stone panel and keeping the saved state untouched.", blockName);
+         BCLog.logger.warn("[silicon.facade] Facade block {} no longer exists; those facades are permanently converted to stone.", blockName);
       }
    }
 

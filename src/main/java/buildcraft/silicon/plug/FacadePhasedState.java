@@ -26,28 +26,15 @@ public class FacadePhasedState implements IFacadePhasedState {
    public final FacadeBlockStateInfo stateInfo;
    @Nullable
    public final DyeColor activeColour;
-   /**
-    * The block-state tag this facade was loaded from, kept verbatim when its block could not be resolved (the
-    * mod that owns it is gone). It is written back unchanged, so removing and re-adding that mod restores the
-    * facade instead of the save silently degrading to whatever placeholder was rendered meanwhile.
-    */
-   @Nullable
-   private final CompoundTag unresolvedState;
 
    public FacadePhasedState(FacadeBlockStateInfo stateInfo, @Nullable DyeColor activeColour) {
-      this(stateInfo, activeColour, null);
-   }
-
-   private FacadePhasedState(FacadeBlockStateInfo stateInfo, @Nullable DyeColor activeColour, @Nullable CompoundTag unresolvedState) {
       this.stateInfo = stateInfo;
       this.activeColour = activeColour;
-      this.unresolvedState = unresolvedState;
    }
 
    public static FacadePhasedState readFromNbt(CompoundTag nbt) {
       FacadeStateManager.ensureInitialized();
       FacadeBlockStateInfo stateInfo = FacadeStateManager.defaultState;
-      CompoundTag unresolved = null;
       if (nbt.contains("state")) {
          CompoundTag stateTag = BcNbt.getCompound(nbt, "state");
 
@@ -56,7 +43,6 @@ public class FacadePhasedState implements IFacadePhasedState {
             String storedName = BcNbt.getString(stateTag, "Name", "minecraft:air");
             if (blockState.isAir() && !"minecraft:air".equals(storedName)) {
                FacadeStateManager.warnUnresolvedState(storedName);
-               unresolved = stateTag.copy();
                stateInfo = FacadeStateManager.unresolvedState;
             } else {
                stateInfo = FacadeStateManager.validFacadeStates.get(blockState);
@@ -70,19 +56,11 @@ public class FacadePhasedState implements IFacadePhasedState {
       }
 
       DyeColor colour = NBTUtilBC.readEnum(nbt.get("activeColour"), DyeColor.class);
-      return new FacadePhasedState(stateInfo, colour, unresolved);
+      return new FacadePhasedState(stateInfo, colour);
    }
 
    public CompoundTag writeToNbt() {
       CompoundTag nbt = new CompoundTag();
-      if (this.unresolvedState != null) {
-         nbt.put("state", this.unresolvedState.copy());
-         if (this.activeColour != null) {
-            nbt.put("activeColour", NBTUtilBC.writeEnum(this.activeColour));
-         }
-
-         return nbt;
-      }
 
       try {
          nbt.put("state", NbtUtils.writeBlockState(this.stateInfo.state));
@@ -134,7 +112,7 @@ public class FacadePhasedState implements IFacadePhasedState {
    }
 
    public FacadePhasedState withColour(DyeColor colour) {
-      return new FacadePhasedState(this.stateInfo, colour, this.unresolvedState);
+      return new FacadePhasedState(this.stateInfo, colour);
    }
 
    public boolean isSideSolid(Direction side) {
