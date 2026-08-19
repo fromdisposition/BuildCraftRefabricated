@@ -123,13 +123,16 @@ public final class StationActions {
 
    
    public static boolean canExtractItem(DockingStation station, ItemStack stack) {
-      boolean hasFilter = false;
       if (station == null) {
-         return true;
+         return false;
       }
+
+      boolean hasAction = false;
+      boolean hasFilter = false;
 
       for (StatementSlot slot : station.getActiveActions()) {
          if (hasTag(slot, PROVIDE_ITEMS)) {
+            hasAction = true;
             StatementParameterStackFilter param = new StatementParameterStackFilter(slot.parameters);
             if (param.hasFilter()) {
                hasFilter = true;
@@ -140,7 +143,7 @@ public final class StationActions {
          }
       }
 
-      return !hasFilter;
+      return hasAction && !hasFilter;
    }
 
    
@@ -149,10 +152,8 @@ public final class StationActions {
          return false;
       }
 
-      boolean hasAction = false;
       for (StatementSlot slot : station.getActiveActions()) {
          if (hasTag(slot, actionTag)) {
-            hasAction = true;
             StatementParameterStackFilter param = new StatementParameterStackFilter(slot.parameters);
             if (!param.hasFilter() || param.matches(filter)) {
                return true;
@@ -160,11 +161,6 @@ public final class StationActions {
          }
       }
 
-      // No Provide/Accept-items action of this kind present -> default to allowed: a station with an adjacent
-      // inventory hands items to (and takes items from) robots out of the box, so a bare Leaf Cutter can equip
-      // shears and unload its drops without first wiring a gate. The gate action is only needed to RESTRICT what
-      // may move (its filter), matching canExtractItem's permissive-by-default behaviour. Without this the robot
-      // could never load a tool or unload, and just slept.
-      return !hasAction;
+      return false;
    }
 }
