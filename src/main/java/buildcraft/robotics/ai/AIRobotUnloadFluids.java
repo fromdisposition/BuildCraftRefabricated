@@ -10,6 +10,7 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.robotics.statement.StationActions;
 
 public class AIRobotUnloadFluids extends AIRobot {
    private int waitedCycles;
@@ -37,7 +38,7 @@ public class AIRobotUnloadFluids extends AIRobot {
          return 0;
       }
 
-      return AIRobotLoadFluids.move(robot.getFluidStorage(), station.getFluidOutput(), null, doUnload);
+      return AIRobotLoadFluids.move(robot.getFluidStorage(), station.getFluidOutput(), null, doUnload, station, StationActions.ACCEPT_FLUIDS);
    }
 
    @Override

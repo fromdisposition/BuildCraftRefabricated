@@ -21,12 +21,15 @@ import buildcraft.robotics.path.PassThroughFluidFilter;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluid;
 
 public final class StationActions {
    public static final String WORK_FILTER = "buildcraft:robot.work_filter";
    public static final String FILTER_TOOL = "buildcraft:robot.work_filter_tool";
    public static final String PROVIDE_ITEMS = "buildcraft:station.provide_items";
    public static final String ACCEPT_ITEMS = "buildcraft:station.accept_items";
+   public static final String PROVIDE_FLUIDS = "buildcraft:station.provide_fluids";
+   public static final String ACCEPT_FLUIDS = "buildcraft:station.accept_fluids";
 
    private StationActions() {
    }
@@ -147,6 +150,38 @@ public final class StationActions {
    }
 
    
+   public static boolean canInteractWithFluid(DockingStation station, Fluid fluid, String actionTag) {
+      if (station == null) {
+         return false;
+      }
+
+      for (StatementSlot slot : station.getActiveActions()) {
+         if (hasTag(slot, actionTag)) {
+            ArrayFluidFilter filter = new ArrayFluidFilter(slotFilterStacks(slot));
+            if (!filter.hasFilter() || filter.matches(fluid)) {
+               return true;
+            }
+         }
+      }
+
+      return false;
+   }
+
+   private static ItemStack[] slotFilterStacks(StatementSlot slot) {
+      List<ItemStack> stacks = new ArrayList<>();
+
+      for (IStatementParameter param : slot.parameters) {
+         if (param instanceof StatementParameterItemStack stackParam) {
+            ItemStack stack = stackParam.getItemStack();
+            if (!stack.isEmpty()) {
+               stacks.add(stack);
+            }
+         }
+      }
+
+      return stacks.toArray(new ItemStack[0]);
+   }
+
    public static boolean canInteractWithItem(DockingStation station, IStackFilter filter, String actionTag) {
       if (station == null) {
          return false;

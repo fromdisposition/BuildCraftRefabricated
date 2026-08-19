@@ -12,6 +12,7 @@ import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
 import buildcraft.robotics.path.IFluidFilter;
+import buildcraft.robotics.statement.StationActions;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
@@ -56,16 +57,25 @@ public class AIRobotLoadFluids extends AIRobot {
          return 0;
       }
 
-      return move(station.getFluidInput(), robot.getFluidStorage(), filter, doLoad);
+      return move(station.getFluidInput(), robot.getFluidStorage(), filter, doLoad, station, StationActions.PROVIDE_FLUIDS);
    }
 
-   static int move(Storage<FluidVariant> from, Storage<FluidVariant> to, IFluidFilter filter, boolean doMove) {
+   static int move(
+      Storage<FluidVariant> from, Storage<FluidVariant> to, IFluidFilter filter, boolean doMove, DockingStation station, String actionTag
+   ) {
       if (from == null || to == null) {
          return 0;
       }
 
       try (Transaction transaction = Transaction.openOuter()) {
-         int moved = FluidStorageOps.moveMb(from, to, BUCKET_VOLUME, variant -> filter == null || filter.matches(variant.getFluid()), transaction);
+         int moved = FluidStorageOps.moveMb(
+            from,
+            to,
+            BUCKET_VOLUME,
+            variant -> (filter == null || filter.matches(variant.getFluid()))
+               && StationActions.canInteractWithFluid(station, variant.getFluid(), actionTag),
+            transaction
+         );
          if (moved > 0 && doMove) {
             transaction.commit();
          }
