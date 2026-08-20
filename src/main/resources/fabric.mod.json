@@ -37,12 +37,7 @@
       "buildcraft.fabric.BuildCraftFabricClient"
     ],
     "rei_client": ["buildcraft.fabric.integration.rei.BCReiPlugin"],
-    "jei_mod_plugin": [
-      "buildcraft.core.integration.jei.BCCoreJeiPlugin",
-      "buildcraft.energy.integration.jei.BCEnergyJeiPlugin",
-      "buildcraft.factory.integration.jei.BCFactoryJeiPlugin",
-      "buildcraft.silicon.integration.jei.BCSiliconJeiPlugin"
-    ],
+    "jei_mod_plugin": ["buildcraft.core.integration.jei.BCCoreJeiPlugin", "buildcraft.energy.integration.jei.BCEnergyJeiPlugin", "buildcraft.factory.integration.jei.BCFactoryJeiPlugin", "buildcraft.silicon.integration.jei.BCSiliconJeiPlugin"],
     "fabric-datagen": [
       "buildcraft.energy.worldgen.datagen.BuildCraftWorldgenDataGenerator"
     ]

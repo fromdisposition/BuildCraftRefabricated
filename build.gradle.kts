@@ -16,33 +16,29 @@ plugins {
 // ---------------------------------------------------------------------------
 
 val jeiVer = sc.properties.rawOrNull("deps", "jei")?.toString()
+val reiVer = sc.properties.rawOrNull("deps", "rei")?.toString()
 sc.constants {
     put("has_jei", jeiVer != null)
+    put("has_rei", reiVer != null)
 }
 
 val mcVersion = sc.current.version
 val javaRelease = if (sc.current.parsed >= "26.1") 25 else 21
 val javaVer = if (javaRelease >= 25) JavaVersion.VERSION_25 else JavaVersion.VERSION_21
 
-// Asset generators (fluid bucket baking + fabric-datagen) mutate the shared src/main resources and
-// src/main/generated. They run on ONE node only — 26.2 (the newest full-format node) — and the
-// committed output is then consumed as static resources by every other node. See the
-// "Asset generation" section at the bottom of this file.
+// Generators mutate shared src/main; they run on ONE node and the output is committed for all the others.
 val isGeneratorNode = project.name == "26.2"
 
-// Version format: <yy>.<M>.<d>+mc<mcVersion>, date without leading zeros (e.g. 26.6.18+mc1.21.11).
 val buildDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yy.M.d"))
 version = "$buildDate+mc$mcVersion"
 
 base {
-    // Jar name becomes <archivesName>-<version>.jar = BCRefabricated-26.6.18+mc1.21.11.jar
     archivesName.set("BCRefabricated")
 }
 
 repositories {
     maven("https://maven.blamejared.com")
-    // teamreborn's maven times out on foreign groups — scope every repo so one flaky mirror can never
-    // abort resolution for the others.
+    // teamreborn's maven times out on foreign groups — scope every repo so one flaky mirror cannot abort the rest.
     maven("https://maven.teamreborn.org") {
         content { includeGroup("teamreborn") }
     }
@@ -67,22 +63,18 @@ loom {
         }
     }
     runs.configureEach {
-        // --sun-misc-unsafe-memory-access exists only on Java 23+; the 26.x lines run on Java 25 and
-        // need it (LWJGL/MC use sun.misc.Unsafe). 1.21.x runs on Java 21, where the flag is both
-        // unrecognized (JVM won't start) and unnecessary (Unsafe access is not yet restricted).
+        // Java 23+ only: 26.x needs it (LWJGL/MC use sun.misc.Unsafe), Java 21 refuses to start with it.
         if (sc.current.parsed >= "26.1") {
             vmArg("--sun-misc-unsafe-memory-access=allow")
         }
     }
 }
 
-// Data generation is a generator task: configure it (and its runDatagen run) only on 26.2.
 if (isGeneratorNode) {
     fabricApi {
         configureDataGeneration {
             client = true
-            // Write straight to the committed, shared src/main/generated at the repo root. Without this the output
-            // lands in the 26.2 node's own versions/26.2/src/main/generated and never reaches the consumed copy.
+            // Must be the ROOT src/main/generated — otherwise output lands in the node's own dir and is never consumed.
             outputDirectory = rootProject.layout.projectDirectory.file("src/main/generated")
         }
     }
@@ -95,13 +87,11 @@ if (isGeneratorNode) {
 sourceSets {
     main {
         resources {
-            // Datagen output (committed) — consumed as static resources on every node.
             srcDir("src/main/generated")
         }
     }
 }
 
-// Version-specific shim sources live in versions/<mc>/src/main/java
 val versionJavaSrc = projectDir.resolve("src/main/java")
 if (versionJavaSrc.exists()) {
     afterEvaluate {
@@ -111,19 +101,9 @@ if (versionJavaSrc.exists()) {
     }
 }
 
-// Per-MC-version API converters / replacement classes live in src/main/versions/<mc>/java
-// (shared root layout). Only the active version's directory is compiled into that build.
-//
-// OVERRIDE SEMANTICS: a class at versions/<active>/java/<pkg>/Foo.java REPLACES the same-named class in the
-// shared src/main/java for that node only. The shared copy is excluded from compileJava (so no duplicate
-// class), and the modern shared source stays untouched. This lets a wholly version-specific render/impl
-// live as a full separate file per version instead of polluting the shared code with conditionals. Removing
-// a version = deleting its versions/<mc>/java dir (the shared copy then compiles everywhere again).
-// RANGE OVERRIDE DIRS (dedup sibling nodes): besides the exact versions/<mc>/java, a directory named
-// versions/_ge_<X>[_lt_<Y>]/java applies to every node whose version satisfies ALL its ge_/lt_ constraints
-// (component-wise numeric compare: 1.21.1 < 1.21.10 < 1.21.11 < 26.1 < 26.2). e.g. versions/_lt_26.1/java
-// holds ONE copy shared by all 1.21.x nodes (no more 3× identical files). Priority: exact > range; the shared
-// src/main copy is excluded when any override root provides the path.
+// OVERRIDE ROOTS: src/main/versions/<mc>/java/<pkg>/Foo.java REPLACES the shared src/main/java class of the
+// same path on that node (the shared copy is dropped from compileJava). versions/_ge_<X>[_lt_<Y>]/java does
+// the same for every node matching the range, so sibling nodes share one copy. Priority: exact > range.
 fun bcVerCompare(a: String, b: String): Int {
     val pa = a.split('.'); val pb = b.split('.')
     for (i in 0 until maxOf(pa.size, pb.size)) {
@@ -132,21 +112,13 @@ fun bcVerCompare(a: String, b: String): Int {
     }
     return 0
 }
-// SIMULTANEOUS-BUILD SAFETY: where an override file's SOURCE is read from depends on whether this node is
-// the active one, because Stonecutter compiles them differently:
-//   * the ACTIVE node compiles the raw src/main tree, which Stonecutter has chiseled IN PLACE for it, AND
-//     it does NOT populate its own build/generated/stonecutter tree — so its overrides must come from RAW.
-//   * a NON-ACTIVE node compiles from its own build/generated/stonecutter tree (chiseled per node), while
-//     the raw tree still holds the active node's form — so its overrides must come from GENERATED.
-// This split is what lets `gradlew clean build` fan out to all subprojects at once (every non-active node
-// reads its correctly-chiseled generated overrides) while a plain per-node build of the active node still
-// works (it reads raw). The WINNER set (which relative paths are overridden, by which dir) is always taken
-// from the raw tree since it exists at configuration time, before any Stonecutter generate task has run.
+// SIMULTANEOUS-BUILD SAFETY: the ACTIVE node compiles the raw src/main tree (chiseled in place, with no
+// generated tree of its own); every other node compiles its own build/generated/stonecutter tree while the
+// raw tree still holds the active node's form. Reading overrides from the wrong one breaks a fan-out build.
 val curVer = sc.current.version
 val activeVer = Regex("stonecutter active \"([^\"]+)\"")
     .find(rootProject.file("stonecutter.gradle.kts").readText())?.groupValues?.get(1)
 val rawVersionsRoot = rootProject.projectDir.resolve("src/main/versions")
-// Active node => raw (chiseled in place); non-active => its generated tree.
 val srcVersionsRoot = if (curVer == activeVer) rawVersionsRoot
     else projectDir.resolve("build/generated/stonecutter/main/versions")
 val overrideDirNames = buildList {
@@ -164,15 +136,13 @@ val overrideDirNames = buildList {
         .forEach { add(it.name) }
 }
 if (overrideDirNames.isNotEmpty()) {
-    // winning dir per relative path (first in priority order: exact, then ranges) — from the raw tree
+    // Winner per relative path, resolved from the raw tree: exact dir first, then ranges.
     val pathOwner = LinkedHashMap<String, String>()
     overrideDirNames.forEach { dn ->
         val rawRoot = rawVersionsRoot.resolve("$dn/java")
         rawRoot.walkTopDown().filter { it.isFile && it.extension == "java" }
             .forEach { pathOwner.putIfAbsent(it.relativeTo(rawRoot).invariantSeparatorsPath, dn) }
     }
-    // source roots (raw for the active node, generated otherwise), keyed by dir name; prefix identifies
-    // which override root a file under compilation belongs to.
     val srcRoots = overrideDirNames.associateWith { srcVersionsRoot.resolve("$it/java") }
     val prefixes = srcRoots.mapValues { it.value.path.replace('\\', '/') + "/" }
     afterEvaluate {
@@ -191,8 +161,6 @@ if (overrideDirNames.isNotEmpty()) {
     }
 }
 
-// Loader-specific hooks live in buildcraft.lib.fabric.* and buildcraft.fabric.*
-
 // ---------------------------------------------------------------------------
 // Dependencies
 // ---------------------------------------------------------------------------
@@ -201,14 +169,14 @@ dependencies {
     minecraft("com.mojang:minecraft:$mcVersion")
     loomx.applyMojangMappings()
     implementation("net.fabricmc:fabric-loader:${sc.properties.raw("deps", "loader")}")
-    // Loom auto-attaches sponge-mixin/mixinextras for the 26.x targets but not on the 1.21.x
-    // loom-back-compat path; add them explicitly (loader provides them at runtime).
+    // Loom attaches these on 26.x but not on the 1.21.x loom-back-compat path; loader provides them at runtime.
     if (sc.current.parsed < "26.1") {
         compileOnly("net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7")
         compileOnly("io.github.llamalad7:mixinextras-fabric:0.5.4")
     }
-    // 1.21.x Fabric API uses intermediary class names internally; modImplementation triggers Loom remapping.
-    // 26.x Fabric API already uses Mojang official names, so plain implementation works there.
+    // MAPPING RULE for every third-party jar below: 1.21.x artifacts are intermediary-mapped and need the
+    // mod* configurations so Loom remaps them (their API otherwise leaks class_1799/class_2960 names); 26.x
+    // artifacts already ship Mojang official names, so the plain configurations work.
     val fabricApi = "net.fabricmc.fabric-api:fabric-api:${sc.properties.raw("deps", "fabric_api")}"
     if (sc.current.parsed < "26.1") modImplementation(fabricApi) else implementation(fabricApi)
 
@@ -217,9 +185,6 @@ dependencies {
     implementation("com.google.code.findbugs:jsr305:3.0.2")
 
     if (jeiVer != null) {
-        // JEI for 1.21.x (27.x) is an intermediary-mapped mod jar — modCompileOnly remaps it to Mojang
-        // names, otherwise its API leaks intermediary names (class_1799, class_2960, ...). 26.x JEI (29.x)
-        // already ships Mojang official names, so plain compileOnly works there.
         if (sc.current.parsed < "26.1") {
             modCompileOnly("mezz.jei:jei-$mcVersion-fabric-api:$jeiVer")
         } else {
@@ -227,26 +192,17 @@ dependencies {
         }
     }
 
-    // energy 4.x (1.21.x) is an intermediary-mapped mod jar — it must be remapped (modCompileOnly)
-    // or its API leaks intermediary names (e.g. class_2350). 26.x energy 5.0.0 already uses Mojang names.
     if (sc.current.parsed < "26.1") {
         modCompileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
     } else {
         compileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
     }
 
-    // REI ships for every node (per-node versions in stonecutter.properties.toml); its own libs
-    // (architectury, cloth-config) come transitively from the REI pom — compile-only either way,
-    // nothing of this reaches the jar or the player. Like JEI/energy, 1.21.x jars are
-    // intermediary-mapped (modCompileOnly remaps), 26.x jars use Mojang names.
-    run {
-        val reiVer = sc.properties.raw("deps", "rei")
+    if (reiVer != null) {
         if (sc.current.parsed < "26.1") {
-            // The 1.21.x REI jar bundles its libs; loom pulls the rest transitively for remapping.
             modCompileOnly("me.shedaniel:RoughlyEnoughItems-fabric:$reiVer")
         } else {
-            // The 26.x REI pom marks its libs (architectury, cloth) runtime-scope, which plain compileOnly
-            // ignores. Requesting the module's RUNTIME variant pulls them transitively - one line, no pins.
+            // REI's 26.x pom marks architectury/cloth runtime-scope; the RUNTIME variant is what pulls them in.
             compileOnly("me.shedaniel:RoughlyEnoughItems-fabric:$reiVer") {
                 attributes {
                     attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
@@ -258,10 +214,9 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.12.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.2")
 
-    // fabric-loader is plain `implementation`, so the transformer stack never reaches the runClient/runServer
-    // classpath on its own ("ASM not detected", MixinBootstrap CNFE). runtimeOnly only affects dev run tasks --
-    // nothing of this reaches the jar. sponge-mixin 0.17.3 matches fabric-loader 0.19.3 (0.15.x lacks
-    // IAdviceProvider and crashes at boot).
+    // Dev runs only, never the jar: without these the transformer stack is missing from the runClient/
+    // runServer classpath ("ASM not detected", MixinBootstrap CNFE). sponge-mixin must match fabric-loader
+    // 0.19.3 — 0.15.x lacks IAdviceProvider and crashes at boot.
     runtimeOnly("org.ow2.asm:asm:9.7.1")
     runtimeOnly("org.ow2.asm:asm-analysis:9.7.1")
     runtimeOnly("org.ow2.asm:asm-commons:9.7.1")
@@ -277,7 +232,6 @@ dependencies {
 // Compilation & resources
 // ---------------------------------------------------------------------------
 
-// Full Fabric compile target — gameplay modules in progress; guide/script still reference excluded APIs.
 val notYetOnFabric = listOf<String>()
 
 tasks.register("stripUtf8Bom") {
@@ -302,27 +256,22 @@ tasks.withType<JavaCompile>().configureEach {
     if (jeiVer == null) {
         exclude("**/integration/jei/**")
     }
+    if (reiVer == null) {
+        exclude("**/integration/rei/**")
+    }
 }
 
 // ===========================================================================
 // 1.21.1 DATA BACKPORT (build-time converter)
 //
-// The committed data/assets are authored in the modern (1.21.2+/26.x) JSON format. 1.21.1's parsers
-// need the legacy shapes. Rather than maintain a duplicate resource tree, this task rewrites the affected
-// JSON into a generated dir that OVERRIDES the modern copies on the 1.21.1 node only (every other node
-// already speaks the modern format). The shared src/main stays the single source of truth.
-//
-// Phase 1 — recipes: ingredient values are bare id/tag strings in the modern format ("minecraft:slime_ball",
-// "#c:ingots/iron"); 1.21.1 requires ingredient OBJECTS ({"item":...} / {"tag":...}). Also custom_model_data
-// is a plain int on 1.21.1, not the {"floats":[...]}/{"strings":[...]} component of 1.21.4+.
-// (The recipe folder is "recipe"/"advancement" singular on 1.21.1 already — no path rename needed.)
+// Data/assets are authored once in the modern (1.21.2+/26.x) JSON format; this rewrites the affected files
+// into a generated dir that overrides them on the 1.21.1 node only, so shared src/main stays the one source.
+// ===========================================================================
 val bc1211DataDir = layout.buildDirectory.dir("generated/bc1211-data")
 if (sc.current.parsed < "1.21.2") {
-    // legacy ingredient: string -> {item|tag}; array -> array of those; object -> unchanged, EXCEPT a Fabric
-    // custom ingredient (carries "fabric:type", e.g. "fabric:custom_data" used by gate recipes to match a
-    // plug_gate with specific NBT) which 1.21.1's recipe parser does not understand -> reduce it to its plain
-    // base item/tag. This loses the NBT/component match (a 1.21.1 gate recipe accepts any base plug_gate), but
-    // makes the recipe parse and craft instead of erroring out.
+    // string -> {item|tag}, array -> array of those, object -> unchanged. A Fabric custom ingredient
+    // ("fabric:type") is reduced to its base item/tag: 1.21.1 cannot parse it, so a gate recipe there accepts
+    // any base plug_gate rather than failing to load.
     fun convIngredient(v: Any?): Any? = when (v) {
         is String -> if (v.startsWith("#")) mapOf("tag" to v.substring(1)) else mapOf("item" to v)
         is List<*> -> v.map { convIngredient(it) }
@@ -364,13 +313,9 @@ if (sc.current.parsed < "1.21.2") {
         }
     }
 
-    // Item models: the 1.21.4+ client-item-definition system (assets/<ns>/items/<id>.json) does not exist on
-    // 1.21.1, which resolves an item's model directly from assets/<ns>/models/item/<id>.json. Translate each
-    // definition into that legacy model: a plain "model" def whose target isn't the self path (buckets ->
-    // item/fluid_buckets/..., block-as-item models) becomes {"parent": <target>}; a custom_model_data
-    // range_dispatch becomes legacy integer "overrides" on the base model (merged onto the existing base
-    // model file when present, e.g. paintbrush). Definitions that already point at their own models/item/<id>
-    // need nothing (1.21.1 finds them as-is) and are skipped. Unsupported dispatch properties are skipped.
+    // 1.21.1 has no client-item-definition system (assets/<ns>/items/<id>.json); it resolves models straight
+    // from assets/<ns>/models/item/<id>.json. A plain "model" def becomes {"parent": <target>}; a
+    // custom_model_data range_dispatch becomes legacy integer "overrides" merged onto the base model.
     @Suppress("UNCHECKED_CAST")
     fun build1211ItemModel(def: Map<String, Any?>, existing: File): MutableMap<String, Any?>? {
         val model = def["model"] as? Map<String, Any?> ?: return null
@@ -435,11 +380,8 @@ if (sc.current.parsed < "1.21.2") {
         }
     }
 
-    // Drop the modern copies the converter replaces so its 1.21.1 output wins (processResources duplicate
-    // resolution otherwise keeps the modern model — that left paintbrush etc. with no integer overrides).
-    // Recipes: the whole recipe/ dir. Item models: the base model of every custom_model_data range_dispatch
-    // item (paintbrush/list/map_location/redstone_board/gate_copier) — the converter always regenerates these
-    // with legacy integer overrides, so excluding the modern base is safe.
+    // Drop the modern copies the converter replaces, or processResources keeps them and the converted models
+    // lose their integer overrides (this is what once left paintbrush without any).
     val rangeDispatchModelExcludes = buildList {
         val assetsRoot = rootProject.file("src/main/resources/assets")
         (assetsRoot.listFiles() ?: emptyArray()).forEach { nsDir ->
@@ -459,19 +401,14 @@ if (sc.current.parsed < "1.21.2") {
 }
 
 tasks.processResources {
-    // On 1.21.1, replace the modern recipe JSON with the legacy-format conversion (see convertDataFor1211)
-    // and add the back-ported item models (some override an existing base model, e.g. paintbrush, so the
-    // converted dir — added last — must win duplicates).
+    // Added last so the converted 1.21.1 dir wins duplicates against the modern copies.
     if (sc.current.parsed < "1.21.2") {
         dependsOn("convertDataFor1211")
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         from(bc1211DataDir)
     }
-    // Generated assets (baked fluid textures/buckets + datagen output) are COMMITTED to src/main/resources
-    // and src/main/generated and consumed here as plain static resources on every node. The generators are
-    // deliberately NOT wired into the build graph: a clean build only packages the committed output and
-    // never mutates shared source. Refresh the committed assets explicitly via `:26.2:generateAssets`.
-
+    // Generators are deliberately NOT in the build graph: a clean build only packages the committed output and
+    // never mutates shared source. Refresh it explicitly with `:26.2:generateAssets`.
     val mixinCompatLevel = if (javaRelease >= 25) "JAVA_25" else "JAVA_21"
     val props = mapOf(
         "mod_version" to version,
@@ -482,9 +419,21 @@ tasks.processResources {
         "java_version" to javaRelease.toString(),
         "mixin_compat_level" to mixinCompatLevel,
     )
+    // Drop entrypoints whose integration was excluded from compilation. Each must stay on ONE line in
+    // fabric.mod.json — the filter blanks whole lines, so a reformatted array would leave invalid JSON.
+    val dropEntrypoints = buildList {
+        if (jeiVer == null) add("jei_mod_plugin")
+        if (reiVer == null) add("rei_client")
+    }
+    inputs.property("dropEntrypoints", dropEntrypoints.toString())
     inputs.properties(props)
     filesMatching("fabric.mod.json") {
         expand(props)
+        if (dropEntrypoints.isNotEmpty()) {
+            filter { line: String ->
+                if (dropEntrypoints.any { line.contains("\"$it\":") }) "" else line
+            }
+        }
     }
     filesMatching("buildcraft.mixins.json") {
         expand(props)
@@ -500,8 +449,7 @@ java {
     withSourcesJar()
     sourceCompatibility = javaVer
     targetCompatibility = javaVer
-    // Pin the JDK per MC line so 26.x (release 25) compiles even when Gradle itself runs on JDK 21;
-    // the Foojay resolver (settings.gradle.kts) auto-downloads a missing JDK.
+    // Lets 26.x (release 25) compile even when Gradle runs on JDK 21; Foojay auto-downloads a missing JDK.
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(javaRelease))
     }
@@ -513,32 +461,24 @@ tasks.withType<Jar>().configureEach {
 
 tasks.named<Test>("test") {
     useJUnitPlatform()
-    // Only valid/needed on Java 23+ (26.x → Java 25); 1.21.x runs on Java 21 where it is unrecognized.
     if (sc.current.parsed >= "26.1") {
         jvmArgs("--sun-misc-unsafe-memory-access=allow")
     }
 }
 
-/** Always rebuild from scratch so stale build/resources (e.g. regenerated fluid PNGs) never linger in the JAR.
- * Typed as Delete: the untyped block bound delete() to Project.delete(), which executed at CONFIGURE time of
- * EVERY gradle invocation and silently wiped run/ (dev-server worlds, eula, properties) even for unrelated tasks. */
+/** MUST stay typed as Delete: an untyped block binds delete() to Project.delete(), which runs at CONFIGURE
+ * time of every gradle invocation and silently wipes run/ (dev-server worlds, eula, properties). */
 tasks.named<Delete>("clean") {
     delete(layout.projectDirectory.dir("run"))
     delete(layout.projectDirectory.dir("run_server"))
 }
 
 // ===========================================================================
-// Asset generation (26.2 only)
-//
-// These tasks regenerate committed assets from source templates: fluid bucket/block textures and
-// fabric-datagen output. They mutate the shared src/main tree, so they are wired up on the 26.2 node
-// only — the newest full-format node. Run `:26.2:generateAssets` to refresh
-// everything at once; the output is committed and consumed as static resources by all other nodes.
+// Asset generation (generator node only) — mutates the shared src/main tree; output is committed.
 // ===========================================================================
 
 if (isGeneratorNode) {
 
-    /** Vanilla water_flow uses the UV regions FluidRenderer expects; BC heat templates were authored for legacy SpriteFluidFrozen offsets. */
     fun findMinecraftClientJar(projectDir: java.io.File, mcVersion: String): java.io.File {
         val tree = projectDir.walkTopDown().maxDepth(6).filter {
             it.isFile && it.name.startsWith("minecraft-merged-") && it.name.endsWith(".jar")
@@ -694,8 +634,6 @@ if (isGeneratorNode) {
                 return out
             }
 
-            // mcVersion is the build-script val (sc.current.version); on the 26.2 node it is "26.2",
-            // which is the merged-jar folder name findMinecraftClientJar matches on.
             val mcJar = findMinecraftClientJar(rootProject.file(".gradle/loom-cache/minecraftMaven/net/minecraft"), mcVersion)
             val heatFlowTemplate = vanillaWaterToHeatFlow(loadVanillaWaterFlow(mcJar))
             for (heat in 0..2) {
@@ -828,17 +766,12 @@ if (isGeneratorNode) {
         }
     }
 
-    // The generator writes into src/main/resources, which Stonecutter's prepare/generate tasks and
-    // processResources read as inputs. When both are scheduled (a fan-out `gradlew build`, or the
-    // generateAssets aggregate whose runDatagen pulls in processResources) Gradle rejects the undeclared
-    // producer→consumer relationship. Order those readers AFTER the generator so they always see fresh
-    // assets (mustRunAfter only applies when the generator is also scheduled — so compile-only graphs are
-    // unaffected).
+    // The generator writes into src/main/resources, which these tasks read; without an explicit order Gradle
+    // rejects the undeclared producer→consumer relationship whenever both end up in the same graph.
     listOf("stonecutterPrepare", "stonecutterGenerate", "processResources").forEach { tn ->
         tasks.matching { it.name == tn }.configureEach { mustRunAfter("generateFluidBucketAssets") }
     }
 
-    /** One-shot aggregate: run every generator (fluid baking + fabric-datagen) on 26.2. */
     tasks.register("generateAssets") {
         group = "buildcraft"
         description = "Run all asset generators (fluid bucket baking + data generation). 26.2 only."
@@ -846,11 +779,6 @@ if (isGeneratorNode) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// API browsing helper
-// ---------------------------------------------------------------------------
-
-/** Unpack Mojang / Fabric API / Loom artifacts into .gradle/api-explore for local API browsing. */
 tasks.register("unpackApiExplore") {
     group = "buildcraft"
     description = "Unpack Minecraft sources, Fabric API, and Fabric Loom into .gradle/api-explore/"
