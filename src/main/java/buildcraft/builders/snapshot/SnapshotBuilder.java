@@ -611,6 +611,23 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       }
    }
 
+   /** Whether the current snapshot actually covers this world position, i.e. whether posToIndex is in range. */
+   private boolean isWithinSnapshot(BlockPos worldPos) {
+      Snapshot.BuildingInfo info = this.getBuildingInfo();
+      if (info == null) {
+         return false;
+      }
+
+      BlockPos local = info.fromWorld(worldPos);
+      BlockPos size = info.getSnapshot().size;
+      return local.getX() >= 0
+         && local.getY() >= 0
+         && local.getZ() >= 0
+         && local.getX() < size.getX()
+         && local.getY() < size.getY()
+         && local.getZ() < size.getZ();
+   }
+
    protected int posToIndex(BlockPos blockPos) {
       return this.getBuildingInfo().getSnapshot().posToIndex(this.getBuildingInfo().fromWorld(blockPos));
    }
@@ -698,11 +715,22 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             System.arraycopy(loadedCheckResults, 0, this.checkResults, 0, this.checkResults.length);
          }
 
+         // Saved tasks can belong to a DIFFERENT snapshot than the one now loaded -- a construction marker
+         // re-blueprinted while the robot that queued them was away, or hand-edited NBT. Their positions would
+         // index checkResults out of range on the next tick, which is a hard ticking-block-entity crash, so keep
+         // only what this snapshot can address (same stance as the checkResults length guard above).
          this.breakTasks.clear();
-         NBTUtilBC.readCompoundList(nbt.get("breakTasks")).map(x$0 -> new BreakTask(x$0)).forEach(this.breakTasks::add);
+         NBTUtilBC.readCompoundList(nbt.get("breakTasks"))
+            .map(x$0 -> new BreakTask(x$0))
+            .filter(task -> this.isWithinSnapshot(task.pos))
+            .forEach(this.breakTasks::add);
          this.placeTasks.clear();
-         NBTUtilBC.readCompoundList(nbt.get("placeTasks")).map(x$0 -> new PlaceTask(x$0)).forEach(this.placeTasks::add);
-         this.currentCheckIndex = BcNbt.getInt(nbt, "currentCheckIndex", 0);
+         NBTUtilBC.readCompoundList(nbt.get("placeTasks"))
+            .map(x$0 -> new PlaceTask(x$0))
+            .filter(task -> this.isWithinSnapshot(task.pos))
+            .forEach(this.placeTasks::add);
+         int loadedCheckIndex = BcNbt.getInt(nbt, "currentCheckIndex", 0);
+         this.currentCheckIndex = loadedCheckIndex >= 0 && loadedCheckIndex < this.checkOrder.length ? loadedCheckIndex : 0;
       }
    }
 
