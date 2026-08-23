@@ -6,6 +6,7 @@
 
 package buildcraft.builders.tile;
 
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.builders.BCBuildersBlockEntities;
 import buildcraft.builders.item.ItemSnapshot;
 import buildcraft.builders.snapshot.Blueprint;
@@ -34,6 +35,17 @@ public class TileConstructionMarker extends BcBlockEntity {
 
    public TileConstructionMarker(BlockPos pos, BlockState state) {
       super(BCBuildersBlockEntities.CONSTRUCTION_MARKER, pos, state);
+   }
+
+   //? if >= 1.21.10 {
+   @Override
+   //?}
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         BlockDropsUtil.dropStack(this.level, pos, this.blueprintStack);
+      }
+
+      super.preRemoveSideEffects(pos, state);
    }
 
    public ItemStack getBlueprintStack() {

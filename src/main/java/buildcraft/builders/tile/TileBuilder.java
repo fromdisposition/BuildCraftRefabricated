@@ -42,6 +42,7 @@ import buildcraft.lib.misc.PositionUtil;
 import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.BcBlockEntity;
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -390,6 +391,18 @@ public class TileBuilder
       }
    }
 
+   //? if >= 1.21.10 {
+   @Override
+   //?}
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         BlockDropsUtil.dropStack(this.level, pos, this.invSnapshot);
+         BlockDropsUtil.dropItems(this.level, pos, this.resourceInventory);
+         BlockDropsUtil.dropFluidShards(this.level, pos, this.tanks);
+      }
+
+      super.preRemoveSideEffects(pos, state);
+   }
    public ItemStack getSnapshot() {
       return this.invSnapshot;
    }

@@ -167,7 +167,15 @@ public class TileElectronicLibrary extends BcBlockEntity implements MenuProvider
    }
 
    public void onUploadReceived(Snapshot snapshot) {
+      if (!this.uploadRequestInFlight) {
+         return;
+      }
+
       this.uploadRequestInFlight = false;
+      if (this.selected == null || this.invUpIn.getStackInSlot(0).isEmpty() || !this.invUpOut.getStackInSlot(0).isEmpty()) {
+         return;
+      }
+
       GlobalSavedDataSnapshots.get(this.level).addSnapshot(snapshot);
       Snapshot.Header header = snapshot.key.header;
       if (header == null) {

@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.integration.jei;
 
+import buildcraft.silicon.recipe.AssemblyRecipeView;
+
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.lib.misc.LocaleUtil;
@@ -23,7 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipeJei> {
+public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipeView> {
    private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/bcr/assembly_table.png");
    // Crop keeps a 4px panel margin on every side; ending it on the slot wells' white bevel row leaves a stray
    // white line along the bottom of the recipe card.
@@ -47,7 +49,7 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
    }
 
    @Override
-   public void draw(AssemblyRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
+   public void draw(AssemblyRecipeView recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
       String mj = LocaleUtil.localizeMj(recipe.microJoules());
       if (!mj.isEmpty()) {
@@ -56,7 +58,7 @@ public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipe
    }
 
    @Override
-   public void setRecipe(IRecipeLayoutBuilder builder, AssemblyRecipeJei recipe, IFocusGroup focuses) {
+   public void setRecipe(IRecipeLayoutBuilder builder, AssemblyRecipeView recipe, IFocusGroup focuses) {
       List<List<ItemStack>> inputs = recipe.inputSlots();
       int inputCount = Math.min(inputs.size(), 12);
       IRecipeSlotBuilder[] inputSlotBuilders = new IRecipeSlotBuilder[inputCount];

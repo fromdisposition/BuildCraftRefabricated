@@ -6,6 +6,7 @@
 
 package buildcraft.lib.tile;
 
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.nbt.BcAuth;
 import buildcraft.lib.nbt.BcValueIn;
 import buildcraft.lib.nbt.BcValueOut;
@@ -149,6 +150,19 @@ public abstract class BcBlockEntity extends BlockEntity {
 
    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
       this.itemManager.addDrops(toDrop);
+   }
+
+   //? if >= 1.21.10 {
+   @Override
+   //?}
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         BlockDropsUtil.dropTileContents(this.level, pos, this);
+      }
+
+      //? if >= 1.21.10 {
+      super.preRemoveSideEffects(pos, state);
+      //?}
    }
 
    protected void notifyPipeNeighborConnections() {

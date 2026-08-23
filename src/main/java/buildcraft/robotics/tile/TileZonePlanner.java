@@ -11,6 +11,7 @@ import buildcraft.core.BCCoreItems;
 import buildcraft.core.item.ItemMapLocation;
 import buildcraft.core.item.ItemPaintbrush_BC8;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.robotics.BCRoboticsBlockEntities;
@@ -210,6 +211,27 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
 
       map.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
       map.set(DataComponents.CUSTOM_MODEL_DATA, buildcraft.lib.compat.BcModelData.index(4.0F));
+   }
+
+   //? if >= 1.21.10 {
+   @Override
+   //?}
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         BlockDropsUtil.dropItems(
+            this.level,
+            pos,
+            this.invPaintbrushes,
+            this.invInputPaintbrush,
+            this.invInputMapLocation,
+            this.invInputResult,
+            this.invOutputPaintbrush,
+            this.invOutputMapLocation,
+            this.invOutputResult
+         );
+      }
+
+      super.preRemoveSideEffects(pos, state);
    }
 
    @Override

@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.integration.jei;
 
+import buildcraft.silicon.recipe.ProgrammingRecipeView;
+
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.lib.misc.LocaleUtil;
@@ -23,7 +25,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
-public class ProgrammingTableCategory extends AbstractRecipeCategory<ProgrammingRecipeJei> {
+public class ProgrammingTableCategory extends AbstractRecipeCategory<ProgrammingRecipeView> {
    private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/bcr/programming_table.png");
    // Crop keeps a 4px panel margin on every side: the panel's own dark border (row/col 0) and white bevel (1..2)
    // must stay outside it, or they show up as a stray white line at the top of the recipe card.
@@ -46,7 +48,7 @@ public class ProgrammingTableCategory extends AbstractRecipeCategory<Programming
    }
 
    @Override
-   public void draw(ProgrammingRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
+   public void draw(ProgrammingRecipeView recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
       String mj = LocaleUtil.localizeMj(recipe.microJoules());
       if (!mj.isEmpty()) {
@@ -55,7 +57,7 @@ public class ProgrammingTableCategory extends AbstractRecipeCategory<Programming
    }
 
    @Override
-   public void setRecipe(IRecipeLayoutBuilder builder, ProgrammingRecipeJei recipe, IFocusGroup focuses) {
+   public void setRecipe(IRecipeLayoutBuilder builder, ProgrammingRecipeView recipe, IFocusGroup focuses) {
       IRecipeSlotBuilder inputBuilder = builder.addInputSlot(INPUT_X, INPUT_Y).addItemStacks(List.of(recipe.input()));
       int col = recipe.optionIndex() % TileProgrammingTable.WIDTH;
       int row = recipe.optionIndex() / TileProgrammingTable.WIDTH;

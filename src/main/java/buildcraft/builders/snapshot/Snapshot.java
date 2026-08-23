@@ -203,7 +203,7 @@ public abstract class Snapshot {
          this.key = new Snapshot.Key(buf);
          this.owner = buf.readUUID();
          this.created = new Date(buf.readLong());
-         this.name = buf.readUtf();
+         this.name = buf.readUtf(1024);
       }
 
       public CompoundTag serializeNBT() {

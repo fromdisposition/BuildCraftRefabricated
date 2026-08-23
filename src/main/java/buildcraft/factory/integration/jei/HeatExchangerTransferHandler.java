@@ -6,12 +6,14 @@
 
 package buildcraft.factory.integration.jei;
 
+import buildcraft.factory.recipe.HeatExchangerRecipePair;
+
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.container.ContainerHeatExchange;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.integration.jei.BucketJeiTransfer;
-import buildcraft.lib.integration.jei.JeiTransferUtil;
+import buildcraft.lib.recipe.BucketRecipeTransfer;
+import buildcraft.lib.recipe.RecipeTransferUtil;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -58,15 +60,15 @@ public class HeatExchangerTransferHandler implements IRecipeTransferHandler<Cont
       if (slot0Bucket != Items.AIR && slot1Bucket != Items.AIR) {
          Inventory inv = player.getInventory();
          if (slot0Bucket == slot1Bucket) {
-            if (JeiTransferUtil.countMatching(inv, new ItemStack(slot0Bucket)) < 2) {
+            if (RecipeTransferUtil.countMatching(inv, new ItemStack(slot0Bucket)) < 2) {
                return this.missing();
             }
-         } else if (JeiTransferUtil.countMatching(inv, new ItemStack(slot0Bucket)) < 1 || JeiTransferUtil.countMatching(inv, new ItemStack(slot1Bucket)) < 1) {
+         } else if (RecipeTransferUtil.countMatching(inv, new ItemStack(slot0Bucket)) < 1 || RecipeTransferUtil.countMatching(inv, new ItemStack(slot1Bucket)) < 1) {
             return this.missing();
          }
 
          if (doTransfer) {
-            BucketJeiTransfer.sendPair(container, 0, slot0Bucket, 1, slot1Bucket);
+            BucketRecipeTransfer.sendPair(container, 0, slot0Bucket, 1, slot1Bucket);
          }
 
          return null;

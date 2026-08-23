@@ -6,6 +6,8 @@
 
 package buildcraft.silicon.integration.jei;
 
+import buildcraft.silicon.recipe.IntegrationRecipeView;
+
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.lib.misc.LocaleUtil;
@@ -23,7 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-public class IntegrationTableCategory extends AbstractRecipeCategory<IntegrationRecipeJei> {
+public class IntegrationTableCategory extends AbstractRecipeCategory<IntegrationRecipeView> {
    private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/bcr/integration_table.png");
    private static final int BG_U = 4, BG_V = 14, BG_W = 152, BG_H = 74;
    private static final int CENTER_X = 30, CENTER_Y = 31, OUTPUT_X = 129, OUTPUT_Y = 31;
@@ -45,7 +47,7 @@ public class IntegrationTableCategory extends AbstractRecipeCategory<Integration
    }
 
    @Override
-   public void draw(IntegrationRecipeJei recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
+   public void draw(IntegrationRecipeView recipe, IRecipeSlotsView slots, GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
       this.background.draw(graphics);
       String mj = LocaleUtil.localizeMj(recipe.microJoules());
       if (!mj.isEmpty()) {
@@ -54,7 +56,7 @@ public class IntegrationTableCategory extends AbstractRecipeCategory<Integration
    }
 
    @Override
-   public void setRecipe(IRecipeLayoutBuilder builder, IntegrationRecipeJei recipe, IFocusGroup focuses) {
+   public void setRecipe(IRecipeLayoutBuilder builder, IntegrationRecipeView recipe, IFocusGroup focuses) {
       IRecipeSlotBuilder centerBuilder = builder.addInputSlot(CENTER_X, CENTER_Y).addItemStacks(List.of(recipe.center()));
       IRecipeSlotBuilder outputBuilder = builder.addInputSlot(OUTPUT_X, OUTPUT_Y).addItemStacks(List.of(recipe.output()));
       List<ItemStack> ring = recipe.ring();

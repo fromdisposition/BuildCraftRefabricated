@@ -6,13 +6,17 @@
 
 package buildcraft.lib.integration.jei;
 
+import buildcraft.lib.fluid.FluidContainerAliases;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.fabric.transfer.fluid.FluidVariants;
 import java.util.Optional;
 import mezz.jei.api.fabric.constants.FabricTypes;
 import mezz.jei.api.fabric.ingredients.fluids.JeiFluidIngredient;
 import mezz.jei.api.gui.builder.IClickableIngredientFactory;
+import mezz.jei.api.gui.builder.IIngredientAcceptor;
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.runtime.IClickableIngredient;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.minecraft.client.renderer.Rect2i;
@@ -47,6 +51,19 @@ public final class JeiFluids {
             .buildWithArea(new Rect2i(x, y, width, height));
       } else {
          return Optional.empty();
+      }
+   }
+
+   public static void addContainerAliases(IRecipeLayoutBuilder builder, FluidStack stack, RecipeIngredientRole role) {
+      if (stack != null && !stack.isEmpty()) {
+         IIngredientAcceptor<?> slot = builder.addInvisibleIngredients(role);
+         FluidContainerAliases.collectAliases(stack, alias -> {
+            //? if >= 1.21.10 {
+            slot.add(alias);
+            //?} else {
+            /*slot.addItemStack(alias);
+            *///?}
+         });
       }
    }
 }

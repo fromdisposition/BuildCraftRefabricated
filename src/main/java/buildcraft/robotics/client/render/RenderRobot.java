@@ -7,6 +7,7 @@
 package buildcraft.robotics.client.render;
 
 import buildcraft.lib.client.model.ModelUtil;
+import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.client.model.ModelUtil.UvFaceData;
 import buildcraft.robotics.entity.EntityRobot;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -43,6 +44,23 @@ public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
    private static final Vector3f CENTER = new Vector3f(0.0F, 0.0F, 0.0F);
    private static final Vector3f EXTENT = new Vector3f(RADIUS, RADIUS, RADIUS);
 
+   // Baked once: the cube geometry never changes (only colour/light vary per submission, and every pass sets
+   // both before rendering). Avoids allocating 6-18 MutableQuad + UvFaceData per robot per frame. Safe to share:
+   // submitted geometry runs sequentially on the render thread, and MutableQuad.render() transforms into scratch
+   // + the buffer rather than mutating the quad's stored geometry.
+   private static final MutableQuad[] FACES = buildFaces();
+
+   private static MutableQuad[] buildFaces() {
+      Direction[] dirs = Direction.values();
+      MutableQuad[] faces = new MutableQuad[dirs.length];
+
+      for (int i = 0; i < dirs.length; i++) {
+         faces[i] = ModelUtil.createFace(dirs[i], CENTER, EXTENT, uvFor(dirs[i]));
+      }
+
+      return faces;
+   }
+
    private final ItemModelResolver itemModelResolver;
 
    public RenderRobot(EntityRendererProvider.Context context) {
@@ -77,8 +95,8 @@ public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
 
       RenderType body = BCLibRenderTypes.entityCutout(tex(state.texture));
       collector.submitCustomGeometry(poseStack, body, (pose, buffer) -> {
-         for (Direction face : Direction.values()) {
-            ModelUtil.createFace(face, CENTER, EXTENT, uvFor(face)).lighti(light).render(pose, buffer);
+         for (MutableQuad face : FACES) {
+            face.colourf(1.0F, 1.0F, 1.0F, 1.0F).lighti(light).render(pose, buffer);
          }
       });
 
@@ -86,15 +104,15 @@ public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
          float alpha = Math.max(0.1F, Math.min(1.0F, state.energy));
          RenderType sideOverlay = BCLibRenderTypes.entityTranslucentEmissive(OVERLAY_SIDE);
          collector.submitCustomGeometry(poseStack, sideOverlay, (pose, buffer) -> {
-            for (Direction face : Direction.values()) {
-               ModelUtil.createFace(face, CENTER, EXTENT, uvFor(face)).colourf(1.0F, 1.0F, 1.0F, alpha).lighti(light).render(pose, buffer);
+            for (MutableQuad face : FACES) {
+               face.colourf(1.0F, 1.0F, 1.0F, alpha).lighti(light).render(pose, buffer);
             }
          });
 
          RenderType bottomOverlay = BCLibRenderTypes.entityTranslucentEmissive(OVERLAY_BOTTOM);
          collector.submitCustomGeometry(poseStack, bottomOverlay, (pose, buffer) -> {
-            for (Direction face : Direction.values()) {
-               ModelUtil.createFace(face, CENTER, EXTENT, uvFor(face)).colourf(1.0F, 1.0F, 1.0F, 1.0F).lighti(light).render(pose, buffer);
+            for (MutableQuad face : FACES) {
+               face.colourf(1.0F, 1.0F, 1.0F, 1.0F).lighti(light).render(pose, buffer);
             }
          });
       }

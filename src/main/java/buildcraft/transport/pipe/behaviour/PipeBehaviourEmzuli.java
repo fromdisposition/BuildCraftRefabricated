@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import net.minecraft.core.Direction;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -243,16 +242,6 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
       }
 
       return true;
-   }
-
-   @Override
-   public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
-      for (int i = 0; i < this.invFilters.getSlots(); i++) {
-         ItemStack stack = this.invFilters.getStackInSlot(i);
-         if (!stack.isEmpty()) {
-            toDrop.add(stack);
-         }
-      }
    }
 
    public void addActions(PipeEventStatement.AddActionInternal event) {

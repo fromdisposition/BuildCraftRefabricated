@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.integration.jei;
+package buildcraft.lib.fluid;
 
 import buildcraft.core.BCCoreItems;
 import buildcraft.core.item.ItemFragileFluidContainer;
@@ -12,9 +12,6 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import mezz.jei.api.gui.builder.IIngredientAcceptor;
-import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
-import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -29,18 +26,6 @@ public final class FluidContainerAliases {
       providers.add(provider);
    }
 
-   public static void addAliases(IRecipeLayoutBuilder builder, FluidStack stack, RecipeIngredientRole role) {
-      if (stack != null && !stack.isEmpty()) {
-         IIngredientAcceptor<?> slot = builder.addInvisibleIngredients(role);
-         collectAliases(stack, alias -> {
-            //? if >= 1.21.10 {
-            slot.add(alias);
-            //?} else {
-            /*slot.addItemStack(alias);
-            *///?}
-         });
-      }
-   }
 
    /** Viewer-agnostic collection of the container items (bucket, fragile shard) for a fluid; used by JEI and REI. */
    public static void collectAliases(FluidStack stack, Consumer<ItemStack> sink) {

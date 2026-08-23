@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.silicon.integration.jei;
+package buildcraft.silicon.recipe;
 
 import buildcraft.api.recipes.IntegrationRecipe;
 import buildcraft.lib.recipe.IntegrationRecipeRegistry;
@@ -35,8 +35,8 @@ public final class IntegrationRecipeCollector {
    private IntegrationRecipeCollector() {
    }
 
-   public static List<IntegrationRecipeJei> collect() {
-      List<IntegrationRecipeJei> out = new ArrayList<>();
+   public static List<IntegrationRecipeView> collect() {
+      List<IntegrationRecipeView> out = new ArrayList<>();
 
       for (IntegrationRecipe recipe : IntegrationRecipeRegistry.INSTANCE.getAllRecipes()) {
          String recipeId = recipeId(recipe);
@@ -49,11 +49,11 @@ public final class IntegrationRecipeCollector {
          }
       }
 
-      out.sort(Comparator.comparing(IntegrationRecipeJei::id));
+      out.sort(Comparator.comparing(IntegrationRecipeView::id));
       return out;
    }
 
-   private static void collectGateToggle(IntegrationRecipe recipe, String recipeId, List<IntegrationRecipeJei> out) {
+   private static void collectGateToggle(IntegrationRecipe recipe, String recipeId, List<IntegrationRecipeView> out) {
       ItemStack chipset = new ItemStack(BCSiliconItems.CHIPSET_REDSTONE);
 
       for (EnumGateMaterial material : EnumGateMaterial.VALUES) {
@@ -70,7 +70,7 @@ public final class IntegrationRecipeCollector {
       }
    }
 
-   private static void collectFacadePhased(IntegrationRecipe recipe, String recipeId, List<IntegrationRecipeJei> out) {
+   private static void collectFacadePhased(IntegrationRecipe recipe, String recipeId, List<IntegrationRecipeView> out) {
       ItemStack center = BCSiliconItems.PLUG_FACADE.createItemStack(FacadeInstance.createSingle(FacadeStateManager.defaultState, false));
       List<FacadeBlockStateInfo> addCandidates = new ArrayList<>();
 
@@ -95,7 +95,7 @@ public final class IntegrationRecipeCollector {
       }
    }
 
-   private static void collectRobotIntegration(IntegrationRecipe recipe, String recipeId, List<IntegrationRecipeJei> out) {
+   private static void collectRobotIntegration(IntegrationRecipe recipe, String recipeId, List<IntegrationRecipeView> out) {
       ItemStack center = new ItemStack(BCRoboticsItems.ROBOT);
 
       for (BCBoardNBT board : BCBoardNBT.REGISTRY.values()) {
@@ -105,11 +105,11 @@ public final class IntegrationRecipeCollector {
    }
 
    private static void addIfValid(
-      IntegrationRecipe recipe, String id, ItemStack center, List<ItemStack> ring, List<IntegrationRecipeJei> out
+      IntegrationRecipe recipe, String id, ItemStack center, List<ItemStack> ring, List<IntegrationRecipeView> out
    ) {
       ItemStack output = recipe.getOutput(center.copy(), toIntegrate(ring));
       if (!output.isEmpty()) {
-         out.add(new IntegrationRecipeJei(id, center.copy(), copyRing(ring), output, recipe.getRequiredMicroJoules(output)));
+         out.add(new IntegrationRecipeView(id, center.copy(), copyRing(ring), output, recipe.getRequiredMicroJoules(output)));
       }
    }
 

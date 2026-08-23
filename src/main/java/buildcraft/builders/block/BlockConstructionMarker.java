@@ -97,14 +97,13 @@ public class BlockConstructionMarker extends HorizontalDirectionalBlock implemen
       }
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileConstructionMarker marker) {
-         ItemStack blueprint = marker.getBlueprintStack();
-         if (!blueprint.isEmpty()) {
-            Block.popResource(level, pos, blueprint);
-         }
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileConstructionMarker tile) {
+         tile.preRemoveSideEffects(pos, state);
       }
-
-      return super.playerWillDestroy(level, pos, state, player);
+      super.onRemove(state, level, pos, newState, movedByPiston);
    }
+   *///?}
 }

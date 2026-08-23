@@ -6,18 +6,28 @@
 
 package buildcraft.lib.client.model;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 
 public final class BakedQuadTemplateCache<K> {
    private static final ThreadLocal<MutableQuad> RENDER_SCRATCH = ThreadLocal.withInitial(MutableQuad::new);
-   private final Map<K, List<MutableQuad>> templates = new ConcurrentHashMap<>();
+   // Same expiry as the ModelCache underneath: a plain map here never evicted, so it pinned MutableQuad lists
+   // for keys whose baked quads had already expired below -- keys include facade block state x side x colour x
+   // connections, so a world with many distinct facades grew this without bound.
+   private final LoadingCache<K, List<MutableQuad>> templates = CacheBuilder.newBuilder()
+      //? if >= 26.2 {
+      .expireAfterAccess(java.time.Duration.ofMinutes(1))
+      //?} else {
+      /*.expireAfterAccess(1L, java.util.concurrent.TimeUnit.MINUTES)
+      *///?}
+      .build(CacheLoader.from(this::buildTemplates));
    private final Function<K, List<BakedQuad>> baker;
    private final boolean applyDiffuse;
 
@@ -35,7 +45,7 @@ public final class BakedQuadTemplateCache<K> {
    }
 
    public void clear() {
-      this.templates.clear();
+      this.templates.invalidateAll();
    }
 
    private List<MutableQuad> buildTemplates(K key) {
@@ -65,7 +75,7 @@ public final class BakedQuadTemplateCache<K> {
    public void renderTintResolved(K key, Pose pose, VertexConsumer buffer, int light, java.util.function.IntUnaryOperator tintToRgb) {
       MutableQuad scratch = RENDER_SCRATCH.get();
 
-      for (MutableQuad template : this.templates.computeIfAbsent(key, this::buildTemplates)) {
+      for (MutableQuad template : this.templates.getUnchecked(key)) {
          scratch.copyFrom(template);
          int tint = template.getTint();
          if (tint >= 0) {
@@ -91,7 +101,7 @@ public final class BakedQuadTemplateCache<K> {
    public void render(K key, Pose pose, VertexConsumer buffer, int light) {
       MutableQuad scratch = RENDER_SCRATCH.get();
 
-      for (MutableQuad template : this.templates.computeIfAbsent(key, this::buildTemplates)) {
+      for (MutableQuad template : this.templates.getUnchecked(key)) {
          scratch.copyFrom(template);
          scratch.lighti(light);
          scratch.render(pose, buffer);
@@ -107,7 +117,7 @@ public final class BakedQuadTemplateCache<K> {
       int b = argb & 0xFF;
       MutableQuad scratch = RENDER_SCRATCH.get();
 
-      for (MutableQuad template : this.templates.computeIfAbsent(key, this::buildTemplates)) {
+      for (MutableQuad template : this.templates.getUnchecked(key)) {
          scratch.copyFrom(template);
          scratch.colouri(r, g, b, a);
          scratch.lighti(light);

@@ -10,6 +10,7 @@ import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.lib.inventory.AbstractInvItemTransactor;
+import buildcraft.lib.fabric.transfer.FabricDeferredCommit;
 import buildcraft.lib.misc.INBTSerializable;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.StackUtil;
@@ -59,6 +60,9 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
          BcItemInventory.this.markDirtyIfNeeded();
       }
    };
+   private final FabricDeferredCommit<BcItemInventory.StackChange> deferredChanges = new FabricDeferredCommit<>(
+      change -> this.onChanged(change.slot(), change.before(), change.after())
+   );
    private StackInsertionChecker checker;
    private StackInsertionFunction inserter;
    @Nullable
@@ -176,6 +180,14 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
       }
    }
 
+   private void notifyChanged(@Nullable TransactionContext tx, int slot, ItemStack before, ItemStack after) {
+      if (tx == null) {
+         this.onChanged(slot, before, after);
+      } else {
+         this.deferredChanges.enqueue(tx, new BcItemInventory.StackChange(slot, before, after.copy()));
+      }
+   }
+
    protected int insertToSlot(int index, @Nonnull ItemStack toInsert, @Nullable TransactionContext tx) {
       if (!this.badSlotIndex(index) && !toInsert.isEmpty()) {
          int amount = toInsert.getCount();
@@ -201,7 +213,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
 
                ItemStack before = current.copy();
                this.setStackInternal(index, result.toSet);
-               this.onChanged(index, before, result.toSet);
+               this.notifyChanged(tx, index, before, result.toSet);
             }
 
             return inserted;
@@ -231,7 +243,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
                }
 
                this.setStackInternal(index, after);
-               this.onChanged(index, before, after);
+               this.notifyChanged(tx, index, before, after);
             }
 
             return toExtract;
@@ -436,6 +448,9 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
    @Override
    public String toString() {
       return this.getClass().getSimpleName() + " " + this.stacks;
+   }
+
+   private record StackChange(int slot, ItemStack before, ItemStack after) {
    }
 
    private final class FilteredView implements Storage<ItemVariant> {

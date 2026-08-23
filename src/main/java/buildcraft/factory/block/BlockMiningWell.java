@@ -49,6 +49,16 @@ public class BlockMiningWell extends BaseEntityBlock {
       return (BlockState)this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileMiningWell tile) {
+         tile.preRemoveSideEffects(pos, state);
+      }
+      super.onRemove(state, level, pos, newState, movedByPiston);
+   }
+   *///?}
+
    @Nullable
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileMiningWell(pos, state);

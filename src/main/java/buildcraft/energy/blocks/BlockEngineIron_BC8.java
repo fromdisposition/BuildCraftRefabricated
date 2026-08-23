@@ -96,18 +96,15 @@ public class BlockEngineIron_BC8 extends BlockEngineBase_BC8 {
       return this.openGui(state, level, pos, player);
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileEngineIron_BC8 engine) {
-         NonNullList<ItemStack> drops = NonNullList.create();
-         FluidItemDrops.addFluidDrops(drops, engine.tankFuel.getFluidStack(), engine.tankCoolant.getFluidStack(), engine.tankResidue.getFluidStack());
-
-         for (ItemStack drop : drops) {
-            Block.popResource(level, pos, drop);
-         }
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileEngineIron_BC8 tile) {
+         tile.preRemoveSideEffects(pos, state);
       }
-
-      return super.playerWillDestroy(level, pos, state, player);
+      super.onRemove(state, level, pos, newState, movedByPiston);
    }
+   *///?}
 
    private InteractionResult openGui(BlockState state, Level level, BlockPos pos, Player player) {
       return EngineBlockGui.open(level, pos, player, TileEngineIron_BC8.class);

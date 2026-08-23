@@ -6,8 +6,10 @@
 
 package buildcraft.silicon.integration.jei;
 
+import buildcraft.silicon.recipe.AssemblyRecipeView;
+
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
-import buildcraft.lib.integration.jei.JeiTransferUtil;
+import buildcraft.lib.recipe.RecipeTransferUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.silicon.BCSiliconMenuTypes;
 import buildcraft.silicon.container.ContainerAssemblyTable;
@@ -25,7 +27,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 
-public class AssemblyTableTransferHandler implements IRecipeTransferHandler<ContainerAssemblyTable, AssemblyRecipeJei> {
+public class AssemblyTableTransferHandler implements IRecipeTransferHandler<ContainerAssemblyTable, AssemblyRecipeView> {
    private final IRecipeTransferHandlerHelper helper;
 
    public AssemblyTableTransferHandler(IRecipeTransferHandlerHelper helper) {
@@ -43,14 +45,14 @@ public class AssemblyTableTransferHandler implements IRecipeTransferHandler<Cont
    }
 
    @Override
-   public mezz.jei.api.recipe.types.IRecipeType<AssemblyRecipeJei> getRecipeType() {
+   public mezz.jei.api.recipe.types.IRecipeType<AssemblyRecipeView> getRecipeType() {
       return BCJeiRecipeTypes.ASSEMBLY;
    }
 
    @Nullable
    @Override
    public IRecipeTransferError transferRecipe(
-      ContainerAssemblyTable container, AssemblyRecipeJei recipe, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer
+      ContainerAssemblyTable container, AssemblyRecipeView recipe, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer
    ) {
       Inventory inv = player.getInventory();
       List<ItemStack> need = new ArrayList<>();
@@ -60,7 +62,7 @@ public class AssemblyTableTransferHandler implements IRecipeTransferHandler<Cont
             ItemStack pick = null;
 
             for (ItemStack alt : alternatives) {
-               if (!alt.isEmpty() && JeiTransferUtil.countMatching(inv, alt) >= alt.getCount()) {
+               if (!alt.isEmpty() && RecipeTransferUtil.countMatching(inv, alt) >= alt.getCount()) {
                   pick = alt;
                   break;
                }
@@ -79,7 +81,7 @@ public class AssemblyTableTransferHandler implements IRecipeTransferHandler<Cont
       }
 
       for (ItemStack n : need) {
-         if (JeiTransferUtil.countMatching(inv, n) < n.getCount()) {
+         if (RecipeTransferUtil.countMatching(inv, n) < n.getCount()) {
             return this.helper.createUserErrorWithTooltip(Component.translatable("gui.jei.transfer.buildcraft.missing"));
          }
       }

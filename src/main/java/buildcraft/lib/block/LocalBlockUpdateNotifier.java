@@ -6,17 +6,22 @@
 
 package buildcraft.lib.block;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class LocalBlockUpdateNotifier {
-   private static final Map<Level, LocalBlockUpdateNotifier> instanceMap = new WeakHashMap<>();
-   private final Set<ILocalBlockUpdateSubscriber> subscriberSet = new HashSet<>();
+   // Weak keys so an unloaded level is collected, synchronized because the integrated server and the client
+   // thread both resolve notifiers; a plain WeakHashMap corrupts (or spins) under concurrent writes.
+   private static final Map<Level, LocalBlockUpdateNotifier> instanceMap = Collections.synchronizedMap(new WeakHashMap<>());
+   // Copy-on-write: setLevelUpdated runs arbitrary tile logic that may place or break blocks, re-entering
+   // dispatch on this very list, or register/remove a subscriber. Iterating a plain Set there throws
+   // ConcurrentModificationException. Writes are rare (tile load/unload), iteration is per block change.
+   private final CopyOnWriteArrayList<ILocalBlockUpdateSubscriber> subscribers = new CopyOnWriteArrayList<>();
 
    private LocalBlockUpdateNotifier(Level world) {
    }
@@ -26,15 +31,15 @@ public class LocalBlockUpdateNotifier {
    }
 
    public void registerSubscriberForUpdateNotifications(ILocalBlockUpdateSubscriber subscriber) {
-      this.subscriberSet.add(subscriber);
+      this.subscribers.addIfAbsent(subscriber);
    }
 
    public void removeSubscriberFromUpdateNotifications(ILocalBlockUpdateSubscriber subscriber) {
-      this.subscriberSet.remove(subscriber);
+      this.subscribers.remove(subscriber);
    }
 
    public void notifySubscribersInRange(Level world, BlockPos eventPos, BlockState oldState, BlockState newState, int flags) {
-      for (ILocalBlockUpdateSubscriber subscriber : this.subscriberSet) {
+      for (ILocalBlockUpdateSubscriber subscriber : this.subscribers) {
          BlockPos keyPos = subscriber.getSubscriberPos();
          int updateRange = subscriber.getUpdateRange();
          if (Math.abs(keyPos.getX() - eventPos.getX()) <= updateRange

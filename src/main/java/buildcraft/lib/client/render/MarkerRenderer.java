@@ -16,7 +16,9 @@ import buildcraft.lib.misc.VecUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import com.mojang.blaze3d.vertex.PoseStack;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import net.minecraft.client.Minecraft;
@@ -63,8 +65,14 @@ public class MarkerRenderer {
       }
    }
 
+   // Reused across frames: this runs every frame while a connector is held, on the render thread only. The
+   // collected lasers are submitted as ONE batch instead of one submit node per marker pair.
+   private static final Set<MarkerPair> renderedPairs = new HashSet<>();
+   private static final List<LaserData_BC8> pendingLasers = new ArrayList<>();
+
    private static void renderPossibleConnections(Player player) {
-      Set<MarkerPair> renderedPairs = new HashSet<>();
+      renderedPairs.clear();
+      pendingLasers.clear();
 
       for (MarkerCache<? extends MarkerSubCache<?>> cache : MarkerCache.CACHES) {
          MarkerSubCache<?> subCache = (MarkerSubCache<?>)cache.getSubCache(player.level());
@@ -85,13 +93,14 @@ public class MarkerRenderer {
                      Vec3 to = VecUtil.add(VEC_HALF, target);
                      Vec3 fromOffset = offset(from, to);
                      Vec3 toOffset = offset(to, from);
-                     LaserData_BC8 data = new LaserData_BC8(laserType, fromOffset, toOffset, 0.06230529595015576, false, false, 15);
-                     BcLaserRenderer.renderLaserStatic(currentPoseStack, data, currentCameraPos);
+                     pendingLasers.add(new LaserData_BC8(laserType, fromOffset, toOffset, 0.06230529595015576, false, false, 15));
                   }
                }
             }
          }
       }
+
+      BcLaserRenderer.renderLasersBatched(currentPoseStack, pendingLasers, currentCameraPos);
    }
 
    private static Vec3 offset(Vec3 from, Vec3 to) {

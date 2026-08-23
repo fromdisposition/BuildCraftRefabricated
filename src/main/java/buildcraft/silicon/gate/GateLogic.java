@@ -426,7 +426,7 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
    }
 
    public boolean needsPeriodicTick() {
-      return !this.resolveDirty && this.gateWakeTicks <= 0 ? this.hasPollingTrigger() : true;
+      return !this.resolveDirty && this.gateWakeTicks <= 0 && this.activeActions.isEmpty() ? this.hasPollingTrigger() : true;
    }
 
    private boolean hasPollingTrigger() {

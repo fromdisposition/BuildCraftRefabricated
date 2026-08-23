@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.silicon.integration.jei;
+package buildcraft.silicon.recipe;
 
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IProgrammingRecipe;
@@ -20,8 +20,8 @@ public final class ProgrammingRecipeCollector {
    private ProgrammingRecipeCollector() {
    }
 
-   public static List<ProgrammingRecipeJei> collect() {
-      List<ProgrammingRecipeJei> out = new ArrayList<>();
+   public static List<ProgrammingRecipeView> collect() {
+      List<ProgrammingRecipeView> out = new ArrayList<>();
       if (BuildcraftRecipeRegistry.programmingTable == null) {
          return out;
       }
@@ -35,7 +35,7 @@ public final class ProgrammingRecipeCollector {
             ItemStack option = options.get(i);
             if (!option.isEmpty()) {
                out.add(
-                  new ProgrammingRecipeJei(
+                  new ProgrammingRecipeView(
                      recipe.getId() + ":" + boardId(option),
                      blank.copy(),
                      option.copy(),
@@ -47,7 +47,7 @@ public final class ProgrammingRecipeCollector {
          }
       }
 
-      out.sort(Comparator.comparing(ProgrammingRecipeJei::id));
+      out.sort(Comparator.comparing(ProgrammingRecipeView::id));
       return out;
    }
 

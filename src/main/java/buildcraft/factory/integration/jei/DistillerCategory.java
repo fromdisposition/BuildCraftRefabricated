@@ -10,7 +10,6 @@ import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.integration.jei.FluidContainerAliases;
 import buildcraft.lib.integration.jei.JeiCategoryDraw;
 import buildcraft.lib.integration.jei.JeiFluids;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -56,21 +55,21 @@ public class DistillerCategory extends AbstractRecipeCategory<IRefineryRecipeMan
       if (!in.isEmpty()) {
          IRecipeSlotBuilder inSlot = builder.addInputSlot(IN_X, IN_Y).setFluidRenderer(in.getAmount(), false, IN_W, IN_H);
          JeiFluids.addFluidStack(inSlot, in);
-         FluidContainerAliases.addAliases(builder, in, RecipeIngredientRole.INPUT);
+         JeiFluids.addContainerAliases(builder, in, RecipeIngredientRole.INPUT);
       }
 
       FluidStack outGas = recipe.outGas();
       if (outGas != null && !outGas.isEmpty()) {
          IRecipeSlotBuilder gasSlot = builder.addOutputSlot(GAS_X, GAS_Y).setFluidRenderer(outGas.getAmount(), false, GAS_W, GAS_H);
          JeiFluids.addFluidStack(gasSlot, outGas);
-         FluidContainerAliases.addAliases(builder, outGas, RecipeIngredientRole.OUTPUT);
+         JeiFluids.addContainerAliases(builder, outGas, RecipeIngredientRole.OUTPUT);
       }
 
       FluidStack outLiquid = recipe.outLiquid();
       if (outLiquid != null && !outLiquid.isEmpty()) {
          IRecipeSlotBuilder liqSlot = builder.addOutputSlot(LIQ_X, LIQ_Y).setFluidRenderer(outLiquid.getAmount(), false, LIQ_W, LIQ_H);
          JeiFluids.addFluidStack(liqSlot, outLiquid);
-         FluidContainerAliases.addAliases(builder, outLiquid, RecipeIngredientRole.OUTPUT);
+         JeiFluids.addContainerAliases(builder, outLiquid, RecipeIngredientRole.OUTPUT);
       }
    }
 }

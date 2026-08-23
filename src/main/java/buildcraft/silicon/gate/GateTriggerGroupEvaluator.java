@@ -76,11 +76,9 @@ public final class GateTriggerGroupEvaluator {
                      slot.parameters = (IStatementParameter[])fullAction.action.getParameters().clone();
                      slot.part = action.sourcePart;
                      activeActions.add(slot);
-                     if (!prevActions[actionIndex]) {
-                        action.actionActivate(gate, slot.parameters);
-                        PipeEvent evt = new PipeEventActionActivate(pipeHolder, action.getDelegate(), slot.parameters, action.sourcePart);
-                        pipeHolder.fireEvent(evt);
-                     }
+                     action.actionActivate(gate, slot.parameters);
+                     PipeEvent evt = new PipeEventActionActivate(pipeHolder, action.getDelegate(), slot.parameters, action.sourcePart);
+                     pipeHolder.fireEvent(evt);
                   } else if (prevActions[actionIndex]) {
                      action.actionDeactivated(gate, fullAction.action.getParameters());
                   }

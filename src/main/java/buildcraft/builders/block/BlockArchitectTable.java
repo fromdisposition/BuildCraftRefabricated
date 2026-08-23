@@ -79,19 +79,13 @@ public class BlockArchitectTable extends HorizontalDirectionalBlock implements E
       }
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileArchitectTable architect) {
-         ItemStack in = architect.getSnapshotIn();
-         if (!in.isEmpty()) {
-            Block.popResource(level, pos, in);
-         }
-
-         ItemStack out = architect.getSnapshotOut();
-         if (!out.isEmpty()) {
-            Block.popResource(level, pos, out);
-         }
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileArchitectTable tile) {
+         tile.preRemoveSideEffects(pos, state);
       }
-
-      return super.playerWillDestroy(level, pos, state, player);
+      super.onRemove(state, level, pos, newState, movedByPiston);
    }
+   *///?}
 }

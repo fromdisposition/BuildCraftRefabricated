@@ -54,7 +54,7 @@ public class ContainerDistiller extends BcMenu {
 
    @Override
    @Nullable
-   protected ItemHandlerSimple getJeiBucketTransferSlots() {
+   protected ItemHandlerSimple getBucketTransferSlots() {
       return this.tile != null ? this.tile.containerSlots : null;
    }
 

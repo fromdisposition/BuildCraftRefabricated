@@ -411,7 +411,8 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
                iteratorx.remove();
             } else {
                long target = breakTask.getTarget();
-               breakTask.power = breakTask.power + this.tile.getBattery().extractPower(0L, Math.min(target - breakTask.power, max / this.breakTasks.size()));
+               breakTask.power = breakTask.power
+                  + this.tile.getBattery().extractPower(0L, Math.max(0L, Math.min(target - breakTask.power, max / this.breakTasks.size())));
                if (breakTask.power >= target) {
                   this.clientBreakTasksCache.add(breakTask);
                   this.tile.getWorldBC().destroyBlockProgress(breakTask.pos.hashCode(), breakTask.pos, -1);
@@ -761,11 +762,13 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    public class PlaceTask {
       public final BlockPos pos;
       public final List<ItemStack> items;
+      public final EnumContainerContentsMode contentsMode;
       public long power;
 
       public PlaceTask(BlockPos pos, List<ItemStack> items, long power) {
          this.pos = pos;
          this.items = Optional.ofNullable(items).<List<ItemStack>>map(ImmutableList::copyOf).orElse(null);
+         this.contentsMode = SnapshotBuilder.this.tile.getContainerContentsMode();
          this.power = power;
       }
 
@@ -784,6 +787,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
                }
             )
             .collect(Collectors.toList());
+         this.contentsMode = EnumContainerContentsMode.fromOrdinal(buffer.readByte());
          this.power = buffer.readLong();
       }
 
@@ -797,6 +801,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
                .filter(stack -> !stack.isEmpty())
                .collect(Collectors.toList())
          );
+         this.contentsMode = EnumContainerContentsMode.fromOrdinal(BcNbt.getInt(nbt, "contents_mode", 0));
          this.power = BcNbt.getLong(nbt, "power", 0L);
       }
 
@@ -822,6 +827,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
                   buffer.writeInt(item.getCount());
                }
             );
+         buffer.writeByte(this.contentsMode.ordinal());
          buffer.writeLong(this.power);
       }
 
@@ -839,6 +845,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          }
 
          nbt.put("items", list);
+         nbt.putInt("contents_mode", this.contentsMode.ordinal());
          nbt.putLong("power", this.power);
          return nbt;
       }

@@ -11,8 +11,8 @@ import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryMenuTypes;
 import buildcraft.factory.container.ContainerDistiller;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.integration.jei.BucketJeiTransfer;
-import buildcraft.lib.integration.jei.JeiTransferUtil;
+import buildcraft.lib.recipe.BucketRecipeTransfer;
+import buildcraft.lib.recipe.RecipeTransferUtil;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -60,9 +60,9 @@ public class DistillerTransferHandler implements IRecipeTransferHandler<Containe
    ) {
       FluidStack in = recipe.in();
       Item bucket = in != null && !in.isEmpty() ? in.getFluid().getBucket() : Items.AIR;
-      if (bucket != Items.AIR && JeiTransferUtil.countMatching(player.getInventory(), new ItemStack(bucket)) >= 1) {
+      if (bucket != Items.AIR && RecipeTransferUtil.countMatching(player.getInventory(), new ItemStack(bucket)) >= 1) {
          if (doTransfer) {
-            BucketJeiTransfer.sendSingle(container, 0, bucket);
+            BucketRecipeTransfer.sendSingle(container, 0, bucket);
          }
 
          return null;

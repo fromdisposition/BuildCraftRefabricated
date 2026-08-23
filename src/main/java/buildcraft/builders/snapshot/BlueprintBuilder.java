@@ -358,7 +358,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
             if (!BlockUtil.canMachinePlace(level, placeTask.pos, owner, machineOrigin)) {
                return false;
             } else if (schematic instanceof SchematicBlockDefault def) {
-               boolean includeContents = this.tile.getContainerContentsMode() != EnumContainerContentsMode.IGNORE;
+               boolean includeContents = placeTask.contentsMode != EnumContainerContentsMode.IGNORE;
                return def.build(level, placeTask.pos, this.tile.getFluidMode(), includeContents, owner, machineOrigin);
             } else {
                return schematic.build(this.tile.getWorldBC(), placeTask.pos);

@@ -6,6 +6,7 @@
 
 package buildcraft.energy.tile;
 
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
@@ -322,5 +323,9 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
    @Override
    public BlockEntity asBlockEntity() {
       return this;
+   }
+   @Override
+   protected void dropEngineContents(BlockPos pos) {
+      BlockDropsUtil.dropItems(this.level, pos, this.upgrades);
    }
 }

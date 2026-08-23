@@ -10,15 +10,15 @@ import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.factory.container.ContainerAutoCraftItems;
 import buildcraft.factory.container.ContainerDistiller;
 import buildcraft.factory.container.ContainerHeatExchange;
-import buildcraft.factory.integration.jei.HeatExchangerRecipePair;
+import buildcraft.factory.recipe.HeatExchangerRecipePair;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.IBcMenu;
-import buildcraft.lib.integration.jei.BucketJeiTransfer;
-import buildcraft.lib.integration.jei.JeiTransferUtil;
+import buildcraft.lib.recipe.BucketRecipeTransfer;
+import buildcraft.lib.recipe.RecipeTransferUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.silicon.container.ContainerAdvancedCraftingTable;
 import buildcraft.silicon.container.ContainerAssemblyTable;
-import buildcraft.silicon.integration.jei.AssemblyRecipeJei;
+import buildcraft.silicon.recipe.AssemblyRecipeView;
 import java.util.ArrayList;
 import java.util.List;
 import me.shedaniel.rei.api.client.registry.transfer.TransferHandler;
@@ -62,7 +62,7 @@ final class BcReiTransfer {
    private static TransferHandler.Result assembly(TransferHandler.Context context) {
       if (!(context.getMenu() instanceof ContainerAssemblyTable container)
          || !(context.getDisplay() instanceof BcReiDisplay display)
-         || !(display.recipe instanceof AssemblyRecipeJei recipe)) {
+         || !(display.recipe instanceof AssemblyRecipeView recipe)) {
          return TransferHandler.Result.createNotApplicable();
       }
       Inventory inv = context.getMinecraft().player.getInventory();
@@ -73,7 +73,7 @@ final class BcReiTransfer {
          }
          ItemStack pick = null;
          for (ItemStack alt : alternatives) {
-            if (!alt.isEmpty() && JeiTransferUtil.countMatching(inv, alt) >= alt.getCount()) {
+            if (!alt.isEmpty() && RecipeTransferUtil.countMatching(inv, alt) >= alt.getCount()) {
                pick = alt;
                break;
             }
@@ -87,7 +87,7 @@ final class BcReiTransfer {
          return TransferHandler.Result.createNotApplicable();
       }
       for (ItemStack n : need) {
-         if (JeiTransferUtil.countMatching(inv, n) < n.getCount()) {
+         if (RecipeTransferUtil.countMatching(inv, n) < n.getCount()) {
             return missing();
          }
       }
@@ -114,11 +114,11 @@ final class BcReiTransfer {
       if (bucket == Items.AIR) {
          return TransferHandler.Result.createNotApplicable();
       }
-      if (JeiTransferUtil.countMatching(context.getMinecraft().player.getInventory(), new ItemStack(bucket)) < 1) {
+      if (RecipeTransferUtil.countMatching(context.getMinecraft().player.getInventory(), new ItemStack(bucket)) < 1) {
          return missing();
       }
       if (context.isActuallyCrafting()) {
-         BucketJeiTransfer.sendSingle(container, 0, bucket);
+         BucketRecipeTransfer.sendSingle(container, 0, bucket);
       }
       return TransferHandler.Result.createSuccessful().blocksFurtherHandling();
    }
@@ -136,15 +136,15 @@ final class BcReiTransfer {
       }
       Inventory inv = context.getMinecraft().player.getInventory();
       if (slot0Bucket == slot1Bucket) {
-         if (JeiTransferUtil.countMatching(inv, new ItemStack(slot0Bucket)) < 2) {
+         if (RecipeTransferUtil.countMatching(inv, new ItemStack(slot0Bucket)) < 2) {
             return missing();
          }
-      } else if (JeiTransferUtil.countMatching(inv, new ItemStack(slot0Bucket)) < 1
-         || JeiTransferUtil.countMatching(inv, new ItemStack(slot1Bucket)) < 1) {
+      } else if (RecipeTransferUtil.countMatching(inv, new ItemStack(slot0Bucket)) < 1
+         || RecipeTransferUtil.countMatching(inv, new ItemStack(slot1Bucket)) < 1) {
          return missing();
       }
       if (context.isActuallyCrafting()) {
-         BucketJeiTransfer.sendPair(container, 0, slot0Bucket, 1, slot1Bucket);
+         BucketRecipeTransfer.sendPair(container, 0, slot0Bucket, 1, slot1Bucket);
       }
       return TransferHandler.Result.createSuccessful().blocksFurtherHandling();
    }

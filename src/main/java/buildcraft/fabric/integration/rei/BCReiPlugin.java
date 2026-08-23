@@ -16,10 +16,10 @@ import buildcraft.factory.BCFactoryItems;
 import buildcraft.factory.gui.GuiAutoCraftItems;
 import buildcraft.factory.gui.GuiDistiller;
 import buildcraft.factory.gui.GuiHeatExchange;
-import buildcraft.factory.integration.jei.HeatExchangerRecipePair;
+import buildcraft.factory.recipe.HeatExchangerRecipePair;
 import buildcraft.energy.client.gui.GuiEngineIron_BC8;
 import buildcraft.energy.client.gui.GuiEngineStone_BC8;
-import buildcraft.fabric.integration.jei.BCJeiBootstrap;
+import buildcraft.fabric.BCRecipeBootstrap;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.IGuiElement;
@@ -28,16 +28,16 @@ import buildcraft.lib.gui.ledger.Ledger_Neptune;
 import buildcraft.lib.gui.statement.GuiElementStatementSource;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.silicon.BCSiliconItems;
-import buildcraft.silicon.integration.jei.AssemblyRecipeCollector;
-import buildcraft.silicon.integration.jei.AssemblyRecipeJei;
-import buildcraft.silicon.integration.jei.IntegrationRecipeCollector;
-import buildcraft.silicon.integration.jei.IntegrationRecipeJei;
+import buildcraft.silicon.recipe.AssemblyRecipeCollector;
+import buildcraft.silicon.recipe.AssemblyRecipeView;
+import buildcraft.silicon.recipe.IntegrationRecipeCollector;
+import buildcraft.silicon.recipe.IntegrationRecipeView;
 import buildcraft.silicon.gui.GuiAdvancedCraftingTable;
 import buildcraft.silicon.gui.GuiAssemblyTable;
 import buildcraft.silicon.gui.GuiIntegrationTable;
 import buildcraft.silicon.gui.GuiProgrammingTable;
-import buildcraft.silicon.integration.jei.ProgrammingRecipeCollector;
-import buildcraft.silicon.integration.jei.ProgrammingRecipeJei;
+import buildcraft.silicon.recipe.ProgrammingRecipeCollector;
+import buildcraft.silicon.recipe.ProgrammingRecipeView;
 import buildcraft.silicon.tile.TileProgrammingTable;
 import dev.architectury.event.CompoundEventResult;
 import java.util.ArrayList;
@@ -122,7 +122,7 @@ public final class BCReiPlugin implements REIClientPlugin {
          }
          if (!d.outputs().isEmpty() && !d.outputs().get(0).isEmpty()) {
             EntryIngredient option = d.outputs().get(0);
-            if (d.recipe instanceof ProgrammingRecipeJei r) {
+            if (d.recipe instanceof ProgrammingRecipeView r) {
                int col = r.optionIndex() % TileProgrammingTable.WIDTH;
                int row = r.optionIndex() / TileProgrammingTable.WIDTH;
                w.add(BcReiCategory.texSlot(option, o, 40 + col * 18, 5 + row * 18, true));
@@ -278,9 +278,9 @@ public final class BCReiPlugin implements REIClientPlugin {
    }
 
    private static void registerSiliconDisplays(DisplayRegistry registry) {
-      BCJeiBootstrap.initSiliconRecipes();
+      BCRecipeBootstrap.initSiliconRecipes();
 
-      for (AssemblyRecipeJei r : AssemblyRecipeCollector.collect()) {
+      for (AssemblyRecipeView r : AssemblyRecipeCollector.collect()) {
          List<EntryIngredient> inputs = new ArrayList<>(r.inputSlots().size());
          for (List<ItemStack> slot : r.inputSlots()) {
             inputs.add(BcRei.itemAlternatives(slot));
@@ -289,7 +289,7 @@ public final class BCReiPlugin implements REIClientPlugin {
             List.of(powerLine("assembly_table.power", r.microJoules())), r));
       }
 
-      for (IntegrationRecipeJei r : IntegrationRecipeCollector.collect()) {
+      for (IntegrationRecipeView r : IntegrationRecipeCollector.collect()) {
          List<EntryIngredient> inputs = new ArrayList<>();
          inputs.add(BcRei.item(r.center()));
          for (ItemStack stack : r.ring()) {
@@ -299,7 +299,7 @@ public final class BCReiPlugin implements REIClientPlugin {
             List.of(powerLine("assembly_table.power", r.microJoules()))));
       }
 
-      for (ProgrammingRecipeJei r : ProgrammingRecipeCollector.collect()) {
+      for (ProgrammingRecipeView r : ProgrammingRecipeCollector.collect()) {
          registry.add(new BcReiDisplay(PROGRAMMING, List.of(BcRei.item(r.input())), List.of(BcRei.item(r.option())),
             List.of(powerLine("assembly_table.power", r.microJoules())), r));
       }
@@ -343,7 +343,7 @@ public final class BCReiPlugin implements REIClientPlugin {
    }
 
    private static void registerEnergyDisplays(DisplayRegistry registry) {
-      BCJeiBootstrap.initEnergyRecipes();
+      BCRecipeBootstrap.initEnergyRecipes();
 
       for (RecipeHolder<?> holder : clientRecipes()) {
          if (holder.value() instanceof CombustionFuelRecipe r) {

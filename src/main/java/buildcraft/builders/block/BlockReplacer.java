@@ -69,11 +69,13 @@ public class BlockReplacer extends HorizontalDirectionalBlock implements EntityB
       return InteractionResult.SUCCESS;
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (level.getBlockEntity(pos) instanceof TileReplacer replacer) {
-         BlockDropsUtil.dropItems(level, pos, replacer.invSnapshot, replacer.invSchematicFrom, replacer.invSchematicTo);
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileReplacer tile) {
+         tile.preRemoveSideEffects(pos, state);
       }
-
-      return super.playerWillDestroy(level, pos, state, player);
+      super.onRemove(state, level, pos, newState, movedByPiston);
    }
+   *///?}
 }

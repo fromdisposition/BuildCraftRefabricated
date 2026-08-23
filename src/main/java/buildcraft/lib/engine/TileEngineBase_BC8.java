@@ -194,6 +194,22 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       return this.powerStage;
    }
 
+   //? if >= 1.21.10 {
+   @Override
+   //?}
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.dropEngineContents(pos);
+      }
+
+      //? if >= 1.21.10 {
+      super.preRemoveSideEffects(pos, state);
+      //?}
+   }
+
+   protected void dropEngineContents(BlockPos pos) {
+   }
+
    protected void overheat() {
       this.isPumping = false;
       if (BCLibConfig.canEnginesExplode.get()) {

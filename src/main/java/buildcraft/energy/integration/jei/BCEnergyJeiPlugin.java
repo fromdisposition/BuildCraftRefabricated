@@ -11,7 +11,7 @@ import buildcraft.energy.BCEnergyRecipeTypes;
 import buildcraft.energy.recipe.CombustionFuelRecipe;
 import buildcraft.energy.recipe.CoolantRecipe;
 import buildcraft.energy.recipe.SolidCoolantRecipe;
-import buildcraft.fabric.integration.jei.BCJeiBootstrap;
+import buildcraft.fabric.BCRecipeBootstrap;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.energy.client.gui.GuiEngineIron_BC8;
 import buildcraft.energy.client.gui.GuiEngineStone_BC8;
@@ -54,7 +54,7 @@ public class BCEnergyJeiPlugin implements IModPlugin {
 
    @Override
    public void registerRecipes(IRecipeRegistration registration) {
-      BCJeiBootstrap.initEnergyRecipes();
+      BCRecipeBootstrap.initEnergyRecipes();
       registration.addRecipes(BCJeiRecipeTypes.COMBUSTION_FUEL, collectCombustionFuels());
       registration.addRecipes(BCJeiRecipeTypes.COMBUSTION_COOLANT, collectCoolants());
       registration.addRecipes(BCJeiRecipeTypes.STIRLING_FUEL, collectStirlingFuels());

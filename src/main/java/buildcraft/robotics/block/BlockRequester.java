@@ -92,13 +92,15 @@ public class BlockRequester extends BaseEntityBlock {
       return InteractionResult.PASS;
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (level.getBlockEntity(pos) instanceof TileRequester requester) {
-         BlockDropsUtil.dropItems(level, pos, requester.invItems);
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileRequester tile) {
+         tile.preRemoveSideEffects(pos, state);
       }
-
-      return super.playerWillDestroy(level, pos, state, player);
+      super.onRemove(state, level, pos, newState, movedByPiston);
    }
+   *///?}
 
    @Nullable
    public <T extends BlockEntity> net.minecraft.world.level.block.entity.BlockEntityTicker<T> getTicker(

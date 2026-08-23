@@ -6,6 +6,10 @@
 
 package buildcraft.silicon.integration.jei;
 
+import buildcraft.silicon.recipe.AssemblyRecipeCollector;
+import buildcraft.silicon.recipe.IntegrationRecipeCollector;
+import buildcraft.silicon.recipe.ProgrammingRecipeCollector;
+
 import buildcraft.lib.gui.IGuiElement;
 import buildcraft.lib.gui.statement.GuiElementStatementSource;
 import buildcraft.lib.integration.jei.BCGhostIngredientHandler;
@@ -14,7 +18,7 @@ import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.BCSiliconMenuTypes;
 import buildcraft.silicon.container.ContainerAdvancedCraftingTable;
-import buildcraft.fabric.integration.jei.BCJeiBootstrap;
+import buildcraft.fabric.BCRecipeBootstrap;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.silicon.gui.GuiAdvancedCraftingTable;
 import buildcraft.silicon.gui.GuiAssemblyTable;
@@ -107,7 +111,7 @@ public class BCSiliconJeiPlugin implements IModPlugin {
 
    @Override
    public void registerRecipes(IRecipeRegistration registration) {
-      BCJeiBootstrap.initSiliconRecipes();
+      BCRecipeBootstrap.initSiliconRecipes();
       registration.addRecipes(BCJeiRecipeTypes.ASSEMBLY, AssemblyRecipeCollector.collect());
       registration.addRecipes(BCJeiRecipeTypes.INTEGRATION, IntegrationRecipeCollector.collect());
       registration.addRecipes(BCJeiRecipeTypes.PROGRAMMING, ProgrammingRecipeCollector.collect());

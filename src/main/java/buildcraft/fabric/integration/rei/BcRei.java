@@ -6,7 +6,7 @@
 
 package buildcraft.fabric.integration.rei;
 
-import buildcraft.lib.integration.jei.FluidContainerAliases;
+import buildcraft.lib.fluid.FluidContainerAliases;
 import buildcraft.lib.misc.LocaleUtil;
 import dev.architectury.fluid.FluidStack;
 import java.util.List;

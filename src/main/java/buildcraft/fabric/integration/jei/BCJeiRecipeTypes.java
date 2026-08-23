@@ -10,15 +10,15 @@ import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.energy.integration.jei.CombustionCoolantJei;
 import buildcraft.energy.integration.jei.StirlingFuelJei;
 import buildcraft.energy.recipe.CombustionFuelRecipe;
-import buildcraft.factory.integration.jei.HeatExchangerRecipePair;
-import buildcraft.silicon.integration.jei.AssemblyRecipeJei;
-import buildcraft.silicon.integration.jei.IntegrationRecipeJei;
-import buildcraft.silicon.integration.jei.ProgrammingRecipeJei;
+import buildcraft.factory.recipe.HeatExchangerRecipePair;
+import buildcraft.silicon.recipe.AssemblyRecipeView;
+import buildcraft.silicon.recipe.IntegrationRecipeView;
+import buildcraft.silicon.recipe.ProgrammingRecipeView;
 
 public final class BCJeiRecipeTypes {
-   public static final mezz.jei.api.recipe.types.IRecipeType<AssemblyRecipeJei> ASSEMBLY = mezz.jei.api.recipe.types.IRecipeType.create("buildcraftsilicon", "assembly_table", AssemblyRecipeJei.class);
-   public static final mezz.jei.api.recipe.types.IRecipeType<IntegrationRecipeJei> INTEGRATION = mezz.jei.api.recipe.types.IRecipeType.create("buildcraftsilicon", "integration_table", IntegrationRecipeJei.class);
-   public static final mezz.jei.api.recipe.types.IRecipeType<ProgrammingRecipeJei> PROGRAMMING = mezz.jei.api.recipe.types.IRecipeType.create("buildcraftsilicon", "programming_table", ProgrammingRecipeJei.class);
+   public static final mezz.jei.api.recipe.types.IRecipeType<AssemblyRecipeView> ASSEMBLY = mezz.jei.api.recipe.types.IRecipeType.create("buildcraftsilicon", "assembly_table", AssemblyRecipeView.class);
+   public static final mezz.jei.api.recipe.types.IRecipeType<IntegrationRecipeView> INTEGRATION = mezz.jei.api.recipe.types.IRecipeType.create("buildcraftsilicon", "integration_table", IntegrationRecipeView.class);
+   public static final mezz.jei.api.recipe.types.IRecipeType<ProgrammingRecipeView> PROGRAMMING = mezz.jei.api.recipe.types.IRecipeType.create("buildcraftsilicon", "programming_table", ProgrammingRecipeView.class);
    public static final mezz.jei.api.recipe.types.IRecipeType<CombustionFuelRecipe> COMBUSTION_FUEL = mezz.jei.api.recipe.types.IRecipeType.create("buildcraftenergy", "combustion_engine_fuel", CombustionFuelRecipe.class);
    public static final mezz.jei.api.recipe.types.IRecipeType<CombustionCoolantJei> COMBUSTION_COOLANT = mezz.jei.api.recipe.types.IRecipeType.create(
       "buildcraftenergy", "combustion_engine_coolant", CombustionCoolantJei.class

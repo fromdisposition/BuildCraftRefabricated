@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.integration.jei;
+package buildcraft.lib.recipe;
 
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.gui.BcMenu;
@@ -15,8 +15,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 
-public final class BucketJeiTransfer {
-   private BucketJeiTransfer() {
+public final class BucketRecipeTransfer {
+   private BucketRecipeTransfer() {
    }
 
    public static void apply(FriendlyByteBuf buffer, Inventory playerInv, ItemHandlerSimple machineSlots) {
@@ -25,17 +25,17 @@ public final class BucketJeiTransfer {
       for (int i = 0; i < count; i++) {
          int slot = buffer.readVarInt();
          Item bucket = BcRegistryUtil.getItem(Identifier.parse(buffer.readUtf()));
-         JeiTransferUtil.moveBucketToSlot(playerInv, bucket, machineSlots, slot);
+         RecipeTransferUtil.moveBucketToSlot(playerInv, bucket, machineSlots, slot);
       }
    }
 
    public static void sendSingle(BcMenu menu, int slot, Item bucket) {
-      menu.sendMessage(BcMenu.NET_JEI_TRANSFER_BUCKETS, buf -> writeSingle(buf, slot, BuiltInRegistries.ITEM.getKey(bucket).toString()));
+      menu.sendMessage(BcMenu.NET_BUCKET_TRANSFER, buf -> writeSingle(buf, slot, BuiltInRegistries.ITEM.getKey(bucket).toString()));
    }
 
    public static void sendPair(BcMenu menu, int slot0, Item bucket0, int slot1, Item bucket1) {
       menu.sendMessage(
-         BcMenu.NET_JEI_TRANSFER_BUCKETS,
+         BcMenu.NET_BUCKET_TRANSFER,
          buf -> writePair(buf, slot0, BuiltInRegistries.ITEM.getKey(bucket0).toString(), slot1, BuiltInRegistries.ITEM.getKey(bucket1).toString())
       );
    }

@@ -13,9 +13,7 @@ import buildcraft.factory.platform.BCFactoryFabric;
 import buildcraft.robotics.platform.BCRoboticsFabric;
 import buildcraft.silicon.platform.BCSiliconFabric;
 import buildcraft.transport.platform.BCTransportFabric;
-//? if has_jei {
-import buildcraft.fabric.integration.jei.BCJeiBootstrap;
-//?}
+import buildcraft.fabric.BCRecipeBootstrap;
 import buildcraft.fabric.network.BCNetworkingRegistry;
 import buildcraft.lib.fabric.BCBlockEntityLifecycleEvents;
 import buildcraft.lib.fabric.transfer.BcTransfers;
@@ -60,10 +58,8 @@ public class BuildCraftFabricMod implements ModInitializer {
       BCRoboticsFabric.register();
       ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> {
          buildcraft.silicon.plug.FacadeStateManager.ensureInitialized();
-         //? if has_jei {
-         BCJeiBootstrap.initSiliconRecipes();
-         BCJeiBootstrap.initEnergyRecipes();
-         //?}
+         BCRecipeBootstrap.initSiliconRecipes();
+         BCRecipeBootstrap.initEnergyRecipes();
       });
       BcTransfers.init();
       // Any c:tools/wrench item that isn't our own wrench (which handles itself in useOn) gets the BuildCraft

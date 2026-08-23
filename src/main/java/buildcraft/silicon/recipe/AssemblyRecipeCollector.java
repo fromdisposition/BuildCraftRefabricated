@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.silicon.integration.jei;
+package buildcraft.silicon.recipe;
 
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.mj.MjAPI;
@@ -38,8 +38,8 @@ public final class AssemblyRecipeCollector {
    private AssemblyRecipeCollector() {
    }
 
-   public static List<AssemblyRecipeJei> collect() {
-      List<AssemblyRecipeJei> out = new ArrayList<>();
+   public static List<AssemblyRecipeView> collect() {
+      List<AssemblyRecipeView> out = new ArrayList<>();
 
       for (AssemblyRecipe recipe : AssemblyRecipeRegistry.REGISTRY.values()) {
          if (recipe instanceof FacadeAssemblyRecipes facade) {
@@ -49,11 +49,11 @@ public final class AssemblyRecipeCollector {
          }
       }
 
-      out.sort(Comparator.comparing(AssemblyRecipeJei::id));
+      out.sort(Comparator.comparing(AssemblyRecipeView::id));
       return out;
    }
 
-   private static void collectStandard(AssemblyRecipe recipe, List<AssemblyRecipeJei> out) {
+   private static void collectStandard(AssemblyRecipe recipe, List<AssemblyRecipeView> out) {
       //? if >= 1.21.10 {
       ContextMap displayCtx = displayContext();
       //?}
@@ -84,13 +84,13 @@ public final class AssemblyRecipeCollector {
 
             if (!inputSlots.isEmpty()) {
                String id = recipe.getRegistryName() + ":" + outputKey(output);
-               out.add(new AssemblyRecipeJei(id, inputSlots, List.of(output), recipe.getRequiredMicroJoulesFor(output)));
+               out.add(new AssemblyRecipeView(id, inputSlots, List.of(output), recipe.getRequiredMicroJoulesFor(output)));
             }
          }
       }
    }
 
-   private static List<AssemblyRecipeJei> collectFacade(FacadeAssemblyRecipes facade) {
+   private static List<AssemblyRecipeView> collectFacade(FacadeAssemblyRecipes facade) {
       Item structurePipe = BcRegistryUtil.getItem(Identifier.parse("buildcrafttransport:pipe_structure"));
       if (structurePipe == Items.AIR) {
          return List.of();
@@ -122,8 +122,8 @@ public final class AssemblyRecipeCollector {
       long mjCost = 64L * MjAPI.MJ;
       List<List<ItemStack>> inputSlots = List.of(baseSlot, blockSlot);
       return List.of(
-         new AssemblyRecipeJei(facade.getRegistryName() + ":basic", inputSlots, basicOutputs, mjCost, 1),
-         new AssemblyRecipeJei(facade.getRegistryName() + ":hollow", inputSlots, hollowOutputs, mjCost, 1)
+         new AssemblyRecipeView(facade.getRegistryName() + ":basic", inputSlots, basicOutputs, mjCost, 1),
+         new AssemblyRecipeView(facade.getRegistryName() + ":hollow", inputSlots, hollowOutputs, mjCost, 1)
       );
    }
 

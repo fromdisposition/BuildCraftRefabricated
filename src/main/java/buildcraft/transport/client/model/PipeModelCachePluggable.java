@@ -43,17 +43,29 @@ public class PipeModelCachePluggable {
       private final int hash;
 
       public PluggableKey(boolean isCutout, IPipeHolder holder) {
-         Builder<PluggableModelKey> builder = ImmutableSet.builder();
+         this(isCutout, deriveKeys(isCutout, holder));
+      }
+
+      private static PluggableModelKey[] deriveKeys(boolean isCutout, IPipeHolder holder) {
+         PluggableModelKey[] keys = new PluggableModelKey[Direction.values().length];
 
          for (Direction side : Direction.values()) {
             PipePluggable pluggable = holder.getPluggable(side);
-            if (pluggable != null) {
-               PluggableModelKey key = pluggable.getModelRenderKey(isCutout ? "cutout" : "translucent");
-               // World-tinted pluggables (facades of biome-coloured blocks) render individually so each quad's
-               // tint resolves against the world; keeping them in the merged untinted batch drew them grey.
-               if (key != null && !(isCutout && key.hasWorldTint())) {
-                  builder.add(key);
-               }
+            keys[side.ordinal()] = pluggable == null ? null : pluggable.getModelRenderKey(isCutout ? "cutout" : "translucent");
+         }
+
+         return keys;
+      }
+
+      /** Takes keys the caller already derived, so a renderer that also needs them per side does not ask twice. */
+      public PluggableKey(boolean isCutout, PluggableModelKey[] keysBySide) {
+         Builder<PluggableModelKey> builder = ImmutableSet.builder();
+
+         for (PluggableModelKey key : keysBySide) {
+            // World-tinted pluggables (facades of biome-coloured blocks) render individually so each quad's
+            // tint resolves against the world; keeping them in the merged untinted batch drew them grey.
+            if (key != null && !(isCutout && key.hasWorldTint())) {
+               builder.add(key);
             }
          }
 

@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.lib.integration.jei;
+package buildcraft.lib.recipe;
 
 import buildcraft.lib.tile.ItemHandlerSimple;
 import net.minecraft.world.entity.player.Inventory;
@@ -12,8 +12,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public final class JeiTransferUtil {
-   private JeiTransferUtil() {
+public final class RecipeTransferUtil {
+   private RecipeTransferUtil() {
    }
 
    public static int countMatching(Inventory playerInv, ItemStack want) {

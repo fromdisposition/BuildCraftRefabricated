@@ -55,7 +55,7 @@ public class ContainerHeatExchange extends BcMenu {
 
    @Override
    @Nullable
-   protected ItemHandlerSimple getJeiBucketTransferSlots() {
+   protected ItemHandlerSimple getBucketTransferSlots() {
       return this.tile != null ? this.tile.getContainerSlots() : null;
    }
 

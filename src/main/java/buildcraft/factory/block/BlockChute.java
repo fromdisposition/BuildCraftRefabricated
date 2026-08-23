@@ -122,6 +122,16 @@ public class BlockChute extends BaseEntityBlock {
       }
    }
 
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileChute tile) {
+         tile.preRemoveSideEffects(pos, state);
+      }
+      super.onRemove(state, level, pos, newState, movedByPiston);
+   }
+   *///?}
+
    @Nullable
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileChute(pos, state);

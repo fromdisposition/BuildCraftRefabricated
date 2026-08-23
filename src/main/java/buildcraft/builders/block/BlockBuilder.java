@@ -88,28 +88,13 @@ public class BlockBuilder extends HorizontalDirectionalBlock implements EntityBl
       }
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileBuilder builder) {
-         ItemStack snapshot = builder.getSnapshot();
-         if (!snapshot.isEmpty()) {
-            Block.popResource(level, pos, snapshot);
-         }
-
-         for (int i = 0; i < 27; i++) {
-            ItemStack stack = builder.getResource(i);
-            if (!stack.isEmpty()) {
-               Block.popResource(level, pos, stack);
-            }
-         }
-
-         NonNullList<ItemStack> fluidDrops = NonNullList.create();
-         FluidItemDrops.addFluidDrops(fluidDrops, builder.getTank(0), builder.getTank(1), builder.getTank(2), builder.getTank(3));
-
-         for (ItemStack drop : fluidDrops) {
-            Block.popResource(level, pos, drop);
-         }
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileBuilder tile) {
+         tile.preRemoveSideEffects(pos, state);
       }
-
-      return super.playerWillDestroy(level, pos, state, player);
+      super.onRemove(state, level, pos, newState, movedByPiston);
    }
+   *///?}
 }

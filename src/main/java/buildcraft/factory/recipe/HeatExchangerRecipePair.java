@@ -4,9 +4,9 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.silicon.integration.jei;
+package buildcraft.factory.recipe;
 
-import net.minecraft.world.item.ItemStack;
+import buildcraft.api.recipes.IRefineryRecipeManager;
 
-public record ProgrammingRecipeJei(String id, ItemStack input, ItemStack option, int optionIndex, long microJoules) {
+public record HeatExchangerRecipePair(IRefineryRecipeManager.IHeatableRecipe heatable, IRefineryRecipeManager.ICoolableRecipe coolable) {
 }

@@ -77,21 +77,13 @@ public class BlockZonePlanner extends BaseEntityBlock {
       return InteractionResult.SUCCESS;
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (level.getBlockEntity(pos) instanceof TileZonePlanner planner) {
-         BlockDropsUtil.dropItems(
-            level,
-            pos,
-            planner.invPaintbrushes,
-            planner.invInputPaintbrush,
-            planner.invInputMapLocation,
-            planner.invInputResult,
-            planner.invOutputPaintbrush,
-            planner.invOutputMapLocation,
-            planner.invOutputResult
-         );
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileZonePlanner tile) {
+         tile.preRemoveSideEffects(pos, state);
       }
-
-      return super.playerWillDestroy(level, pos, state, player);
+      super.onRemove(state, level, pos, newState, movedByPiston);
    }
+   *///?}
 }

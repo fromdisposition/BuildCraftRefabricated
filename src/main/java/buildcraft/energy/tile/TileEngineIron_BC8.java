@@ -6,6 +6,7 @@
 
 package buildcraft.energy.tile;
 
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.nbt.BcAuth;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.enums.EnumPowerStage;
@@ -458,5 +459,11 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
 
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerEngineIron_BC8(containerId, playerInv, this);
+   }
+   @Override
+   protected void dropEngineContents(BlockPos pos) {
+      BlockDropsUtil.dropFluidShard(this.level, pos, this.tankFuel.getFluidStack());
+      BlockDropsUtil.dropFluidShard(this.level, pos, this.tankCoolant.getFluidStack());
+      BlockDropsUtil.dropFluidShard(this.level, pos, this.tankResidue.getFluidStack());
    }
 }

@@ -6,6 +6,7 @@
 
 package buildcraft.energy.tile;
 
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.MjAPI;
@@ -254,5 +255,9 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerEngineRF(containerId, playerInv, this);
+   }
+   @Override
+   protected void dropEngineContents(BlockPos pos) {
+      BlockDropsUtil.dropItems(this.level, pos, this.upgrades);
    }
 }

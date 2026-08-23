@@ -50,12 +50,12 @@ public class MjBattery {
    }
 
    public long addPower(long microJoulesToAdd, boolean simulate) {
-      long accepted = microJoulesToAdd;
-      if (microJoulesToAdd > 0L) {
-         long room = Math.max(0L, this.capacity - this.microJoules);
-         accepted = Math.min(microJoulesToAdd, room);
+      if (microJoulesToAdd <= 0L) {
+         return microJoulesToAdd;
       }
 
+      long room = Math.max(0L, this.capacity - this.microJoules);
+      long accepted = Math.min(microJoulesToAdd, room);
       if (!simulate) {
          this.microJoules += accepted;
       }
@@ -76,7 +76,7 @@ public class MjBattery {
    }
 
    public long extractPower(long min, long max) {
-      if (this.microJoules < min) {
+      if (max <= 0L || this.microJoules < min) {
          return 0L;
       }
 

@@ -9,9 +9,7 @@ package buildcraft.lib.gui;
 import buildcraft.api.core.BCLog;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.slot.SlotPhantom;
-//? if has_jei {
-import buildcraft.lib.integration.jei.BucketJeiTransfer;
-//?}
+import buildcraft.lib.recipe.BucketRecipeTransfer;
 import buildcraft.lib.net.BcEnvelopeCodec;
 import buildcraft.lib.net.BcPacketDistributor;
 import buildcraft.lib.net.IPayloadWriter;
@@ -63,7 +61,7 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
    public static final int NET_JEI_RECIPE_TRANSFER = 100;
    public static final int NET_GHOST_SLOT_SET = 101;
    public static final int NET_JEI_TRANSFER_ITEMS = 102;
-   public static final int NET_JEI_TRANSFER_BUCKETS = 103;
+   public static final int NET_BUCKET_TRANSFER = 103;
    public final Player player;
    private final List<Widget_Neptune<?>> widgets = new ArrayList<>();
 
@@ -198,13 +196,11 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
             }
             *///?}
          }
-      //? if has_jei {
-      } else if (id == NET_JEI_TRANSFER_BUCKETS && !isClient) {
-         ItemHandlerSimple machineSlots = this.getJeiBucketTransferSlots();
+      } else if (id == NET_BUCKET_TRANSFER && !isClient) {
+         ItemHandlerSimple machineSlots = this.getBucketTransferSlots();
          if (machineSlots != null) {
-            BucketJeiTransfer.apply(buffer, this.player.getInventory(), machineSlots);
+            BucketRecipeTransfer.apply(buffer, this.player.getInventory(), machineSlots);
          }
-      //?}
       }
    }
 
@@ -213,7 +209,7 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
    }
 
    @javax.annotation.Nullable
-   protected ItemHandlerSimple getJeiBucketTransferSlots() {
+   protected ItemHandlerSimple getBucketTransferSlots() {
       return null;
    }
 

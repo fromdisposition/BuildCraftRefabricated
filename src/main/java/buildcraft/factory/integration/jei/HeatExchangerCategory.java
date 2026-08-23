@@ -6,11 +6,12 @@
 
 package buildcraft.factory.integration.jei;
 
+import buildcraft.factory.recipe.HeatExchangerRecipePair;
+
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.factory.BCFactoryItems;
 import buildcraft.lib.fluid.stack.FluidStack;
-import buildcraft.lib.integration.jei.FluidContainerAliases;
 import buildcraft.lib.integration.jei.JeiFluids;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
@@ -57,28 +58,28 @@ public class HeatExchangerCategory extends AbstractRecipeCategory<HeatExchangerR
       if (!hIn.isEmpty()) {
          IRecipeSlotBuilder hInSlot = builder.addInputSlot(HOT_IN_X, HOT_IN_Y).setFluidRenderer(hIn.getAmount(), false, HOT_IN_W, HOT_IN_H);
          JeiFluids.addFluidStack(hInSlot, hIn);
-         FluidContainerAliases.addAliases(builder, hIn, RecipeIngredientRole.INPUT);
+         JeiFluids.addContainerAliases(builder, hIn, RecipeIngredientRole.INPUT);
       }
 
       FluidStack cIn = coolable.in();
       if (!cIn.isEmpty()) {
          IRecipeSlotBuilder cInSlot = builder.addInputSlot(COOL_IN_X, COOL_IN_Y).setFluidRenderer(cIn.getAmount(), false, COOL_IN_W, COOL_IN_H);
          JeiFluids.addFluidStack(cInSlot, cIn);
-         FluidContainerAliases.addAliases(builder, cIn, RecipeIngredientRole.INPUT);
+         JeiFluids.addContainerAliases(builder, cIn, RecipeIngredientRole.INPUT);
       }
 
       FluidStack hOut = heatable.out();
       if (hOut != null && !hOut.isEmpty()) {
          IRecipeSlotBuilder hOutSlot = builder.addOutputSlot(HOT_OUT_X, HOT_OUT_Y).setFluidRenderer(hOut.getAmount(), false, HOT_OUT_W, HOT_OUT_H);
          JeiFluids.addFluidStack(hOutSlot, hOut);
-         FluidContainerAliases.addAliases(builder, hOut, RecipeIngredientRole.OUTPUT);
+         JeiFluids.addContainerAliases(builder, hOut, RecipeIngredientRole.OUTPUT);
       }
 
       FluidStack cOut = coolable.out();
       if (cOut != null && !cOut.isEmpty()) {
          IRecipeSlotBuilder cOutSlot = builder.addOutputSlot(COOL_OUT_X, COOL_OUT_Y).setFluidRenderer(cOut.getAmount(), false, COOL_OUT_W, COOL_OUT_H);
          JeiFluids.addFluidStack(cOutSlot, cOut);
-         FluidContainerAliases.addAliases(builder, cOut, RecipeIngredientRole.OUTPUT);
+         JeiFluids.addContainerAliases(builder, cOut, RecipeIngredientRole.OUTPUT);
       }
    }
 }

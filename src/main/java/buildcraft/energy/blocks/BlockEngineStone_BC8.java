@@ -95,11 +95,13 @@ public class BlockEngineStone_BC8 extends BlockEngineBase_BC8 {
       return EngineBlockGui.open(level, pos, player, TileEngineStone_BC8.class);
    }
 
-   public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileEngineStone_BC8 engine) {
-         BlockDropsUtil.dropStack(level, pos, engine.getFuelStack());
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileEngineStone_BC8 tile) {
+         tile.preRemoveSideEffects(pos, state);
       }
-
-      return super.playerWillDestroy(level, pos, state, player);
+      super.onRemove(state, level, pos, newState, movedByPiston);
    }
+   *///?}
 }

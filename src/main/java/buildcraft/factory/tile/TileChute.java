@@ -250,19 +250,6 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
       return new ContainerChute(containerId, playerInv, this);
    }
 
-   //? if >= 1.21.10 {
-   @Override
-   //?}
-   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-      if (this.level != null && !this.level.isClientSide()) {
-         BlockDropsUtil.dropTileContents(this.level, pos, this);
-      }
-
-      //? if >= 1.21.10 {
-      super.preRemoveSideEffects(pos, state);
-      //?}
-   }
-
    @Override
    protected void writeData(BcValueOut output) {
       super.writeData(output);

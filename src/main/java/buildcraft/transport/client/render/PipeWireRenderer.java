@@ -9,6 +9,7 @@ package buildcraft.transport.client.render;
 import buildcraft.api.transport.EnumWirePart;
 import buildcraft.lib.client.model.ModelUtil;
 import buildcraft.lib.client.model.MutableQuad;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import buildcraft.lib.client.sprite.SpriteHolderRegistry;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.transport.tile.TilePipeHolder;
@@ -19,7 +20,6 @@ import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -32,7 +32,7 @@ public class PipeWireRenderer {
    private static final Map<EnumWirePart, MutableQuad[]> partQuads = new EnumMap<>(EnumWirePart.class);
    private static final Map<EnumWireBetween, MutableQuad[]> betweenQuads = new EnumMap<>(EnumWireBetween.class);
    private static final Map<DyeColor, SpriteHolderRegistry.SpriteHolder> wireSprites = new EnumMap<>(DyeColor.class);
-   private static final Map<Long, MutableQuad[]> bakedWireQuads = new ConcurrentHashMap<>();
+   private static final Long2ObjectOpenHashMap<MutableQuad[]> bakedWireQuads = new Long2ObjectOpenHashMap<>();
    private static final ThreadLocal<MutableQuad> RENDER_SCRATCH = ThreadLocal.withInitial(MutableQuad::new);
    private static final int BETWEEN_KEY_OFFSET = 1000;
 
