@@ -30,25 +30,25 @@ public interface StackInsertionFunction {
             ItemStack inserted = toInsert.split(maxSize);
             return new StackInsertionFunction.InsertionResult(inserted, toInsert);
          } else {
-            if (addingTo.getCount() == maxStackSize) {
+            int maxSize = Math.min(maxStackSize, addingTo.getMaxStackSize());
+            // Reject at OR OVER the limit, and against the same limit the merge below uses. Testing only
+            // "== maxStackSize" let an over-full slot fall through: setCount(maxSize) then shrank the stored
+            // stack (destroying the excess) and handed back more than was offered, which the caller reads as a
+            // negative inserted count -- returning more items than it received.
+            if (addingTo.getCount() >= maxSize || !StackUtil.canMerge(addingTo, toInsert)) {
                return new StackInsertionFunction.InsertionResult(addingTo, toInsert);
             }
 
-            if (StackUtil.canMerge(addingTo, toInsert)) {
-               ItemStack complete = addingTo.copy();
-               int count = addingTo.getCount() + toInsert.getCount();
-               int maxSize = Math.min(maxStackSize, complete.getMaxStackSize());
-               if (count <= maxSize) {
-                  complete.setCount(count);
-                  return new StackInsertionFunction.InsertionResult(complete, StackUtil.EMPTY);
-               } else {
-                  complete.setCount(maxSize);
-                  ItemStack leftOver = toInsert.copy();
-                  leftOver.setCount(count - maxSize);
-                  return new StackInsertionFunction.InsertionResult(complete, leftOver);
-               }
+            ItemStack complete = addingTo.copy();
+            int count = addingTo.getCount() + toInsert.getCount();
+            if (count <= maxSize) {
+               complete.setCount(count);
+               return new StackInsertionFunction.InsertionResult(complete, StackUtil.EMPTY);
             } else {
-               return new StackInsertionFunction.InsertionResult(addingTo, toInsert);
+               complete.setCount(maxSize);
+               ItemStack leftOver = toInsert.copy();
+               leftOver.setCount(count - maxSize);
+               return new StackInsertionFunction.InsertionResult(complete, leftOver);
             }
          }
       };
