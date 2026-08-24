@@ -1112,7 +1112,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
          long target = this.getTarget();
          if (this.power >= target) {
             if (!this.finish(microJoules, target)) {
-               TileQuarry.this.battery.addPower(Math.min(this.power, TileQuarry.this.battery.getCapacity() - TileQuarry.this.battery.getStored()), false);
+               TileQuarry.this.battery.addPower(Math.min(this.power, TileQuarry.this.battery.getRoom()), false);
             }
 
             return true;

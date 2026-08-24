@@ -60,7 +60,9 @@ public final class PipeEnergySimulation {
                            : Math.min(available, available * targetQuery / unusedPowerQuery);
                         unusedPowerQuery -= targetQuery;
                         long leftover = sink.receive(face2, watts);
-                        long used = watts - leftover;
+                        // IMjReceiver is public API: a receiver returning more leftover than it was offered made
+                        // "used" negative, and subtractInternalPower(negative) minted MJ inside the pipe.
+                        long used = Math.max(0L, Math.min(watts, watts - leftover));
                         source.subtractInternalPower(used);
                         target.addDebugOutput(used);
                         source.pushPowerAverage((int)used);

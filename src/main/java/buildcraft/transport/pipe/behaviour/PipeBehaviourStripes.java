@@ -126,7 +126,7 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
 
    @Override
    public long getPowerRequested() {
-      return this.battery.getCapacity() - this.battery.getStored();
+      return this.battery.getRoom();
    }
 
    @Override

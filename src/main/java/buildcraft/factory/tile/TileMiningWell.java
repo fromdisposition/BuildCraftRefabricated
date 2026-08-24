@@ -246,7 +246,7 @@ public class TileMiningWell extends TileMiner {
          this.mjReceiver = new IMjReceiver() {
             @Override
             public long getPowerRequested() {
-               return TileMiningWell.this.battery.getCapacity() - TileMiningWell.this.battery.getStored();
+               return TileMiningWell.this.battery.getRoom();
             }
 
             @Override

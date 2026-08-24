@@ -402,7 +402,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
          return 0L;
       }
 
-      long need = robot.getBattery().getCapacity() - robot.getBattery().getStored();
+      long need = robot.getBattery().getRoom();
       if (need <= 0L) {
          return 0L;
       }
@@ -440,7 +440,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
          return 0L;
       }
 
-      long need = robot.getBattery().getCapacity() - robot.getBattery().getStored();
+      long need = robot.getBattery().getRoom();
       long give = Math.min(need, this.powerBuffer);
       if (give <= 0L) {
          return 0L;

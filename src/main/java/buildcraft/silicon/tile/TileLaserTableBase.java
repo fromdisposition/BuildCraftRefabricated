@@ -149,8 +149,8 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
 
          @Override
          public long addPower(long microJoules, boolean simulate) {
-            long room = this.getCapacity() - this.getStored();
-            if (room <= 0L) {
+            long room = Math.max(0L, this.getCapacity() - this.getStored());
+            if (microJoules <= 0L || room <= 0L) {
                return microJoules;
             }
 

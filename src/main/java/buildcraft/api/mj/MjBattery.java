@@ -54,8 +54,7 @@ public class MjBattery {
          return microJoulesToAdd;
       }
 
-      long room = Math.max(0L, this.capacity - this.microJoules);
-      long accepted = Math.min(microJoulesToAdd, room);
+      long accepted = Math.min(microJoulesToAdd, this.getRoom());
       if (!simulate) {
          this.microJoules += accepted;
       }
@@ -83,6 +82,12 @@ public class MjBattery {
       long extracting = Math.min(this.microJoules, max);
       this.microJoules -= extracting;
       return extracting;
+   }
+
+   /** Free space, never negative: callers subtracting getStored() from getCapacity() by hand reported a negative
+    * request whenever a battery sat above its nominal capacity, which reads downstream as "give me back power". */
+   public long getRoom() {
+      return Math.max(0L, this.capacity - this.microJoules);
    }
 
    public boolean isFull() {

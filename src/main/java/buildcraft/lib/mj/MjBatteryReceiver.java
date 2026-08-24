@@ -26,7 +26,7 @@ public class MjBatteryReceiver implements IMjReceiver, IMjReadable {
 
    @Override
    public long getPowerRequested() {
-      return this.battery.getCapacity() - this.battery.getStored();
+      return this.battery.getRoom();
    }
 
    @Override

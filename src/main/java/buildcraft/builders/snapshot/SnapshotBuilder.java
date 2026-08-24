@@ -153,13 +153,13 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
    private void cancelBreakTask(SnapshotBuilder<T>.BreakTask breakTask) {
       if (this.tile.getWorldBC() != null && !this.tile.getWorldBC().isClientSide()) {
-         this.tile.getBattery().addPower(Math.min(breakTask.power, this.tile.getBattery().getCapacity() - this.tile.getBattery().getStored()), false);
+         this.tile.getBattery().addPower(Math.min(breakTask.power, this.tile.getBattery().getRoom()), false);
       }
    }
 
    protected void cancelPlaceTask(SnapshotBuilder<T>.PlaceTask placeTask) {
       if (this.tile.getWorldBC() != null && !this.tile.getWorldBC().isClientSide()) {
-         this.tile.getBattery().addPower(Math.min(placeTask.power, this.tile.getBattery().getCapacity() - this.tile.getBattery().getStored()), false);
+         this.tile.getBattery().addPower(Math.min(placeTask.power, this.tile.getBattery().getRoom()), false);
       }
    }
 
