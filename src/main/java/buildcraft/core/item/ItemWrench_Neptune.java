@@ -7,11 +7,13 @@
 package buildcraft.core.item;
 
 import buildcraft.api.blocks.CustomRotationHelper;
+import buildcraft.lib.misc.BreakEventCompat;
 import buildcraft.lib.misc.EntityUtil;
 import buildcraft.lib.misc.SoundUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -96,6 +98,16 @@ public class ItemWrench_Neptune extends Item {
       }
 
       if (!world.isClientSide()) {
+         // Dismantling removes the block, so it must clear the same protection a normal break does. Without this
+         // the wrench took machines out of land that forbids breaking but allows interaction -- every BuildCraft
+         // machine already routes through BreakEventCompat via BlockUtil.canMachineBreak, only the wrench did not.
+         // The real player is passed (not canMachineBreak's fake one, which is for machines mining someone
+         // else's land and is disabled by the minePlayerProtected config).
+         if (!world.mayInteract(player, pos)
+            || world instanceof ServerLevel serverLevel && !BreakEventCompat.canBreak(serverLevel, pos, state, player)) {
+            return InteractionResult.PASS;
+         }
+
          // Run the block's own break logic first: a machine drops its inventory and the quarry tears down its
          // frame lattice inside playerWillDestroy, which world.removeBlock skips. Without this the wrench would
          // silently void machine contents and orphan quarry frames.
