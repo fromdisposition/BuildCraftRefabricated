@@ -34,6 +34,8 @@ import net.minecraft.world.phys.Vec3;
 public class BoardRobotBuilder extends RedstoneBoardRobot {
    private static final double REACH = 5.0;
 
+   private int lastCarried = -1;
+
    @Nullable
    private buildcraft.robotics.robot.RobotBlueprintContext context;
    @Nullable
@@ -67,6 +69,15 @@ public class BoardRobotBuilder extends RedstoneBoardRobot {
 
       BlueprintBuilder builder = this.context.getBlueprintBuilder();
 
+      // The builder caches "cannot afford this block" per position and only re-checks when it is told the
+      // resources changed. A machine builder is told by its inventory; a robot carries its own, so it has to
+      // report the change itself -- otherwise it fetches materials and then never spends them.
+      int carried = this.carriedCount(entityRobot);
+      if (carried != this.lastCarried) {
+         this.lastCarried = carried;
+         builder.resourcesChanged();
+      }
+
       ItemStack missing = this.firstMissingRequired(builder);
       if (missing != null && this.robot.hasFreeSlot() && !this.materialsUnavailable) {
          IStackFilter filter = stack -> StackUtil.canMerge(missing, stack);
@@ -76,6 +87,9 @@ public class BoardRobotBuilder extends RedstoneBoardRobot {
 
       Vec3 centroid = this.activeCentroid(builder);
       if (centroid != null) {
+         // A docked robot is pinned to its station every tick, so a destination alone never moves it. Every other
+         // board leaves the dock through AIRobotGotoBlock; this one flies itself and has to let go by hand.
+         this.robot.undock();
          entityRobot.destination = centroid.add(0.0, 2.0, 0.0);
          this.robot.aimItemAt(BlockPos.containing(centroid));
          this.context.setInRange(this.robot.position().distanceTo(centroid) < REACH);
@@ -196,6 +210,15 @@ public class BoardRobotBuilder extends RedstoneBoardRobot {
       }
 
       this.context = null;
+   }
+
+   private int carriedCount(EntityRobot robot) {
+      int n = 0;
+      for (int slot = 0; slot < EntityRobot.NB_ITEMS_SLOTS; slot++) {
+         n += robot.getStackInSlot(slot).getCount();
+      }
+
+      return n;
    }
 
    @Nullable
