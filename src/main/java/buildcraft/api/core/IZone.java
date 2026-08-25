@@ -24,4 +24,13 @@ public interface IZone {
    }
 
    BlockPos getRandomBlockPos(Random var1);
+
+   /**
+    * Horizontal extent of the zone, or {@code null} if it has none. Entity and item lookups need a finite box to
+    * gather candidates from; without this they have to guess one large enough for any drawn zone, which costs the
+    * same whether the painted area is four chunks or four hundred. {@link #contains} still does the real clamp.
+    */
+   default net.minecraft.world.phys.AABB horizontalBounds() {
+      return null;
+   }
 }

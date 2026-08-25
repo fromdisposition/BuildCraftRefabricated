@@ -21,6 +21,9 @@ public class AIRobotBreak extends AIRobotGoto {
    private BlockPos blockToBreak;
    private long energyNeeded;
    private long energySpent;
+   /** Last broadcast crack stage. destroyBlockProgress goes to every player tracking the position, so sending it
+    *  unchanged every tick was one packet per robot per tick for an image that had not moved. */
+   private int lastStage = -1;
 
    public AIRobotBreak(EntityRobotBase robot) {
       super(robot);
@@ -58,8 +61,11 @@ public class AIRobotBreak extends AIRobotGoto {
       long extracted = this.robot.getBattery().extractPower(1L, want);
       this.energySpent += extracted;
 
-      int stage = this.energyNeeded <= 0L ? 9 : (int)(this.energySpent * 9L / this.energyNeeded);
-      this.robot.level().destroyBlockProgress(this.robot.getId(), this.blockToBreak, Math.min(9, stage));
+      int stage = Math.min(9, this.energyNeeded <= 0L ? 9 : (int)(this.energySpent * 9L / this.energyNeeded));
+      if (stage != this.lastStage) {
+         this.lastStage = stage;
+         this.robot.level().destroyBlockProgress(this.robot.getId(), this.blockToBreak, stage);
+      }
 
       if (this.energySpent >= this.energyNeeded) {
          this.harvest();

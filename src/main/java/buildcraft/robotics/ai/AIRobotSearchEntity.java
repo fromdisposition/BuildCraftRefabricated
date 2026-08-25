@@ -40,8 +40,7 @@ public class AIRobotSearchEntity extends AIRobot {
       // of DEFAULT_SEARCH_RANGE around the station; a Zone Planner area overrides it (wider query box, zone.contains
       // does the real clamp). Nearest-to-robot still wins among the eligible targets so the robot heads to the closest.
       Vec3 anchor = this.robot.getWorkAnchor();
-      float queryRange = this.zone != null ? EntityRobotBase.ZONE_SEARCH_RANGE : this.maxRange;
-      AABB box = new AABB(anchor, anchor).inflate(queryRange);
+      AABB box = queryBox(anchor, this.zone, this.maxRange);
 
       for (Entity e : this.robot.level().getEntitiesOfClass(Entity.class, box, e -> e.isAlive() && this.filter.matches(e))) {
          if (this.robot.isKnownUnreachable(e)) {
@@ -79,5 +78,20 @@ public class AIRobotSearchEntity extends AIRobot {
    @Override
    public long getPowerCost() {
       return MjAPI.MJ / 5L;
+   }
+
+   /** The candidate-gathering box: the zone's own footprint when it has one, otherwise the leash sphere. */
+   static AABB queryBox(Vec3 anchor, IZone zone, float range) {
+      if (zone == null) {
+         return new AABB(anchor, anchor).inflate(range);
+      }
+
+      AABB bounds = zone.horizontalBounds();
+      if (bounds == null) {
+         return new AABB(anchor, anchor).inflate(EntityRobotBase.ZONE_SEARCH_RANGE);
+      }
+
+      double reach = EntityRobotBase.ZONE_SEARCH_RANGE;
+      return new AABB(bounds.minX, anchor.y - reach, bounds.minZ, bounds.maxX, anchor.y + reach, bounds.maxZ);
    }
 }

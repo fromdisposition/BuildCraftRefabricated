@@ -103,6 +103,26 @@ public class ZonePlan implements IZone {
       return zonePlan;
    }
 
+   @Override
+   public net.minecraft.world.phys.AABB horizontalBounds() {
+      if (this.chunkMapping.isEmpty()) {
+         return null;
+      }
+
+      int minX = Integer.MAX_VALUE;
+      int minZ = Integer.MAX_VALUE;
+      int maxX = Integer.MIN_VALUE;
+      int maxZ = Integer.MIN_VALUE;
+      for (ChunkPos chunk : this.chunkMapping.keySet()) {
+         minX = Math.min(minX, chunk.getMinBlockX());
+         minZ = Math.min(minZ, chunk.getMinBlockZ());
+         maxX = Math.max(maxX, chunk.getMaxBlockX() + 1);
+         maxZ = Math.max(maxZ, chunk.getMaxBlockZ() + 1);
+      }
+
+      return new net.minecraft.world.phys.AABB(minX, 0.0, minZ, maxX, 0.0, maxZ);
+   }
+
    public boolean hasChunk(ChunkPos chunkPos) {
       return this.chunkMapping.containsKey(chunkPos);
    }

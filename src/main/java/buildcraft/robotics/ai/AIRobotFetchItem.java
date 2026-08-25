@@ -123,8 +123,7 @@ public class AIRobotFetchItem extends AIRobot {
       // Same station leash as the mob search: no zone -> a fixed sphere around the home station; a Zone Planner area
       // overrides it (wider query box, zone.contains clamps). Nearest-to-robot wins among the eligible drops.
       Vec3 anchor = this.robot.getWorkAnchor();
-      float queryRange = this.zone != null ? EntityRobotBase.ZONE_SEARCH_RANGE : this.maxRange;
-      AABB box = new AABB(anchor, anchor).inflate(queryRange);
+      AABB box = queryBox(anchor, this.zone, this.maxRange);
 
       for (ItemEntity e : this.robot.level().getEntitiesOfClass(ItemEntity.class, box, ItemEntity::isAlive)) {
          if (isClaimed(this.robot.level(), e.getId()) || this.robot.isKnownUnreachable(e)) {
@@ -167,5 +166,20 @@ public class AIRobotFetchItem extends AIRobot {
    @Override
    public long getPowerCost() {
       return MjAPI.MJ * 3L / 2L;
+   }
+
+   /** The candidate-gathering box: the zone's own footprint when it has one, otherwise the leash sphere. */
+   static AABB queryBox(Vec3 anchor, IZone zone, float range) {
+      if (zone == null) {
+         return new AABB(anchor, anchor).inflate(range);
+      }
+
+      AABB bounds = zone.horizontalBounds();
+      if (bounds == null) {
+         return new AABB(anchor, anchor).inflate(EntityRobotBase.ZONE_SEARCH_RANGE);
+      }
+
+      double reach = EntityRobotBase.ZONE_SEARCH_RANGE;
+      return new AABB(bounds.minX, anchor.y - reach, bounds.minZ, bounds.maxX, anchor.y + reach, bounds.maxZ);
    }
 }

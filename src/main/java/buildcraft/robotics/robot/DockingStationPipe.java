@@ -275,6 +275,18 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
    }
 
    @Override
+   public void writeToNBT(net.minecraft.nbt.CompoundTag nbt) {
+      super.writeToNBT(nbt);
+      nbt.putLong("powerBuffer", this.powerBuffer);
+   }
+
+   @Override
+   public void readFromNBT(net.minecraft.nbt.CompoundTag nbt) {
+      super.readFromNBT(nbt);
+      this.powerBuffer = Math.max(0L, Math.min(POWER_BUFFER_CAP, buildcraft.lib.nbt.BcNbt.getLong(nbt, "powerBuffer", 0L)));
+   }
+
+   @Override
    public int getRequestsCount() {
       return 127;
    }
