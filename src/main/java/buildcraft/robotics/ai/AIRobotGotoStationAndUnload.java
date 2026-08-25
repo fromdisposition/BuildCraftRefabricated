@@ -9,6 +9,7 @@ package buildcraft.robotics.ai;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.robots.RobotIdleReason;
 
 public class AIRobotGotoStationAndUnload extends AIRobot {
    private DockingStation station;
@@ -44,5 +45,10 @@ public class AIRobotGotoStationAndUnload extends AIRobot {
          this.setSuccess(ai.success());
          this.terminate();
       }
+   }
+
+   @Override
+   public void end() {
+      this.robot.reportProgress(this.success(), RobotIdleReason.NO_DESTINATION);
    }
 }

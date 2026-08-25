@@ -9,6 +9,7 @@ package buildcraft.robotics.ai;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.robots.RobotIdleReason;
 
 public class AIRobotGotoStationAndLoad extends AIRobot {
    private IStackFilter filter;
@@ -42,5 +43,10 @@ public class AIRobotGotoStationAndLoad extends AIRobot {
          this.setSuccess(ai.success());
          this.terminate();
       }
+   }
+
+   @Override
+   public void end() {
+      this.robot.reportProgress(this.success(), RobotIdleReason.NO_SOURCE);
    }
 }

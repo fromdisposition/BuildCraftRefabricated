@@ -86,7 +86,13 @@ public class ItemRobot extends Item {
       ItemStack stack = context.getItemInHand();
       RedstoneBoardRobotNBT boardNBT = getRobotNBT(stack);
       if (boardNBT == RedstoneBoardRegistry.instance.getEmptyRobotBoard()) {
-         return InteractionResult.PASS;
+         // A blank robot silently doing nothing reads as a broken station. Say what is missing instead.
+         if (!level.isClientSide() && context.getPlayer() != null) {
+            buildcraft.lib.misc.MessageUtil.sendSystemMessage(context.getPlayer(),
+               Component.translatable("buildcraft.robot.deploy.no_board").withStyle(net.minecraft.ChatFormatting.RED));
+         }
+
+         return InteractionResult.FAIL;
       }
 
       if (level.isClientSide()) {
@@ -111,6 +117,11 @@ public class ItemRobot extends Item {
       // so no orphan entity is ever added to the world.
       if (!station.takeAsMain(robot)) {
          robot.getRegistry().killRobot(robot);
+         if (context.getPlayer() != null) {
+            buildcraft.lib.misc.MessageUtil.sendSystemMessage(context.getPlayer(),
+               Component.translatable("buildcraft.robot.deploy.station_taken").withStyle(net.minecraft.ChatFormatting.RED));
+         }
+
          return InteractionResult.FAIL;
       }
 

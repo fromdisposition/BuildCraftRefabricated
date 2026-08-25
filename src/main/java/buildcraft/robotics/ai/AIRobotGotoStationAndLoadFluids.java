@@ -8,6 +8,7 @@ package buildcraft.robotics.ai;
 
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.robots.RobotIdleReason;
 import buildcraft.robotics.path.IFluidFilter;
 
 public class AIRobotGotoStationAndLoadFluids extends AIRobot {
@@ -40,5 +41,10 @@ public class AIRobotGotoStationAndLoadFluids extends AIRobot {
          this.setSuccess(ai.success());
          this.terminate();
       }
+   }
+
+   @Override
+   public void end() {
+      this.robot.reportProgress(this.success(), RobotIdleReason.NO_SOURCE);
    }
 }

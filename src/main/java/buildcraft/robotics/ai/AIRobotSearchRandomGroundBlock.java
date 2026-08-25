@@ -10,6 +10,7 @@ import buildcraft.api.core.IZone;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.robots.RobotIdleReason;
 import buildcraft.robotics.path.IBlockFilter;
 import net.minecraft.core.BlockPos;
 
@@ -75,6 +76,11 @@ public class AIRobotSearchRandomGroundBlock extends AIRobot {
             return;
          }
       }
+   }
+
+   @Override
+   public void end() {
+      this.robot.reportProgress(this.success(), RobotIdleReason.NO_WORK);
    }
 
    @Override

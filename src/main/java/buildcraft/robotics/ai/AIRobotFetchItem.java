@@ -88,6 +88,8 @@ public class AIRobotFetchItem extends AIRobot {
       if (this.target != null) {
          targettedItems.remove(this.target.getId());
       }
+
+      this.robot.reportProgress(this.success(), buildcraft.api.robots.RobotIdleReason.NO_WORK);
    }
 
    private void scanForItem() {

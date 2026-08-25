@@ -10,6 +10,7 @@ import buildcraft.api.core.IZone;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.robots.RobotIdleReason;
 import buildcraft.robotics.path.IEntityFilter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
@@ -63,6 +64,11 @@ public class AIRobotSearchEntity extends AIRobot {
       }
 
       this.terminate();
+   }
+
+   @Override
+   public void end() {
+      this.robot.reportProgress(this.success(), RobotIdleReason.NO_WORK);
    }
 
    @Override

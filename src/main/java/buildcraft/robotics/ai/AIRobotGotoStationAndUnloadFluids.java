@@ -8,6 +8,7 @@ package buildcraft.robotics.ai;
 
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.robots.RobotIdleReason;
 
 public class AIRobotGotoStationAndUnloadFluids extends AIRobot {
    public AIRobotGotoStationAndUnloadFluids(EntityRobotBase robot) {
@@ -32,5 +33,10 @@ public class AIRobotGotoStationAndUnloadFluids extends AIRobot {
          this.setSuccess(ai.success());
          this.terminate();
       }
+   }
+
+   @Override
+   public void end() {
+      this.robot.reportProgress(this.success(), RobotIdleReason.NO_DESTINATION);
    }
 }

@@ -11,6 +11,7 @@ import buildcraft.api.core.IZone;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.robots.RobotIdleReason;
 import buildcraft.api.robots.ResourceIdBlock;
 import buildcraft.robotics.path.BlockScannerExpanding;
 import buildcraft.robotics.path.IBlockFilter;
@@ -197,6 +198,11 @@ public class AIRobotSearchBlock extends AIRobot {
       if (this.blockFound != null) {
          this.robot.getRegistry().release(new ResourceIdBlock(this.blockFound));
       }
+   }
+
+   @Override
+   public void end() {
+      this.robot.reportProgress(this.success(), RobotIdleReason.NO_WORK);
    }
 
    @Override
