@@ -1071,7 +1071,6 @@
   "buildcraft.robot.idle.no_power": "Shut down: out of power",
   "buildcraft.robot.inspect.home": "Home station: %s",
   "buildcraft.robot.inspect.no_home": "none",
-  "buildcraft.robot.deploy.no_board": "This robot has no board. Combine it with a programmed board at an Integration Table.",
   "buildcraft.robot.deploy.station_taken": "This docking station already has a robot.",
   "buildcraft.colour.clean": "Clean",
   "gui.buildcraft.filler.locked": "Locked",

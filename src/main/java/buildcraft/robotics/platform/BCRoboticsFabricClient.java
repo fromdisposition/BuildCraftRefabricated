@@ -1,6 +1,7 @@
 package buildcraft.robotics.platform;
 
 import buildcraft.robotics.BCRoboticsEntities;
+import buildcraft.robotics.BCRoboticsItems;
 import buildcraft.robotics.BCRoboticsMenuTypes;
 import buildcraft.robotics.gui.GuiRequester;
 import buildcraft.robotics.gui.GuiZonePlanner;
@@ -16,7 +17,30 @@ public final class BCRoboticsFabricClient {
    private BCRoboticsFabricClient() {
    }
 
+   private static void onModifyBakingResult(buildcraft.fabric.client.event.ModelEvent.ModifyBakingResult event) {
+      if (BCRoboticsItems.ROBOT == null) {
+         return;
+      }
+
+      net.minecraft.resources.Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(BCRoboticsItems.ROBOT);
+      //? if >= 1.21.10 {
+      java.util.Map<net.minecraft.resources.Identifier, net.minecraft.client.renderer.item.ItemModel> models =
+         event.getBakingResult().itemStackModels();
+      if (models.get(id) != null) {
+         models.put(id, new buildcraft.robotics.client.render.RobotItemModel());
+      }
+      //?} else {
+      /*event.getModels().put(net.minecraft.client.resources.model.ModelIdentifier.inventory(id),
+         new buildcraft.robotics.client.render.RobotItemModel());
+      *///?}
+   }
+
    public static void init() {
+      buildcraft.lib.fabric.client.FabricModelModifyHooks.register(BCRoboticsFabricClient::onModifyBakingResult);
+      //? if < 1.21.10 {
+      /*buildcraft.robotics.client.render.RobotItemModel.register();
+      *///?}
+
       if (BCRoboticsMenuTypes.ZONE_PLANNER != null) {
          MenuScreens.register(BCRoboticsMenuTypes.ZONE_PLANNER, GuiZonePlanner::new);
       }

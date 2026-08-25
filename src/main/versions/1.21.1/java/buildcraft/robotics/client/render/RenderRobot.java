@@ -40,7 +40,7 @@ public class RenderRobot extends EntityRenderer<EntityRobot> {
     * them, and how they travel over the entity's synched data). A render type needs the resolved file location,
     * so expand them to {@code textures/<name>.png} exactly like a vanilla entity texture location.
     */
-   private static Identifier tex(Identifier logical) {
+   static Identifier tex(Identifier logical) {
       return Identifier.fromNamespaceAndPath(logical.getNamespace(), "textures/" + logical.getPath() + ".png");
    }
    private static final float RADIUS = 0.25F;
@@ -50,7 +50,7 @@ public class RenderRobot extends EntityRenderer<EntityRobot> {
    // colour/light vary). Avoids allocating 6-18 MutableQuad + UvFaceData per robot per frame. Safe to share:
    // entity rendering is single-threaded and MutableQuad.render() transforms into scratch + the buffer, never
    // mutating the quad's stored geometry.
-   private static final MutableQuad[] FACES = buildFaces();
+   static final MutableQuad[] FACES = buildFaces();
 
    private static MutableQuad[] buildFaces() {
       Direction[] dirs = Direction.values();
