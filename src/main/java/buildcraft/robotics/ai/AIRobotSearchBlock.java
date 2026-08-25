@@ -143,9 +143,8 @@ public class AIRobotSearchBlock extends AIRobot {
             float a = this.robot.level().getRandom().nextFloat() * 2.0F * (float)Math.PI;
             bx = (int)(Math.cos(a) * r + this.origin.getX());
             bz = (int)(Math.sin(a) * r + this.origin.getZ());
-            // Follow the ground, not the station's own height. Pinning Y to the station meant a planter whose
-            // pipe ran a block above the field scanned thin air forever and never planted anything. The heightmap
-            // gives the surface in one lookup, and the leash sphere still bounds how far that can be.
+            // Follow the ground rather than the station's own height: the heightmap gives the surface in one
+            // lookup, and the leash sphere still bounds how far from home that surface may be.
             if (!this.robot.level().getChunkSource().hasChunk(bx >> 4, bz >> 4)) {
                continue;
             }

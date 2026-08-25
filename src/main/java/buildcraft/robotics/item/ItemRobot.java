@@ -86,7 +86,7 @@ public class ItemRobot extends Item {
       ItemStack stack = context.getItemInHand();
       RedstoneBoardRobotNBT boardNBT = getRobotNBT(stack);
       if (boardNBT == RedstoneBoardRegistry.instance.getEmptyRobotBoard()) {
-         // A blank robot silently doing nothing reads as a broken station. Say what is missing instead.
+         // Say what is missing: a blank robot that just does nothing reads as a broken station.
          if (!level.isClientSide() && context.getPlayer() != null) {
             buildcraft.lib.misc.MessageUtil.sendSystemMessage(context.getPlayer(),
                Component.translatable("buildcraft.robot.deploy.no_board").withStyle(net.minecraft.ChatFormatting.RED));

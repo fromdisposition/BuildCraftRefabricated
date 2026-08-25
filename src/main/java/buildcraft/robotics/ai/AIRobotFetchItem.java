@@ -23,10 +23,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class AIRobotFetchItem extends AIRobot {
-   /** Drops another robot is already on its way to, per level. Entity ids are only unique within a level and
-    *  are reused, so one global set made a picker in the Nether reserve a drop in the Overworld. Each claim
-    *  carries a deadline as well: a robot discarded mid-fetch never runs end(), and a permanent entry made that
-    *  drop invisible to every picker for the rest of the session. */
+   /** Drops another robot is already on its way to. Keyed per level, because entity ids are only unique within
+    *  one, and every claim carries a deadline, because a robot discarded mid-fetch never gets to release it. */
    private static final Map<Level, Map<Integer, Long>> TARGETTED_ITEMS = Collections.synchronizedMap(new WeakHashMap<>());
    private static final long CLAIM_TTL_TICKS = 30L * 20L;
 

@@ -61,9 +61,8 @@ public class AIRobotPlant extends AIRobotGoto {
          }
 
          ServerPlayer player = BuildCraftAPI.fakePlayerProvider.getFakePlayer(serverLevel, this.robot.getOwner(), this.blockFound);
-         // plantCrop consumes one seed from the held stack when it succeeds, and nothing when it fails. Either
-         // way the robot keeps what is left: dropping the remainder on the ground littered the field with seed
-         // on every failed plant and forced a round trip to the chest for each single one that worked.
+         // plantCrop consumes one seed from the held stack on success and nothing on failure; either way the
+         // robot keeps the remainder and plants again from it.
          ItemStack seed = this.robot.getHeldItem();
          if (!CropManager.plantCrop(serverLevel, player, seed, this.blockFound)) {
             this.setSuccess(false);

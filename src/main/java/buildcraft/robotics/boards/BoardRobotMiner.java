@@ -43,8 +43,7 @@ public class BoardRobotMiner extends BoardRobotGenericBreakBlock {
          return false;
       }
 
-      // Ask the tool itself instead of guessing a tier from the item's registry name -- that guess put every
-      // modded pickaxe at the lowest tier, so a robot holding one could only mine coal.
+      // The tool itself decides, so any modded pickaxe and any modded ore work without a tier table.
       ItemStack tool = this.robot.getHeldItem();
       return !tool.isEmpty() && tool.isCorrectToolForDrops(world.getBlockState(pos));
    }
