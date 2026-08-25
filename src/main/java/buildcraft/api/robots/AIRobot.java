@@ -131,6 +131,9 @@ public class AIRobot {
       this.abortDelegateAI();
       this.delegateAI = ai;
       ai.parentAI = this;
+      // "finished" means "ended since it was last started". Boards are long-lived instances that AIRobotMain
+      // restarts every cycle, so a board that once aborted must be able to run again.
+      ai.finished = false;
       this.delegateAI.start();
    }
 
