@@ -6,33 +6,20 @@
 
 package buildcraft.robotics.boards;
 
-import buildcraft.lib.nbt.BcNbt;
-import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
 import buildcraft.api.core.BuildCraftAPI;
-import buildcraft.api.core.IWorldProperty;
-import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.api.robots.ResourceIdBlock;
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotRunErrand;
-import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.ai.AIRobotPumpBlock;
-import buildcraft.robotics.ai.AIRobotSearchAndGotoBlock;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.path.IBlockFilter;
 import buildcraft.robotics.path.IFluidFilter;
 import buildcraft.robotics.path.PassThroughFluidFilter;
 import buildcraft.robotics.statement.StationActions;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 
-public class BoardRobotPump extends RedstoneBoardRobot {
-   private BlockPos blockFound;
-   private IFluidFilter fluidFilter;
-
+public class BoardRobotPump extends BoardRobotGenericSearchBlock {
    public BoardRobotPump(EntityRobotBase robot) {
       super(robot);
    }
@@ -43,86 +30,38 @@ public class BoardRobotPump extends RedstoneBoardRobot {
    }
 
    @Override
-   public void update() {
-      if (this.robot.hasFluid()) {
-         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadFluids()));
-      } else {
-         final IWorldProperty isFluidSource = BuildCraftAPI.getWorldProperty("fluidSource");
-         this.updateFilter();
-         this.startDelegateAI(new AIRobotSearchAndGotoBlock(this.robot, false, new IBlockFilter() {
-            @Override
-            public boolean matches(Level world, BlockPos pos) {
-               return isFluidSource.get(world, pos)
-                  && !BoardRobotPump.this.robot.getRegistry().isTaken(new ResourceIdBlock(pos))
-                  && BoardRobotPump.this.matchesGateFilter(world, pos);
-            }
-         }));
-      }
+   public boolean isExpectedBlock(Level world, BlockPos pos) {
+      return BuildCraftAPI.getWorldProperty("fluidSource").get(world, pos);
    }
 
    @Override
-   public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotSearchAndGotoBlock search) {
-         if (ai.success()) {
-            this.blockFound = search.getBlockFound();
-            this.startDelegateAI(new AIRobotPumpBlock(this.robot, this.blockFound));
-         } else {
-            this.startDelegateAI(new AIRobotGotoSleep(this.robot));
-         }
-      } else if (ai instanceof AIRobotPumpBlock) {
-         this.releaseBlockFound();
-      } else if (ai instanceof AIRobotRunErrand && !ai.success()) {
-         this.startDelegateAI(new AIRobotGotoSleep(this.robot));
+   protected IBlockFilter gateFilter() {
+      IFluidFilter filter = StationActions.getGateFluidFilter(this.robot.getLinkedStation());
+      if (filter instanceof PassThroughFluidFilter) {
+         return (world, pos) -> true;
       }
+
+      return (world, pos) -> filter.matches(BlockUtil.getFluid(world, pos));
+   }
+
+   /** The tank holds one draw at a time, so any fluid at all means the next stop is a station. */
+   @Override
+   protected boolean hasCargo() {
+      return this.robot.hasFluid();
    }
 
    @Override
-   public void end() {
-      this.releaseBlockFound();
-   }
-
-   private void updateFilter() {
-      this.fluidFilter = StationActions.getGateFluidFilter(this.robot.getLinkedStation());
-      if (this.fluidFilter instanceof PassThroughFluidFilter) {
-         this.fluidFilter = null;
-      }
-   }
-
-   private boolean matchesGateFilter(Level world, BlockPos pos) {
-      if (this.fluidFilter == null) {
-         return true;
-      }
-
-      Fluid fluid = BlockUtil.getFluid(world, pos);
-      return this.fluidFilter.matches(fluid);
-   }
-
-   private void releaseBlockFound() {
-      if (this.blockFound != null) {
-         this.robot.getRegistry().release(new ResourceIdBlock(this.blockFound));
-         this.blockFound = null;
-      }
+   protected boolean cargoFull() {
+      return this.robot.hasFluid();
    }
 
    @Override
-   public boolean canLoadFromNBT() {
-      return true;
+   protected StationErrand deliveryErrand() {
+      return StationErrand.unloadFluids();
    }
 
    @Override
-   public void writeSelfToNBT(CompoundTag nbt) {
-      super.writeSelfToNBT(nbt);
-      if (this.blockFound != null) {
-         nbt.putIntArray("blockFound", new int[]{this.blockFound.getX(), this.blockFound.getY(), this.blockFound.getZ()});
-      }
-   }
-
-   @Override
-   public void loadSelfFromNBT(CompoundTag nbt) {
-      super.loadSelfFromNBT(nbt);
-      int[] arr = BcNbt.getIntArray(nbt, "blockFound");
-      if (arr.length == 3) {
-         this.blockFound = new BlockPos(arr[0], arr[1], arr[2]);
-      }
+   protected void startWorkOn(BlockPos pos) {
+      this.startDelegateAI(new AIRobotPumpBlock(this.robot, pos));
    }
 }

@@ -6,31 +6,18 @@
 
 package buildcraft.robotics.boards;
 
-import buildcraft.lib.nbt.BcNbt;
-import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.crops.CropManager;
-import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.api.robots.ResourceIdBlock;
-import buildcraft.robotics.ai.AIRobotFetchAndEquipItemStack;
-import buildcraft.robotics.ai.AIRobotGotoSleep;
 import buildcraft.robotics.ai.AIRobotPlant;
-import buildcraft.robotics.ai.AIRobotSearchAndGotoBlock;
-import buildcraft.robotics.path.IBlockFilter;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-public class BoardRobotPlanter extends RedstoneBoardRobot {
+public class BoardRobotPlanter extends BoardRobotGenericSearchBlock {
    /** One trip to the chest per stack of seed, not per seed planted. */
-   private static final int MAX_SEEDS_CARRIED = 64;
-
-   private BlockPos blockFound;
-   private final IStackFilter filter = CropManager::isSeed;
+   private static final int SEEDS_CARRIED = 64;
 
    public BoardRobotPlanter(EntityRobotBase robot) {
       super(robot);
@@ -42,70 +29,28 @@ public class BoardRobotPlanter extends RedstoneBoardRobot {
    }
 
    @Override
-   public void update() {
-      if (this.robot.getHeldItem().isEmpty()) {
-         this.startDelegateAI(new AIRobotFetchAndEquipItemStack(this.robot, this.filter, MAX_SEEDS_CARRIED));
-      } else {
-         ItemStack itemStack = this.robot.getHeldItem();
-         IBlockFilter blockFilter = new IBlockFilter() {
-            @Override
-            public boolean matches(Level world, BlockPos pos) {
-               return !BuildCraftAPI.getWorldProperty("replaceable").get(world, pos)
-                  && CropManager.canSustainPlant(world, itemStack, pos)
-                  && !BoardRobotPlanter.this.robot.getRegistry().isTaken(new ResourceIdBlock(pos));
-            }
-         };
-         // maxDistanceToEnd must stay 0: it is measured from the robot's own position, so any positive value (the
-         // old 1.0) rejected every random spot more than a block away and the planter found nothing to plant. The
-         // station leash already bounds where the random scan looks.
-         this.startDelegateAI(new AIRobotSearchAndGotoBlock(this.robot, true, blockFilter, 0.0));
-      }
+   protected IStackFilter toolFilter() {
+      return CropManager::isSeed;
    }
 
    @Override
-   public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotSearchAndGotoBlock search) {
-         if (ai.success()) {
-            this.blockFound = search.getBlockFound();
-            this.startDelegateAI(new AIRobotPlant(this.robot, this.blockFound));
-         } else {
-            this.startDelegateAI(new AIRobotGotoSleep(this.robot));
-         }
-      } else if (ai instanceof AIRobotPlant) {
-         this.releaseBlockFound();
-      } else if (ai instanceof AIRobotFetchAndEquipItemStack) {
-         if (!ai.success()) {
-            this.startDelegateAI(new AIRobotGotoSleep(this.robot));
-         }
-      }
-   }
-
-   private void releaseBlockFound() {
-      if (this.blockFound != null) {
-         this.robot.getRegistry().release(new ResourceIdBlock(this.blockFound));
-         this.blockFound = null;
-      }
+   protected int toolAmount() {
+      return SEEDS_CARRIED;
    }
 
    @Override
-   public boolean canLoadFromNBT() {
+   protected boolean randomSearch() {
       return true;
    }
 
    @Override
-   public void writeSelfToNBT(CompoundTag nbt) {
-      super.writeSelfToNBT(nbt);
-      if (this.blockFound != null) {
-         nbt.putIntArray("blockFound", new int[]{this.blockFound.getX(), this.blockFound.getY(), this.blockFound.getZ()});
-      }
+   public boolean isExpectedBlock(Level world, BlockPos pos) {
+      return !BuildCraftAPI.getWorldProperty("replaceable").get(world, pos)
+         && CropManager.canSustainPlant(world, this.robot.getHeldItem(), pos);
    }
 
    @Override
-   public void loadSelfFromNBT(CompoundTag nbt) {
-      super.loadSelfFromNBT(nbt);
-      int[] arr = BcNbt.getIntArray(nbt, "blockFound");
-      if (arr.length == 3) {
-         this.blockFound = new BlockPos(arr[0], arr[1], arr[2]);
-      }
+   protected void startWorkOn(BlockPos pos) {
+      this.startDelegateAI(new AIRobotPlant(this.robot, pos));
    }
 }

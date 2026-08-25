@@ -6,23 +6,13 @@
 
 package buildcraft.robotics.boards;
 
-import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
-import buildcraft.api.core.IStackFilter;
-import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.robotics.ai.AIRobotAttack;
-import buildcraft.robotics.ai.AIRobotFetchAndEquipItemStack;
-import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotRunErrand;
-import buildcraft.robotics.ai.StationErrand;
-import buildcraft.robotics.ai.AIRobotSearchEntity;
-import buildcraft.robotics.path.IEntityFilter;
-import net.minecraft.tags.ItemTags;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Animal;
 
-public class BoardRobotButcher extends RedstoneBoardRobot {
+public class BoardRobotButcher extends BoardRobotGenericAttack {
    public BoardRobotButcher(EntityRobotBase robot) {
       super(robot);
    }
@@ -32,39 +22,14 @@ public class BoardRobotButcher extends RedstoneBoardRobot {
       return BCBoardNBT.REGISTRY.get("butcher");
    }
 
+   /** Adults only, and never a tamed animal: culling the young stops the farm breeding back, and a player's pet
+    *  is not livestock. */
    @Override
-   public final void update() {
-      if (this.robot.getHeldItem().isEmpty()) {
-         this.startDelegateAI(new AIRobotFetchAndEquipItemStack(this.robot, (IStackFilter)stack -> stack.is(ItemTags.SWORDS)));
-      } else if (this.robot.getHeldItem().isDamageableItem() && this.robot.getHeldItem().getDamageValue() >= this.robot.getHeldItem().getMaxDamage()) {
-         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
-      } else {
-         this.startDelegateAI(new AIRobotSearchEntity(this.robot, (IEntityFilter)BoardRobotButcher::isLivestock, EntityRobotBase.DEFAULT_SEARCH_RANGE, this.robot.getZoneToWork()));
-      }
-   }
-
-   /** Adults only, and never a tamed animal: culling the young stops the farm breeding back, and a player's
-    *  pet is not livestock. */
-   private static boolean isLivestock(net.minecraft.world.entity.Entity entity) {
+   protected boolean isTarget(Entity entity) {
       if (!(entity instanceof Animal animal) || animal.isBaby()) {
          return false;
       }
 
       return !(entity instanceof TamableAnimal tamable) || !tamable.isTame();
-   }
-
-   @Override
-   public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotFetchAndEquipItemStack) {
-         if (!ai.success()) {
-            this.startDelegateAI(new AIRobotGotoSleep(this.robot));
-         }
-      } else if (ai instanceof AIRobotSearchEntity search) {
-         if (ai.success()) {
-            this.startDelegateAI(new AIRobotAttack(this.robot, search.target));
-         } else {
-            this.startDelegateAI(new AIRobotGotoSleep(this.robot));
-         }
-      }
    }
 }

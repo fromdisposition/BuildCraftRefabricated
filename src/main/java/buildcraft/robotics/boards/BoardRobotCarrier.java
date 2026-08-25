@@ -6,18 +6,13 @@
 
 package buildcraft.robotics.boards;
 
-import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
-import buildcraft.api.core.IStackFilter;
-import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotRunErrand;
-import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.ai.AIRobotLoad;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.statement.StationActions;
 
-public class BoardRobotCarrier extends RedstoneBoardRobot {
+public class BoardRobotCarrier extends BoardRobotGenericHauler {
    public BoardRobotCarrier(EntityRobotBase robot) {
       super(robot);
    }
@@ -28,19 +23,17 @@ public class BoardRobotCarrier extends RedstoneBoardRobot {
    }
 
    @Override
-   public void update() {
-      if (!this.robot.containsItems()) {
-         IStackFilter filter = StationActions.getGateFilter(this.robot.getLinkedStation());
-         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.loadItems(filter, AIRobotLoad.ANY_QUANTITY)));
-      } else {
-         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
-      }
+   protected boolean carrying() {
+      return this.robot.containsItems();
    }
 
    @Override
-   public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotRunErrand && !ai.success()) {
-         this.startDelegateAI(new AIRobotGotoSleep(this.robot));
-      }
+   protected StationErrand loadErrand() {
+      return StationErrand.loadItems(StationActions.getGateFilter(this.robot.getLinkedStation()), AIRobotLoad.ANY_QUANTITY);
+   }
+
+   @Override
+   protected StationErrand unloadErrand() {
+      return StationErrand.unloadItems();
    }
 }

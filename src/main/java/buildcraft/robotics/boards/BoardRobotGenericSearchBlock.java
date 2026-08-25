@@ -55,15 +55,46 @@ public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
       return null;
    }
 
+   /** How many of the tool to carry. One for a real tool; a working stack for a consumable like seed. */
+   protected int toolAmount() {
+      return 1;
+   }
+
+   /** Whether work is found by sampling the surface at random rather than sweeping outward from the station. */
+   protected boolean randomSearch() {
+      return false;
+   }
+
+   /** What the robot does with what its work produced. */
+   protected StationErrand deliveryErrand() {
+      return StationErrand.unloadItems();
+   }
+
+   /** Whether the robot is currently carrying anything that needs delivering. */
+   protected boolean hasCargo() {
+      return this.robot.containsItems();
+   }
+
+   /** Whether it must deliver before it can take on more work. */
+   protected boolean cargoFull() {
+      return !this.robot.hasFreeSlot();
+   }
+
+   /** Per-search filter for the station gate's own restriction. Resolved once per search, never per candidate. */
+   protected IBlockFilter gateFilter() {
+      Set<Item> allowed = gateFilterItems(this.robot);
+      return allowed == null ? (world, pos) -> true : (world, pos) -> allowed.contains(world.getBlockState(pos).getBlock().asItem());
+   }
+
    @Override
    public final void update() {
       if (this.needsTool()) {
-         this.startDelegateAI(new AIRobotFetchAndEquipItemStack(this.robot, this.toolFilter()));
+         this.startDelegateAI(new AIRobotFetchAndEquipItemStack(this.robot, this.toolFilter(), this.toolAmount()));
          return;
       }
 
-      if (this.robot.containsItems() && !this.robot.hasFreeSlot()) {
-         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
+      if (this.hasCargo() && this.cargoFull()) {
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, this.deliveryErrand()));
          return;
       }
 
@@ -72,7 +103,7 @@ public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
          return;
       }
 
-      this.startDelegateAI(new AIRobotSearchAndGotoBlock(this.robot, false, this.workFilter()));
+      this.startDelegateAI(new AIRobotSearchAndGotoBlock(this.robot, this.randomSearch(), this.workFilter()));
    }
 
    @Override
@@ -120,19 +151,16 @@ public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
 
    /** Nothing left to work on: bring the load home before resting, rather than resting on top of it. */
    private void deliverOrRest() {
-      if (this.robot.containsItems()) {
-         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
+      if (this.hasCargo()) {
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, this.deliveryErrand()));
       } else {
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));
       }
    }
 
    private IBlockFilter workFilter() {
-      // Resolved once per search, not once per candidate: the scan walks thousands of positions and the gate
-      // filter is a fresh list plus an ItemStack per call.
-      Set<Item> allowed = gateFilterItems(this.robot);
-      return (world, pos) -> BoardRobotGenericSearchBlock.this.isExpectedBlock(world, pos)
-         && (allowed == null || allowed.contains(world.getBlockState(pos).getBlock().asItem()));
+      IBlockFilter gate = this.gateFilter();
+      return (world, pos) -> this.isExpectedBlock(world, pos) && gate.matches(world, pos);
    }
 
    /** The items the station's gate filter allows, or {@code null} when the gate sets no filter. */

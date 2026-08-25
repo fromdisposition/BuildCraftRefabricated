@@ -6,17 +6,12 @@
 
 package buildcraft.robotics.boards;
 
-import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
-import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotRunErrand;
 import buildcraft.robotics.ai.StationErrand;
-import buildcraft.robotics.path.IFluidFilter;
 import buildcraft.robotics.statement.StationActions;
 
-public class BoardRobotFluidCarrier extends RedstoneBoardRobot {
+public class BoardRobotFluidCarrier extends BoardRobotGenericHauler {
    public BoardRobotFluidCarrier(EntityRobotBase robot) {
       super(robot);
    }
@@ -27,19 +22,17 @@ public class BoardRobotFluidCarrier extends RedstoneBoardRobot {
    }
 
    @Override
-   public void update() {
-      if (!this.robot.hasFluid()) {
-         IFluidFilter filter = StationActions.getGateFluidFilter(this.robot.getLinkedStation());
-         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.loadFluids(filter)));
-      } else {
-         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadFluids()));
-      }
+   protected boolean carrying() {
+      return this.robot.hasFluid();
    }
 
    @Override
-   public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotRunErrand && !ai.success()) {
-         this.startDelegateAI(new AIRobotGotoSleep(this.robot));
-      }
+   protected StationErrand loadErrand() {
+      return StationErrand.loadFluids(StationActions.getGateFluidFilter(this.robot.getLinkedStation()));
+   }
+
+   @Override
+   protected StationErrand unloadErrand() {
+      return StationErrand.unloadFluids();
    }
 }
