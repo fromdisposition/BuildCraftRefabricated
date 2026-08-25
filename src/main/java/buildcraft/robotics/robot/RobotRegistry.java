@@ -127,18 +127,8 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
 
    @Override
    public synchronized long robotIdTaking(ResourceId resourceId) {
-      if (!this.resourcesTaken.containsKey(resourceId)) {
-         return EntityRobotBase.NULL_ROBOT_ID;
-      }
-
-      long robotId = this.resourcesTaken.get(resourceId);
-      EntityRobotBase robot = this.robotsLoaded.get(robotId);
-      if (robot != null && !robot.isRemoved()) {
-         return robotId;
-      } else {
-         this.release(resourceId);
-         return EntityRobotBase.NULL_ROBOT_ID;
-      }
+      Long robotId = this.resourcesTaken.get(resourceId);
+      return robotId == null ? EntityRobotBase.NULL_ROBOT_ID : robotId;
    }
 
    @Override
@@ -192,9 +182,25 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
       this.releaseResources(robot, false, false);
    }
 
-   private synchronized void releaseResources(EntityRobotBase robot, boolean forceAll, boolean resetEntities) {
+   private synchronized void releaseResources(EntityRobotBase robot, boolean forceAll, boolean unloading) {
       this.setDirty();
       long robotId = robot.getRobotId();
+      if (unloading) {
+         // An unloaded robot still exists and keeps every reservation it holds; only the cached references to the
+         // entity instance that is being discarded are dropped.
+         Set<StationIndex> stationsHeld = this.stationsTakenByRobot.get(robotId);
+         if (stationsHeld != null) {
+            for (StationIndex index : stationsHeld) {
+               DockingStation station = this.stations.get(index);
+               if (station != null && station.robotIdTaking() == robotId) {
+                  station.invalidateRobotTakingEntity();
+               }
+            }
+         }
+
+         return;
+      }
+
       Set<ResourceId> resourceSet = this.resourcesTakenByRobot.get(robotId);
       if (resourceSet != null) {
          for (ResourceId id : new HashSet<>(resourceSet)) {
@@ -208,16 +214,8 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
       if (stationSet != null) {
          for (StationIndex s : new HashSet<>(stationSet)) {
             DockingStation d = this.stations.get(s);
-            if (d != null) {
-               if (!d.canRelease()) {
-                  if (forceAll) {
-                     d.unsafeRelease(robot);
-                  } else if (resetEntities && d.robotIdTaking() == robotId) {
-                     d.invalidateRobotTakingEntity();
-                  }
-               } else {
-                  d.unsafeRelease(robot);
-               }
+            if (d != null && (forceAll || d.canRelease())) {
+               d.unsafeRelease(robot);
             }
          }
 

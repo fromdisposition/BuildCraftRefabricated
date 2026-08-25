@@ -69,14 +69,20 @@ public abstract class DockingStation {
    }
 
    /**
-    * The single source of truth for occupancy: this station is taken only while a robot that <b>still exists</b>
-    * holds it. {@link #robotTaking()} resolves the taking id through the registry and returns {@code null} if that
-    * robot is no longer loaded, so a station left reserved by a robot that has since been removed -- a "ghost" take
-    * that used to permanently block re-deploying -- is treated as free again. {@link #isTaken}, {@link #takeAsMain}
-    * and {@link #take} all route through this one check so they can never disagree.
+    * The single source of truth for occupancy: the claim itself. It is set by {@link #take}/{@link #takeAsMain}
+    * and cleared only by {@link #unsafeRelease}, which every removal path runs through
+    * ({@code EntityRobot.remove} -> {@code IRobotRegistry.killRobot}), so a robot that is merely unloaded keeps
+    * its station -- it is away working, not gone. {@link #isTaken}, {@link #takeAsMain} and {@link #take} all
+    * route through this one check so they can never disagree.
     */
-   private boolean isOccupiedByLiveRobot() {
-      return this.robotTakingId != Long.MAX_VALUE && this.robotTaking() != null;
+   private boolean isClaimed() {
+      return this.robotTakingId != Long.MAX_VALUE;
+   }
+
+   /** Whether this station's claim belongs to the given robot. Matched by id, never by entity identity: the
+    *  cached entity reference is dropped whenever the robot unloads, and reloading gives a new instance. */
+   private boolean isHeldBy(EntityRobotBase robot) {
+      return robot != null && this.isClaimed() && this.robotTakingId == robot.getRobotId();
    }
 
    public boolean takeAsMain(EntityRobotBase robot) {
@@ -84,7 +90,7 @@ public abstract class DockingStation {
          return false;
       }
 
-      if (!this.isOccupiedByLiveRobot()) {
+      if (!this.isClaimed()) {
          IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
          this.linkIsMain = true;
          this.robotTaking = robot;
@@ -103,7 +109,7 @@ public abstract class DockingStation {
          return false;
       }
 
-      if (!this.isOccupiedByLiveRobot()) {
+      if (!this.isClaimed()) {
          IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
          this.linkIsMain = false;
          this.robotTaking = robot;
@@ -122,7 +128,7 @@ public abstract class DockingStation {
          return;
       }
 
-      if (this.robotTaking == robot && !this.linkIsMain) {
+      if (this.isHeldBy(robot) && !this.linkIsMain) {
          IRobotRegistry registry = RobotManager.registryProvider.getRegistry(this.world);
          this.unsafeRelease(robot);
          registry.registryMarkDirty();
@@ -131,7 +137,7 @@ public abstract class DockingStation {
    }
 
    public void unsafeRelease(EntityRobotBase robot) {
-      if (this.robotTaking == robot) {
+      if (this.isHeldBy(robot)) {
          this.linkIsMain = false;
          this.robotTaking = null;
          this.robotTakingId = Long.MAX_VALUE;
@@ -169,7 +175,7 @@ public abstract class DockingStation {
    }
 
    public boolean isTaken() {
-      return this.isOccupiedByLiveRobot();
+      return this.isClaimed();
    }
 
    public long robotIdTaking() {

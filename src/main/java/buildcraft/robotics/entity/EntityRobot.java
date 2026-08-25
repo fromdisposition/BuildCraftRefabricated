@@ -873,6 +873,23 @@ public class EntityRobot extends EntityRobotBase {
    }
    *///?}
 
+   /**
+    * {@code LivingEntity.kill} is "hurt for Float.MAX_VALUE" and discards the result, so it cannot remove an
+    * entity that takes no damage. Removing a robot is its own operation: drop it as its board (with stored
+    * energy and carried cargo) and discard it, which frees the station it held through the registry.
+    */
+   //? if >= 1.21.10 {
+   @Override
+   public void kill(ServerLevel level) {
+      this.dropAsItemAndDiscard();
+   }
+   //?} else {
+   /*@Override
+   public void kill() {
+      this.dropAsItemAndDiscard();
+   }
+   *///?}
+
    //? if < 1.21.10 {
    /*@Override
    public Iterable<ItemStack> getArmorSlots() {
