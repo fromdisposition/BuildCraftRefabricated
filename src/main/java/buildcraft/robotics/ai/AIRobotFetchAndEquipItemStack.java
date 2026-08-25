@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class AIRobotFetchAndEquipItemStack extends AIRobot {
    private IStackFilter filter;
+   private int amount = 1;
    private int delay;
 
    public AIRobotFetchAndEquipItemStack(EntityRobotBase robot) {
@@ -25,6 +26,13 @@ public class AIRobotFetchAndEquipItemStack extends AIRobot {
    public AIRobotFetchAndEquipItemStack(EntityRobotBase robot, IStackFilter filter) {
       this(robot);
       this.filter = StationActions.getGateToolFilter(robot.getLinkedStation()).and(filter);
+   }
+
+   /** Equip up to {@code amount} of the matching item. Tools want one; a consumable wants a working stack, so the
+    *  robot is not sent back to the chest after every single use. */
+   public AIRobotFetchAndEquipItemStack(EntityRobotBase robot, IStackFilter filter, int amount) {
+      this(robot, filter);
+      this.amount = amount;
    }
 
    @Override
@@ -68,7 +76,7 @@ public class AIRobotFetchAndEquipItemStack extends AIRobot {
    }
 
    private boolean equipItemStack() {
-      ItemStack possible = AIRobotLoad.takeSingle(this.robot.getDockingStation(), this.filter, true);
+      ItemStack possible = AIRobotLoad.take(this.robot.getDockingStation(), this.filter, this.amount, true);
       if (possible.isEmpty()) {
          return false;
       }

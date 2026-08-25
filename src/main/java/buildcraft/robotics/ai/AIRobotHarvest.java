@@ -13,6 +13,7 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.lib.misc.BlockUtil;
+import buildcraft.robotics.entity.EntityRobot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -65,9 +66,14 @@ public class AIRobotHarvest extends AIRobot {
          return;
       }
 
-      if (this.robot.level() instanceof ServerLevel serverLevel) {
+      // Into the robot, exactly like a broken block: the work cycle then delivers it to an accepting station.
+      // Dropping the harvest on the floor made the Harvester useless on its own and needed a second robot.
+      if (this.robot.level() instanceof ServerLevel serverLevel && this.robot instanceof EntityRobot entityRobot) {
          for (ItemStack stack : drops) {
-            serverLevel.addFreshEntity(new ItemEntity(serverLevel, this.robot.getX(), this.robot.getY(), this.robot.getZ(), stack));
+            ItemStack remaining = entityRobot.receiveItem(null, stack);
+            if (!remaining.isEmpty()) {
+               serverLevel.addFreshEntity(new ItemEntity(serverLevel, this.robot.getX(), this.robot.getY(), this.robot.getZ(), remaining));
+            }
          }
       }
 

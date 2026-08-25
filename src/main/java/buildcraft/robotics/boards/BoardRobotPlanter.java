@@ -26,6 +26,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public class BoardRobotPlanter extends RedstoneBoardRobot {
+   /** One trip to the chest per stack of seed, not per seed planted. */
+   private static final int MAX_SEEDS_CARRIED = 64;
+
    private BlockPos blockFound;
    private final IStackFilter filter = CropManager::isSeed;
 
@@ -41,7 +44,7 @@ public class BoardRobotPlanter extends RedstoneBoardRobot {
    @Override
    public void update() {
       if (this.robot.getHeldItem().isEmpty()) {
-         this.startDelegateAI(new AIRobotFetchAndEquipItemStack(this.robot, this.filter));
+         this.startDelegateAI(new AIRobotFetchAndEquipItemStack(this.robot, this.filter, MAX_SEEDS_CARRIED));
       } else {
          ItemStack itemStack = this.robot.getHeldItem();
          IBlockFilter blockFilter = new IBlockFilter() {

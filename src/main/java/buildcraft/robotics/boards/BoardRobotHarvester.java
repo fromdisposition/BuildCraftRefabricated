@@ -8,7 +8,6 @@ package buildcraft.robotics.boards;
 
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
 import buildcraft.api.core.BuildCraftAPI;
-import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.ai.AIRobotHarvest;
 import net.minecraft.core.BlockPos;
@@ -30,20 +29,7 @@ public class BoardRobotHarvester extends BoardRobotGenericSearchBlock {
    }
 
    @Override
-   public void update() {
-      if (this.blockFound() != null) {
-         this.startDelegateAI(new AIRobotHarvest(this.robot, this.blockFound()));
-      } else {
-         super.update();
-      }
-   }
-
-   @Override
-   public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotHarvest) {
-         this.releaseBlockFound(ai.success());
-      }
-
-      super.delegateAIEnded(ai);
+   protected void startWorkOn(BlockPos pos) {
+      this.startDelegateAI(new AIRobotHarvest(this.robot, pos));
    }
 }

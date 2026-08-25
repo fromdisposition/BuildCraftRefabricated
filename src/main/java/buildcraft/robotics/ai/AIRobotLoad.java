@@ -123,6 +123,11 @@ public class AIRobotLoad extends AIRobot {
 
    /** Take exactly one matching item, used to equip a tool. Same all-or-nothing contract as {@link #load}. */
    public static ItemStack takeSingle(DockingStation station, IStackFilter filter, boolean doTake) {
+      return take(station, filter, 1, doTake);
+   }
+
+   /** Take up to {@code max} of one matching item -- a tool is one, a consumable like seed is a whole stack. */
+   public static ItemStack take(DockingStation station, IStackFilter filter, int max, boolean doTake) {
       if (station == null || filter == null) {
          return ItemStack.EMPTY;
       }
@@ -144,7 +149,9 @@ public class AIRobotLoad extends AIRobot {
                continue;
             }
 
-            if (view.extract(variant, 1L, transaction) != 1L) {
+            int want = Math.min(max, probe.getMaxStackSize());
+            int taken = (int) view.extract(variant, want, transaction);
+            if (taken <= 0) {
                continue;
             }
 
@@ -152,7 +159,7 @@ public class AIRobotLoad extends AIRobot {
                transaction.commit();
             }
 
-            return variant.toStack(1);
+            return variant.toStack(taken);
          }
       }
 

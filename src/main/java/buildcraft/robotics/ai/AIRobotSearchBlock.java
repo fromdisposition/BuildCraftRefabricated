@@ -18,6 +18,7 @@ import buildcraft.robotics.path.IBlockFilter;
 import java.util.Iterator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 public class AIRobotSearchBlock extends AIRobot {
@@ -31,6 +32,7 @@ public class AIRobotSearchBlock extends AIRobot {
     *  harvesters still reach as far as before; zone.contains() does the precise clamp inside it. */
    private static final int ZONE_SCAN_RADIUS = 64;
    private static final java.util.Random RANDOM = new java.util.Random();
+   private static final Heightmap.Types SURFACE = Heightmap.Types.MOTION_BLOCKING_NO_LEAVES;
 
    public BlockPos blockFound;
    private IBlockFilter filter;
@@ -140,11 +142,27 @@ public class AIRobotSearchBlock extends AIRobot {
             double r = this.robot.level().getRandom().nextFloat() * EntityRobotBase.DEFAULT_SEARCH_RANGE;
             float a = this.robot.level().getRandom().nextFloat() * 2.0F * (float)Math.PI;
             bx = (int)(Math.cos(a) * r + this.origin.getX());
-            by = this.origin.getY();
             bz = (int)(Math.sin(a) * r + this.origin.getZ());
+            // Follow the ground, not the station's own height. Pinning Y to the station meant a planter whose
+            // pipe ran a block above the field scanned thin air forever and never planted anything. The heightmap
+            // gives the surface in one lookup, and the leash sphere still bounds how far that can be.
+            if (!this.robot.level().getChunkSource().hasChunk(bx >> 4, bz >> 4)) {
+               continue;
+            }
+
+            by = this.robot.level().getHeightmapPos(SURFACE, new BlockPos(bx, 0, bz)).getY();
          }
 
          if (this.cheapAccept(bx, by, bz) && this.fullAccept(this.cursor.set(bx, by, bz))) {
+            this.blockFound = this.cursor.immutable();
+            this.terminate();
+            return;
+         }
+
+         // The surface roll addresses "the block under the sky" and "the block it stands on" alike: a planter
+         // wants the ground, a stripes robot wants the air above it.
+         if (this.zone == null && by > this.robot.level().getMinY()
+            && this.cheapAccept(bx, by - 1, bz) && this.fullAccept(this.cursor.set(bx, by - 1, bz))) {
             this.blockFound = this.cursor.immutable();
             this.terminate();
             return;
