@@ -47,7 +47,7 @@ public class BoardRobotBomber extends RedstoneBoardRobot {
       if (!this.robot.containsItems()) {
          this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.loadItems(TNT_FILTER, AIRobotLoad.ANY_QUANTITY)));
       } else {
-         this.startDelegateAI(new AIRobotSearchRandomGroundBlock(this.robot, 100, new IBlockFilter() {
+         this.startDelegateAI(new AIRobotSearchRandomGroundBlock(this.robot, (int) EntityRobotBase.DEFAULT_SEARCH_RANGE, new IBlockFilter() {
             @Override
             public boolean matches(Level world, BlockPos pos) {
                return pos.getY() < world.getMaxY() - BoardRobotBomber.this.flyingHeight && !world.getBlockState(pos).isAir();

@@ -20,7 +20,11 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.BushBlock;
+//? if >= 1.21.10 {
+import net.minecraft.world.level.block.VegetationBlock;
+//?} else {
+/*import net.minecraft.world.level.block.BushBlock;
+*///?}
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.FlowerBlock;
@@ -34,11 +38,24 @@ import net.minecraft.world.phys.Vec3;
 public enum CropHandlerPlantable implements ICropHandler {
    INSTANCE;
 
+   /**
+    * The common superclass of plantable blocks. Crops sat under {@code BushBlock} up to 1.21.1 and under
+    * {@code VegetationBlock} from 1.21.10, where {@code BushBlock} became a sibling class -- so testing for
+    * {@code BushBlock} there matches no crop at all.
+    */
+   private static boolean isPlant(Block block) {
+      //? if >= 1.21.10 {
+      return block instanceof VegetationBlock;
+      //?} else {
+      /*return block instanceof BushBlock;
+      *///?}
+   }
+
    @Override
    public boolean isSeed(ItemStack stack) {
       if (stack.getItem() instanceof BlockItem blockItem) {
          Block block = blockItem.getBlock();
-         if (block instanceof BushBlock && block != Blocks.SUGAR_CANE) {
+         if (isPlant(block) && block != Blocks.SUGAR_CANE) {
             return true;
          }
       }
@@ -85,7 +102,7 @@ public enum CropHandlerPlantable implements ICropHandler {
       } else {
          return block instanceof NetherWartBlock
             ? (Integer)state.getValue(NetherWartBlock.AGE) == 3
-            : block instanceof BushBlock && blockAccess.getBlockState(pos.below()).getBlock() == block;
+            : isPlant(block) && blockAccess.getBlockState(pos.below()).getBlock() == block;
       }
    }
 

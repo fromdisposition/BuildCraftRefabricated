@@ -181,12 +181,15 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
          return null;
       }
 
-      return buildcraft.lib.fabric.transfer.BcTransfers.fluid(this.world, this.getPos(), this.side());
+      // The station is a blocking pluggable, so the pipe exposes nothing on the station's own face: asking for a
+      // storage there always came back null and a robot could never empty its tank. Items already enter from the
+      // opposite face; fluid does the same.
+      return buildcraft.lib.fabric.transfer.BcTransfers.fluid(this.world, this.getPos(), this.side().getOpposite());
    }
 
    @Override
    public EnumPipePart getFluidOutputSide() {
-      return EnumPipePart.fromFacing(this.side());
+      return EnumPipePart.fromFacing(this.side().getOpposite());
    }
 
    @Override
