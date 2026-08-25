@@ -16,6 +16,8 @@ import buildcraft.core.statements.BCStatement;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.robotics.BCRoboticsSprites;
 import buildcraft.robotics.RobotUtils;
+import buildcraft.robotics.ai.AIRobotSleep;
+import buildcraft.robotics.entity.EntityRobot;
 import java.util.List;
 
 public class TriggerRobotSleep extends BCStatement implements ITriggerInternal {
@@ -34,7 +36,11 @@ public class TriggerRobotSleep extends BCStatement implements ITriggerInternal {
       List<DockingStation> stations = RobotUtils.getStations(holder);
 
       for (DockingStation station : stations) {
-         if (station.robotTaking() != null) {
+         // "A robot is linked here" is what the Station Linked trigger already reports. This one is about the
+         // robot having run out of work, which is only visible in what its AI is actually doing.
+         if (station.robotTaking() instanceof EntityRobot robot
+            && robot.getMainAI() != null
+            && robot.getMainAI().getActiveAI() instanceof AIRobotSleep) {
             return true;
          }
       }

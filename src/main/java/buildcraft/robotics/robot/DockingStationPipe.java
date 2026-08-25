@@ -208,17 +208,29 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
 
    @Override
    public IRequestProvider getRequestProvider() {
+      // Serving an adjacent machine's requests is what the "Request Needed Items" action asks for, so it only
+      // happens when that action is set. Doing it unconditionally left the action with nothing to do.
       IPipeHolder holder = this.getPipe();
-      if (holder != null) {
-         for (Direction dir : Direction.values()) {
-            BlockEntity nearby = holder.getNeighbourTile(dir);
-            if (nearby instanceof IRequestProvider provider) {
-               return provider;
-            }
+      if (holder != null && this.hasActiveAction(BCRoboticsStatements.ACTION_STATION_MACHINE_REQUEST.getUniqueTag())) {
+         IRequestProvider machine = machineRequestProvider(holder);
+         if (machine != null) {
+            return machine;
          }
       }
 
       return this;
+   }
+
+   /** The adjacent machine that can advertise requests through this station, if any. */
+   public static IRequestProvider machineRequestProvider(IPipeHolder holder) {
+      for (Direction dir : DIRECTIONS) {
+         BlockEntity nearby = holder.getNeighbourTile(dir);
+         if (nearby instanceof IRequestProvider provider) {
+            return provider;
+         }
+      }
+
+      return null;
    }
 
    @Override

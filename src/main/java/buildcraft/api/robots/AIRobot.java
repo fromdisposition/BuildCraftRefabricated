@@ -17,6 +17,9 @@ public class AIRobot {
    private AIRobot delegateAI;
    private AIRobot parentAI;
    private boolean success;
+   /** Set once this AI has ended. An AI may terminate from inside its own preempt(), and the cycle that called
+    *  that preempt must not then go on to update() an AI that is already gone. */
+   private boolean finished;
 
    public AIRobot(EntityRobotBase iRobot) {
       this.robot = iRobot;
@@ -69,6 +72,11 @@ public class AIRobot {
    }
 
    public final void terminate() {
+      if (this.finished) {
+         return;
+      }
+
+      this.finished = true;
       this.abortDelegateAI();
       this.end();
       if (this.parentAI != null) {
@@ -78,6 +86,11 @@ public class AIRobot {
    }
 
    public final void abort() {
+      if (this.finished) {
+         return;
+      }
+
+      this.finished = true;
       this.abortDelegateAI();
 
       try {
@@ -98,6 +111,10 @@ public class AIRobot {
    public final void cycle() {
       try {
          this.preempt(this.delegateAI);
+         if (this.finished) {
+            return;
+         }
+
          if (this.delegateAI != null) {
             this.delegateAI.cycle();
          } else {

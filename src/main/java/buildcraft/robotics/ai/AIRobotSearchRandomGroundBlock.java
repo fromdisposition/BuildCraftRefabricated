@@ -51,10 +51,13 @@ public class AIRobotSearchRandomGroundBlock extends AIRobot {
       int x;
       int z;
       if (this.zone == null) {
+         // Measured from the home station like every other search: centring on the robot let it ratchet
+         // outward, one target at a time, until it was working nowhere near where it was stationed.
+         net.minecraft.world.phys.Vec3 anchor = this.robot.getWorkAnchor();
          double r = this.robot.level().getRandom().nextFloat() * this.range;
          float a = this.robot.level().getRandom().nextFloat() * 2.0F * (float)Math.PI;
-         x = (int)(Math.cos(a) * r + this.robot.getX());
-         z = (int)(Math.sin(a) * r + this.robot.getZ());
+         x = (int)(Math.cos(a) * r + anchor.x);
+         z = (int)(Math.sin(a) * r + anchor.z);
       } else {
          BlockPos b = this.zone.getRandomBlockPos(RANDOM);
          if (b == null) {

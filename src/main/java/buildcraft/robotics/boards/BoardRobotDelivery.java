@@ -11,6 +11,7 @@ import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.robots.AIRobot;
+import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.StackRequest;
 import buildcraft.robotics.ai.AIRobotDeliverRequested;
@@ -58,7 +59,8 @@ public class BoardRobotDelivery extends RedstoneBoardRobot {
             this.startDelegateAI(new AIRobotGotoSleep(this.robot));
          } else {
             this.currentRequest = request.request;
-            if (!this.currentRequest.getStation(this.robot.level()).take(this.robot)) {
+            DockingStation source = this.currentRequest.getStation(this.robot.level());
+            if (source == null || !source.take(this.robot)) {
                this.releaseCurrentRequest();
             }
          }
@@ -75,11 +77,17 @@ public class BoardRobotDelivery extends RedstoneBoardRobot {
    }
 
    private void releaseCurrentRequest() {
-      if (this.currentRequest != null) {
-         this.robot.getRegistry().release(this.currentRequest.getResourceId(this.robot.level()));
-         this.currentRequest.getStation(this.robot.level()).release(this.robot);
-         this.currentRequest = null;
+      if (this.currentRequest == null) {
+         return;
       }
+
+      this.robot.getRegistry().release(this.currentRequest.getResourceId(this.robot.level()));
+      DockingStation source = this.currentRequest.getStation(this.robot.level());
+      if (source != null) {
+         source.release(this.robot);
+      }
+
+      this.currentRequest = null;
    }
 
    @Override

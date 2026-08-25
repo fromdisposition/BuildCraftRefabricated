@@ -15,10 +15,15 @@ public class AIRobotGotoStation extends AIRobotStationNavigate {
       super(robot);
    }
 
+   /** A null station is a normal outcome, not a programming error: the station a robot was sent to can be
+    *  broken while it is in flight. It fails the AI instead of throwing out of the constructor. */
    public AIRobotGotoStation(EntityRobotBase robot, DockingStation station) {
       super(robot);
-      this.stationIndex = station.index();
-      this.stationSide = station.side();
+      if (station != null) {
+         this.stationIndex = station.index();
+         this.stationSide = station.side();
+      }
+
       this.setSuccess(false);
    }
 

@@ -11,6 +11,9 @@ import buildcraft.api.robots.EntityRobotBase;
 import net.minecraft.nbt.CompoundTag;
 
 public class AIRobotStraightMoveTo extends AIRobotGoto {
+   /** Matches the clear-band in EntityRobot.moveTowardsDestination (0.1), with room for one float step. */
+   private static final double ARRIVED_SQ = 0.04;
+
    private double finalX;
    private double finalY;
    private double finalZ;
@@ -33,9 +36,17 @@ public class AIRobotStraightMoveTo extends AIRobotGoto {
 
    @Override
    public void update() {
-      if (!this.robot.isMoving()) {
-         this.terminate();
+      if (this.robot.isMoving()) {
+         return;
       }
+
+      // The flight is over -- but "stopped" is not "arrived": a docking pass or another AI can clear the
+      // destination mid-approach, and reporting that as success docked the robot wherever it happened to be.
+      double dx = this.finalX - this.robot.getX();
+      double dy = this.finalY - this.robot.getY();
+      double dz = this.finalZ - this.robot.getZ();
+      this.setSuccess(dx * dx + dy * dy + dz * dz < ARRIVED_SQ);
+      this.terminate();
    }
 
    @Override

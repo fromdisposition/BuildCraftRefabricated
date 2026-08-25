@@ -18,6 +18,7 @@ import buildcraft.robotics.ai.AIRobotGotoStationAndUnload;
 import buildcraft.robotics.ai.AIRobotSearchEntity;
 import buildcraft.robotics.path.IEntityFilter;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.animal.Animal;
 
 public class BoardRobotButcher extends RedstoneBoardRobot {
@@ -37,8 +38,18 @@ public class BoardRobotButcher extends RedstoneBoardRobot {
       } else if (this.robot.getHeldItem().isDamageableItem() && this.robot.getHeldItem().getDamageValue() >= this.robot.getHeldItem().getMaxDamage()) {
          this.startDelegateAI(new AIRobotGotoStationAndUnload(this.robot));
       } else {
-         this.startDelegateAI(new AIRobotSearchEntity(this.robot, (IEntityFilter)entity -> entity instanceof Animal, EntityRobotBase.DEFAULT_SEARCH_RANGE, this.robot.getZoneToWork()));
+         this.startDelegateAI(new AIRobotSearchEntity(this.robot, (IEntityFilter)BoardRobotButcher::isLivestock, EntityRobotBase.DEFAULT_SEARCH_RANGE, this.robot.getZoneToWork()));
       }
+   }
+
+   /** Adults only, and never a tamed animal: culling the young stops the farm breeding back, and a player's
+    *  pet is not livestock. */
+   private static boolean isLivestock(net.minecraft.world.entity.Entity entity) {
+      if (!(entity instanceof Animal animal) || animal.isBaby()) {
+         return false;
+      }
+
+      return !(entity instanceof TamableAnimal tamable) || !tamable.isTame();
    }
 
    @Override

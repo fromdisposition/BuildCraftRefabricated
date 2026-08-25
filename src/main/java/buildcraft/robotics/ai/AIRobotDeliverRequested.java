@@ -9,6 +9,7 @@ package buildcraft.robotics.ai;
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
+import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.IRequestProvider;
 import buildcraft.lib.misc.StackUtil;
@@ -31,12 +32,14 @@ public class AIRobotDeliverRequested extends AIRobot {
 
    @Override
    public void start() {
-      if (this.requested != null) {
-         this.startDelegateAI(new AIRobotGotoStation(this.robot, this.requested.getStation(this.robot.level())));
-      } else {
+      DockingStation target = this.requested == null ? null : this.requested.getStation(this.robot.level());
+      if (target == null) {
          this.setSuccess(false);
          this.terminate();
+         return;
       }
+
+      this.startDelegateAI(new AIRobotGotoStation(this.robot, target));
    }
 
    @Override

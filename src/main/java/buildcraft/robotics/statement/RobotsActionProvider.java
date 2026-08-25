@@ -18,6 +18,7 @@ import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.robotics.BCRoboticsStatements;
 import buildcraft.robotics.RobotUtils;
+import buildcraft.robotics.robot.DockingStationPipe;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -68,10 +69,10 @@ public class RobotsActionProvider implements IActionProvider {
          if (station.getFluidInput() != null) {
             actions.add(BCRoboticsStatements.ACTION_STATION_PROVIDE_FLUIDS);
          }
+      }
 
-         if (station.getRequestProvider() != null) {
-            actions.add(BCRoboticsStatements.ACTION_STATION_MACHINE_REQUEST);
-         }
+      if (DockingStationPipe.machineRequestProvider(holder) != null) {
+         actions.add(BCRoboticsStatements.ACTION_STATION_MACHINE_REQUEST);
       }
    }
 

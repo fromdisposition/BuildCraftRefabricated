@@ -13,16 +13,42 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.entity.EntityRobot;
 import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class AIRobotFetchItem extends AIRobot {
-   
-   public static final Set<Integer> targettedItems = Collections.newSetFromMap(new ConcurrentHashMap<>());
+   /** Drops another robot is already on its way to, per level. Entity ids are only unique within a level and
+    *  are reused, so one global set made a picker in the Nether reserve a drop in the Overworld. Each claim
+    *  carries a deadline as well: a robot discarded mid-fetch never runs end(), and a permanent entry made that
+    *  drop invisible to every picker for the rest of the session. */
+   private static final Map<Level, Map<Integer, Long>> TARGETTED_ITEMS = Collections.synchronizedMap(new WeakHashMap<>());
+   private static final long CLAIM_TTL_TICKS = 30L * 20L;
+
+   private static Map<Integer, Long> claims(Level level) {
+      return TARGETTED_ITEMS.computeIfAbsent(level, l -> new HashMap<>());
+   }
+
+   private static boolean isClaimed(Level level, int entityId) {
+      Long deadline = claims(level).get(entityId);
+      return deadline != null && deadline > level.getGameTime();
+   }
+
+   private static void claim(Level level, int entityId) {
+      Map<Integer, Long> claims = claims(level);
+      long now = level.getGameTime();
+      claims.values().removeIf(deadline -> deadline <= now);
+      claims.put(entityId, now + CLAIM_TTL_TICKS);
+   }
+
+   private static void unclaim(Level level, int entityId) {
+      claims(level).remove(entityId);
+   }
 
    private ItemEntity target;
    private float maxRange;
@@ -86,7 +112,7 @@ public class AIRobotFetchItem extends AIRobot {
    @Override
    public void end() {
       if (this.target != null) {
-         targettedItems.remove(this.target.getId());
+         unclaim(this.robot.level(), this.target.getId());
       }
 
       this.robot.reportProgress(this.success(), buildcraft.api.robots.RobotIdleReason.NO_WORK);
@@ -101,7 +127,7 @@ public class AIRobotFetchItem extends AIRobot {
       AABB box = new AABB(anchor, anchor).inflate(queryRange);
 
       for (ItemEntity e : this.robot.level().getEntitiesOfClass(ItemEntity.class, box, ItemEntity::isAlive)) {
-         if (targettedItems.contains(e.getId()) || this.robot.isKnownUnreachable(e)) {
+         if (isClaimed(this.robot.level(), e.getId()) || this.robot.isKnownUnreachable(e)) {
             continue;
          }
 
@@ -125,7 +151,7 @@ public class AIRobotFetchItem extends AIRobot {
       }
 
       if (this.target != null) {
-         targettedItems.add(this.target.getId());
+         claim(this.robot.level(), this.target.getId());
          if (Math.floor(this.target.getX()) != Math.floor(this.robot.getX())
             || Math.floor(this.target.getY()) != Math.floor(this.robot.getY())
             || Math.floor(this.target.getZ()) != Math.floor(this.robot.getZ())) {
