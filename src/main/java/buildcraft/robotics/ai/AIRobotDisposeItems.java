@@ -19,14 +19,14 @@ public class AIRobotDisposeItems extends AIRobot {
 
    @Override
    public void start() {
-      this.startDelegateAI(new AIRobotGotoStationAndUnload(this.robot));
+      this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
    }
 
    @Override
    public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotGotoStationAndUnload) {
+      if (ai instanceof AIRobotRunErrand) {
          if (ai.success() && this.robot.containsItems()) {
-            this.startDelegateAI(new AIRobotGotoStationAndUnload(this.robot));
+            this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
          } else if (!ai.success()) {
             this.dropAll();
             this.terminate();

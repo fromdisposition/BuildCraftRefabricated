@@ -14,7 +14,8 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.ai.AIRobotAttack;
 import buildcraft.robotics.ai.AIRobotFetchAndEquipItemStack;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotGotoStationAndUnload;
+import buildcraft.robotics.ai.AIRobotRunErrand;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.ai.AIRobotSearchEntity;
 import buildcraft.robotics.path.IEntityFilter;
 import net.minecraft.tags.ItemTags;
@@ -36,7 +37,7 @@ public class BoardRobotKnight extends RedstoneBoardRobot {
       if (this.robot.getHeldItem().isEmpty()) {
          this.startDelegateAI(new AIRobotFetchAndEquipItemStack(this.robot, (IStackFilter)stack -> stack.is(ItemTags.SWORDS)));
       } else if (this.robot.getHeldItem().isDamageableItem() && this.robot.getHeldItem().getDamageValue() >= this.robot.getHeldItem().getMaxDamage()) {
-         this.startDelegateAI(new AIRobotGotoStationAndUnload(this.robot));
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
       } else {
          this.startDelegateAI(new AIRobotSearchEntity(this.robot,
             (IEntityFilter)entity -> entity instanceof Enemy || (entity instanceof NeutralMob neutral && neutral.isAngry()),

@@ -7,6 +7,7 @@
 package buildcraft.robotics.filter;
 
 import buildcraft.api.statements.IStatementParameter;
+import buildcraft.lib.inventory.filter.ArrayStackFilter;
 import buildcraft.api.statements.StatementParameterItemStack;
 import java.util.ArrayList;
 import java.util.List;

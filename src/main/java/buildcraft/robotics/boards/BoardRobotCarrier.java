@@ -12,8 +12,8 @@ import buildcraft.api.core.IStackFilter;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotGotoStationAndLoad;
-import buildcraft.robotics.ai.AIRobotGotoStationAndUnload;
+import buildcraft.robotics.ai.AIRobotRunErrand;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.ai.AIRobotLoad;
 import buildcraft.robotics.statement.StationActions;
 
@@ -31,15 +31,15 @@ public class BoardRobotCarrier extends RedstoneBoardRobot {
    public void update() {
       if (!this.robot.containsItems()) {
          IStackFilter filter = StationActions.getGateFilter(this.robot.getLinkedStation());
-         this.startDelegateAI(new AIRobotGotoStationAndLoad(this.robot, filter, AIRobotLoad.ANY_QUANTITY));
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.loadItems(filter, AIRobotLoad.ANY_QUANTITY)));
       } else {
-         this.startDelegateAI(new AIRobotGotoStationAndUnload(this.robot));
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
       }
    }
 
    @Override
    public void delegateAIEnded(AIRobot ai) {
-      if ((ai instanceof AIRobotGotoStationAndLoad || ai instanceof AIRobotGotoStationAndUnload) && !ai.success()) {
+      if (ai instanceof AIRobotRunErrand && !ai.success()) {
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));
       }
    }

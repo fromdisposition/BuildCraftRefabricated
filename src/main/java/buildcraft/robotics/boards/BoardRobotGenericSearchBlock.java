@@ -14,7 +14,8 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.ResourceIdBlock;
 import buildcraft.robotics.ai.AIRobotFetchAndEquipItemStack;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotGotoStationAndUnload;
+import buildcraft.robotics.ai.AIRobotRunErrand;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.ai.AIRobotSearchAndGotoBlock;
 import buildcraft.robotics.path.IBlockFilter;
 import buildcraft.robotics.statement.StationActions;
@@ -62,7 +63,7 @@ public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
       }
 
       if (this.robot.containsItems() && !this.robot.hasFreeSlot()) {
-         this.startDelegateAI(new AIRobotGotoStationAndUnload(this.robot));
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
          return;
       }
 
@@ -76,7 +77,7 @@ public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
 
    @Override
    public final void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotFetchAndEquipItemStack || ai instanceof AIRobotGotoStationAndUnload) {
+      if (ai instanceof AIRobotFetchAndEquipItemStack || ai instanceof AIRobotRunErrand) {
          if (!ai.success()) {
             this.startDelegateAI(new AIRobotGotoSleep(this.robot));
          }
@@ -120,7 +121,7 @@ public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
    /** Nothing left to work on: bring the load home before resting, rather than resting on top of it. */
    private void deliverOrRest() {
       if (this.robot.containsItems()) {
-         this.startDelegateAI(new AIRobotGotoStationAndUnload(this.robot));
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
       } else {
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));
       }

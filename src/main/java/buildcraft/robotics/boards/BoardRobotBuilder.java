@@ -7,6 +7,7 @@
 package buildcraft.robotics.boards;
 
 import buildcraft.lib.nbt.BcNbt;
+import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.core.IZone;
@@ -19,7 +20,8 @@ import buildcraft.builders.snapshot.ConstructionMarkerRegistry;
 import buildcraft.builders.tile.TileConstructionMarker;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotGotoStationAndLoad;
+import buildcraft.robotics.ai.AIRobotRunErrand;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.entity.EntityRobot;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -29,7 +31,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-public class BoardRobotBuilder extends BoardRobotBC {
+public class BoardRobotBuilder extends RedstoneBoardRobot {
    private static final double REACH = 5.0;
 
    @Nullable
@@ -44,11 +46,6 @@ public class BoardRobotBuilder extends BoardRobotBC {
 
    public BoardRobotBuilder(EntityRobotBase robot) {
       super(robot);
-   }
-
-   @Override
-   protected String boardName() {
-      return "builder";
    }
 
    @Override
@@ -73,7 +70,7 @@ public class BoardRobotBuilder extends BoardRobotBC {
       ItemStack missing = this.firstMissingRequired(builder);
       if (missing != null && this.robot.hasFreeSlot() && !this.materialsUnavailable) {
          IStackFilter filter = stack -> StackUtil.canMerge(missing, stack);
-         this.startDelegateAI(new AIRobotGotoStationAndLoad(this.robot, filter, missing.getCount()));
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.loadItems(filter, missing.getCount())));
          return;
       }
 
@@ -105,7 +102,7 @@ public class BoardRobotBuilder extends BoardRobotBC {
 
    @Override
    public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotGotoStationAndLoad) {
+      if (ai instanceof AIRobotRunErrand) {
          this.materialsUnavailable = !ai.success();
       }
    }

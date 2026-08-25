@@ -17,7 +17,8 @@ import buildcraft.robotics.StackRequest;
 import buildcraft.robotics.ai.AIRobotDeliverRequested;
 import buildcraft.robotics.ai.AIRobotDisposeItems;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotGotoStationAndLoad;
+import buildcraft.robotics.ai.AIRobotRunErrand;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.robotics.ai.AIRobotSearchStackRequest;
 import buildcraft.robotics.statement.StationActions;
@@ -47,7 +48,7 @@ public class BoardRobotDelivery extends RedstoneBoardRobot {
          this.startDelegateAI(new AIRobotSearchStackRequest(this.robot, StationActions.getGateFilter(this.robot.getLinkedStation()), this.deliveryBlacklist));
       } else {
          IStackFilter filter = stack -> this.currentRequest != null && StackUtil.isMatchingItemOrList(this.currentRequest.getStack(), stack);
-         this.startDelegateAI(new AIRobotGotoStationAndLoad(this.robot, filter, this.currentRequest.getStack().getCount()));
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.loadItems(filter, this.currentRequest.getStack().getCount())));
       }
    }
 
@@ -64,7 +65,7 @@ public class BoardRobotDelivery extends RedstoneBoardRobot {
                this.releaseCurrentRequest();
             }
          }
-      } else if (ai instanceof AIRobotGotoStationAndLoad) {
+      } else if (ai instanceof AIRobotRunErrand) {
          if (!ai.success()) {
             this.deliveryBlacklist.add(this.currentRequest.getStack());
             this.releaseCurrentRequest();

@@ -12,7 +12,8 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.ai.AIRobotFetchItem;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotGotoStationAndUnload;
+import buildcraft.robotics.ai.AIRobotRunErrand;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.statement.StationActions;
 
 public class BoardRobotPicker extends RedstoneBoardRobot {
@@ -36,11 +37,11 @@ public class BoardRobotPicker extends RedstoneBoardRobot {
          if (ai.success()) {
             this.fetchNewItem();
          } else if (this.robot.containsItems()) {
-            this.startDelegateAI(new AIRobotGotoStationAndUnload(this.robot));
+            this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadItems()));
          } else {
             this.startDelegateAI(new AIRobotGotoSleep(this.robot));
          }
-      } else if (ai instanceof AIRobotGotoStationAndUnload && !ai.success()) {
+      } else if (ai instanceof AIRobotRunErrand && !ai.success()) {
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));
       }
    }

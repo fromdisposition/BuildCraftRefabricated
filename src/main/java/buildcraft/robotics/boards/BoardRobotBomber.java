@@ -13,11 +13,12 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.ai.AIRobotGotoBlock;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotGotoStationAndLoad;
+import buildcraft.robotics.ai.AIRobotRunErrand;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.ai.AIRobotLoad;
 import buildcraft.robotics.ai.AIRobotSearchRandomGroundBlock;
 import buildcraft.robotics.entity.EntityRobot;
-import buildcraft.robotics.filter.ArrayStackFilter;
+import buildcraft.lib.inventory.filter.ArrayStackFilter;
 import buildcraft.robotics.path.IBlockFilter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -44,7 +45,7 @@ public class BoardRobotBomber extends RedstoneBoardRobot {
    @Override
    public final void update() {
       if (!this.robot.containsItems()) {
-         this.startDelegateAI(new AIRobotGotoStationAndLoad(this.robot, TNT_FILTER, AIRobotLoad.ANY_QUANTITY));
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.loadItems(TNT_FILTER, AIRobotLoad.ANY_QUANTITY)));
       } else {
          this.startDelegateAI(new AIRobotSearchRandomGroundBlock(this.robot, 100, new IBlockFilter() {
             @Override
@@ -57,7 +58,7 @@ public class BoardRobotBomber extends RedstoneBoardRobot {
 
    @Override
    public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotGotoStationAndLoad) {
+      if (ai instanceof AIRobotRunErrand) {
          if (!ai.success()) {
             this.startDelegateAI(new AIRobotGotoSleep(this.robot));
          }

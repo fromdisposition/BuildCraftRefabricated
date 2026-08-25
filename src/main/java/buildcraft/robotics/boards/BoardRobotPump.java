@@ -16,7 +16,8 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.api.robots.ResourceIdBlock;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
-import buildcraft.robotics.ai.AIRobotGotoStationAndUnloadFluids;
+import buildcraft.robotics.ai.AIRobotRunErrand;
+import buildcraft.robotics.ai.StationErrand;
 import buildcraft.robotics.ai.AIRobotPumpBlock;
 import buildcraft.robotics.ai.AIRobotSearchAndGotoBlock;
 import buildcraft.robotics.path.IBlockFilter;
@@ -44,7 +45,7 @@ public class BoardRobotPump extends RedstoneBoardRobot {
    @Override
    public void update() {
       if (this.robot.hasFluid()) {
-         this.startDelegateAI(new AIRobotGotoStationAndUnloadFluids(this.robot));
+         this.startDelegateAI(new AIRobotRunErrand(this.robot, StationErrand.unloadFluids()));
       } else {
          final IWorldProperty isFluidSource = BuildCraftAPI.getWorldProperty("fluidSource");
          this.updateFilter();
@@ -70,7 +71,7 @@ public class BoardRobotPump extends RedstoneBoardRobot {
          }
       } else if (ai instanceof AIRobotPumpBlock) {
          this.releaseBlockFound();
-      } else if (ai instanceof AIRobotGotoStationAndUnloadFluids && !ai.success()) {
+      } else if (ai instanceof AIRobotRunErrand && !ai.success()) {
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));
       }
    }

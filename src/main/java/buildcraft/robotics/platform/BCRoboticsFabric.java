@@ -86,10 +86,8 @@ public final class BCRoboticsFabric {
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotSearchAndGotoStation.class, "buildcraft:aiRobotSearchAndGotoStation");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotLoad.class, "buildcraft:aiRobotLoad");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotUnload.class, "buildcraft:aiRobotUnload");
-      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationToLoad.class, "buildcraft:aiRobotGotoStationToLoad");
-      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationAndLoad.class, "buildcraft:aiRobotGotoStationAndLoad");
-      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationToUnload.class, "buildcraft:aiRobotGotoStationToUnload");
-      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationAndUnload.class, "buildcraft:aiRobotGotoStationAndUnload");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationFor.class, "buildcraft:aiRobotGotoStationFor");
+      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotRunErrand.class, "buildcraft:aiRobotRunErrand");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotDisposeItems.class, "buildcraft:aiRobotDisposeItems");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotSearchBlock.class, "buildcraft:aiRobotSearchBlock");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotSearchAndGotoBlock.class, "buildcraft:aiRobotSearchAndGotoBlock");
@@ -107,10 +105,6 @@ public final class BCRoboticsFabric {
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotStripesHandler.class, "buildcraft:aiRobotStripesHandler");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotLoadFluids.class, "buildcraft:aiRobotLoadFluids");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotUnloadFluids.class, "buildcraft:aiRobotUnloadFluids");
-      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationToLoadFluids.class, "buildcraft:aiRobotGotoStationToLoadFluids");
-      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationAndLoadFluids.class, "buildcraft:aiRobotGotoStationAndLoadFluids");
-      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationToUnloadFluids.class, "buildcraft:aiRobotGotoStationToUnloadFluids");
-      RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotGotoStationAndUnloadFluids.class, "buildcraft:aiRobotGotoStationAndUnloadFluids");
       RobotManager.registerAIRobot(buildcraft.robotics.ai.AIRobotPumpBlock.class, "buildcraft:aiRobotPumpBlock");
    }
 

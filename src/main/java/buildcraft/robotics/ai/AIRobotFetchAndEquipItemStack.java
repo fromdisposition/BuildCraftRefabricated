@@ -37,7 +37,7 @@ public class AIRobotFetchAndEquipItemStack extends AIRobot {
 
    @Override
    public void start() {
-      this.startDelegateAI(new AIRobotGotoStationToLoad(this.robot, this.filter, 1));
+      this.startDelegateAI(new AIRobotGotoStationFor(this.robot, StationErrand.loadItems(this.filter, 1)));
    }
 
    @Override
@@ -53,14 +53,14 @@ public class AIRobotFetchAndEquipItemStack extends AIRobot {
             this.terminate();
          } else {
             this.delay = 0;
-            this.startDelegateAI(new AIRobotGotoStationToLoad(this.robot, this.filter, 1));
+            this.startDelegateAI(new AIRobotGotoStationFor(this.robot, StationErrand.loadItems(this.filter, 1)));
          }
       }
    }
 
    @Override
    public void delegateAIEnded(AIRobot ai) {
-      if (ai instanceof AIRobotGotoStationToLoad) {
+      if (ai instanceof AIRobotGotoStationFor) {
          if (this.filter == null) {
             this.abort();
          } else if (!ai.success()) {
