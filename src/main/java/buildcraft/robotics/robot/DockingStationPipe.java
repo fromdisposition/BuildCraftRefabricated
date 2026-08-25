@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -147,14 +146,13 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
    }
 
    @Override
-   public Container getItemInput() {
-      IPipeHolder holder = this.getPipe();
-      if (holder == null) {
+   public net.fabricmc.fabric.api.transfer.v1.storage.Storage<net.fabricmc.fabric.api.transfer.v1.item.ItemVariant> getItemInput() {
+      if (this.getPipe() == null || this.world == null) {
          return null;
       }
 
-      BlockEntity neighbour = holder.getNeighbourTile(this.side());
-      return neighbour instanceof Container container ? container : null;
+      BlockPos neighbourPos = this.getPos().relative(this.side());
+      return buildcraft.lib.fabric.transfer.BcTransfers.item(this.world, neighbourPos, this.side().getOpposite());
    }
 
    @Override

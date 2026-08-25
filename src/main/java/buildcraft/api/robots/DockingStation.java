@@ -13,11 +13,11 @@ import buildcraft.api.statements.StatementSlot;
 import buildcraft.api.transport.IInjectable;
 import java.util.Arrays;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.Container;
 import net.minecraft.world.level.Level;
 
 public abstract class DockingStation {
@@ -226,7 +226,10 @@ public abstract class DockingStation {
       return EnumPipePart.CENTER;
    }
 
-   public Container getItemInput() {
+   /** The inventory behind this station, as a transactional storage. Mirrors {@link #getFluidInput()}: routing
+    *  through the item-storage lookup is what makes double chests, {@code WorldlyContainerHolder} blocks and
+    *  storage that only exposes the transfer API visible to robots at all. */
+   public Storage<ItemVariant> getItemInput() {
       return null;
    }
 

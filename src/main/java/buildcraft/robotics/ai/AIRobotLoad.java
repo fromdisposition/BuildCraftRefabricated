@@ -13,9 +13,10 @@ import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.entity.EntityRobot;
 import buildcraft.robotics.statement.StationActions;
-import net.minecraft.core.Direction;
-import net.minecraft.world.Container;
-import net.minecraft.world.WorldlyContainer;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.world.item.ItemStack;
 
 public class AIRobotLoad extends AIRobot {
@@ -49,130 +50,113 @@ public class AIRobotLoad extends AIRobot {
       }
    }
 
+   /**
+    * Move matching items from the station's inventory into the robot.
+    *
+    * <p>Both sides are rolled back together unless {@code doLoad} commits: the source storage by the transaction,
+    * the robot by an inventory snapshot. Station searches probe every candidate station with {@code doLoad=false},
+    * so a simulation that could leave either side changed is an item dupe -- here it is structurally impossible.
+    */
    public static boolean load(EntityRobotBase robot, DockingStation station, IStackFilter filter, int quantity, boolean doLoad) {
-      if (station == null || !(robot instanceof EntityRobot entityRobot)) {
+      if (station == null || filter == null || !(robot instanceof EntityRobot entityRobot)) {
          return false;
       }
 
-      Container input = station.getItemInput();
-      if (input == null) {
+      Storage<ItemVariant> source = station.getItemInput();
+      if (source == null || !StationActions.canInteractWithItem(station, filter, StationActions.PROVIDE_ITEMS)) {
          return false;
       }
 
-      if (!StationActions.canInteractWithItem(station, filter, StationActions.PROVIDE_ITEMS)) {
-         return false;
-      }
-
-      Direction face = station.getItemInputSide().face;
-      WorldlyContainer sided = input instanceof WorldlyContainer wc ? wc : null;
-      int[] slots = slotsFor(input, sided, face);
+      ItemStack[] restore = entityRobot.snapshotInventory();
+      int wanted = quantity == ANY_QUANTITY ? Integer.MAX_VALUE : quantity;
       int loaded = 0;
+      boolean consistent = true;
 
-      for (int slot : slots) {
-         ItemStack stack = input.getItem(slot);
-         if (stack.isEmpty() || !filter.matches(stack)) {
-            continue;
-         }
-
-         if (sided != null && face != null && !sided.canTakeItemThroughFace(slot, stack, face)) {
-            continue;
-         }
-
-         if (!StationActions.canExtractItem(station, stack)) {
-            continue;
-         }
-
-         int want = quantity == ANY_QUANTITY ? stack.getCount() : Math.min(stack.getCount(), quantity - loaded);
-         if (want <= 0) {
-            continue;
-         }
-
-         ItemStack toAdd = stack.copy();
-         toAdd.setCount(want);
-         // The simulate path must never touch the robot's inventory: station search probes EVERY candidate
-         // station with doLoad=false, and mutating here put the items into the robot while the chest kept its
-         // stack -- a straight dupe (a stock Carrier robot minted every matching stack per search cycle).
-         int moved;
-         if (doLoad) {
-            ItemStack remaining = entityRobot.receiveItem(null, toAdd);
-            moved = want - remaining.getCount();
-         } else {
-            moved = entityRobot.roomFor(toAdd);
-         }
-
-         if (moved > 0) {
-            if (doLoad) {
-               input.removeItem(slot, moved);
-               input.setChanged();
+      try (Transaction transaction = Transaction.openOuter()) {
+         for (StorageView<ItemVariant> view : source) {
+            if (loaded >= wanted) {
+               break;
             }
 
-            loaded += moved;
-            if (quantity == ANY_QUANTITY) {
-               return true;
+            if (view.isResourceBlank() || view.getAmount() <= 0L) {
+               continue;
             }
 
-            if (quantity - loaded <= 0) {
-               return true;
+            ItemVariant variant = view.getResource();
+            ItemStack probe = variant.toStack();
+            if (!filter.matches(probe) || !StationActions.canExtractItem(station, probe)) {
+               continue;
             }
+
+            // One stack per view at most: it keeps roomFor's accounting honest and can never build a stack
+            // larger than the item allows, whatever a modded storage reports as one view.
+            int cap = (int) Math.min(Math.min(view.getAmount(), wanted - loaded), probe.getMaxStackSize());
+            int take = Math.min(cap, entityRobot.roomFor(variant.toStack(cap)));
+            if (take <= 0) {
+               continue;
+            }
+
+            int extracted = (int) view.extract(variant, take, transaction);
+            if (extracted <= 0) {
+               continue;
+            }
+
+            if (!entityRobot.receiveItem(null, variant.toStack(extracted)).isEmpty()) {
+               // The robot took less than roomFor promised. Committing here would void the difference, so
+               // abandon the whole transfer instead; both sides roll back and the next cycle retries.
+               consistent = false;
+               break;
+            }
+
+            loaded += extracted;
+         }
+
+         if (doLoad && consistent && loaded > 0) {
+            transaction.commit();
+            return true;
          }
       }
 
-      return loaded > 0;
+      entityRobot.restoreInventory(restore);
+      return consistent && loaded > 0;
    }
 
-   
+   /** Take exactly one matching item, used to equip a tool. Same all-or-nothing contract as {@link #load}. */
    public static ItemStack takeSingle(DockingStation station, IStackFilter filter, boolean doTake) {
-      if (station == null) {
+      if (station == null || filter == null) {
          return ItemStack.EMPTY;
       }
 
-      Container input = station.getItemInput();
-      if (input == null || !StationActions.canInteractWithItem(station, filter, StationActions.PROVIDE_ITEMS)) {
+      Storage<ItemVariant> source = station.getItemInput();
+      if (source == null || !StationActions.canInteractWithItem(station, filter, StationActions.PROVIDE_ITEMS)) {
          return ItemStack.EMPTY;
       }
 
-      Direction face = station.getItemInputSide().face;
-      WorldlyContainer sided = input instanceof WorldlyContainer wc ? wc : null;
-      int[] slots = slotsFor(input, sided, face);
+      try (Transaction transaction = Transaction.openOuter()) {
+         for (StorageView<ItemVariant> view : source) {
+            if (view.isResourceBlank() || view.getAmount() <= 0L) {
+               continue;
+            }
 
-      for (int slot : slots) {
-         ItemStack stack = input.getItem(slot);
-         if (stack.isEmpty() || !filter.matches(stack)) {
-            continue;
+            ItemVariant variant = view.getResource();
+            ItemStack probe = variant.toStack();
+            if (!filter.matches(probe) || !StationActions.canExtractItem(station, probe)) {
+               continue;
+            }
+
+            if (view.extract(variant, 1L, transaction) != 1L) {
+               continue;
+            }
+
+            if (doTake) {
+               transaction.commit();
+            }
+
+            return variant.toStack(1);
          }
-
-         if (sided != null && face != null && !sided.canTakeItemThroughFace(slot, stack, face)) {
-            continue;
-         }
-
-         if (!StationActions.canExtractItem(station, stack)) {
-            continue;
-         }
-
-         ItemStack single = stack.copy();
-         single.setCount(1);
-         if (doTake) {
-            input.removeItem(slot, 1);
-            input.setChanged();
-         }
-
-         return single;
       }
 
       return ItemStack.EMPTY;
-   }
-
-   private static int[] slotsFor(Container input, WorldlyContainer sided, Direction face) {
-      if (sided != null && face != null) {
-         return sided.getSlotsForFace(face);
-      }
-
-      int[] all = new int[input.getContainerSize()];
-      for (int i = 0; i < all.length; i++) {
-         all[i] = i;
-      }
-
-      return all;
    }
 
    @Override

@@ -437,13 +437,30 @@ public class EntityRobot extends EntityRobotBase {
       }
    }
 
+   /** Deep copy of the carried items, for rolling the robot back alongside an aborted transfer transaction. */
+   public ItemStack[] snapshotInventory() {
+      ItemStack[] copy = new ItemStack[this.inv.length];
+      for (int i = 0; i < this.inv.length; i++) {
+         copy[i] = this.inv[i].copy();
+      }
+
+      return copy;
+   }
+
+   public void restoreInventory(ItemStack[] snapshot) {
+      for (int i = 0; i < this.inv.length && i < snapshot.length; i++) {
+         this.inv[i] = snapshot[i];
+      }
+   }
+
    @Override
    public ItemStack receiveItem(BlockEntity tile, ItemStack stack) {
       ItemStack remaining = stack.copy();
       for (int i = 0; i < this.inv.length && !remaining.isEmpty(); i++) {
          if (this.inv[i].isEmpty()) {
-            this.inv[i] = remaining;
-            remaining = ItemStack.EMPTY;
+            int accepted = Math.min(remaining.getCount(), remaining.getMaxStackSize());
+            this.inv[i] = remaining.copyWithCount(accepted);
+            remaining.shrink(accepted);
          } else if (ItemStack.isSameItemSameComponents(this.inv[i], remaining)) {
             int room = this.inv[i].getMaxStackSize() - this.inv[i].getCount();
             int moved = Math.min(room, remaining.getCount());
