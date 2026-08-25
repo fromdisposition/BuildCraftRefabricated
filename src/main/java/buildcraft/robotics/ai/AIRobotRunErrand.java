@@ -8,7 +8,6 @@ package buildcraft.robotics.ai;
 
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.api.robots.RobotIdleReason;
 
 /** Go to a station that can serve an errand and carry it out there. Succeeds only if something actually moved. */
 public class AIRobotRunErrand extends AIRobot {
@@ -54,11 +53,5 @@ public class AIRobotRunErrand extends AIRobot {
 
       this.setSuccess(ai.success());
       this.terminate();
-   }
-
-   @Override
-   public void end() {
-      RobotIdleReason reason = this.errand == null ? RobotIdleReason.NO_WORK : this.errand.idleReason();
-      this.robot.reportProgress(this.success(), reason);
    }
 }

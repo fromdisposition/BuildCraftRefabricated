@@ -27,7 +27,7 @@ public final class RobotDisplay {
 
    public static float scale(ItemDisplayContext context) {
       return switch (context) {
-         case GUI -> 0.625F;
+         case GUI -> 0.8F;
          case THIRD_PERSON_RIGHT_HAND, THIRD_PERSON_LEFT_HAND -> 0.75F;
          case FIRST_PERSON_RIGHT_HAND, FIRST_PERSON_LEFT_HAND -> 0.8F;
          case GROUND -> 0.5F;

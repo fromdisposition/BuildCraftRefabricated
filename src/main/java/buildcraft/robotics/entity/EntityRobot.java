@@ -13,11 +13,6 @@ import buildcraft.lib.nbt.BcValueOut;
 import buildcraft.api.boards.RedstoneBoardRobot;
 import buildcraft.api.boards.RedstoneBoardRobotNBT;
 import buildcraft.lib.misc.EntityUtil;
-import buildcraft.api.robots.RobotIdleReason;
-import buildcraft.lib.misc.LocaleUtil;
-import buildcraft.lib.misc.MessageUtil;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
 import buildcraft.robotics.item.ItemRobot;
 import buildcraft.api.core.IZone;
 import buildcraft.api.mj.MjBattery;
@@ -657,40 +652,7 @@ public class EntityRobot extends EntityRobotBase {
    *///?}
 
    private InteractionResult robotInteract(Player player, InteractionHand hand) {
-      if (player.getItemInHand(hand).isEmpty()) {
-         return this.inspect(player);
-      }
-
       return this.wrenchInteract(player, hand);
-   }
-
-   /**
-    * Empty-hand right-click reports what the robot is doing. A robot that cannot work is indistinguishable from
-    * one that is resting, so this is the difference between "it just sits there" and a setup a player can fix:
-    * it names the board, the charge, the home station, and why the last cycle produced nothing.
-    */
-   private InteractionResult inspect(Player player) {
-      if (this.level().isClientSide()) {
-         return InteractionResult.SUCCESS;
-      }
-
-      RedstoneBoardRobot boardRobot = this.getBoard();
-      RedstoneBoardRobotNBT boardNBT = boardRobot != null ? boardRobot.getNBTHandler() : null;
-      String boardName = boardNBT != null ? boardNBT.getDisplayName() : LocaleUtil.localize("buildcraft.boardRobotClean");
-      int charge = Math.round(this.battery.getStored() * 100.0F / this.battery.getCapacity());
-
-      MessageUtil.sendSystemMessage(player, Component.literal(boardName).withStyle(ChatFormatting.WHITE)
-         .append(Component.literal(" - " + charge + "%").withStyle(ChatFormatting.GRAY)));
-      MessageUtil.sendSystemMessage(player,
-         Component.translatable(this.getIdleReason().langKey)
-            .withStyle(this.getIdleReason() == RobotIdleReason.WORKING ? ChatFormatting.GREEN : ChatFormatting.YELLOW));
-
-      Component home = this.linkedStationPos != null
-         ? Component.literal(this.linkedStationPos.toShortString())
-         : Component.translatable("buildcraft.robot.inspect.no_home");
-      MessageUtil.sendSystemMessage(player,
-         Component.translatable("buildcraft.robot.inspect.home", home).withStyle(ChatFormatting.DARK_GRAY));
-      return InteractionResult.SUCCESS;
    }
 
    /**

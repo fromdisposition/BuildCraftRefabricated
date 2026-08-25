@@ -10,7 +10,6 @@ import buildcraft.api.core.IStackFilter;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.api.robots.RobotIdleReason;
 import buildcraft.robotics.statement.StationActions;
 import net.minecraft.world.item.ItemStack;
 
@@ -68,11 +67,6 @@ public class AIRobotFetchAndEquipItemStack extends AIRobot {
             this.terminate();
          }
       }
-   }
-
-   @Override
-   public void end() {
-      this.robot.reportProgress(this.success(), RobotIdleReason.NO_TOOL);
    }
 
    private boolean equipItemStack() {

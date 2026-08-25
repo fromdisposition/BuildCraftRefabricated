@@ -10,7 +10,6 @@ import buildcraft.api.core.IStackFilter;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.api.robots.RobotIdleReason;
 import buildcraft.robotics.path.IFluidFilter;
 
 /**
@@ -61,11 +60,6 @@ public final class StationErrand {
 
    public boolean isLoad() {
       return this.kind == Kind.LOAD_ITEMS || this.kind == Kind.LOAD_FLUIDS;
-   }
-
-   /** What to tell the player when no station could serve this errand. */
-   public RobotIdleReason idleReason() {
-      return this.isLoad() ? RobotIdleReason.NO_SOURCE : RobotIdleReason.NO_DESTINATION;
    }
 
    /** An errand with no filter can never match anything, so it is not worth flying anywhere for. */

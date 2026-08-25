@@ -112,8 +112,6 @@ public class AIRobotFetchItem extends AIRobot {
       if (this.target != null) {
          unclaim(this.robot.level(), this.target.getId());
       }
-
-      this.robot.reportProgress(this.success(), buildcraft.api.robots.RobotIdleReason.NO_WORK);
    }
 
    private void scanForItem() {

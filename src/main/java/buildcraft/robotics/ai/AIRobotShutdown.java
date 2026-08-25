@@ -9,7 +9,6 @@ package buildcraft.robotics.ai;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.api.robots.RobotIdleReason;
 import buildcraft.robotics.path.PathFinding;
 import net.minecraft.core.BlockPos;
 
@@ -29,7 +28,6 @@ public class AIRobotShutdown extends AIRobotGoto {
    @Override
    public void start() {
       this.robot.setItemActive(false);
-      this.robot.setIdleReason(RobotIdleReason.NO_POWER);
       this.clearDestination(this.robot);
 
       DockingStation home = this.robot.getLinkedStation();

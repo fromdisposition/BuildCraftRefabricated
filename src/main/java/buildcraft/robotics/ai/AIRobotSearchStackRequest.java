@@ -11,7 +11,6 @@ import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
-import buildcraft.api.robots.RobotIdleReason;
 import buildcraft.api.robots.IRequestProvider;
 import buildcraft.robotics.IStationFilter;
 import buildcraft.lib.misc.StackUtil;
@@ -50,11 +49,6 @@ public class AIRobotSearchStackRequest extends AIRobot {
 
          this.terminate();
       }
-   }
-
-   @Override
-   public void end() {
-      this.robot.reportProgress(this.success(), RobotIdleReason.NO_WORK);
    }
 
    @Override

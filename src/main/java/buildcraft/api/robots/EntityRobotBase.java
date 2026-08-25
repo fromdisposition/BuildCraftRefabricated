@@ -79,22 +79,6 @@ public abstract class EntityRobotBase extends LivingEntity {
       this.owner = owner;
    }
 
-   /** Why this robot last failed to make progress. See {@link RobotIdleReason}. */
-   private RobotIdleReason idleReason = RobotIdleReason.WORKING;
-
-   public RobotIdleReason getIdleReason() {
-      return this.idleReason;
-   }
-
-   public void setIdleReason(RobotIdleReason reason) {
-      this.idleReason = reason;
-   }
-
-   /** Record the outcome of one shared AI: success clears the reason, failure explains what was missing. */
-   public void reportProgress(boolean success, RobotIdleReason onFailure) {
-      this.idleReason = success ? RobotIdleReason.WORKING : onFailure;
-   }
-
    public abstract void setItemInUse(ItemStack var1);
 
    public abstract ItemStack getHeldItem();

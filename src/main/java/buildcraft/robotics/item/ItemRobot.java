@@ -111,11 +111,6 @@ public class ItemRobot extends Item {
       // so no orphan entity is ever added to the world.
       if (!station.takeAsMain(robot)) {
          robot.getRegistry().killRobot(robot);
-         if (context.getPlayer() != null) {
-            buildcraft.lib.misc.MessageUtil.sendSystemMessage(context.getPlayer(),
-               Component.translatable("buildcraft.robot.deploy.station_taken").withStyle(net.minecraft.ChatFormatting.RED));
-         }
-
          return InteractionResult.FAIL;
       }
 
