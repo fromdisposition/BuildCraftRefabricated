@@ -21,6 +21,7 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.phys.Vec3;
 
 public final class PipeFlowRendererEnergy {
+   private static final Direction[] FACES = Direction.values();
    private static final ThreadLocal<double[]> TL_POWER = ThreadLocal.withInitial(() -> new double[6]);
    private static final ThreadLocal<double[]> TL_BOUNDS = ThreadLocal.withInitial(() -> new double[6]);
    /** The power-flow sprites are already coloured (cyan / overload red), so the cuboid vertices are plain white. */
@@ -58,7 +59,7 @@ public final class PipeFlowRendererEnergy {
       double centrePower = 0.0;
       double[] power = TL_POWER.get();
 
-      for (Direction side : Direction.values()) {
+      for (Direction side : FACES) {
          PipeEnergyDisplaySupport.DisplaySection section = sections.get(side);
          int i = side.ordinal();
          power[i] = (double)section.getDisplayPower() / MjAPI.MJ;
@@ -82,7 +83,7 @@ public final class PipeFlowRendererEnergy {
       int frame = (int) ((pipe.getHolder().getPipeWorld().getGameTime() / 2L) % (long) FRAMES);
       double[] bounds = TL_BOUNDS.get();
 
-      for (Direction side : Direction.values()) {
+      for (Direction side : FACES) {
          if (pipe.isConnected(side) && power[side.ordinal()] > 0.0) {
             sideFlowBounds(side, power[side.ordinal()], centrePower, bounds);
             // Skip the inner face (toward the pipe centre) — it is hidden by the centre cuboid.

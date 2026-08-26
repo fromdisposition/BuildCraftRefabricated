@@ -35,6 +35,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
    private static final double ARM_AXIS_PAD = 0.005;
    private static final double FACE_OVERLAP = 0.002;
 
+   private static final Direction[] FACES = Direction.values();
    private static final ThreadLocal<double[]> SCRATCH_AMOUNTS = ThreadLocal.withInitial(() -> new double[7]);
    private static final ThreadLocal<double[]> SCRATCH_BOUNDS = ThreadLocal.withInitial(() -> new double[6]);
 
@@ -48,22 +49,24 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             float[] rgba = flow.renderCacheRgba;
             int packedLight = PipeRenderContext.getPackedLight();
             double[] amounts = SCRATCH_AMOUNTS.get();
+            double[] bounds = SCRATCH_BOUNDS.get();
             flow.writeAmountsForRender(partialTicks, amounts);
-            boolean gas = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(forRender.getFluid()));
+            boolean gas = flow.renderCacheGas;
             boolean horizontal = false;
             boolean vertical = flow.pipe.isConnected(gas ? Direction.DOWN : Direction.UP);
             int centerIdx = EnumPipePart.CENTER.getIndex();
 
-            for (Direction face : Direction.values()) {
+            for (Direction face : FACES) {
                int fi = face.ordinal();
                double amount = amounts[fi];
+               boolean connected = flow.pipe.isConnected(face);
                if (face.getAxis() != Axis.Y) {
-                  horizontal |= flow.pipe.isConnected(face) && amount > 0.0;
+                  horizontal |= connected && amount > 0.0;
                }
 
-               if (amount > 0.0 && flow.pipe.isConnected(face)) {
+               if (amount > 0.0 && connected) {
                   double size = ((Pipe)flow.pipe).getConnectedDist(face);
-                  double[] bounds = armBounds(face, size, amount, flow.capacity);
+                  armBounds(face, size, amount, flow.capacity, bounds);
                   int faceSkipMask = amounts[centerIdx] > 0.0 ? 1 << face.getOpposite().ordinal() : 0;
                   double cuboidAmount = face.getAxis() == Axis.Y ? 1.0 : amount;
                   double cuboidCapacity = face.getAxis() == Axis.Y ? 1.0 : flow.capacity;
@@ -127,7 +130,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
       }
    }
 
-   private static double[] armBounds(Direction face, double size, double amount, double capacity) {
+   private static void armBounds(Direction face, double size, double amount, double capacity, double[] out) {
       double shift = ARM_RADIUS + size / 2.0;
       double cx = 0.5 + face.getStepX() * shift;
       double cy = 0.5 + face.getStepY() * shift;
@@ -153,15 +156,13 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
          rz = perc * ARM_RADIUS;
       }
 
-      double[] bounds = SCRATCH_BOUNDS.get();
-      bounds[0] = cx - rx;
-      bounds[1] = cy - ry;
-      bounds[2] = cz - rz;
-      bounds[3] = cx + rx;
-      bounds[4] = cy + ry;
-      bounds[5] = cz + rz;
-      extendArmToBlockFace(face, bounds);
-      return bounds;
+      out[0] = cx - rx;
+      out[1] = cy - ry;
+      out[2] = cz - rz;
+      out[3] = cx + rx;
+      out[4] = cy + ry;
+      out[5] = cz + rz;
+      extendArmToBlockFace(face, out);
    }
 
    private static void extendArmToBlockFace(Direction face, double[] bounds) {
@@ -211,6 +212,7 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             flow.renderCacheTranslucent = BcFluidRenderLookup.translucent(fluidStack);
          }
 
+         flow.renderCacheGas = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(current));
          BcFluidRenderLookup.writeVertexRgba(fluidStack, flow.renderCacheRgba);
       }
    }

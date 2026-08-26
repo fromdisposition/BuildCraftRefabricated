@@ -53,6 +53,7 @@ import org.jspecify.annotations.Nullable;
 public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, PipeHolderRenderState> {
    /** Reused per-frame for the stacked-item model jitter (submit runs single-threaded on the render thread). */
    private static final ThreadLocal<Random> MODEL_OFFSET_RANDOM = ThreadLocal.withInitial(() -> new Random(0L));
+   private static final Direction[] FACES = Direction.values();
    private final ItemModelResolver itemModelResolver;
    private long itemModelCacheTick = Long.MIN_VALUE;
    /** Per-tick cache of resolved item models, keyed by int signature (no Integer boxing per item per frame). */
@@ -313,7 +314,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
          IPipeBehaviourRenderer<PipeBehaviour> behaviourRenderer = p.behaviour != null ? PipeRegistryClient.getBehaviourRenderer(p.behaviour) : null;
          boolean hasDynamicPlugs = false;
 
-         for (Direction facing : Direction.values()) {
+         for (Direction facing : FACES) {
             PipePluggable plug = pipe.getPluggable(facing);
             if (plug != null && PipeRegistryClient.getPlugRenderer(plug) != null) {
                hasDynamicPlugs = true;
@@ -327,7 +328,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
                   behaviourRenderer.render(p.behaviour, x, y, z, partialTicks, buffer, stack.last());
                }
 
-               for (Direction facing : Direction.values()) {
+               for (Direction facing : FACES) {
                   PipePluggable plug = pipe.getPluggable(facing);
                   if (plug != null) {
                      renderPluggable(plug, x, y, z, partialTicks, buffer, stack);

@@ -10,6 +10,7 @@ import buildcraft.builders.BCBuildersSprites;
 import buildcraft.builders.snapshot.SnapshotBuilder;
 import buildcraft.core.client.BuildCraftLaserManager;
 import buildcraft.lib.client.model.ModelUtil;
+import buildcraft.lib.client.model.MutableQuad;
 import buildcraft.lib.client.render.laser.BcLaserRenderer;
 import buildcraft.lib.client.render.laser.LaserData_BC8;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -22,12 +23,45 @@ import net.minecraft.client.Minecraft;
 /*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 *///?}
 import buildcraft.lib.client.render.BCLibRenderTypes;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 public final class BuilderRobotVisualRenderer {
+   private static final Vector3f CENTER = new Vector3f(0.0F, 0.0F, 0.0F);
+   private static final Vector3f EXTENT = new Vector3f(0.25F, 0.25F, 0.25F);
+   private static MutableQuad[] robotFaces;
+   private static TextureAtlasSprite robotFacesSprite;
+
    private BuilderRobotVisualRenderer() {
+   }
+
+   private static MutableQuad[] robotFaces() {
+      TextureAtlasSprite sprite = BCBuildersSprites.ROBOT.getSprite();
+      if (robotFaces == null || robotFacesSprite != sprite) {
+         Direction[] dirs = Direction.values();
+         MutableQuad[] faces = new MutableQuad[dirs.length];
+
+         for (int i = 0; i < dirs.length; i++) {
+            faces[i] = ModelUtil.createFace(
+               dirs[i],
+               CENTER,
+               EXTENT,
+               new ModelUtil.UvFaceData(
+                  BCBuildersSprites.ROBOT.getInterpU(i * 8 / 64.0),
+                  BCBuildersSprites.ROBOT.getInterpV(0.0),
+                  BCBuildersSprites.ROBOT.getInterpU((i + 1) * 8 / 64.0),
+                  BCBuildersSprites.ROBOT.getInterpV(0.125)
+               )
+            );
+         }
+
+         robotFaces = faces;
+         robotFacesSprite = sprite;
+      }
+
+      return robotFaces;
    }
 
    public static void renderRobotAndBreakTasks(
@@ -58,23 +92,10 @@ public final class BuilderRobotVisualRenderer {
       poseStack.pushPose();
       poseStack.translate(robotPos.x - cameraPos.x, robotPos.y - cameraPos.y, robotPos.z - cameraPos.z);
       int worldLight = BcLaserRenderer.computeLightmap(robotPos.x, robotPos.y, robotPos.z, 0);
+      MutableQuad[] faces = robotFaces();
       LaserBatch.submitGeometry(poseStack, BCLibRenderTypes.entityTranslucent(BCBuildersSprites.ROBOT.getAtlasLocation()), (pose, vc) -> {
-         int i = 0;
-         for (Direction face : Direction.values()) {
-            ModelUtil.createFace(
-                  face,
-                  new Vector3f(0.0F, 0.0F, 0.0F),
-                  new Vector3f(0.25F, 0.25F, 0.25F),
-                  new ModelUtil.UvFaceData(
-                     BCBuildersSprites.ROBOT.getInterpU(i * 8 / 64.0),
-                     BCBuildersSprites.ROBOT.getInterpV(0.0),
-                     BCBuildersSprites.ROBOT.getInterpU((i + 1) * 8 / 64.0),
-                     BCBuildersSprites.ROBOT.getInterpV(0.125)
-                  )
-               )
-               .lighti(worldLight)
-               .render(pose, vc);
-            i++;
+         for (MutableQuad face : faces) {
+            face.lighti(worldLight).render(pose, vc);
          }
       });
       poseStack.popPose();
@@ -85,23 +106,9 @@ public final class BuilderRobotVisualRenderer {
       poseStack.translate(robotPos.x - cameraPos.x, robotPos.y - cameraPos.y, robotPos.z - cameraPos.z);
       int worldLight = BcLaserRenderer.computeLightmap(robotPos.x, robotPos.y, robotPos.z, 0);
       Pose pose = poseStack.last();
-      int i = 0;
 
-      for (Direction face : Direction.values()) {
-         ModelUtil.createFace(
-               face,
-               new Vector3f(0.0F, 0.0F, 0.0F),
-               new Vector3f(0.25F, 0.25F, 0.25F),
-               new ModelUtil.UvFaceData(
-                  BCBuildersSprites.ROBOT.getInterpU(i * 8 / 64.0),
-                  BCBuildersSprites.ROBOT.getInterpV(0.0),
-                  BCBuildersSprites.ROBOT.getInterpU((i + 1) * 8 / 64.0),
-                  BCBuildersSprites.ROBOT.getInterpV(0.125)
-               )
-            )
-            .lighti(worldLight)
-            .render(pose, buffer);
-         i++;
+      for (MutableQuad face : robotFaces()) {
+         face.lighti(worldLight).render(pose, buffer);
       }
 
       poseStack.popPose();

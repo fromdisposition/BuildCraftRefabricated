@@ -25,6 +25,7 @@ public enum PlugPulsarRenderer implements IPlugDynamicRenderer<PluggablePulsar> 
    private static final int LED_ON_G = 255;
    private static final int LED_ON_B = 153;
    private static final int LED_OFF = 34;
+   private static final ThreadLocal<MutableQuad> RENDER_SCRATCH = ThreadLocal.withInitial(MutableQuad::new);
    private static List<MutableQuad> offBox;
    private static List<MutableQuad> onBox;
    private static List<MutableQuad> autoLeds;
@@ -100,13 +101,18 @@ public enum PlugPulsarRenderer implements IPlugDynamicRenderer<PluggablePulsar> 
       ps.pushPose();
       ps.translate(posDiff / 16.0F, 0.0F, 0.0F);
 
-      for (MutableQuad q : on ? onBox : offBox) {
-         MutableQuad mq = new MutableQuad(q);
-         if (on) {
-            mq.lighti(15, 15);
-         }
+      if (on) {
+         MutableQuad scratch = RENDER_SCRATCH.get();
 
-         mq.render(ps.last(), bb);
+         for (MutableQuad q : onBox) {
+            scratch.copyFrom(q);
+            scratch.lighti(15, 15);
+            scratch.render(ps.last(), bb);
+         }
+      } else {
+         for (MutableQuad q : offBox) {
+            q.render(ps.last(), bb);
+         }
       }
 
       ps.popPose();
@@ -119,15 +125,16 @@ public enum PlugPulsarRenderer implements IPlugDynamicRenderer<PluggablePulsar> 
       int r = lit ? LED_ON_R : LED_OFF;
       int g = lit ? LED_ON_G : LED_OFF;
       int b = lit ? LED_ON_B : LED_OFF;
+      MutableQuad scratch = RENDER_SCRATCH.get();
 
       for (MutableQuad q : leds) {
-         MutableQuad mq = new MutableQuad(q);
-         mq.multColouri(r, g, b, 255);
+         scratch.copyFrom(q);
+         scratch.multColouri(r, g, b, 255);
          if (lit) {
-            mq.lighti(15, 15);
+            scratch.lighti(15, 15);
          }
 
-         mq.render(ps.last(), bb);
+         scratch.render(ps.last(), bb);
       }
    }
 }

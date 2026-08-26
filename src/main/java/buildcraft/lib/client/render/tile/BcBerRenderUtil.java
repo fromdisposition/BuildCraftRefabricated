@@ -25,6 +25,8 @@ public final class BcBerRenderUtil {
    }
 
    //? if >= 1.21.10 {
+   private static final ThreadLocal<PoseStack> SUBMIT_POSE_STACK = ThreadLocal.withInitial(PoseStack::new);
+
    public static void submit(PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType, BiConsumer<Pose, VertexConsumer> draw) {
       collector.submitCustomGeometry(poseStack, renderType, draw::accept);
    }
@@ -32,11 +34,16 @@ public final class BcBerRenderUtil {
    public static void submitWithPoseStack(
       PoseStack poseStack, SubmitNodeCollector collector, RenderType renderType, BiConsumer<PoseStack, VertexConsumer> draw
    ) {
-      collector.submitCustomGeometry(poseStack, renderType, (pose, buffer) -> draw.accept(copyPoseStack(pose), buffer));
+      collector.submitCustomGeometry(poseStack, renderType, (pose, buffer) -> draw.accept(scratchPoseStack(pose), buffer));
    }
 
-   public static PoseStack copyPoseStack(Pose pose) {
-      PoseStack stack = new PoseStack();
+   private static PoseStack scratchPoseStack(Pose pose) {
+      PoseStack stack = SUBMIT_POSE_STACK.get();
+
+      while (!stack.isEmpty()) {
+         stack.popPose();
+      }
+
       stack.pushPose();
       stack.last().set(pose);
       return stack;

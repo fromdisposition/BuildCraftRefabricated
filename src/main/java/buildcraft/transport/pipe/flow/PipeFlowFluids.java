@@ -72,6 +72,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    public transient net.minecraft.client.renderer.texture.TextureAtlasSprite renderCacheSprite;
    public transient final float[] renderCacheRgba = new float[]{1.0F, 1.0F, 1.0F, 1.0F};
    public transient boolean renderCacheTranslucent;
+   public transient boolean renderCacheGas;
    private PipeEventFluid.@Nullable SideCheck routingFluidSideCheck;
    private PipeEventFluid.@Nullable PreMoveToCentre routingPreMove;
    private PipeEventFluid.@Nullable OnMoveToCentre routingOnMove;

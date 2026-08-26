@@ -25,6 +25,7 @@ import net.minecraft.world.level.LightLayer;
 public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
    INSTANCE;
 
+   private static final ThreadLocal<MutableQuad> RENDER_SCRATCH = ThreadLocal.withInitial(MutableQuad::new);
    private static List<MutableQuad> onBox;
    private static List<MutableQuad> offBox;
 
@@ -54,7 +55,7 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
       int naturalBlockLight = 0;
       int naturalSkyLight = 0;
       boolean on = plug.logic.isOn;
-      if (plug.holder != null && plug.holder.getPipeWorld() != null) {
+      if (!on && plug.holder != null && plug.holder.getPipeWorld() != null) {
          Level world = plug.holder.getPipeWorld();
          BlockPos sample = plug.holder.getPipePos().relative(plug.side);
          naturalBlockLight = world.getBrightness(LightLayer.BLOCK, sample);
@@ -67,15 +68,17 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
 
       // Only the animated on/off indicator box is drawn here; the static gate body comes from the baked cutout
       // path (PlugGateBaker). Drawing both here and in the baker was the Z-fighting cause, now removed.
+      MutableQuad scratch = RENDER_SCRATCH.get();
+
       for (MutableQuad q : on ? onBox : offBox) {
-         MutableQuad mq = new MutableQuad(q);
+         scratch.copyFrom(q);
          if (on) {
-            mq.lighti(15, 15);
+            scratch.lighti(15, 15);
          } else {
-            mq.lighti(naturalBlockLight, naturalSkyLight);
+            scratch.lighti(naturalBlockLight, naturalSkyLight);
          }
 
-         mq.render(ps.last(), bb);
+         scratch.render(ps.last(), bb);
       }
 
       ps.popPose();
