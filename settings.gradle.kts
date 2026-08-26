@@ -13,15 +13,9 @@ pluginManagement {
 }
 
 plugins {
-    id("dev.kikugie.stonecutter") version "0.9.6"
-    id("dev.kikugie.loom-back-compat") version "0.3"
+    id("dev.kikugie.stonecutter") version "0.9.7"
+    id("dev.kikugie.loom-back-compat") version "0.4.2"
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
-
-extensions.configure<dev.kikugie.loomx.LoomCompatSettingsExtension>("loomx") {
-    loomVersion = "1.17-SNAPSHOT"
-    loomRemapPlugin = "net.fabricmc.fabric-loom-remap"
-    loomUnobfPlugin = "net.fabricmc.fabric-loom"
 }
 
 stonecutter {

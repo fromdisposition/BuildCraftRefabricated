@@ -65,7 +65,7 @@ loom {
     runs.configureEach {
         // Java 23+ only: 26.x needs it (LWJGL/MC use sun.misc.Unsafe), Java 21 refuses to start with it.
         if (sc.current.parsed >= "26.1") {
-            vmArg("--sun-misc-unsafe-memory-access=allow")
+            jvmArguments.add("--sun-misc-unsafe-memory-access=allow")
         }
     }
 }
@@ -317,7 +317,7 @@ if (sc.current.parsed < "1.21.2") {
     // from assets/<ns>/models/item/<id>.json. A plain "model" def becomes {"parent": <target>}; a
     // custom_model_data range_dispatch becomes legacy integer "overrides" merged onto the base model.
     @Suppress("UNCHECKED_CAST")
-    fun build1211ItemModel(def: Map<String, Any?>, existing: File): MutableMap<String, Any?>? {
+    fun build1211ItemModel(def: Map<*, *>, existing: File): MutableMap<String, Any?>? {
         val model = def["model"] as? Map<String, Any?> ?: return null
         val overrides = mutableListOf<Map<String, Any?>>()
         val baseRef: String? = when (model["type"]) {
@@ -368,7 +368,7 @@ if (sc.current.parsed < "1.21.2") {
                 val parts = file.relativeTo(srcResources).invariantSeparatorsPath.split("/") // assets/<ns>/items/<id...>.json
                 val ns = parts[1]
                 val id = parts.drop(3).joinToString("/").removeSuffix(".json")
-                val def = JsonSlurper().parse(file) as? Map<String, Any?> ?: return@forEach
+                val def = JsonSlurper().parse(file) as? Map<*, *> ?: return@forEach
                 val existing = srcResources.resolve("assets/$ns/models/item/$id.json")
                 val result = build1211ItemModel(def, existing) ?: return@forEach
                 val outFile = outDir.resolve("assets/$ns/models/item/$id.json")
