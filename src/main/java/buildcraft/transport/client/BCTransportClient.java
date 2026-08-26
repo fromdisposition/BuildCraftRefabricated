@@ -57,7 +57,19 @@ public class BCTransportClient {
             .register((model, context) -> context.state().getBlock() == BCTransportBlocks.PIPE_HOLDER ? new PipeBlockStateModel(model) : model)
       );
    }
-   //?}
+   //?} else {
+   /*public static void registerModelLoadingPlugin() {
+      net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin.register(
+         pluginContext -> pluginContext.modifyModelAfterBake()
+            .register(
+               (model, context) -> context.topLevelId() != null
+                     && context.topLevelId().id().equals(BuiltInRegistries.BLOCK.getKey(BCTransportBlocks.PIPE_HOLDER))
+                  ? new PipeBlockStateModel(model)
+                  : model
+            )
+      );
+   }
+   *///?}
 
    public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
       //? if >= 1.21.10 {

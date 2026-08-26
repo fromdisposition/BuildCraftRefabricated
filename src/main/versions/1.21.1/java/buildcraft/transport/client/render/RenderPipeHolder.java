@@ -8,7 +8,6 @@ package buildcraft.transport.client.render;
 
 import buildcraft.api.transport.pipe.IPipeBehaviourRenderer;
 import buildcraft.api.transport.pipe.IPipeFlowRenderer;
-import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.api.transport.pluggable.IPlugDynamicRenderer;
@@ -16,6 +15,7 @@ import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.client.fluid.BcFluidAppearance;
 import buildcraft.lib.client.fluid.BcFluidAppearanceCache;
 import buildcraft.lib.client.model.MutableQuad;
+import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.client.render.BCLibRenderTypes;
 import buildcraft.transport.client.PipeRegistryClient;
 import buildcraft.transport.client.model.ModelPipe;
@@ -24,27 +24,25 @@ import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.flow.PipeFlowFluids;
 import buildcraft.transport.pipe.flow.PipeFlowItems;
 import buildcraft.transport.tile.TilePipeHolder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import buildcraft.transport.wire.WireManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import java.util.Random;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * 1.21.1 (versions/1.21.1) pipe block-entity renderer. The shared renderer uses the 1.21.5 render-state +
@@ -57,35 +55,46 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
 
    /** Reused per item for the stacked-item jitter — render() runs single-threaded on the render thread. */
    private static final ThreadLocal<Random> MODEL_OFFSET_RANDOM = ThreadLocal.withInitial(() -> new Random(0L));
-
-   /**
-    * Translucent paint-mask sheet for the pipe colour overlay, identical to {@code Sheets.translucentItemSheet()}
-    * ({@code itemEntityTranslucentCull}) EXCEPT it writes colour only ({@code COLOR_WRITE}), not depth. The vanilla
-    * sheet depth-writes, so the painted shell would occlude the pipe's block contents behind it — most visibly at
-    * the up/down faces and where stacked painted pipes share a boundary (one pipe's paint face wrote depth over the
-    * neighbour's adjacent item). Not writing depth means the shell can tint the contents but can never hide them.
-    * It is also a custom (non-fixed) sheet, so the BufferSource flushes it in insertion order — after the items
-    * rendered just above — letting the paint blend over them (tint) rather than the items drawing over the paint.
-    */
-   private static final RenderType PIPE_PAINT_OVERLAY = RenderType.create(
-      "buildcraft:pipe_paint_overlay",
-      DefaultVertexFormat.NEW_ENTITY,
-      VertexFormat.Mode.QUADS,
-      1536,
-      true,
-      true,
-      RenderType.CompositeState.builder()
-         .setShaderState(RenderStateShard.RENDERTYPE_ITEM_ENTITY_TRANSLUCENT_CULL_SHADER)
-         .setTextureState(new RenderStateShard.TextureStateShard(InventoryMenu.BLOCK_ATLAS, false, false))
-         .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-         .setOutputState(RenderStateShard.ITEM_ENTITY_TARGET)
-         .setLightmapState(RenderStateShard.LIGHTMAP)
-         .setOverlayState(RenderStateShard.OVERLAY)
-         .setWriteMaskState(RenderStateShard.COLOR_WRITE)
-         .createCompositeState(true)
-   );
+   private static final Direction[] FACES = Direction.values();
+   private final int[] itemIndexScratch = new int[1];
+   private final double[] itemPosScratch = new double[3];
 
    public RenderPipeHolder(BlockEntityRendererProvider.Context context) {
+   }
+
+   @Override
+   public boolean shouldRender(TilePipeHolder pipe, Vec3 cameraPosition) {
+      return hasDynamicContent(pipe) && BlockEntityRenderer.super.shouldRender(pipe, cameraPosition);
+   }
+
+   private static boolean hasDynamicContent(TilePipeHolder tile) {
+      if (tile.hasPluggables()) {
+         return true;
+      }
+
+      WireManager wires = tile.getWireManager();
+      if (wires != null && (!wires.parts.isEmpty() || !wires.betweens.isEmpty())) {
+         return true;
+      }
+
+      Pipe pipe = tile.getPipe();
+      if (pipe == null) {
+         return false;
+      }
+
+      if (pipe.behaviour != null && PipeRegistryClient.getBehaviourRenderer(pipe.behaviour) != null) {
+         return true;
+      }
+
+      PipeFlow flow = pipe.flow;
+      if (flow instanceof PipeFlowItems items) {
+         return items.doesContainItems();
+      } else if (flow instanceof PipeFlowFluids fluids) {
+         FluidStack forRender = fluids.getFluidStackForRender();
+         return forRender != null && !forRender.isEmpty();
+      } else {
+         return flow != null && PipeRegistryClient.getFlowRenderer(flow) != null;
+      }
    }
 
    @Override
@@ -98,29 +107,16 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
 
       Pose cutoutPose = poseStack.last();
       VertexConsumer cutout = buffers.getBuffer(BCLibRenderTypes.cutoutBlockSheet());
-      ModelPipe.renderDirect(pipe, cutoutPose, cutout, light);
       ModelPipe.renderCutoutPluggables(pipe, cutoutPose, cutout, light);
       PipeWireRenderer.renderWires(pipe, cutoutPose, light, cutout);
 
       // Translucent pluggable layer (e.g. coloured lens glass) — drawn on the normal depth-sorted translucent
-      // block sheet, NOT the colour-only PIPE_PAINT_OVERLAY used for pipe paint below, so the glass occludes
-      // correctly. Without this the lens glass was baked but never submitted, so it showed nothing in-world.
+      // block sheet, so the glass occludes correctly. Without this the lens glass was baked but never
+      // submitted, so it showed nothing in-world.
       VertexConsumer translucentPluggables = buffers.getBuffer(BCLibRenderTypes.translucentBlockSheet());
       ModelPipe.renderTranslucentPluggables(pipe, cutoutPose, translucentPluggables, light);
 
       renderItems(pipe, partialTick, poseStack, buffers, light, level);
-
-      Pipe bodyPipe = pipe.getPipe();
-      if (bodyPipe != null && bodyPipe.getColour() != null) {
-         // Paint via PIPE_PAINT_OVERLAY (colour-only, no depth write): the shell tints the pipe contents instead
-         // of depth-occluding them. Block-items render on RenderType.solid(); the depth-writing vanilla translucent
-         // sheet used to be drawn first and hide them (most visibly at the up/down faces and stacked-pipe
-         // boundaries). A non-depth-writing sheet can never hide the items on any face, so no buffer flush is
-         // needed; as a custom sheet it also flushes after the items above, so the paint blends over them (tint).
-         int paintAlpha = bodyPipe.definition.flowType == PipeApi.flowFluids ? 255 : ModelPipe.PIPE_PAINT_ALPHA;
-         VertexConsumer translucent = buffers.getBuffer(PIPE_PAINT_OVERLAY);
-         ModelPipe.renderMaskOverlay(pipe, poseStack.last(), translucent, light, paintAlpha);
-      }
 
       renderContents(pipe, partialTick, poseStack, buffers, light);
 
@@ -134,8 +130,9 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
       }
       long now = level.getGameTime();
       int posHash = (int) pipe.getBlockPos().asLong();
-      int[] idx = new int[] { 0 };
-      double[] posScratch = new double[3];
+      int[] idx = this.itemIndexScratch;
+      idx[0] = 0;
+      double[] posScratch = this.itemPosScratch;
       flowItems.forEachItemForRender(item -> {
          int i = idx[0]++;
          ItemStack stack = item.clientItemLink.get();
@@ -222,21 +219,22 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
          return;
       }
       PipeRenderContext.setPackedLight(light);
-      boolean hasBehaviour = p.behaviour != null;
+      IPipeBehaviourRenderer<PipeBehaviour> behaviourRenderer = p.behaviour != null ? PipeRegistryClient.getBehaviourRenderer(p.behaviour) : null;
       boolean hasPluggables = false;
-      for (Direction facing : Direction.values()) {
-         if (pipe.getPluggable(facing) != null) {
+      for (Direction facing : FACES) {
+         PipePluggable plug = pipe.getPluggable(facing);
+         if (plug != null && PipeRegistryClient.getPlugRenderer(plug) != null) {
             hasPluggables = true;
             break;
          }
       }
 
-      if (hasBehaviour || hasPluggables) {
+      if (behaviourRenderer != null || hasPluggables) {
          VertexConsumer buffer = buffers.getBuffer(BCLibRenderTypes.cutoutBlockSheet());
-         if (hasBehaviour) {
-            renderBehaviour(p.behaviour, 0.0, 0.0, 0.0, partialTicks, buffer, poseStack.last());
+         if (behaviourRenderer != null) {
+            behaviourRenderer.render(p.behaviour, 0.0, 0.0, 0.0, partialTicks, buffer, poseStack.last());
          }
-         for (Direction facing : Direction.values()) {
+         for (Direction facing : FACES) {
             PipePluggable plug = pipe.getPluggable(facing);
             if (plug != null) {
                renderPluggable(plug, 0.0, 0.0, 0.0, partialTicks, buffer, poseStack);
@@ -244,7 +242,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
          }
       }
 
-      if (p.flow != null && !(p.flow instanceof PipeFlowItems)) {
+      if (p.flow != null && !(p.flow instanceof PipeFlowItems) && PipeRegistryClient.getFlowRenderer(p.flow) != null) {
          RenderType flowType = BCLibRenderTypes.cutoutBlockSheet();
          if (p.flow instanceof PipeFlowFluids fluids) {
             PipeFlowRendererFluids.prepareRenderCache(fluids);
@@ -271,15 +269,6 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
       IPipeFlowRenderer<F> renderer = PipeRegistryClient.getFlowRenderer(flow);
       if (renderer != null) {
          renderer.render(flow, x, y, z, partialTicks, buffer, pose);
-      }
-   }
-
-   private static <B extends PipeBehaviour> void renderBehaviour(
-      B behaviour, double x, double y, double z, float partialTicks, VertexConsumer buffer, Pose pose
-   ) {
-      IPipeBehaviourRenderer<B> renderer = PipeRegistryClient.getBehaviourRenderer(behaviour);
-      if (renderer != null) {
-         renderer.render(behaviour, x, y, z, partialTicks, buffer, pose);
       }
    }
 }
