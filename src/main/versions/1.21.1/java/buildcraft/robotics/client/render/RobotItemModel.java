@@ -46,8 +46,14 @@ public class RobotItemModel implements BakedModel {
       float scale = RobotDisplay.scale(context);
       poseStack.pushPose();
       poseStack.translate(0.5, 0.5, 0.5);
-      poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(rotation.y));
-      poseStack.mulPose(com.mojang.math.Axis.XP.rotationDegrees(rotation.x));
+      poseStack.mulPose(
+         new org.joml.Quaternionf()
+            .rotationXYZ(
+               rotation.x * net.minecraft.util.Mth.DEG_TO_RAD,
+               rotation.y * net.minecraft.util.Mth.DEG_TO_RAD,
+               rotation.z * net.minecraft.util.Mth.DEG_TO_RAD
+            )
+      );
       poseStack.scale(scale, scale, scale);
       VertexConsumer body = buffers.getBuffer(BCLibRenderTypes.entityCutout(RenderRobot.tex(texture)));
       Pose pose = poseStack.last();
