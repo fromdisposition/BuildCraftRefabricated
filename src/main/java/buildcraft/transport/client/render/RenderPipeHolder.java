@@ -56,7 +56,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
    private final ItemModelResolver itemModelResolver;
    private long itemModelCacheTick = Long.MIN_VALUE;
    /** Per-tick cache of resolved item models, keyed by int signature (no Integer boxing per item per frame). */
-   private final Int2ObjectOpenHashMap<ItemStackRenderState> itemModelBySignature = new Int2ObjectOpenHashMap<>();
+   private final Int2ObjectOpenHashMap<RenderPipeHolder.CachedItemModel> itemModelBySignature = new Int2ObjectOpenHashMap<>();
    /** Reused scratch for the item-extraction loop — extractRenderState runs single-threaded on the render thread. */
    private final int[] itemIndexScratch = new int[1];
    private final double[] itemPosScratch = new double[3];
@@ -72,15 +72,18 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       }
 
       int signature = ItemStack.hashItemAndComponents(stack);
-      ItemStackRenderState cached = this.itemModelBySignature.get(signature);
-      if (cached != null) {
-         return cached;
+      RenderPipeHolder.CachedItemModel cached = this.itemModelBySignature.get(signature);
+      if (cached != null && ItemStack.isSameItemSameComponents(cached.stack(), stack)) {
+         return cached.state();
       }
 
       ItemStackRenderState itemState = renderState.acquireItemState();
       this.itemModelResolver.updateForTopItem(itemState, stack, ItemDisplayContext.NONE, world, null, seed);
-      this.itemModelBySignature.put(signature, itemState);
+      this.itemModelBySignature.put(signature, new RenderPipeHolder.CachedItemModel(stack, itemState));
       return itemState;
+   }
+
+   private record CachedItemModel(ItemStack stack, ItemStackRenderState state) {
    }
 
    public PipeHolderRenderState createRenderState() {
