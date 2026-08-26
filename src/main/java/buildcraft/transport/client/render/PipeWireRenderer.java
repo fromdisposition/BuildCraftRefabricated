@@ -191,7 +191,7 @@ public class PipeWireRenderer {
       if (geometry instanceof EnumWirePart part) {
          geoKey = part.ordinal();
       } else if (geometry instanceof EnumWireBetween between) {
-         geoKey = 1000 + between.ordinal();
+         geoKey = BETWEEN_KEY_OFFSET + between.ordinal();
       } else {
          geoKey = geometry.hashCode();
       }
@@ -238,8 +238,7 @@ public class PipeWireRenderer {
                quad.colourf(1.0F, 1.0F, 1.0F, 1.0F);
                quad.lighti(15, 15);
             } else if (quad.getFace() != Direction.UP) {
-               float shade = 1.0F - quad.getCalculatedDiffuse();
-               shade = 1.0F - shade;
+               float shade = quad.getCalculatedDiffuse();
                quad.colourf(shade, shade, shade, 1.0F);
             } else {
                quad.colourf(1.0F, 1.0F, 1.0F, 1.0F);
