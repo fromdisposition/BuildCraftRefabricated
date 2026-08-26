@@ -35,14 +35,11 @@ import com.mojang.math.Axis;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
@@ -83,7 +80,6 @@ import org.lwjgl.system.MemoryStack;
 
 public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipRenderState> {
    private static final Logger LOGGER = LogManager.getLogger("BCBlueprintPipRenderer");
-   private static final Set<Integer> LOGGED_SNAPSHOTS = Collections.synchronizedSet(new HashSet<>());
    private static final float PITCH_DEG = 20.0F;
    private static final int YAW_PERIOD_TICKS = 72;
    private static final int FULL_BRIGHT = 15728880;
@@ -96,7 +92,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    private static final Vector3f LIGHT1_MODEL_SPACE = new Vector3f(-1.0F, 1.0F, -1.0F).normalize();
    private GpuBuffer lightingBuffer;
    private int lightingBufferPaddedSize;
-   private final Map<BlueprintPipRenderer.PlanKey, BlueprintPipRenderer.PreviewPlan> planCache = new LinkedHashMap<BlueprintPipRenderer.PlanKey, BlueprintPipRenderer.PreviewPlan>(
+   private static final Map<BlueprintPipRenderer.PlanKey, BlueprintPipRenderer.PreviewPlan> PLAN_CACHE = new LinkedHashMap<BlueprintPipRenderer.PlanKey, BlueprintPipRenderer.PreviewPlan>(
       16, 0.75F, true
    ) {
       @Override
@@ -165,7 +161,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
 
       featureRenderDispatcher.renderAllFeatures(storage);
       RenderSystem.setShaderLights(savedShaderLights);
-      if (LOGGED_SNAPSHOTS.add(System.identityHashCode(snapshot))) {
+      if (!plan.logged) {
+         plan.logged = true;
          LOGGER.info(
             "renderToTexture: type={} size={}x{}x{} submitted={} submittedFluid={} submittedTemplate={} submittedPipe={} skippedNoItem={} skippedAirOrEmpty={} skippedHidden={} sampleSchBlock={} distinctStates={}",
             new Object[]{
@@ -234,6 +231,19 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       }
    }
    //?}
+
+   public static void onModelBake() {
+      PLAN_CACHE.clear();
+   }
+
+   @Override
+   public void close() {
+      super.close();
+      if (this.lightingBuffer != null) {
+         this.lightingBuffer.close();
+         this.lightingBuffer = null;
+      }
+   }
 
    private void ensureLightingBufferAllocated() {
       if (this.lightingBuffer == null) {
@@ -328,7 +338,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       featureRenderDispatcher.renderAllFeatures();
       this.bufferSource.endBatch();
       RenderSystem.setShaderLights(savedShaderLights);
-      if (LOGGED_SNAPSHOTS.add(System.identityHashCode(snapshot))) {
+      if (!plan.logged) {
+         plan.logged = true;
          LOGGER.info(
             "renderToTexture: type={} size={}x{}x{} submitted={} submittedFluid={} submittedTemplate={} submittedPipe={} skippedNoItem={} skippedAirOrEmpty={} skippedHidden={} sampleSchBlock={} distinctStates={}",
             new Object[]{
@@ -353,7 +364,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
 
    private BlueprintPipRenderer.PreviewPlan planFor(Snapshot snapshot, Minecraft mc) {
       BlueprintPipRenderer.PlanKey key = BlueprintPipRenderer.PlanKey.of(snapshot);
-      return this.planCache.computeIfAbsent(key, ignored -> this.buildPlan(snapshot, mc));
+      return PLAN_CACHE.computeIfAbsent(key, ignored -> this.buildPlan(snapshot, mc));
    }
 
    private BlueprintPipRenderer.PreviewPlan buildPlan(Snapshot snapshot, Minecraft mc) {
@@ -961,6 +972,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       private int skippedAirOrEmpty;
       private int skippedHidden;
       private int distinctStates;
+      private boolean logged;
       private String sampleClassName = "n/a";
    }
 

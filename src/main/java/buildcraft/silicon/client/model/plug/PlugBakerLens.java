@@ -239,7 +239,7 @@ public enum PlugBakerLens implements IPluggableStaticBaker<KeyPlugLens> {
    }
 
    public List<BakedQuad> bake(KeyPlugLens key) {
-      if (!cached.containsKey(key)) {
+      return cached.computeIfAbsent(key, k -> {
          List<MutableQuad> rawQuads = new ArrayList<>();
          String layerName = key.layer != null ? key.layer.toString().toLowerCase() : "";
          List<BakedQuad> baked = new ArrayList<>();
@@ -260,9 +260,7 @@ public enum PlugBakerLens implements IPluggableStaticBaker<KeyPlugLens> {
             }
          }
 
-         cached.put(key, baked);
-      }
-
-      return cached.get(key);
+         return baked;
+      });
    }
 }

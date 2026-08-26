@@ -9,6 +9,7 @@ import buildcraft.builders.client.render.BCBuildersWorldRenderer;
 import buildcraft.builders.client.render.RenderArchitectTable;
 import buildcraft.builders.client.render.RenderFiller;
 import buildcraft.builders.client.render.RenderQuarry;
+import buildcraft.builders.client.render.pip.BlueprintPipRenderer;
 import buildcraft.builders.entity.EntityQuarryRig;
 import buildcraft.builders.client.tooltip.BlueprintTooltipOverlay;
 import buildcraft.builders.client.tooltip.SchematicSingleTooltipOverlay;
@@ -24,6 +25,7 @@ import buildcraft.builders.snapshot.ClientArchitectScans;
 import buildcraft.fabric.client.event.RenderLevelStageEvent;
 import buildcraft.fabric.client.event.SubmitCustomGeometryEvent;
 import buildcraft.lib.client.BCTooltips;
+import buildcraft.lib.fabric.client.FabricModelModifyHooks;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
 import net.fabricmc.fabric.api.client.rendering.v1.ClientTooltipComponentCallback;
@@ -112,6 +114,7 @@ public final class BCBuildersFabricClient {
             return false;
          }
       });
+      FabricModelModifyHooks.register(event -> BlueprintPipRenderer.onModelBake());
       BlockEntityRenderers.register(BCBuildersBlockEntities.QUARRY, RenderQuarry::new);
       BlockEntityRenderers.register(BCBuildersBlockEntities.ARCHITECT, RenderArchitectTable::new);
       BlockEntityRenderers.register(BCBuildersBlockEntities.FILLER, RenderFiller::new);

@@ -12,7 +12,6 @@ import buildcraft.lib.client.sprite.SpriteRaw;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.lib.gui.pos.IGuiArea;
 import buildcraft.lib.gui.pos.IGuiPosition;
-import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
 
@@ -57,14 +56,6 @@ public class GuiIcon implements ISimpleDrawable {
 
    public boolean containsGuiPos(double x, double y, IGuiPosition pos) {
       return new GuiRectangle(x, y, this.width, this.height).contains(pos);
-   }
-
-   public DynamicTexture createDynamicTexture(int scale) {
-      //? if >= 1.21.10 {
-      return new DynamicTexture("bc_guide_icon", this.width * scale, this.height * scale, false);
-      //?} else {
-      /*return new DynamicTexture(this.width * scale, this.height * scale, false);
-      *///?}
    }
 
    @Override
