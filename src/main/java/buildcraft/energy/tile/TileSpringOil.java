@@ -86,6 +86,10 @@ public class TileSpringOil extends BlockEntity implements ITileOilSpring {
          } catch (IllegalArgumentException var13) {
          }
 
+         if (id == null) {
+            continue;
+         }
+
          long tick = input.getLongOr(prefix + "tick", -1L);
          int pumped = input.getIntOr(prefix + "pumped", 0);
          GameProfile gp = new GameProfile(id, name);
