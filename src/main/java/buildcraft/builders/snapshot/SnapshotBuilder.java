@@ -87,15 +87,6 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       return this.tile.getFluidMode();
    }
 
-   private int breakPriorityTier(BlockPos pos) {
-      FluidState fs = this.tile.getWorldBC().getFluidState(pos);
-      if (fs.isEmpty()) {
-         return 2;
-      } else {
-         return fs.isSource() ? 0 : 1;
-      }
-   }
-
    protected boolean isAllowedDuringFluidMop(BlockPos blockPos) {
       return false;
    }
@@ -238,6 +229,10 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    }
 
    public boolean tick() {
+      if (this.tile.getWorldBC().getGameTime() % 100L == 0L) {
+         this.invalidateFluidCache();
+      }
+
       boolean checkResultsChanged = false;
 
       // A degenerate snapshot (zero volume) leaves the order arrays empty; without this guard the modulo
@@ -593,11 +588,6 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
       this.clientPlaceTasks.clear();
       this.clientPlaceTasks.addAll(mergedPlace);
-   }
-
-   private boolean shouldBreakQueueAcceptFluid(BlockPos blockPos) {
-      FluidState fs = this.tile.getWorldBC().getFluidState(blockPos);
-      return fs.isEmpty() ? true : this.getFluidMode() == EnumFluidHandlingMode.CLEAR;
    }
 
    public void invalidateChecksForFluidPositions() {
