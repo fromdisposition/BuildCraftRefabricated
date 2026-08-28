@@ -8,13 +8,17 @@ package buildcraft.core.properties;
 
 import buildcraft.api.core.IWorldProperty;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class WorldPropertyIsOre implements IWorldProperty {
+   private static final TagKey<Block> ORES = TagKey.create(Registries.BLOCK, Identifier.parse("c:ores"));
    private final int harvestLevel;
 
    public WorldPropertyIsOre(int harvestLevel) {
@@ -36,9 +40,7 @@ public class WorldPropertyIsOre implements IWorldProperty {
          return false;
       }
 
-      Identifier id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-      String path = id.getPath();
-      return path.contains("ore") || path.endsWith("_ore") || path.equals("ancient_debris");
+      return state.is(ORES) || state.is(Blocks.ANCIENT_DEBRIS);
    }
 
    private int requiredLevel(BlockState state) {
