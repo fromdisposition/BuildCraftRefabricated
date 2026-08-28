@@ -71,7 +71,7 @@ public class FunctionContext extends FunctionContextBase {
 
    public FunctionContext(String name, FunctionContext... parents) {
       this.name = name;
-      this.parents = (FunctionContext[])parents.clone();
+      this.parents = parents.clone();
    }
 
    public FunctionContext[] getParents() {

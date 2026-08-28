@@ -101,7 +101,7 @@ public class ModelHolderStatic extends ModelHolder {
             String lookup = entry.getValue();
             if (!lookup.startsWith("#")) {
                if (lookup.startsWith("~") && this.textureLookup.containsKey(lookup)) {
-                  lookup = (String)this.textureLookup.get(lookup);
+                  lookup = this.textureLookup.get(lookup);
                }
 
                if (lookup != null && !lookup.startsWith("#") && !lookup.startsWith("~")) {
@@ -145,7 +145,7 @@ public class ModelHolderStatic extends ModelHolder {
             }
 
             if (lookup.startsWith("~") && this.textureLookup.containsKey(lookup)) {
-               lookup = (String)this.textureLookup.get(lookup);
+               lookup = this.textureLookup.get(lookup);
             }
 
             TextureAtlasSprite sprite;

@@ -24,7 +24,7 @@ public abstract class ItemAddon extends Item {
    public abstract Addon createAddon();
 
    public InteractionResult useOn(UseOnContext context) {
-      return (InteractionResult)(context.getLevel().isClientSide()
+      return (context.getLevel().isClientSide()
          ? InteractionResult.PASS
          : this.tryAttach(context.getLevel(), context.getPlayer(), context.getHand()));
    }
@@ -40,14 +40,14 @@ public abstract class ItemAddon extends Item {
    *///?}
 
    private InteractionResult bcUse(Level level, Player player, InteractionHand hand) {
-      return (InteractionResult)(level.isClientSide() ? InteractionResult.PASS : this.tryAttach(level, player, hand));
+      return (level.isClientSide() ? InteractionResult.PASS : this.tryAttach(level, player, hand));
    }
 
    private InteractionResult tryAttach(Level level, Player player, InteractionHand hand) {
       WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(level);
       Pair<VolumeBox, EnumAddonSlot> targeted = EnumAddonSlot.getSelectingVolumeBoxAndSlot(player, volumeBoxes.volumeBoxes);
-      VolumeBox volumeBox = (VolumeBox)targeted.getLeft();
-      EnumAddonSlot slot = (EnumAddonSlot)targeted.getRight();
+      VolumeBox volumeBox = targeted.getLeft();
+      EnumAddonSlot slot = targeted.getRight();
       if (volumeBox == null || slot == null) {
          return InteractionResult.PASS;
       }

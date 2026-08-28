@@ -101,7 +101,7 @@ public enum CropHandlerPlantable implements ICropHandler {
          return cropBlock.isMaxAge(state);
       } else {
          return block instanceof NetherWartBlock
-            ? (Integer)state.getValue(NetherWartBlock.AGE) == 3
+            ? state.getValue(NetherWartBlock.AGE) == 3
             : isPlant(block) && blockAccess.getBlockState(pos.below()).getBlock() == block;
       }
    }

@@ -47,7 +47,7 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
    protected void init() {
       super.init();
       if (!this.requestedLayers) {
-         ((ContainerZonePlanner)this.getMenu()).requestLayers();
+         (this.getMenu()).requestLayers();
          this.requestedLayers = true;
       }
    }
@@ -55,7 +55,7 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
-      TileZonePlanner tile = ((ContainerZonePlanner)this.getMenu()).tile;
+      TileZonePlanner tile = (this.getMenu()).tile;
       if (tile != null) {
          int left = this.getGuiLeftPos();
          int top = this.getGuiTopPos();
@@ -134,7 +134,7 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
 
    @Override
    protected void initGuiElements() {
-      TileZonePlanner tile = ((ContainerZonePlanner)this.getMenu()).tile;
+      TileZonePlanner tile = (this.getMenu()).tile;
       this.mainGui.shownElements.add(new ZonePlannerMapElement(this, tile, 8, 18, 213, 100));
       this.mainGui
          .shownElements

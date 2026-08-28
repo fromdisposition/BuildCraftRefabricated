@@ -69,9 +69,9 @@ public class EntityQuarryRig extends Entity {
 
    //? if >= 1.21.10 {
    protected AABB makeBoundingBox(Vec3 position) {
-      float halfX = (Float)this.entityData.get(SIZE_X) / 2.0F;
-      float halfY = (Float)this.entityData.get(SIZE_Y) / 2.0F;
-      float halfZ = (Float)this.entityData.get(SIZE_Z) / 2.0F;
+      float halfX = this.entityData.get(SIZE_X) / 2.0F;
+      float halfY = this.entityData.get(SIZE_Y) / 2.0F;
+      float halfZ = this.entityData.get(SIZE_Z) / 2.0F;
       return halfX <= 0.0F
          ? super.makeBoundingBox(position)
          : new AABB(position.x - halfX, position.y - halfY, position.z - halfZ, position.x + halfX, position.y + halfY, position.z + halfZ);
@@ -79,9 +79,9 @@ public class EntityQuarryRig extends Entity {
    //?} else {
    /*protected AABB makeBoundingBox() {
       Vec3 position = this.position();
-      float halfX = (Float)this.entityData.get(SIZE_X) / 2.0F;
-      float halfY = (Float)this.entityData.get(SIZE_Y) / 2.0F;
-      float halfZ = (Float)this.entityData.get(SIZE_Z) / 2.0F;
+      float halfX = this.entityData.get(SIZE_X) / 2.0F;
+      float halfY = this.entityData.get(SIZE_Y) / 2.0F;
+      float halfZ = this.entityData.get(SIZE_Z) / 2.0F;
       return halfX <= 0.0F
          ? super.makeBoundingBox()
          : new AABB(position.x - halfX, position.y - halfY, position.z - halfZ, position.x + halfX, position.y + halfY, position.z + halfZ);
@@ -135,7 +135,7 @@ public class EntityQuarryRig extends Entity {
    public void tick() {
       super.tick();
       if (this.level().isClientSide()) {
-         this.phasing = (Boolean)this.entityData.get(PHASING);
+         this.phasing = this.entityData.get(PHASING);
       }
    }
 

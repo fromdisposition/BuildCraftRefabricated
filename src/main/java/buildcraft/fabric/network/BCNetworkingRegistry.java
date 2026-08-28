@@ -79,7 +79,7 @@ public final class BCNetworkingRegistry {
    ) {
       ServerPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
          BCPayloadContext ctx = FabricPayloadContexts.of(context.player());
-         dispatch((T)payload, ctx, handler);
+         dispatch(payload, ctx, handler);
       });
    }
 
@@ -88,7 +88,7 @@ public final class BCNetworkingRegistry {
    ) {
       ServerPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
          BCPayloadContext ctx = FabricPayloadContexts.of(context.player());
-         dispatch((T)payload, ctx, handler);
+         dispatch(payload, ctx, handler);
       });
    }
 }

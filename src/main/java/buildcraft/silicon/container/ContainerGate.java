@@ -197,7 +197,7 @@ public class ContainerGate extends BcMenu {
 
             for (int i = 0; i < numTriggers; i++) {
                String tag = buffer.readUtf();
-               EnumPipePart part = (EnumPipePart)buffer.readEnum(EnumPipePart.class);
+               EnumPipePart part = buffer.readEnum(EnumPipePart.class);
                IStatement state = StatementManager.statements.get(tag);
                if (state == null) {
                   BCLog.logger.warn("Gate received invalid trigger tag from server: " + tag);
@@ -211,7 +211,7 @@ public class ContainerGate extends BcMenu {
 
             for (int i = 0; i < numActions; i++) {
                String tag = buffer.readUtf();
-               EnumPipePart part = (EnumPipePart)buffer.readEnum(EnumPipePart.class);
+               EnumPipePart part = buffer.readEnum(EnumPipePart.class);
                IStatement state = StatementManager.statements.get(tag);
                if (state == null) {
                   BCLog.logger.warn("Gate received invalid action tag: " + tag);

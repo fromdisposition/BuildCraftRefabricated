@@ -384,7 +384,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    @Override
    public ItemStack quickMoveStack(Player player, int slotIndex) {
       ItemStack result = ItemStack.EMPTY;
-      Slot slot = (Slot)this.slots.get(slotIndex);
+      Slot slot = this.slots.get(slotIndex);
       if (slot != null && slot.hasItem()) {
          ItemStack stack = slot.getItem();
          result = stack.copy();

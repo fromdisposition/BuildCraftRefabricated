@@ -199,7 +199,7 @@ public class TileFiller
       this.owner = super.getOwner();
       if (this.level != null && !this.level.isClientSide()) {
          BlockState blockState = this.level.getBlockState(this.worldPosition);
-         Direction facing = (Direction)blockState.getValue(HorizontalDirectionalBlock.FACING);
+         Direction facing = blockState.getValue(HorizontalDirectionalBlock.FACING);
          BlockPos offsetPos = this.worldPosition.relative(facing.getOpposite());
          WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(this.level);
          VolumeBox volumeBox = volumeBoxes.getVolumeBoxAt(offsetPos);

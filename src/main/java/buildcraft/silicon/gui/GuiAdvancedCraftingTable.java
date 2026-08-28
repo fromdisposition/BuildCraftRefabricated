@@ -43,19 +43,19 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerAdvancedCraftingTable)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
                   this.mainGui,
-                  () -> ((ContainerAdvancedCraftingTable)this.menu).tile != null ? ((ContainerAdvancedCraftingTable)this.menu).tile.getOwner() : null,
+                  () -> (this.menu).tile != null ? (this.menu).tile.getOwner() : null,
                   true
                )
             );
       }
 
-      this.mainGui.shownElements.add(new LedgerTablePower(this.mainGui, ((ContainerAdvancedCraftingTable)this.menu).tile, true));
+      this.mainGui.shownElements.add(new LedgerTablePower(this.mainGui, (this.menu).tile, true));
    }
 
    @Override
@@ -63,11 +63,11 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
       super.init();
       this.widthTooNarrow = this.width < 379;
       //? if >= 1.21.10 {
-      this.recipeBookComponent = new ACTRecipeBookComponent((ContainerAdvancedCraftingTable)this.menu);
+      this.recipeBookComponent = new ACTRecipeBookComponent(this.menu);
       this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow);
       //?} else {
       /*this.recipeBookComponent = new ACTRecipeBookComponent();
-      this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, (ContainerAdvancedCraftingTable)this.menu);
+      this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, this.menu);
       *///?}
       this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
       ScreenPosition buttonPos = this.getRecipeBookButtonPosition();
@@ -96,9 +96,9 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
-      long target = ((ContainerAdvancedCraftingTable)this.menu).tile.getTarget();
+      long target = (this.menu).tile.getTarget();
       if (target != 0L) {
-         double v = (double)((ContainerAdvancedCraftingTable)this.menu).tile.power / target;
+         double v = (double)(this.menu).tile.power / target;
          ICON_PROGRESS.drawCutInside(
             new GuiRectangle(
                   157.0,

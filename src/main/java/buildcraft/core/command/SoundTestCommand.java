@@ -82,12 +82,12 @@ public class SoundTestCommand {
    }
 
    private static int play(CommandContext<CommandSourceStack> ctx, float pitch, float volume) {
-      CommandSourceStack source = (CommandSourceStack)ctx.getSource();
+      CommandSourceStack source = ctx.getSource();
       Identifier soundId = IdentifierArgument.getId(ctx, "sound");
       //? if >= 1.21.10 {
-      SoundEvent event = (SoundEvent)BuiltInRegistries.SOUND_EVENT.getValue(soundId);
+      SoundEvent event = BuiltInRegistries.SOUND_EVENT.getValue(soundId);
       //?} else {
-      /*SoundEvent event = (SoundEvent)BuiltInRegistries.SOUND_EVENT.get(soundId);
+      /*SoundEvent event = BuiltInRegistries.SOUND_EVENT.get(soundId);
       *///?}
       if (event == null) {
          source.sendFailure(Component.translatable("command.buildcraft.soundtest.unknown_sound", soundId.toString()).withStyle(ChatFormatting.RED));
@@ -115,7 +115,7 @@ public class SoundTestCommand {
    }
 
    private static int printMenu(CommandContext<CommandSourceStack> ctx) {
-      CommandSourceStack source = (CommandSourceStack)ctx.getSource();
+      CommandSourceStack source = ctx.getSource();
       source.sendSystemMessage(Component.translatable("command.buildcraft.soundtest.header").withStyle(ChatFormatting.GOLD));
       source.sendSystemMessage(Component.translatable("command.buildcraft.soundtest.usage").withStyle(ChatFormatting.GRAY));
       source.sendSystemMessage(Component.translatable("command.buildcraft.soundtest.custom").withStyle(ChatFormatting.DARK_GRAY));

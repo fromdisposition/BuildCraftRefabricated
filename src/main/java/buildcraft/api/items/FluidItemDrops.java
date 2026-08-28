@@ -22,7 +22,6 @@ public class FluidItemDrops {
       }
    }
 
-   @SafeVarargs
    public static void addFluidDrops(NonNullList<ItemStack> toDrop, SingleFluidTank... tanks) {
       if (item != null) {
          for (SingleFluidTank tank : tanks) {

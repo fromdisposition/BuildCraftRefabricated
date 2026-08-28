@@ -29,15 +29,15 @@ public class GuiTank extends BcScreen<ContainerTank> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerTank)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
             .add(
                new GuiElementFluidTank(
                   this.mainGui,
                   new GuiRectangle(80.0, 18.0, 16.0, 64.0).offset(this.mainGui.rootElement),
-                  ((ContainerTank)this.menu).widgetTank.getTankStorage(),
-                  ((ContainerTank)this.menu).widgetTank,
+                  (this.menu).widgetTank.getTankStorage(),
+                  (this.menu).widgetTank,
                   ICON_TANK_OVERLAY
                )
             );

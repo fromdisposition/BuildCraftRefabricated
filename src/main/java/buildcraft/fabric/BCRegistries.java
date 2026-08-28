@@ -48,17 +48,17 @@ public final class BCRegistries {
 
    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(String modid, String path, MenuType<T> type) {
       ResourceKey<MenuType<?>> key = ResourceKey.create(Registries.MENU, id(modid, path));
-      return (MenuType<T>)Registry.register(BuiltInRegistries.MENU, key, type);
+      return Registry.register(BuiltInRegistries.MENU, key, type);
    }
 
    public static CreativeModeTab registerCreativeTab(String modid, String path, CreativeModeTab tab) {
       ResourceKey<CreativeModeTab> key = ResourceKey.create(Registries.CREATIVE_MODE_TAB, id(modid, path));
-      return (CreativeModeTab)Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, key, tab);
+      return Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, key, tab);
    }
 
    public static <F extends Fluid> F registerFluid(String modid, String path, F fluid) {
       ResourceKey<Fluid> key = ResourceKey.create(Registries.FLUID, id(modid, path));
-      return (F)Registry.register(BuiltInRegistries.FLUID, key, fluid);
+      return Registry.register(BuiltInRegistries.FLUID, key, fluid);
    }
 
    public static <B extends Block> B registerBlock(String modid, String path, Function<Properties, B> factory) {
@@ -73,11 +73,11 @@ public final class BCRegistries {
 
       ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, id(modid, path));
       //? if >= 1.21.10 {
-      B block = (B)factory.apply(properties.apply(Properties.of()).setId(blockKey));
+      B block = factory.apply(properties.apply(Properties.of()).setId(blockKey));
       //?} else {
-      /*B block = (B)factory.apply(properties.apply(Properties.of()));
+      /*B block = factory.apply(properties.apply(Properties.of()));
       *///?}
-      return (B)Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
+      return Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
    }
 
    public static <I extends Item> I registerItem(String modid, String path, Function<net.minecraft.world.item.Item.Properties, I> factory) {
@@ -140,8 +140,8 @@ public final class BCRegistries {
          props.component(DataComponents.ITEM_NAME, Component.translatable(nameKey));
       }
 
-      I item = (I)factory.apply(props);
-      return (I)Registry.register(BuiltInRegistries.ITEM, itemKey, item);
+      I item = factory.apply(props);
+      return Registry.register(BuiltInRegistries.ITEM, itemKey, item);
    }
 
    public static BlockItem registerBlockItem(String modid, String path, Block block) {
@@ -159,31 +159,30 @@ public final class BCRegistries {
    public static <T> DataComponentType<T> registerDataComponent(String modid, String path, UnaryOperator<Builder<T>> builder) {
       ResourceKey<DataComponentType<?>> key = ResourceKey.create(Registries.DATA_COMPONENT_TYPE, id(modid, path));
       DataComponentType<T> type = builder.apply(DataComponentType.builder()).build();
-      return (DataComponentType<T>)Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, key, type);
+      return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, key, type);
    }
 
    public static <T extends Entity> EntityType<T> registerEntityType(String modid, String path, net.minecraft.world.entity.EntityType.Builder<T> builder) {
       ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id(modid, path));
       //? if >= 1.21.10 {
-      return (EntityType<T>)Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
+      return Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
       //?} else {
-      /*return (EntityType<T>)Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(id(modid, path).toString()));
+      /*return Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(id(modid, path).toString()));
       *///?}
    }
 
-   @SafeVarargs
    public static <T extends BlockEntity> BlockEntityType<T> registerBlockEntity(
       String modid, String path, BCRegistries.BlockEntityFactory<T> factory, Block... validBlocks
    ) {
       ResourceKey<BlockEntityType<?>> key = ResourceKey.create(Registries.BLOCK_ENTITY_TYPE, id(modid, path));
       //? if >= 1.21.10 {
-      return (BlockEntityType<T>)Registry.register(
+      return Registry.register(
          BuiltInRegistries.BLOCK_ENTITY_TYPE, key, FabricBlockEntityTypeBuilder.create(factory::create, validBlocks).build()
       );
       //?} else {
       /*// Fabric deprecated FabricBlockEntityTypeBuilder once vanilla's BlockEntityType.Builder was patched to
       // accept modded blocks; use the vanilla builder directly (build(null) = no datafixer type).
-      return (BlockEntityType<T>)Registry.register(
+      return Registry.register(
          BuiltInRegistries.BLOCK_ENTITY_TYPE, key, BlockEntityType.Builder.of(factory::create, validBlocks).build(null)
       );
       *///?}

@@ -179,12 +179,12 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
             Item item = BcRegistryUtil.getItem(id);
             stack = item == null ? ItemStack.EMPTY : new ItemStack(item);
          } else {
-            stack = (ItemStack)ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
+            stack = ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
          }
 
          int stackCount = buf.readVarInt();
          boolean toCenter = buf.readBoolean();
-         Direction side = (Direction)buf.readEnum(Direction.class);
+         Direction side = buf.readEnum(Direction.class);
          int colourByte = buf.readByte();
          DyeColor colour = colourByte < 0 ? null : DyeColor.byId(colourByte);
          int timeToDest = buf.readVarInt();

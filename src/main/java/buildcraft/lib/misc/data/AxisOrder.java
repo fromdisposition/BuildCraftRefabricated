@@ -48,7 +48,7 @@ public class AxisOrder {
       } else if (inv == null) {
          throw new NullPointerException("inv");
       } else {
-         AxisOrder axisOrder = (AxisOrder)allOrders.get(order, inv);
+         AxisOrder axisOrder = allOrders.get(order, inv);
          if (axisOrder == null) {
             throw new IllegalStateException("Tried to lookup " + order + ", " + inv + " but failed!");
          } else {
@@ -63,15 +63,15 @@ public class AxisOrder {
    }
 
    public AxisOrder invertFirst() {
-      return (AxisOrder)allOrders.get(this.order, AxisOrder.Inversion.getFor(this.first.getOpposite(), this.second, this.third));
+      return allOrders.get(this.order, AxisOrder.Inversion.getFor(this.first.getOpposite(), this.second, this.third));
    }
 
    public AxisOrder invertSecond() {
-      return (AxisOrder)allOrders.get(this.order, AxisOrder.Inversion.getFor(this.first, this.second.getOpposite(), this.third));
+      return allOrders.get(this.order, AxisOrder.Inversion.getFor(this.first, this.second.getOpposite(), this.third));
    }
 
    public AxisOrder invertThird() {
-      return (AxisOrder)allOrders.get(this.order, AxisOrder.Inversion.getFor(this.first, this.second, this.third.getOpposite()));
+      return allOrders.get(this.order, AxisOrder.Inversion.getFor(this.first, this.second, this.third.getOpposite()));
    }
 
    public AxisOrder invert(Axis axis) {

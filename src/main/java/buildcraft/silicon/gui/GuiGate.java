@@ -43,12 +43,12 @@ public class GuiGate extends BcScreen<ContainerGate> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerGate)this.menu).gate != null) {
-         boolean twoColumns = ((ContainerGate)this.menu).gate.isSplitInTwo();
+      if ((this.menu).gate != null) {
+         boolean twoColumns = (this.menu).gate.isSplitInTwo();
          int horizontalSlotCount = twoColumns ? 2 : 1;
-         int verticalSlotCount = ((ContainerGate)this.menu).gate.variant.numSlots / horizontalSlotCount;
-         int numTriggerArgs = ((ContainerGate)this.menu).gate.variant.numTriggerArgs;
-         int numActionArgs = ((ContainerGate)this.menu).gate.variant.numActionArgs;
+         int verticalSlotCount = (this.menu).gate.variant.numSlots / horizontalSlotCount;
+         int numTriggerArgs = (this.menu).gate.variant.numTriggerArgs;
+         int numActionArgs = (this.menu).gate.variant.numActionArgs;
          int slotPairWidth = 18 * (3 + numTriggerArgs + numActionArgs);
          int slotPairStart = (162 - (slotPairWidth + (twoColumns ? slotPairWidth + 18 : 0))) / 2;
          this.mainGui.shownElements.add(new GuiElementStatementDrag(this.mainGui));
@@ -109,8 +109,8 @@ public class GuiGate extends BcScreen<ContainerGate> {
             }
          }
 
-         this.mainGui.shownElements.add(new GuiElementStatementSource<>(this.mainGui, true, ((ContainerGate)this.menu).possibleTriggersContext));
-         this.mainGui.shownElements.add(new GuiElementStatementSource<>(this.mainGui, false, ((ContainerGate)this.menu).possibleActionsContext));
+         this.mainGui.shownElements.add(new GuiElementStatementSource<>(this.mainGui, true, (this.menu).possibleTriggersContext));
+         this.mainGui.shownElements.add(new GuiElementStatementSource<>(this.mainGui, false, (this.menu).possibleActionsContext));
 
          for (int row = 0; row < verticalSlotCount; row++) {
             for (int col = 0; col < horizontalSlotCount; col++) {
@@ -124,8 +124,8 @@ public class GuiGate extends BcScreen<ContainerGate> {
                      new GuiElementStatement<>(
                         this.mainGui,
                         triggerArea,
-                        ((ContainerGate)this.menu).gate.statements[pairIndex].trigger,
-                        ((ContainerGate)this.menu).possibleTriggersContext,
+                        (this.menu).gate.statements[pairIndex].trigger,
+                        (this.menu).possibleTriggersContext,
                         true
                      )
                   );
@@ -136,7 +136,7 @@ public class GuiGate extends BcScreen<ContainerGate> {
                      .shownElements
                      .add(
                         new GuiElementStatementParam(
-                           this.mainGui, paramArea, ((ContainerGate)this.menu).gate, ((ContainerGate)this.menu).gate.statements[pairIndex].trigger, i, true
+                           this.mainGui, paramArea, (this.menu).gate, (this.menu).gate.statements[pairIndex].trigger, i, true
                         )
                      );
                }
@@ -149,8 +149,8 @@ public class GuiGate extends BcScreen<ContainerGate> {
                      new GuiElementStatement<>(
                         this.mainGui,
                         actionArea,
-                        ((ContainerGate)this.menu).gate.statements[pairIndex].action,
-                        ((ContainerGate)this.menu).possibleActionsContext,
+                        (this.menu).gate.statements[pairIndex].action,
+                        (this.menu).possibleActionsContext,
                         true
                      )
                   );
@@ -161,7 +161,7 @@ public class GuiGate extends BcScreen<ContainerGate> {
                      .shownElements
                      .add(
                         new GuiElementStatementParam(
-                           this.mainGui, paramArea, ((ContainerGate)this.menu).gate, ((ContainerGate)this.menu).gate.statements[pairIndex].action, i, true
+                           this.mainGui, paramArea, (this.menu).gate, (this.menu).gate.statements[pairIndex].action, i, true
                         )
                      );
                }
@@ -183,12 +183,12 @@ public class GuiGate extends BcScreen<ContainerGate> {
    *///?}
 
    private boolean bcMouseClicked(int clickX, int clickY, int button) {
-      if (button == 0 && ((ContainerGate)this.menu).gate != null) {
-         boolean twoColumns = ((ContainerGate)this.menu).gate.isSplitInTwo();
+      if (button == 0 && (this.menu).gate != null) {
+         boolean twoColumns = (this.menu).gate.isSplitInTwo();
          int horizontalSlotCount = twoColumns ? 2 : 1;
-         int verticalSlotCount = ((ContainerGate)this.menu).gate.variant.numSlots / horizontalSlotCount;
-         int numTriggerArgs = ((ContainerGate)this.menu).gate.variant.numTriggerArgs;
-         int numActionArgs = ((ContainerGate)this.menu).gate.variant.numActionArgs;
+         int verticalSlotCount = (this.menu).gate.variant.numSlots / horizontalSlotCount;
+         int numTriggerArgs = (this.menu).gate.variant.numTriggerArgs;
+         int numActionArgs = (this.menu).gate.variant.numActionArgs;
          int slotPairWidth = 18 * (3 + numTriggerArgs + numActionArgs);
          int slotPairStart = (162 - (slotPairWidth + (twoColumns ? slotPairWidth + 18 : 0))) / 2;
          int mx = clickX - this.leftPos;
@@ -200,10 +200,10 @@ public class GuiGate extends BcScreen<ContainerGate> {
                int connBaseY = 25 + row * 18;
                if (mx >= connBaseX && mx < connBaseX + 18 && my >= connBaseY && my < connBaseY + 18) {
                   int pairIndex = row + col * verticalSlotCount;
-                  boolean newState = !((ContainerGate)this.menu).gate.connections[pairIndex];
-                  ((ContainerGate)this.menu).setConnected(pairIndex, newState);
+                  boolean newState = !(this.menu).gate.connections[pairIndex];
+                  (this.menu).setConnected(pairIndex, newState);
                   if (Minecraft.getInstance().player != null) {
-                     Minecraft.getInstance().player.playSound((SoundEvent)SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
+                     Minecraft.getInstance().player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
                   }
 
                   return true;
@@ -218,12 +218,12 @@ public class GuiGate extends BcScreen<ContainerGate> {
    @Override
    protected void init() {
       super.init();
-      ((ContainerGate)this.menu).requestValidStatements();
+      (this.menu).requestValidStatements();
    }
 
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
-      if (((ContainerGate)this.menu).gate == null) {
+      if ((this.menu).gate == null) {
          BACKGROUND_TOP.drawAt(this.leftPos, this.topPos);
          BACKGROUND_BOTTOM.drawAt(this.leftPos, this.topPos + 16);
       } else {
@@ -234,11 +234,11 @@ public class GuiGate extends BcScreen<ContainerGate> {
          }
 
          BACKGROUND_BOTTOM.drawAt(this.leftPos, this.topPos + 16 + this.numRows * 18);
-         boolean twoColumns = ((ContainerGate)this.menu).gate.isSplitInTwo();
+         boolean twoColumns = (this.menu).gate.isSplitInTwo();
          int horizontalSlotCount = twoColumns ? 2 : 1;
-         int verticalSlotCount = ((ContainerGate)this.menu).gate.variant.numSlots / horizontalSlotCount;
-         int numTriggerArgs = ((ContainerGate)this.menu).gate.variant.numTriggerArgs;
-         int numActionArgs = ((ContainerGate)this.menu).gate.variant.numActionArgs;
+         int verticalSlotCount = (this.menu).gate.variant.numSlots / horizontalSlotCount;
+         int numTriggerArgs = (this.menu).gate.variant.numTriggerArgs;
+         int numActionArgs = (this.menu).gate.variant.numActionArgs;
          int slotPairWidth = 18 * (3 + numTriggerArgs + numActionArgs);
          int slotPairStart = (162 - (slotPairWidth + (twoColumns ? slotPairWidth + 18 : 0))) / 2;
 
@@ -248,15 +248,15 @@ public class GuiGate extends BcScreen<ContainerGate> {
                int baseX = this.leftPos + slotPairStart + 7 + col * (18 + slotPairWidth);
                int baseY = this.topPos + 16 + row * 18;
                int connectorPos = baseX + 18 * (1 + numTriggerArgs);
-               boolean triggerOn = ((ContainerGate)this.menu).gate.triggerOn[pairIndex]
-                  && ((ContainerGate)this.menu).gate.statements[pairIndex].trigger.get() != null;
-               boolean actionOn = ((ContainerGate)this.menu).gate.actionOn[pairIndex]
-                  && ((ContainerGate)this.menu).gate.statements[pairIndex].action.get() != null;
+               boolean triggerOn = (this.menu).gate.triggerOn[pairIndex]
+                  && (this.menu).gate.statements[pairIndex].trigger.get() != null;
+               boolean actionOn = (this.menu).gate.actionOn[pairIndex]
+                  && (this.menu).gate.statements[pairIndex].action.get() != null;
                boolean connectedIsOn = false;
-               if (pairIndex < ((ContainerGate)this.menu).gate.connections.length && ((ContainerGate)this.menu).gate.connections[pairIndex]) {
-                  connectedIsOn = ((ContainerGate)this.menu).gate.actionOn[pairIndex] || ((ContainerGate)this.menu).gate.actionOn[pairIndex + 1];
-               } else if (pairIndex > 0 && ((ContainerGate)this.menu).gate.connections[pairIndex - 1]) {
-                  connectedIsOn = ((ContainerGate)this.menu).gate.actionOn[pairIndex] || ((ContainerGate)this.menu).gate.actionOn[pairIndex - 1];
+               if (pairIndex < (this.menu).gate.connections.length && (this.menu).gate.connections[pairIndex]) {
+                  connectedIsOn = (this.menu).gate.actionOn[pairIndex] || (this.menu).gate.actionOn[pairIndex + 1];
+               } else if (pairIndex > 0 && (this.menu).gate.connections[pairIndex - 1]) {
+                  connectedIsOn = (this.menu).gate.actionOn[pairIndex] || (this.menu).gate.actionOn[pairIndex - 1];
                } else {
                   connectedIsOn = actionOn;
                }
@@ -267,9 +267,9 @@ public class GuiGate extends BcScreen<ContainerGate> {
                if (row < verticalSlotCount - 1) {
                   int connBaseX = connectorPos;
                   int connBaseY = baseY + 9;
-                  boolean isConnected = ((ContainerGate)this.menu).gate.connections[pairIndex];
-                  boolean actionAbove = ((ContainerGate)this.menu).gate.actionOn[pairIndex];
-                  boolean actionBelow = ((ContainerGate)this.menu).gate.actionOn[pairIndex + 1];
+                  boolean isConnected = (this.menu).gate.connections[pairIndex];
+                  boolean actionAbove = (this.menu).gate.actionOn[pairIndex];
+                  boolean actionBelow = (this.menu).gate.actionOn[pairIndex + 1];
                   new GuiIcon(TEXTURE_BASE, 176 + (actionAbove ? 18 : 0), 36 + (isConnected ? 18 : 0), 18.0, 9.0).drawAt(connBaseX, connBaseY);
                   new GuiIcon(TEXTURE_BASE, 176 + (actionBelow ? 18 : 0), 45 + (isConnected ? 18 : 0), 18.0, 9.0).drawAt(connBaseX, connBaseY + 9);
                   int mx = (int)this.mainGui.mouse.getX();
@@ -289,7 +289,7 @@ public class GuiGate extends BcScreen<ContainerGate> {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       // The gate is null when this side could not resolve the pluggable (see ContainerGate); every other draw
       // path here already guards for it, this one did not and took the whole screen render down with an NPE.
-      GateLogic gate = ((ContainerGate)this.menu).gate;
+      GateLogic gate = (this.menu).gate;
       if (gate != null) {
          String titleStr = gate.variant.getLocalizedName().getString();
          graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);

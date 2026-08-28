@@ -418,7 +418,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
          this.pipe = new Pipe(this, definition);
          this.eventBus.registerHandler(this.pipe.behaviour);
          this.eventBus.registerHandler(this.pipe.flow);
-         DyeColor col = (DyeColor)stack.get(BCTransportItems.PIPE_COLOUR);
+         DyeColor col = stack.get(BCTransportItems.PIPE_COLOUR);
          if (col != null) {
             this.pipe.setColour(col);
          }

@@ -29,7 +29,7 @@ public class ModelCache<K> implements IModelCache<K> {
 
    @Override
    public List<BakedQuad> bake(K key) {
-      return (List<BakedQuad>)this.modelCache.getUnchecked(key);
+      return this.modelCache.getUnchecked(key);
    }
 
    @Override

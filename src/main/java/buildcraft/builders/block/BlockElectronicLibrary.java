@@ -36,7 +36,7 @@ public class BlockElectronicLibrary extends HorizontalDirectionalBlock implement
 
    public BlockElectronicLibrary(Properties properties) {
       super(properties);
-      this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
+      this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
    }
 
    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
@@ -48,7 +48,7 @@ public class BlockElectronicLibrary extends HorizontalDirectionalBlock implement
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
-      return (BlockState)this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+      return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
    @Nullable

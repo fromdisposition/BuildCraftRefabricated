@@ -31,9 +31,9 @@ public class ItemStackRef {
 
    public ItemStack get(Tag nbt) {
       //? if >= 1.21.10 {
-      Identifier itemId = Identifier.parse(((StringTag)this.item.get(nbt).orElseThrow(NullPointerException::new)).value());
+      Identifier itemId = Identifier.parse((this.item.get(nbt).orElseThrow(NullPointerException::new)).value());
       //?} else {
-      /*Identifier itemId = Identifier.parse(((StringTag)this.item.get(nbt).orElseThrow(NullPointerException::new)).getAsString());
+      /*Identifier itemId = Identifier.parse((this.item.get(nbt).orElseThrow(NullPointerException::new)).getAsString());
       *///?}
       Item itemObj = BcRegistryUtil.getItem(itemId);
       Objects.requireNonNull(itemObj, "Unknown item: " + itemId);

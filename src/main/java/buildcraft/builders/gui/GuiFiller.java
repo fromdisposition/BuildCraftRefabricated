@@ -54,20 +54,20 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
    @Override
    protected void initGuiElements() {
       this.mainGui.shownElements.add(new GuiElementStatementDrag(this.mainGui));
-      if (((ContainerFiller)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
-            .add(new LedgerOwnership(this.mainGui, () -> ((ContainerFiller)this.menu).tile != null ? ((ContainerFiller)this.menu).tile.getOwner() : null, true));
+            .add(new LedgerOwnership(this.mainGui, () -> (this.menu).tile != null ? (this.menu).tile.getOwner() : null, true));
       }
 
-      this.mainGui.shownElements.add(new LedgerFillerProgress(this.mainGui, (ContainerFiller)this.menu));
-      this.mainGui.shownElements.add(new GuiElementStatementSource<>(this.mainGui, true, ((ContainerFiller)this.menu).possiblePatternsContext));
+      this.mainGui.shownElements.add(new LedgerFillerProgress(this.mainGui, this.menu));
+      this.mainGui.shownElements.add(new GuiElementStatementSource<>(this.mainGui, true, (this.menu).possiblePatternsContext));
       IGuiArea patternArea = new GuiRectangle(12.0, 32.0, 32.0, 32.0).offset(this.mainGui.rootElement);
       this.mainGui
          .shownElements
          .add(
             new GuiElementStatement<IFillerPattern>(
-               this.mainGui, patternArea, ((ContainerFiller)this.menu).getPatternStatementClient(), ((ContainerFiller)this.menu).possiblePatternsContext, true
+               this.mainGui, patternArea, (this.menu).getPatternStatementClient(), (this.menu).possiblePatternsContext, true
             ) {
                @Override
                public void drawBackground(float partialTicks) {
@@ -115,7 +115,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
          IGuiArea paramArea = new GuiRectangle(53 + 18 * i, 39.0, 18.0, 18.0).offset(this.mainGui.rootElement);
          this.mainGui
             .shownElements
-            .add(new GuiElementStatementParam(this.mainGui, paramArea, fakeContainer, ((ContainerFiller)this.menu).getPatternStatementClient(), i, true));
+            .add(new GuiElementStatementParam(this.mainGui, paramArea, fakeContainer, (this.menu).getPatternStatementClient(), i, true));
       }
 
       IGuiArea excavateArea = new GuiRectangle(130.0, 40.0, 16.0, 16.0).offset(this.mainGui.rootElement);
@@ -123,7 +123,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
          @Override
          public void addToolTips(List<ToolTip> tooltips) {
             if (this.contains(GuiFiller.this.mainGui.mouse)) {
-               String key = ((ContainerFiller)GuiFiller.this.menu).getSyncedCanExcavate() ? "tip.filler.excavate.on" : "tip.filler.excavate.off";
+               String key = (GuiFiller.this.menu).getSyncedCanExcavate() ? "tip.filler.excavate.on" : "tip.filler.excavate.off";
                tooltips.add(new ToolTip(LocaleUtil.localize(key)));
             }
          }
@@ -138,7 +138,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
          @Override
          public void addToolTips(List<ToolTip> tooltips) {
             if (this.contains(GuiFiller.this.mainGui.mouse)) {
-               String key = ((ContainerFiller)GuiFiller.this.menu).isInverted() ? "tip.filler.invert.on" : "tip.filler.invert.off";
+               String key = (GuiFiller.this.menu).isInverted() ? "tip.filler.invert.on" : "tip.filler.invert.off";
                tooltips.add(new ToolTip(LocaleUtil.localize(key)));
             }
          }
@@ -156,7 +156,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
                @Override
                public void addToolTips(List<ToolTip> tooltips) {
                   if (this.contains(GuiFiller.this.mainGui.mouse)) {
-                     IControllable.Mode mode = ((ContainerFiller)GuiFiller.this.menu).getSyncedMode();
+                     IControllable.Mode mode = (GuiFiller.this.menu).getSyncedMode();
                      if (mode != IControllable.Mode.ON) {
                         String key = "gate.action.machine." + mode.name().toLowerCase(Locale.ROOT);
                         tooltips.add(new ToolTip(LocaleUtil.localize(key)));
@@ -179,7 +179,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
       this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, lockArea) {
          @Override
          public void addToolTips(List<ToolTip> tooltips) {
-            if (this.contains(GuiFiller.this.mainGui.mouse) && ((ContainerFiller)GuiFiller.this.menu).getSyncedLocked()) {
+            if (this.contains(GuiFiller.this.mainGui.mouse) && (GuiFiller.this.menu).getSyncedLocked()) {
                tooltips.add(new ToolTip(LocaleUtil.localize("gui.buildcraft.filler.locked")));
             }
          }
@@ -194,7 +194,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
    @Override
    protected void containerTick() {
       super.containerTick();
-      ((ContainerFiller)this.menu).getPatternStatementClient().canInteract = !((ContainerFiller)this.menu).getSyncedLocked();
+      (this.menu).getPatternStatementClient().canInteract = !(this.menu).getSyncedLocked();
    }
 
    @Override
@@ -204,20 +204,20 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
       int my = (int)this.mainGui.mouse.getY() - this.topPos;
       boolean excavateHover = mx >= 130 && mx < 146 && my >= 40 && my < 56;
       boolean invertHover = mx >= 152 && mx < 168 && my >= 40 && my < 56;
-      int excavateU = ((ContainerFiller)this.menu).getSyncedCanExcavate() ? 208 : 192;
+      int excavateU = (this.menu).getSyncedCanExcavate() ? 208 : 192;
       int excavateV = excavateHover ? 16 : 0;
       new GuiIcon(TEXTURE, excavateU, excavateV, 16.0, 16.0).drawAt(this.leftPos + 130, this.topPos + 40);
-      int invertU = ((ContainerFiller)this.menu).isInverted() ? 240 : 224;
+      int invertU = (this.menu).isInverted() ? 240 : 224;
       int invertV = invertHover ? 16 : 0;
       new GuiIcon(TEXTURE, invertU, invertV, 16.0, 16.0).drawAt(this.leftPos + 152, this.topPos + 40);
       this.drawControlModeIcon(this.leftPos + 28, this.topPos + 16);
-      if (((ContainerFiller)this.menu).getSyncedLocked()) {
+      if ((this.menu).getSyncedLocked()) {
          new GuiIcon(LOCK_TEXTURE, 0.0, 0.0, 16.0, 16.0, 16).drawAt(this.leftPos + 12, this.topPos + 16);
       }
    }
 
    private void drawControlModeIcon(int x, int y) {
-      IControllable.Mode mode = ((ContainerFiller)this.menu).getSyncedMode();
+      IControllable.Mode mode = (this.menu).getSyncedMode();
       SpriteHolderRegistry.SpriteHolder holder = BCCoreSprites.ACTION_MACHINE_CONTROL.get(mode);
       if (holder != null) {
          GuiIcon.drawAt(holder, x, y, 16.0);
@@ -249,13 +249,13 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
          int mx = clickX - this.leftPos;
          int my = clickY - this.topPos;
          if (mx >= 130 && mx < 146 && my >= 40 && my < 56) {
-            ((ContainerFiller)this.menu).sendMessage(10, buf -> {});
+            (this.menu).sendMessage(10, buf -> {});
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return true;
          }
 
          if (mx >= 152 && mx < 168 && my >= 40 && my < 56) {
-            ((ContainerFiller)this.menu).sendMessage(12, buf -> {});
+            (this.menu).sendMessage(12, buf -> {});
             this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return true;
          }

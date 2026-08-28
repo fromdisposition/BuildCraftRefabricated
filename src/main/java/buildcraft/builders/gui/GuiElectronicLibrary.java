@@ -46,13 +46,13 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerElectronicLibrary)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
                   this.mainGui,
-                  () -> ((ContainerElectronicLibrary)this.menu).tile != null ? ((ContainerElectronicLibrary)this.menu).tile.getOwner() : null,
+                  () -> (this.menu).tile != null ? (this.menu).tile.getOwner() : null,
                   true
                )
             );
@@ -139,7 +139,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
 
    private void updateDeleteButtonActive() {
       if (this.deleteButton != null) {
-         Snapshot.Key selected = ((ContainerElectronicLibrary)this.menu).tile != null ? ((ContainerElectronicLibrary)this.menu).tile.selected : null;
+         Snapshot.Key selected = (this.menu).tile != null ? (this.menu).tile.selected : null;
          boolean canDelete = selected != null && GlobalSavedDataSnapshots.get(GlobalSavedDataSnapshots.Side.CLIENT).getSnapshot(selected) != null;
          this.deleteButton.active = canDelete;
       }
@@ -147,12 +147,12 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
 
    private void onDeletePressed() {
       GlobalSavedDataSnapshots clientSnapshots = GlobalSavedDataSnapshots.get(GlobalSavedDataSnapshots.Side.CLIENT);
-      Snapshot.Key selected = ((ContainerElectronicLibrary)this.menu).tile != null ? ((ContainerElectronicLibrary)this.menu).tile.selected : null;
+      Snapshot.Key selected = (this.menu).tile != null ? (this.menu).tile.selected : null;
       if (selected != null && clientSnapshots.getSnapshot(selected) != null) {
          clientSnapshots.removeSnapshot(selected);
-         ((ContainerElectronicLibrary)this.menu).sendSelectedToServer(null);
-         if (((ContainerElectronicLibrary)this.menu).tile != null) {
-            ((ContainerElectronicLibrary)this.menu).tile.selected = null;
+         (this.menu).sendSelectedToServer(null);
+         if ((this.menu).tile != null) {
+            (this.menu).tile.selected = null;
          }
 
          this.updateDeleteButtonActive();
@@ -162,13 +162,13 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 224, 256, 256);
-      int progressDown = ((ContainerElectronicLibrary)this.menu).getSyncedProgressDown();
+      int progressDown = (this.menu).getSyncedProgressDown();
       if (progressDown > 0) {
          int w = Math.min(22, Math.max(1, (int)Math.ceil(22.0F * (progressDown / 50.0F))));
          graphics.blit(TEXTURE, this.leftPos + 194 + 22 - w, this.topPos + 54, 256 - w, 240.0F, w, 16, 256, 256);
       }
 
-      int progressUp = ((ContainerElectronicLibrary)this.menu).getSyncedProgressUp();
+      int progressUp = (this.menu).getSyncedProgressUp();
       if (progressUp > 0) {
          int w = Math.min(22, Math.max(1, (int)Math.ceil(22.0F * (progressUp / 50.0F))));
          graphics.blit(TEXTURE, this.leftPos + 194, this.topPos + 75, 234.0F, 224.0F, w, 16, 256, 256);
@@ -181,7 +181,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
       if (graphics != null) {
          GlobalSavedDataSnapshots snapshots = GlobalSavedDataSnapshots.get(GlobalSavedDataSnapshots.Side.CLIENT);
          List<Snapshot.Key> list = snapshots.getList();
-         Snapshot.Key selected = ((ContainerElectronicLibrary)this.menu).tile != null ? ((ContainerElectronicLibrary)this.menu).tile.selected : null;
+         Snapshot.Key selected = (this.menu).tile != null ? (this.menu).tile.selected : null;
          int rowY = 18;
 
          for (int i = 0; i < list.size() && i < 13; i++) {
@@ -224,9 +224,9 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
       for (int i = 0; i < list.size() && i < 13; i++) {
          if (mouseX >= this.leftPos + 8 && mouseX < this.leftPos + 8 + 154 && mouseY >= rowY && mouseY < rowY + 8) {
             Snapshot.Key key = list.get(i);
-            ((ContainerElectronicLibrary)this.menu).sendSelectedToServer(key);
-            if (((ContainerElectronicLibrary)this.menu).tile != null) {
-               ((ContainerElectronicLibrary)this.menu).tile.selected = key;
+            (this.menu).sendSelectedToServer(key);
+            if ((this.menu).tile != null) {
+               (this.menu).tile.selected = key;
             }
 
             this.updateDeleteButtonActive();

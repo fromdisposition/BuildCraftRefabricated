@@ -56,7 +56,7 @@ public class ItemGateCopier extends Item {
       if (level.isClientSide()) {
          return InteractionResult.PASS;
       } else {
-         return (InteractionResult)(player.isShiftKeyDown() ? this.clearData(player, stack) : InteractionResult.PASS);
+         return (player.isShiftKeyDown() ? this.clearData(player, stack) : InteractionResult.PASS);
       }
    }
 

@@ -129,7 +129,7 @@ public class SingleFluidTank extends SnapshotParticipant<FluidStack> implements 
          if (stacks.isEmpty()) {
             this.contents = FluidStack.EMPTY;
          } else {
-            FluidStack loaded = (FluidStack)stacks.getFirst();
+            FluidStack loaded = stacks.getFirst();
             if (!loaded.isEmpty() && loaded.getAmount() > 0) {
                int amount = Math.min(loaded.getAmount(), this.capacityMb);
                this.contents = loaded.copyWithAmount(amount);

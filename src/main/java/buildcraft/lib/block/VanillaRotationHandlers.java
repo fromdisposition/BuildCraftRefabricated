@@ -100,20 +100,20 @@ public class VanillaRotationHandlers {
    private static <E extends Enum<E> & Comparable<E>> InteractionResult rotateOnce(
       Level world, BlockPos pos, BlockState state, Property<E> prop, OrderedEnumMap<E> order
    ) {
-      E next = order.next((E)state.getValue(prop));
-      world.setBlockAndUpdate(pos, (BlockState)state.setValue(prop, next));
+      E next = order.next(state.getValue(prop));
+      world.setBlockAndUpdate(pos, state.setValue(prop, next));
       return InteractionResult.SUCCESS;
    }
 
    private static <E extends Enum<E> & Comparable<E>> InteractionResult rotateUntilValid(
       Level world, BlockPos pos, BlockState state, Property<E> prop, OrderedEnumMap<E> order, Predicate<E> isValid
    ) {
-      E current = (E)state.getValue(prop);
+      E current = state.getValue(prop);
 
       for (int i = order.getOrderLength(); i > 1; i--) {
          current = order.next(current);
          if (isValid.test(current)) {
-            world.setBlockAndUpdate(pos, (BlockState)state.setValue(prop, current));
+            world.setBlockAndUpdate(pos, state.setValue(prop, current));
             return InteractionResult.SUCCESS;
          }
       }
@@ -122,40 +122,40 @@ public class VanillaRotationHandlers {
    }
 
    private static InteractionResult rotateFreeFacing(Level world, BlockPos pos, BlockState state, Direction side) {
-      return (InteractionResult)(state.hasProperty(BlockStateProperties.FACING)
+      return (state.hasProperty(BlockStateProperties.FACING)
          ? rotateOnce(world, pos, state, BlockStateProperties.FACING, ROTATE_FACING)
          : InteractionResult.PASS);
    }
 
    private static InteractionResult rotateHorizontalFreely(Level world, BlockPos pos, BlockState state, Direction side) {
-      return (InteractionResult)(state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)
+      return (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)
          ? rotateOnce(world, pos, state, BlockStateProperties.HORIZONTAL_FACING, ROTATE_HORIZONTAL)
          : InteractionResult.PASS);
    }
 
    private static InteractionResult rotatePiston(Level world, BlockPos pos, BlockState state, Direction side) {
-      return (InteractionResult)(state.hasProperty(PistonBaseBlock.EXTENDED) && state.getValue(PistonBaseBlock.EXTENDED)
+      return (state.hasProperty(PistonBaseBlock.EXTENDED) && state.getValue(PistonBaseBlock.EXTENDED)
          ? InteractionResult.FAIL
          : rotateFreeFacing(world, pos, state, side));
    }
 
    private static InteractionResult rotateHopper(Level world, BlockPos pos, BlockState state, Direction side) {
-      return (InteractionResult)(state.hasProperty(HopperBlock.FACING)
+      return (state.hasProperty(HopperBlock.FACING)
          ? rotateOnce(world, pos, state, HopperBlock.FACING, ROTATE_HOPPER)
          : InteractionResult.PASS);
    }
 
    private static InteractionResult rotateFaceAttached(Level world, BlockPos pos, BlockState state, Direction side) {
       if (state.hasProperty(BlockStateProperties.ATTACH_FACE) && state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-         AttachFace currentFace = (AttachFace)state.getValue(BlockStateProperties.ATTACH_FACE);
-         Direction currentFacing = (Direction)state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+         AttachFace currentFace = state.getValue(BlockStateProperties.ATTACH_FACE);
+         Direction currentFacing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
          int currentIdx = faceAttachedIndex(currentFace, currentFacing);
 
          for (int step = 1; step <= FACE_ATTACHED_CYCLE_LENGTH; step++) {
             int idx = (currentIdx + step) % FACE_ATTACHED_CYCLE_LENGTH;
             AttachFace nextFace = FACE_ATTACHED_FACE_ORDER[idx / 4];
             Direction nextFacing = FACE_ATTACHED_FACING_ORDER[idx % 4];
-            BlockState candidate = (BlockState)((BlockState)state.setValue(BlockStateProperties.ATTACH_FACE, nextFace))
+            BlockState candidate = (state.setValue(BlockStateProperties.ATTACH_FACE, nextFace))
                .setValue(BlockStateProperties.HORIZONTAL_FACING, nextFacing);
             if (candidate.canSurvive(world, pos)) {
                world.setBlockAndUpdate(pos, candidate);
@@ -193,31 +193,31 @@ public class VanillaRotationHandlers {
 
    private static InteractionResult rotateCocoa(Level world, BlockPos pos, BlockState state, Direction side) {
       return rotateUntilValid(
-         world, pos, state, CocoaBlock.FACING, ROTATE_HORIZONTAL, f -> ((BlockState)state.setValue(CocoaBlock.FACING, f)).canSurvive(world, pos)
+         world, pos, state, CocoaBlock.FACING, ROTATE_HORIZONTAL, f -> (state.setValue(CocoaBlock.FACING, f)).canSurvive(world, pos)
       );
    }
 
    private static InteractionResult rotateLadder(Level world, BlockPos pos, BlockState state, Direction side) {
       return rotateUntilValid(
-         world, pos, state, LadderBlock.FACING, ROTATE_HORIZONTAL, f -> ((BlockState)state.setValue(LadderBlock.FACING, f)).canSurvive(world, pos)
+         world, pos, state, LadderBlock.FACING, ROTATE_HORIZONTAL, f -> (state.setValue(LadderBlock.FACING, f)).canSurvive(world, pos)
       );
    }
 
    private static InteractionResult rotateWallTorch(Level world, BlockPos pos, BlockState state, Direction side) {
       return rotateUntilValid(
-         world, pos, state, WallTorchBlock.FACING, ROTATE_HORIZONTAL, f -> ((BlockState)state.setValue(WallTorchBlock.FACING, f)).canSurvive(world, pos)
+         world, pos, state, WallTorchBlock.FACING, ROTATE_HORIZONTAL, f -> (state.setValue(WallTorchBlock.FACING, f)).canSurvive(world, pos)
       );
    }
 
    private static InteractionResult rotateWallBanner(Level world, BlockPos pos, BlockState state, Direction side) {
       return rotateUntilValid(
-         world, pos, state, WallBannerBlock.FACING, ROTATE_HORIZONTAL, f -> ((BlockState)state.setValue(WallBannerBlock.FACING, f)).canSurvive(world, pos)
+         world, pos, state, WallBannerBlock.FACING, ROTATE_HORIZONTAL, f -> (state.setValue(WallBannerBlock.FACING, f)).canSurvive(world, pos)
       );
    }
 
    private static InteractionResult rotateWallSign(Level world, BlockPos pos, BlockState state, Direction side) {
       return rotateUntilValid(
-         world, pos, state, WallSignBlock.FACING, ROTATE_HORIZONTAL, f -> ((BlockState)state.setValue(WallSignBlock.FACING, f)).canSurvive(world, pos)
+         world, pos, state, WallSignBlock.FACING, ROTATE_HORIZONTAL, f -> (state.setValue(WallSignBlock.FACING, f)).canSurvive(world, pos)
       );
    }
 
@@ -228,13 +228,13 @@ public class VanillaRotationHandlers {
          state,
          WallHangingSignBlock.FACING,
          ROTATE_HORIZONTAL,
-         f -> ((BlockState)state.setValue(WallHangingSignBlock.FACING, f)).canSurvive(world, pos)
+         f -> (state.setValue(WallHangingSignBlock.FACING, f)).canSurvive(world, pos)
       );
    }
 
    private static InteractionResult rotateWallSkull(Level world, BlockPos pos, BlockState state, Direction side) {
       return rotateUntilValid(
-         world, pos, state, WallSkullBlock.FACING, ROTATE_HORIZONTAL, f -> ((BlockState)state.setValue(WallSkullBlock.FACING, f)).canSurvive(world, pos)
+         world, pos, state, WallSkullBlock.FACING, ROTATE_HORIZONTAL, f -> (state.setValue(WallSkullBlock.FACING, f)).canSurvive(world, pos)
       );
    }
 
@@ -261,13 +261,13 @@ public class VanillaRotationHandlers {
          }
       }
 
-      Direction newFacing = (Direction)ROTATE_HORIZONTAL.next((Direction)lowerState.getValue(DoorBlock.FACING));
+      Direction newFacing = ROTATE_HORIZONTAL.next(lowerState.getValue(DoorBlock.FACING));
       boolean wrap = lowerState.getValue(DoorBlock.FACING) == ROTATE_HORIZONTAL.get(0);
       DoorHingeSide newHinge = wrap
          ? (lowerState.getValue(DoorBlock.HINGE) == DoorHingeSide.LEFT ? DoorHingeSide.RIGHT : DoorHingeSide.LEFT)
-         : (DoorHingeSide)lowerState.getValue(DoorBlock.HINGE);
-      BlockState newLower = (BlockState)((BlockState)lowerState.setValue(DoorBlock.FACING, newFacing)).setValue(DoorBlock.HINGE, newHinge);
-      BlockState newUpper = (BlockState)((BlockState)upperState.setValue(DoorBlock.FACING, newFacing)).setValue(DoorBlock.HINGE, newHinge);
+         : lowerState.getValue(DoorBlock.HINGE);
+      BlockState newLower = (lowerState.setValue(DoorBlock.FACING, newFacing)).setValue(DoorBlock.HINGE, newHinge);
+      BlockState newUpper = (upperState.setValue(DoorBlock.FACING, newFacing)).setValue(DoorBlock.HINGE, newHinge);
       world.setBlock(lowerPos, newLower, 2);
       world.setBlock(upperPos, newUpper, 2);
       return InteractionResult.SUCCESS;
@@ -275,8 +275,8 @@ public class VanillaRotationHandlers {
 
    private static InteractionResult rotateTrapDoor(Level world, BlockPos pos, BlockState state, Direction side) {
       if (state.getValue(TrapDoorBlock.FACING) == ROTATE_HORIZONTAL.get(0)) {
-         Half half = (Half)state.getValue(TrapDoorBlock.HALF);
-         state = (BlockState)state.setValue(TrapDoorBlock.HALF, half == Half.TOP ? Half.BOTTOM : Half.TOP);
+         Half half = state.getValue(TrapDoorBlock.HALF);
+         state = state.setValue(TrapDoorBlock.HALF, half == Half.TOP ? Half.BOTTOM : Half.TOP);
       }
 
       return rotateOnce(world, pos, state, TrapDoorBlock.FACING, ROTATE_HORIZONTAL);
@@ -284,12 +284,12 @@ public class VanillaRotationHandlers {
 
    private static InteractionResult rotateStairs(Level world, BlockPos pos, BlockState state, Direction side) {
       if (state.getValue(StairBlock.FACING) == ROTATE_HORIZONTAL.get(0)) {
-         Half half = (Half)state.getValue(StairBlock.HALF);
+         Half half = state.getValue(StairBlock.HALF);
          half = half == Half.TOP ? Half.BOTTOM : Half.TOP;
-         state = (BlockState)state.setValue(StairBlock.HALF, half);
+         state = state.setValue(StairBlock.HALF, half);
       }
 
-      BlockState next = (BlockState)state.setValue(StairBlock.FACING, (Direction)ROTATE_HORIZONTAL.next((Direction)state.getValue(StairBlock.FACING)));
+      BlockState next = state.setValue(StairBlock.FACING, ROTATE_HORIZONTAL.next(state.getValue(StairBlock.FACING)));
       world.setBlockAndUpdate(pos, next);
       return InteractionResult.SUCCESS;
    }
@@ -302,12 +302,12 @@ public class VanillaRotationHandlers {
             if (otherState.getBlock() == state.getBlock()
                && otherState.getValue(ChestBlock.FACING) == state.getValue(ChestBlock.FACING)
                && otherState.getValue(ChestBlock.TYPE) != ChestType.SINGLE) {
-               Direction newFacing = ((Direction)state.getValue(ChestBlock.FACING)).getOpposite();
-               ChestType selfType = (ChestType)state.getValue(ChestBlock.TYPE);
-               ChestType otherType = (ChestType)otherState.getValue(ChestBlock.TYPE);
-               world.setBlockAndUpdate(pos, (BlockState)((BlockState)state.setValue(ChestBlock.FACING, newFacing)).setValue(ChestBlock.TYPE, otherType));
+               Direction newFacing = (state.getValue(ChestBlock.FACING)).getOpposite();
+               ChestType selfType = state.getValue(ChestBlock.TYPE);
+               ChestType otherType = otherState.getValue(ChestBlock.TYPE);
+               world.setBlockAndUpdate(pos, (state.setValue(ChestBlock.FACING, newFacing)).setValue(ChestBlock.TYPE, otherType));
                world.setBlockAndUpdate(
-                  otherPos, (BlockState)((BlockState)otherState.setValue(ChestBlock.FACING, newFacing)).setValue(ChestBlock.TYPE, selfType)
+                  otherPos, (otherState.setValue(ChestBlock.FACING, newFacing)).setValue(ChestBlock.TYPE, selfType)
                );
                return InteractionResult.SUCCESS;
             }
@@ -320,8 +320,8 @@ public class VanillaRotationHandlers {
    private static InteractionResult rotate16(Level world, BlockPos pos, BlockState state, Direction side) {
       IntegerProperty prop = BlockStateProperties.ROTATION_16;
       if (state.hasProperty(prop)) {
-         int next = (Integer)state.getValue(prop) + 1 & 15;
-         world.setBlockAndUpdate(pos, (BlockState)state.setValue(prop, next));
+         int next = state.getValue(prop) + 1 & 15;
+         world.setBlockAndUpdate(pos, state.setValue(prop, next));
          return InteractionResult.SUCCESS;
       } else {
          return InteractionResult.PASS;

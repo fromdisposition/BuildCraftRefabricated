@@ -56,12 +56,12 @@ public class AWRecipeBookComponent extends RecipeBookComponent<ContainerAutoCraf
    }
 
    protected boolean isCraftingSlot(Slot slot) {
-      return ((ContainerAutoCraftItems)this.menu).getResultSlot() == slot || ((ContainerAutoCraftItems)this.menu).getInputGridSlots().contains(slot);
+      return (this.menu).getResultSlot() == slot || (this.menu).getInputGridSlots().contains(slot);
    }
 
    private boolean canDisplay(RecipeDisplay display) {
-      int w = ((ContainerAutoCraftItems)this.menu).getGridWidth();
-      int h = ((ContainerAutoCraftItems)this.menu).getGridHeight();
+      int w = (this.menu).getGridWidth();
+      int h = (this.menu).getGridHeight();
 
       return switch (display) {
          case ShapedCraftingRecipeDisplay shaped -> w >= shaped.width() && h >= shaped.height();
@@ -71,13 +71,13 @@ public class AWRecipeBookComponent extends RecipeBookComponent<ContainerAutoCraf
    }
 
    protected void fillGhostRecipe(GhostSlots ghostSlots, RecipeDisplay display, ContextMap context) {
-      GhostSlotsAccess.setResult(ghostSlots, ((ContainerAutoCraftItems)this.menu).getResultSlot(), context, display.result());
+      GhostSlotsAccess.setResult(ghostSlots, (this.menu).getResultSlot(), context, display.result());
       switch (display) {
          case ShapedCraftingRecipeDisplay shaped: {
-            List<Slot> slots = ((ContainerAutoCraftItems)this.menu).getInputGridSlots();
+            List<Slot> slots = (this.menu).getInputGridSlots();
             PlaceRecipeHelper.placeRecipe(
-               ((ContainerAutoCraftItems)this.menu).getGridWidth(),
-               ((ContainerAutoCraftItems)this.menu).getGridHeight(),
+               (this.menu).getGridWidth(),
+               (this.menu).getGridHeight(),
                shaped.width(),
                shaped.height(),
                shaped.ingredients(),
@@ -89,11 +89,11 @@ public class AWRecipeBookComponent extends RecipeBookComponent<ContainerAutoCraf
             break;
          }
          case ShapelessCraftingRecipeDisplay shapeless: {
-            List<Slot> slots = ((ContainerAutoCraftItems)this.menu).getInputGridSlots();
+            List<Slot> slots = (this.menu).getInputGridSlots();
             int count = Math.min(shapeless.ingredients().size(), slots.size());
 
             for (int i = 0; i < count; i++) {
-               GhostSlotsAccess.setInput(ghostSlots, slots.get(i), context, (SlotDisplay)shapeless.ingredients().get(i));
+               GhostSlotsAccess.setInput(ghostSlots, slots.get(i), context, shapeless.ingredients().get(i));
             }
          }
          default:

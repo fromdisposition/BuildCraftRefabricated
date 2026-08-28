@@ -25,7 +25,7 @@ public class ListMatchHandlerArmor extends ListMatchHandler {
    @Nullable
    private static EquipmentSlot slotOf(@Nonnull ItemStack stack) {
       //? if >= 1.21.10 {
-      Equippable e = (Equippable)stack.get(DataComponents.EQUIPPABLE);
+      Equippable e = stack.get(DataComponents.EQUIPPABLE);
       return e == null ? null : e.slot();
       //?} else {
       /*// 1.21.1: armour slot comes from the Equipable interface (ArmorItem etc.), not an EQUIPPABLE component.

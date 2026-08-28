@@ -201,9 +201,9 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
       int titleX = (this.imageWidth - this.font.width(titleStr)) / 2;
       graphics.text(this.font, titleStr, titleX, 6, -12566464, false);
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
-      PipeBehaviourEmzuli.SlotIndex currentSlot = ((ContainerEmzuliPipe_BC8)this.menu).behaviour.getCurrentSlot();
+      PipeBehaviourEmzuli.SlotIndex currentSlot = (this.menu).behaviour.getCurrentSlot();
 
-      for (PipeBehaviourEmzuli.SlotIndex index : ((ContainerEmzuliPipe_BC8)this.menu).behaviour.getActiveSlots()) {
+      for (PipeBehaviourEmzuli.SlotIndex index : (this.menu).behaviour.getActiveSlots()) {
          boolean current = index == currentSlot;
          int ix = index.ordinal() < 2 ? 4 : 155;
          int iy = index.ordinal() % 2 == 0 ? 21 : 49;
@@ -231,7 +231,7 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
       *///?}
 
       public void handleClick(int button) {
-         DyeColor current = ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);
+         DyeColor current = (GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);
          DyeColor next;
          switch (button) {
             case 0:
@@ -247,11 +247,11 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
                return;
          }
 
-         ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).paintWidgets.get(this.index).setColour(next);
+         (GuiEmzuliPipe_BC8.this.menu).paintWidgets.get(this.index).setColour(next);
          if (next == null) {
-            ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.remove(this.index);
+            (GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.remove(this.index);
          } else {
-            ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.put(this.index, next);
+            (GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.put(this.index, next);
          }
 
          this.updateTooltip();
@@ -259,7 +259,7 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
       }
 
       private void updateTooltip() {
-         DyeColor colour = ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);
+         DyeColor colour = (GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);
          Component tooltip;
          if (colour == null) {
             tooltip = Component.translatable("gui.pipes.emzuli.nopaint");
@@ -275,7 +275,7 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
          int v = GuiEmzuliPipe_BC8.this.activePressedButton == this ? 20 : 0;
          GuiIcon bgIcon = new GuiIcon(GuiEmzuliPipe_BC8.TEXTURE, 176.0, v, 20.0, 20.0, 256);
          bgIcon.drawAt(this.getX(), this.getY());
-         DyeColor colour = ((ContainerEmzuliPipe_BC8)GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);
+         DyeColor colour = (GuiEmzuliPipe_BC8.this.menu).behaviour.slotColours.get(this.index);
          if (colour == null) {
             GuiIcon noPaint = new GuiIcon(GuiEmzuliPipe_BC8.TEXTURE, 176.0, 40.0, 16.0, 16.0, 256);
             noPaint.drawAt(this.getX() + 2, this.getY() + 2);

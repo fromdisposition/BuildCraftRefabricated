@@ -47,7 +47,7 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
 
    public BlockDistiller(Properties properties) {
       super(properties);
-      this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.WEST));
+      this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.WEST));
    }
 
    protected MapCodec<? extends BaseEntityBlock> codec() {
@@ -59,7 +59,7 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
-      return (BlockState)this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+      return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
@@ -141,8 +141,8 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
          return InteractionResult.SUCCESS;
       }
 
-      Direction current = (Direction)state.getValue(FACING);
-      level.setBlock(pos, (BlockState)state.setValue(FACING, current.getClockWise()), 3);
+      Direction current = state.getValue(FACING);
+      level.setBlock(pos, state.setValue(FACING, current.getClockWise()), 3);
       return InteractionResult.SUCCESS;
    }
 

@@ -47,7 +47,7 @@ public class ItemList_BC8 extends Item implements IList {
    }
 
    private static CompoundTag getCustomTag(@Nonnull ItemStack stack) {
-      CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+      CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
       return customData == null ? new CompoundTag() : customData.copyTag();
    }
 

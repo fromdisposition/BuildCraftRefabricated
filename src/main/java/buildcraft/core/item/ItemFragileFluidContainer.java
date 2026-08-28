@@ -81,7 +81,7 @@ public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
          return FluidStack.EMPTY;
       }
 
-      SimpleFluidContent content = (SimpleFluidContent)container.getOrDefault(BCCore.FLUID_CONTENT, SimpleFluidContent.EMPTY);
+      SimpleFluidContent content = container.getOrDefault(BCCore.FLUID_CONTENT, SimpleFluidContent.EMPTY);
       return content.copy();
    }
 }

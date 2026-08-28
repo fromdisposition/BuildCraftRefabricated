@@ -44,7 +44,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
          ItemStack[] snap = new ItemStack[BcItemInventory.this.stacks.size()];
 
          for (int i = 0; i < snap.length; i++) {
-            snap[i] = ((ItemStack)BcItemInventory.this.stacks.get(i)).copy();
+            snap[i] = (BcItemInventory.this.stacks.get(i)).copy();
          }
 
          return snap;
@@ -126,7 +126,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
 
    @Override
    protected boolean isEmpty(int slot) {
-      return this.badSlotIndex(slot) ? true : ((ItemStack)this.stacks.get(slot)).isEmpty();
+      return this.badSlotIndex(slot) ? true : (this.stacks.get(slot)).isEmpty();
    }
 
    protected boolean badSlotIndex(int slot) {
@@ -135,7 +135,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
 
    @Nonnull
    public ItemStack getStackInSlot(int slot) {
-      return this.badSlotIndex(slot) ? ItemStack.EMPTY : (ItemStack)this.stacks.get(slot);
+      return this.badSlotIndex(slot) ? ItemStack.EMPTY : this.stacks.get(slot);
    }
 
    public void setStackInSlot(int slot, @Nonnull ItemStack stack) {
@@ -143,7 +143,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
          throw new IndexOutOfBoundsException("Slot index out of range: " + slot);
       }
 
-      ItemStack before = (ItemStack)this.stacks.get(slot);
+      ItemStack before = this.stacks.get(slot);
       this.setStackInternal(slot, stack);
       if (this.callback != null) {
          this.callback.onStackChange(this, slot, before, asValid(stack));
@@ -160,7 +160,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
       this.stacks.set(slot, asValid(stack));
       if (stack.isEmpty() && this.firstUsed == slot) {
          for (int s = this.firstUsed; s < this.size(); s++) {
-            if (!((ItemStack)this.stacks.get(s)).isEmpty()) {
+            if (!(this.stacks.get(s)).isEmpty()) {
                this.firstUsed = s;
                break;
             }
@@ -191,7 +191,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
    protected int insertToSlot(int index, @Nonnull ItemStack toInsert, @Nullable TransactionContext tx) {
       if (!this.badSlotIndex(index) && !toInsert.isEmpty()) {
          int amount = toInsert.getCount();
-         ItemStack current = (ItemStack)this.stacks.get(index);
+         ItemStack current = this.stacks.get(index);
          if (this.canSet(index, toInsert) && this.canSet(index, current)) {
             StackInsertionFunction.InsertionResult result = this.inserter.modifyForInsertion(index, asValid(current.copy()), asValid(toInsert.copy()));
             if (!this.canSet(index, result.toSet)) {
@@ -227,7 +227,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
 
    protected int extractFromSlot(int index, @Nonnull ItemVariant variant, int amount, @Nullable TransactionContext tx) {
       if (!this.badSlotIndex(index) && amount > 0 && !variant.isBlank()) {
-         ItemStack current = (ItemStack)this.stacks.get(index);
+         ItemStack current = this.stacks.get(index);
          if (!current.isEmpty() && variant.matches(current)) {
             int toExtract = Math.min(amount, current.getCount());
             if (toExtract > 0) {
@@ -305,7 +305,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
    @Override
    protected ItemStack extract(int slot, IStackFilter filter, int min, int max, boolean simulate) {
       if (!this.badSlotIndex(slot) && max >= min) {
-         ItemStack current = (ItemStack)this.stacks.get(slot);
+         ItemStack current = this.stacks.get(slot);
          if (!current.isEmpty() && current.getCount() >= min && filter.matches(asValid(current))) {
             Transaction tx = Transaction.openOuter();
 
@@ -417,10 +417,10 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
    }
 
    public void deserializeNBT(CompoundTag nbt) {
-      ListTag list = (ListTag)BcNbt.getList(nbt, "items");
+      ListTag list = BcNbt.getList(nbt, "items");
 
       for (int i = 0; i < list.size() && i < this.size(); i++) {
-         CompoundTag itemNbt = (CompoundTag)BcNbt.getCompound(list, i);
+         CompoundTag itemNbt = BcNbt.getCompound(list, i);
          ItemStack stack = ItemStack.EMPTY;
          Tag stackPayload = itemNbt.get("stack");
          if (stackPayload != null) {

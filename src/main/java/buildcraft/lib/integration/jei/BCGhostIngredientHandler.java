@@ -34,7 +34,7 @@ public class BCGhostIngredientHandler<T extends BcScreen<?>> implements IGhostIn
       }
 
       for (int i = 0; i < menu.slots.size(); i++) {
-         Slot slot = (Slot)menu.slots.get(i);
+         Slot slot = menu.slots.get(i);
          if (slot instanceof IPhantomSlot) {
             int slotIndex = i;
             int x = gui.getGuiLeftPos() + slot.x;

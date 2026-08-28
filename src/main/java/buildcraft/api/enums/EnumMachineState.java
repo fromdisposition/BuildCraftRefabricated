@@ -16,7 +16,7 @@ public enum EnumMachineState implements StringRepresentable {
    DONE;
 
    public static EnumMachineState getType(BlockState state) {
-      return (EnumMachineState)state.getValue(BuildCraftProperties.MACHINE_STATE);
+      return state.getValue(BuildCraftProperties.MACHINE_STATE);
    }
 
    public String getSerializedName() {

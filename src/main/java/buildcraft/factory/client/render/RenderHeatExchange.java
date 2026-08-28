@@ -77,7 +77,7 @@ public class RenderHeatExchange implements BlockEntityRenderer<TileHeatExchange,
          return;
       }
 
-      Direction facing = (Direction)blockState.getValue(BlockHeatExchange.FACING);
+      Direction facing = blockState.getValue(BlockHeatExchange.FACING);
       Direction face = facing.getCounterClockWise();
       if (TANK_SIDES.get(face) == null) {
          return;

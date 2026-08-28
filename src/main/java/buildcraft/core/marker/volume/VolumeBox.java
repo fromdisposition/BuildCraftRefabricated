@@ -63,40 +63,40 @@ public class VolumeBox {
       }
 
       this.box = new Box();
-      this.box.initialize((CompoundTag)BcNbt.getCompound(nbt, "box"));
+      this.box.initialize(BcNbt.getCompound(nbt, "box"));
       // Null-safe like the id above: a malformed player/oldPlayer UUID (edited/legacy save) would otherwise throw
       // out of VolumeBox(world, tag), which is constructed with no try/catch inside the SavedData codec — crashing
       // the whole volume-boxes load. Recover to null (unclaimed) instead.
       this.player = parseUuidOrNull(nbt.contains("player") ? BcNbt.getString(nbt, "player", "") : null);
       this.oldPlayer = parseUuidOrNull(nbt.contains("oldPlayer") ? BcNbt.getString(nbt, "oldPlayer", "") : null);
       if (nbt.contains("held")) {
-         CompoundTag heldTag = (CompoundTag)BcNbt.getCompound(nbt, "held");
+         CompoundTag heldTag = BcNbt.getCompound(nbt, "held");
          this.held = new BlockPos(BcNbt.getInt(heldTag, "X", 0), BcNbt.getInt(heldTag, "Y", 0), BcNbt.getInt(heldTag, "Z", 0));
       }
 
       this.dist = BcNbt.getDouble(nbt, "dist", 0.0);
       if (nbt.contains("oldMin")) {
-         CompoundTag oldMinTag = (CompoundTag)BcNbt.getCompound(nbt, "oldMin");
+         CompoundTag oldMinTag = BcNbt.getCompound(nbt, "oldMin");
          this.oldMin = new BlockPos(BcNbt.getInt(oldMinTag, "X", 0), BcNbt.getInt(oldMinTag, "Y", 0), BcNbt.getInt(oldMinTag, "Z", 0));
       }
 
       if (nbt.contains("oldMax")) {
-         CompoundTag oldMaxTag = (CompoundTag)BcNbt.getCompound(nbt, "oldMax");
+         CompoundTag oldMaxTag = BcNbt.getCompound(nbt, "oldMax");
          this.oldMax = new BlockPos(BcNbt.getInt(oldMaxTag, "X", 0), BcNbt.getInt(oldMaxTag, "Y", 0), BcNbt.getInt(oldMaxTag, "Z", 0));
       }
 
       if (nbt.contains("addons")) {
-         ListTag addonsList = (ListTag)BcNbt.getList(nbt, "addons");
+         ListTag addonsList = BcNbt.getList(nbt, "addons");
 
          for (int i = 0; i < addonsList.size(); i++) {
-            CompoundTag addonsEntryTag = (CompoundTag)BcNbt.getCompound(addonsList, i);
+            CompoundTag addonsEntryTag = BcNbt.getCompound(addonsList, i);
             String addonClassName = BcNbt.getString(addonsEntryTag, "addonClass", "");
 
             try {
                Class<? extends Addon> addonClass = AddonsRegistry.INSTANCE.getClassByName(Identifier.parse(addonClassName));
                Addon addon = addonClass.getDeclaredConstructor().newInstance();
                addon.volumeBox = this;
-               addon.readFromNBT((CompoundTag)BcNbt.getCompound(addonsEntryTag, "addonData"));
+               addon.readFromNBT(BcNbt.getCompound(addonsEntryTag, "addonData"));
                String slotStr = BcNbt.getString(addonsEntryTag, "slot", "");
                EnumAddonSlot slot = EnumAddonSlot.valueOf(slotStr);
                this.addons.put(slot, addon);
@@ -108,10 +108,10 @@ public class VolumeBox {
       }
 
       if (nbt.contains("locks")) {
-         ListTag locksList = (ListTag)BcNbt.getList(nbt, "locks");
+         ListTag locksList = BcNbt.getList(nbt, "locks");
 
          for (int i = 0; i < locksList.size(); i++) {
-            CompoundTag lockTag = (CompoundTag)BcNbt.getCompound(locksList, i);
+            CompoundTag lockTag = BcNbt.getCompound(locksList, i);
 
             try {
                Lock lock = new Lock();

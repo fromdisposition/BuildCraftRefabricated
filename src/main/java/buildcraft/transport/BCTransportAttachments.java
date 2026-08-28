@@ -36,11 +36,11 @@ public final class BCTransportAttachments {
    }
 
    public static BCTransportAttachments.WireColoursPlaced wireColours(Player player) {
-      return (BCTransportAttachments.WireColoursPlaced)player.getAttachedOrCreate(WIRE_COLOURS_PLACED);
+      return player.getAttachedOrCreate(WIRE_COLOURS_PLACED);
    }
 
    public static BCTransportAttachments.PluggablesPlaced pluggables(Player player) {
-      return (BCTransportAttachments.PluggablesPlaced)player.getAttachedOrCreate(PLUGGABLES_PLACED);
+      return player.getAttachedOrCreate(PLUGGABLES_PLACED);
    }
 
    public static void recordPluggablePlacement(Player player, BCTransportAttachments.PluggablesPlaced.Kind kind) {

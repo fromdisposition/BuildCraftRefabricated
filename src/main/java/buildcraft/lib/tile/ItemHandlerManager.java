@@ -147,7 +147,7 @@ public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
    public void deserializeNBT(CompoundTag nbt) {
       for (Entry<String, INBTSerializable<CompoundTag>> entry : this.handlers.entrySet()) {
          String key = entry.getKey();
-         entry.getValue().deserializeNBT((CompoundTag)BcNbt.getCompound(nbt, key));
+         entry.getValue().deserializeNBT(BcNbt.getCompound(nbt, key));
       }
    }
 

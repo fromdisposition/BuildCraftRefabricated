@@ -511,7 +511,7 @@ public class SimpleScript {
       String multiLine = this.nextQuotedArg();
 
       try {
-         return (JsonObject)GSON.fromJson(multiLine, JsonObject.class);
+         return GSON.fromJson(multiLine, JsonObject.class);
       } catch (JsonSyntaxException jse) {
          this.log("Invalid JSON: " + jse.getMessage());
          return null;
@@ -523,7 +523,7 @@ public class SimpleScript {
       Path jsonPath = this.scriptFolder.resolve(path + ".json");
       if (Files.exists(jsonPath)) {
          try (BufferedReader reader = Files.newBufferedReader(jsonPath)) {
-            return (JsonObject)GSON.fromJson(reader, JsonObject.class);
+            return GSON.fromJson(reader, JsonObject.class);
          } catch (IOException io) {
             this.log("Unable to read the file! " + io.getMessage());
             return null;

@@ -54,26 +54,26 @@ public class Lock {
    }
 
    public void readFromNBT(CompoundTag nbt) {
-      CompoundTag causeTag = (CompoundTag)BcNbt.getCompound(nbt, "cause");
+      CompoundTag causeTag = BcNbt.getCompound(nbt, "cause");
       String causeType = BcNbt.getString(causeTag, "type", "BLOCK");
 
       try {
          this.cause = Lock.Cause.EnumCause.valueOf(causeType).supplier.get();
-         this.cause.readFromNBT((CompoundTag)BcNbt.getCompound(causeTag, "data"));
+         this.cause.readFromNBT(BcNbt.getCompound(causeTag, "data"));
       } catch (IllegalArgumentException e) {
          throw new IllegalArgumentException("Unknown lock cause type: " + causeType, e);
       }
 
       if (nbt.contains("targets")) {
-         ListTag targetsList = (ListTag)BcNbt.getList(nbt, "targets");
+         ListTag targetsList = BcNbt.getList(nbt, "targets");
 
          for (int i = 0; i < targetsList.size(); i++) {
-            CompoundTag targetTag = (CompoundTag)BcNbt.getCompound(targetsList, i);
+            CompoundTag targetTag = BcNbt.getCompound(targetsList, i);
             String targetType = BcNbt.getString(targetTag, "type", "REMOVE");
 
             try {
                Lock.Target target = Lock.Target.EnumTarget.valueOf(targetType).supplier.get();
-               target.readFromNBT((CompoundTag)BcNbt.getCompound(targetTag, "data"));
+               target.readFromNBT(BcNbt.getCompound(targetTag, "data"));
                this.targets.add(target);
             } catch (IllegalArgumentException e) {
                throw new IllegalArgumentException("Unknown lock target type: " + targetType, e);
@@ -118,7 +118,7 @@ public class Lock {
          @Override
          public void readFromNBT(CompoundTag nbt) {
             if (nbt.contains("pos")) {
-               CompoundTag posTag = (CompoundTag)BcNbt.getCompound(nbt, "pos");
+               CompoundTag posTag = BcNbt.getCompound(nbt, "pos");
                this.pos = new BlockPos(BcNbt.getInt(posTag, "X", 0), BcNbt.getInt(posTag, "Y", 0), BcNbt.getInt(posTag, "Z", 0));
             }
 

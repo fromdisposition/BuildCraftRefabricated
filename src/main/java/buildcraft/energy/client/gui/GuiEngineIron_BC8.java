@@ -33,12 +33,12 @@ public class GuiEngineIron_BC8 extends BcScreen<ContainerEngineIron_BC8> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerEngineIron_BC8)this.menu).engine != null) {
+      if ((this.menu).engine != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
-                  this.mainGui, () -> ((ContainerEngineIron_BC8)this.menu).engine != null ? ((ContainerEngineIron_BC8)this.menu).engine.getOwner() : null, true
+                  this.mainGui, () -> (this.menu).engine != null ? (this.menu).engine.getOwner() : null, true
                )
             );
          this.mainGui
@@ -46,11 +46,11 @@ public class GuiEngineIron_BC8 extends BcScreen<ContainerEngineIron_BC8> {
             .add(
                new LedgerEngine(
                   this.mainGui,
-                  ((ContainerEngineIron_BC8)this.menu)::getSyncedCurrentOutput,
-                  ((ContainerEngineIron_BC8)this.menu)::getSyncedPower,
-                  ((ContainerEngineIron_BC8)this.menu)::getSyncedHeat,
-                  ((ContainerEngineIron_BC8)this.menu)::getSyncedPowerStage,
-                  ((ContainerEngineIron_BC8)this.menu)::isSyncedBurning,
+                  (this.menu)::getSyncedCurrentOutput,
+                  (this.menu)::getSyncedPower,
+                  (this.menu)::getSyncedHeat,
+                  (this.menu)::getSyncedPowerStage,
+                  (this.menu)::isSyncedBurning,
                   true,
                   true
                )
@@ -62,9 +62,9 @@ public class GuiEngineIron_BC8 extends BcScreen<ContainerEngineIron_BC8> {
                   this.mainGui,
                   new GuiRectangle(26.0, 18.0, 16.0, 60.0).offset(this.mainGui.rootElement),
                   () -> FluidStorageSnapshot.fromLevels(
-                     ((ContainerEngineIron_BC8)this.menu).getSyncedFuelFluid(), ((ContainerEngineIron_BC8)this.menu).getSyncedFuelAmount(), 10000
+                     (this.menu).getSyncedFuelFluid(), (this.menu).getSyncedFuelAmount(), 10000
                   ),
-                  ((ContainerEngineIron_BC8)this.menu).widgetFuel,
+                  (this.menu).widgetFuel,
                   ICON_TANK_OVERLAY
                )
             );
@@ -75,9 +75,9 @@ public class GuiEngineIron_BC8 extends BcScreen<ContainerEngineIron_BC8> {
                   this.mainGui,
                   new GuiRectangle(80.0, 18.0, 16.0, 60.0).offset(this.mainGui.rootElement),
                   () -> FluidStorageSnapshot.fromLevels(
-                     ((ContainerEngineIron_BC8)this.menu).getSyncedCoolantFluid(), ((ContainerEngineIron_BC8)this.menu).getSyncedCoolantAmount(), 10000
+                     (this.menu).getSyncedCoolantFluid(), (this.menu).getSyncedCoolantAmount(), 10000
                   ),
-                  ((ContainerEngineIron_BC8)this.menu).widgetCoolant,
+                  (this.menu).widgetCoolant,
                   ICON_TANK_OVERLAY
                )
             );
@@ -88,9 +88,9 @@ public class GuiEngineIron_BC8 extends BcScreen<ContainerEngineIron_BC8> {
                   this.mainGui,
                   new GuiRectangle(134.0, 18.0, 16.0, 60.0).offset(this.mainGui.rootElement),
                   () -> FluidStorageSnapshot.fromLevels(
-                     ((ContainerEngineIron_BC8)this.menu).getSyncedResidueFluid(), ((ContainerEngineIron_BC8)this.menu).getSyncedResidueAmount(), 10000
+                     (this.menu).getSyncedResidueFluid(), (this.menu).getSyncedResidueAmount(), 10000
                   ),
-                  ((ContainerEngineIron_BC8)this.menu).widgetResidue,
+                  (this.menu).widgetResidue,
                   ICON_TANK_OVERLAY
                )
             );

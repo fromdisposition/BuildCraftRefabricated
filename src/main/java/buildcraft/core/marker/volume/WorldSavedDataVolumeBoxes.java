@@ -46,10 +46,10 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
    private static WorldSavedDataVolumeBoxes fromNbt(CompoundTag nbt, Level world) {
       WorldSavedDataVolumeBoxes instance = new WorldSavedDataVolumeBoxes(world);
       if (nbt.contains("volumeBoxes")) {
-         ListTag listTag = (ListTag)BcNbt.getList(nbt, "volumeBoxes");
+         ListTag listTag = BcNbt.getList(nbt, "volumeBoxes");
 
          for (int i = 0; i < listTag.size(); i++) {
-            CompoundTag tag = (CompoundTag)BcNbt.getCompound(listTag, i);
+            CompoundTag tag = BcNbt.getCompound(listTag, i);
             instance.volumeBoxes.add(new VolumeBox(world, tag));
          }
       }

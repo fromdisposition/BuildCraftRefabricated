@@ -42,7 +42,7 @@ public class Blueprint extends Snapshot {
       blueprint.facing = this.facing;
       blueprint.offset = this.offset;
       blueprint.palette.addAll(this.palette);
-      blueprint.data = (int[])this.data.clone();
+      blueprint.data = this.data.clone();
       blueprint.entities.addAll(this.entities);
       blueprint.computeKey();
       return blueprint;
@@ -144,7 +144,7 @@ public class Blueprint extends Snapshot {
 
       this.data = new int[Snapshot.getDataSize(this.size)];
       ListTag serializedDataList = nbt.get("data") instanceof ListTag lt ? lt : null;
-      int[] serializedDataIntArray = (int[])BcNbt.getIntArray(nbt, "data");
+      int[] serializedDataIntArray = BcNbt.getIntArray(nbt, "data");
       if (serializedDataIntArray == null && serializedDataList == null) {
          throw new InvalidInputDataException("Can't read a blueprint with no data!");
       }

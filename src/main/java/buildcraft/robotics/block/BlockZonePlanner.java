@@ -37,7 +37,7 @@ public class BlockZonePlanner extends BaseEntityBlock {
 
    public BlockZonePlanner(Properties properties) {
       super(properties);
-      this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
+      this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
    }
 
    protected MapCodec<? extends BaseEntityBlock> codec() {
@@ -49,7 +49,7 @@ public class BlockZonePlanner extends BaseEntityBlock {
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
-      return (BlockState)this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+      return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
    @Nullable

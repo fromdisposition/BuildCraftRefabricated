@@ -319,7 +319,7 @@ public enum FacadeStateManager implements IFacadeRegistry {
                }
 
                phasedState.writeToBuffer(testingBufferx);
-               BlockState bufReadState = (BlockState)Block.BLOCK_STATE_REGISTRY.byId(testingBufferx.readVarInt());
+               BlockState bufReadState = Block.BLOCK_STATE_REGISTRY.byId(testingBufferx.readVarInt());
                if (bufReadState != info.state) {
                   throw new IllegalStateException("Read (from buffer) state was different! (\n\t" + bufReadState + "\n !=\n\t" + info.state + "\n)");
                }

@@ -29,7 +29,7 @@ public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
 
    @Override
    protected void initGuiElements() {
-      this.mainGui.shownElements.add(new LedgerTablePower(this.mainGui, ((ContainerIntegrationTable)this.menu).tile, true));
+      this.mainGui.shownElements.add(new LedgerTablePower(this.mainGui, (this.menu).tile, true));
       this.mainGui
          .shownElements
          .add(
@@ -59,9 +59,9 @@ public class GuiIntegrationTable extends BcScreen<ContainerIntegrationTable> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
-      long target = ((ContainerIntegrationTable)this.menu).tile.getTarget();
+      long target = (this.menu).tile.getTarget();
       if (target != 0L) {
-         double v = (double)((ContainerIntegrationTable)this.menu).tile.power / target;
+         double v = (double)(this.menu).tile.power / target;
          ICON_PROGRESS.drawCutInside(
             new GuiRectangle(
                   164.0,

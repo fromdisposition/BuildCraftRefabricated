@@ -147,7 +147,7 @@ public class ContainerEngineIron_BC8 extends BcMenu {
          return Fluids.EMPTY;
       }
 
-      Fluid fluid = (Fluid)BuiltInRegistries.FLUID.byId(id);
+      Fluid fluid = BuiltInRegistries.FLUID.byId(id);
       return fluid != null ? fluid : Fluids.EMPTY;
    }
 

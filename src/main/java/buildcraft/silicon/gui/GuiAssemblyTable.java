@@ -40,17 +40,17 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerAssemblyTable)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
-                  this.mainGui, () -> ((ContainerAssemblyTable)this.menu).tile != null ? ((ContainerAssemblyTable)this.menu).tile.getOwner() : null, true
+                  this.mainGui, () -> (this.menu).tile != null ? (this.menu).tile.getOwner() : null, true
                )
             );
       }
 
-      this.mainGui.shownElements.add(new LedgerTablePower(this.mainGui, ((ContainerAssemblyTable)this.menu).tile, true));
+      this.mainGui.shownElements.add(new LedgerTablePower(this.mainGui, (this.menu).tile, true));
       this.mainGui
          .shownElements
          .add(
@@ -85,9 +85,9 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
-      long target = ((ContainerAssemblyTable)this.menu).tile.getTarget();
+      long target = (this.menu).tile.getTarget();
       if (target != 0L) {
-         double v = (double)((ContainerAssemblyTable)this.menu).tile.power / target;
+         double v = (double)(this.menu).tile.power / target;
          ICON_PROGRESS.drawCutInside(
             new GuiRectangle(
                   86.0,
@@ -99,8 +99,8 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
          );
       }
 
-      for (int i = 0; i < ((ContainerAssemblyTable)this.menu).tile.recipesStates.size(); i++) {
-         EnumAssemblyRecipeState state = new ArrayList<>(((ContainerAssemblyTable)this.menu).tile.recipesStates.values()).get(i);
+      for (int i = 0; i < (this.menu).tile.recipesStates.size(); i++) {
+         EnumAssemblyRecipeState state = new ArrayList<>((this.menu).tile.recipesStates.values()).get(i);
          IGuiArea area = this.getRecipeArea(i);
          if (state == EnumAssemblyRecipeState.SAVED) {
             ICON_SAVED.drawAt(area);
@@ -149,11 +149,11 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
 
    private boolean bcMouseClicked(int mouseX, int mouseY, int button) {
       if (button == 0) {
-         for (int i = 0; i < ((ContainerAssemblyTable)this.menu).tile.recipesStates.size(); i++) {
+         for (int i = 0; i < (this.menu).tile.recipesStates.size(); i++) {
             IGuiArea area = this.getRecipeArea(i);
             if (area.contains(mouseX, mouseY)) {
                if (this.minecraft != null && this.minecraft.gameMode != null) {
-                  this.minecraft.gameMode.handleInventoryButtonClick(((ContainerAssemblyTable)this.menu).containerId, i);
+                  this.minecraft.gameMode.handleInventoryButtonClick((this.menu).containerId, i);
                }
 
                return true;

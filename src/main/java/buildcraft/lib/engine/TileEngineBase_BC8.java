@@ -112,7 +112,7 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       }
 
       if (this.getBlockState().hasProperty(BuildCraftProperties.BLOCK_FACING_6)) {
-         this.setOrientation((Direction)this.getBlockState().getValue(BuildCraftProperties.BLOCK_FACING_6));
+         this.setOrientation(this.getBlockState().getValue(BuildCraftProperties.BLOCK_FACING_6));
       }
    }
 
@@ -355,7 +355,7 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
             if (engine.getReceiverToPower(engine.orientation) == null) {
                if (engine.attemptRotation()) {
                   engine.orientationChecksRemaining = 0;
-                  level.setBlock(pos, (BlockState)state.setValue(BuildCraftProperties.BLOCK_FACING_6, engine.orientation), 3);
+                  level.setBlock(pos, state.setValue(BuildCraftProperties.BLOCK_FACING_6, engine.orientation), 3);
                   level.sendBlockUpdated(pos, state, state, 3);
                }
             } else {

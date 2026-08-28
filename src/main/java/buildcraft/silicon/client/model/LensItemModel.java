@@ -111,7 +111,7 @@ public class LensItemModel implements ItemModel {
       DyeColor colour = ItemPluggableLens.getColour(stack);
       boolean isFilter = ItemPluggableLens.isFilter(stack);
       LensItemModel.CacheKey key = new LensItemModel.CacheKey(new LensItemModel.LensKey(colour, isFilter), displayContext);
-      List<BakedQuad> quads = (List<BakedQuad>)cache.getUnchecked(key);
+      List<BakedQuad> quads = cache.getUnchecked(key);
       if (!quads.isEmpty()) {
          for (BakedQuad quad : quads) {
             //? if >= 26.1 {

@@ -38,7 +38,7 @@ public final class AdvDebuggerLaser {
       if (level != null) {
          BlockState state = level.getBlockState(tile.getBlockPos());
          if (state.getBlock() == BCSiliconBlocks.LASER) {
-            Direction face = (Direction)state.getValue(BlockLaser.FACING);
+            Direction face = state.getValue(BlockLaser.FACING);
             VolumeUtil.iterateCone(
                level,
                tile.getBlockPos(),

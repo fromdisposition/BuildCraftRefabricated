@@ -48,12 +48,12 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerAutoCraftItems)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
-                  this.mainGui, () -> ((ContainerAutoCraftItems)this.menu).tile != null ? ((ContainerAutoCraftItems)this.menu).tile.getOwner() : null, true
+                  this.mainGui, () -> (this.menu).tile != null ? (this.menu).tile.getOwner() : null, true
                )
             );
       }
@@ -64,13 +64,13 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
       super.init();
       this.widthTooNarrow = this.width < 379;
       //? if >= 1.21.10 {
-      this.recipeBookComponent = new AWRecipeBookComponent((ContainerAutoCraftItems)this.menu);
+      this.recipeBookComponent = new AWRecipeBookComponent(this.menu);
       this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow);
       //?} else {
       /*// 1.21.1: AWRecipeBookComponent is a thin alias of the concrete vanilla RecipeBookComponent;
       // instantiate no-arg and pass the menu to the 5-arg init.
       this.recipeBookComponent = new AWRecipeBookComponent();
-      this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, (ContainerAutoCraftItems)this.menu);
+      this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, this.menu);
       *///?}
       this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);
       ScreenPosition buttonPos = this.getRecipeBookButtonPosition();
@@ -111,8 +111,8 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
-      if (((ContainerAutoCraftItems)this.menu).tile != null) {
-         double progress = ((ContainerAutoCraftItems)this.menu).tile.getProgress(0.0F);
+      if ((this.menu).tile != null) {
+         double progress = (this.menu).tile.getProgress(0.0F);
          if (progress > 0.0) {
             int progressWidth = (int)(ICON_PROGRESS.width * Math.min(progress, 1.0));
             if (progressWidth > 0) {
@@ -124,12 +124,12 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
       }
 
       if (this.hasFilters()) {
-         ItemHandlerSimple filters = ((ContainerAutoCraftItems)this.menu).tile.invMaterialFilter;
+         ItemHandlerSimple filters = (this.menu).tile.invMaterialFilter;
 
          for (int s = 0; s < filters.getSlots(); s++) {
             ItemStack filterStack = filters.getStackInSlot(s);
             if (!filterStack.isEmpty()) {
-               SlotBase slot = ((ContainerAutoCraftItems)this.menu).materialSlots[s];
+               SlotBase slot = (this.menu).materialSlots[s];
                int x = slot.x + (int)this.mainGui.rootElement.getX();
                int y = slot.y + (int)this.mainGui.rootElement.getY();
                graphics.fakeItem(filterStack, x, y);
@@ -140,7 +140,7 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
          for (int s = 0; s < filters.getSlots(); s++) {
             ItemStack filterStack = filters.getStackInSlot(s);
             if (!filterStack.isEmpty()) {
-               SlotBase slot = ((ContainerAutoCraftItems)this.menu).materialSlots[s];
+               SlotBase slot = (this.menu).materialSlots[s];
                ItemStack real = slot.getItem();
                GuiIcon icon;
                if (!real.isEmpty() && !StackUtil.canMerge(real, filterStack)) {
@@ -158,11 +158,11 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    }
 
    private boolean hasFilters() {
-      if (((ContainerAutoCraftItems)this.menu).tile == null) {
+      if ((this.menu).tile == null) {
          return false;
       }
 
-      ItemHandlerSimple filters = ((ContainerAutoCraftItems)this.menu).tile.invMaterialFilter;
+      ItemHandlerSimple filters = (this.menu).tile.invMaterialFilter;
 
       for (int s = 0; s < filters.getSlots(); s++) {
          if (!filters.getStackInSlot(s).isEmpty()) {

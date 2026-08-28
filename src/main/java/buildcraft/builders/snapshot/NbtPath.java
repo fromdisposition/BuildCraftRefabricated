@@ -34,27 +34,27 @@ public class NbtPath {
    }
 
    public Tag get(ByteTag tag) {
-      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
    }
 
    public Tag get(ShortTag tag) {
-      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
    }
 
    public Tag get(IntTag tag) {
-      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
    }
 
    public Tag get(LongTag tag) {
-      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
    }
 
    public Tag get(FloatTag tag) {
-      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
    }
 
    public Tag get(DoubleTag tag) {
-      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
    }
 
    public Tag get(ByteArrayTag tag) {
@@ -67,14 +67,14 @@ public class NbtPath {
          }
 
          byte[] bytes = tag.getAsByteArray();
-         return (Tag)(key >= 0 && key < bytes.length ? ByteTag.valueOf(bytes[key]) : NBTUtilBC.NBT_NULL);
+         return (key >= 0 && key < bytes.length ? ByteTag.valueOf(bytes[key]) : NBTUtilBC.NBT_NULL);
       } else {
-         return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+         return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
       }
    }
 
    public Tag get(StringTag tag) {
-      return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+      return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
    }
 
    public Tag get(ListTag tag) {
@@ -88,7 +88,7 @@ public class NbtPath {
 
          return key >= 0 && key < tag.size() ? new NbtPath(this.elements.subList(1, this.elements.size())).get(tag.get(key)) : NBTUtilBC.NBT_NULL;
       } else {
-         return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+         return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
       }
    }
 
@@ -111,9 +111,9 @@ public class NbtPath {
          }
 
          int[] ints = tag.getAsIntArray();
-         return (Tag)(key >= 0 && key < ints.length ? IntTag.valueOf(ints[key]) : NBTUtilBC.NBT_NULL);
+         return (key >= 0 && key < ints.length ? IntTag.valueOf(ints[key]) : NBTUtilBC.NBT_NULL);
       } else {
-         return (Tag)(this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
+         return (this.elements.isEmpty() ? tag : NBTUtilBC.NBT_NULL);
       }
    }
 

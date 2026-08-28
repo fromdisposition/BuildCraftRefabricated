@@ -154,7 +154,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
             double[] posScratch = this.itemPosScratch;
             flowItems.forEachItemForRender(
                item -> {
-                  int i = (int)(itemIndex[0]++);
+                  int i = (itemIndex[0]++);
                   ItemStack stack = item.clientItemLink.get();
                   if (stack == null || stack.isEmpty()) {
                      stack = item.getStack();

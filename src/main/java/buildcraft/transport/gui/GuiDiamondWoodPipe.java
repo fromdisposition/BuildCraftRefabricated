@@ -54,10 +54,10 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
-      if (((ContainerDiamondWoodPipe)this.menu).behaviour.pipe.getFlow() instanceof IFlowItems
-         && ((ContainerDiamondWoodPipe)this.menu).behaviour.filterMode == PipeBehaviourWoodDiamond.FilterMode.ROUND_ROBIN) {
-         GuiIcon icon = ((ContainerDiamondWoodPipe)this.menu).behaviour.filterValid ? ICON_ROUND_ROBIN_INDEX : ICON_ROUND_ROBIN_NONE;
-         int xOffset = ((ContainerDiamondWoodPipe)this.menu).behaviour.filterValid ? 18 * ((ContainerDiamondWoodPipe)this.menu).behaviour.currentFilter : 0;
+      if ((this.menu).behaviour.pipe.getFlow() instanceof IFlowItems
+         && (this.menu).behaviour.filterMode == PipeBehaviourWoodDiamond.FilterMode.ROUND_ROBIN) {
+         GuiIcon icon = (this.menu).behaviour.filterValid ? ICON_ROUND_ROBIN_INDEX : ICON_ROUND_ROBIN_NONE;
+         int xOffset = (this.menu).behaviour.filterValid ? 18 * (this.menu).behaviour.currentFilter : 0;
          icon.drawAt(this.mainGui.rootElement.getX() + 6.0 + xOffset, this.mainGui.rootElement.getY() + 16.0);
       }
    }
@@ -74,7 +74,7 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
       );
       this.addRenderableWidget(this.whiteListButton);
       this.addRenderableWidget(this.blackListButton);
-      if (((ContainerDiamondWoodPipe)this.menu).behaviour.pipe.getFlow() instanceof IFlowItems) {
+      if ((this.menu).behaviour.pipe.getFlow() instanceof IFlowItems) {
          this.roundRobinButton = new GuiDiamondWoodPipe.FilterButton(
             bx + 36, by, PipeBehaviourWoodDiamond.FilterMode.ROUND_ROBIN, 55, 19, "tip.PipeItemsEmerald.roundrobin"
          );
@@ -105,8 +105,8 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
    }
 
    private void setFilterMode(PipeBehaviourWoodDiamond.FilterMode mode) {
-      ((ContainerDiamondWoodPipe)this.menu).behaviour.filterMode = mode;
-      ((ContainerDiamondWoodPipe)this.menu).sendNewFilterMode(mode);
+      (this.menu).behaviour.filterMode = mode;
+      (this.menu).sendNewFilterMode(mode);
    }
 
    private class FilterButton extends BCButton {
@@ -134,7 +134,7 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
 
       @Override
       protected void drawButtonContent(BCGraphics graphics, int mouseX, int mouseY, float partialTick) {
-         boolean selected = ((ContainerDiamondWoodPipe)GuiDiamondWoodPipe.this.menu).behaviour.filterMode == this.mode;
+         boolean selected = (GuiDiamondWoodPipe.this.menu).behaviour.filterMode == this.mode;
          int state;
          if (!this.active) {
             state = 0;

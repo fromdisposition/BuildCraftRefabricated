@@ -133,7 +133,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       this.ensureLightingBufferAllocated();
       this.writeLightDirections(light0Camera, light1Camera);
       GpuBufferSlice savedShaderLights = RenderSystem.getShaderLights();
-      RenderSystem.setShaderLights(this.lightingBuffer.slice(0, (int) Lighting.UBO_SIZE));
+      RenderSystem.setShaderLights(this.lightingBuffer.slice(0,  Lighting.UBO_SIZE));
       net.minecraft.client.renderer.feature.FeatureRenderDispatcher featureRenderDispatcher = mc.gameRenderer.featureRenderDispatcher();
       BlueprintPipRenderer.PreviewPlan plan = this.planFor(snapshot, mc);
 
@@ -261,7 +261,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       try {
          ByteBuffer bb = Std140Builder.onStack(stack, Lighting.UBO_SIZE).putVec3(light0).putVec3(light1).get();
          // GpuBuffer.slice length arg is int on 1.21.10 and long on 1.21.11; the (int) cast satisfies both.
-         RenderSystem.getDevice().createCommandEncoder().writeToBuffer(this.lightingBuffer.slice(0, (int) this.lightingBufferPaddedSize), bb);
+         RenderSystem.getDevice().createCommandEncoder().writeToBuffer(this.lightingBuffer.slice(0,  this.lightingBufferPaddedSize), bb);
       } catch (Throwable var7) {
          if (stack != null) {
             try {
@@ -312,7 +312,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       this.ensureLightingBufferAllocated();
       this.writeLightDirections(light0Camera, light1Camera);
       GpuBufferSlice savedShaderLights = RenderSystem.getShaderLights();
-      RenderSystem.setShaderLights(this.lightingBuffer.slice(0, (int) Lighting.UBO_SIZE));
+      RenderSystem.setShaderLights(this.lightingBuffer.slice(0,  Lighting.UBO_SIZE));
       FeatureRenderDispatcher featureRenderDispatcher = mc.gameRenderer.getFeatureRenderDispatcher();
       SubmitNodeStorage submitNodeStorage = featureRenderDispatcher.getSubmitNodeStorage();
       BlueprintPipRenderer.PreviewPlan plan = this.planFor(snapshot, mc);

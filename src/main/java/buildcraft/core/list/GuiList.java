@@ -49,7 +49,7 @@ public class GuiList extends BcScreen<ContainerList> {
 
    @Override
    protected void initGuiElements() {
-      this.mainGui.shownElements.add(new LedgerListMatch(this.mainGui, (ContainerList)this.menu));
+      this.mainGui.shownElements.add(new LedgerListMatch(this.mainGui, this.menu));
       this.mainGui
          .shownElements
          .add(
@@ -59,7 +59,7 @@ public class GuiList extends BcScreen<ContainerList> {
             )
          );
 
-      for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
+      for (int line = 0; line < (this.menu).lines.length; line++) {
          int rowY = 48 + line * 36;
          this.mainGui
             .shownElements
@@ -112,19 +112,19 @@ public class GuiList extends BcScreen<ContainerList> {
       this.labelField = new EditBox(this.font, this.leftPos + 7, this.topPos + 17, 162, 12, Component.empty());
       this.labelField.setMaxLength(32);
       this.labelField.setBordered(true);
-      if (((ContainerList)this.menu).getListItemStack().getItem() instanceof ItemList_BC8 listItem) {
-         String name = listItem.getLocationName(((ContainerList)this.menu).getListItemStack());
+      if ((this.menu).getListItemStack().getItem() instanceof ItemList_BC8 listItem) {
+         String name = listItem.getLocationName((this.menu).getListItemStack());
          if (name != null && !name.isEmpty()) {
             this.labelField.setValue(name);
          }
       }
 
       this.labelField.setFocused(false);
-      this.labelField.setResponder(newText -> ((ContainerList)this.menu).setLabel(newText));
+      this.labelField.setResponder(newText -> (this.menu).setLabel(newText));
       this.addRenderableWidget(this.labelField);
-      this.toggleButtons = new GuiList.ToggleButton[((ContainerList)this.menu).lines.length][3];
+      this.toggleButtons = new GuiList.ToggleButton[(this.menu).lines.length][3];
 
-      for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
+      for (int line = 0; line < (this.menu).lines.length; line++) {
          int bOffX = this.leftPos + 8 + 162 - 42 - 1;
          int bOffY = this.topPos + 31 + line * 36;
 
@@ -134,13 +134,13 @@ public class GuiList extends BcScreen<ContainerList> {
             String letter = btn == 0 ? "P" : (btn == 1 ? "T" : "M");
             String tooltipKey = btn == 0 ? "gui.list.nbt" : (btn == 1 ? "gui.list.metadata" : "gui.list.oredict");
             GuiList.ToggleButton button = new GuiList.ToggleButton(bOffX + btn * 14, bOffY, 14, 14, Component.literal(letter), () -> {
-               ((ContainerList)this.menu).switchButton(lineIdx, btnIdx);
+               (this.menu).switchButton(lineIdx, btnIdx);
 
                for (int i = 0; i < 3; i++) {
-                  this.toggleButtons[lineIdx][i].setToggled(((ContainerList)this.menu).lines[lineIdx].getOption(i));
+                  this.toggleButtons[lineIdx][i].setToggled((this.menu).lines[lineIdx].getOption(i));
                }
             });
-            button.setToggled(((ContainerList)this.menu).lines[lineIdx].getOption(btnIdx));
+            button.setToggled((this.menu).lines[lineIdx].getOption(btnIdx));
             button.setTooltip(Tooltip.create(Component.translatable(tooltipKey)));
             this.toggleButtons[line][btn] = button;
             this.addRenderableWidget(button);
@@ -159,7 +159,7 @@ public class GuiList extends BcScreen<ContainerList> {
       // Caption on the left of each row's button band. The two rows are independent filters, so number them rather
       // than repeat one label; the P/T/M toggles to the right set that filter's match mode. Y is centred against the
       // 14px buttons at rowY - 16 (rowY = 48 + line * 36).
-      for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
+      for (int line = 0; line < (this.menu).lines.length; line++) {
          graphics.text(this.font, LocaleUtil.localize("gui.list.filter_line", line + 1), 8, 35 + line * 36, -12566464, false);
       }
    }
@@ -168,8 +168,8 @@ public class GuiList extends BcScreen<ContainerList> {
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
 
-      for (int i = 0; i < ((ContainerList)this.menu).lines.length; i++) {
-         ListHandler.Line line = ((ContainerList)this.menu).lines[i];
+      for (int i = 0; i < (this.menu).lines.length; i++) {
+         ListHandler.Line line = (this.menu).lines[i];
          if (line.isOneStackMode()) {
             ICON_ONE_STACK.drawAt(this.leftPos + 6, this.topPos + 46 + i * 36);
             List<ItemStack> examples = this.ghostExamplesFor(i);
@@ -194,8 +194,8 @@ public class GuiList extends BcScreen<ContainerList> {
    protected void drawTooltipLayer(int mouseX, int mouseY, float partialTick) {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
 
-      for (int line = 0; line < ((ContainerList)this.menu).lines.length; line++) {
-         if (((ContainerList)this.menu).lines[line].isOneStackMode()) {
+      for (int line = 0; line < (this.menu).lines.length; line++) {
+         if ((this.menu).lines[line].isOneStackMode()) {
             List<ItemStack> examples = this.ghostExamplesFor(line);
 
             for (int slot = 1; slot < 9; slot++) {
@@ -219,7 +219,7 @@ public class GuiList extends BcScreen<ContainerList> {
    }
 
    private List<ItemStack> ghostExamplesFor(int lineIdx) {
-      ListHandler.Line line = ((ContainerList)this.menu).lines[lineIdx];
+      ListHandler.Line line = (this.menu).lines[lineIdx];
       long sig = ghostSignature(line);
       GuiList.GhostCache cached = this.ghostCache.get(lineIdx);
       if (cached != null && cached.signature == sig) {

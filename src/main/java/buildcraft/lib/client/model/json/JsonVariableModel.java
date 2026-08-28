@@ -50,7 +50,7 @@ public class JsonVariableModel extends JsonVariableObject {
 
    public static JsonVariableModel deserialize(Identifier from, FunctionContext fnCtx, ResourceLoaderContext ctx) throws JsonParseException, IOException {
       try (InputStreamReader isr = ctx.startLoading(from)) {
-         return new JsonVariableModel(JsonUtil.inlineCustom((JsonObject)new Gson().fromJson(isr, JsonObject.class)), fnCtx, ctx);
+         return new JsonVariableModel(JsonUtil.inlineCustom(new Gson().fromJson(isr, JsonObject.class)), fnCtx, ctx);
       } finally {
          ctx.finishLoading();
       }

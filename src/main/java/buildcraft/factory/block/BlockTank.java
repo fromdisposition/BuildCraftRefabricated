@@ -55,7 +55,7 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
 
    public BlockTank(Properties properties) {
       super(properties);
-      this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(JOINED_BELOW, false));
+      this.registerDefaultState((this.stateDefinition.any()).setValue(JOINED_BELOW, false));
    }
 
    protected MapCodec<? extends BaseEntityBlock> codec() {
@@ -123,7 +123,7 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
       Level level = context.getLevel();
       BlockPos pos = context.getClickedPos();
       boolean isTankBelow = level.getBlockState(pos.below()).getBlock() instanceof ITankBlockConnector;
-      return (BlockState)this.defaultBlockState().setValue(JOINED_BELOW, isTankBelow);
+      return this.defaultBlockState().setValue(JOINED_BELOW, isTankBelow);
    }
 
    //? if >= 1.21.10 {
@@ -139,7 +139,7 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
    *///?}
       if (direction == Direction.DOWN) {
          boolean isTankBelow = neighborState.getBlock() instanceof ITankBlockConnector;
-         return (BlockState)state.setValue(JOINED_BELOW, isTankBelow);
+         return state.setValue(JOINED_BELOW, isTankBelow);
       }
 
       //? if >= 1.21.10 {

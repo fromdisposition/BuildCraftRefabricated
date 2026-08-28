@@ -190,7 +190,7 @@ public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHa
                boolean foundMatch = false;
 
                for (int i = 0; i < uniqueStacks.size(); i++) {
-                  if (StackUtil.canMerge(bptStack, (ItemStack)uniqueStacks.get(i))) {
+                  if (StackUtil.canMerge(bptStack, uniqueStacks.get(i))) {
                      foundMatch = true;
                      requirements[i]++;
                      break;
@@ -219,7 +219,7 @@ public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHa
                int smallestDifferenceIndex = 0;
 
                for (int s = 0; s < uniqueSlotCount; s++) {
-                  ItemStack stack = (ItemStack)uniqueStacks.get(s);
+                  ItemStack stack = uniqueStacks.get(s);
                   int uniqueCountTotal = stack.getMaxStackSize() * slotAllocationCount[s];
                   int difference = uniqueCountTotal / requirements[s];
                   if (difference < smallestDifference) {
@@ -234,7 +234,7 @@ public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHa
             int realIndex = 0;
 
             for (int s = 0; s < uniqueSlotCount; s++) {
-               ItemStack stack = ((ItemStack)uniqueStacks.get(s)).copyWithCount(1);
+               ItemStack stack = (uniqueStacks.get(s)).copyWithCount(1);
 
                for (int i = 0; i < slotAllocationCount[s]; i++) {
                   this.invMaterialFilter.setStackInSlot(realIndex, stack);

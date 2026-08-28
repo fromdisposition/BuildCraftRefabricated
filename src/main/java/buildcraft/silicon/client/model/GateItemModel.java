@@ -91,7 +91,7 @@ public class GateItemModel implements ItemModel {
       GateVariant variant = ItemPluggableGate.getVariant(stack);
       if (variant != null) {
          GateItemModel.CacheKey key = new GateItemModel.CacheKey(variant, displayContext);
-         List<BakedQuad> quads = (List<BakedQuad>)cache.getUnchecked(key);
+         List<BakedQuad> quads = cache.getUnchecked(key);
          if (!quads.isEmpty()) {
             renderState.appendModelIdentityElement(this);
             renderState.appendModelIdentityElement(variant);

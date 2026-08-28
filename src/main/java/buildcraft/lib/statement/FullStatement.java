@@ -116,7 +116,7 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
    }
 
    public S convertToType(Object value) {
-      S val = (S)IReference.super.convertToType(value);
+      S val = IReference.super.convertToType(value);
       return value != null && val == null ? this.type.convertToType(value) : val;
    }
 

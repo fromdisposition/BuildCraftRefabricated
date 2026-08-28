@@ -41,7 +41,8 @@ public class BlockBuilder extends HorizontalDirectionalBlock implements EntityBl
    public BlockBuilder(Properties properties) {
       super(properties);
       this.registerDefaultState(
-         (BlockState)((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.NORTH))
+         this.stateDefinition.any()
+            .setValue(FACING, Direction.NORTH)
             .setValue(SNAPSHOT_TYPE, EnumOptionalSnapshotType.NONE)
       );
    }
@@ -55,7 +56,8 @@ public class BlockBuilder extends HorizontalDirectionalBlock implements EntityBl
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
-      return (BlockState)((BlockState)this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite()))
+      return this.defaultBlockState()
+         .setValue(FACING, context.getHorizontalDirection().getOpposite())
          .setValue(SNAPSHOT_TYPE, EnumOptionalSnapshotType.NONE);
    }
 

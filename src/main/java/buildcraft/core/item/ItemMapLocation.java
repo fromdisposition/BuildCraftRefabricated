@@ -49,7 +49,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
    }
 
    private static IMapLocation.MapLocationType getTypeFromStack(@Nonnull ItemStack stack) {
-      CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+      CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
       if (customData == null) {
          return IMapLocation.MapLocationType.CLEAN;
       }
@@ -77,7 +77,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
    }
 
    private static CompoundTag getCustomTag(@Nonnull ItemStack stack) {
-      CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+      CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
       return customData == null ? new CompoundTag() : customData.copyTag();
    }
 
@@ -135,9 +135,9 @@ public class ItemMapLocation extends Item implements IMapLocation {
             break;
          case PATH:
          case PATH_REPEATING:
-            ListTag pathNBT = (ListTag)BcNbt.getList(cpt, "path");
+            ListTag pathNBT = BcNbt.getList(cpt, "path");
             if (pathNBT != null && pathNBT.size() > 0) {
-               CompoundTag firstTag = (CompoundTag)BcNbt.getCompound(pathNBT, 0);
+               CompoundTag firstTag = BcNbt.getCompound(pathNBT, 0);
                if (firstTag != null) {
                   BlockPos first = readBlockPosNbt(firstTag);
                   tooltip.add(
@@ -171,7 +171,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
       if (level.isClientSide()) {
          return InteractionResult.PASS;
       } else {
-         return (InteractionResult)(player.isShiftKeyDown() ? clearMarkerData(stack) : InteractionResult.PASS);
+         return (player.isShiftKeyDown() ? clearMarkerData(stack) : InteractionResult.PASS);
       }
    }
 
@@ -394,10 +394,10 @@ public class ItemMapLocation extends Item implements IMapLocation {
          case PATH:
          case PATH_REPEATING: {
             List<BlockPos> indexList = new ArrayList<>();
-            ListTag pathNBT = (ListTag)BcNbt.getList(cpt, "path");
+            ListTag pathNBT = BcNbt.getList(cpt, "path");
             if (pathNBT != null) {
                for (int i = 0; i < pathNBT.size(); i++) {
-                  CompoundTag posTag = (CompoundTag)BcNbt.getCompound(pathNBT, i);
+                  CompoundTag posTag = BcNbt.getCompound(pathNBT, i);
                   if (posTag != null) {
                      indexList.add(readBlockPosNbt(posTag));
                   }

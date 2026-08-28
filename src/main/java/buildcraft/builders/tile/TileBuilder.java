@@ -169,7 +169,7 @@ public class TileBuilder
    public void onPlacedBy(@Nullable LivingEntity placer, ItemStack stack) {
       if (this.level != null && !this.level.isClientSide()) {
          super.onPlacedBy(placer, stack);
-         Direction facing = (Direction)this.getBlockState().getValue(HorizontalDirectionalBlock.FACING);
+         Direction facing = this.getBlockState().getValue(HorizontalDirectionalBlock.FACING);
          if (this.level.getBlockEntity(this.worldPosition.relative(facing.getOpposite())) instanceof IPathProvider provider) {
             ImmutableList<BlockPos> copiedPath = ImmutableList.copyOf(provider.getPath());
             if (copiedPath.size() >= 2) {
@@ -342,7 +342,7 @@ public class TileBuilder
             this.basePoses.addAll(PositionUtil.getAllOnPath(this.path.get(i - 1), this.path.get(i)));
          }
       } else {
-         this.basePoses.add(this.worldPosition.relative(((Direction)this.getBlockState().getValue(HorizontalDirectionalBlock.FACING)).getOpposite()));
+         this.basePoses.add(this.worldPosition.relative((this.getBlockState().getValue(HorizontalDirectionalBlock.FACING)).getOpposite()));
       }
    }
 
@@ -378,7 +378,7 @@ public class TileBuilder
          if (cur.hasProperty(BlockBuilder.SNAPSHOT_TYPE)) {
             EnumOptionalSnapshotType desired = EnumOptionalSnapshotType.fromNullable(this.snapshotType);
             if (cur.getValue(BlockBuilder.SNAPSHOT_TYPE) != desired) {
-               this.level.setBlock(this.worldPosition, (BlockState)cur.setValue(BlockBuilder.SNAPSHOT_TYPE, desired), 3);
+               this.level.setBlock(this.worldPosition, cur.setValue(BlockBuilder.SNAPSHOT_TYPE, desired), 3);
             }
          }
       }
@@ -414,7 +414,7 @@ public class TileBuilder
    }
 
    public ItemStack getResource(int slot) {
-      return slot >= 0 && slot < this.resourceInventory.stacks.size() ? (ItemStack)this.resourceInventory.stacks.get(slot) : ItemStack.EMPTY;
+      return slot >= 0 && slot < this.resourceInventory.stacks.size() ? this.resourceInventory.stacks.get(slot) : ItemStack.EMPTY;
    }
 
    public void setResource(int slot, ItemStack stack) {
@@ -464,7 +464,7 @@ public class TileBuilder
       }
 
       for (int i = 0; i < this.resourceInventory.stacks.size(); i++) {
-         ItemStack stack = (ItemStack)this.resourceInventory.stacks.get(i);
+         ItemStack stack = this.resourceInventory.stacks.get(i);
          if (!stack.isEmpty()) {
             output.store("invRes_" + i, ItemStack.CODEC, stack);
          }

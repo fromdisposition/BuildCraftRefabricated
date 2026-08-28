@@ -51,7 +51,7 @@ public class BlockLaser extends BaseEntityBlock {
 
    public BlockLaser(Properties properties) {
       super(properties);
-      this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.UP));
+      this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.UP));
    }
 
    protected MapCodec<? extends BaseEntityBlock> codec() {
@@ -63,7 +63,7 @@ public class BlockLaser extends BaseEntityBlock {
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
-      return (BlockState)this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+      return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
    }
 
    @Nullable

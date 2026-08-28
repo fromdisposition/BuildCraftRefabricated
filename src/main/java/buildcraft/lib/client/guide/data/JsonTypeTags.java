@@ -36,7 +36,7 @@ public class JsonTypeTags {
       List<String> collected = new ArrayList<>(typeOrder.tags.size());
 
       for (int i = 0; i < typeOrder.tags.size(); i++) {
-         ETypeTag tag = (ETypeTag)typeOrder.tags.get(i);
+         ETypeTag tag = typeOrder.tags.get(i);
          String raw = this.getRaw(tag);
          if (raw != null && !raw.isEmpty()) {
             collected.add(tag.preText + raw);

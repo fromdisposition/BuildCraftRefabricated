@@ -106,7 +106,7 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
    }
 
    public BlockState createLegacyBlock(FluidState state) {
-      return (BlockState)this.holder.block.defaultBlockState().setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
+      return this.holder.block.defaultBlockState().setValue(LiquidBlock.LEVEL, getLegacyLevel(state));
    }
 
    public boolean isSame(Fluid fluid) {
@@ -262,7 +262,7 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
       }
 
       public int getAmount(FluidState state) {
-         return (Integer)state.getValue(LEVEL);
+         return state.getValue(LEVEL);
       }
 
       public boolean isSource(FluidState state) {

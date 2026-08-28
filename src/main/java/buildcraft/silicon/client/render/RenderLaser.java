@@ -53,7 +53,7 @@ public class RenderLaser {
                      long avg = laser.getAverageClient();
                      if (avg > 200000L) {
                         avg += 200000L;
-                        Direction side = (Direction)laser.getBlockState().getValue(BlockLaser.FACING);
+                        Direction side = laser.getBlockState().getValue(BlockLaser.FACING);
                         Vec3 offset = new Vec3(0.5, 0.5, 0.5).add(Vec3.atLowerCornerOf(side.getUnitVec3i()).scale(0.25));
                         Vec3 start = Vec3.atLowerCornerOf(laser.getBlockPos()).add(offset);
                         int index = (int)(avg * MAX_POWER / laser.getMaxPowerPerTick());

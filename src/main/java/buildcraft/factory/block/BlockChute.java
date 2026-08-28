@@ -51,10 +51,10 @@ public class BlockChute extends BaseEntityBlock {
 
    public BlockChute(Properties properties) {
       super(properties);
-      BlockState defaultState = (BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.DOWN);
+      BlockState defaultState = (this.stateDefinition.any()).setValue(FACING, Direction.DOWN);
 
       for (Property<Boolean> prop : CONNECTED_MAP.values()) {
-         defaultState = (BlockState)defaultState.setValue(prop, false);
+         defaultState = defaultState.setValue(prop, false);
       }
 
       this.registerDefaultState(defaultState);
@@ -72,7 +72,7 @@ public class BlockChute extends BaseEntityBlock {
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
-      BlockState state = (BlockState)this.defaultBlockState().setValue(FACING, context.getClickedFace());
+      BlockState state = this.defaultBlockState().setValue(FACING, context.getClickedFace());
       return computeAllConnections(context.getLevel(), context.getClickedPos(), state);
    }
 
@@ -88,14 +88,14 @@ public class BlockChute extends BaseEntityBlock {
    ) {
    *///?}
       Property<Boolean> prop = CONNECTED_MAP.get(direction);
-      return prop != null ? (BlockState)state.setValue(prop, shouldConnect(level, pos, state, direction)) : state;
+      return prop != null ? state.setValue(prop, shouldConnect(level, pos, state, direction)) : state;
    }
 
    private static BlockState computeAllConnections(LevelReader level, BlockPos pos, BlockState state) {
       BlockState updated = state;
 
       for (Entry<Direction, Property<Boolean>> entry : CONNECTED_MAP.entrySet()) {
-         updated = (BlockState)updated.setValue(entry.getValue(), shouldConnect(level, pos, state, entry.getKey()));
+         updated = updated.setValue(entry.getValue(), shouldConnect(level, pos, state, entry.getKey()));
       }
 
       return updated;

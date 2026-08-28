@@ -223,7 +223,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
          List<ItemStack> newList = new ArrayList<>(count);
 
          for (int i = 0; i < count; i++) {
-            ItemStack stack = (ItemStack)ItemStack.OPTIONAL_STREAM_CODEC.decode(rbuf);
+            ItemStack stack = ItemStack.OPTIONAL_STREAM_CODEC.decode(rbuf);
             if (!stack.isEmpty()) {
                newList.add(stack);
             }

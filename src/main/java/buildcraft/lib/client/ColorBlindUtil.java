@@ -27,7 +27,7 @@ public final class ColorBlindUtil {
          case AUTO:
          default:
             Minecraft mc = Minecraft.getInstance();
-            return mc != null && mc.options != null ? (Boolean)mc.options.highContrast().get() : false;
+            return mc != null && mc.options != null ? mc.options.highContrast().get() : false;
       }
    }
 }

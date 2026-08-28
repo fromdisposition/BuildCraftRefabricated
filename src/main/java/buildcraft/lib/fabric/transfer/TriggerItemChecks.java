@@ -35,7 +35,7 @@ public final class TriggerItemChecks {
 
       for (StorageView<ItemVariant> view : storage) {
          result.hasSlots = true;
-         ItemStack stack = view.isResourceBlank() ? ItemStack.EMPTY : ((ItemVariant)view.getResource()).toStack(TransferCommits.saturateCount(view.getAmount()));
+         ItemStack stack = view.isResourceBlank() ? ItemStack.EMPTY : (view.getResource()).toStack(TransferCommits.saturateCount(view.getAmount()));
          boolean stackMatchesSearch = matchesSearch(searchedStack, stack, isList, listFilter);
          result.foundItems = result.foundItems | (!stack.isEmpty() && stackMatchesSearch);
          result.foundSpace = result.foundSpace | hasSpace(view, stack, searchedStack, isList, listFilter, stackMatchesSearch);
@@ -53,7 +53,7 @@ public final class TriggerItemChecks {
       int foundItems = 0;
 
       for (StorageView<ItemVariant> view : storage) {
-         ItemStack stackInSlot = view.isResourceBlank() ? ItemStack.EMPTY : ((ItemVariant)view.getResource()).toStack(TransferCommits.saturateCount(view.getAmount()));
+         ItemStack stackInSlot = view.isResourceBlank() ? ItemStack.EMPTY : (view.getResource()).toStack(TransferCommits.saturateCount(view.getAmount()));
          int slotCapacity = TransferCommits.saturateCount(view.getCapacity());
          if (stackInSlot.isEmpty()) {
             if (searchStack.isEmpty()) {

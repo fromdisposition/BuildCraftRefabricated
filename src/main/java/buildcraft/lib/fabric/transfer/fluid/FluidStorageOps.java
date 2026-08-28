@@ -38,7 +38,7 @@ public final class FluidStorageOps {
 
    public static boolean canInsert(StorageView<FluidVariant> view, FluidVariant resource, long maxDroplets) {
       if (!resource.isBlank() && maxDroplets > 0L) {
-         return !view.isResourceBlank() && !((FluidVariant)view.getResource()).equals(resource) ? false : view.getCapacity() - view.getAmount() >= maxDroplets;
+         return !view.isResourceBlank() && !(view.getResource()).equals(resource) ? false : view.getCapacity() - view.getAmount() >= maxDroplets;
       } else {
          return false;
       }
@@ -125,7 +125,7 @@ public final class FluidStorageOps {
 
          for (StorageView<FluidVariant> view : from) {
             if (!view.isResourceBlank() && view.getAmount() > 0L) {
-               firstVariant = (FluidVariant)view.getResource();
+               firstVariant = view.getResource();
                break;
             }
          }

@@ -45,10 +45,10 @@ public class BlockFloodGate extends BaseEntityBlock {
 
    public BlockFloodGate(Properties properties) {
       super(properties);
-      BlockState defaultState = (BlockState)this.stateDefinition.any();
+      BlockState defaultState = this.stateDefinition.any();
 
       for (Property<Boolean> prop : CONNECTED_MAP.values()) {
-         defaultState = (BlockState)defaultState.setValue(prop, true);
+         defaultState = defaultState.setValue(prop, true);
       }
 
       this.registerDefaultState(defaultState);
@@ -124,7 +124,7 @@ public class BlockFloodGate extends BaseEntityBlock {
                BlockState newState = state;
 
                for (Entry<Direction, Property<Boolean>> entry : CONNECTED_MAP.entrySet()) {
-                  newState = (BlockState)newState.setValue(entry.getValue(), floodGate.openSides.contains(entry.getKey()));
+                  newState = newState.setValue(entry.getValue(), floodGate.openSides.contains(entry.getKey()));
                }
 
                level.setBlock(pos, newState, 2);

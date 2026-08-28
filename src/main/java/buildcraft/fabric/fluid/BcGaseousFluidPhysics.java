@@ -185,7 +185,7 @@ final class BcGaseousFluidPhysics {
       }
 
       Vec3 flow = new Vec3(flowX, 0.0, flowZ);
-      if ((Boolean)fluidState.getValue(FlowingFluid.FALLING)) {
+      if (fluidState.getValue(FlowingFluid.FALLING)) {
          if (flow.lengthSqr() > 1.0E-8) {
             flow = flow.normalize().add(0.0, 6.0, 0.0);
          } else {
@@ -198,7 +198,7 @@ final class BcGaseousFluidPhysics {
 
    private static void spreadToSides(BcFluidPhysicsHost host, ServerLevel level, BlockPos pos, FluidState fluidState, Map<Direction, FluidState> spread) {
       int spreadAmount = fluidState.getAmount() - host.getDropOff(level);
-      if ((Boolean)fluidState.getValue(FlowingFluid.FALLING)) {
+      if (fluidState.getValue(FlowingFluid.FALLING)) {
          spreadAmount = 7;
       }
 

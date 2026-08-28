@@ -31,7 +31,7 @@ public final class BCFactoryAttachments {
    }
 
    public static BCFactoryAttachments.OilAndFuelProduction get(Player player) {
-      return (BCFactoryAttachments.OilAndFuelProduction)player.getAttachedOrCreate(OIL_FUEL_PRODUCTION);
+      return player.getAttachedOrCreate(OIL_FUEL_PRODUCTION);
    }
 
    public static final class OilAndFuelProduction {
@@ -45,7 +45,7 @@ public final class BCFactoryAttachments {
          BCFactoryAttachments.OilAndFuelProduction copy = new BCFactoryAttachments.OilAndFuelProduction();
 
          for (int i = 0; i < expected; i++) {
-            copy.amounts[i] = Math.min(16000, Math.max(0, (Integer)list.get(i)));
+            copy.amounts[i] = Math.min(16000, Math.max(0, list.get(i)));
          }
 
          return DataResult.success(copy);

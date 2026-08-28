@@ -61,7 +61,7 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
    public BlockHeatExchange(Properties properties) {
       super(properties);
       this.registerDefaultState(
-         (BlockState)((BlockState)((BlockState)((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.NORTH))
+         ((((this.stateDefinition.any()).setValue(FACING, Direction.NORTH))
                   .setValue(PART, BlockHeatExchange.EnumExchangePart.MIDDLE))
                .setValue(CONNECTED_LEFT, false))
             .setValue(CONNECTED_RIGHT, false)
@@ -83,7 +83,7 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
          return null;
       }
 
-      BlockState state = (BlockState)this.defaultBlockState().setValue(FACING, facing);
+      BlockState state = this.defaultBlockState().setValue(FACING, facing);
       return this.updateConnections(state, context.getLevel(), pos, facing);
    }
 
@@ -123,14 +123,14 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
          return state;
       }
 
-      Direction facing = (Direction)state.getValue(FACING);
+      Direction facing = state.getValue(FACING);
       return this.updateConnections(state, level, pos, facing);
    }
 
    private BlockState updateConnections(BlockState state, LevelReader level, BlockPos pos, Direction facing) {
       boolean connectLeft = doesNeighbourConnect(level, pos, facing, facing.getCounterClockWise());
       boolean connectRight = doesNeighbourConnect(level, pos, facing, facing.getClockWise());
-      return (BlockState)((BlockState)state.setValue(CONNECTED_LEFT, connectLeft)).setValue(CONNECTED_RIGHT, connectRight);
+      return (state.setValue(CONNECTED_LEFT, connectLeft)).setValue(CONNECTED_RIGHT, connectRight);
    }
 
    private static boolean doesNeighbourConnect(LevelReader level, BlockPos pos, Direction thisFacing, Direction dir) {
@@ -181,7 +181,7 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
 
       if (EntityUtil.isWrench(stack)) {
          if (player.isShiftKeyDown()) {
-            return (InteractionResult)(level.getBlockEntity(pos) instanceof TileHeatExchange exchange
+            return (level.getBlockEntity(pos) instanceof TileHeatExchange exchange
                ? openExchangeMenu(level, exchange, player)
                : InteractionResult.PASS);
          } else {
@@ -195,21 +195,21 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
             return InteractionResult.SUCCESS;
          }
 
-         return (InteractionResult)(FluidStorageInteractions.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : openExchangeMenu(level, exchange, player));
+         return (FluidStorageInteractions.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : openExchangeMenu(level, exchange, player));
       } else {
          return InteractionResult.PASS;
       }
    }
 
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-      return (InteractionResult)(level.getBlockEntity(pos) instanceof TileHeatExchange exchange
+      return (level.getBlockEntity(pos) instanceof TileHeatExchange exchange
          ? openExchangeMenu(level, exchange, player)
          : InteractionResult.PASS);
    }
 
    @Override
    public InteractionResult attemptRotation(Level level, BlockPos pos, BlockState state, Direction sideWrenched) {
-      return (InteractionResult)(level.getBlockEntity(pos) instanceof TileHeatExchange exchange && exchange.rotate()
+      return (level.getBlockEntity(pos) instanceof TileHeatExchange exchange && exchange.rotate()
          ? InteractionResult.SUCCESS
          : InteractionResult.PASS);
    }

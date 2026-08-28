@@ -43,7 +43,7 @@ public record MessageMultiPipePayload(List<MessagePipePayload> payloads) impleme
 
       for (int i = 0; i < count; i++) {
          try {
-            payloads.add((MessagePipePayload)MessagePipePayload.STREAM_CODEC.decode(buf));
+            payloads.add(MessagePipePayload.STREAM_CODEC.decode(buf));
          } catch (RuntimeException e) {
             if (e.getCause() instanceof IOException io) {
                throw new RuntimeException(io);

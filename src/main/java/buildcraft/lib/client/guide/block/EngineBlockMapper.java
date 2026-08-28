@@ -20,7 +20,7 @@ public class EngineBlockMapper implements IBlockGuidePageMapper {
    @Override
    public String getFor(Level world, BlockPos pos, BlockState state) {
       if (state.hasProperty(BuildCraftProperties.ENGINE_TYPE)) {
-         EnumEngineType type = (EnumEngineType)state.getValue(BuildCraftProperties.ENGINE_TYPE);
+         EnumEngineType type = state.getValue(BuildCraftProperties.ENGINE_TYPE);
          return "engine_" + type.unlocalizedTag;
       } else {
          Identifier id = BuiltInRegistries.BLOCK.getKey(state.getBlock());

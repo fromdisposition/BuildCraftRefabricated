@@ -21,14 +21,14 @@ public class NodeInliningHelper {
          ExpressionDebugManager.debugStart("Inlining " + node);
          inlined = (T)subNode.inline();
          if (inlined instanceof IConstantNode) {
-            T to = (T)inlinedChanger.apply((F)inlined);
+            T to = inlinedChanger.apply((F)inlined);
             ExpressionDebugManager.debugEnd("Fully inlined to " + to);
             return to;
          } else if (inlined == subNode) {
             ExpressionDebugManager.debugEnd("Unable to inline at all!");
             return node;
          } else {
-            T to = (T)changer.apply((F)inlined);
+            T to = changer.apply((F)inlined);
             ExpressionDebugManager.debugEnd("Partially inlined to " + to);
             return to;
          }
@@ -46,14 +46,14 @@ public class NodeInliningHelper {
          inlined = (T)subNodeLeft.inline();
          R rightInlined = (R)subNodeRight.inline();
          if (inlined instanceof IConstantNode && rightInlined instanceof IConstantNode) {
-            T to = (T)inlinedChanger.apply((L)inlined, rightInlined);
+            T to = inlinedChanger.apply((L)inlined, rightInlined);
             ExpressionDebugManager.debugEnd("Fully inlined to " + to);
             return to;
          } else if (inlined == subNodeLeft && rightInlined == subNodeRight) {
             ExpressionDebugManager.debugEnd("Unable to inline at all!");
             return node;
          } else {
-            T to = (T)changer.apply((L)inlined, rightInlined);
+            T to = changer.apply((L)inlined, rightInlined);
             ExpressionDebugManager.debugEnd("Partially inlined to " + to);
             return to;
          }
@@ -72,14 +72,14 @@ public class NodeInliningHelper {
          B inlinedB = (B)nodeB.inline();
          C inlinedC = (C)nodeC.inline();
          if (inlined instanceof IConstantNode && inlinedB instanceof IConstantNode && inlinedC instanceof IConstantNode) {
-            R to = (R)inlinedChanger.apply((A)inlined, inlinedB, inlinedC);
+            R to = inlinedChanger.apply((A)inlined, inlinedB, inlinedC);
             ExpressionDebugManager.debugEnd("Fully inlined to " + to);
             return to;
          } else if (inlined == nodeA && inlinedB == nodeB && inlinedC == nodeC) {
             ExpressionDebugManager.debugEnd("Unable to inline at all!");
             return node;
          } else {
-            R to = (R)changer.apply((A)inlined, inlinedB, inlinedC);
+            R to = changer.apply((A)inlined, inlinedB, inlinedC);
             ExpressionDebugManager.debugEnd("Partially inlined to " + to);
             return to;
          }
@@ -105,14 +105,14 @@ public class NodeInliningHelper {
          C inlinedC = (C)nodeC.inline();
          D inlinedD = (D)nodeD.inline();
          if (inlined instanceof IConstantNode && inlinedB instanceof IConstantNode && inlinedC instanceof IConstantNode && inlinedD instanceof IConstantNode) {
-            R to = (R)inlinedChanger.apply((A)inlined, inlinedB, inlinedC, inlinedD);
+            R to = inlinedChanger.apply((A)inlined, inlinedB, inlinedC, inlinedD);
             ExpressionDebugManager.debugEnd("Fully inlined to " + to);
             return to;
          } else if (inlined == nodeA && inlinedB == nodeB && inlinedC == nodeC && inlinedD == nodeD) {
             ExpressionDebugManager.debugEnd("Unable to inline at all!");
             return node;
          } else {
-            R to = (R)changer.apply((A)inlined, inlinedB, inlinedC, inlinedD);
+            R to = changer.apply((A)inlined, inlinedB, inlinedC, inlinedD);
             ExpressionDebugManager.debugEnd("Partially inlined to " + to);
             return to;
          }
@@ -144,14 +144,14 @@ public class NodeInliningHelper {
             && inlinedC instanceof IConstantNode
             && inlinedD instanceof IConstantNode
             && inlinedE instanceof IConstantNode) {
-            R to = (R)inlinedChanger.apply((A)inlined, inlinedB, inlinedC, inlinedD, inlinedE);
+            R to = inlinedChanger.apply((A)inlined, inlinedB, inlinedC, inlinedD, inlinedE);
             ExpressionDebugManager.debugEnd("Fully inlined to " + to);
             return to;
          } else if (inlined == nodeA && inlinedB == nodeB && inlinedC == nodeC && inlinedD == nodeD && inlinedE == nodeE) {
             ExpressionDebugManager.debugEnd("Unable to inline at all!");
             return node;
          } else {
-            R to = (R)changer.apply((A)inlined, inlinedB, inlinedC, inlinedD, inlinedE);
+            R to = changer.apply((A)inlined, inlinedB, inlinedC, inlinedD, inlinedE);
             ExpressionDebugManager.debugEnd("Partially inlined to " + to);
             return to;
          }

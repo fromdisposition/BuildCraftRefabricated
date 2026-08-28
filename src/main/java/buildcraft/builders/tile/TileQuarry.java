@@ -223,7 +223,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    public void onPlacedBy(@Nullable LivingEntity placer, ItemStack stack) {
       if (this.level != null && !this.level.isClientSide()) {
          super.onPlacedBy(placer, stack);
-         Direction facing = (Direction)this.level.getBlockState(this.worldPosition).getValue(HorizontalDirectionalBlock.FACING);
+         Direction facing = this.level.getBlockState(this.worldPosition).getValue(HorizontalDirectionalBlock.FACING);
          BlockPos areaPos = this.worldPosition.relative(facing.getOpposite());
          BlockEntity tile = this.level.getBlockEntity(areaPos);
          BlockPos min = null;

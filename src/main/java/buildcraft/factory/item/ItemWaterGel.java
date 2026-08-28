@@ -67,7 +67,7 @@ public class ItemWaterGel extends Item {
                0.4F / (level.getRandom().nextFloat() * 0.4F + 0.8F)
             );
             if (!level.isClientSide()) {
-               BlockState gelState = (BlockState)BCFactoryBlocks.WATER_GEL
+               BlockState gelState = BCFactoryBlocks.WATER_GEL
                   .defaultBlockState()
                   .setValue(BlockWaterGel.PROP_STAGE, BlockWaterGel.GelStage.SPREAD_0);
                level.setBlockAndUpdate(ray.getBlockPos(), gelState);

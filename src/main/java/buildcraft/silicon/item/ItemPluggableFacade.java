@@ -125,7 +125,7 @@ public class ItemPluggableFacade extends Item implements IItemPluggable, IFacade
       FacadeInstance fullState = getStates(stack);
       if (fullState.type == FacadeType.Basic) {
          String displayName = getFacadeStateDisplayName(fullState.phasedStates[0]);
-         return (Component)(displayName.isEmpty() ? super.getName(stack) : super.getName(stack).copy().append(": " + displayName));
+         return (displayName.isEmpty() ? super.getName(stack) : super.getName(stack).copy().append(": " + displayName));
       } else {
          return Component.translatable("item.buildcraftsilicon.plug_facade_phased");
       }

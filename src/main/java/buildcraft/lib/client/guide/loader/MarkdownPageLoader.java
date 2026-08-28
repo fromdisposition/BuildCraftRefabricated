@@ -49,7 +49,7 @@ public enum MarkdownPageLoader implements IPageLoaderText {
       }
 
       //? if >= 1.21.10 {
-      Item item = BuiltInRegistries.ITEM.get(itemId).map(ref -> (Item)ref.value()).orElse(null);
+      Item item = BuiltInRegistries.ITEM.get(itemId).map(ref -> ref.value()).orElse(null);
       //?} else {
       /*Item item = BuiltInRegistries.ITEM.get(itemId);
       *///?}

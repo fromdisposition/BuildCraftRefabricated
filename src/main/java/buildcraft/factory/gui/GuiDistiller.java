@@ -35,12 +35,12 @@ public class GuiDistiller extends BcScreen<ContainerDistiller> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerDistiller)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
-                  this.mainGui, () -> ((ContainerDistiller)this.menu).tile != null ? ((ContainerDistiller)this.menu).tile.getOwner() : null, true
+                  this.mainGui, () -> (this.menu).tile != null ? (this.menu).tile.getOwner() : null, true
                )
             );
          this.mainGui
@@ -49,8 +49,8 @@ public class GuiDistiller extends BcScreen<ContainerDistiller> {
                new GuiElementFluidTank(
                   this.mainGui,
                   new GuiRectangle(44.0, 31.0, 16.0, 38.0).offset(this.mainGui.rootElement),
-                  ((ContainerDistiller)this.menu).widgetTankIn.getTankStorage(),
-                  ((ContainerDistiller)this.menu).widgetTankIn,
+                  (this.menu).widgetTankIn.getTankStorage(),
+                  (this.menu).widgetTankIn,
                   OVERLAY_VERTICAL
                )
             );
@@ -60,8 +60,8 @@ public class GuiDistiller extends BcScreen<ContainerDistiller> {
                new GuiElementFluidTank(
                   this.mainGui,
                   new GuiRectangle(98.0, 18.0, 34.0, 17.0).offset(this.mainGui.rootElement),
-                  ((ContainerDistiller)this.menu).widgetTankGasOut.getTankStorage(),
-                  ((ContainerDistiller)this.menu).widgetTankGasOut,
+                  (this.menu).widgetTankGasOut.getTankStorage(),
+                  (this.menu).widgetTankGasOut,
                   OVERLAY_HORIZONTAL
                )
             );
@@ -71,8 +71,8 @@ public class GuiDistiller extends BcScreen<ContainerDistiller> {
                new GuiElementFluidTank(
                   this.mainGui,
                   new GuiRectangle(98.0, 62.0, 34.0, 17.0).offset(this.mainGui.rootElement),
-                  ((ContainerDistiller)this.menu).widgetTankLiquidOut.getTankStorage(),
-                  ((ContainerDistiller)this.menu).widgetTankLiquidOut,
+                  (this.menu).widgetTankLiquidOut.getTankStorage(),
+                  (this.menu).widgetTankLiquidOut,
                   OVERLAY_HORIZONTAL
                )
             );
@@ -132,7 +132,7 @@ public class GuiDistiller extends BcScreen<ContainerDistiller> {
    }
 
    private void drawCenterStateOverlay() {
-      TileDistiller tile = ((ContainerDistiller)this.menu).tile;
+      TileDistiller tile = (this.menu).tile;
       if (tile != null) {
          if (tile.isActive()) {
             double frac = Math.min(1.0, tile.getPowerAvgVisual() / TileDistiller.MAX_MJ_PER_TICK);

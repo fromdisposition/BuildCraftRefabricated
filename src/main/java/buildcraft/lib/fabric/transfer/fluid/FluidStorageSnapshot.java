@@ -39,7 +39,7 @@ public record FluidStorageSnapshot(FluidStack fluid, int amountMb, int capacityM
 
       for (StorageView<FluidVariant> view : storage) {
          if (!view.isResourceBlank() && view.getAmount() > 0L) {
-            return FluidVariants.toStack((FluidVariant)view.getResource());
+            return FluidVariants.toStack(view.getResource());
          }
       }
 
@@ -59,7 +59,7 @@ public record FluidStorageSnapshot(FluidStack fluid, int amountMb, int capacityM
          capacityMb += FluidVariants.dropletsToMb(view.getCapacity());
          if (!view.isResourceBlank()) {
             if (variant.isBlank()) {
-               variant = (FluidVariant)view.getResource();
+               variant = view.getResource();
             }
 
             amountMb += FluidVariants.dropletsToMb(view.getAmount());

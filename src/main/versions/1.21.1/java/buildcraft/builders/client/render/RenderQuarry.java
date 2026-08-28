@@ -34,7 +34,7 @@ public class RenderQuarry implements BlockEntityRenderer<TileQuarry> {
    public void render(TileQuarry tile, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light, int overlay) {
       BlockState blockState = tile.getBlockState();
       Direction front = blockState.hasProperty(HorizontalDirectionalBlock.FACING)
-         ? (Direction) blockState.getValue(HorizontalDirectionalBlock.FACING)
+         ? blockState.getValue(HorizontalDirectionalBlock.FACING)
          : Direction.NORTH;
       Direction rear = front.getOpposite();
       boolean hasPower = tile.hasPower();

@@ -51,7 +51,7 @@ public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kin
    }
 
    private static BuildersClientRequestPayload decode(FriendlyByteBuf buf) {
-      BuildersClientRequestPayload.Kind kind = (BuildersClientRequestPayload.Kind)buf.readEnum(BuildersClientRequestPayload.Kind.class);
+      BuildersClientRequestPayload.Kind kind = buf.readEnum(BuildersClientRequestPayload.Kind.class);
 
       return switch (kind) {
          case SNAPSHOT -> new BuildersClientRequestPayload(kind, readSnapshotKey(buf), BlockPos.ZERO);

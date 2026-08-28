@@ -41,7 +41,7 @@ public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRender
    protected void extract(TileQuarry tile, QuarryRenderState state, float partialTick) {
       BlockState blockState = tile.getBlockState();
       Direction front = blockState.hasProperty(HorizontalDirectionalBlock.FACING)
-         ? (Direction)blockState.getValue(HorizontalDirectionalBlock.FACING)
+         ? blockState.getValue(HorizontalDirectionalBlock.FACING)
          : Direction.NORTH;
       state.rear = front.getOpposite();
       boolean hasPower = tile.hasPower();

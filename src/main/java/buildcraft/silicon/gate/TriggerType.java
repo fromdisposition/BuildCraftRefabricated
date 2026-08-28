@@ -36,7 +36,7 @@ public class TriggerType extends StatementType<TriggerWrapper> {
          return null;
       }
 
-      String kind = (String)BcNbt.getString(nbt, "kind", null);
+      String kind = BcNbt.getString(nbt, "kind", null);
       if (kind != null && !kind.isEmpty()) {
          EnumPipePart side = EnumPipePart.fromMeta(BcNbt.getByte(nbt, "side", (byte)5));
          IStatement statement = StatementManager.statements.get(kind);

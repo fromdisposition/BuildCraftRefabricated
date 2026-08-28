@@ -46,7 +46,7 @@ public final class ListHandler {
    }
 
    public static boolean hasItems(@Nonnull ItemStack stack) {
-      CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+      CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
       if (customData == null) {
          return false;
       }
@@ -66,7 +66,7 @@ public final class ListHandler {
    }
 
    public static boolean isDefault(@Nonnull ItemStack stack) {
-      CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+      CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
       if (customData == null) {
          return true;
       }
@@ -81,16 +81,16 @@ public final class ListHandler {
    }
 
    public static ListHandler.Line[] getLines(@Nonnull ItemStack item) {
-      CustomData customData = (CustomData)item.get(DataComponents.CUSTOM_DATA);
+      CustomData customData = item.get(DataComponents.CUSTOM_DATA);
       if (customData != null) {
          CompoundTag data = customData.copyTag();
          if (data.contains("written") && data.contains("lines")) {
-            ListTag list = (ListTag)BcNbt.getList(data, "lines");
+            ListTag list = BcNbt.getList(data, "lines");
             if (list != null) {
                ListHandler.Line[] lines = new ListHandler.Line[list.size()];
 
                for (int i = 0; i < lines.length; i++) {
-                  CompoundTag lineTag = (CompoundTag)BcNbt.getCompound(list, i);
+                  CompoundTag lineTag = BcNbt.getCompound(list, i);
                   lines[i] = lineTag != null ? ListHandler.Line.fromTag(lineTag) : new ListHandler.Line();
                }
 
@@ -132,7 +132,7 @@ public final class ListHandler {
             return CustomData.of(data);
          });
       } else {
-         CustomData customData = (CustomData)stackList.get(DataComponents.CUSTOM_DATA);
+         CustomData customData = stackList.get(DataComponents.CUSTOM_DATA);
          if (customData != null) {
             CompoundTag data = customData.copyTag();
             data.remove("written");
@@ -147,7 +147,7 @@ public final class ListHandler {
    }
 
    public static boolean matches(@Nonnull ItemStack stackList, @Nonnull ItemStack item) {
-      CustomData customData = (CustomData)stackList.get(DataComponents.CUSTOM_DATA);
+      CustomData customData = stackList.get(DataComponents.CUSTOM_DATA);
       if (customData == null) {
          return false;
       }
@@ -164,12 +164,12 @@ public final class ListHandler {
    private static ListHandler.Line[] parseMatchLines(CustomData customData) {
       CompoundTag data = customData.copyTag();
       if (data.contains("written") && data.contains("lines")) {
-         ListTag list = (ListTag)BcNbt.getList(data, "lines");
+         ListTag list = BcNbt.getList(data, "lines");
          if (list != null) {
             ListHandler.Line[] lines = new ListHandler.Line[list.size()];
 
             for (int i = 0; i < lines.length; i++) {
-               CompoundTag lineTag = (CompoundTag)BcNbt.getCompound(list, i);
+               CompoundTag lineTag = BcNbt.getCompound(list, i);
                lines[i] = lineTag != null ? ListHandler.Line.fromTag(lineTag) : new ListHandler.Line();
             }
 
@@ -251,7 +251,7 @@ public final class ListHandler {
 
             return false;
          } else {
-            ItemStack source = (ItemStack)this.stacks.get(0);
+            ItemStack source = this.stacks.get(0);
             if (source.isEmpty()) {
                return false;
             }
@@ -286,10 +286,10 @@ public final class ListHandler {
       public static ListHandler.Line fromTag(CompoundTag data) {
          ListHandler.Line line = new ListHandler.Line();
          if (data != null && data.contains("st")) {
-            ListTag l = (ListTag)BcNbt.getList(data, "st");
+            ListTag l = BcNbt.getList(data, "st");
             if (l != null) {
                for (int i = 0; i < l.size() && i < 9; i++) {
-                  CompoundTag itemTag = (CompoundTag)BcNbt.getCompound(l, i);
+                  CompoundTag itemTag = BcNbt.getCompound(l, i);
                   if (itemTag != null) {
                      Tag stackPayload = itemTag.get("stack");
                      if (stackPayload != null) {
@@ -356,11 +356,11 @@ public final class ListHandler {
 
       @Nonnull
       public ItemStack getStack(int i) {
-         return i >= 0 && i < this.stacks.size() ? (ItemStack)this.stacks.get(i) : ItemStack.EMPTY;
+         return i >= 0 && i < this.stacks.size() ? this.stacks.get(i) : ItemStack.EMPTY;
       }
 
       public List<ItemStack> getExamples() {
-         ItemStack source = (ItemStack)this.stacks.get(0);
+         ItemStack source = this.stacks.get(0);
          if (!source.isEmpty() && (this.byType || this.byMaterial)) {
             Set<Item> seen = new HashSet<>();
             seen.add(source.getItem());

@@ -100,9 +100,9 @@ public class WorkbenchCrafting {
             this.assumedResult = ItemStack.EMPTY;
          } else {
             //? if >= 26.1 {
-            this.assumedResult = ((CraftingRecipe)this.currentRecipe.value()).assemble(input);
+            this.assumedResult = (this.currentRecipe.value()).assemble(input);
             //?} else {
-            /*this.assumedResult = ((CraftingRecipe)this.currentRecipe.value()).assemble(input, this.tile.getLevel().registryAccess());
+            /*this.assumedResult = (this.currentRecipe.value()).assemble(input, this.tile.getLevel().registryAccess());
             *///?}
          }
 
@@ -184,15 +184,15 @@ public class WorkbenchCrafting {
       }
 
       CraftingInput craftInput = CraftingInput.of(this.width, this.height, gridContents);
-      if (!((CraftingRecipe)this.currentRecipe.value()).matches(craftInput, this.tile.getLevel())) {
+      if (!(this.currentRecipe.value()).matches(craftInput, this.tile.getLevel())) {
          this.returnItemsToMaterials(gridContents);
          return false;
       }
 
       //? if >= 26.1 {
-      ItemStack result = ((CraftingRecipe)this.currentRecipe.value()).assemble(craftInput);
+      ItemStack result = (this.currentRecipe.value()).assemble(craftInput);
       //?} else {
-      /*ItemStack result = ((CraftingRecipe)this.currentRecipe.value()).assemble(craftInput, this.tile.getLevel().registryAccess());
+      /*ItemStack result = (this.currentRecipe.value()).assemble(craftInput, this.tile.getLevel().registryAccess());
       *///?}
       if (result.isEmpty()) {
          this.returnItemsToMaterials(gridContents);
@@ -204,14 +204,14 @@ public class WorkbenchCrafting {
          InventoryUtil.addToBestAcceptor(this.tile.getLevel(), this.tile.getBlockPos(), null, leftover);
       }
 
-      NonNullList<ItemStack> remainingStacks = ((CraftingRecipe)this.currentRecipe.value()).getRemainingItems(craftInput);
+      NonNullList<ItemStack> remainingStacks = (this.currentRecipe.value()).getRemainingItems(craftInput);
 
       for (int s = 0; s < gridContents.size(); s++) {
          gridContents.set(s, ItemStack.EMPTY);
       }
 
       for (int s = 0; s < remainingStacks.size(); s++) {
-         ItemStack remaining = (ItemStack)remainingStacks.get(s);
+         ItemStack remaining = remainingStacks.get(s);
          if (!remaining.isEmpty()) {
             leftover = this.invMaterials.insert(remaining, false, false);
             if (!leftover.isEmpty()) {
@@ -225,7 +225,7 @@ public class WorkbenchCrafting {
 
    private void returnItemsToMaterials(NonNullList<ItemStack> gridContents) {
       for (int s = 0; s < gridContents.size(); s++) {
-         ItemStack inSlot = (ItemStack)gridContents.get(s);
+         ItemStack inSlot = gridContents.get(s);
          if (!inSlot.isEmpty()) {
             ItemStack leftover = this.invMaterials.insert(inSlot, false, false);
             if (!leftover.isEmpty()) {

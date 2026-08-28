@@ -83,7 +83,7 @@ public class Tokenizer {
          }
       }
 
-      return (T[])tokens.toArray(array);
+      return tokens.toArray(array);
    }
 
    @FunctionalInterface

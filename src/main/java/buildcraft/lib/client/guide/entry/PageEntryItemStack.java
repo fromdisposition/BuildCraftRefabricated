@@ -91,7 +91,7 @@ public class PageEntryItemStack extends PageValueType<ItemStackValueFilter> {
       str = str.trim();
       Identifier loc = Identifier.parse(str);
       //? if >= 1.21.10 {
-      Item item = BuiltInRegistries.ITEM.get(loc).map(ref -> (Item)ref.value()).orElse(null);
+      Item item = BuiltInRegistries.ITEM.get(loc).map(ref -> ref.value()).orElse(null);
       //?} else {
       /*Item item = BuiltInRegistries.ITEM.get(loc);
       *///?}

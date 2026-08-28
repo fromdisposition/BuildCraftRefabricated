@@ -30,13 +30,13 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerEngineStone_BC8)this.menu).engine != null) {
+      if ((this.menu).engine != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
                   this.mainGui,
-                  () -> ((ContainerEngineStone_BC8)this.menu).engine != null ? ((ContainerEngineStone_BC8)this.menu).engine.getOwner() : null,
+                  () -> (this.menu).engine != null ? (this.menu).engine.getOwner() : null,
                   true
                )
             );
@@ -45,11 +45,11 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
             .add(
                new LedgerEngine(
                   this.mainGui,
-                  ((ContainerEngineStone_BC8)this.menu)::getSyncedCurrentOutput,
-                  ((ContainerEngineStone_BC8)this.menu)::getSyncedPower,
-                  ((ContainerEngineStone_BC8)this.menu)::getSyncedHeat,
-                  ((ContainerEngineStone_BC8)this.menu)::getSyncedPowerStage,
-                  ((ContainerEngineStone_BC8)this.menu)::isSyncedBurningEngine,
+                  (this.menu)::getSyncedCurrentOutput,
+                  (this.menu)::getSyncedPower,
+                  (this.menu)::getSyncedHeat,
+                  (this.menu)::getSyncedPowerStage,
+                  (this.menu)::isSyncedBurningEngine,
                   true,
                   true
                )
@@ -76,8 +76,8 @@ public class GuiEngineStone_BC8 extends BcScreen<ContainerEngineStone_BC8> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       ICON_GUI.drawAt(this.mainGui.rootElement);
-      if (((ContainerEngineStone_BC8)this.menu).isBurning()) {
-         float progress = ((ContainerEngineStone_BC8)this.menu).getBurnProgress();
+      if ((this.menu).isBurning()) {
+         float progress = (this.menu).getBurnProgress();
          int flameHeight = (int)Math.ceil(progress * 14.0F);
          graphics.blit(
             TEXTURE,

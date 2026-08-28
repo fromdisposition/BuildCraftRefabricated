@@ -30,7 +30,7 @@ public class SimpleSuffixArray<T> implements ISuffixArray<T> {
          char c = name.charAt(s);
          if (c != '\n' && c != ' ') {
             String suffix = name.substring(s, end);
-            List<T> list = (List<T>)this.suffixArray.get(suffix);
+            List<T> list = this.suffixArray.get(suffix);
             if (list == null) {
                list = new ArrayList<>();
                this.suffixArray.put(suffix, list);

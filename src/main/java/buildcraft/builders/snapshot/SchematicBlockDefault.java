@@ -95,8 +95,8 @@ public class SchematicBlockDefault implements ISchematicBlock {
       }
 
       if (block instanceof BedBlock && state != null && state.hasProperty(BedBlock.PART) && state.hasProperty(BedBlock.FACING)) {
-         BedPart part = (BedPart)state.getValue(BedBlock.PART);
-         Direction facing = (Direction)state.getValue(BedBlock.FACING);
+         BedPart part = state.getValue(BedBlock.PART);
+         Direction facing = state.getValue(BedBlock.FACING);
          if (part == BedPart.HEAD) {
             this.requiredBlockOffsets.add(BlockPos.ZERO.relative(facing.getOpposite()));
          } else if (part == BedPart.FOOT) {
@@ -105,7 +105,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
       }
 
       if (block instanceof DoorBlock && state != null && state.hasProperty(DoorBlock.HALF)) {
-         DoubleBlockHalf half = (DoubleBlockHalf)state.getValue(DoorBlock.HALF);
+         DoubleBlockHalf half = state.getValue(DoorBlock.HALF);
          if (half == DoubleBlockHalf.UPPER) {
             this.requiredBlockOffsets.add(new BlockPos(0, -1, 0));
          } else if (half == DoubleBlockHalf.LOWER) {
@@ -114,7 +114,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
       }
 
       if (block instanceof DoublePlantBlock && state != null && state.hasProperty(DoublePlantBlock.HALF)) {
-         DoubleBlockHalf half = (DoubleBlockHalf)state.getValue(DoublePlantBlock.HALF);
+         DoubleBlockHalf half = state.getValue(DoublePlantBlock.HALF);
          if (half == DoubleBlockHalf.UPPER) {
             this.requiredBlockOffsets.add(new BlockPos(0, -1, 0));
          } else if (half == DoubleBlockHalf.LOWER) {
@@ -371,11 +371,11 @@ public class SchematicBlockDefault implements ISchematicBlock {
                boolean waterloggable = existing.getType() == Fluids.WATER && newBlockState.hasProperty(BlockStateProperties.WATERLOGGED);
                if (waterloggable) {
                   boolean schematicWantsWater = this.blockState.hasProperty(BlockStateProperties.WATERLOGGED)
-                     && (Boolean)this.blockState.getValue(BlockStateProperties.WATERLOGGED);
+                     && this.blockState.getValue(BlockStateProperties.WATERLOGGED);
                   if (fluidMode != EnumFluidHandlingMode.REPLACE && !schematicWantsWater) {
-                     newBlockState = (BlockState)newBlockState.setValue(BlockStateProperties.WATERLOGGED, false);
+                     newBlockState = newBlockState.setValue(BlockStateProperties.WATERLOGGED, false);
                   } else {
-                     newBlockState = (BlockState)newBlockState.setValue(BlockStateProperties.WATERLOGGED, true);
+                     newBlockState = newBlockState.setValue(BlockStateProperties.WATERLOGGED, true);
                   }
                } else {
                   willDestroyFluidAtPos = true;
@@ -385,7 +385,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
 
          if (fluidMode == EnumFluidHandlingMode.REPLACE || fluidMode == EnumFluidHandlingMode.CLEAR) {
             boolean placedAsWaterlogged = newBlockState.hasProperty(BlockStateProperties.WATERLOGGED)
-               && (Boolean)newBlockState.getValue(BlockStateProperties.WATERLOGGED);
+               && newBlockState.getValue(BlockStateProperties.WATERLOGGED);
             if (!placedAsWaterlogged) {
                for (Direction dir : FRAGILE_FLUID_NEIGHBOUR_DIRS) {
                   FluidState neighbour = level.getFluidState(blockPos.relative(dir));
@@ -397,7 +397,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
          }
 
          if (newBlockState.getBlock() instanceof BedBlock && newBlockState.hasProperty(BedBlock.PART) && newBlockState.getValue(BedBlock.PART) == BedPart.FOOT) {
-            Direction facing = (Direction)newBlockState.getValue(BedBlock.FACING);
+            Direction facing = newBlockState.getValue(BedBlock.FACING);
             BlockPos headPos = blockPos.relative(facing);
             BlockState atHead = level.getBlockState(headPos);
             if (!atHead.isAir() && !atHead.canBeReplaced(Fluids.WATER)) {
@@ -430,7 +430,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
          }
 
          if (newBlockState.getBlock() instanceof LeavesBlock && newBlockState.hasProperty(LeavesBlock.PERSISTENT)) {
-            newBlockState = (BlockState)newBlockState.setValue(LeavesBlock.PERSISTENT, true);
+            newBlockState = newBlockState.setValue(LeavesBlock.PERSISTENT, true);
          }
 
          boolean placed = machineSetBlock(level, blockPos, newBlockState, 11, owner, machineOrigin);
@@ -440,9 +440,9 @@ public class SchematicBlockDefault implements ISchematicBlock {
 
          BlockPos secondHalfPos = null;
          if (newBlockState.getBlock() instanceof BedBlock && newBlockState.hasProperty(BedBlock.PART) && newBlockState.getValue(BedBlock.PART) == BedPart.FOOT) {
-            Direction facing = (Direction)newBlockState.getValue(BedBlock.FACING);
+            Direction facing = newBlockState.getValue(BedBlock.FACING);
             secondHalfPos = blockPos.relative(facing);
-            BlockState headState = (BlockState)newBlockState.setValue(BedBlock.PART, BedPart.HEAD);
+            BlockState headState = newBlockState.setValue(BedBlock.PART, BedPart.HEAD);
             if (!machineSetBlock(level, secondHalfPos, headState, 3, owner, machineOrigin)) {
                return false;
             }
@@ -450,7 +450,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
             && newBlockState.hasProperty(DoorBlock.HALF)
             && newBlockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
             secondHalfPos = blockPos.above();
-            BlockState upperState = (BlockState)newBlockState.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
+            BlockState upperState = newBlockState.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
             if (!machineSetBlock(level, secondHalfPos, upperState, 3, owner, machineOrigin)) {
                return false;
             }
@@ -458,7 +458,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
             && newBlockState.hasProperty(DoublePlantBlock.HALF)
             && newBlockState.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.LOWER) {
             secondHalfPos = blockPos.above();
-            BlockState upperState = (BlockState)newBlockState.setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER);
+            BlockState upperState = newBlockState.setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER);
             if (!machineSetBlock(level, secondHalfPos, upperState, 3, owner, machineOrigin)) {
                return false;
             }
@@ -573,7 +573,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
             return false;
          } else {
             return worldState.hasProperty(BlockStateProperties.WATERLOGGED) && this.blockState.hasProperty(BlockStateProperties.WATERLOGGED)
-               ? (Boolean)worldState.getValue(BlockStateProperties.WATERLOGGED) && !(Boolean)this.blockState.getValue(BlockStateProperties.WATERLOGGED)
+               ? worldState.getValue(BlockStateProperties.WATERLOGGED) && !this.blockState.getValue(BlockStateProperties.WATERLOGGED)
                : false;
          }
       }
@@ -592,9 +592,9 @@ public class SchematicBlockDefault implements ISchematicBlock {
       if (fluidMode != EnumFluidHandlingMode.CLEAR
          && worldState.hasProperty(BlockStateProperties.WATERLOGGED)
          && this.blockState.hasProperty(BlockStateProperties.WATERLOGGED)
-         && (Boolean)worldState.getValue(BlockStateProperties.WATERLOGGED)
-         && !(Boolean)this.blockState.getValue(BlockStateProperties.WATERLOGGED)) {
-         worldState = (BlockState)worldState.setValue(BlockStateProperties.WATERLOGGED, false);
+         && worldState.getValue(BlockStateProperties.WATERLOGGED)
+         && !this.blockState.getValue(BlockStateProperties.WATERLOGGED)) {
+         worldState = worldState.setValue(BlockStateProperties.WATERLOGGED, false);
       }
 
       return blockStatesWithoutBlockEqual(this.blockState, worldState, this.ignoredProperties);
@@ -672,7 +672,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
    }
 
    private static <T extends Comparable<T>> BlockState copyProperty(Property<T> property, BlockState dest, BlockState source) {
-      return (BlockState)dest.setValue(property, source.getValue(property));
+      return dest.setValue(property, source.getValue(property));
    }
 
    private static boolean blockStatesWithoutBlockEqual(BlockState a, BlockState b, List<Property<?>> ignored) {

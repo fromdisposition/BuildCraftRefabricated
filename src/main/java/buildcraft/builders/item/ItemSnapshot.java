@@ -44,7 +44,7 @@ public class ItemSnapshot extends Item {
 
    public ItemStack createUsedStack(Snapshot.Header header) {
       ItemStack stack = new ItemStack(this);
-      CompoundTag tag = ((CustomData)stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)).copyTag();
+      CompoundTag tag = (stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)).copyTag();
       tag.put("header", header.serializeNBT());
       stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
       return stack;
@@ -52,7 +52,7 @@ public class ItemSnapshot extends Item {
 
    public static Snapshot.Header getHeader(ItemStack stack) {
       if (stack.getItem() instanceof ItemSnapshot snapshotItem && snapshotItem.used) {
-         CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
          if (customData != null) {
             CompoundTag nbt = customData.copyTag();
             if (nbt.contains("header")) {

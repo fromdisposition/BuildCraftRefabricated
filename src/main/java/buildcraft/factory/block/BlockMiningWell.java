@@ -34,7 +34,7 @@ public class BlockMiningWell extends BaseEntityBlock {
 
    public BlockMiningWell(Properties properties) {
       super(properties);
-      this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
+      this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
    }
 
    protected MapCodec<? extends BaseEntityBlock> codec() {
@@ -46,7 +46,7 @@ public class BlockMiningWell extends BaseEntityBlock {
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
-      return (BlockState)this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+      return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
    //? if < 1.21.10 {

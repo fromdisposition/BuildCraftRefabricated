@@ -196,7 +196,7 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
    }
 
    public void clicked(int slotId, int dragType, ContainerInput containerInput, Player player) {
-      if ((slotId < 0 ? null : (Slot)this.slots.get(slotId)) instanceof SlotPhantom phantom) {
+      if ((slotId < 0 ? null : this.slots.get(slotId)) instanceof SlotPhantom phantom) {
          ItemStack held = this.getCarried();
          if (held.isEmpty()) {
             phantom.set(ItemStack.EMPTY);
@@ -212,7 +212,7 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
 
    public ItemStack quickMoveStack(Player playerIn, int index) {
       ItemStack itemstack = ItemStack.EMPTY;
-      Slot slot = (Slot)this.slots.get(index);
+      Slot slot = this.slots.get(index);
       if (slot != null && slot.hasItem()) {
          ItemStack slotStack = slot.getItem();
          itemstack = slotStack.copy();
@@ -242,7 +242,7 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
       boolean moved = false;
 
       for (int i = startIndex; i < endIndex && !stack.isEmpty(); i++) {
-         Slot targetSlot = (Slot)this.slots.get(i);
+         Slot targetSlot = this.slots.get(i);
          if (targetSlot.mayPlace(stack)) {
             ItemStack existing = targetSlot.getItem();
             if (!existing.isEmpty() && ItemStack.isSameItemSameComponents(stack, existing)) {
@@ -260,7 +260,7 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
       }
 
       for (int i = startIndex; i < endIndex && !stack.isEmpty(); i++) {
-         Slot targetSlot = (Slot)this.slots.get(i);
+         Slot targetSlot = this.slots.get(i);
          if (targetSlot.mayPlace(stack) && targetSlot.getItem().isEmpty()) {
             int maxSize = Math.min(targetSlot.getMaxStackSize(stack), stack.getMaxStackSize());
             int transfer = Math.min(maxSize, stack.getCount());

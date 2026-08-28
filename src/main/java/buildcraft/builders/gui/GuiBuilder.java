@@ -53,10 +53,10 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerBuilder)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          for (int i = 0; i < 4; i++) {
             int idx = i;
-            WidgetFluidTank widget = idx < ((ContainerBuilder)this.menu).widgetTanks.size() ? ((ContainerBuilder)this.menu).widgetTanks.get(idx) : null;
+            WidgetFluidTank widget = idx < (this.menu).widgetTanks.size() ? (this.menu).widgetTanks.get(idx) : null;
             this.mainGui
                .shownElements
                .add(
@@ -185,8 +185,8 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       // left edge (addFullPlayerInventory(8, 140)); Y comes from playerInventoryLabelY() = firstPlayerRowY() - 12,
       // i.e. derived from the real slot rows (vanilla convention), not a hardcoded coordinate.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
-      int leftToBreak = ((ContainerBuilder)this.menu).getSyncedLeftToBreak();
-      int leftToPlace = ((ContainerBuilder)this.menu).getSyncedLeftToPlace();
+      int leftToBreak = (this.menu).getSyncedLeftToBreak();
+      int leftToPlace = (this.menu).getSyncedLeftToPlace();
       int y = 50;
       // Draw these as plain strings in the vanilla label colour (-12566464 = 0xFF404040), the same as the title and
       // Inventory labels above. A Component with .withStyle(DARK_GRAY) would override that colour with 0x555555, which
@@ -213,11 +213,11 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
 
       //? if >= 1.21.10 {
       public void onPress(InputWithModifiers modifiers) {
-         ((ContainerBuilder)GuiBuilder.this.menu).sendMessage(13, buf -> {});
+         (GuiBuilder.this.menu).sendMessage(13, buf -> {});
       }
       //?} else {
       /*public void onPress() {
-         ((ContainerBuilder)GuiBuilder.this.menu).sendMessage(13, buf -> {});
+         (GuiBuilder.this.menu).sendMessage(13, buf -> {});
       }
       *///?}
 
@@ -225,7 +225,7 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       protected void drawButtonContent(BCGraphics graphics, int mouseX, int mouseY, float partialTick) {
          this.drawDefaultButtonSprite(graphics);
          graphics.item(CHEST_ICON, this.getX() + 2, this.getY() + 2);
-         if (((ContainerBuilder)GuiBuilder.this.menu).getSyncedContentsMode() == EnumContainerContentsMode.IGNORE) {
+         if ((GuiBuilder.this.menu).getSyncedContentsMode() == EnumContainerContentsMode.IGNORE) {
             graphics.item(BARRIER_OVERLAY, this.getX() + 2, this.getY() + 2);
          }
       }
@@ -236,7 +236,7 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       }
 
       void refreshTooltip() {
-         EnumContainerContentsMode mode = ((ContainerBuilder)GuiBuilder.this.menu).getSyncedContentsMode();
+         EnumContainerContentsMode mode = (GuiBuilder.this.menu).getSyncedContentsMode();
          if (mode != this.lastKnown) {
             this.lastKnown = mode;
             this.setTooltip(Tooltip.create(Component.translatable(mode.tooltipKey())));
@@ -254,18 +254,18 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
 
       //? if >= 1.21.10 {
       public void onPress(InputWithModifiers modifiers) {
-         ((ContainerBuilder)GuiBuilder.this.menu).sendMessage(12, buf -> {});
+         (GuiBuilder.this.menu).sendMessage(12, buf -> {});
       }
       //?} else {
       /*public void onPress() {
-         ((ContainerBuilder)GuiBuilder.this.menu).sendMessage(12, buf -> {});
+         (GuiBuilder.this.menu).sendMessage(12, buf -> {});
       }
       *///?}
 
       @Override
       protected void drawButtonContent(BCGraphics graphics, int mouseX, int mouseY, float partialTick) {
          this.drawDefaultButtonSprite(graphics);
-         EnumFluidHandlingMode mode = ((ContainerBuilder)GuiBuilder.this.menu).getSyncedFluidMode();
+         EnumFluidHandlingMode mode = (GuiBuilder.this.menu).getSyncedFluidMode();
          graphics.item(mode.icon(), this.getX() + 2, this.getY() + 2);
       }
 
@@ -275,7 +275,7 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       }
 
       void refreshTooltip() {
-         EnumFluidHandlingMode mode = ((ContainerBuilder)GuiBuilder.this.menu).getSyncedFluidMode();
+         EnumFluidHandlingMode mode = (GuiBuilder.this.menu).getSyncedFluidMode();
          if (mode != this.lastKnown) {
             this.lastKnown = mode;
             this.setTooltip(Tooltip.create(Component.translatable(mode.tooltipKey())));

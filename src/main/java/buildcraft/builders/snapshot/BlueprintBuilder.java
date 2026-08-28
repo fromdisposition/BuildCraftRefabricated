@@ -292,17 +292,17 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
    protected void cancelPlaceTask(SnapshotBuilder<ITileForBlueprintBuilder>.PlaceTask placeTask) {
       super.cancelPlaceTask(placeTask);
       placeTask.items.stream().filter(stack -> {
-         CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+         CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
          return customData == null || !customData.copyTag().contains("BuilderFluidStack");
       }).forEach(stack -> this.tile.getInvResources().insert(stack, false, false));
       placeTask.items
          .stream()
          .filter(stack -> {
-            CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+            CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
             return customData != null && customData.copyTag().contains("BuilderFluidStack");
          })
          .map(stack -> {
-            CustomData customData = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+            CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
             CompoundTag fluidTag = BcNbt.getCompound(customData.copyTag(), "BuilderFluidStack");
             if (fluidTag.isEmpty()) {
                return FluidStack.EMPTY;

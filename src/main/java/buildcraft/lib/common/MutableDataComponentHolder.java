@@ -36,7 +36,7 @@ public interface MutableDataComponentHolder extends DataComponentHolder {
    //?}
 
    default <T, U> @Nullable T update(DataComponentType<T> componentType, T value, U updateContext, BiFunction<T, U, T> updater) {
-      return this.set(componentType, updater.apply((T)this.getOrDefault(componentType, value), updateContext));
+      return this.set(componentType, updater.apply(this.getOrDefault(componentType, value), updateContext));
    }
 
    default <T, U> @Nullable T update(Supplier<? extends DataComponentType<T>> componentType, T value, U updateContext, BiFunction<T, U, T> updater) {
@@ -44,7 +44,7 @@ public interface MutableDataComponentHolder extends DataComponentHolder {
    }
 
    default <T> @Nullable T update(DataComponentType<T> componentType, T value, UnaryOperator<T> updater) {
-      return this.set(componentType, updater.apply((T)this.getOrDefault(componentType, value)));
+      return this.set(componentType, updater.apply(this.getOrDefault(componentType, value)));
    }
 
    default <T> @Nullable T update(Supplier<? extends DataComponentType<T>> componentType, T value, UnaryOperator<T> updater) {

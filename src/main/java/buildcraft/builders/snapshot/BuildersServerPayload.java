@@ -95,7 +95,7 @@ public record BuildersServerPayload(
    }
 
    private static BuildersServerPayload decode(FriendlyByteBuf buf) {
-      BuildersServerPayload.Kind kind = (BuildersServerPayload.Kind)buf.readEnum(BuildersServerPayload.Kind.class);
+      BuildersServerPayload.Kind kind = buf.readEnum(BuildersServerPayload.Kind.class);
 
       return switch (kind) {
          case SNAPSHOT -> new BuildersServerPayload(kind, buf.readByteArray(), BlockPos.ZERO, null, List.of());

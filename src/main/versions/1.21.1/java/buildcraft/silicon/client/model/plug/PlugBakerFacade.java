@@ -144,9 +144,9 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
                Stream.of(Pair.of(false, false), Pair.of(false, true), Pair.of(true, true), Pair.of(true, false))
                   .forEach(
                      minOrMaxPair -> {
-                        Vec3 newPos = poses.get(this.getVertexIndex(poses, side.getAxis(), (Boolean)minOrMaxPair.getLeft(), (Boolean)minOrMaxPair.getRight()));
+                        Vec3 newPos = poses.get(this.getVertexIndex(poses, side.getAxis(), minOrMaxPair.getLeft(), minOrMaxPair.getRight()));
                         MutableVertex vertex = vertexes.get(
-                           this.getVertexIndex(vertexesPoses, side.getAxis(), (Boolean)minOrMaxPair.getLeft(), (Boolean)minOrMaxPair.getRight())
+                           this.getVertexIndex(vertexesPoses, side.getAxis(), minOrMaxPair.getLeft(), minOrMaxPair.getRight())
                         );
                         vertex.positiond(newPos.x, newPos.y, newPos.z);
                         switch (side.getAxis()) {

@@ -170,12 +170,12 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
    }
 
    private static int layerFor(ItemStack brush) {
-      DyeColor colour = (DyeColor)brush.get(BCCore.BRUSH_COLOR);
+      DyeColor colour = brush.get(BCCore.BRUSH_COLOR);
       return colour == null ? -1 : colour.getId();
    }
 
    private static String mapTypeOf(ItemStack stack) {
-      CustomData data = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+      CustomData data = stack.get(DataComponents.CUSTOM_DATA);
       return data == null ? MAP_TYPE_CLEAN : buildcraft.lib.nbt.BcNbt.getString(data.copyTag(), TAG_MAP_TYPE, MAP_TYPE_CLEAN);
    }
 
@@ -193,14 +193,14 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
    }
 
    private static void readZoneFromMap(ItemStack map, ZonePlan plan) {
-      CustomData data = (CustomData)map.get(DataComponents.CUSTOM_DATA);
+      CustomData data = map.get(DataComponents.CUSTOM_DATA);
       if (data != null) {
          plan.readFromNBT(data.copyTag());
       }
    }
 
    private static void writeZoneToMap(ItemStack map, ZonePlan plan, int layer) {
-      CustomData existing = (CustomData)map.get(DataComponents.CUSTOM_DATA);
+      CustomData existing = map.get(DataComponents.CUSTOM_DATA);
       CompoundTag tag = existing == null ? new CompoundTag() : existing.copyTag();
       plan.writeToNBT(tag);
       tag.putString("mapType", "ZONE");

@@ -106,7 +106,7 @@ public final class BcTransfers {
          return findCached(FLUID_CACHES, FluidStorage.SIDED, sl, pos, state, side);
       }
 
-      return (Storage<FluidVariant>)FluidStorage.SIDED.find(level, pos, state, blockEntity, side);
+      return FluidStorage.SIDED.find(level, pos, state, blockEntity, side);
    }
 
    public static @Nullable Storage<FluidVariant> fluid(Level level, BlockPos pos, @Nullable Direction side) {
@@ -120,7 +120,7 @@ public final class BcTransfers {
          return findCached(ITEM_CACHES, ItemStorage.SIDED, sl, pos, state, side);
       }
 
-      return (Storage<ItemVariant>)ItemStorage.SIDED.find(level, pos, state, blockEntity, side);
+      return ItemStorage.SIDED.find(level, pos, state, blockEntity, side);
    }
 
    public static @Nullable Storage<ItemVariant> item(Level level, BlockPos pos, @Nullable Direction side) {
@@ -134,7 +134,7 @@ public final class BcTransfers {
          return findCached(ENERGY_CACHES, EnergyStorage.SIDED, sl, pos, state, side);
       }
 
-      return (EnergyStorage)EnergyStorage.SIDED.find(level, pos, state, blockEntity, side);
+      return EnergyStorage.SIDED.find(level, pos, state, blockEntity, side);
    }
 
    public static @Nullable EnergyStorage energy(Level level, BlockPos pos, @Nullable Direction side) {

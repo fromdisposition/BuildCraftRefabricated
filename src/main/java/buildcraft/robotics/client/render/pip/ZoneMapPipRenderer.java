@@ -118,7 +118,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       this.lastMeshValidationVersion = state.terrainVersion();
       this.evictFarMeshes(state);
       Minecraft mc = Minecraft.getInstance();
-      int guiScale = (int)mc.getWindow().getGuiScale();
+      int guiScale = mc.getWindow().getGuiScale();
       int width = (state.x1() - state.x0()) * guiScale;
       int height = (state.y1() - state.y0()) * guiScale;
 

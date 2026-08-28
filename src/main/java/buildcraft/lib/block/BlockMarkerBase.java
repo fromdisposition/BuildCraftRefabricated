@@ -45,8 +45,8 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
    public BlockMarkerBase(Properties properties) {
       super(properties);
       BlockState defaultState = this.defaultBlockState();
-      defaultState = (BlockState)defaultState.setValue(BuildCraftProperties.BLOCK_FACING_6, Direction.UP);
-      defaultState = (BlockState)defaultState.setValue(BuildCraftProperties.ACTIVE, false);
+      defaultState = defaultState.setValue(BuildCraftProperties.BLOCK_FACING_6, Direction.UP);
+      defaultState = defaultState.setValue(BuildCraftProperties.ACTIVE, false);
       this.registerDefaultState(defaultState);
    }
 
@@ -55,7 +55,7 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
    }
 
    public VoxelShape getShape(BlockState state, BlockGetter source, BlockPos pos, CollisionContext ctx) {
-      Direction direction = (Direction)state.getValue(BuildCraftProperties.BLOCK_FACING_6);
+      Direction direction = state.getValue(BuildCraftProperties.BLOCK_FACING_6);
       return BOUNDING_BOXES.getOrDefault(direction, Shapes.block());
    }
 
@@ -66,11 +66,11 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
    @Nullable
    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
       Direction facing = ctx.getClickedFace();
-      return (BlockState)this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, facing);
+      return this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, facing);
    }
 
    public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-      Direction sideOn = (Direction)state.getValue(BuildCraftProperties.BLOCK_FACING_6);
+      Direction sideOn = state.getValue(BuildCraftProperties.BLOCK_FACING_6);
       BlockPos neighborPos = pos.relative(sideOn.getOpposite());
       return level.getBlockState(neighborPos).isFaceSturdy(level, neighborPos, sideOn);
    }
@@ -109,7 +109,7 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
    }
 
    public BlockState rotate(BlockState state, Rotation rot) {
-      return (BlockState)state.setValue(BuildCraftProperties.BLOCK_FACING_6, rot.rotate((Direction)state.getValue(BuildCraftProperties.BLOCK_FACING_6)));
+      return state.setValue(BuildCraftProperties.BLOCK_FACING_6, rot.rotate(state.getValue(BuildCraftProperties.BLOCK_FACING_6)));
    }
 
    @Nullable

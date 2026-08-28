@@ -52,7 +52,7 @@ public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
    @Override
    protected void initGuiElements() {
       this.mainGui.shownElements.add(new GuiElementStatementDrag(this.mainGui));
-      this.mainGui.shownElements.add(new GuiElementStatementSource<>(this.mainGui, true, ((ContainerFillerPlanner)this.menu).possiblePatternsContext));
+      this.mainGui.shownElements.add(new GuiElementStatementSource<>(this.mainGui, true, (this.menu).possiblePatternsContext));
       IGuiArea patternArea = new GuiRectangle(12.0, 32.0, 32.0, 32.0).offset(this.mainGui.rootElement);
       this.mainGui
          .shownElements
@@ -60,8 +60,8 @@ public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
             new GuiElementStatement<IFillerPattern>(
                this.mainGui,
                patternArea,
-               ((ContainerFillerPlanner)this.menu).getPatternStatementClient(),
-               ((ContainerFillerPlanner)this.menu).possiblePatternsContext,
+               (this.menu).getPatternStatementClient(),
+               (this.menu).possiblePatternsContext,
                true
             ) {
                @Override
@@ -96,7 +96,7 @@ public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
          IGuiArea paramArea = new GuiRectangle(53 + 18 * i, 39.0, 18.0, 18.0).offset(this.mainGui.rootElement);
          this.mainGui
             .shownElements
-            .add(new GuiElementStatementParam(this.mainGui, paramArea, fakeContainer, ((ContainerFillerPlanner)this.menu).getPatternStatementClient(), i, true));
+            .add(new GuiElementStatementParam(this.mainGui, paramArea, fakeContainer, (this.menu).getPatternStatementClient(), i, true));
       }
 
       IGuiArea invertArea = new GuiRectangle(152.0, 40.0, 16.0, 16.0).offset(this.mainGui.rootElement);
@@ -104,7 +104,7 @@ public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
          @Override
          public void addToolTips(List<ToolTip> tooltips) {
             if (this.contains(GuiFillerPlanner.this.mainGui.mouse)) {
-               String key = ((ContainerFillerPlanner)GuiFillerPlanner.this.menu).isInverted() ? "tip.filler.invert.on" : "tip.filler.invert.off";
+               String key = (GuiFillerPlanner.this.menu).isInverted() ? "tip.filler.invert.on" : "tip.filler.invert.off";
                tooltips.add(new ToolTip(LocaleUtil.localize(key)));
             }
          }
@@ -122,7 +122,7 @@ public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
       int mx = (int)this.mainGui.mouse.getX() - this.leftPos;
       int my = (int)this.mainGui.mouse.getY() - this.topPos;
       boolean invertHover = mx >= 152 && mx < 168 && my >= 40 && my < 56;
-      int invertU = ((ContainerFillerPlanner)this.menu).isInverted() ? 240 : 224;
+      int invertU = (this.menu).isInverted() ? 240 : 224;
       int invertV = invertHover ? 16 : 0;
       new GuiIcon(TEXTURE, invertU, invertV, 16.0, 16.0).drawAt(this.leftPos + 152, this.topPos + 40);
    }
@@ -150,9 +150,9 @@ public class GuiFillerPlanner extends BcScreen<ContainerFillerPlanner> {
          int mx = clickX - this.leftPos;
          int my = clickY - this.topPos;
          if (mx >= 152 && mx < 168 && my >= 40 && my < 56) {
-            ((ContainerFillerPlanner)this.menu).sendMessage(12, buf -> {});
+            (this.menu).sendMessage(12, buf -> {});
             if (this.minecraft.player != null) {
-               this.minecraft.player.playSound((SoundEvent)SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
+               this.minecraft.player.playSound(SoundEvents.UI_BUTTON_CLICK.value(), 1.0F, 1.0F);
             }
 
             return true;

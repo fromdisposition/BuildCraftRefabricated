@@ -118,7 +118,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
       if (this.level != null && !this.level.isClientSide()) {
          this.cachedLivePreview = null;
          BlockState blockState = this.level.getBlockState(this.worldPosition);
-         Direction facing = (Direction)blockState.getValue(HorizontalDirectionalBlock.FACING);
+         Direction facing = blockState.getValue(HorizontalDirectionalBlock.FACING);
          BlockPos offsetPos = this.worldPosition.relative(facing.getOpposite());
          WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(this.level);
          VolumeBox volumeBox = volumeBoxes.getVolumeBoxAt(offsetPos);
@@ -294,7 +294,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
                return null;
             }
 
-            Direction facing = (Direction)thisState.getValue(HorizontalDirectionalBlock.FACING);
+            Direction facing = thisState.getValue(HorizontalDirectionalBlock.FACING);
             int sizeX = size.getX();
             int sizeY = size.getY();
             int sizeZ = size.getZ();
@@ -345,7 +345,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
    private void finishScanning() {
       BlockState thisState = this.level.getBlockState(this.worldPosition);
       if (thisState.getBlock() == BCBuildersBlocks.ARCHITECT) {
-         Direction facing = (Direction)thisState.getValue(HorizontalDirectionalBlock.FACING);
+         Direction facing = thisState.getValue(HorizontalDirectionalBlock.FACING);
          Snapshot snapshot = Snapshot.create(this.snapshotType);
          snapshot.size = this.box.size();
          snapshot.facing = facing;

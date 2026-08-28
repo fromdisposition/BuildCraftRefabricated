@@ -43,12 +43,12 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerDynamoMJ)this.menu).dynamo != null) {
+      if ((this.menu).dynamo != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
-                  this.mainGui, () -> ((ContainerDynamoMJ)this.menu).dynamo != null ? ((ContainerDynamoMJ)this.menu).dynamo.getOwner() : null, true
+                  this.mainGui, () -> (this.menu).dynamo != null ? (this.menu).dynamo.getOwner() : null, true
                )
             );
          this.mainGui
@@ -56,11 +56,11 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
             .add(
                new LedgerEngine(
                   this.mainGui,
-                  ((ContainerDynamoMJ)this.menu)::getSyncedCurrentOutput,
-                  ((ContainerDynamoMJ)this.menu)::getSyncedPower,
-                  ((ContainerDynamoMJ)this.menu)::getSyncedHeat,
-                  ((ContainerDynamoMJ)this.menu)::getSyncedPowerStage,
-                  ((ContainerDynamoMJ)this.menu)::isSyncedBurningEngine,
+                  (this.menu)::getSyncedCurrentOutput,
+                  (this.menu)::getSyncedPower,
+                  (this.menu)::getSyncedHeat,
+                  (this.menu)::getSyncedPowerStage,
+                  (this.menu)::isSyncedBurningEngine,
                   true,
                   false
                )
@@ -95,8 +95,8 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
          this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, new GuiRectangle(138.0, 17.0, 8.0, 62.0).offset(this.mainGui.rootElement)) {
             @Override
             public void addHelpElements(List<ElementHelpInfo.HelpPosition> elements) {
-               long mjPerTick = ((ContainerDynamoMJ)GuiDynamoMJ.this.menu).dynamo.getMjPerTick();
-               int rfPerTick = ((ContainerDynamoMJ)GuiDynamoMJ.this.menu).dynamo.getFeProductionRate(mjPerTick);
+               long mjPerTick = (GuiDynamoMJ.this.menu).dynamo.getMjPerTick();
+               int rfPerTick = (GuiDynamoMJ.this.menu).dynamo.getFeProductionRate(mjPerTick);
                String mj = LocaleUtil.localizeMjFlow(mjPerTick);
                String rf = LocaleUtil.localizeRfFlow(rfPerTick);
                String conversion = LocaleUtil.localize("buildcraft.help.dynamo.battery", mj, rf);
@@ -108,7 +108,7 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
             @Override
             public void addToolTips(List<ToolTip> tooltips) {
                if (this.contains(GuiDynamoMJ.this.mainGui.mouse)) {
-                  int current = ((ContainerDynamoMJ)GuiDynamoMJ.this.menu).getSyncedFeStored();
+                  int current = (GuiDynamoMJ.this.menu).getSyncedFeStored();
                   int max = 10000;
                   tooltips.add(new ToolTip(LocaleUtil.localizeExternalBuffer(current, max)));
                }
@@ -127,7 +127,7 @@ public class GuiDynamoMJ extends BcScreen<ContainerDynamoMJ> {
       graphics.item(gearIron, x + 60, y + 21);
       graphics.item(gearGold, x + 83, y + 21);
       graphics.blit(TEXTURE, x + 39, y + 18, 39.0F, 18.0F, 80, 23, 80, 23, 256, 256, -1509949441);
-      double rfHeight = 60.0 * ((ContainerDynamoMJ)this.menu).getSyncedFeStored() / 10000.0;
+      double rfHeight = 60.0 * (this.menu).getSyncedFeStored() / 10000.0;
       double scale = Minecraft.getInstance().getWindow().getGuiScale();
       rfHeight = Math.round(rfHeight * scale) / scale;
       ICON_RF.drawCutInside(new GuiRectangle(139.0, 78.0 - rfHeight, 6.0, rfHeight).offset(this.mainGui.rootElement));

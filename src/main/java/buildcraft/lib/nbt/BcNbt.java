@@ -33,7 +33,7 @@ public final class BcNbt {
 
    public static short getShort(CompoundTag tag, String key, short def) {
       //? if >= 1.21.10 {
-      return (short) tag.getShortOr(key, def);
+      return  tag.getShortOr(key, def);
       //?} else {
       /*return tag.contains(key) ? tag.getShort(key) : def; *///?}
    }

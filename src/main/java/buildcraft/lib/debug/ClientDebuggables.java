@@ -30,9 +30,9 @@ public class ClientDebuggables {
    public static IDebuggable getDebuggableObject(@Nullable HitResult mouseOver) {
       Minecraft mc = Minecraft.getInstance();
       //? if >= 26.2 {
-      if ((Boolean)mc.options.reducedDebugInfo().get() || mc.player == null || mc.player.isReducedDebugInfo() || !mc.debugEntries.isOverlayVisible()) {
+      if (mc.options.reducedDebugInfo().get() || mc.player == null || mc.player.isReducedDebugInfo() || !mc.debugEntries.isOverlayVisible()) {
       //?} else {
-      /*if ((Boolean)mc.options.reducedDebugInfo().get() || mc.player == null || mc.player.isReducedDebugInfo() || !mc.gui.getDebugOverlay().showDebugScreen()) {
+      /*if (mc.options.reducedDebugInfo().get() || mc.player == null || mc.player.isReducedDebugInfo() || !mc.gui.getDebugOverlay().showDebugScreen()) {
       *///?}
          return null;
       }

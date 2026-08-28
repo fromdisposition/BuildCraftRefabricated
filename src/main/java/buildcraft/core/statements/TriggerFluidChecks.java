@@ -46,7 +46,7 @@ public final class TriggerFluidChecks {
       FluidVariant searched = FluidVariants.toVariant(searchedFluid);
 
       for (StorageView<FluidVariant> view : storage) {
-         if (!view.isResourceBlank() && view.getAmount() > 0L && (searched.isBlank() || ((FluidVariant)view.getResource()).equals(searched))) {
+         if (!view.isResourceBlank() && view.getAmount() > 0L && (searched.isBlank() || (view.getResource()).equals(searched))) {
             return true;
          }
       }
@@ -129,7 +129,7 @@ public final class TriggerFluidChecks {
                if (FluidStorageOps.canInsert(view, searched, FluidVariants.mbToDroplets(1L))) {
                   return true;
                }
-            } else if (searched.isBlank() || ((FluidVariant)view.getResource()).equals(searched)) {
+            } else if (searched.isBlank() || (view.getResource()).equals(searched)) {
                float percentage = (float)view.getAmount() / (float)capacity;
                if (percentage < levelFraction) {
                   return true;

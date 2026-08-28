@@ -83,7 +83,7 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
       if (this.level != null && !this.level.isClientSide()) {
          if (this.level.getBlockState(this.worldPosition).getBlock() instanceof BlockChute) {
             this.battery.tick(this.getLevel(), this.getBlockPos());
-            Direction currentSide = (Direction)this.level.getBlockState(this.worldPosition).getValue(BlockChute.FACING);
+            Direction currentSide = this.level.getBlockState(this.worldPosition).getValue(BlockChute.FACING);
             if (currentSide == Direction.UP) {
                this.progress = Math.min((int)PROGRESS_TARGET, this.progress + GRAVITY_PROGRESS);
             }

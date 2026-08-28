@@ -40,8 +40,8 @@ public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
       int rootY = (int)this.mainGui.rootElement.getY();
 
       for (int i = 0; i < 9; i++) {
-         ItemStack stackFilter = ((ContainerFilteredBuffer_BC8)this.menu).tile.invFilter.getStackInSlot(i);
-         ItemStack stackMain = ((ContainerFilteredBuffer_BC8)this.menu).tile.invMain.getStackInSlot(i);
+         ItemStack stackFilter = (this.menu).tile.invFilter.getStackInSlot(i);
+         ItemStack stackMain = (this.menu).tile.invMain.getStackInSlot(i);
          int x = rootX + 8 + i * 18;
          int filterY = rootY + 18;
          int mainY = rootY + 52;
@@ -62,13 +62,13 @@ public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerFilteredBuffer_BC8)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
                   this.mainGui,
-                  () -> ((ContainerFilteredBuffer_BC8)this.menu).tile != null ? ((ContainerFilteredBuffer_BC8)this.menu).tile.getOwner() : null,
+                  () -> (this.menu).tile != null ? (this.menu).tile.getOwner() : null,
                   true
                )
             );

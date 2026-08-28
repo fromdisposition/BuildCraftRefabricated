@@ -33,7 +33,7 @@ public final class FluidShardTintSource implements ItemTintSource {
    }
 
    public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
-      SimpleFluidContent content = (SimpleFluidContent)stack.getOrDefault(BCCore.FLUID_CONTENT, SimpleFluidContent.EMPTY);
+      SimpleFluidContent content = stack.getOrDefault(BCCore.FLUID_CONTENT, SimpleFluidContent.EMPTY);
       FluidStack fluid = content.copy();
       if (fluid.isEmpty()) {
          return -1;

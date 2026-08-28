@@ -148,9 +148,9 @@ public final class FluidStorageInteractions {
 
       for (StorageView<FluidVariant> view : source) {
          if (!view.isResourceBlank()) {
-            FluidStack resource = FluidVariants.toStack((FluidVariant)view.getResource());
+            FluidStack resource = FluidVariants.toStack(view.getResource());
             try (Transaction transaction = Transaction.openOuter()) {
-               long extracted = view.extract((FluidVariant)view.getResource(), FluidVariants.mbToDroplets(1000L), transaction);
+               long extracted = view.extract(view.getResource(), FluidVariants.mbToDroplets(1000L), transaction);
                if (extracted == FluidVariants.mbToDroplets(1000L) && FluidBlockPlacement.tryPlaceFluid(resource, player, level, hand, pos)) {
                   transaction.commit();
                   return resource.copyWithAmount(1000);
@@ -174,7 +174,7 @@ public final class FluidStorageInteractions {
 
       for (StorageView<FluidVariant> view : from) {
          if (!view.isResourceBlank() && view.getAmount() > 0L) {
-            movedVariant = (FluidVariant)view.getResource();
+            movedVariant = view.getResource();
             maxDroplets = view.getAmount();
             break;
          }
@@ -208,7 +208,7 @@ public final class FluidStorageInteractions {
 
       for (StorageView<FluidVariant> view : from) {
          if (!view.isResourceBlank()) {
-            soundVariant = (FluidVariant)view.getResource();
+            soundVariant = view.getResource();
             break;
          }
       }

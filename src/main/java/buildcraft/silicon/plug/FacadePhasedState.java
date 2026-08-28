@@ -94,7 +94,7 @@ public class FacadePhasedState implements IFacadePhasedState {
    public static FacadePhasedState readFromBuffer(FriendlyByteBuf buf) {
       PacketBufferBC bc = BcPayloadBuffers.ensure(buf);
       int stateId = bc.readVarInt();
-      BlockState state = (BlockState)Block.BLOCK_STATE_REGISTRY.byId(stateId);
+      BlockState state = Block.BLOCK_STATE_REGISTRY.byId(stateId);
       boolean hasColour = bc.readBoolean();
       DyeColor colour = hasColour ? bc.readEnumValue(DyeColor.class) : null;
       FacadeBlockStateInfo info = FacadeStateManager.validFacadeStates.get(state);

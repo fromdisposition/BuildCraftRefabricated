@@ -61,7 +61,7 @@ public final class FluidIdentity {
             if (path.startsWith("flowing_")) {
                Identifier stillId = Identifier.fromNamespaceAndPath(fluidId.getNamespace(), path.substring("flowing_".length()));
                //? if >= 1.21.10 {
-               Fluid still = BuiltInRegistries.FLUID.get(stillId).map(ref -> (Fluid)ref.value()).orElse(Fluids.EMPTY);
+               Fluid still = BuiltInRegistries.FLUID.get(stillId).map(ref -> ref.value()).orElse(Fluids.EMPTY);
                //?} else {
                /*Fluid still = BuiltInRegistries.FLUID.get(stillId);
                *///?}
@@ -69,7 +69,7 @@ public final class FluidIdentity {
             } else if (path.endsWith("_flowing")) {
                Identifier stillId = Identifier.fromNamespaceAndPath(fluidId.getNamespace(), path.substring(0, path.length() - "_flowing".length()));
                //? if >= 1.21.10 {
-               Fluid still = BuiltInRegistries.FLUID.get(stillId).map(ref -> (Fluid)ref.value()).orElse(Fluids.EMPTY);
+               Fluid still = BuiltInRegistries.FLUID.get(stillId).map(ref -> ref.value()).orElse(Fluids.EMPTY);
                //?} else {
                /*Fluid still = BuiltInRegistries.FLUID.get(stillId);
                *///?}

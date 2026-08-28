@@ -58,7 +58,7 @@ public class RulesLoader {
       //?} else {
       /*.expireAfterAccess(5L, TimeUnit.MINUTES)
       *///?}
-      .build(CacheLoader.from(pair -> getBlockRulesInternal((BlockState)pair.getLeft(), (CompoundTag)pair.getRight())));
+      .build(CacheLoader.from(pair -> getBlockRulesInternal(pair.getLeft(), pair.getRight())));
    private static final String COMPAT_ASSET_DOMAIN = "buildcraftbuilders";
 
    public static void loadAll() {
@@ -136,7 +136,7 @@ public class RulesLoader {
    }
 
    public static Set<JsonRule> getRules(BlockState blockState, CompoundTag tileNbt) {
-      return (Set<JsonRule>)BLOCK_RULES_CACHE.getUnchecked(Pair.of(blockState, tileNbt));
+      return BLOCK_RULES_CACHE.getUnchecked(Pair.of(blockState, tileNbt));
    }
 
    public static Set<JsonRule> getRules(Identifier entityId, CompoundTag tileNbt) {

@@ -73,7 +73,7 @@ public final class GateTriggerGroupEvaluator {
                      state.isOn = true;
                      StatementSlot slot = new StatementSlot();
                      slot.statement = action.delegate;
-                     slot.parameters = (IStatementParameter[])fullAction.action.getParameters().clone();
+                     slot.parameters = fullAction.action.getParameters().clone();
                      slot.part = action.sourcePart;
                      activeActions.add(slot);
                      action.actionActivate(gate, slot.parameters);

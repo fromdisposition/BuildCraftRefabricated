@@ -191,7 +191,7 @@ public class PacketBufferBC extends FriendlyByteBuf {
    }
 
    public <E extends Enum<E>> E readEnumValue(Class<E> enumClass) {
-      E[] enums = (E[])enumClass.getEnumConstants();
+      E[] enums = enumClass.getEnumConstants();
       if (enums == null) {
          throw new IllegalArgumentException("Not an enum " + enumClass);
       }

@@ -41,12 +41,12 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerArchitectTable)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
-                  this.mainGui, () -> ((ContainerArchitectTable)this.menu).tile != null ? ((ContainerArchitectTable)this.menu).tile.getOwner() : null, true
+                  this.mainGui, () -> (this.menu).tile != null ? (this.menu).tile.getOwner() : null, true
                )
             );
       }
@@ -109,12 +109,12 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    protected void init() {
       super.init();
       this.nameField = new EditBox(this.font, this.leftPos + 7, this.topPos + 122, 162, 12, Component.empty());
-      this.nameField.setValue(((ContainerArchitectTable)this.menu).getTileName());
+      this.nameField.setValue((this.menu).getTileName());
       this.nameField.setFocused(false);
       this.nameField.setResponder(newText -> {
          String trimmed = newText.trim();
-         ((ContainerArchitectTable)this.menu).setTileName(trimmed);
-         ((ContainerArchitectTable)this.menu).sendMessage(10, buf -> buf.writeUtf(trimmed));
+         (this.menu).setTileName(trimmed);
+         (this.menu).sendMessage(10, buf -> buf.writeUtf(trimmed));
       });
       this.addRenderableWidget(this.nameField);
    }
@@ -180,9 +180,9 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    @Override
    protected void drawBackgroundTexture(BCGraphics graphics) {
       graphics.blit(TEXTURE_BASE, this.leftPos, this.topPos, 0.0F, 0.0F, 176, 256, 256, 256);
-      int total = ((ContainerArchitectTable)this.menu).getSyncedTotal();
+      int total = (this.menu).getSyncedTotal();
       if (total > 0) {
-         int progress = ((ContainerArchitectTable)this.menu).getSyncedProgress();
+         int progress = (this.menu).getSyncedProgress();
          int progressWidth = Math.min(22, (int)(22.0F * progress / total));
          if (progressWidth > 0) {
             // Progress-fill arrow: source sprite is at the top-right of the atlas (176, 0), drawn over the base
@@ -192,9 +192,9 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
       }
 
       Snapshot snapshot = null;
-      ItemStack snapshotStack = ((ContainerArchitectTable)this.menu).getSlot(1).getItem();
+      ItemStack snapshotStack = (this.menu).getSlot(1).getItem();
       if (snapshotStack.isEmpty()) {
-         snapshotStack = ((ContainerArchitectTable)this.menu).getSlot(0).getItem();
+         snapshotStack = (this.menu).getSlot(0).getItem();
       }
 
       if (!snapshotStack.isEmpty() && snapshotStack.getItem() instanceof ItemSnapshot) {
@@ -204,8 +204,8 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
          }
       }
 
-      if (snapshot == null && ((ContainerArchitectTable)this.menu).tile != null) {
-         snapshot = ClientArchitectPreviews.INSTANCE.get(((ContainerArchitectTable)this.menu).tile.getBlockPos());
+      if (snapshot == null && (this.menu).tile != null) {
+         snapshot = ClientArchitectPreviews.INSTANCE.get((this.menu).tile.getBlockPos());
       }
 
       if (snapshot != null) {
@@ -216,19 +216,19 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    @Override
    protected void containerTick() {
       super.containerTick();
-      if (((ContainerArchitectTable)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.previewRefreshCounter++;
          if (this.previewRefreshCounter >= 40) {
             this.previewRefreshCounter = 0;
-            ClientArchitectPreviews.INSTANCE.requestRefresh(((ContainerArchitectTable)this.menu).tile.getBlockPos());
+            ClientArchitectPreviews.INSTANCE.requestRefresh((this.menu).tile.getBlockPos());
          }
       }
    }
 
    public void removed() {
       super.removed();
-      if (((ContainerArchitectTable)this.menu).tile != null) {
-         ClientArchitectPreviews.INSTANCE.invalidate(((ContainerArchitectTable)this.menu).tile.getBlockPos());
+      if ((this.menu).tile != null) {
+         ClientArchitectPreviews.INSTANCE.invalidate((this.menu).tile.getBlockPos());
       }
    }
 

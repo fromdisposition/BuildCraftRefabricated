@@ -44,7 +44,7 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell> {
    @Override
    public void render(TileMiningWell tile, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light, int overlay) {
       BlockState blockState = tile.getBlockState();
-      Direction facing = blockState.is(BCFactoryBlocks.MINING_WELL) ? (Direction) blockState.getValue(BuildCraftProperties.BLOCK_FACING) : Direction.NORTH;
+      Direction facing = blockState.is(BCFactoryBlocks.MINING_WELL) ? blockState.getValue(BuildCraftProperties.BLOCK_FACING) : Direction.NORTH;
       float percentFilled = tile.getPercentFilledForRender();
       int powerColour = COLOUR_POWER[(int) (percentFilled * (COLOUR_POWER.length - 1))];
       int statusColour = tile.isComplete() ? -14741477 : -8921737;

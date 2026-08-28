@@ -49,7 +49,7 @@ public final class PipeEnergyDisplaySupport {
       for (Direction face : Direction.values()) {
          PipeEnergyDisplaySupport.DisplaySection section = sections.get(face);
          section.setDisplayPower(buffer.readInt());
-         section.setDisplayFlow((PipeEnergyEnumFlow)buffer.readEnum(PipeEnergyEnumFlow.class));
+         section.setDisplayFlow(buffer.readEnum(PipeEnergyEnumFlow.class));
       }
    }
 

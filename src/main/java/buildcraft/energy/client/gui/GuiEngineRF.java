@@ -43,12 +43,12 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerEngineRF)this.menu).engine != null) {
+      if ((this.menu).engine != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
-                  this.mainGui, () -> ((ContainerEngineRF)this.menu).engine != null ? ((ContainerEngineRF)this.menu).engine.getOwner() : null, true
+                  this.mainGui, () -> (this.menu).engine != null ? (this.menu).engine.getOwner() : null, true
                )
             );
          this.mainGui
@@ -56,11 +56,11 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
             .add(
                new LedgerEngine(
                   this.mainGui,
-                  ((ContainerEngineRF)this.menu)::getSyncedCurrentOutput,
-                  ((ContainerEngineRF)this.menu)::getSyncedPower,
-                  ((ContainerEngineRF)this.menu)::getSyncedHeat,
-                  ((ContainerEngineRF)this.menu)::getSyncedPowerStage,
-                  ((ContainerEngineRF)this.menu)::isSyncedBurningEngine,
+                  (this.menu)::getSyncedCurrentOutput,
+                  (this.menu)::getSyncedPower,
+                  (this.menu)::getSyncedHeat,
+                  (this.menu)::getSyncedPowerStage,
+                  (this.menu)::isSyncedBurningEngine,
                   true,
                   false
                )
@@ -95,8 +95,8 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
          this.mainGui.shownElements.add(new GuiElementSimple(this.mainGui, new GuiRectangle(30.0, 17.0, 8.0, 62.0).offset(this.mainGui.rootElement)) {
             @Override
             public void addHelpElements(List<ElementHelpInfo.HelpPosition> elements) {
-               int rfPerTick = ((ContainerEngineRF)GuiEngineRF.this.menu).engine.getFeConsumptionRate();
-               long mjPerTick = ((ContainerEngineRF)GuiEngineRF.this.menu).engine.getMjPerTick();
+               int rfPerTick = (GuiEngineRF.this.menu).engine.getFeConsumptionRate();
+               long mjPerTick = (GuiEngineRF.this.menu).engine.getMjPerTick();
                String rf = LocaleUtil.localizeRfFlow(rfPerTick);
                String mj = LocaleUtil.localizeMjFlow(mjPerTick);
                String conversion = LocaleUtil.localize("buildcraft.help.rf_engine.battery", rf, mj);
@@ -108,7 +108,7 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
             @Override
             public void addToolTips(List<ToolTip> tooltips) {
                if (this.contains(GuiEngineRF.this.mainGui.mouse)) {
-                  int current = ((ContainerEngineRF)GuiEngineRF.this.menu).getSyncedFeStored();
+                  int current = (GuiEngineRF.this.menu).getSyncedFeStored();
                   int max = 10000;
                   tooltips.add(new ToolTip(LocaleUtil.localizeExternalBuffer(current, max)));
                }
@@ -127,7 +127,7 @@ public class GuiEngineRF extends BcScreen<ContainerEngineRF> {
       graphics.item(gearIron, x + 78, y + 21);
       graphics.item(gearGold, x + 101, y + 21);
       graphics.blit(TEXTURE, x + 57, y + 18, 57.0F, 18.0F, 80, 23, 80, 23, 256, 256, -1509949441);
-      double rfHeight = 60.0 * ((ContainerEngineRF)this.menu).getSyncedFeStored() / 10000.0;
+      double rfHeight = 60.0 * (this.menu).getSyncedFeStored() / 10000.0;
       double scale = Minecraft.getInstance().getWindow().getGuiScale();
       rfHeight = Math.round(rfHeight * scale) / scale;
       ICON_RF.drawCutInside(new GuiRectangle(31.0, 78.0 - rfHeight, 6.0, rfHeight).offset(this.mainGui.rootElement));

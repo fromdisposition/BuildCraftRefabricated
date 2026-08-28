@@ -63,8 +63,8 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
             return FluidStack.EMPTY;
          }
 
-         Holder<Fluid> holder = (Holder<Fluid>)FluidInstance.FLUID_HOLDER_STREAM_CODEC.decode(buf);
-         DataComponentPatch patch = (DataComponentPatch)DataComponentPatch.STREAM_CODEC.decode(buf);
+         Holder<Fluid> holder = FluidInstance.FLUID_HOLDER_STREAM_CODEC.decode(buf);
+         DataComponentPatch patch = DataComponentPatch.STREAM_CODEC.decode(buf);
          return new FluidStack(holder, amount, patch);
       }
 
@@ -80,7 +80,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    };
    public static final StreamCodec<RegistryFriendlyByteBuf, FluidStack> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, FluidStack>() {
       public FluidStack decode(RegistryFriendlyByteBuf buf) {
-         FluidStack stack = (FluidStack)FluidStack.OPTIONAL_STREAM_CODEC.decode(buf);
+         FluidStack stack = FluidStack.OPTIONAL_STREAM_CODEC.decode(buf);
          if (stack.isEmpty()) {
             throw new DecoderException("Empty FluidStack not allowed");
          } else {
@@ -114,7 +114,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public DataComponentMap getComponents() {
-      return (DataComponentMap)(this.isEmpty() ? DataComponentMap.EMPTY : this.components);
+      return (this.isEmpty() ? DataComponentMap.EMPTY : this.components);
    }
 
    public DataComponentMap getPrototype() {
@@ -183,7 +183,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public boolean isEmpty() {
-      return this == EMPTY || ((Fluid)this.fluid.value()).isSame(Fluids.EMPTY) || this.amount <= 0;
+      return this == EMPTY || (this.fluid.value()).isSame(Fluids.EMPTY) || this.amount <= 0;
    }
 
    public FluidStack split(int amount) {
@@ -204,7 +204,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    }
 
    public Fluid getFluid() {
-      return (Fluid)this.typeHolder().value();
+      return this.typeHolder().value();
    }
 
    public Holder<Fluid> typeHolder() {
@@ -281,7 +281,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
 
    public List<Component> getTooltipLines(TooltipContext context, @Nullable Player player, TooltipFlag flag) {
       //? if >= 1.21.10 {
-      TooltipDisplay tooltipDisplay = (TooltipDisplay)this.getOrDefault(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT);
+      TooltipDisplay tooltipDisplay = this.getOrDefault(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT);
       if (!flag.isCreative() && tooltipDisplay.hideTooltip()) {
          return List.of();
       }
@@ -309,14 +309,14 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
 
    @Override
    public <T> @Nullable T set(DataComponentType<T> type, @Nullable T component) {
-      return (T)this.components.set(type, component);
+      return this.components.set(type, component);
    }
 
    public <T> @Nullable T set(TypedDataComponent<T> value) {
       //? if >= 1.21.10 {
-      return (T)this.components.set(value);
+      return this.components.set(value);
       //?} else {
-      /*return (T)this.components.set(value.type(), value.value());
+      /*return this.components.set(value.type(), value.value());
       *///?}
    }
 

@@ -78,7 +78,7 @@ public class ContainerAdvancedCraftingTable extends ContainerBCTileRecipeBook<Ti
    }
 
    public Slot getResultSlot() {
-      return (Slot)this.slots.get(0);
+      return this.slots.get(0);
    }
 
    @Override

@@ -34,8 +34,8 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
 
    @Override
    protected void initGuiElements() {
-      TileHeatExchange.ExchangeSectionStart start = ((ContainerHeatExchange)this.menu).startSection();
-      TileHeatExchange.ExchangeSectionEnd end = ((ContainerHeatExchange)this.menu).endSection();
+      TileHeatExchange.ExchangeSectionStart start = (this.menu).startSection();
+      TileHeatExchange.ExchangeSectionEnd end = (this.menu).endSection();
       if (start != null) {
          this.mainGui
             .shownElements
@@ -43,8 +43,8 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
                new GuiElementFluidTank(
                   this.mainGui,
                   new GuiRectangle(44.0, 70.0, 34.0, 17.0).offset(this.mainGui.rootElement),
-                  ((ContainerHeatExchange)this.menu).widgetTankStartInput.getTankStorage(),
-                  ((ContainerHeatExchange)this.menu).widgetTankStartInput,
+                  (this.menu).widgetTankStartInput.getTankStorage(),
+                  (this.menu).widgetTankStartInput,
                   OVERLAY_HORIZONTAL
                )
             );
@@ -54,8 +54,8 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
                new GuiElementFluidTank(
                   this.mainGui,
                   new GuiRectangle(116.0, 49.0, 16.0, 38.0).offset(this.mainGui.rootElement),
-                  ((ContainerHeatExchange)this.menu).widgetTankStartOutput.getTankStorage(),
-                  ((ContainerHeatExchange)this.menu).widgetTankStartOutput,
+                  (this.menu).widgetTankStartOutput.getTankStorage(),
+                  (this.menu).widgetTankStartOutput,
                   OVERLAY_VERTICAL
                )
             );
@@ -84,8 +84,8 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
                new GuiElementFluidTank(
                   this.mainGui,
                   new GuiRectangle(44.0, 18.0, 16.0, 38.0).offset(this.mainGui.rootElement),
-                  ((ContainerHeatExchange)this.menu).widgetTankEndInput.getTankStorage(),
-                  ((ContainerHeatExchange)this.menu).widgetTankEndInput,
+                  (this.menu).widgetTankEndInput.getTankStorage(),
+                  (this.menu).widgetTankEndInput,
                   OVERLAY_VERTICAL
                )
             );
@@ -95,8 +95,8 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
                new GuiElementFluidTank(
                   this.mainGui,
                   new GuiRectangle(98.0, 18.0, 34.0, 17.0).offset(this.mainGui.rootElement),
-                  ((ContainerHeatExchange)this.menu).widgetTankEndOutput.getTankStorage(),
-                  ((ContainerHeatExchange)this.menu).widgetTankEndOutput,
+                  (this.menu).widgetTankEndOutput.getTankStorage(),
+                  (this.menu).widgetTankEndOutput,
                   OVERLAY_HORIZONTAL
                )
             );
@@ -136,7 +136,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
    @Override
    protected void containerTick() {
       super.containerTick();
-      int hash = ((ContainerHeatExchange)this.menu).getSectionSyncHash();
+      int hash = (this.menu).getSectionSyncHash();
       if (hash != this.lastSectionSyncHash) {
          this.lastSectionSyncHash = hash;
          this.init();
@@ -165,7 +165,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
    }
 
    private void drawCenterWipeOverlay(float partialTicks) {
-      TileHeatExchange.ExchangeSectionStart start = ((ContainerHeatExchange)this.menu).startSection();
+      TileHeatExchange.ExchangeSectionStart start = (this.menu).startSection();
       if (start != null) {
          TileHeatExchange.EnumProgressState state = start.getProgressState();
          if (state != TileHeatExchange.EnumProgressState.OFF) {

@@ -53,7 +53,7 @@ public class NBTUtilBC {
          return new CompoundTag();
       }
 
-      CustomData customData = (CustomData)stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+      CustomData customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
       return customData.copyTag();
    }
 

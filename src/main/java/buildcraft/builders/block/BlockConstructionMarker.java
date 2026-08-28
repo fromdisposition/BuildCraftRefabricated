@@ -36,7 +36,7 @@ public class BlockConstructionMarker extends HorizontalDirectionalBlock implemen
 
    public BlockConstructionMarker(Properties properties) {
       super(properties);
-      this.registerDefaultState((BlockState)this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+      this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
    }
 
    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
@@ -48,7 +48,7 @@ public class BlockConstructionMarker extends HorizontalDirectionalBlock implemen
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
-      return (BlockState)this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+      return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
    @Nullable

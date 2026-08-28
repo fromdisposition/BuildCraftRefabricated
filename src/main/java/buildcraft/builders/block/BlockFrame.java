@@ -54,10 +54,10 @@ public class BlockFrame extends Block {
 
    public BlockFrame(Properties properties) {
       super(properties);
-      BlockState defaultState = (BlockState)this.stateDefinition.any();
+      BlockState defaultState = this.stateDefinition.any();
 
       for (Property<Boolean> prop : CONNECTED_MAP.values()) {
-         defaultState = (BlockState)defaultState.setValue(prop, false);
+         defaultState = defaultState.setValue(prop, false);
       }
 
       this.registerDefaultState(defaultState);
@@ -80,7 +80,7 @@ public class BlockFrame extends Block {
 
    private BlockState computeConnections(BlockGetter level, BlockPos pos, BlockState state) {
       for (Entry<Direction, Property<Boolean>> entry : CONNECTED_MAP.entrySet()) {
-         state = (BlockState)state.setValue(entry.getValue(), this.canConnectTo(level, pos.relative(entry.getKey())));
+         state = state.setValue(entry.getValue(), this.canConnectTo(level, pos.relative(entry.getKey())));
       }
 
       return state;
@@ -103,7 +103,7 @@ public class BlockFrame extends Block {
    *///?}
       Property<Boolean> prop = CONNECTED_MAP.get(direction);
       if (prop != null) {
-         state = (BlockState)state.setValue(prop, this.canConnectTo(level, neighborPos));
+         state = state.setValue(prop, this.canConnectTo(level, neighborPos));
       }
 
       return state;
@@ -124,7 +124,7 @@ public class BlockFrame extends Block {
 
       for (Entry<Direction, VoxelShape> entry : CONNECTION_SHAPES.entrySet()) {
          Property<Boolean> prop = CONNECTED_MAP.get(entry.getKey());
-         if ((Boolean)state.getValue(prop)) {
+         if (state.getValue(prop)) {
             shape = Shapes.join(shape, entry.getValue(), BooleanOp.OR);
          }
       }

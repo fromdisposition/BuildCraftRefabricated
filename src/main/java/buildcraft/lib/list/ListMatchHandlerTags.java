@@ -81,7 +81,7 @@ public class ListMatchHandlerTags extends ListMatchHandler {
          String part = partOf(tag, type);
          if (parts.contains(part)) {
             for (Holder<Item> h : named) {
-               Item item = (Item)h.value();
+               Item item = h.value();
                if (seen.add(item)) {
                   out.add(new ItemStack(item));
                }
@@ -104,7 +104,7 @@ public class ListMatchHandlerTags extends ListMatchHandler {
 
       Set<String> out = new LinkedHashSet<>();
       tagsOf(stack).forEach(tag -> {
-         String part = partOf((TagKey<Item>)tag, type);
+         String part = partOf(tag, type);
          out.add("#" + tag.location() + " (" + part + ")");
       });
       return new ArrayList<>(out);

@@ -57,7 +57,7 @@ public final class CraftingUtil {
          RecipeDisplay display = displays.get(0);
          if (display instanceof ShapelessCraftingRecipeDisplay shapeless) {
             for (int i = 0; i < shapeless.ingredients().size() && i < 9; i++) {
-               ItemStack stack = firstStack((SlotDisplay)shapeless.ingredients().get(i), ctx);
+               ItemStack stack = firstStack(shapeless.ingredients().get(i), ctx);
                if (!stack.isEmpty()) {
                   blueprint.setStackInSlot(i, stack);
                }
@@ -70,7 +70,7 @@ public final class CraftingUtil {
                for (int col = 0; col < w && col < 3; col++) {
                   int idx = col + row * w;
                   if (idx < shaped.ingredients().size()) {
-                     ItemStack stack = firstStack((SlotDisplay)shaped.ingredients().get(idx), ctx);
+                     ItemStack stack = firstStack(shaped.ingredients().get(idx), ctx);
                      if (!stack.isEmpty()) {
                         blueprint.setStackInSlot(col + row * 3, stack);
                      }

@@ -87,7 +87,7 @@ public class BlockEngineIron_BC8 extends BlockEngineBase_BC8 {
          } else if (engine != null && FluidStorageInteractions.onTankActivated(player, pos, hand, engine.getCombinedFluidStorage())) {
             return InteractionResult.SUCCESS;
          } else {
-            return (InteractionResult)(FluidStorageInteractions.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : this.openGui(state, level, pos, player));
+            return (FluidStorageInteractions.isFluidContainerInHand(player, hand) ? InteractionResult.SUCCESS : this.openGui(state, level, pos, player));
          }
       }
    }

@@ -50,7 +50,7 @@ public class BlockWaterGel extends HalfTransparentBlock {
 
    public BlockWaterGel(Properties properties) {
       super(properties);
-      this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(PROP_STAGE, BlockWaterGel.GelStage.SPREAD_0));
+      this.registerDefaultState((this.stateDefinition.any()).setValue(PROP_STAGE, BlockWaterGel.GelStage.SPREAD_0));
    }
 
    protected MapCodec<? extends BlockWaterGel> codec() {
@@ -62,9 +62,9 @@ public class BlockWaterGel extends HalfTransparentBlock {
    }
 
    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource rand) {
-      BlockWaterGel.GelStage stage = (BlockWaterGel.GelStage)state.getValue(PROP_STAGE);
+      BlockWaterGel.GelStage stage = state.getValue(PROP_STAGE);
       BlockWaterGel.GelStage next = stage.next();
-      BlockState nextState = (BlockState)state.setValue(PROP_STAGE, next);
+      BlockState nextState = state.setValue(PROP_STAGE, next);
       if (stage.spreading) {
          Deque<BlockPos> openQueue = new ArrayDeque<>();
          Set<BlockPos> seenSet = new HashSet<>();
@@ -169,7 +169,7 @@ public class BlockWaterGel extends HalfTransparentBlock {
    }
 
    public SoundType getSoundType(BlockState state) {
-      BlockWaterGel.GelStage stage = (BlockWaterGel.GelStage)state.getValue(PROP_STAGE);
+      BlockWaterGel.GelStage stage = state.getValue(PROP_STAGE);
       return stage.soundType;
    }
 
@@ -178,7 +178,7 @@ public class BlockWaterGel extends HalfTransparentBlock {
    }
 
    public float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
-      BlockWaterGel.GelStage stage = (BlockWaterGel.GelStage)state.getValue(PROP_STAGE);
+      BlockWaterGel.GelStage stage = state.getValue(PROP_STAGE);
       float hardness = stage.hardness;
       if (hardness < 0.0F) {
          return 0.0F;
@@ -190,7 +190,7 @@ public class BlockWaterGel extends HalfTransparentBlock {
    }
 
    protected List<ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder builder) {
-      BlockWaterGel.GelStage stage = (BlockWaterGel.GelStage)state.getValue(PROP_STAGE);
+      BlockWaterGel.GelStage stage = state.getValue(PROP_STAGE);
       RandomSource rand = builder.getLevel().getRandom();
       int count;
       if (stage.spreading) {

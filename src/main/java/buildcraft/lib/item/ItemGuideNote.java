@@ -43,7 +43,7 @@ public class ItemGuideNote extends Item {
 
    @Nullable
    public static Identifier getLinkedPage(ItemStack stack) {
-      CustomData data = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
+      CustomData data = stack.get(DataComponents.CUSTOM_DATA);
       if (data == null) {
          return null;
       }

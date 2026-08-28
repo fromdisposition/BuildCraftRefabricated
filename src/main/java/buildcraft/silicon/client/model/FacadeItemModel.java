@@ -148,10 +148,10 @@ public class FacadeItemModel implements ItemModel {
       KeyPlugFacade key;
       if (displayContext == ItemDisplayContext.GUI) {
          key = new KeyPlugFacade("item", Direction.NORTH, state.stateInfo.state, inst.isHollow());
-         quads = (List<BakedQuad>)guiCache.getUnchecked(key);
+         quads = guiCache.getUnchecked(key);
       } else {
          key = new KeyPlugFacade("item", Direction.EAST, state.stateInfo.state, inst.isHollow());
-         quads = (List<BakedQuad>)cache.getUnchecked(key);
+         quads = cache.getUnchecked(key);
       }
 
       if (!quads.isEmpty()) {

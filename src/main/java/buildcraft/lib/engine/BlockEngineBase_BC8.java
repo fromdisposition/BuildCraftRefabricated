@@ -41,7 +41,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class BlockEngineBase_BC8 extends Block implements EntityBlock, ICustomRotationHandler {
    public BlockEngineBase_BC8(Properties properties) {
       super(properties.noOcclusion());
-      this.registerDefaultState((BlockState)this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, Direction.UP));
+      this.registerDefaultState(this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, Direction.UP));
    }
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
@@ -50,15 +50,15 @@ public abstract class BlockEngineBase_BC8 extends Block implements EntityBlock, 
 
    @Nullable
    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
-      return (BlockState)this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, ctx.getClickedFace());
+      return this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, ctx.getClickedFace());
    }
 
    public BlockState rotate(BlockState state, Rotation rot) {
-      return (BlockState)state.setValue(BuildCraftProperties.BLOCK_FACING_6, rot.rotate((Direction)state.getValue(BuildCraftProperties.BLOCK_FACING_6)));
+      return state.setValue(BuildCraftProperties.BLOCK_FACING_6, rot.rotate(state.getValue(BuildCraftProperties.BLOCK_FACING_6)));
    }
 
    public VoxelShape getBlockSupportShape(BlockState state, BlockGetter level, BlockPos pos) {
-      Direction facing = (Direction)state.getValue(BuildCraftProperties.BLOCK_FACING_6);
+      Direction facing = state.getValue(BuildCraftProperties.BLOCK_FACING_6);
 
       return switch (facing) {
          case DOWN -> Block.box(0.0, 12.0, 0.0, 16.0, 16.0, 16.0);
@@ -107,7 +107,7 @@ public abstract class BlockEngineBase_BC8 extends Block implements EntityBlock, 
       if (world.isClientSide()) {
          return InteractionResult.SUCCESS;
       } else if (world.getBlockEntity(pos) instanceof TileEngineBase_BC8 engine && engine.attemptRotation()) {
-         world.setBlock(pos, (BlockState)state.setValue(BuildCraftProperties.BLOCK_FACING_6, engine.getOrientation()), 3);
+         world.setBlock(pos, state.setValue(BuildCraftProperties.BLOCK_FACING_6, engine.getOrientation()), 3);
          return InteractionResult.SUCCESS;
       } else {
          return InteractionResult.FAIL;

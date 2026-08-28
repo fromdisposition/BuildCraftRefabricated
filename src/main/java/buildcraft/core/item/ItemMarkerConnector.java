@@ -117,8 +117,8 @@ public class ItemMarkerConnector extends Item {
       Vec3 start = player.position().add(0.0, player.getEyeHeight(), 0.0);
       Vec3 end = start.add(player.getLookAngle().scale(4.0));
       Pair<VolumeBox, EnumAddonSlot> selectingVolumeBoxAndSlot = EnumAddonSlot.getSelectingVolumeBoxAndSlot(player, volumeBoxes.volumeBoxes);
-      VolumeBox addonVolumeBox = (VolumeBox)selectingVolumeBoxAndSlot.getLeft();
-      EnumAddonSlot addonSlot = (EnumAddonSlot)selectingVolumeBoxAndSlot.getRight();
+      VolumeBox addonVolumeBox = selectingVolumeBoxAndSlot.getLeft();
+      EnumAddonSlot addonSlot = selectingVolumeBoxAndSlot.getRight();
       if (addonVolumeBox != null && addonSlot != null) {
          if (addonVolumeBox.addons.containsKey(addonSlot)
             && addonVolumeBox.getLockTargetsStream()

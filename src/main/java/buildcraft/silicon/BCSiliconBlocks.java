@@ -97,7 +97,7 @@ public final class BCSiliconBlocks {
          "buildcraftsilicon",
          "packager",
          props -> new BlockPackager(
-            props, () -> BCSiliconBlockEntities.PACKAGER, (id, inv, tile) -> new ContainerPackager(id, inv.player, (TilePackager)tile)
+            props, () -> BCSiliconBlockEntities.PACKAGER, (id, inv, tile) -> new ContainerPackager(id, inv.player, tile)
          ),
          p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );

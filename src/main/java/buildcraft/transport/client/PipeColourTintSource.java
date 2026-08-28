@@ -32,7 +32,7 @@ public final class PipeColourTintSource implements ItemTintSource {
    }
 
    public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
-      DyeColor col = (DyeColor)stack.get(BCTransportItems.PIPE_COLOUR);
+      DyeColor col = stack.get(BCTransportItems.PIPE_COLOUR);
       return col != null ? 1275068416 | ColourUtil.getLightHex(col) : 1291845631;
    }
 

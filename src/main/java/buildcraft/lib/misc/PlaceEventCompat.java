@@ -38,7 +38,7 @@ public final class PlaceEventCompat {
       }
 
       BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(pos), face, hitPos, false);
-      InteractionResult result = ((UseBlockCallback)UseBlockCallback.EVENT.invoker()).interact(player, level, InteractionHand.MAIN_HAND, hit);
+      InteractionResult result = (UseBlockCallback.EVENT.invoker()).interact(player, level, InteractionHand.MAIN_HAND, hit);
       return result != InteractionResult.FAIL;
    }
 }

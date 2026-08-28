@@ -37,7 +37,7 @@ public class JsonModel {
 
    public static JsonModel deserialize(Identifier from, ResourceLoaderContext ctx) throws JsonParseException, IOException {
       try (InputStreamReader isr = ctx.startLoading(from)) {
-         return new JsonModel((JsonObject)new Gson().fromJson(isr, JsonObject.class), ctx);
+         return new JsonModel(new Gson().fromJson(isr, JsonObject.class), ctx);
       } finally {
          ctx.finishLoading();
       }

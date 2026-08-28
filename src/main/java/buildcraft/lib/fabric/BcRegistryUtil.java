@@ -129,7 +129,7 @@ public final class BcRegistryUtil {
    }
 
    public static boolean isEmptyFluid(Holder<Fluid> holder) {
-      return ((Fluid)holder.value()).isSame(Fluids.EMPTY);
+      return (holder.value()).isSame(Fluids.EMPTY);
    }
 
    public static boolean isChunkLoaded(Level level, BlockPos pos) {
@@ -148,7 +148,7 @@ public final class BcRegistryUtil {
       if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
          client = buildcraft.lib.fabric.client.BcClientRegistryAccess.levelRegistryAccess();
       }
-      return (DynamicOps<Tag>)(client != null ? RegistryOps.create(NbtOps.INSTANCE, client) : NbtOps.INSTANCE);
+      return (client != null ? RegistryOps.create(NbtOps.INSTANCE, client) : NbtOps.INSTANCE);
    }
 
    public static DynamicOps<Tag> registryAwareOps(Level level) {

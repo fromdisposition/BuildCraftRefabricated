@@ -27,9 +27,9 @@ public final class PipeNeighborTransfers {
       for (StorageView<ItemVariant> view : storage) {
          if (!view.isResourceBlank() && view.getAmount() > 0L) {
             int available = TransferCommits.saturateCount(view.getAmount());
-            ItemStack stack = ((ItemVariant)view.getResource()).toStack(Math.min(available, maxCount));
+            ItemStack stack = (view.getResource()).toStack(Math.min(available, maxCount));
             if (filter.matches(stack)) {
-               return new PipeNeighborTransfers.ItemProbe(view, (ItemVariant)view.getResource(), available);
+               return new PipeNeighborTransfers.ItemProbe(view, view.getResource(), available);
             }
          }
       }

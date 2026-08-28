@@ -35,7 +35,7 @@ public class BlockArchitectTable extends HorizontalDirectionalBlock implements E
 
    public BlockArchitectTable(Properties properties) {
       super(properties);
-      this.registerDefaultState((BlockState)((BlockState)this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
+      this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
    }
 
    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
@@ -47,7 +47,7 @@ public class BlockArchitectTable extends HorizontalDirectionalBlock implements E
    }
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
-      return (BlockState)this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+      return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
    @Nullable

@@ -58,7 +58,7 @@ public class GuiConfigManager {
          }
 
          try {
-            JsonObject json = (JsonObject)new Gson().fromJson(text, JsonObject.class);
+            JsonObject json = new Gson().fromJson(text, JsonObject.class);
             if (json == null) {
                return;
             }

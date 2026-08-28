@@ -74,7 +74,7 @@ public class RenderDistiller implements BlockEntityRenderer<TileDistiller, Disti
    private void extract(TileDistiller tile, DistillerRenderState state, float partialTick) {
       state.partialTick = partialTick;
       BlockState blockState = tile.getBlockState();
-      state.facing = (Direction)blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+      state.facing = blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
       state.sizes = TANK_SIZES.get(state.facing);
       state.fluidIn = DistillerFluidSnapshot.from(tile.getSmoothIn(), partialTick);
       state.fluidGasOut = DistillerFluidSnapshot.from(tile.getSmoothGasOut(), partialTick);

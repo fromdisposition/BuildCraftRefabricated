@@ -562,7 +562,7 @@ public class GuiGuide extends Screen {
    *///?}
 
    private boolean bcMouseClicked(int mouseX, int mouseY, int mouseButton, boolean doubleClick) {
-      this.mouse.setMousePosition((int)mouseX, (int)mouseY);
+      this.mouse.setMousePosition(mouseX, mouseY);
       if (mouseButton == 0) {
          if (this.isOpen) {
             int page0xMin = this.minX + (int)PAGE_LEFT_TEXT.getX();
@@ -625,10 +625,10 @@ public class GuiGuide extends Screen {
             }
 
             current.handleMouseClick(
-               page0xMin, pageYMin, page0xMax - page0xMin, pageYMax - pageYMin, (int)mouseX, (int)mouseY, mouseButton, this.currentPage.getPage(), false
+               page0xMin, pageYMin, page0xMax - page0xMin, pageYMax - pageYMin, mouseX, mouseY, mouseButton, this.currentPage.getPage(), false
             );
             current.handleMouseClick(
-               page1xMin, pageYMin, page1xMax - page1xMin, pageYMax - pageYMin, (int)mouseX, (int)mouseY, mouseButton, this.currentPage.getPage() + 1, false
+               page1xMin, pageYMin, page1xMax - page1xMin, pageYMax - pageYMin, mouseX, mouseY, mouseButton, this.currentPage.getPage() + 1, false
             );
             if (!this.pages.isEmpty() && BACK_POSITION.offset(this.minX, this.minY).contains(mouseX, mouseY)) {
                this.closePage();

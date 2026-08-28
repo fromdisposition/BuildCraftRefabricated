@@ -54,7 +54,7 @@ public final class BCNetworkingRegistryClient {
       Type<T> type, StreamCodec<? super RegistryFriendlyByteBuf, T> codec, BiConsumer<T, BCPayloadContext> handler
    ) {
       ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
-         BCNetworkingRegistry.dispatch((T) payload, clientContext(context.player()), handler);
+         BCNetworkingRegistry.dispatch( payload, clientContext(context.player()), handler);
       });
    }
 
@@ -62,7 +62,7 @@ public final class BCNetworkingRegistryClient {
       Type<T> type, StreamCodec<? super FriendlyByteBuf, T> codec, BiConsumer<T, BCPayloadContext> handler
    ) {
       ClientPlayNetworking.registerGlobalReceiver(type, (payload, context) -> {
-         BCNetworkingRegistry.dispatch((T) payload, clientContext(context.player()), handler);
+         BCNetworkingRegistry.dispatch( payload, clientContext(context.player()), handler);
       });
    }
 

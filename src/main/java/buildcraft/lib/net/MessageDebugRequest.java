@@ -33,7 +33,7 @@ public record MessageDebugRequest(BlockPos pos, Direction side) implements Custo
 
    private static MessageDebugRequest decode(RegistryFriendlyByteBuf buf) {
       BlockPos pos = buf.readBlockPos();
-      Direction side = (Direction)buf.readEnum(Direction.class);
+      Direction side = buf.readEnum(Direction.class);
       return new MessageDebugRequest(pos, side);
    }
 

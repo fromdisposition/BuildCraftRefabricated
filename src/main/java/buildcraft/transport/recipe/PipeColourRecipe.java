@@ -100,7 +100,7 @@ public class PipeColourRecipe extends CustomRecipe {
                }
 
                pipeCount++;
-               DyeColor colour = (DyeColor)stack.get(BCTransportItems.PIPE_COLOUR);
+               DyeColor colour = stack.get(BCTransportItems.PIPE_COLOUR);
                if (pipeColour == null) {
                   pipeColour = colour;
                } else if (colour != pipeColour) {

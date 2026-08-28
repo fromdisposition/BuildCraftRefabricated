@@ -39,11 +39,11 @@ public class ItemPaintbrush_BC8 extends Item {
 
    @Nullable
    private static DyeColor getColour(ItemStack stack) {
-      return (DyeColor)stack.get(BCCore.BRUSH_COLOR);
+      return stack.get(BCCore.BRUSH_COLOR);
    }
 
    private static int getUsesLeft(ItemStack stack) {
-      Integer uses = (Integer)stack.get(BCCore.BRUSH_USES);
+      Integer uses = stack.get(BCCore.BRUSH_USES);
       return uses != null ? uses : 0;
    }
 

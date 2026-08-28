@@ -65,12 +65,12 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
 
    @Override
    protected void initGuiElements() {
-      if (((ContainerReplacer)this.menu).tile != null) {
+      if ((this.menu).tile != null) {
          this.mainGui
             .shownElements
             .add(
                new LedgerOwnership(
-                  this.mainGui, () -> ((ContainerReplacer)this.menu).tile != null ? ((ContainerReplacer)this.menu).tile.getOwner() : null, true
+                  this.mainGui, () -> (this.menu).tile != null ? (this.menu).tile.getOwner() : null, true
                )
             );
       }
@@ -134,7 +134,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
       super.init();
       this.nameField = new EditBox(this.font, this.leftPos + 29, this.topPos + 122, 140, 12, Component.empty());
       this.nameField.setMaxLength(64);
-      this.nameField.setValue(((ContainerReplacer)this.menu).getBlueprintName());
+      this.nameField.setValue((this.menu).getBlueprintName());
       this.nameField.setFocused(false);
       this.lastSeededKey = this.currentBlueprintKey();
       this.addRenderableWidget(this.nameField);
@@ -147,7 +147,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
 
    private void onReplacePressed() {
       String newName = this.nameField.getValue().trim();
-      ((ContainerReplacer)this.menu).sendMessage(10, buf -> buf.writeUtf(newName));
+      (this.menu).sendMessage(10, buf -> buf.writeUtf(newName));
       this.replaceAnimTicks = REPLACE_ANIM_DURATION;
    }
 
@@ -157,7 +157,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
       Snapshot.Key currentKey = this.currentBlueprintKey();
       boolean keyChanged = !Objects.equals(currentKey, this.lastSeededKey);
       if (keyChanged && this.nameField != null && !this.nameField.isFocused()) {
-         this.nameField.setValue(((ContainerReplacer)this.menu).getBlueprintName());
+         this.nameField.setValue((this.menu).getBlueprintName());
          this.lastSeededKey = currentKey;
       } else if (keyChanged && this.nameField != null) {
          this.lastSeededKey = currentKey;
@@ -172,14 +172,14 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    }
 
    private int computeCacheFingerprint() {
-      if (((ContainerReplacer)this.menu).slots.size() < 3) {
+      if ((this.menu).slots.size() < 3) {
          return 0;
       }
 
       int hash = 1;
-      hash = 31 * hash + ((ContainerReplacer)this.menu).getSlot(0).getItem().hashCode();
-      hash = 31 * hash + ((ContainerReplacer)this.menu).getSlot(1).getItem().hashCode();
-      hash = 31 * hash + ((ContainerReplacer)this.menu).getSlot(2).getItem().hashCode();
+      hash = 31 * hash + (this.menu).getSlot(0).getItem().hashCode();
+      hash = 31 * hash + (this.menu).getSlot(1).getItem().hashCode();
+      hash = 31 * hash + (this.menu).getSlot(2).getItem().hashCode();
       Snapshot.Key key = this.currentBlueprintKey();
       if (key != null && key.hash != null) {
          hash = 31 * hash + Arrays.hashCode(key.hash);
@@ -224,8 +224,8 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    }
 
    private boolean canApplyAsyncReplacement() {
-      ItemStack from = ((ContainerReplacer)this.menu).getSlot(1).getItem();
-      ItemStack to = ((ContainerReplacer)this.menu).getSlot(2).getItem();
+      ItemStack from = (this.menu).getSlot(1).getItem();
+      ItemStack to = (this.menu).getSlot(2).getItem();
       return !from.isEmpty() && !to.isEmpty() && ItemSchematicSingle.getSchematicSafe(from) != null && ItemSchematicSingle.getSchematicSafe(to) != null;
    }
 
@@ -235,8 +235,8 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
          this.asyncPreviewFingerprint = fingerprint;
          this.asyncPreviewResult = null;
          Blueprint source = blueprint.copy();
-         ItemStack fromStack = ((ContainerReplacer)this.menu).getSlot(1).getItem().copy();
-         ItemStack toStack = ((ContainerReplacer)this.menu).getSlot(2).getItem().copy();
+         ItemStack fromStack = (this.menu).getSlot(1).getItem().copy();
+         ItemStack toStack = (this.menu).getSlot(2).getItem().copy();
          BuildersNetworkAsync.runClientDecompress(() -> {
             ISchematicBlock from = ItemSchematicSingle.getSchematicSafe(fromStack);
             ISchematicBlock to = ItemSchematicSingle.getSchematicSafe(toStack);
@@ -276,9 +276,9 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    }
 
    private boolean canReplace() {
-      ItemStack snap = ((ContainerReplacer)this.menu).getSlot(0).getItem();
-      ItemStack from = ((ContainerReplacer)this.menu).getSlot(1).getItem();
-      ItemStack to = ((ContainerReplacer)this.menu).getSlot(2).getItem();
+      ItemStack snap = (this.menu).getSlot(0).getItem();
+      ItemStack from = (this.menu).getSlot(1).getItem();
+      ItemStack to = (this.menu).getSlot(2).getItem();
       if (!snap.isEmpty() && !from.isEmpty() && !to.isEmpty()) {
          Snapshot.Header header = ItemSnapshot.getHeader(snap);
          return header == null ? false : ItemSchematicSingle.getSchematicSafe(from) != null && ItemSchematicSingle.getSchematicSafe(to) != null;
@@ -288,10 +288,10 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    }
 
    private Snapshot.Key currentBlueprintKey() {
-      if (((ContainerReplacer)this.menu).slots.isEmpty()) {
+      if ((this.menu).slots.isEmpty()) {
          return null;
       } else {
-         ItemStack snap = ((ContainerReplacer)this.menu).getSlot(0).getItem();
+         ItemStack snap = (this.menu).getSlot(0).getItem();
          if (!snap.isEmpty() && snap.getItem() instanceof ItemSnapshot) {
             Snapshot.Header h = ItemSnapshot.getHeader(snap);
             return h == null ? null : h.key;
@@ -319,7 +319,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    }
 
    private Blueprint resolveCurrentBlueprint() {
-      ItemStack snap = ((ContainerReplacer)this.menu).getSlot(0).getItem();
+      ItemStack snap = (this.menu).getSlot(0).getItem();
       if (!snap.isEmpty() && snap.getItem() instanceof ItemSnapshot) {
          Snapshot.Header header = ItemSnapshot.getHeader(snap);
          if (header == null) {
@@ -354,8 +354,8 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
 
    @Nullable
    private String buildSummaryTextUncached() {
-      ItemStack fromStack = ((ContainerReplacer)this.menu).getSlot(1).getItem();
-      ItemStack toStack = ((ContainerReplacer)this.menu).getSlot(2).getItem();
+      ItemStack fromStack = (this.menu).getSlot(1).getItem();
+      ItemStack toStack = (this.menu).getSlot(2).getItem();
       if (!fromStack.isEmpty() && !toStack.isEmpty()) {
          ISchematicBlock from = ItemSchematicSingle.getSchematicSafe(fromStack);
          ISchematicBlock to = ItemSchematicSingle.getSchematicSafe(toStack);

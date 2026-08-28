@@ -100,7 +100,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private int activeLayer() {
       ItemStack carried = this.gui.getMenu().getCarried();
       if (!carried.isEmpty() && carried.getItem() instanceof ItemPaintbrush_BC8) {
-         DyeColor colour = (DyeColor)carried.get(BCCore.BRUSH_COLOR);
+         DyeColor colour = carried.get(BCCore.BRUSH_COLOR);
          if (colour != null) {
             return colour.getId();
          }

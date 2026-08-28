@@ -20,6 +20,6 @@ public final class BreakEventCompat {
 
    public static boolean canBreak(ServerLevel level, BlockPos pos, BlockState state, Player player) {
       BlockEntity blockEntity = level.getBlockEntity(pos);
-      return ((Before)PlayerBlockBreakEvents.BEFORE.invoker()).beforeBlockBreak(level, player, pos, state, blockEntity);
+      return (PlayerBlockBreakEvents.BEFORE.invoker()).beforeBlockBreak(level, player, pos, state, blockEntity);
    }
 }
