@@ -176,11 +176,11 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
 
    private static String mapTypeOf(ItemStack stack) {
       CustomData data = (CustomData)stack.get(DataComponents.CUSTOM_DATA);
-      return data == null ? "CLEAN" : buildcraft.lib.nbt.BcNbt.getString(data.copyTag(), "mapType", "CLEAN");
+      return data == null ? MAP_TYPE_CLEAN : buildcraft.lib.nbt.BcNbt.getString(data.copyTag(), TAG_MAP_TYPE, MAP_TYPE_CLEAN);
    }
 
    private static boolean isZoneMap(ItemStack stack) {
-      return stack.getItem() instanceof ItemMapLocation && "ZONE".equals(mapTypeOf(stack));
+      return stack.getItem() instanceof ItemMapLocation && MAP_TYPE_ZONE.equals(mapTypeOf(stack));
    }
 
    private static boolean isCleanMap(ItemStack stack) {
@@ -189,7 +189,7 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
       }
 
       String type = mapTypeOf(stack);
-      return type.isEmpty() || "CLEAN".equals(type);
+      return type.isEmpty() || MAP_TYPE_CLEAN.equals(type);
    }
 
    private static void readZoneFromMap(ItemStack map, ZonePlan plan) {

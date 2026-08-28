@@ -55,25 +55,17 @@ public class ItemMapLocation extends Item implements IMapLocation {
       }
 
       CompoundTag tag = customData.copyTag();
-      if (!tag.contains("mapType")) {
+      if (!tag.contains(TAG_MAP_TYPE)) {
          return IMapLocation.MapLocationType.CLEAN;
       }
 
-      String typeName = BcNbt.getString(tag, "mapType", "");
+      String typeName = BcNbt.getString(tag, TAG_MAP_TYPE, "");
 
       try {
          return IMapLocation.MapLocationType.valueOf(typeName);
       } catch (IllegalArgumentException e) {
          return IMapLocation.MapLocationType.CLEAN;
       }
-   }
-
-   private static void setTypeToStack(@Nonnull ItemStack stack, IMapLocation.MapLocationType type) {
-      stack.update(DataComponents.CUSTOM_DATA, CustomData.EMPTY, data -> {
-         CompoundTag tag = data.copyTag();
-         tag.putString("mapType", type.name());
-         return CustomData.of(tag);
-      });
    }
 
    private static void updateModelData(@Nonnull ItemStack stack, IMapLocation.MapLocationType type) {
@@ -194,7 +186,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
          nbt.remove(key);
       }
 
-      nbt.putString("mapType", IMapLocation.MapLocationType.CLEAN.name());
+      nbt.putString(TAG_MAP_TYPE, IMapLocation.MapLocationType.CLEAN.name());
       if (nbt.size() <= 1) {
          stack.remove(DataComponents.CUSTOM_DATA);
       } else {
@@ -265,7 +257,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
          cpt.putInt("z", pos.getZ());
       }
 
-      cpt.putString("mapType", newType.name());
+      cpt.putString(TAG_MAP_TYPE, newType.name());
       setCustomTag(modified, cpt);
       updateModelData(modified, newType);
       if (modified != stack && !player.getInventory().add(modified)) {

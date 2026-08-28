@@ -102,7 +102,7 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
    public void sendMessage(IPayloadWriter writer) {
       IPipeHolder.PipeMessageReceiver to = IPipeHolder.PipeMessageReceiver.PLUGGABLES[this.side.ordinal()];
       this.holder.sendMessage(to, buffer -> {
-         buffer.writeByte(1);
+         buffer.writeByte(ID_UPDATE_PLUG);
          writer.write(buffer);
       });
    }
@@ -110,7 +110,7 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
    public void sendGuiMessage(IPayloadWriter writer) {
       IPipeHolder.PipeMessageReceiver to = IPipeHolder.PipeMessageReceiver.PLUGGABLES[this.side.ordinal()];
       this.holder.sendGuiMessage(to, buffer -> {
-         buffer.writeByte(1);
+         buffer.writeByte(ID_UPDATE_PLUG);
          writer.write(buffer);
       });
    }
@@ -124,7 +124,7 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
    public void readPayload(FriendlyByteBuf b, Direction face, boolean isClientSide) {
       PacketBufferBC packetBuffer = BcPayloadBuffers.ensure(b);
       byte id = packetBuffer.readByte();
-      if (id == 1) {
+      if (id == ID_UPDATE_PLUG) {
          this.logic.readPayload(packetBuffer, isClientSide);
       }
    }

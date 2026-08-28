@@ -152,7 +152,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
 
          this.lastBroadcastDisplay = snap;
          RegistryAccess registries = this.tile.getLevel().registryAccess();
-         this.sendMessage(10, buf -> {
+         this.sendMessage(NET_DISPLAY_LIST, buf -> {
             RegistryFriendlyByteBuf rbuf = new RegistryFriendlyByteBuf(buf, registries);
             rbuf.writeVarInt(snap.size());
 
@@ -192,7 +192,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
             this.lastBroadcastTanks[i] = current[i];
          }
 
-         this.sendMessage(11, buf -> {
+         this.sendMessage(NET_TANK_LEVELS, buf -> {
             for (int ix = 0; ix < 4; ix++) {
                ContainerBuilder.FluidSnapshot fs = current[ix];
                if (fs.fluidId != null && fs.amount > 0) {
@@ -217,7 +217,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
          if (this.tile != null) {
             this.tile.cycleContainerContentsMode();
          }
-      } else if (id == 10 && isClient) {
+      } else if (id == NET_DISPLAY_LIST && isClient) {
          RegistryFriendlyByteBuf rbuf = new RegistryFriendlyByteBuf(buffer, ctx.player().level().registryAccess());
          int count = rbuf.readVarInt();
          List<ItemStack> newList = new ArrayList<>(count);
@@ -231,7 +231,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
 
          this.syncedDisplay.clear();
          this.syncedDisplay.addAll(newList);
-      } else if (id == 11 && isClient) {
+      } else if (id == NET_TANK_LEVELS && isClient) {
          for (int i = 0; i < 4; i++) {
             String fluidIdStr = buffer.readUtf();
             int amount = buffer.readVarInt();

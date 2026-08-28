@@ -55,13 +55,13 @@ public class WidgetFluidTank extends Widget_Neptune<IBcMenu> {
    @Override
    public void handleWidgetDataServer(BCPayloadContext ctx, FriendlyByteBuf buffer) {
       byte id = buffer.readByte();
-      if (id == 0) {
+      if (id == NET_CLICK) {
          this.onGuiClicked();
       }
    }
 
    public void sendClick() {
-      this.sendWidgetData(buf -> buf.writeByte(0));
+      this.sendWidgetData(buf -> buf.writeByte(NET_CLICK));
    }
 
    private boolean drainTankIntoInventoryBucket(Player player) {

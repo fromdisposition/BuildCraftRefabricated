@@ -36,13 +36,13 @@ public class ContainerDiamondWoodPipe extends AbstractPipeFilterContainer<PipeBe
    }
 
    public void sendNewFilterMode(PipeBehaviourWoodDiamond.FilterMode newFilterMode) {
-      this.sendMessage(1, buffer -> buffer.writeEnum(newFilterMode));
+      this.sendMessage(NET_FILTER_MODE, buffer -> buffer.writeEnum(newFilterMode));
    }
 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       super.readMessage(id, buffer, isClient, ctx);
-      if (id == 1 && !isClient && this.behaviour != null) {
+      if (id == NET_FILTER_MODE && !isClient && this.behaviour != null) {
          this.behaviour.filterMode = (PipeBehaviourWoodDiamond.FilterMode)buffer.readEnum(PipeBehaviourWoodDiamond.FilterMode.class);
          this.behaviour.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
       }

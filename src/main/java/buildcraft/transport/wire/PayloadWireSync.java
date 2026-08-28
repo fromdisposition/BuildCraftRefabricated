@@ -51,19 +51,19 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
       int packetStart = buf.writerIndex();
       byte flags = 0;
       if (msg.topology != null && !msg.topology.isEmpty()) {
-         flags = (byte)(flags | 1);
+         flags = (byte)(flags | FLAG_TOPOLOGY);
       }
 
       if (msg.powered != null && !msg.powered.isEmpty()) {
-         flags = (byte)(flags | 2);
+         flags = (byte)(flags | FLAG_POWERED);
       }
 
       if (msg.removedIds != null && msg.removedIds.length > 0) {
-         flags = (byte)(flags | 4);
+         flags = (byte)(flags | FLAG_REMOVED);
       }
 
       buf.writeByte(flags);
-      if ((flags & 1) != 0) {
+      if ((flags & FLAG_TOPOLOGY) != 0) {
          int countIndex = buf.writerIndex();
          buf.writeInt(0);
          int written = 0;
@@ -78,7 +78,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
          buf.setInt(countIndex, written);
       }
 
-      if ((flags & 2) != 0) {
+      if ((flags & FLAG_POWERED) != 0) {
          int countIndex = buf.writerIndex();
          buf.writeInt(0);
          int written = 0;
@@ -94,7 +94,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
          buf.setInt(countIndex, written);
       }
 
-      if ((flags & 4) != 0) {
+      if ((flags & FLAG_REMOVED) != 0) {
          int count = Math.min(msg.removedIds.length, 2048);
          buf.writeInt(count);
 
@@ -134,7 +134,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
       Map<Integer, WireSystem> topology = null;
       Map<Integer, Boolean> powered = null;
       int[] removedIds = null;
-      if ((flags & 1) != 0) {
+      if ((flags & FLAG_TOPOLOGY) != 0) {
          topology = new HashMap<>();
          int count = BCPacketLimits.validateCount(buf.readInt(), 2048, "wire systems");
 
@@ -151,7 +151,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
          }
       }
 
-      if ((flags & 2) != 0) {
+      if ((flags & FLAG_POWERED) != 0) {
          powered = new HashMap<>();
          int count = BCPacketLimits.validateCount(buf.readInt(), 8192, "wire powered");
 
@@ -160,7 +160,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
          }
       }
 
-      if ((flags & 4) != 0) {
+      if ((flags & FLAG_REMOVED) != 0) {
          int count = BCPacketLimits.validateCount(buf.readInt(), 2048, "wire removals");
          removedIds = new int[count];
 

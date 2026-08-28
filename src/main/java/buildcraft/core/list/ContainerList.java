@@ -90,7 +90,7 @@ public class ContainerList extends BcMenu {
    public void switchButton(int lineIndex, int button) {
       this.applyButtonToggle(lineIndex, button);
       if (this.player.level().isClientSide()) {
-         this.sendMessage(2, buffer -> {
+         this.sendMessage(NET_BUTTON, buffer -> {
             buffer.writeByte(lineIndex);
             buffer.writeByte(button);
          });
@@ -104,7 +104,7 @@ public class ContainerList extends BcMenu {
       }
 
       if (this.player.level().isClientSide()) {
-         this.sendMessage(1, buffer -> buffer.writeUtf(text));
+         this.sendMessage(NET_LABEL, buffer -> buffer.writeUtf(text));
       }
    }
 
@@ -112,13 +112,13 @@ public class ContainerList extends BcMenu {
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       super.readMessage(id, buffer, isClient, ctx);
       if (!isClient) {
-         if (id == 2) {
+         if (id == NET_BUTTON) {
             int lineIndex = buffer.readUnsignedByte();
             int button = buffer.readUnsignedByte();
             if (lineIndex >= 0 && lineIndex < this.lines.length && button >= 0 && button < 3) {
                this.applyButtonToggle(lineIndex, button);
             }
-         } else if (id == 1) {
+         } else if (id == NET_LABEL) {
             this.setLabel(buffer.readUtf(1024));
          }
       }
