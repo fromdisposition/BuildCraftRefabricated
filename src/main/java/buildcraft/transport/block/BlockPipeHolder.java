@@ -273,7 +273,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
             .onPipeActivate(player, hitResult, (float)hitResult.getLocation().x, (float)hitResult.getLocation().y, (float)hitResult.getLocation().z, hitPart)) {
             return InteractionResult.SUCCESS;
          } else {
-            return (InteractionResult)(pipe.getFlow()
+            return (pipe.getFlow()
                   .onFlowActivate(
                      player, hitResult, (float)hitResult.getLocation().x, (float)hitResult.getLocation().y, (float)hitResult.getLocation().z, hitPart
                   )
@@ -321,30 +321,33 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       double ly = hitResult.getLocation().y - hitResult.getBlockPos().getY();
       double lz = hitResult.getLocation().z - hitResult.getBlockPos().getZ();
       Pipe pipe = tile.getPipe();
-      if (pipe != null) {
-         if (ly < 0.25 && pipe.isConnected(Direction.DOWN)) {
-            return Direction.DOWN;
-         }
+      return pipe != null ? hitArmDirection(pipe, lx, ly, lz) : null;
+   }
 
-         if (ly > 0.75 && pipe.isConnected(Direction.UP)) {
-            return Direction.UP;
-         }
+   @Nullable
+   private static Direction hitArmDirection(Pipe pipe, double lx, double ly, double lz) {
+      if (ly < 0.25 && pipe.isConnected(Direction.DOWN)) {
+         return Direction.DOWN;
+      }
 
-         if (lz < 0.25 && pipe.isConnected(Direction.NORTH)) {
-            return Direction.NORTH;
-         }
+      if (ly > 0.75 && pipe.isConnected(Direction.UP)) {
+         return Direction.UP;
+      }
 
-         if (lz > 0.75 && pipe.isConnected(Direction.SOUTH)) {
-            return Direction.SOUTH;
-         }
+      if (lz < 0.25 && pipe.isConnected(Direction.NORTH)) {
+         return Direction.NORTH;
+      }
 
-         if (lx < 0.25 && pipe.isConnected(Direction.WEST)) {
-            return Direction.WEST;
-         }
+      if (lz > 0.75 && pipe.isConnected(Direction.SOUTH)) {
+         return Direction.SOUTH;
+      }
 
-         if (lx > 0.75 && pipe.isConnected(Direction.EAST)) {
-            return Direction.EAST;
-         }
+      if (lx < 0.25 && pipe.isConnected(Direction.WEST)) {
+         return Direction.WEST;
+      }
+
+      if (lx > 0.75 && pipe.isConnected(Direction.EAST)) {
+         return Direction.EAST;
       }
 
       return null;
@@ -355,33 +358,8 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       double ly = hitResult.getLocation().y - hitResult.getBlockPos().getY();
       double lz = hitResult.getLocation().z - hitResult.getBlockPos().getZ();
       Pipe pipe = tile.getPipe();
-      if (pipe != null) {
-         if (ly < 0.25 && pipe.isConnected(Direction.DOWN)) {
-            return EnumPipePart.fromFacing(Direction.DOWN);
-         }
-
-         if (ly > 0.75 && pipe.isConnected(Direction.UP)) {
-            return EnumPipePart.fromFacing(Direction.UP);
-         }
-
-         if (lz < 0.25 && pipe.isConnected(Direction.NORTH)) {
-            return EnumPipePart.fromFacing(Direction.NORTH);
-         }
-
-         if (lz > 0.75 && pipe.isConnected(Direction.SOUTH)) {
-            return EnumPipePart.fromFacing(Direction.SOUTH);
-         }
-
-         if (lx < 0.25 && pipe.isConnected(Direction.WEST)) {
-            return EnumPipePart.fromFacing(Direction.WEST);
-         }
-
-         if (lx > 0.75 && pipe.isConnected(Direction.EAST)) {
-            return EnumPipePart.fromFacing(Direction.EAST);
-         }
-      }
-
-      return EnumPipePart.CENTER;
+      Direction arm = pipe != null ? hitArmDirection(pipe, lx, ly, lz) : null;
+      return arm != null ? EnumPipePart.fromFacing(arm) : EnumPipePart.CENTER;
    }
 
    /** Raytrace hit points land EXACTLY on a box face, so a boundary compare is a rounding-error lottery: aiming down
@@ -457,23 +435,8 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       }
 
       Pipe pipe = tile.getPipe();
-      if (pipe != null) {
-         if (ly < 0.25 && pipe.isConnected(Direction.DOWN)) {
-            return ARMS[Direction.DOWN.ordinal()];
-         } else if (ly > 0.75 && pipe.isConnected(Direction.UP)) {
-            return ARMS[Direction.UP.ordinal()];
-         } else if (lz < 0.25 && pipe.isConnected(Direction.NORTH)) {
-            return ARMS[Direction.NORTH.ordinal()];
-         } else if (lz > 0.75 && pipe.isConnected(Direction.SOUTH)) {
-            return ARMS[Direction.SOUTH.ordinal()];
-         } else if (lx < 0.25 && pipe.isConnected(Direction.WEST)) {
-            return ARMS[Direction.WEST.ordinal()];
-         } else if (lx > 0.75 && pipe.isConnected(Direction.EAST)) {
-            return ARMS[Direction.EAST.ordinal()];
-         }
-      }
-
-      return CENTER;
+      Direction arm = pipe != null ? hitArmDirection(pipe, lx, ly, lz) : null;
+      return arm != null ? ARMS[arm.ordinal()] : CENTER;
    }
 
    /**

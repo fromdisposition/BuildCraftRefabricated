@@ -174,7 +174,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
    @Nullable
    Direction getFacing() {
       BlockState state = this.getBlockState();
-      return state.getBlock() instanceof BlockHeatExchange ? (Direction)state.getValue(BlockHeatExchange.FACING) : null;
+      return state.getBlock() instanceof BlockHeatExchange ? state.getValue(BlockHeatExchange.FACING) : null;
    }
 
    public void serverTick() {
@@ -283,7 +283,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
          if (this.level != null) {
             BlockState oldState = this.getBlockState();
             if (oldState.getBlock() instanceof BlockHeatExchange) {
-               BlockState newState = (BlockState)oldState.setValue(BlockHeatExchange.PART, BlockHeatExchange.EnumExchangePart.MIDDLE);
+               BlockState newState = oldState.setValue(BlockHeatExchange.PART, BlockHeatExchange.EnumExchangePart.MIDDLE);
                if (oldState != newState) {
                   this.level.setBlock(this.worldPosition, newState, 3);
                }
@@ -319,7 +319,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
             BlockState oldState = tile.getBlockState();
             if (oldState.getBlock() instanceof BlockHeatExchange) {
-               BlockState newState = (BlockState)oldState.setValue(BlockHeatExchange.PART, part);
+               BlockState newState = oldState.setValue(BlockHeatExchange.PART, part);
                if (oldState != newState) {
                   this.level.setBlock(tile.worldPosition, newState, 3);
                }
@@ -374,13 +374,13 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
             }
 
             Direction next = horizontals[(idx + 1) % 4];
-            this.level.setBlock(this.worldPosition, (BlockState)this.getBlockState().setValue(BlockHeatExchange.FACING, next), 3);
+            this.level.setBlock(this.worldPosition, this.getBlockState().setValue(BlockHeatExchange.FACING, next), 3);
          } else {
             Direction opposite = thisFacing.getOpposite();
 
             for (TileHeatExchange exchange : exchangers) {
                this.level
-                  .setBlock(exchange.worldPosition, (BlockState)exchange.getBlockState().setValue(BlockHeatExchange.FACING, opposite), 3);
+                  .setBlock(exchange.worldPosition, exchange.getBlockState().setValue(BlockHeatExchange.FACING, opposite), 3);
                exchange.checkNeighbours = true;
                exchange.setChanged();
             }
@@ -452,25 +452,9 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
    }
 
    private void dropSectionContents(BlockPos pos, TileHeatExchange.ExchangeSection section) {
-      BlockDropsUtil.dropFluidShards(this.level, pos, section.tankInput, section.tankOutput);
-      this.extractTankContents(section.tankInput);
-      this.extractTankContents(section.tankOutput);
+      BlockDropsUtil.dropAndDrainFluidShards(this.level, pos, section.tankInput, section.tankOutput);
       if (section instanceof TileHeatExchange.ExchangeSectionStart start) {
          BlockDropsUtil.dropItems(this.level, pos, start.containerSlots);
-      }
-   }
-
-   private void extractTankContents(SingleFluidTank tank) {
-      if (tank.isEmpty()) {
-         return;
-      }
-
-      FluidStack held = tank.getFluidStack();
-      int amountMb = tank.getAmountMb();
-
-      try (Transaction tx = Transaction.openOuter()) {
-         tank.extractMb(held, amountMb, tx);
-         tx.commit();
       }
    }
 
@@ -574,7 +558,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
    }
 
    protected void readData(BcValueIn input) {
-      CompoundTag containerSlotsNbt = (CompoundTag)input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new);
+      CompoundTag containerSlotsNbt = input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new);
       if (input.getBooleanOr("hasSection", false)) {
          boolean isStart = input.getBooleanOr("isStart", true);
          if (isStart) {

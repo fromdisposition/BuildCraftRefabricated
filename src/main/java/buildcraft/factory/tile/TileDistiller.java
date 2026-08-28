@@ -444,25 +444,8 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
    }
 
    private void dropContents(BlockPos pos) {
-      BlockDropsUtil.dropFluidShards(this.level, pos, this.tankIn, this.tankGasOut, this.tankLiquidOut);
-      this.extractTankContents(this.tankIn);
-      this.extractTankContents(this.tankGasOut);
-      this.extractTankContents(this.tankLiquidOut);
+      BlockDropsUtil.dropAndDrainFluidShards(this.level, pos, this.tankIn, this.tankGasOut, this.tankLiquidOut);
       BlockDropsUtil.dropItems(this.level, pos, this.containerSlots);
-   }
-
-   private void extractTankContents(SingleFluidTank tank) {
-      if (tank.isEmpty()) {
-         return;
-      }
-
-      FluidStack held = tank.getFluidStack();
-      int amountMb = tank.getAmountMb();
-
-      try (Transaction tx = Transaction.openOuter()) {
-         tank.extractMb(held, amountMb, tx);
-         tx.commit();
-      }
    }
 
    @Override
@@ -475,7 +458,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       if (this.level != null) {
          BlockState state = this.level.getBlockState(this.worldPosition);
          if (state.hasProperty(BlockDistiller.FACING)) {
-            facing = (Direction)state.getValue(BlockDistiller.FACING);
+            facing = state.getValue(BlockDistiller.FACING);
          }
       }
 
@@ -573,7 +556,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       this.isActive = input.getBooleanOr("isActive", false);
       this.isStuck = input.getBooleanOr("isStuck", false);
       this.powerAvgClient = input.getLongOr("powerAvgClient", 0L);
-      this.containerSlots.deserializeNBT((CompoundTag)input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new));
+      this.containerSlots.deserializeNBT(input.read("containerSlots", CompoundTag.CODEC).orElseGet(CompoundTag::new));
    }
 
    private static FluidStack syncIdentity(FluidStack stack) {

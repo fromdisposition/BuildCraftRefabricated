@@ -236,18 +236,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       }
 
       if (nbt.contains("fluid_id")) {
-         String fluidId = BcNbt.getString(nbt, "fluid_id", "");
-         if (!fluidId.isEmpty()) {
-            Identifier fluidRL = Identifier.parse(fluidId);
-            Fluid fluid = BcRegistryUtil.getFluid(fluidRL);
-            if (fluid != null && fluid != Fluids.EMPTY) {
-               this.setFluid(new FluidStack(fluid, 1000));
-            } else {
-               this.setFluid(FluidStack.EMPTY);
-            }
-         } else {
-            this.setFluid(FluidStack.EMPTY);
-         }
+         this.setFluid(fluidFromId(BcNbt.getString(nbt, "fluid_id", "")));
       } else {
          this.setFluid(FluidStack.EMPTY);
       }
@@ -279,21 +268,20 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       return nbt;
    }
 
+
+   private static FluidStack fluidFromId(String fluidId) {
+      if (fluidId.isEmpty()) {
+         return FluidStack.EMPTY;
+      }
+
+      Fluid fluid = BcRegistryUtil.getFluid(Identifier.parse(fluidId));
+      return fluid != null && fluid != Fluids.EMPTY ? new FluidStack(fluid, 1000) : FluidStack.EMPTY;
+   }
+
    @Override
    public void readFromNbt(CompoundTag nbt) {
       if (nbt.contains("fluid_id")) {
-         String fluidId = BcNbt.getString(nbt, "fluid_id", "");
-         if (!fluidId.isEmpty()) {
-            Identifier fluidRL = Identifier.parse(fluidId);
-            Fluid fluid = BcRegistryUtil.getFluid(fluidRL);
-            if (fluid != null && fluid != Fluids.EMPTY) {
-               this.currentFluid = new FluidStack(fluid, 1000);
-            } else {
-               this.currentFluid = FluidStack.EMPTY;
-            }
-         } else {
-            this.currentFluid = FluidStack.EMPTY;
-         }
+         this.currentFluid = fluidFromId(BcNbt.getString(nbt, "fluid_id", ""));
       } else {
          this.currentFluid = FluidStack.EMPTY;
       }
@@ -718,11 +706,9 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       if (id == 2 || id == 0) {
          boolean full = id == 0;
          if (buffer.readBoolean()) {
-            String fluidId = buffer.readUtf();
-            Identifier fluidRL = Identifier.parse(fluidId);
-            Fluid fluid = BcRegistryUtil.getFluid(fluidRL);
-            if (fluid != null && fluid != Fluids.EMPTY) {
-               this.currentFluid = new FluidStack(fluid, 1000);
+            FluidStack parsed = fluidFromId(buffer.readUtf());
+            if (!parsed.isEmpty()) {
+               this.currentFluid = parsed;
             }
          } else {
             this.currentFluid = FluidStack.EMPTY;
@@ -737,7 +723,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
                }
             }
 
-            PipeFlowFluids.Dir dir = (PipeFlowFluids.Dir)buffer.readEnum(PipeFlowFluids.Dir.class);
+            PipeFlowFluids.Dir dir = buffer.readEnum(PipeFlowFluids.Dir.class);
             section.ticksInDirection = dir == PipeFlowFluids.Dir.NONE ? 0 : (dir == PipeFlowFluids.Dir.IN ? -60 : 60);
          }
 

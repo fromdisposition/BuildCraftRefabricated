@@ -11,6 +11,7 @@ import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerSimple;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +22,6 @@ public final class BlockDropsUtil {
    private BlockDropsUtil() {
    }
 
-   @SafeVarargs
    public static void dropTileContents(Level level, BlockPos pos, BcBlockEntity tile, SingleFluidTank... fluidTanks) {
       if (!level.isClientSide()) {
          NonNullList<ItemStack> toDrop = NonNullList.create();
@@ -72,7 +72,23 @@ public final class BlockDropsUtil {
       }
    }
 
-   @SafeVarargs
+   public static void dropAndDrainFluidShards(Level level, BlockPos pos, SingleFluidTank... tanks) {
+      dropFluidShards(level, pos, tanks);
+      if (!level.isClientSide() && tanks != null) {
+         for (SingleFluidTank tank : tanks) {
+            if (tank != null && !tank.isEmpty()) {
+               FluidStack held = tank.getFluidStack();
+               int amountMb = tank.getAmountMb();
+
+               try (Transaction tx = Transaction.openOuter()) {
+                  tank.extractMb(held, amountMb, tx);
+                  tx.commit();
+               }
+            }
+         }
+      }
+   }
+
    public static void dropFluidShards(Level level, BlockPos pos, SingleFluidTank... tanks) {
       if (!level.isClientSide() && tanks != null && tanks.length != 0) {
          NonNullList<ItemStack> toDrop = NonNullList.create();

@@ -7,12 +7,12 @@
 package buildcraft.factory.tile;
 
 
+import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
-import buildcraft.api.items.FluidItemDrops;
 import buildcraft.api.tiles.IDebuggable;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.container.ContainerTank;
@@ -29,14 +29,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup.Provider;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -256,23 +252,7 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
    }
 
    private void dropSegmentContents(BlockPos pos) {
-      if (this.fluidTank.isEmpty()) {
-         return;
-      }
-
-      FluidStack held = this.fluidTank.getFluidStack();
-      int amountMb = this.fluidTank.getAmountMb();
-      NonNullList<ItemStack> toDrop = NonNullList.create();
-      FluidItemDrops.addFluidDrops(toDrop, this.fluidTank);
-
-      for (ItemStack drop : toDrop) {
-         Block.popResource(this.level, pos, drop);
-      }
-
-      try (Transaction tx = Transaction.openOuter()) {
-         this.fluidTank.extractMb(held, amountMb, tx);
-         tx.commit();
-      }
+      BlockDropsUtil.dropAndDrainFluidShards(this.level, pos, this.fluidTank);
    }
 
    private void notifyColumnNeighborsOnRemoval() {

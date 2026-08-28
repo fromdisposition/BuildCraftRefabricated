@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup.Provider;
@@ -270,18 +269,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
    }
 
    private void dropTankContents(BlockPos pos) {
-      if (this.fluidTank.isEmpty()) {
-         return;
-      }
-
-      FluidStack held = this.fluidTank.getFluidStack();
-      int amountMb = this.fluidTank.getAmountMb();
-      BlockDropsUtil.dropFluidShard(this.level, pos, held);
-
-      try (Transaction tx = Transaction.openOuter()) {
-         this.fluidTank.extractMb(held, amountMb, tx);
-         tx.commit();
-      }
+      BlockDropsUtil.dropAndDrainFluidShards(this.level, pos, this.fluidTank);
    }
 
    //? if >= 1.21.10 {
@@ -362,7 +350,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
             BlockState newState = state;
 
             for (Entry<Direction, Property<Boolean>> entry : BlockFloodGate.CONNECTED_MAP.entrySet()) {
-               newState = (BlockState)newState.setValue(entry.getValue(), this.openSides.contains(entry.getKey()));
+               newState = newState.setValue(entry.getValue(), this.openSides.contains(entry.getKey()));
             }
 
             if (newState != state) {
@@ -399,7 +387,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
       List<String> open = new ArrayList<>();
 
       for (Entry<Direction, Property<Boolean>> e : BlockFloodGate.CONNECTED_MAP.entrySet()) {
-         if ((Boolean)state.getValue(e.getValue())) {
+         if (state.getValue(e.getValue())) {
             open.add(e.getKey().name());
          }
       }

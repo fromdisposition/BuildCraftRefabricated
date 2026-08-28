@@ -6,37 +6,25 @@
 
 package buildcraft.energy.tile;
 
-import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;
 import buildcraft.api.mj.MjRfConversion;
-import buildcraft.core.BCCoreItems;
 import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.container.ContainerDynamoMJ;
 import buildcraft.lib.BCLibConfig;
-import buildcraft.lib.engine.TileEngineBase_BC8;
-import buildcraft.api.enums.EnumPowerStage;
-import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.EnergyStorageOps;
-import buildcraft.lib.fabric.transfer.FeEnergyStorage;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.mj.MjBatteryReceiver;
-import buildcraft.lib.tile.ItemHandlerSimple;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import buildcraft.lib.nbt.BcValueIn;
@@ -44,37 +32,13 @@ import buildcraft.lib.nbt.BcValueOut;
 import org.jetbrains.annotations.Nullable;
 import team.reborn.energy.api.EnergyStorage;
 
-public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu {
-   public static final int MAX_FE = 10000;
+public class TileDynamoMJ extends TileElectricEngineBase {
    public static final long MAX_MJ = 1000L * MjAPI.MJ;
-   public static final float HEAT_RATE = 0.06F;
-   public static final float COOLDOWN_RATE = 0.01F;
-   public static final Map<Item, Long> UPGRADE_VALUES = new LinkedHashMap<>();
    private final MjBattery mjBattery;
    private final MjBatteryReceiver mjConnector;
-   public final ItemHandlerSimple upgrades = new ItemHandlerSimple(4, (handler, slot, bef, aft) -> this.setChanged());
-   public final FeEnergyStorage energyStorage;
-
-   public static void initUpgrades() {
-      if (UPGRADE_VALUES.isEmpty()) {
-         UPGRADE_VALUES.put(BCCoreItems.GEAR_IRON, MjAPI.MJ * 2L);
-         UPGRADE_VALUES.put(BCCoreItems.GEAR_GOLD, MjAPI.MJ * 3L);
-      }
-   }
 
    public TileDynamoMJ(BlockPos pos, BlockState state) {
-      super(BCEnergyBlockEntities.DYNAMO_MJ, pos, state);
-      this.upgrades.setChecker((slot, stack) -> {
-         initUpgrades();
-         return UPGRADE_VALUES.containsKey(stack.getItem());
-      });
-      this.upgrades.setLimitedInsertor(1);
-      this.energyStorage = new FeEnergyStorage(10000, 0, 10000) {
-         @Override
-         protected void onEnergyChanged(int previousAmount) {
-            TileDynamoMJ.this.setChanged();
-         }
-      };
+      super(BCEnergyBlockEntities.DYNAMO_MJ, pos, state, 0, MAX_FE);
       this.mjBattery = new MjBattery(MAX_MJ);
       this.mjConnector = new MjBatteryReceiver(this.mjBattery);
    }
@@ -82,14 +46,6 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
    @Nullable
    public EnergyStorage getSidedEnergyStorage(@Nullable Direction direction) {
       return direction != null && direction == this.getOrientation() ? this.energyStorage : null;
-   }
-
-   public int getCurrentFe() {
-      return (int)this.energyStorage.getAmount();
-   }
-
-   public void setCurrentFe(int fe) {
-      this.energyStorage.set(Math.max(0, Math.min(10000, fe)));
    }
 
    @Nonnull
@@ -109,23 +65,6 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
    @Override
    public boolean isBurning() {
       return this.mjBattery.getStored() > 0L && this.isRedstonePowered;
-   }
-
-   public long getMjPerTick() {
-      initUpgrades();
-      long value = MjAPI.MJ * 4L;
-
-      for (int slot = 0; slot < this.upgrades.getSlots(); slot++) {
-         ItemStack stack = this.upgrades.getStackInSlot(slot);
-         if (!stack.isEmpty()) {
-            Long add = UPGRADE_VALUES.get(stack.getItem());
-            if (add != null) {
-               value += add;
-            }
-         }
-      }
-
-      return value;
    }
 
    public int getFeProductionRate(long mjInput) {
@@ -229,34 +168,8 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
    }
 
    @Override
-   public void updateHeatLevel() {
-      if (this.heat > 20.0F) {
-         this.heat -= 0.01F;
-      }
-
-      if (this.heat <= 20.0F) {
-         this.heat = 20.0F;
-      }
-
-      this.getPowerStage();
-   }
-
-   @Override
-   protected EnumPowerStage computePowerStage() {
-      // Electric MJ->FE converter with no coolant: never overheat (cap at RED), so it can't latch into the
-      // permanent, manual-clear-only OVERHEAT death state.
-      EnumPowerStage stage = super.computePowerStage();
-      return stage == EnumPowerStage.OVERHEAT ? EnumPowerStage.RED : stage;
-   }
-
-   @Override
    public long getMaxPower() {
       return MAX_MJ;
-   }
-
-   @Override
-   public long minPowerReceived() {
-      return 0L;
    }
 
    @Override
@@ -285,11 +198,6 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
    }
 
    @Override
-   public float explosionRange() {
-      return 4.0F;
-   }
-
-   @Override
    protected int getMaxChainLength() {
       return 3;
    }
@@ -297,16 +205,12 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
    @Override
    protected void writeData(BcValueOut output) {
       super.writeData(output);
-      output.putInt("currentFe", this.getCurrentFe());
-      output.store("upgrades", CompoundTag.CODEC, this.upgrades.serializeNBT());
       output.putLong("mjStored", this.mjBattery.getStored());
    }
 
    @Override
    public void readData(BcValueIn input) {
       super.readData(input);
-      this.setCurrentFe(input.getIntOr("currentFe", 0));
-      this.upgrades.deserializeNBT((CompoundTag)input.read("upgrades", CompoundTag.CODEC).orElseGet(CompoundTag::new));
       CompoundTag mjTag = new CompoundTag();
       mjTag.putLong("stored", input.getLongOr("mjStored", 0L));
       this.mjBattery.deserializeNBT(mjTag);
@@ -318,14 +222,5 @@ public class TileDynamoMJ extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerDynamoMJ(containerId, playerInv, this);
-   }
-
-   @Override
-   public BlockEntity asBlockEntity() {
-      return this;
-   }
-   @Override
-   protected void dropEngineContents(BlockPos pos) {
-      BlockDropsUtil.dropItems(this.level, pos, this.upgrades);
    }
 }

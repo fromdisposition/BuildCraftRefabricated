@@ -6,70 +6,29 @@
 
 package buildcraft.energy.tile;
 
-import buildcraft.lib.misc.BlockDropsUtil;
-import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjRfConversion;
-import buildcraft.core.BCCoreItems;
 import buildcraft.energy.BCEnergyBlockEntities;
 import buildcraft.energy.container.ContainerEngineRF;
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.engine.EngineConnector;
-import buildcraft.lib.engine.TileEngineBase_BC8;
-import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.EnergyStorageOps;
-import buildcraft.lib.fabric.transfer.FeEnergyStorage;
 import buildcraft.lib.fabric.transfer.BcTransfers;
-import buildcraft.lib.tile.ItemHandlerSimple;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import buildcraft.lib.nbt.BcValueIn;
-import buildcraft.lib.nbt.BcValueOut;
 import team.reborn.energy.api.EnergyStorage;
 
-public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu {
-   public static final int MAX_FE = 10000;
-   public static final float HEAT_RATE = 0.06F;
-   public static final float COOLDOWN_RATE = 0.01F;
-   public static final Map<Item, Long> UPGRADE_VALUES = new LinkedHashMap<>();
-   public final ItemHandlerSimple upgrades = new ItemHandlerSimple(4, (handler, slot, bef, aft) -> this.setChanged());
-   public final FeEnergyStorage energyStorage;
-
-   public static void initUpgrades() {
-      if (UPGRADE_VALUES.isEmpty()) {
-         UPGRADE_VALUES.put(BCCoreItems.GEAR_IRON, MjAPI.MJ * 2L);
-         UPGRADE_VALUES.put(BCCoreItems.GEAR_GOLD, MjAPI.MJ * 3L);
-      }
-   }
-
+public class TileEngineRF extends TileElectricEngineBase {
    public TileEngineRF(BlockPos pos, BlockState state) {
-      super(BCEnergyBlockEntities.ENGINE_FE, pos, state);
-      this.upgrades.setChecker((slot, stack) -> {
-         initUpgrades();
-         return UPGRADE_VALUES.containsKey(stack.getItem());
-      });
-      this.upgrades.setLimitedInsertor(1);
-      this.energyStorage = new FeEnergyStorage(10000, 10000, 0) {
-         @Override
-         protected void onEnergyChanged(int previousAmount) {
-            TileEngineRF.this.setChanged();
-         }
-      };
+      super(BCEnergyBlockEntities.ENGINE_FE, pos, state, MAX_FE, 0);
    }
 
    @Nullable
@@ -77,34 +36,9 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
       return direction != null && direction != this.getOrientation() ? this.energyStorage : null;
    }
 
-   public int getCurrentFe() {
-      return (int)this.energyStorage.getAmount();
-   }
-
-   public void setCurrentFe(int fe) {
-      this.energyStorage.set(Math.max(0, Math.min(10000, fe)));
-   }
-
    @Override
    public boolean isBurning() {
       return this.getCurrentFe() > 0 && this.isRedstonePowered;
-   }
-
-   public long getMjPerTick() {
-      initUpgrades();
-      long value = MjAPI.MJ * 4L;
-
-      for (int slot = 0; slot < this.upgrades.getSlots(); slot++) {
-         ItemStack stack = this.upgrades.getStackInSlot(slot);
-         if (!stack.isEmpty()) {
-            Long add = UPGRADE_VALUES.get(stack.getItem());
-            if (add != null) {
-               value += add;
-            }
-         }
-      }
-
-      return value;
    }
 
    public int getFeConsumptionRate() {
@@ -168,27 +102,6 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
       }
    }
 
-   @Override
-   public void updateHeatLevel() {
-      if (this.heat > 20.0F) {
-         this.heat -= 0.01F;
-      }
-
-      if (this.heat <= 20.0F) {
-         this.heat = 20.0F;
-      }
-
-      this.getPowerStage();
-   }
-
-   @Override
-   protected EnumPowerStage computePowerStage() {
-      // Never overheat -- cap at the hottest running stage (RED). Heat still rises visually with load, but the
-      // engine can never latch into the permanent, coolant-less OVERHEAT death state.
-      EnumPowerStage stage = super.computePowerStage();
-      return stage == EnumPowerStage.OVERHEAT ? EnumPowerStage.RED : stage;
-   }
-
    @Nonnull
    @Override
    protected IMjConnector createConnector() {
@@ -198,11 +111,6 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
    @Override
    public long getMaxPower() {
       return 1000L * MjAPI.MJ;
-   }
-
-   @Override
-   public long minPowerReceived() {
-      return 0L;
    }
 
    @Override
@@ -221,32 +129,8 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
    }
 
    @Override
-   public float explosionRange() {
-      return 4.0F;
-   }
-
-   @Override
    protected int getMaxChainLength() {
       return 4;
-   }
-
-   @Override
-   protected void writeData(BcValueOut output) {
-      super.writeData(output);
-      output.putInt("currentFe", this.getCurrentFe());
-      output.store("upgrades", CompoundTag.CODEC, this.upgrades.serializeNBT());
-   }
-
-   @Override
-   public void readData(BcValueIn input) {
-      super.readData(input);
-      this.setCurrentFe(input.getIntOr("currentFe", 0));
-      this.upgrades.deserializeNBT((CompoundTag)input.read("upgrades", CompoundTag.CODEC).orElseGet(CompoundTag::new));
-   }
-
-   @Override
-   public BlockEntity asBlockEntity() {
-      return this;
    }
 
    public Component getDisplayName() {
@@ -255,9 +139,5 @@ public class TileEngineRF extends TileEngineBase_BC8 implements MenuProvider, Bl
 
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerEngineRF(containerId, playerInv, this);
-   }
-   @Override
-   protected void dropEngineContents(BlockPos pos) {
-      BlockDropsUtil.dropItems(this.level, pos, this.upgrades);
    }
 }
