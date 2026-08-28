@@ -17,7 +17,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 public class BCEnergyRecipes {
-   private static final int TIME_BASE = 240000;
    private static boolean initialized;
 
    public static void init() {

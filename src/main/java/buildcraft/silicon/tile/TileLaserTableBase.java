@@ -10,7 +10,6 @@ import buildcraft.api.mj.ILaserTarget;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.recipes.IngredientStack;
 import buildcraft.api.tiles.IDebuggable;
-import buildcraft.lib.fabric.transfer.MjPowerCell;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.data.AverageLong;
 import buildcraft.lib.tile.BcBlockEntity;
@@ -120,62 +119,6 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
    @Override
    public Packet<ClientGamePacketListener> getUpdatePacket() {
       return ClientboundBlockEntityDataPacket.create(this);
-   }
-
-
-   private MjPowerCell createEnergyCell() {
-      return new MjPowerCell() {
-         @Override
-         public long getStored() {
-            return TileLaserTableBase.this.power;
-         }
-
-         @Override
-         public void setStored(long microJoules) {
-            long capacity = this.getCapacity();
-            TileLaserTableBase.this.power = capacity <= 0L ? 0L : Math.max(0L, Math.min(microJoules, capacity));
-            TileLaserTableBase.this.setChanged();
-         }
-
-         @Override
-         public long getCapacity() {
-            long target = TileLaserTableBase.this.getTarget();
-            if (target > 0L) {
-               return target * TileLaserTableBase.this.getLaserBufferMultiplier();
-            }
-
-            return MjAPI.MJ * TileLaserTableBase.this.getLaserBufferMultiplier();
-         }
-
-         @Override
-         public long addPower(long microJoules, boolean simulate) {
-            long room = Math.max(0L, this.getCapacity() - this.getStored());
-            if (microJoules <= 0L || room <= 0L) {
-               return microJoules;
-            }
-
-            long accepted = Math.min(microJoules, room);
-            if (!simulate) {
-               TileLaserTableBase.this.power += accepted;
-               TileLaserTableBase.this.avgPower.push(accepted);
-               TileLaserTableBase.this.setChanged();
-            }
-
-            return microJoules - accepted;
-         }
-
-         @Override
-         public long extractPower(long min, long max) {
-            if (TileLaserTableBase.this.power < min) {
-               return 0L;
-            }
-
-            long extracting = Math.min(TileLaserTableBase.this.power, max);
-            TileLaserTableBase.this.power -= extracting;
-            TileLaserTableBase.this.setChanged();
-            return extracting;
-         }
-      };
    }
 
    @Override

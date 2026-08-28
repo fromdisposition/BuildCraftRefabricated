@@ -27,7 +27,6 @@ public final class PipeColourTintSource implements ItemTintSource {
    //? if >= 1.21.10 {
    public static final MapCodec<PipeColourTintSource> MAP_CODEC = MapCodec.unit(INSTANCE);
    //?}
-   private static final int OVERLAY_ALPHA = 76;
 
    private PipeColourTintSource() {
    }

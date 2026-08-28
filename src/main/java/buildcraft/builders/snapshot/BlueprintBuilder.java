@@ -50,7 +50,6 @@ import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> {
-   private static final double MAX_ENTITY_DISTANCE = 0.1;
    private static final String FLUID_STACK_KEY = "BuilderFluidStack";
    private List<ItemStack>[] remainingDisplayRequiredBlocks;
    private List<ItemStack> remainingDisplayRequiredBlocksConcat = Collections.emptyList();

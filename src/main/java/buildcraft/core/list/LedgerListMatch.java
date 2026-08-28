@@ -21,7 +21,6 @@ public class LedgerListMatch extends Ledger_Neptune {
    private static final Identifier ICON = Identifier.parse("buildcraftlib:textures/icons/help.png");
    private static final int SLOT_X0 = 8;
    private static final int SLOT_Y0 = 32;
-   private static final int SLOT_PITCH_X = 18;
    private static final int SLOT_PITCH_Y = 34;
    private static final int SLOT_SIZE = 16;
    private final ContainerList container;

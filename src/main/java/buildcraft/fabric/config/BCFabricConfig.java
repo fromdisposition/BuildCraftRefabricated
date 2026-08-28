@@ -389,20 +389,6 @@ public final class BCFabricConfig {
       return obj.has(key) ? obj.get(key).getAsDouble() : fallback;
    }
 
-   /** Config values are BC-style percents (0.1 = 0.1%, 2 = 2%). Legacy absolute fractions (< 1%) are still accepted. */
-   private static double percentVal(JsonObject obj, String key, double fallbackFraction) {
-      if (!obj.has(key)) {
-         return fallbackFraction;
-      }
-
-      double raw = obj.get(key).getAsDouble();
-      if (raw > 0.0 && raw < 0.01) {
-         return raw;
-      }
-
-      return raw / 100.0;
-   }
-
    private static String string(JsonObject obj, String key, String fallback) {
       return obj.has(key) ? obj.get(key).getAsString() : fallback;
    }

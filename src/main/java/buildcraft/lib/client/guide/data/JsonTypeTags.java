@@ -60,11 +60,6 @@ public class JsonTypeTags {
       }
    }
 
-   private String getTyped(ETypeTag tag) {
-      String raw = this.getRaw(tag);
-      return tag.preText + (raw == null ? "" : raw);
-   }
-
    private static String getMod(String domain, int index) {
       if (domain.startsWith("buildcraft")) {
          return index == 0 ? "buildcraft" : domain.substring("buildcraft".length());

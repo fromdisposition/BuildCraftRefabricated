@@ -20,7 +20,6 @@ public abstract class GuideChapter extends GuidePart {
    public static final int[] COLOURS = new int[]{10343872, 16433524, 2598109};
    public static final int MAX_HOWEVER_PROGRESS = 5;
    public static final int MAX_HOVER_DISTANCE = 20;
-   private static final boolean FOLLOW_SIDE = false;
    public final PageLine chapter;
    public final int level;
    @Nullable

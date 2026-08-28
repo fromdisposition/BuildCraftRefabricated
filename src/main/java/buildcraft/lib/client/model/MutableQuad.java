@@ -6,7 +6,6 @@
 
 package buildcraft.lib.client.model;
 
-import buildcraft.lib.client.model.quad.BakedColors;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import net.minecraft.client.model.geom.builders.UVPair;
@@ -127,10 +126,6 @@ public class MutableQuad {
 
    private static int packArgb(MutableVertex v) {
       return (v.colour_a & 0xFF) << 24 | (v.colour_r & 0xFF) << 16 | (v.colour_g & 0xFF) << 8 | v.colour_b & 0xFF;
-   }
-
-   private BakedColors buildBakedColors() {
-      return BakedColors.of(packArgb(this.vertex_0), packArgb(this.vertex_1), packArgb(this.vertex_2), packArgb(this.vertex_3));
    }
 
    public BakedQuad toBakedBlock() {

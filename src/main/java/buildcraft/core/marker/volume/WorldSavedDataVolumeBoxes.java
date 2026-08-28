@@ -30,7 +30,6 @@ import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.phys.AABB;
 
 public class WorldSavedDataVolumeBoxes extends SavedData {
-   private static final String DATA_NAME = "buildcraft_volume_boxes";
    public Level world;
    public final List<VolumeBox> volumeBoxes = new ArrayList<>();
 

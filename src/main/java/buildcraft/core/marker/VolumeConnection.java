@@ -22,7 +22,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 
 public class VolumeConnection extends MarkerConnection<VolumeConnection> {
-   private static final double RENDER_SCALE = 0.06230529595015576;
    private final Set<BlockPos> makeup = new HashSet<>();
    private final Box box = new Box();
 

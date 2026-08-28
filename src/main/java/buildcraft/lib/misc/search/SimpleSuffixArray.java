@@ -19,11 +19,6 @@ import net.minecraft.util.profiling.ProfilerFiller;
 
 @SuppressWarnings("unchecked")
 public class SimpleSuffixArray<T> implements ISuffixArray<T> {
-   private static final boolean ADD_IS_GENERATE = true;
-   private static final boolean USE_AVL = true;
-   private static final boolean SPLIT_WORDS = true;
-   private final List<String> tempAddedNames = new ArrayList<>();
-   private final List<T> tempAddedObjects = new ArrayList<>();
    private int maxLength = 0;
    private final Object2ObjectSortedMap<String, List<T>> suffixArray = new Object2ObjectAVLTreeMap();
 

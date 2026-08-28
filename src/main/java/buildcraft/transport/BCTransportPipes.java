@@ -39,7 +39,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.DyeColor;
 
 public class BCTransportPipes {
-   private static final String MODID = "buildcrafttransport";
    public static PipeDefinition structure;
    public static PipeDefinition woodItem;
    public static PipeDefinition woodFluid;

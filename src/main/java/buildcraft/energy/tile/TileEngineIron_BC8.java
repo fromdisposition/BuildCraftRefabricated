@@ -393,14 +393,6 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
       return !Float.isNaN(this.coolantDegreesOrNaN(fluid.getFluid()));
    }
 
-   private boolean isResidue(FluidStack fluid) {
-      if (this.level != null && this.level.isClientSide()) {
-         return true;
-      } else {
-         return this.currentFuel != null && this.currentFuel.isDirty() && fluid.getFluid().isSame(this.currentFuel.residueFluid());
-      }
-   }
-
    public Storage<FluidVariant> getCombinedFluidStorage() {
       return new CombinedFluidStorage(List.of(this.tankFuel, this.tankCoolant), List.of(this.tankResidue));
    }

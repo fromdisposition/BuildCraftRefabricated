@@ -67,7 +67,6 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    private static final Identifier ADVANCEMENT_LOGIC_TRANSPORTATION = Identifier.parse("buildcrafttransport:logic_transportation");
    private static final Identifier ADVANCEMENT_COLORFUL_ELECTRICIAN = Identifier.parse("buildcrafttransport:colorful_electrician");
    private static final VoxelShape CENTER = Block.box(4.0, 4.0, 4.0, 12.0, 12.0, 12.0);
-   private static final double E = 0.01;
    private static final VoxelShape ARM_DOWN = Block.box(4.0, 0.0, 4.0, 12.0, 3.99, 12.0);
    private static final VoxelShape ARM_UP = Block.box(4.0, 12.01, 4.0, 12.0, 16.0, 12.0);
    private static final VoxelShape ARM_NORTH = Block.box(4.0, 4.0, 0.0, 12.0, 12.0, 3.99);

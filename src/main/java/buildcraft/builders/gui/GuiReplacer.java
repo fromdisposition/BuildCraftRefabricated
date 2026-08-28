@@ -332,24 +332,6 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
       }
    }
 
-   private Blueprint maybeApplyPendingReplacement(Blueprint blueprint) {
-      ItemStack fromStack = ((ContainerReplacer)this.menu).getSlot(1).getItem();
-      ItemStack toStack = ((ContainerReplacer)this.menu).getSlot(2).getItem();
-      if (!fromStack.isEmpty() && !toStack.isEmpty()) {
-         ISchematicBlock from = ItemSchematicSingle.getSchematicSafe(fromStack);
-         ISchematicBlock to = ItemSchematicSingle.getSchematicSafe(toStack);
-         if (from != null && to != null) {
-            Blueprint preview = blueprint.copy();
-            preview.replace(from, to);
-            return preview;
-         } else {
-            return blueprint;
-         }
-      } else {
-         return blueprint;
-      }
-   }
-
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();

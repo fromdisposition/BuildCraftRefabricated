@@ -58,7 +58,6 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 *///?}
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
-import net.minecraft.client.renderer.item.TrackingItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -101,7 +100,6 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       }
    };
    private static final ThreadLocal<MutableBlockPos> NEIGHBOR_SCRATCH = ThreadLocal.withInitial(MutableBlockPos::new);
-   private static final TrackingItemStackRenderState MARKER_EMPTY = new TrackingItemStackRenderState();
 
    //? if >= 26.2 {
    public BlueprintPipRenderer() {
@@ -938,9 +936,6 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    private record BlockEntry(int x, int y, int z, List<MutableQuad> quads) {
    }
 
-   private record ItemEntry(int x, int y, int z, TrackingItemStackRenderState renderState) {
-   }
-
    private record PipeEntry(int x, int y, int z, PipeModelKey pipeKey, List<PluggableModelKey> plugs) {
    }
 
@@ -964,7 +959,6 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
 
    private static final class PreviewPlan {
       private final List<BlueprintPipRenderer.BlockEntry> blockEntries = new ArrayList<>();
-      private final List<BlueprintPipRenderer.ItemEntry> itemEntries = new ArrayList<>();
       private final List<BlueprintPipRenderer.PipeEntry> pipeEntries = new ArrayList<>();
       private final List<BlueprintPipRenderer.FluidEntry> fluidEntries = new ArrayList<>();
       private final List<BlueprintPipRenderer.TemplateEntry> templateEntries = new ArrayList<>();
