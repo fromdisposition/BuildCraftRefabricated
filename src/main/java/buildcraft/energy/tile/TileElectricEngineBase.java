@@ -29,7 +29,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class TileElectricEngineBase extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu {
    public static final int MAX_FE = 10000;
-   public static final float HEAT_RATE = 0.06F;
    public static final float COOLDOWN_RATE = 0.01F;
    public static final Map<Item, Long> UPGRADE_VALUES = new LinkedHashMap<>();
    public final ItemHandlerSimple upgrades = new ItemHandlerSimple(4, (handler, slot, bef, aft) -> this.setChanged());
@@ -84,12 +83,12 @@ public abstract class TileElectricEngineBase extends TileEngineBase_BC8 implemen
 
    @Override
    public void updateHeatLevel() {
-      if (this.heat > 20.0F) {
-         this.heat -= 0.01F;
+      if (this.heat > MIN_HEAT) {
+         this.heat -= COOLDOWN_RATE;
       }
 
-      if (this.heat <= 20.0F) {
-         this.heat = 20.0F;
+      if (this.heat <= MIN_HEAT) {
+         this.heat = MIN_HEAT;
       }
 
       this.getPowerStage();

@@ -38,7 +38,7 @@ public record MessageMarker(boolean add, boolean connection, int cacheId, List<B
       boolean add = buf.readBoolean();
       boolean connection = buf.readBoolean();
       int cacheId = buf.readShort();
-      int count = BCPacketLimits.validateCount(buf.readShort(), 8192, "marker positions");
+      int count = BCPacketLimits.validateCount(buf.readShort(), BCPacketLimits.MAX_MARKER_POSITIONS, "marker positions");
       List<BlockPos> positions = new ArrayList<>(count);
 
       for (int i = 0; i < count; i++) {

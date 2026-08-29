@@ -86,7 +86,7 @@ public final class MessageVolumeBoxes implements CustomPacketPayload {
    private static MessageVolumeBoxes decode(RegistryFriendlyByteBuf buf) {
       boolean fullSync = buf.readBoolean();
       if (fullSync) {
-         int count = BCPacketLimits.validateCount(buf.readShort(), 512, "volume boxes");
+         int count = BCPacketLimits.validateCount(buf.readShort(), BCPacketLimits.MAX_VOLUME_BOXES, "volume boxes");
          List<CompoundTag> tags = new ArrayList<>(count);
 
          for (int i = 0; i < count; i++) {
@@ -95,14 +95,14 @@ public final class MessageVolumeBoxes implements CustomPacketPayload {
 
          return full(tags);
       } else {
-         int removedCount = BCPacketLimits.validateCount(buf.readShort(), 512, "volume removed");
+         int removedCount = BCPacketLimits.validateCount(buf.readShort(), BCPacketLimits.MAX_VOLUME_BOXES, "volume removed");
          List<UUID> removed = new ArrayList<>(removedCount);
 
          for (int i = 0; i < removedCount; i++) {
             removed.add(buf.readUUID());
          }
 
-         int changedCount = BCPacketLimits.validateCount(buf.readShort(), 512, "volume changed");
+         int changedCount = BCPacketLimits.validateCount(buf.readShort(), BCPacketLimits.MAX_VOLUME_BOXES, "volume changed");
          List<CompoundTag> changed = new ArrayList<>(changedCount);
 
          for (int i = 0; i < changedCount; i++) {

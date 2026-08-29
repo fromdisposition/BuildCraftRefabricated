@@ -133,9 +133,9 @@ public class LedgerListMatch extends Ledger_Neptune {
    private int getHoveredLineForSlotZero() {
       double mx = this.gui.mouse.getX() - this.gui.rootElement.getX();
       double my = this.gui.mouse.getY() - this.gui.rootElement.getY();
-      if (!(mx < 8.0) && !(mx >= 24.0)) {
+      if (!(mx < SLOT_X0) && !(mx >= SLOT_X0 + SLOT_SIZE)) {
          for (int line = 0; line < this.container.lines.length; line++) {
-            int y = 32 + line * 34;
+            int y = SLOT_Y0 + line * SLOT_PITCH_Y;
             if (my >= y && my < y + 16) {
                return line;
             }

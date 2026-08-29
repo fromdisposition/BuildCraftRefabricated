@@ -64,7 +64,7 @@ public abstract class GuidePart {
    protected GuidePart.PagePosition renderLine(GuidePart.PagePosition current, PageLine line, int x, int y, int width, int height, int pageRenderIndex) {
       this.wasHovered = false;
       this.wasIconHovered = false;
-      int allowedWidth = width - 16 * line.indent;
+      int allowedWidth = width - INDENT_WIDTH * line.indent;
       if (allowedWidth <= 0) {
          throw new IllegalStateException("Was indented too far");
       }
@@ -74,14 +74,14 @@ public abstract class GuidePart {
       FormatString next = FormatString.split(line.text);
       int neededSpace = this.fontRenderer != null ? this.fontRenderer.getFontHeight(line.text) : 9;
       if (icon != null) {
-         neededSpace = Math.max(16, neededSpace);
+         neededSpace = Math.max(LINE_HEIGHT, neededSpace);
       }
 
       current = current.guaranteeSpace(neededSpace, height);
-      int _x = x + 16 * line.indent;
+      int _x = x + INDENT_WIDTH * line.indent;
       int iconX = _x - 18;
       int iconY = y + current.pixel - 5;
-      GuiRectangle iconRect = icon != null ? new GuiRectangle(_x - 20, iconY, 20.0, 16.0) : null;
+      GuiRectangle iconRect = icon != null ? new GuiRectangle(_x - 20, iconY, 20.0, LINE_HEIGHT) : null;
       boolean iconVisibleHere = icon != null && current.page == pageRenderIndex;
       this.didRender = false;
       List<GuidePart.WrapSegment> segments = new ArrayList<>();
@@ -93,7 +93,7 @@ public abstract class GuidePart {
          int _y = y + cursor.pixel;
          int _w = this.fontRenderer != null ? this.fontRenderer.getStringWidth(text) : text.length() * 6;
          int rowTop = _y - 5;
-         GuiRectangle rect = new GuiRectangle(_x - 2, rowTop, _w + 4, 16.0);
+         GuiRectangle rect = new GuiRectangle(_x - 2, rowTop, _w + 4, LINE_HEIGHT);
          boolean rendered = cursor.page == pageRenderIndex;
          segments.add(new GuidePart.WrapSegment(text, rect, _y, rowTop, _w, rendered));
          next = strings.length == 1 ? null : strings[1];

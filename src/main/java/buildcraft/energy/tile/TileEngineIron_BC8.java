@@ -57,9 +57,9 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
    public static final int MAX_COOLANT_PER_TICK = 40;
    public static final double HEAT_PER_MJ = 0.0023;
    public static final double IDEAL_HEAT = 204.0;
-   public final SingleFluidTank tankFuel = new SingleFluidTank(10000, SingleFluidTank.TankAccess.filteredInput(this::isValidFuel));
-   public final SingleFluidTank tankCoolant = new SingleFluidTank(10000, SingleFluidTank.TankAccess.filteredInput(this::isValidCoolant));
-   public final SingleFluidTank tankResidue = new SingleFluidTank(10000, SingleFluidTank.TankAccess.MACHINE_OUTPUT);
+   public final SingleFluidTank tankFuel = new SingleFluidTank(MAX_FLUID, SingleFluidTank.TankAccess.filteredInput(this::isValidFuel));
+   public final SingleFluidTank tankCoolant = new SingleFluidTank(MAX_FLUID, SingleFluidTank.TankAccess.filteredInput(this::isValidCoolant));
+   public final SingleFluidTank tankResidue = new SingleFluidTank(MAX_FLUID, SingleFluidTank.TankAccess.MACHINE_OUTPUT);
    private int penaltyCooling = 0;
    private boolean lastPowered = false;
    private double burnTime;
@@ -169,7 +169,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                      }
 
                      this.addPower(this.currentFuel.powerPerCycle());
-                     this.heat = this.heat + (float)(this.currentFuel.powerPerCycle() * 0.0023 / MjAPI.MJ);
+                     this.heat = this.heat + (float)(this.currentFuel.powerPerCycle() * HEAT_PER_MJ / MjAPI.MJ);
                   }
                } else if (this.lastPowered) {
                   this.lastPowered = false;
@@ -183,7 +183,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                try {
                   FluidStack remaining = this.tankFuel.getFluidStack();
                   if (!remaining.isEmpty()) {
-                     this.tankFuel.extractMbInternal(remaining, 10000, tx);
+                     this.tankFuel.extractMbInternal(remaining, MAX_FLUID, tx);
                   }
 
                   tx.commit();
@@ -211,13 +211,13 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
    public void updateHeatLevel() {
       double target;
       if (!(this.heat > 20.0F) || this.penaltyCooling <= 0 && this.isRedstonePowered) {
-         if (this.heat > 204.0) {
-            target = 204.0;
+         if (this.heat > IDEAL_HEAT) {
+            target = IDEAL_HEAT;
          } else {
             target = this.heat;
          }
       } else {
-         this.heat -= 0.05F;
+         this.heat -= (float) COOLDOWN_RATE;
          target = 20.0;
       }
 
@@ -228,7 +228,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
             FluidStack coolRes = this.tankCoolant.getFluidStack();
             float coolPerMb = getCoolantDegreesPerMb(coolRes.getFluid());
             if (coolPerMb > 0.0F) {
-               int coolantAmount = Math.min(40, this.tankCoolant.getAmountMb());
+               int coolantAmount = Math.min(MAX_COOLANT_PER_TICK, this.tankCoolant.getAmountMb());
                coolingBuffer += coolantAmount * coolPerMb;
                Transaction tx = Transaction.openOuter();
 

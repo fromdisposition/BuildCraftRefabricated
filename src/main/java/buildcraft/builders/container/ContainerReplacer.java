@@ -57,7 +57,7 @@ public class ContainerReplacer extends ContainerBCTile<TileReplacer> {
 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
-      if (id == 10 && !isClient) {
+      if (id == NET_REPLACE && !isClient) {
          String newName = buffer.readUtf(1024);
          if (this.tile != null) {
             this.tile.doReplace(newName);

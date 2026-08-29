@@ -208,13 +208,13 @@ public enum GuideManager {
       String langCode;
       if (currentLanguage == null) {
          BCLog.logger.warn("Current language was null!");
-         langCode = "en_us";
+         langCode = DEFAULT_LANG;
       } else {
          langCode = currentLanguage;
       }
 
-      this.loadLangInternal(resourceManager, "en_us");
-      if (!"en_us".equals(langCode)) {
+      this.loadLangInternal(resourceManager, DEFAULT_LANG);
+      if (!DEFAULT_LANG.equals(langCode)) {
          this.loadLangInternal(resourceManager, langCode);
       }
 
@@ -386,8 +386,8 @@ public enum GuideManager {
          String groupName = row[1];
          Identifier mdRel = Identifier.parse(row[2]);
          List<GuidePartFactory> factories = this.tryLoadCategoryBody(rm, mdRel, langCode);
-         if (factories == null && !"en_us".equals(langCode)) {
-            factories = this.tryLoadCategoryBody(rm, mdRel, "en_us");
+         if (factories == null && !DEFAULT_LANG.equals(langCode)) {
+            factories = this.tryLoadCategoryBody(rm, mdRel, DEFAULT_LANG);
          }
 
          if (factories != null) {

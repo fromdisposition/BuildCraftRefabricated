@@ -172,7 +172,7 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
                   itemEntity.setItem(stack);
                }
 
-               flowItems.insertItemsForce(extracted, faceFrom, null, 0.04);
+               flowItems.insertItemsForce(extracted, faceFrom, null, INSERT_SPEED);
             }
 
             return power - powerReqPerItem * toExtract;
@@ -185,7 +185,7 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
    }
 
    public void onPipeDrop(PipeEventItem.Drop drop) {
-      this.entityDropTime.put(drop.getEntity(), this.pipe.getHolder().getPipeWorld().getGameTime() + 20L);
+      this.entityDropTime.put(drop.getEntity(), this.pipe.getHolder().getPipeWorld().getGameTime() + DROP_GAP);
    }
 
    @Override

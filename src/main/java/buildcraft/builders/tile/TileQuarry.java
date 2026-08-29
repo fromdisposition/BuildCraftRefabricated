@@ -86,7 +86,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, IChunkLoadingTile, IAdvDebugTarget {
-   public static final boolean DEBUG_QUARRY = BCDebugging.shouldDebugLog("builders.quarry");
    private static final long MAX_POWER_PER_TICK = 512L * MjAPI.MJ;
    private static final Identifier DIGGY_DIGGY_HOLE = Identifier.parse("buildcraftbuilders:diggy_diggy_hole");
    private final MjBattery battery = new MjBattery(24000L * MjAPI.MJ);

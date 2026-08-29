@@ -23,15 +23,15 @@ public class LedgerTablePower extends Ledger_Neptune {
    public final TileLaserTableBase tile;
 
    public LedgerTablePower(BuildCraftGui gui, TileLaserTableBase tile, boolean expandPositive) {
-      super(gui, -2855905, expandPositive);
+      super(gui, OVERLAY_COLOUR, expandPositive);
       this.tile = tile;
       this.title = "gui.power";
-      this.appendText(LocaleUtil.localize("gui.assemblyCurrentRequired") + ":", -5591112).setDropShadow(true);
-      this.appendText(() -> LocaleUtil.localizeMj(tile.getRemainingRequiredPower()), -16777216);
-      this.appendText(LocaleUtil.localize("gui.stored") + ":", -5591112).setDropShadow(true);
-      this.appendText(() -> LocaleUtil.localizeMj(tile.power), -16777216);
-      this.appendText(LocaleUtil.localize("gui.assemblyRate") + ":", -5591112).setDropShadow(true);
-      this.appendText(() -> LocaleUtil.localizeMjFlow(tile.avgPowerClient), -16777216);
+      this.appendText(LocaleUtil.localize("gui.assemblyCurrentRequired") + ":", SUB_HEADER_COLOUR).setDropShadow(true);
+      this.appendText(() -> LocaleUtil.localizeMj(tile.getRemainingRequiredPower()), TEXT_COLOUR);
+      this.appendText(LocaleUtil.localize("gui.stored") + ":", SUB_HEADER_COLOUR).setDropShadow(true);
+      this.appendText(() -> LocaleUtil.localizeMj(tile.power), TEXT_COLOUR);
+      this.appendText(LocaleUtil.localize("gui.assemblyRate") + ":", SUB_HEADER_COLOUR).setDropShadow(true);
+      this.appendText(() -> LocaleUtil.localizeMjFlow(tile.avgPowerClient), TEXT_COLOUR);
       this.calculateMaxSize();
    }
 

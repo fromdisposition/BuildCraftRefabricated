@@ -37,18 +37,18 @@ public record MessageDebugResponse(List<String> left, List<String> right) implem
    }
 
    private static MessageDebugResponse decode(RegistryFriendlyByteBuf buf) {
-      int leftCount = BCPacketLimits.validateCount(buf.readVarInt(), 256, "debug left");
+      int leftCount = BCPacketLimits.validateCount(buf.readVarInt(), BCPacketLimits.MAX_DEBUG_STRINGS, "debug left");
       List<String> left = new ArrayList<>(leftCount);
 
       for (int i = 0; i < leftCount; i++) {
-         left.add(buf.readUtf(4096));
+         left.add(buf.readUtf(BCPacketLimits.MAX_DEBUG_STRING_LENGTH));
       }
 
-      int rightCount = BCPacketLimits.validateCount(buf.readVarInt(), 256, "debug right");
+      int rightCount = BCPacketLimits.validateCount(buf.readVarInt(), BCPacketLimits.MAX_DEBUG_STRINGS, "debug right");
       List<String> right = new ArrayList<>(rightCount);
 
       for (int i = 0; i < rightCount; i++) {
-         right.add(buf.readUtf(4096));
+         right.add(buf.readUtf(BCPacketLimits.MAX_DEBUG_STRING_LENGTH));
       }
 
       return new MessageDebugResponse(left, right);

@@ -43,7 +43,7 @@ public final class BCPacketLimits {
    }
 
    public static void validateChunkSize(int length) {
-      if (length < 0 || length > 32768) {
+      if (length < 0 || length > MAX_CHUNK_BYTES) {
          throw new IllegalArgumentException("Invalid chunk size: " + length);
       }
    }

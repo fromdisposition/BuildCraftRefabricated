@@ -92,7 +92,7 @@ public class GlobalSavedDataSnapshots {
       int matchedPrefix = 0;
 
       for (File snapshotFile : files) {
-         if (snapshotFile.getName().startsWith(targetPrefix) && snapshotFile.getName().endsWith(".bcnbt")) {
+         if (snapshotFile.getName().startsWith(targetPrefix) && snapshotFile.getName().endsWith(SNAPSHOT_FILE_EXTENSION)) {
             matchedPrefix++;
             Pair<Snapshot, File> loaded = this.readSnapshotFile(snapshotFile, key);
             if (loaded != null) {
@@ -126,7 +126,7 @@ public class GlobalSavedDataSnapshots {
    }
 
    private File snapshotFileFor(Snapshot.Key key) {
-      return new File(this.snapshotsFile, key.toString() + ".bcnbt");
+      return new File(this.snapshotsFile, key.toString() + SNAPSHOT_FILE_EXTENSION);
    }
 
    private List<Snapshot.Key> readList() {
@@ -134,7 +134,7 @@ public class GlobalSavedDataSnapshots {
       File[] files = this.snapshotsFile.listFiles();
       if (files != null) {
          for (File snapshotFile : files) {
-            if (snapshotFile.getName().endsWith(".bcnbt")) {
+            if (snapshotFile.getName().endsWith(SNAPSHOT_FILE_EXTENSION)) {
                try (FileInputStream fileInputStream = new FileInputStream(snapshotFile)) {
                   Snapshot snapshot = Snapshot.readFromNBT(NbtSquisher.expand(fileInputStream));
                   if (snapshotFile.getName().startsWith(snapshot.key.toString())) {

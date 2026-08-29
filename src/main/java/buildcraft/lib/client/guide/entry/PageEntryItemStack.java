@@ -33,7 +33,6 @@ import net.minecraft.world.item.Items;
 
 public class PageEntryItemStack extends PageValueType<ItemStackValueFilter> {
    public static final PageEntryItemStack INSTANCE = new PageEntryItemStack();
-   private static final JsonTypeTags TAGS = new JsonTypeTags("buildcraft.guide.contents.item_stacks");
    private static final JsonTypeTags OTHER_ITEMS_TAGS = new JsonTypeTags("buildcraft.guide.contents.other_items");
 
    @Override

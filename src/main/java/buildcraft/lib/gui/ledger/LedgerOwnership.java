@@ -31,7 +31,7 @@ public class LedgerOwnership extends Ledger_Neptune {
    private final Supplier<GameProfile> ownerSupplier;
 
    public LedgerOwnership(BuildCraftGui gui, Supplier<GameProfile> ownerSupplier, boolean expandPositive) {
-      super(gui, 14741759, expandPositive);
+      super(gui, COLOUR, expandPositive);
       this.ownerSupplier = ownerSupplier;
       this.title = "gui.owner";
       this.appendText(() -> {

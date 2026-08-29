@@ -376,14 +376,14 @@ public abstract class GuideChapter extends GuidePart {
       }
 
       float prog = partialTicks * this.hoverProgress + (1.0F - partialTicks) * this.hoverProgressLast;
-      float raw = prog * 20.0F / 5.0F;
+      float raw = prog * MAX_HOVER_DISTANCE / (float) MAX_HOWEVER_PROGRESS;
       return Math.min(raw, this.getMaxAllowedHoverWidth());
    }
 
    private float getMaxAllowedHoverWidth() {
       IFontRenderer font = this.gui.getCurrentFont();
       if (font == null) {
-         return 20.0F;
+         return MAX_HOVER_DISTANCE;
       } else {
          int textW = effectiveTextWidth(font, this.getWrappedTitle());
          int arrowOffset = this.hasChildren() ? 16 : 0;
@@ -393,7 +393,7 @@ public abstract class GuideChapter extends GuidePart {
             int rightLimit = this.gui.width - this.gui.minX - GuiGuide.PAGE_LEFT.width - GuiGuide.PAGE_RIGHT.width - textW - arrowOffset - 1;
             return Math.max(0, rightLimit);
          } else {
-            return 20.0F;
+            return MAX_HOVER_DISTANCE;
          }
       }
    }

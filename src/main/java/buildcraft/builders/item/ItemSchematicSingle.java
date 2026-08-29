@@ -116,10 +116,10 @@ public class ItemSchematicSingle extends Item {
 
          ItemStack usedStack = new ItemStack(BCBuildersItems.SCHEMATIC_SINGLE_USED, 1);
          CompoundTag itemData = new CompoundTag();
-         itemData.put("schematic", SchematicBlockManager.writeToNBT(schematicBlock));
+         itemData.put(NBT_KEY, SchematicBlockManager.writeToNBT(schematicBlock));
          NBTUtilBC.setItemData(usedStack, itemData);
          player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, usedStack));
-         AdvancementUtil.unlockAdvancement(player, PaperAdvancement.ID, "capture_with_schematic");
+         AdvancementUtil.unlockAdvancement(player, PaperAdvancement.ID, PaperAdvancement.CAPTURE_WITH_SCHEMATIC);
          return InteractionResult.SUCCESS;
       } else {
          BlockPos placePos = pos;
@@ -183,8 +183,8 @@ public class ItemSchematicSingle extends Item {
    public static ISchematicBlock getSchematic(@Nonnull ItemStack stack) throws InvalidInputDataException {
       if (stack.getItem() instanceof ItemSchematicSingle) {
          CompoundTag itemData = NBTUtilBC.getItemData(stack);
-         if (itemData.contains("schematic")) {
-            return SchematicBlockManager.readFromNBT(BcNbt.getCompound(itemData, "schematic"));
+         if (itemData.contains(NBT_KEY)) {
+            return SchematicBlockManager.readFromNBT(BcNbt.getCompound(itemData, NBT_KEY));
          }
       }
 

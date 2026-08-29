@@ -37,7 +37,7 @@ public class PipeFaceTex {
    }
 
    public static PipeFaceTex get(int singleTexture) {
-      return singleTexture < 64 ? SINGLE_WHITE_SPRITES[singleTexture] : new PipeFaceTex(singleTexture);
+      return singleTexture < SINGLE_WHITE_SPRITES_COUNT ? SINGLE_WHITE_SPRITES[singleTexture] : new PipeFaceTex(singleTexture);
    }
 
    private PipeFaceTex(int[] textures, int... colours) {
@@ -135,7 +135,7 @@ public class PipeFaceTex {
    }
 
    static {
-      for (int i = 0; i < 64; i++) {
+      for (int i = 0; i < SINGLE_WHITE_SPRITES_COUNT; i++) {
          SINGLE_WHITE_SPRITES[i] = new PipeFaceTex(i);
       }
    }

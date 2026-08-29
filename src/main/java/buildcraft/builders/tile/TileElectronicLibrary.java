@@ -54,7 +54,7 @@ public class TileElectronicLibrary extends BcBlockEntity implements MenuProvider
    public int progressUp = -1;
    private final Set<Player> watchingPlayers = new HashSet<>();
    private static final int MIN_TICKS_BETWEEN_DOWNLOADS = 4;
-   private long lastDownloadBroadcastTick = -4L;
+   private long lastDownloadBroadcastTick = -MIN_TICKS_BETWEEN_DOWNLOADS;
    private boolean uploadRequestInFlight;
 
    public TileElectronicLibrary(BlockPos pos, BlockState state) {
@@ -123,7 +123,7 @@ public class TileElectronicLibrary extends BcBlockEntity implements MenuProvider
 
    private void broadcastDownload(ItemStack usedItem) {
       long tick = this.level.getGameTime();
-      if (tick - this.lastDownloadBroadcastTick >= 4L) {
+      if (tick - this.lastDownloadBroadcastTick >= MIN_TICKS_BETWEEN_DOWNLOADS) {
          this.lastDownloadBroadcastTick = tick;
          Snapshot.Header header = ItemSnapshot.getHeader(usedItem);
          if (header != null) {

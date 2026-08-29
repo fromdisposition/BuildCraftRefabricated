@@ -174,7 +174,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                         }
 
                         CompoundTag wrapper = new CompoundTag();
-                        wrapper.put("BuilderFluidStack", fluidTag);
+                        wrapper.put(FLUID_STACK_KEY, fluidTag);
                         if (!stack.isEmpty()) {
                            stack.set(DataComponents.CUSTOM_DATA, CustomData.of(wrapper));
                         }
@@ -293,17 +293,17 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
       super.cancelPlaceTask(placeTask);
       placeTask.items.stream().filter(stack -> {
          CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
-         return customData == null || !customData.copyTag().contains("BuilderFluidStack");
+         return customData == null || !customData.copyTag().contains(FLUID_STACK_KEY);
       }).forEach(stack -> this.tile.getInvResources().insert(stack, false, false));
       placeTask.items
          .stream()
          .filter(stack -> {
             CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
-            return customData != null && customData.copyTag().contains("BuilderFluidStack");
+            return customData != null && customData.copyTag().contains(FLUID_STACK_KEY);
          })
          .map(stack -> {
             CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
-            CompoundTag fluidTag = BcNbt.getCompound(customData.copyTag(), "BuilderFluidStack");
+            CompoundTag fluidTag = BcNbt.getCompound(customData.copyTag(), FLUID_STACK_KEY);
             if (fluidTag.isEmpty()) {
                return FluidStack.EMPTY;
             }

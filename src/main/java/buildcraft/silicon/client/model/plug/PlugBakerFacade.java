@@ -45,10 +45,6 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
    public static final int FACADE_TINT_BASE = 2;
    public static final int FACADE_TINT_MAX_DATA = 4;
    public static final int FACADE_TINT_LIST_SIZE = 2 + 4 * Direction.values().length;
-   private static final int ROT_NONE = 0;
-   private static final int ROT_CW90 = 1;
-   private static final int ROT_CW180 = 2;
-   private static final int ROT_CCW90 = 3;
    private static final int[] ROTATIONS = new int[]{0, 1, 2, 3};
    private static final RandomSource RANDOM = RandomSource.create();
 

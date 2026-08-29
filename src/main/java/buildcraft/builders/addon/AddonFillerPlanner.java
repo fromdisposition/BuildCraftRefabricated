@@ -63,7 +63,7 @@ public class AddonFillerPlanner extends Addon implements ISingleAddon, IFillerSt
             if (this.buildingInfo.getSnapshot().data.get(this.buildingInfo.getSnapshot().posToIndex(this.buildingInfo.fromWorld(blockPos)))
                && this.volumeBox.world.isEmptyBlock(blockPos)) {
                positions.add(blockPos.immutable());
-               if (positions.size() >= 4096) {
+               if (positions.size() >= MAX_PREVIEW_BLOCKS) {
                   break;
                }
             }

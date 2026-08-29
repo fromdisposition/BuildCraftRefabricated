@@ -54,8 +54,6 @@ import net.minecraft.world.level.material.Fluids;
 
 public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable {
    private static final int DIRECTION_COOLDOWN = 60;
-   private static final int COOLDOWN_INPUT = -60;
-   private static final int COOLDOWN_OUTPUT = 60;
    public static final int NET_FLUID_AMOUNTS = 2;
    public static final double FLOW_MULTIPLIER = 0.016;
    private final PipeApi.FluidTransferInfo fluidTransferInfo = PipeApi.getFluidTransferInfo(this.pipe.getDefinition());
@@ -140,12 +138,12 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
       @Override
       public void setSectionCooldownOutput(EnumPipePart part) {
-         PipeFlowFluids.this.sections.get(part).ticksInDirection = 60;
+         PipeFlowFluids.this.sections.get(part).ticksInDirection = DIRECTION_COOLDOWN;
       }
 
       @Override
       public void setSectionCooldownInput(EnumPipePart part) {
-         PipeFlowFluids.this.sections.get(part).ticksInDirection = -60;
+         PipeFlowFluids.this.sections.get(part).ticksInDirection = -DIRECTION_COOLDOWN;
       }
 
       @Override
@@ -394,7 +392,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          int leftOver = extracted - reallyFilled;
          reallyFilled += middle.fillInternal(leftOver, !simulate);
          if (!simulate) {
-            section.ticksInDirection = -60;
+            section.ticksInDirection = -DIRECTION_COOLDOWN;
          }
 
          if (reallyFilled != extracted) {
@@ -458,7 +456,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       }
 
       if (from != null) {
-         this.sections.get(EnumPipePart.fromFacing(from)).ticksInDirection = -60;
+         this.sections.get(EnumPipePart.fromFacing(from)).ticksInDirection = -DIRECTION_COOLDOWN;
       }
 
       return filled;
@@ -666,14 +664,14 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          }
 
          if (send && this.getTracker().markTimeIfDelay(world)) {
-            this.sendPayload(2);
+            this.sendPayload(NET_FLUID_AMOUNTS);
          }
       }
    }
 
    @Override
    public void writePayload(int id, FriendlyByteBuf buffer) {
-      if (id == 2 || id == 0) {
+      if (id == NET_FLUID_AMOUNTS || id == NET_ID_FULL_STATE) {
          boolean full = id == 0;
          if (this.currentFluid.isEmpty()) {
             buffer.writeBoolean(false);
@@ -703,7 +701,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
    @Override
    public void readPayload(int id, FriendlyByteBuf buffer) {
-      if (id == 2 || id == 0) {
+      if (id == NET_FLUID_AMOUNTS || id == NET_ID_FULL_STATE) {
          boolean full = id == 0;
          if (buffer.readBoolean()) {
             FluidStack parsed = fluidFromId(buffer.readUtf());
@@ -724,7 +722,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             }
 
             PipeFlowFluids.Dir dir = buffer.readEnum(PipeFlowFluids.Dir.class);
-            section.ticksInDirection = dir == PipeFlowFluids.Dir.NONE ? 0 : (dir == PipeFlowFluids.Dir.IN ? -60 : 60);
+            section.ticksInDirection = dir == PipeFlowFluids.Dir.NONE ? 0 : (dir == PipeFlowFluids.Dir.IN ? -DIRECTION_COOLDOWN : DIRECTION_COOLDOWN);
          }
 
          this.lastMessageMinus1 = this.lastMessage;
@@ -968,12 +966,12 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             dirX = Math.signum(dirX);
             dirY = Math.signum(dirY);
             dirZ = Math.signum(dirZ);
-            this.offsetThisX += dirX * -0.016;
-            this.offsetThisY += dirY * -0.016;
-            this.offsetThisZ += dirZ * -0.016;
+            this.offsetThisX += dirX * -FLOW_MULTIPLIER;
+            this.offsetThisY += dirY * -FLOW_MULTIPLIER;
+            this.offsetThisZ += dirZ * -FLOW_MULTIPLIER;
          } else {
             double mult = Math.signum(this.ticksInDirection);
-            double delta = -0.016 * mult;
+            double delta = -FLOW_MULTIPLIER * mult;
             this.offsetThisX = this.offsetLastX + this.part.face.getStepX() * delta;
             this.offsetThisY = this.offsetLastY + this.part.face.getStepY() * delta;
             this.offsetThisZ = this.offsetLastZ + this.part.face.getStepZ() * delta;
@@ -1058,7 +1056,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
             int filled = this.fill(insertAmount, true);
             if (filled > 0) {
-               this.ticksInDirection = -60;
+               this.ticksInDirection = -DIRECTION_COOLDOWN;
             }
 
             return filled;
@@ -1093,7 +1091,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          this.updateSnapshots(transaction);
          int drained = this.drainInternal(extractAmount, true);
          if (drained > 0) {
-            this.ticksInDirection = 60;
+            this.ticksInDirection = DIRECTION_COOLDOWN;
             boolean isEmpty = true;
 
             for (PipeFlowFluids.Section s2 : PipeFlowFluids.this.sections.values()) {

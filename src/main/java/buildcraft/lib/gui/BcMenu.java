@@ -41,9 +41,7 @@ import net.minecraft.world.level.ItemLike;
 
 public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
    public static final int NET_WIDGET = 0;
-   public static final int NET_JEI_RECIPE_TRANSFER = 100;
    public static final int NET_GHOST_SLOT_SET = 101;
-   public static final int NET_JEI_TRANSFER_ITEMS = 102;
    public static final int NET_BUCKET_TRANSFER = 103;
    public final Player player;
    private final List<Widget_Neptune<?>> widgets = new ArrayList<>();
@@ -135,7 +133,7 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
       if (widgetId == -1) {
          BCLog.logger.warn("[lib.container] sendWidgetData: widget not found! (" + (widget == null ? "null" : widget.getClass()) + ") in " + this.getClass());
       } else {
-         this.sendMessage(0, buf -> {
+         this.sendMessage(NET_WIDGET, buf -> {
             buf.writeShort(widgetId);
             writer.write(buf);
          });
@@ -143,7 +141,7 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
    }
 
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
-      if (id == 0) {
+      if (id == NET_WIDGET) {
          int widgetId = buffer.readUnsignedShort();
          if (widgetId < 0 || widgetId >= this.widgets.size()) {
             BCLog.logger.warn("[lib.container] Received invalid widget ID " + widgetId + " (have " + this.widgets.size() + " widgets)");
@@ -161,7 +159,7 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
          } catch (Exception e) {
             BCLog.logger.warn("[lib.container] Error handling widget data for widget " + widgetId, e);
          }
-      } else if (id == 101 && !isClient) {
+      } else if (id == NET_GHOST_SLOT_SET && !isClient) {
          int slotIdx = buffer.readUnsignedShort();
          String itemId = buffer.readUtf();
          if (slotIdx >= 0 && slotIdx < this.slots.size() && this.slots.get(slotIdx) instanceof SlotPhantom phantom) {

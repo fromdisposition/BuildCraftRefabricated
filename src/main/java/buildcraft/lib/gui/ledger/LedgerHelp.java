@@ -106,14 +106,14 @@ public class LedgerHelp extends Ledger_Neptune {
       }
 
       int borderColour = alpha << 24 | colour & 16777215;
-      int bx = x - 2;
-      int by = y - 2;
-      int bw = w + 4;
-      int bh = h + 4;
-      graphics.fill(bx, by, bx + bw, by + 2, borderColour);
-      graphics.fill(bx, y + h, bx + bw, y + h + 2, borderColour);
-      graphics.fill(bx, by + 2, bx + 2, y + h, borderColour);
-      graphics.fill(x + w, by + 2, x + w + 2, y + h, borderColour);
+      int bx = x - BORDER;
+      int by = y - BORDER;
+      int bw = w + 2 * BORDER;
+      int bh = h + 2 * BORDER;
+      graphics.fill(bx, by, bx + bw, by + BORDER, borderColour);
+      graphics.fill(bx, y + h, bx + bw, y + h + BORDER, borderColour);
+      graphics.fill(bx, by + BORDER, bx + BORDER, y + h, borderColour);
+      graphics.fill(x + w, by + BORDER, x + w + BORDER, y + h, borderColour);
       if (isHovered || isSelected) {
          int fillAlpha = isHovered ? 51 : 34;
          int fillColour = fillAlpha << 24 | colour & 16777215;

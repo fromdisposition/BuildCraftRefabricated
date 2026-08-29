@@ -200,8 +200,8 @@ public class GuidePageContents extends GuidePageBase {
          }
 
          if (index != 0) {
-            int oX = x + -10;
-            int oY = y + -10;
+            int oX = x + ORDER_OFFSET_X;
+            int oY = y + ORDER_OFFSET_Y;
 
             for (int j = 0; j < GuiGuide.ORDERS.length; j++) {
                GuiIcon icon = GuiGuide.ORDERS[j];
@@ -244,8 +244,8 @@ public class GuidePageContents extends GuidePageBase {
    public void handleMouseClick(int x, int y, int width, int height, int mouseX, int mouseY, int mouseButton, int index, boolean isEditing) {
       super.handleMouseClick(x, y, width, height, mouseX, mouseY, mouseButton, index, isEditing);
       if (index % 2 == 0 && index != 0) {
-         int oX = x + -10;
-         int oY = y + -10;
+         int oX = x + ORDER_OFFSET_X;
+         int oY = y + ORDER_OFFSET_Y;
 
          for (TypeOrder order : GuiGuide.SORTING_TYPES) {
             GuiRectangle rect = new GuiRectangle(oX, oY, 14.0, 14.0);
@@ -335,8 +335,8 @@ public class GuidePageContents extends GuidePageBase {
    private boolean isOverOrderIcon(double mouseX, double mouseY) {
       int pageX = this.searchText.getX() - 23;
       int pageY = this.searchText.getY() + 16;
-      int oX = pageX + -10;
-      int oY = pageY + -10;
+      int oX = pageX + ORDER_OFFSET_X;
+      int oY = pageY + ORDER_OFFSET_Y;
 
       for (int i = 0; i < GuiGuide.SORTING_TYPES.length; i++) {
          if (new GuiRectangle(oX, oY, 14.0, 14.0).contains(mouseX, mouseY)) {

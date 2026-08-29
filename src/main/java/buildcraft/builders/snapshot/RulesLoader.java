@@ -69,7 +69,7 @@ public class RulesLoader {
          loadDomain(modId);
       }
 
-      loadDomain("buildcraftbuilders");
+      loadDomain(COMPAT_ASSET_DOMAIN);
       READ_DOMAINS.add("minecraft");
       READ_DOMAINS.addAll(FabricModResources.getProvidedIds("buildcraftrefabricated"));
    }

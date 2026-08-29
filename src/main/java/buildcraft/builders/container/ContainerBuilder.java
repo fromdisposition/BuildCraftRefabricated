@@ -82,11 +82,11 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
             }
 
             public int getCount() {
-               return 8;
+               return DATA_COUNT;
             }
          };
       } else {
-         this.data = new SimpleContainerData(8);
+         this.data = new SimpleContainerData(DATA_COUNT);
       }
 
       this.addDataSlots(this.data);
@@ -209,11 +209,11 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
-      if (id == 12 && !isClient) {
+      if (id == NET_FLUID_MODE_CLICK && !isClient) {
          if (this.tile != null) {
             this.tile.cycleFluidMode();
          }
-      } else if (id == 13 && !isClient) {
+      } else if (id == NET_CONTENTS_MODE_CLICK && !isClient) {
          if (this.tile != null) {
             this.tile.cycleContainerContentsMode();
          }

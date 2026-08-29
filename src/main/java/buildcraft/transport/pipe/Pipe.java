@@ -39,7 +39,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class Pipe implements IPipe, IDebuggable {
-   private static final float DEFAULT_CONNECTION_DISTANCE = 0.25F;
    public final IPipeHolder holder;
    public final PipeDefinition definition;
    public final PipeBehaviour behaviour;

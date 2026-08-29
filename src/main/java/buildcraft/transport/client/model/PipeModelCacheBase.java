@@ -21,7 +21,6 @@ import net.minecraft.world.item.DyeColor;
 public class PipeModelCacheBase {
    public static IPipeBaseModelGen generator = PipeBaseModelGenStandard.INSTANCE;
    static final IModelCache<PipeModelCacheBase.PipeBaseCutoutKey> cacheCutout = new ModelCache<>(PipeModelCacheBase::generateCutout);
-   static final IModelCache<PipeModelCacheBase.PipeBaseTranslucentKey> cacheTranslucent = new ModelCache<>(PipeModelCacheBase::generateTranslucent);
 
    private static List<BakedQuad> generateCutout(PipeModelCacheBase.PipeBaseCutoutKey key) {
       return generator.generateCutout(key);

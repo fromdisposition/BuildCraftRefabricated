@@ -70,11 +70,11 @@ public class ContainerEngineIron_BC8 extends BcMenu {
             }
 
             public int getCount() {
-               return 21;
+               return DATA_COUNT;
             }
          };
       } else {
-         SimpleContainerData clientData = new SimpleContainerData(21);
+         SimpleContainerData clientData = new SimpleContainerData(DATA_COUNT);
          int heatBits = Float.floatToIntBits(20.0F);
          clientData.set(DATA_HEAT, chunk16(heatBits, 0));
          clientData.set(DATA_HEAT + 1, chunk16(heatBits, 1));

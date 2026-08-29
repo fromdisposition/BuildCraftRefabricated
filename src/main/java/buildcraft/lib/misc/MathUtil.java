@@ -47,7 +47,7 @@ public class MathUtil {
          a = t;
       }
 
-      if (a < 64) {
+      if (a < HCF_SIZE) {
          return HCF_TABLE[a][b];
       }
 
@@ -67,11 +67,11 @@ public class MathUtil {
    static {
       short a = 0;
 
-      while (a < 64) {
+      while (a < HCF_SIZE) {
          HCF_TABLE[a][0] = a++;
       }
 
-      for (short ax = 0; ax < 64; ax++) {
+      for (short ax = 0; ax < HCF_SIZE; ax++) {
          for (short b = 1; b <= ax; b++) {
             HCF_TABLE[ax][b] = findHcfDirect(ax, b);
          }

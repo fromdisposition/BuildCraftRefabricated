@@ -38,7 +38,7 @@ public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
    public static void appendTooltipLines(ItemFragileFluidContainer item, ItemStack stack, TooltipFlag flag, List<Component> tooltip) {
       FluidStack fluid = getFluid(stack);
       if (!fluid.isEmpty() && fluid.getAmount() > 0) {
-         tooltip.add(Component.literal(LocaleUtil.localizeFluidStaticAmount(fluid.getAmount(), 500)));
+         tooltip.add(Component.literal(LocaleUtil.localizeFluidStaticAmount(fluid.getAmount(), MAX_FLUID_HELD)));
       }
    }
 
@@ -46,14 +46,14 @@ public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
    public void addFluidDrops(NonNullList<ItemStack> toDrop, @Nullable FluidStack fluid) {
       if (fluid != null && !fluid.isEmpty()) {
          int amount = fluid.getAmount();
-         if (amount >= 500) {
+         if (amount >= MAX_FLUID_HELD) {
             FluidStack fluid2 = fluid.copy();
-            fluid2.setAmount(500);
+            fluid2.setAmount(MAX_FLUID_HELD);
 
-            while (amount >= 500) {
+            while (amount >= MAX_FLUID_HELD) {
                ItemStack stack = new ItemStack(this);
                setFluid(stack, fluid2);
-               amount -= 500;
+               amount -= MAX_FLUID_HELD;
                toDrop.add(stack);
             }
          }

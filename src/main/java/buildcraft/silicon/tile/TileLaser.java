@@ -97,7 +97,7 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       BlockState state = this.level.getBlockState(this.worldPosition);
       if (state.getBlock() == BCSiliconBlocks.LASER) {
          Direction face = state.getValue(BlockLaser.FACING);
-         VolumeUtil.iterateCone(this.level, this.worldPosition, face, 6, true, (w, s, p, visible) -> {
+         VolumeUtil.iterateCone(this.level, this.worldPosition, face, TARGETING_RANGE, true, (w, s, p, visible) -> {
             if (visible) {
                BlockState stateAt = this.level.getBlockState(p);
                if (stateAt.getBlock() instanceof ILaserTargetBlock) {

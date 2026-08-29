@@ -25,7 +25,7 @@ public class PipeBehaviourGold extends PipeBehaviour {
    }
 
    public static void modifySpeed(PipeEventItem.ModifySpeed event) {
-      event.modifyTo(0.25, 0.07);
+      event.modifyTo(SPEED_TARGET, SPEED_DELTA);
    }
 
    @Override

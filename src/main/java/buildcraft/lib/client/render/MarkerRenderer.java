@@ -27,7 +27,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 public class MarkerRenderer {
-   public static final MarkerRenderer INSTANCE = new MarkerRenderer();
    private static final double RENDER_SCALE = 0.06230529595015576;
    private static final Vec3 VEC_HALF = new Vec3(0.5, 0.5, 0.5);
    private static PoseStack currentPoseStack;
@@ -93,7 +92,7 @@ public class MarkerRenderer {
                      Vec3 to = VecUtil.add(VEC_HALF, target);
                      Vec3 fromOffset = offset(from, to);
                      Vec3 toOffset = offset(to, from);
-                     pendingLasers.add(new LaserData_BC8(laserType, fromOffset, toOffset, 0.06230529595015576, false, false, 15));
+                     pendingLasers.add(new LaserData_BC8(laserType, fromOffset, toOffset, RENDER_SCALE, false, false, 15));
                   }
                }
             }

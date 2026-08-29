@@ -69,8 +69,8 @@ public record BcFluidWorldProperties(
       boolean sticky = stickyEnabled && stickyFlag == 1;
       boolean flammable = flammableEnabled && flammableFlag == 1;
       boolean denseFluid = baseName.contains("oil_heavy") || baseName.contains("oil_dense") || baseName.contains("oil_residue");
-      boolean displacesWater = !gaseous && density > 1000;
-      boolean floatsOnWater = !gaseous && density > 0 && density < 1000;
+      boolean displacesWater = !gaseous && density > WATER_DENSITY;
+      boolean floatsOnWater = !gaseous && density > 0 && density < WATER_DENSITY;
       int quanta = baseSpread + (baseSpread > 6 ? heat : heat / 2);
       int tickDelay = Math.max(1, viscosity / 200);
       int slopeFindDistance;

@@ -25,7 +25,7 @@ public record MessageMultiPipePayload(List<MessagePipePayload> payloads) impleme
    );
 
    private static void encode(RegistryFriendlyByteBuf buf, MessageMultiPipePayload msg) {
-      int count = Math.min(msg.payloads.size(), 4000);
+      int count = Math.min(msg.payloads.size(), BCPacketLimits.MAX_PIPE_PAYLOAD_ENTRIES);
       if (msg.payloads.size() > count) {
          BCLog.logger.warn("[transport.net] Truncating multi_pipe_payload from {} to {} entries", msg.payloads.size(), count);
       }
@@ -38,7 +38,7 @@ public record MessageMultiPipePayload(List<MessagePipePayload> payloads) impleme
    }
 
    private static MessageMultiPipePayload decode(RegistryFriendlyByteBuf buf) {
-      int count = BCPacketLimits.validateCount(buf.readVarInt(), 4000, "pipe payload entries");
+      int count = BCPacketLimits.validateCount(buf.readVarInt(), BCPacketLimits.MAX_PIPE_PAYLOAD_ENTRIES, "pipe payload entries");
       List<MessagePipePayload> payloads = new ArrayList<>(count);
 
       for (int i = 0; i < count; i++) {

@@ -43,13 +43,13 @@ public final class AdvDebuggerLaser {
                level,
                tile.getBlockPos(),
                face,
-               6,
+               DISTANCE,
                true,
                (w, start, p, visible) -> {
                   AABB box = new AABB(
-                     p.getX() + 0.5 - 0.15, p.getY() + 0.5 - 0.15, p.getZ() + 0.5 - 0.15, p.getX() + 0.5 + 0.15, p.getY() + 0.5 + 0.15, p.getZ() + 0.5 + 0.15
+                     p.getX() + 0.5 - CUBE_RADIUS, p.getY() + 0.5 - CUBE_RADIUS, p.getZ() + 0.5 - CUBE_RADIUS, p.getX() + 0.5 + CUBE_RADIUS, p.getY() + 0.5 + CUBE_RADIUS, p.getZ() + 0.5 + CUBE_RADIUS
                   );
-                  DebugRenderHelper.renderSolidBox(poseStack, bufferSource, box, cameraPos, visible ? -6684775 : -6745839);
+                  DebugRenderHelper.renderSolidBox(poseStack, bufferSource, box, cameraPos, visible ? COLOUR_VISIBLE : COLOUR_BLOCKED);
                }
             );
          }

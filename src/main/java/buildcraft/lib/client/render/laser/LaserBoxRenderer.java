@@ -133,7 +133,7 @@ public class LaserBoxRenderer {
       Vec3 dirMax = Vec3.atLowerCornerOf(faceForMax.getUnitVec3i());
       Vec3 one = min.add(dirMin.scale(0.0625));
       Vec3 two = max.add(dirMax.scale(0.0625));
-      return new LaserData_BC8(type, one, two, 0.06230529595015576, enableDiffuse, false, 15);
+      return new LaserData_BC8(type, one, two, RENDER_SCALE, enableDiffuse, false, 15);
    }
 
    private record BoxKey(BlockPos min, BlockPos max, LaserData_BC8.LaserType type, boolean center, boolean diffuse) {

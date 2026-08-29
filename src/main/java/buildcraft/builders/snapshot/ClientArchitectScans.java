@@ -28,14 +28,14 @@ public enum ClientArchitectScans {
             } else if (isNextX(previous, pos)) {
                previous = pos;
             } else {
-               this.runs.add(new ClientArchitectScans.ScanRun(start.immutable(), previous.immutable(), 50));
+               this.runs.add(new ClientArchitectScans.ScanRun(start.immutable(), previous.immutable(), START_SCANNED_BLOCK_VALUE));
                start = pos;
                previous = pos;
             }
          }
 
          if (start != null) {
-            this.runs.add(new ClientArchitectScans.ScanRun(start.immutable(), previous.immutable(), 50));
+            this.runs.add(new ClientArchitectScans.ScanRun(start.immutable(), previous.immutable(), START_SCANNED_BLOCK_VALUE));
          }
       }
    }

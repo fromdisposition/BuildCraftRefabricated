@@ -23,10 +23,6 @@ import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.Direction;
 
 public final class FluidPipeMovement {
-   private static final int COOLDOWN_OUTPUT = 60;
-   private static final int COOLDOWN_INPUT = -60;
-   public static final int COOLDOWN_OUTPUT_TICKS = 60;
-   public static final int COOLDOWN_INPUT_TICKS = -60;
    private static final ThreadLocal<MoveToCenterScratch> MOVE_TO_CENTER_SCRATCH = ThreadLocal.withInitial(MoveToCenterScratch::new);
 
    private FluidPipeMovement() {

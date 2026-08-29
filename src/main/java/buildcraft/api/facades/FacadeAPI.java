@@ -39,6 +39,6 @@ public final class FacadeAPI {
    }
 
    public static boolean isFacadeMessageId(String id) {
-      return "facade_custom_map_block_item".equals(id) || "facade_disable_block".equals(id);
+      return IMC_FACADE_CUSTOM.equals(id) || IMC_FACADE_DISABLE.equals(id);
    }
 }

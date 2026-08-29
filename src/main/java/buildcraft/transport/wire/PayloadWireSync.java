@@ -70,7 +70,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
 
          for (Entry<Integer, WireSystem> entry : msg.topology.entrySet()) {
             writeTopologyEntry(buf, entry.getKey(), entry.getValue());
-            if (++written >= 2048) {
+            if (++written >= BCPacketLimits.MAX_WIRE_SYSTEMS) {
                break;
             }
          }
@@ -86,7 +86,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
          for (Entry<Integer, Boolean> entry : msg.powered.entrySet()) {
             buf.writeInt(entry.getKey());
             buf.writeBoolean(entry.getValue());
-            if (++written >= 8192) {
+            if (++written >= BCPacketLimits.MAX_WIRE_POWERED_ENTRIES) {
                break;
             }
          }
@@ -95,7 +95,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
       }
 
       if ((flags & FLAG_REMOVED) != 0) {
-         int count = Math.min(msg.removedIds.length, 2048);
+         int count = Math.min(msg.removedIds.length, BCPacketLimits.MAX_WIRE_SYSTEMS);
          buf.writeInt(count);
 
          for (int i = 0; i < count; i++) {
@@ -104,7 +104,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
       }
 
       int size = buf.writerIndex() - packetStart;
-      if (size > 524288) {
+      if (size > BCPacketLimits.MAX_WIRE_SYNC_PACKET_BYTES) {
          throw new IllegalStateException("wire_sync packet exceeded byte budget (" + size + " bytes) — use WireSyncSplitter");
       }
    }
@@ -136,7 +136,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
       int[] removedIds = null;
       if ((flags & FLAG_TOPOLOGY) != 0) {
          topology = new HashMap<>();
-         int count = BCPacketLimits.validateCount(buf.readInt(), 2048, "wire systems");
+         int count = BCPacketLimits.validateCount(buf.readInt(), BCPacketLimits.MAX_WIRE_SYSTEMS, "wire systems");
 
          for (int i = 0; i < count; i++) {
             int networkId = buf.readInt();
@@ -153,7 +153,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
 
       if ((flags & FLAG_POWERED) != 0) {
          powered = new HashMap<>();
-         int count = BCPacketLimits.validateCount(buf.readInt(), 8192, "wire powered");
+         int count = BCPacketLimits.validateCount(buf.readInt(), BCPacketLimits.MAX_WIRE_POWERED_ENTRIES, "wire powered");
 
          for (int i = 0; i < count; i++) {
             powered.put(buf.readInt(), buf.readBoolean());
@@ -161,7 +161,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
       }
 
       if ((flags & FLAG_REMOVED) != 0) {
-         int count = BCPacketLimits.validateCount(buf.readInt(), 2048, "wire removals");
+         int count = BCPacketLimits.validateCount(buf.readInt(), BCPacketLimits.MAX_WIRE_SYSTEMS, "wire removals");
          removedIds = new int[count];
 
          for (int i = 0; i < count; i++) {

@@ -38,7 +38,7 @@ public final class EngineModelCache {
    }
 
    private static int cacheKey(EnumPowerStage stage, int progressQuant, Direction facing) {
-      return stage.ordinal() * 129 * 6 + progressQuant * 6 + facing.ordinal();
+      return stage.ordinal() * PROGRESS_VALUES * FACING_COUNT + progressQuant * FACING_COUNT + facing.ordinal();
    }
 
    public MutableQuad[] getQuads(TileEngineBase_BC8 tile, float partialTicks) {
@@ -55,14 +55,14 @@ public final class EngineModelCache {
       float progress = tile.getProgressClient(partialTicks);
       EnumPowerStage stage = tile.getPowerStage();
       Direction facing = tile.getOrientation();
-      int progressQuant = Math.max(0, Math.min(128, (int)(progress * 128.0F + 0.5F)));
+      int progressQuant = Math.max(0, Math.min(PROGRESS_QUANTIZATION, (int)(progress * PROGRESS_QUANTIZATION + 0.5F)));
       int key = cacheKey(stage, progressQuant, facing);
       MutableQuad[] cached = this.entries[key];
       if (cached != null) {
          return cached;
       }
 
-      this.progressVar.value = progressQuant / 128.0;
+      this.progressVar.value = progressQuant / (double) PROGRESS_QUANTIZATION;
       this.stageVar.value = stage;
       this.facingVar.value = facing;
       if (tile.clientModelData.hasNoNodes()) {

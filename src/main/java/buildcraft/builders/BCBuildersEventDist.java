@@ -160,7 +160,7 @@ public enum BCBuildersEventDist {
 
    public synchronized void onServerTick() {
       this.serverTickCounter++;
-      if (this.serverTickCounter % 20L == 0L) {
+      if (this.serverTickCounter % SCAN_INTERVAL_TICKS == 0L) {
          for (Entry<Level, Deque<WeakReference<TileQuarry>>> entry : this.allQuarries.entrySet()) {
             Level level = entry.getKey();
             Deque<WeakReference<TileQuarry>> quarries = entry.getValue();

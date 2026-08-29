@@ -55,7 +55,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
    @Override
    public void onStatementChange() {
       if (this.player != null && this.player.level() != null && this.player.level().isClientSide()) {
-         this.sendMessage(11, buf -> {
+         this.sendMessage(NET_STATEMENT, buf -> {
             PacketBufferBC buffer = BcPayloadBuffers.ensure(buf.unwrap());
             this.patternStatementClient.writeToBuffer(buffer);
          });
@@ -73,7 +73,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
             public int get(int index) {
                return switch (index) {
                   case 0 -> tile.getCanExcavate() ? 1 : 0;
-                  case 1 -> tile.inverted ? 1 : 0;
+                  case DATA_INVERTED -> tile.inverted ? 1 : 0;
                   case 2 -> tile.getFinished() ? 1 : 0;
                   case 3 -> tile.getLockedTicks();
                   case 4 -> tile.getModeOrdinal();
@@ -87,11 +87,11 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
             }
 
             public int getCount() {
-               return 9;
+               return DATA_COUNT;
             }
          };
       } else {
-         this.data = new SimpleContainerData(9);
+         this.data = new SimpleContainerData(DATA_COUNT);
       }
 
       this.addDataSlots(this.data);
@@ -141,7 +141,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
-      if (id == 11) {
+      if (id == NET_STATEMENT) {
          if (isClient) {
             this.patternStatementClient.readFromBuffer(buffer);
          } else if (this.tile != null) {
@@ -160,13 +160,13 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
       } else {
          super.readMessage(id, buffer, isClient, ctx);
          if (!isClient) {
-            if (id == 10) {
+            if (id == NET_EXCAVATE) {
                if (this.tile != null) {
                   this.tile.setCanExcavate(!this.tile.getCanExcavate());
                   this.tile.setChanged();
                   this.valuesChanged();
                }
-            } else if (id == 12 && this.tile != null) {
+            } else if (id == NET_INVERT && this.tile != null) {
                if (this.tile.addon != null) {
                   this.tile.addon.inverted = !this.tile.addon.inverted;
                } else {
@@ -204,7 +204,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
             temp.release();
             if (this.lastStatementHash == null || !Arrays.equals(this.lastStatementHash, current)) {
                this.lastStatementHash = current;
-               this.sendMessage(11, buf -> buf.writeBytes(current));
+               this.sendMessage(NET_STATEMENT, buf -> buf.writeBytes(current));
             }
          }
       }

@@ -103,8 +103,8 @@ public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRender
          Direction face = Direction.from2DDataValue(i);
          LED_GREEN[i] = new RenderPartCube();
          LED_RED[i] = new RenderPartCube();
-         LedRenderUtil.setFacePosition(LED_GREEN[i], face, 0.025, 0.09375, 0.84375);
-         LedRenderUtil.setFacePosition(LED_RED[i], face, 0.025, 0.21875, 0.84375);
+         LedRenderUtil.setFacePosition(LED_GREEN[i], face, LED_INSET, GREEN_OFFSET, Y);
+         LedRenderUtil.setFacePosition(LED_RED[i], face, LED_INSET, RED_OFFSET, Y);
       }
    }
 }

@@ -49,13 +49,13 @@ public abstract class ItemStackResourceHandler
    @Override
    public void serialize(BcValueOut output) {
       if (!this.getStack().isEmpty()) {
-         output.store("stack", ItemStack.CODEC, this.getStack());
+         output.store(VALUE_IO_KEY, ItemStack.CODEC, this.getStack());
       }
    }
 
    @Override
    public void deserialize(BcValueIn input) {
-      this.setStack(input.read("stack", ItemStack.CODEC).orElse(ItemStack.EMPTY));
+      this.setStack(input.read(VALUE_IO_KEY, ItemStack.CODEC).orElse(ItemStack.EMPTY));
    }
 
    public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {

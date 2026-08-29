@@ -84,7 +84,7 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
          }
 
          this.progressInput++;
-         if (this.progressInput >= 200) {
+         if (this.progressInput >= PROGRESS_TARGET) {
             this.progressInput = -1;
             int layer = layerFor(brush);
             if (layer >= 0) {
@@ -118,7 +118,7 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
          }
 
          this.progressOutput++;
-         if (this.progressOutput >= 200) {
+         if (this.progressOutput >= PROGRESS_TARGET) {
             this.progressOutput = -1;
             int layer = layerFor(brush);
             ItemStack result = map.copy();

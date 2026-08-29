@@ -44,14 +44,14 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
    private static void encode(RegistryFriendlyByteBuf buf, MessageMultiPipeItem msg) {
       List<Entry<BlockPos, List<MessageMultiPipeItem.TravellingItemData>>> sorted = new ArrayList<>(msg.items.entrySet());
       sorted.sort(Comparator.comparingLong(e -> e.getKey().asLong()));
-      int blockCount = Math.min(sorted.size(), 4000);
+      int blockCount = Math.min(sorted.size(), BCPacketLimits.MAX_PIPE_ITEM_BLOCKS);
       buf.writeShort(blockCount);
 
       for (int blockIndex = 0; blockIndex < blockCount; blockIndex++) {
          Entry<BlockPos, List<MessageMultiPipeItem.TravellingItemData>> entry = sorted.get(blockIndex);
          buf.writeBlockPos(entry.getKey());
          List<MessageMultiPipeItem.TravellingItemData> list = entry.getValue();
-         int itemCount = Math.min(list.size(), 10);
+         int itemCount = Math.min(list.size(), BCPacketLimits.MAX_PIPE_ITEMS_PER_BLOCK);
          buf.writeByte(itemCount);
 
          for (int i = 0; i < itemCount; i++) {
@@ -62,7 +62,7 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
 
    private static MessageMultiPipeItem decode(RegistryFriendlyByteBuf buf) {
       MessageMultiPipeItem msg = new MessageMultiPipeItem();
-      int blockCount = BCPacketLimits.validateCount(buf.readShort(), 4000, "pipe item blocks");
+      int blockCount = BCPacketLimits.validateCount(buf.readShort(), BCPacketLimits.MAX_PIPE_ITEM_BLOCKS, "pipe item blocks");
 
       for (int b = 0; b < blockCount; b++) {
          BlockPos pos = buf.readBlockPos();
@@ -85,12 +85,12 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
    public void append(BlockPos pos, ItemStack stack, int stackCount, boolean toCenter, Direction side, @Nullable DyeColor colour, int timeToDest) {
       MessageMultiPipeItem.TravellingItemData data = new MessageMultiPipeItem.TravellingItemData(stack, stackCount, toCenter, side, colour, timeToDest);
       int entryBytes = data.estimateBytes();
-      if (this.estimatedBytes + entryBytes > 524288) {
+      if (this.estimatedBytes + entryBytes > BCPacketLimits.MAX_PIPE_ITEM_PACKET_BYTES) {
          BCLog.logger.warn("[transport.net] Dropping pipe item visual: packet byte budget exceeded");
       } else {
          List<MessageMultiPipeItem.TravellingItemData> list = this.items.get(pos);
          if (list == null) {
-            if (this.items.size() >= 4000) {
+            if (this.items.size() >= BCPacketLimits.MAX_PIPE_ITEM_BLOCKS) {
                BCLog.logger.warn("[transport.net] Dropping pipe item visual: max positions reached");
                return;
             }
@@ -99,7 +99,7 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
             this.items.put(pos, list);
          }
 
-         if (list.size() >= 10) {
+         if (list.size() >= BCPacketLimits.MAX_PIPE_ITEMS_PER_BLOCK) {
             BCLog.logger.warn("[transport.net] Dropping pipe item visual: max items per pipe reached at {}", pos);
          } else {
             list.add(data);

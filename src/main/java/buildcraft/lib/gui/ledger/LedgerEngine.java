@@ -37,19 +37,19 @@ public class LedgerEngine extends Ledger_Neptune {
       boolean expandPositive,
       boolean showHeat
    ) {
-      super(gui, 13921311, expandPositive);
+      super(gui, OVERLAY_COLOUR, expandPositive);
       this.title = "gui.power";
       this.powerStageSupplier = powerStage;
       this.engineOnSupplier = engineOn;
-      this.appendText(LocaleUtil.localize("gui.currentOutput") + ":", 11186104).setDropShadow(true);
-      this.appendText(() -> LocaleUtil.localizeMjFlow(currentOutput.getAsLong()), 0);
-      this.appendText(LocaleUtil.localize("gui.stored") + ":", 11186104).setDropShadow(true);
-      this.appendText(() -> LocaleUtil.localizeMj(storedPower.getAsLong()), 0);
+      this.appendText(LocaleUtil.localize("gui.currentOutput") + ":", SUB_HEADER_COLOUR).setDropShadow(true);
+      this.appendText(() -> LocaleUtil.localizeMjFlow(currentOutput.getAsLong()), TEXT_COLOUR);
+      this.appendText(LocaleUtil.localize("gui.stored") + ":", SUB_HEADER_COLOUR).setDropShadow(true);
+      this.appendText(() -> LocaleUtil.localizeMj(storedPower.getAsLong()), TEXT_COLOUR);
       // Engines with no functional heat mechanic (electric converters) omit the Heat row -- it would always read
       // the baseline and mean nothing.
       if (showHeat) {
-         this.appendText(LocaleUtil.localize("gui.heat") + ":", 11186104).setDropShadow(true);
-         this.appendText(() -> LocaleUtil.localizeHeat(heatLevel.get()), 0);
+         this.appendText(LocaleUtil.localize("gui.heat") + ":", SUB_HEADER_COLOUR).setDropShadow(true);
+         this.appendText(() -> LocaleUtil.localizeHeat(heatLevel.get()), TEXT_COLOUR);
       }
 
       this.calculateMaxSize();
@@ -57,7 +57,7 @@ public class LedgerEngine extends Ledger_Neptune {
 
    @Override
    public int getTitleColour() {
-      return 14797103;
+      return HEADER_COLOUR;
    }
 
    @Override

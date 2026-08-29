@@ -63,7 +63,7 @@ public class FacadeAssemblyRecipes extends AssemblyRecipe implements IRecipeView
       }
 
       inputs[1] = new ChangingItemStack(list);
-      inputs[1].setTimeGap(500);
+      inputs[1].setTimeGap(TIME_GAP);
       return inputs;
    }
 
@@ -79,7 +79,7 @@ public class FacadeAssemblyRecipes extends AssemblyRecipe implements IRecipeView
       }
 
       ChangingItemStack changing = new ChangingItemStack(list);
-      changing.setTimeGap(500);
+      changing.setTimeGap(TIME_GAP);
       return changing;
    }
 

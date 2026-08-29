@@ -190,7 +190,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
                   }
 
                   this.finishScanning();
-                  this.dropCountdown = 10;
+                  this.dropCountdown = DROP_TICKS;
                }
             }
 
@@ -283,9 +283,9 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
       if (this.isValid && this.box.isInitialized()) {
          BlockPos size = this.box.size();
          long volume = (long)size.getX() * size.getY() * size.getZ();
-         if (volume > 0L && volume <= 32768L) {
+         if (volume > 0L && volume <= LIVE_PREVIEW_MAX_VOLUME) {
             long now = this.level.getGameTime();
-            if (this.cachedLivePreview != null && now - this.livePreviewGeneratedTick < 40L) {
+            if (this.cachedLivePreview != null && now - this.livePreviewGeneratedTick < LIVE_PREVIEW_TTL_TICKS) {
                return this.cachedLivePreview;
             }
 
@@ -379,7 +379,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
          this.blueprintScannedEntities.clear();
          if (this.getOwner() != null) {
             AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, ADVANCEMENT);
-            String paperCriterion = this.snapshotType == EnumSnapshotType.BLUEPRINT ? "write_to_blueprint" : "write_to_template";
+            String paperCriterion = this.snapshotType == EnumSnapshotType.BLUEPRINT ? PaperAdvancement.WRITE_TO_BLUEPRINT : PaperAdvancement.WRITE_TO_TEMPLATE;
             AdvancementUtil.unlockAdvancement(BcAuth.id(this.getOwner()), this.level, PaperAdvancement.ID, paperCriterion);
          }
 

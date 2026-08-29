@@ -56,7 +56,7 @@ public class BlueprintTransferHandler<C extends AbstractContainerMenu> implement
 
       if (container instanceof IBcMenu bcContainer) {
          String recipeIdStr = RegistryKeyUtil.id(recipe.id()).toString();
-         bcContainer.sendMessage(100, buf -> buf.writeUtf(recipeIdStr));
+         bcContainer.sendMessage(NET_JEI_RECIPE_TRANSFER, buf -> buf.writeUtf(recipeIdStr));
       }
 
       return null;

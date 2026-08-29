@@ -13,6 +13,6 @@ public final class BoundedNbt {
    }
 
    public static NbtAccounter networkQuota() {
-      return NbtAccounter.create(2097152L);
+      return NbtAccounter.create(BCPacketLimits.MAX_COMPRESSED_NBT_BYTES);
    }
 }

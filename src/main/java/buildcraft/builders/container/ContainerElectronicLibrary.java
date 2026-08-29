@@ -57,8 +57,8 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
          this.data = new ContainerData() {
             public int get(int index) {
                return switch (index) {
-                  case 0 -> tile.progressDown;
-                  case 1 -> tile.progressUp;
+                  case DATA_PROGRESS_DOWN -> tile.progressDown;
+                  case DATA_PROGRESS_UP -> tile.progressUp;
                   default -> 0;
                };
             }
@@ -67,11 +67,11 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
             }
 
             public int getCount() {
-               return 2;
+               return DATA_COUNT;
             }
          };
       } else {
-         this.data = new SimpleContainerData(2);
+         this.data = new SimpleContainerData(DATA_COUNT);
       }
 
       this.addDataSlots(this.data);
@@ -106,7 +106,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
 
    public void sendDownloadData(byte[] data) {
       if (data.length == 0) {
-         this.sendMessage(2, buf -> {
+         this.sendMessage(NET_DOWNLOAD, buf -> {
             buf.writeByte(1);
             buf.writeByteArray(new byte[0]);
          });
@@ -114,10 +114,10 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
          int offset = 0;
 
          while (offset < data.length) {
-            int end = Math.min(offset + 32768, data.length);
+            int end = Math.min(offset + BCPacketLimits.MAX_CHUNK_BYTES, data.length);
             byte[] chunk = Arrays.copyOfRange(data, offset, end);
             boolean last = end >= data.length;
-            this.sendMessage(2, buf -> {
+            this.sendMessage(NET_DOWNLOAD, buf -> {
                buf.writeByte(last ? 1 : 0);
                buf.writeByteArray(chunk);
             });
@@ -139,11 +139,11 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
             this.assembleDownload();
             this.downloadBytes = 0;
          }
-      } else if (id == 3 && isClient) {
+      } else if (id == NET_UPLOAD_REQUEST && isClient) {
          Snapshot.Key key = new Snapshot.Key(buffer);
          this.sendSnapshotToServer(key);
       } else {
-         if (id == 4 && !isClient) {
+         if (id == NET_UPLOAD_DATA && !isClient) {
             boolean last = buffer.readByte() != 0;
             byte[] chunk = readBoundedChunk(buffer);
             this.uploadBytes = accumulateChunk(this.uploadChunks, this.uploadBytes, chunk, "upload");
@@ -192,7 +192,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
             return;
          }
 
-         this.sendChunkedData(4, data);
+         this.sendChunkedData(NET_UPLOAD_DATA, data);
       }
    }
 
@@ -206,7 +206,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
          int offset = 0;
 
          while (offset < data.length) {
-            int end = Math.min(offset + 32768, data.length);
+            int end = Math.min(offset + BCPacketLimits.MAX_CHUNK_BYTES, data.length);
             byte[] chunk = Arrays.copyOfRange(data, offset, end);
             boolean last = end >= data.length;
             this.sendMessage(messageId, buf -> {

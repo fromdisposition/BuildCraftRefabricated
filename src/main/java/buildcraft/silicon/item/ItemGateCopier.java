@@ -66,7 +66,7 @@ public class ItemGateCopier extends Item {
       }
 
       CompoundTag data = NBTUtilBC.getItemData(stack);
-      data.remove("gate_data");
+      data.remove(NBT_DATA);
       if (data.isEmpty()) {
          stack.remove(DataComponents.CUSTOM_DATA);
       } else {
@@ -88,12 +88,12 @@ public class ItemGateCopier extends Item {
 
    public static CompoundTag getCopiedGateData(ItemStack stack) {
       CompoundTag data = NBTUtilBC.getItemData(stack);
-      return data.contains("gate_data") ? BcNbt.getCompound(data, "gate_data") : null;
+      return data.contains(NBT_DATA) ? BcNbt.getCompound(data, NBT_DATA) : null;
    }
 
    public static void setCopiedGateData(ItemStack stack, CompoundTag nbt) {
       CompoundTag data = NBTUtilBC.getItemData(stack);
-      data.put("gate_data", nbt);
+      data.put(NBT_DATA, nbt);
       NBTUtilBC.setItemData(stack, data);
       updateModelData(stack);
    }

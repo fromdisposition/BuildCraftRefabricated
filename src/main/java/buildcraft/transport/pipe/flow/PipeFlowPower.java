@@ -106,7 +106,7 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
    @Override
    public void writePayload(int id, FriendlyByteBuf buffer) {
       super.writePayload(id, buffer);
-      if (id == 2 || id == 0) {
+      if (id == NET_POWER_AMOUNTS || id == NET_ID_FULL_STATE) {
          PipeEnergyDisplaySupport.writeDisplayState(buffer, this.sections);
       }
    }
@@ -114,7 +114,7 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
    @Override
    public void readPayload(int id, FriendlyByteBuf buffer) {
       super.readPayload(id, buffer);
-      if (id == 2 || id == 0) {
+      if (id == NET_POWER_AMOUNTS || id == NET_ID_FULL_STATE) {
          PipeEnergyDisplaySupport.readDisplayState(buffer, this.sections);
       }
    }

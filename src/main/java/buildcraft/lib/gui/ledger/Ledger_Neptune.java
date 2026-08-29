@@ -46,8 +46,8 @@ public class Ledger_Neptune implements IGuiElement, IInteractionElement {
    private final IGuiPosition positionAnchor;
    protected double maxWidth = 96.0;
    protected double maxHeight = 48.0;
-   protected double currentWidth = 22.0;
-   protected double currentHeight = 24.0;
+   protected double currentWidth = CLOSED_WIDTH;
+   protected double currentHeight = CLOSED_HEIGHT;
    protected double lastWidth = this.currentWidth;
    protected double lastHeight = this.currentHeight;
    protected double interpWidth = this.lastWidth;
@@ -144,13 +144,13 @@ public class Ledger_Neptune implements IGuiElement, IInteractionElement {
       int naturalWidth = overhead + naturalMaxTextWidth;
       int maxAllowedWidth;
       if (this.expandPositive) {
-         maxAllowedWidth = Math.max(22, screenWidth - (int)this.positionAnchor.getX());
+         maxAllowedWidth = Math.max(CLOSED_WIDTH, screenWidth - (int)this.positionAnchor.getX());
       } else {
-         maxAllowedWidth = Math.max(22, (int)this.positionAnchor.getX());
+         maxAllowedWidth = Math.max(CLOSED_WIDTH, (int)this.positionAnchor.getX());
       }
 
       this.maxWidth = Math.min(naturalWidth, maxAllowedWidth);
-      this.maxWidth = Math.max(22.0, this.maxWidth);
+      this.maxWidth = Math.max(CLOSED_WIDTH, this.maxWidth);
       int textAreaWidth = Math.max(40, (int)this.maxWidth - overhead);
       int textHeight = 9 + 3;
 
@@ -160,7 +160,7 @@ public class Ledger_Neptune implements IGuiElement, IInteractionElement {
          textHeight += (9 + 3) * lineCount;
       }
 
-      this.maxHeight = Math.max(24, 4 + textHeight + 4);
+      this.maxHeight = Math.max(CLOSED_HEIGHT, LEDGER_GAP + textHeight + LEDGER_GAP);
       double normalY = this.positionLedgerStart.getY();
       int screenHeight = Minecraft.getInstance().getWindow().getGuiScaledHeight();
       double bottomEdge = normalY + this.maxHeight;
@@ -185,11 +185,11 @@ public class Ledger_Neptune implements IGuiElement, IInteractionElement {
             return;
          }
 
-         targetWidth = 22.0;
-         targetHeight = 24.0;
+         targetWidth = CLOSED_WIDTH;
+         targetHeight = CLOSED_HEIGHT;
       }
 
-      double maxDiff = Math.max(this.maxWidth - 22.0, this.maxHeight - 24.0);
+      double maxDiff = Math.max(this.maxWidth - CLOSED_WIDTH, this.maxHeight - CLOSED_HEIGHT);
       double ldgDiff = Mth.clamp(maxDiff / 5.0, 1.0, 15.0);
       this.currentWidth = approach(this.currentWidth, targetWidth, ldgDiff);
       this.currentHeight = approach(this.currentHeight, targetHeight, ldgDiff);
@@ -214,7 +214,7 @@ public class Ledger_Neptune implements IGuiElement, IInteractionElement {
    }
 
    public final boolean shouldDrawOpen() {
-      return this.currentWidth > 22.0 || this.currentHeight > 24.0;
+      return this.currentWidth > CLOSED_WIDTH || this.currentHeight > CLOSED_HEIGHT;
    }
 
    @Override

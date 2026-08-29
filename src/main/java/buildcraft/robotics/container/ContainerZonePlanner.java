@@ -111,11 +111,11 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    }
 
    public void requestLayers() {
-      this.sendMessage(201, buf -> {});
+      this.sendMessage(NET_REQUEST_LAYERS, buf -> {});
    }
 
    public void sendPaintRect(int layer, int x0, int z0, int x1, int z1, boolean set) {
-      this.sendMessage(205, buf -> {
+      this.sendMessage(NET_PAINT_RECT, buf -> {
          buf.writeByte(layer);
          buf.writeVarInt(x0);
          buf.writeVarInt(z0);
@@ -127,7 +127,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
 
    public void requestChunks(List<Long> keys) {
       if (keys != null && !keys.isEmpty()) {
-         this.sendMessage(203, buf -> {
+         this.sendMessage(NET_MAP_REQUEST, buf -> {
             buf.writeVarInt(keys.size());
             for (long key : keys) {
                buf.writeLong(key);
@@ -138,7 +138,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
-      if (id == 205 && !isClient) {
+      if (id == NET_PAINT_RECT && !isClient) {
          int layer = buffer.readByte() & 255;
          int x0 = buffer.readVarInt();
          int z0 = buffer.readVarInt();
@@ -166,9 +166,9 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
                }
             }
          }
-      } else if (id == 203 && !isClient) {
+      } else if (id == NET_MAP_REQUEST && !isClient) {
          this.handleMapRequest(buffer);
-      } else if (id == 204 && isClient) {
+      } else if (id == NET_MAP_DATA && isClient) {
          int count = buffer.readVarInt();
 
          for (int i = 0; i < count; i++) {
@@ -186,15 +186,15 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
 
             this.mapColours.put(key, col, height);
          }
-      } else if (id == 201 && !isClient) {
+      } else if (id == NET_REQUEST_LAYERS && !isClient) {
          if (this.tile != null) {
-            this.sendMessage(202, buf -> {
+            this.sendMessage(NET_LAYERS, buf -> {
                for (ZonePlan planx : this.tile.layers) {
                   (planx == null ? new ZonePlan() : planx).writeToByteBuf(buf);
                }
             });
          }
-      } else if (id == 202 && isClient) {
+      } else if (id == NET_LAYERS && isClient) {
          if (this.tile != null) {
             for (int i = 0; i < this.tile.layers.length; i++) {
                ZonePlan plan = new ZonePlan();
@@ -215,7 +215,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       super.broadcastChanges();
       if (this.tile != null && this.tile.getLevel() != null && !this.tile.getLevel().isClientSide() && this.tile.layersVersion != this.lastLayersVersion) {
          this.lastLayersVersion = this.tile.layersVersion;
-         this.sendMessage(202, buf -> {
+         this.sendMessage(NET_LAYERS, buf -> {
             for (ZonePlan plan : this.tile.layers) {
                (plan == null ? new ZonePlan() : plan).writeToByteBuf(buf);
             }
@@ -270,7 +270,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       }
 
       this.lastLayersVersion = this.tile.layersVersion;
-      this.sendMessage(202, buf -> {
+      this.sendMessage(NET_LAYERS, buf -> {
          for (ZonePlan plan : this.tile.layers) {
             (plan == null ? new ZonePlan() : plan).writeToByteBuf(buf);
          }
@@ -319,7 +319,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
             int end = Math.min(total, start + MAP_DATA_BATCH);
             int fromIdx = start;
             int toIdx = end;
-            this.sendMessage(204, buf -> {
+            this.sendMessage(NET_MAP_DATA, buf -> {
                buf.writeVarInt(toIdx - fromIdx);
 
                for (int n = fromIdx; n < toIdx; n++) {
@@ -388,11 +388,11 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       if (slot != null && slot.hasItem()) {
          ItemStack stack = slot.getItem();
          result = stack.copy();
-         if (slotIndex < 36) {
-            if (!this.moveItemStackTo(stack, 36, 58, false)) {
+         if (slotIndex < PLAYER_SLOTS_END) {
+            if (!this.moveItemStackTo(stack, PLAYER_SLOTS_END, MACHINE_SLOTS_END, false)) {
                return ItemStack.EMPTY;
             }
-         } else if (!this.moveItemStackTo(stack, 0, 36, true)) {
+         } else if (!this.moveItemStackTo(stack, 0, PLAYER_SLOTS_END, true)) {
             return ItemStack.EMPTY;
          }
 

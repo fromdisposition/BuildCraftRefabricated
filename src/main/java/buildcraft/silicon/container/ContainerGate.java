@@ -97,7 +97,7 @@ public class ContainerGate extends BcMenu {
          if (this.pipeHolder.getPipeWorld().isClientSide()) {
             this.possibleTriggers = new TreeSet<>();
             this.possibleActions = new TreeSet<>();
-            this.gate.guiMessageOverride = writer -> this.sendMessage(3, writer);
+            this.gate.guiMessageOverride = writer -> this.sendMessage(ID_STATEMENT_CHANGE, writer);
          } else {
             this.possibleTriggers = this.gate.getAllValidTriggers();
             this.possibleActions = this.gate.getAllValidActions();
@@ -162,7 +162,7 @@ public class ContainerGate extends BcMenu {
       super.readMessage(id, buffer, isClient, ctx);
       if (this.gate != null && this.pipeHolder != null) {
          if (!isClient) {
-            if (id == 1) {
+            if (id == ID_CONNECTION) {
                int index = buffer.readUnsignedByte();
                boolean to = buffer.readBoolean();
                if (index < this.gate.connections.length) {
@@ -174,9 +174,9 @@ public class ContainerGate extends BcMenu {
 
                   this.gate.sendResolveData();
                }
-            } else if (id == 2) {
+            } else if (id == ID_VALID_STATEMENTS) {
                this.sendStatementsToClient();
-            } else if (id == 3) {
+            } else if (id == ID_STATEMENT_CHANGE) {
                try {
                   this.gate.readPayload(buffer, false);
                   if (this.pipeHolder instanceof BlockEntity be) {
@@ -189,7 +189,7 @@ public class ContainerGate extends BcMenu {
                   BCLog.logger.error("[gate.sync] Error handling statement change", e);
                }
             }
-         } else if (id == 2) {
+         } else if (id == ID_VALID_STATEMENTS) {
             this.possibleTriggers.clear();
             this.possibleActions.clear();
             int numTriggers = buffer.readInt();
@@ -233,7 +233,7 @@ public class ContainerGate extends BcMenu {
    }
 
    private void sendStatementsToClient() {
-      this.sendMessage(2, buffer -> {
+      this.sendMessage(ID_VALID_STATEMENTS, buffer -> {
          buffer.writeInt(this.possibleTriggers.size());
          buffer.writeInt(this.possibleActions.size());
 
@@ -254,11 +254,11 @@ public class ContainerGate extends BcMenu {
    }
 
    public void requestValidStatements() {
-      this.sendMessage(2, buffer -> {});
+      this.sendMessage(ID_VALID_STATEMENTS, buffer -> {});
    }
 
    public void setConnected(int index, boolean to) {
-      this.sendMessage(1, buffer -> {
+      this.sendMessage(ID_CONNECTION, buffer -> {
          buffer.writeByte(index);
          buffer.writeBoolean(to);
       });

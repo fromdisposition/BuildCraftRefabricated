@@ -146,7 +146,7 @@ public class ContainerList extends BcMenu {
             ItemStack listStack = ContainerList.this.getListItemStack();
             ListHandler.saveLines(listStack, ContainerList.this.lines);
             ItemList_BC8.updateModelData(listStack);
-            AdvancementUtil.unlockAdvancement(ContainerList.this.player, PaperAdvancement.ID, "write_to_list");
+            AdvancementUtil.unlockAdvancement(ContainerList.this.player, PaperAdvancement.ID, PaperAdvancement.WRITE_TO_LIST);
          }
       }
    }

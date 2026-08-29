@@ -51,10 +51,6 @@ public class InternalCompiler {
    private static final String rightAssociative = "";
    private static final String[] precedence = new String[]{"(),", "?", "&& ||", "!= == <= >=", "<< >>", "+-", "%", "*/", "^", "~¬"};
    private static final String OPERATORS_SINGLE = "!~¬";
-   private static final String LONG_REGEX = "[-+]?(0x[0-9a-fA-F_]+|[0-9]+)";
-   private static final String DOUBLE_REGEX = "[-+]?[0-9]+(\\.[0-9]+)?";
-   private static final String BOOLEAN_REGEX = "true|false";
-   private static final String STRING_REGEX = "'.*'";
    private static final Pattern LONG_MATCHER = Pattern.compile("[-+]?(0x[0-9a-fA-F_]+|[0-9]+)");
    private static final Pattern DOUBLE_MATCHER = Pattern.compile("[-+]?[0-9]+(\\.[0-9]+)?");
    private static final Pattern BOOLEAN_MATCHER = Pattern.compile("true|false");
@@ -178,7 +174,7 @@ public class InternalCompiler {
 
    private static int getPrecedence(String token) {
       int p = 0;
-      if (token.startsWith("@")) {
+      if (token.startsWith(FUNCTION_START)) {
          return 0;
       }
 
@@ -204,7 +200,7 @@ public class InternalCompiler {
       for (int var11 = 0; var11 < infix.length; var11++) {
          String token = infix[var11];
          ExpressionDebugManager.debugPrintln("  - Token \"" + token + "\"");
-         if (justPushedFunc && !")".equals(token) && stack.peek() != null && stack.peek().startsWith("@")) {
+         if (justPushedFunc && !")".equals(token) && stack.peek() != null && stack.peek().startsWith(FUNCTION_START)) {
             stack.push(",");
          }
 
@@ -215,7 +211,7 @@ public class InternalCompiler {
 
             while (!stack.isEmpty()) {
                String fromStack = stack.pop();
-               if ("(".equals(fromStack) || fromStack.startsWith("@")) {
+               if ("(".equals(fromStack) || fromStack.startsWith(FUNCTION_START)) {
                   found = true;
                   stack.push(fromStack);
                   break;
@@ -248,9 +244,9 @@ public class InternalCompiler {
                   break;
                }
 
-               if (fromStack.startsWith("@")) {
+               if (fromStack.startsWith(FUNCTION_START)) {
                   found = true;
-                  fromStack = fromStack + "#" + commas;
+                  fromStack = fromStack + FUNCTION_ARGS + commas;
                   postfix.add(fromStack);
                   break;
                }
@@ -271,25 +267,25 @@ public class InternalCompiler {
                while ((s = stack.peek()) != null && !"?".equals(s)) {
                   postfix.add(stack.pop());
                }
-            } else if (!"+-*/^%~:?& << >> >>> == <= >= && || !=¬".contains(token)) {
+            } else if (!OPERATORS.contains(token)) {
                if (var11 + 1 < infix.length && "(".equals(infix[var11 + 1])) {
                   justPushedFunc = true;
-                  stack.push("@" + token);
+                  stack.push(FUNCTION_START + token);
                   var11++;
                } else {
                   postfix.add(token);
                }
             } else {
                if ("-".equals(token) && (var11 == 0 || "+-*/^%~:?& << >> >>> == <= >= && || !=¬(,".contains(infix[var11 - 1]))) {
-                  token = "¬";
+                  token = UNARY_NEGATION;
                }
 
                while ((s = stack.peek()) != null) {
                   int tokenPrec = getPrecedence(token);
                   int stackPrec = getPrecedence(s);
                   boolean continueIfEqual = !"?".contains(token);
-                  boolean shouldContinue = "+-^*/%||&&==!=<=>=<<>>?&".contains(token) && (continueIfEqual ? tokenPrec <= stackPrec : tokenPrec < stackPrec);
-                  if (!shouldContinue && "".contains(token) && tokenPrec > stackPrec) {
+                  boolean shouldContinue = leftAssociative.contains(token) && (continueIfEqual ? tokenPrec <= stackPrec : tokenPrec < stackPrec);
+                  if (!shouldContinue && rightAssociative.contains(token) && tokenPrec > stackPrec) {
                      shouldContinue = true;
                   }
 
@@ -330,15 +326,15 @@ public class InternalCompiler {
 
       for (int i = 0; i < postfix.length; i++) {
          String op = postfix[i];
-         if ("+-*/^%~:?& << >> >>> == <= >= && || !=¬".contains(op) && !"?".equals(op) && !":".equals(op)) {
-            boolean isNegation = "¬".equals(op);
+         if (OPERATORS.contains(op) && !"?".equals(op) && !":".equals(op)) {
+            boolean isNegation = UNARY_NEGATION.equals(op);
             int count = 2;
-            if (isNegation || "!~¬".contains(op)) {
+            if (isNegation || OPERATORS_SINGLE.contains(op)) {
                op = isNegation ? "-" : op;
                count = 1;
             }
 
-            String function = op + "#" + count;
+            String function = op + FUNCTION_ARGS + count;
             pushFunctionNode(stack, function, context);
          } else if (!":".equals(op)) {
             if ("?".equals(op)) {
@@ -485,8 +481,8 @@ public class InternalCompiler {
    }
 
    private static void pushFunctionNode(NodeStack stack, String function, FunctionContext context) throws InvalidExpressionException {
-      String name = function.substring(0, function.indexOf("#"));
-      String argCount = function.substring(function.indexOf("#") + 1);
+      String name = function.substring(0, function.indexOf(FUNCTION_ARGS));
+      String argCount = function.substring(function.indexOf(FUNCTION_ARGS) + 1);
       int count = Integer.parseInt(argCount);
       if (name.startsWith(".")) {
          name = name.substring(1);

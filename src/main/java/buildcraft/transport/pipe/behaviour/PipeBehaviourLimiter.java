@@ -42,7 +42,7 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
 
    public PipeBehaviourLimiter(IPipe pipe, CompoundTag nbt) {
       super(pipe, nbt);
-      this.limitShift = MathUtil.clamp(BcNbt.getInt(nbt, "limitShift", 0), 0, 6);
+      this.limitShift = MathUtil.clamp(BcNbt.getInt(nbt, "limitShift", 0), 0, MAX_SHIFT);
    }
 
    @Override
@@ -55,7 +55,7 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
    @Override
    public void readFromNbt(CompoundTag nbt) {
       super.readFromNbt(nbt);
-      this.limitShift = MathUtil.clamp(BcNbt.getInt(nbt, "limitShift", 0), 0, 6);
+      this.limitShift = MathUtil.clamp(BcNbt.getInt(nbt, "limitShift", 0), 0, MAX_SHIFT);
    }
 
    @Override
@@ -69,7 +69,7 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
    }
 
    public void configurePower(PipeEventPower.Configure event) {
-      if (this.limitShift == 6) {
+      if (this.limitShift == MAX_SHIFT) {
          event.disableTransfer();
       } else {
          event.setMaxPower(event.getMaxPower() >> this.limitShift);
@@ -77,7 +77,7 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
    }
 
    public void configurePower(PipeEventRedstoneFlux.Configure event) {
-      if (this.limitShift == 6) {
+      if (this.limitShift == MAX_SHIFT) {
          event.disableTransfer();
       } else {
          event.setMaxPower(event.getMaxPower() >> this.limitShift);
@@ -100,13 +100,13 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
       if (!player.level().isClientSide()) {
          EntityUtil.activateWrench(player, trace);
          this.limitShift++;
-         if (this.limitShift > 6) {
+         if (this.limitShift > MAX_SHIFT) {
             this.limitShift = 0;
          }
 
          boolean isRf = this.pipe.getFlow() instanceof PipeFlowRedstoneFlux;
          int limit;
-         if (this.limitShift == 6) {
+         if (this.limitShift == MAX_SHIFT) {
             limit = 0;
          } else if (isRf) {
             PipeApi.RedstoneFluxTransferInfo transferInfo = PipeApi.getRfTransferInfo(this.pipe.getDefinition());

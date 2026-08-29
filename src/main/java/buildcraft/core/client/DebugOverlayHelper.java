@@ -61,7 +61,7 @@ public class DebugOverlayHelper {
             BlockPos pos = blockHit.getBlockPos();
             boolean targetChanged = lastRequestPos == null || !lastRequestPos.equals(pos) || lastRequestSide != side;
             ticksSinceRequest++;
-            if (targetChanged || ticksSinceRequest >= 10) {
+            if (targetChanged || ticksSinceRequest >= REQUEST_INTERVAL) {
                BcPacketDistributor.sendToServer(new MessageDebugRequest(pos, side));
                lastRequestPos = pos.immutable();
                lastRequestSide = side;

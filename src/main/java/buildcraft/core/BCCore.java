@@ -22,7 +22,6 @@ import net.minecraft.world.item.DyeColor;
 
 public final class BCCore {
    public static final String MODID = "buildcraftcore";
-   public static final boolean DEV = Boolean.getBoolean("buildcraft.dev");
    public static DataComponentType<SimpleFluidContent> FLUID_CONTENT;
    public static DataComponentType<DyeColor> BRUSH_COLOR;
    public static DataComponentType<Integer> BRUSH_USES;
@@ -43,12 +42,12 @@ public final class BCCore {
 
    private static void registerDataComponents() {
       FLUID_CONTENT = BCRegistries.registerDataComponent(
-         "buildcraftcore", "fluid_content", b -> b.persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC)
+         MODID, "fluid_content", b -> b.persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC)
       );
       BRUSH_COLOR = BCRegistries.registerDataComponent(
-         "buildcraftcore", "brush_color", b -> b.persistent(DyeColor.CODEC).networkSynchronized(DyeColor.STREAM_CODEC)
+         MODID, "brush_color", b -> b.persistent(DyeColor.CODEC).networkSynchronized(DyeColor.STREAM_CODEC)
       );
-      BRUSH_USES = BCRegistries.registerDataComponent("buildcraftcore", "brush_uses", b -> b.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.INT));
+      BRUSH_USES = BCRegistries.registerDataComponent(MODID, "brush_uses", b -> b.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.INT));
    }
 
    private static void preInit() {

@@ -120,12 +120,12 @@ public class TileBuilder
    private boolean pavingTheWayGranted = false;
    private boolean startOfSomethingBigGranted = false;
    private ItemStack invSnapshot = ItemStack.EMPTY;
-   private final ItemHandlerSimple resourceInventory = new ItemHandlerSimple(27, (handler, slot, before, after) -> this.onResourcesChanged());
+   private final ItemHandlerSimple resourceInventory = new ItemHandlerSimple(RESOURCE_SLOTS, (handler, slot, before, after) -> this.onResourcesChanged());
    private final SingleFluidTank[] tanks = new SingleFluidTank[]{
-      new SingleFluidTank(8000, SingleFluidTank.TankAccess.OPEN, this::setChanged),
-      new SingleFluidTank(8000, SingleFluidTank.TankAccess.OPEN, this::setChanged),
-      new SingleFluidTank(8000, SingleFluidTank.TankAccess.OPEN, this::setChanged),
-      new SingleFluidTank(8000, SingleFluidTank.TankAccess.OPEN, this::setChanged)
+      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::setChanged),
+      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::setChanged),
+      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::setChanged),
+      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::setChanged)
    };
    private final MultiFluidTankStorage fluidTanks = new MultiFluidTankStorage(this.tanks);
 
@@ -274,7 +274,7 @@ public class TileBuilder
          UUID ownerId = BcAuth.id(this.getOwner());
          if (!this.startOfSomethingBigGranted && this.snapshot != null) {
             this.bigStructureCellsBuilt = this.bigStructureCellsBuilt + this.snapshot.countNonAirCells();
-            if (this.bigStructureCellsBuilt >= 1024L && AdvancementUtil.unlockAdvancement(ownerId, this.level, ADVANCEMENT_START_OF_SOMETHING_BIG)) {
+            if (this.bigStructureCellsBuilt >= BIG_STRUCTURE_THRESHOLD && AdvancementUtil.unlockAdvancement(ownerId, this.level, ADVANCEMENT_START_OF_SOMETHING_BIG)) {
                this.startOfSomethingBigGranted = true;
             }
          }

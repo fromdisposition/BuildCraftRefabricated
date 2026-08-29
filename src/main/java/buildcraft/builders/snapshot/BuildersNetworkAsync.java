@@ -34,7 +34,7 @@ public final class BuildersNetworkAsync {
          max,
          60L,
          TimeUnit.SECONDS,
-         new LinkedBlockingQueue<>(32),
+         new LinkedBlockingQueue<>(MAX_QUEUE),
          Thread.ofPlatform().name(namePattern, 0L).daemon().factory(),
          (r, executor) -> BCLog.logger.warn("[builders.network] {} queue full, dropping task", namePattern)
       );

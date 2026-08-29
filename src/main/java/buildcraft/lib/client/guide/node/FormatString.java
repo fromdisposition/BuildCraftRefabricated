@@ -117,7 +117,7 @@ public class FormatString {
             while (!foundSplit) {
                for (int i = text.length(); i > 1; i--) {
                   String c = text.substring(i - 1, i);
-                  if (!words || " \n\t".contains(c)) {
+                  if (!words || WORD_GAP.contains(c)) {
                      String subText = text.substring(0, i);
                      int w = font.getStringWidth(subText);
                      if (w + widthUsed <= maxWidth) {

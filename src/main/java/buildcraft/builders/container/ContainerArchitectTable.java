@@ -57,11 +57,11 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
             }
 
             public int getCount() {
-               return 6;
+               return DATA_COUNT;
             }
          };
       } else {
-         this.data = new SimpleContainerData(6);
+         this.data = new SimpleContainerData(DATA_COUNT);
       }
 
       this.addDataSlots(this.data);
@@ -106,7 +106,7 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
-      if (id == 10 && !isClient) {
+      if (id == NET_SET_NAME && !isClient) {
          String newName = buffer.readUtf(1024);
          this.setTileName(newName);
       } else {

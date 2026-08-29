@@ -129,7 +129,7 @@ public class TileFiller
    public TileFiller(BlockPos pos, BlockState state) {
       super(BCBuildersBlockEntities.FILLER, pos, state);
       this.invResources = this.itemManager
-         .addInvHandler("resources", 27, (slot, stack) -> stack.getItem() instanceof BlockItem, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
+         .addInvHandler("resources", INV_SIZE, (slot, stack) -> stack.getItem() instanceof BlockItem, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
       this.invResources.setCallback((handler, slot, before, after) -> {
          this.setChanged();
          if (this.level != null && !this.level.isClientSide()) {

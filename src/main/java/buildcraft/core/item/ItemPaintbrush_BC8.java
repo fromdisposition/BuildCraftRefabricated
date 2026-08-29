@@ -62,7 +62,7 @@ public class ItemPaintbrush_BC8 extends Item {
    public static ItemStack createColoredStack(Item paintbrushItem, @Nullable DyeColor colour) {
       ItemStack stack = new ItemStack(paintbrushItem);
       if (colour != null) {
-         setBrushData(stack, colour, 64);
+         setBrushData(stack, colour, MAX_USES);
       }
 
       return stack;
@@ -86,12 +86,12 @@ public class ItemPaintbrush_BC8 extends Item {
 
    public boolean isBarVisible(ItemStack stack) {
       DyeColor colour = getColour(stack);
-      return colour != null && getUsesLeft(stack) < 64;
+      return colour != null && getUsesLeft(stack) < MAX_USES;
    }
 
    public int getBarWidth(ItemStack stack) {
       int usesLeft = getUsesLeft(stack);
-      return Math.round(usesLeft / 64.0F * 13.0F);
+      return Math.round(usesLeft / (float) MAX_USES * 13.0F);
    }
 
    public int getBarColor(ItemStack stack) {

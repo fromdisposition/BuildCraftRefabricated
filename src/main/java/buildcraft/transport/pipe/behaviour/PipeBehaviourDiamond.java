@@ -62,10 +62,10 @@ public abstract class PipeBehaviourDiamond extends PipeBehaviour {
    protected void onFilterSlotChange(BcItemInventory handler, int slot, ItemStack before, ItemStack after) {
       Level level = this.pipe.getHolder().getPipeWorld();
       if (!level.isClientSide()) {
-         int baseIndex = 9 * (slot / 9);
+         int baseIndex = FILTERS_PER_SIDE * (slot / FILTERS_PER_SIDE);
          int count = 0;
 
-         for (int i = 0; i < 9; i++) {
+         for (int i = 0; i < FILTERS_PER_SIDE; i++) {
             if (!this.filters.getStackInSlot(baseIndex + i).isEmpty()) {
                count++;
             }

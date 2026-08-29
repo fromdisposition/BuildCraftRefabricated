@@ -239,7 +239,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       // below throws ArithmeticException inside the block-entity ticker, which is a hard "ticking block
       // entity" crash rather than a harmless no-op.
       if (this.checkOrder.length != 0) {
-         for (int i = 0; i < 10; i++) {
+         for (int i = 0; i < CHECKS_PER_TICK; i++) {
             if (this.check(this.indexToPos(this.checkOrder[this.currentCheckIndex]))) {
                checkResultsChanged = true;
             }
@@ -252,7 +252,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
       while (iterator.hasNext()) {
          SnapshotBuilder<T>.BreakTask breakTask = iterator.next();
-         if (this.checkResults[this.posToIndex(breakTask.pos)] == 1) {
+         if (this.checkResults[this.posToIndex(breakTask.pos)] == CHECK_RESULT_CORRECT) {
             iterator.remove();
             this.cancelBreakTask(breakTask);
          }
@@ -262,7 +262,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
       while (placeIterator.hasNext()) {
          SnapshotBuilder<T>.PlaceTask placeTask = placeIterator.next();
-         if (this.checkResults[this.posToIndex(placeTask.pos)] == 1) {
+         if (this.checkResults[this.posToIndex(placeTask.pos)] == CHECK_RESULT_CORRECT) {
             placeIterator.remove();
             this.cancelPlaceTask(placeTask);
          }
@@ -299,7 +299,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          // capped at the task budget, fed by ONE FluidState probe per candidate; once the source bucket is
          // full no later candidate can enter the selection, so the rest of the pass only counts — and the
          // count never needed world access in the first place.
-         int needed = max > 0L ? 16 - this.breakTasks.size() : 0;
+         int needed = max > 0L ? MAX_QUEUE_SIZE - this.breakTasks.size() : 0;
          boolean clearFluidMode = this.getFluidMode() == EnumFluidHandlingMode.CLEAR;
          IntArrayList sourceBucket = new IntArrayList();
          IntArrayList flowingBucket = new IntArrayList();
@@ -307,7 +307,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          int breakCandidates = 0;
 
          for (int index : this.breakOrder) {
-            if (this.checkResults[index] == 2 && !breakTasksIndexes.contains(index)) {
+            if (this.checkResults[index] == CHECK_RESULT_TO_BREAK && !breakTasksIndexes.contains(index)) {
                breakCandidates++;
                if (needed > 0 && sourceBucket.size() < needed) {
                   FluidState fluidAt = this.tile.getWorldBC().getFluidState(this.indexToPos(index));
@@ -358,20 +358,20 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       // lookup applied only to those — and stops evaluating once the task budget is met, while the cheap count
       // continues to the end of the order.
       boolean selecting = !this.tile.canExcavate() || this.breakTasks.isEmpty();
-      int neededPlace = selecting && max > 0L ? 16 - this.placeTasks.size() : 0;
+      int neededPlace = selecting && max > 0L ? MAX_QUEUE_SIZE - this.placeTasks.size() : 0;
       int placeCandidates = 0;
       int passedReady = 0;
 
       for (int index : this.placeOrder) {
-         if (this.checkResults[index] == 3 && !placeTasksIndexes.contains(index)) {
+         if (this.checkResults[index] == CHECK_RESULT_TO_PLACE && !placeTasksIndexes.contains(index)) {
             placeCandidates++;
             if (passedReady < neededPlace) {
                boolean has;
-               if (this.requiredCache[index] != 0) {
-                  has = this.requiredCache[index] == 1;
+               if (this.requiredCache[index] != REQUIRED_UNKNOWN) {
+                  has = this.requiredCache[index] == REQUIRED_TRUE;
                } else {
                   has = this.hasEnoughToPlaceItems(this.indexToPos(index));
-                  this.requiredCache[index] = (byte)(has ? 1 : 2);
+                  this.requiredCache[index] = (byte)(has ? REQUIRED_TRUE : REQUIRED_FALSE);
                }
 
                if (has) {
@@ -595,7 +595,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          for (int i = 0; i < this.checkResults.length; i++) {
             BlockPos pos = this.indexToPos(i);
             if (!this.tile.getWorldBC().getFluidState(pos).isEmpty()) {
-               this.checkResults[i] = 0;
+               this.checkResults[i] = CHECK_RESULT_UNKNOWN;
             }
          }
       }

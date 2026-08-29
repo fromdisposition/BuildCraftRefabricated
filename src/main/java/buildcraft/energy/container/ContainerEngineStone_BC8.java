@@ -45,8 +45,8 @@ public class ContainerEngineStone_BC8 extends BcMenu {
          this.data = new ContainerData() {
             public int get(int index) {
                return switch (index) {
-                  case 0 -> engine.burnTime;
-                  case 1 -> engine.totalBurnTime;
+                  case DATA_BURN_TIME -> engine.burnTime;
+                  case DATA_TOTAL_BURN_TIME -> engine.totalBurnTime;
                   case 2, 3, 4, 5 -> chunk16(engine.getPower(), index - DATA_POWER);
                   case 6, 7 -> chunk16(Float.floatToIntBits(engine.getHeat()), index - DATA_HEAT);
                   case 8, 9, 10, 11 -> chunk16(engine.currentOutput, index - DATA_OUTPUT);
@@ -60,11 +60,11 @@ public class ContainerEngineStone_BC8 extends BcMenu {
             }
 
             public int getCount() {
-               return 14;
+               return DATA_COUNT;
             }
          };
       } else {
-         SimpleContainerData clientData = new SimpleContainerData(14);
+         SimpleContainerData clientData = new SimpleContainerData(DATA_COUNT);
          int heatBits = Float.floatToIntBits(20.0F);
          clientData.set(DATA_HEAT, chunk16(heatBits, 0));
          clientData.set(DATA_HEAT + 1, chunk16(heatBits, 1));

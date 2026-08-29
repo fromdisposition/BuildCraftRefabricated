@@ -127,7 +127,6 @@ public class GuiGuide extends Screen {
    public static final IGuiArea FLOATING_CHAPTER_MENU = GuiUtil.moveRectangleToCentre(
       new GuiRectangle((PAGE_LEFT_TEXT.getWidth() + PAGE_RIGHT_TEXT.getWidth()) / 2.0, PAGE_LEFT.height - 20)
    );
-   private static final float BOOK_OPEN_TIME = 10.0F;
    public final MousePosition mouse = new MousePosition();
    @Nullable
    public final GuideBook book;

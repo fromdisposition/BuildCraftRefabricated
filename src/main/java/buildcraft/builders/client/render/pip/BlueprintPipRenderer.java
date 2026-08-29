@@ -124,8 +124,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       Minecraft mc = Minecraft.getInstance();
       long gameTime = mc.level != null ? mc.level.getGameTime() : 0L;
       float partialTick = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-      float yaw = ((float)(gameTime % 72L) + partialTick) / 72.0F * 360.0F;
-      poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
+      float yaw = ((float)(gameTime % YAW_PERIOD_TICKS) + partialTick) / (float) YAW_PERIOD_TICKS * 360.0F;
+      poseStack.mulPose(Axis.XP.rotationDegrees(PITCH_DEG));
       poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
       poseStack.translate(-sizeX / 2.0F, -sizeY / 2.0F, -sizeZ / 2.0F);
       Vector3f light0Camera = poseStack.last().transformNormal(LIGHT0_MODEL_SPACE.x(), LIGHT0_MODEL_SPACE.y(), LIGHT0_MODEL_SPACE.z(), new Vector3f());
@@ -182,7 +182,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       pose.set(poseStack.last());
       storage.submitCustomGeometry(poseStack, BCLibRenderTypes.entityTranslucent(SCAN_TEXTURE), (p, vc) -> {
          for (Direction face : entry.faces) {
-            ModelUtil.createFace(face, GHOST_CENTER, GHOST_RADIUS, GHOST_UVS).lighti(15, 15).colouri(255, 255, 255, 128).render(pose, vc);
+            ModelUtil.createFace(face, GHOST_CENTER, GHOST_RADIUS, GHOST_UVS).lighti(15, 15).colouri(255, 255, 255, TEMPLATE_GHOST_ALPHA).render(pose, vc);
          }
       });
       poseStack.popPose();
@@ -303,8 +303,8 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       Minecraft mc = Minecraft.getInstance();
       long gameTime = mc.level != null ? mc.level.getGameTime() : 0L;
       float partialTick = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
-      float yaw = ((float)(gameTime % 72L) + partialTick) / 72.0F * 360.0F;
-      poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
+      float yaw = ((float)(gameTime % YAW_PERIOD_TICKS) + partialTick) / (float) YAW_PERIOD_TICKS * 360.0F;
+      poseStack.mulPose(Axis.XP.rotationDegrees(PITCH_DEG));
       poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
       poseStack.translate(-sizeX / 2.0F, -sizeY / 2.0F, -sizeZ / 2.0F);
       Vector3f light0Camera = poseStack.last().transformNormal(LIGHT0_MODEL_SPACE.x(), LIGHT0_MODEL_SPACE.y(), LIGHT0_MODEL_SPACE.z(), new Vector3f());
@@ -840,7 +840,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       Pose pose = poseStack.last();
 
       for (Direction face : entry.faces) {
-         ModelUtil.createFace(face, GHOST_CENTER, GHOST_RADIUS, GHOST_UVS).lighti(15, 15).colouri(255, 255, 255, 128).render(pose, vc);
+         ModelUtil.createFace(face, GHOST_CENTER, GHOST_RADIUS, GHOST_UVS).lighti(15, 15).colouri(255, 255, 255, TEMPLATE_GHOST_ALPHA).render(pose, vc);
       }
 
       poseStack.popPose();

@@ -48,7 +48,7 @@ public class RenderFiller extends BcBlockEntityRenderer<TileFiller, FillerRender
          state.greenColour = -8921737;
          state.redColour = -14540067;
       } else if (controlMode == IControllable.Mode.LOOP) {
-         state.greenColour = -12617921;
+         state.greenColour = COLOUR_GREEN_HALF;
          state.redColour = -14741477;
       } else {
          state.greenColour = -8921737;
@@ -73,8 +73,8 @@ public class RenderFiller extends BcBlockEntityRenderer<TileFiller, FillerRender
          Direction face = Direction.from2DDataValue(i);
          LED_GREEN[i] = new RenderPartCube();
          LED_RED[i] = new RenderPartCube();
-         LedRenderUtil.setFacePosition(LED_GREEN[i], face, 0.025, 0.09375, 0.84375);
-         LedRenderUtil.setFacePosition(LED_RED[i], face, 0.025, 0.21875, 0.84375);
+         LedRenderUtil.setFacePosition(LED_GREEN[i], face, LED_INSET, GREEN_OFFSET, Y);
+         LedRenderUtil.setFacePosition(LED_RED[i], face, LED_INSET, RED_OFFSET, Y);
       }
    }
 }

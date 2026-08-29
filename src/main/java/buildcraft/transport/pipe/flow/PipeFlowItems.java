@@ -49,7 +49,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    private static final double EXTRACT_SPEED = 0.08;
-   public static final int NET_CREATE_ITEM = 2;
    private final DelayedList<TravellingItem> items = new DelayedList<>();
    private final List<ItemStack> postDropCache = new ArrayList<>();
    private final PipeFlowItems.PipeExtractJournal extractJournal = new PipeFlowItems.PipeExtractJournal();
@@ -195,7 +194,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
          ItemStack stack = probe.resource().toStack(actuallyExtracted);
          if (!simulate) {
-            this.insertItemEvents(stack, colour, 0.08, from);
+            this.insertItemEvents(stack, colour, EXTRACT_SPEED, from);
          }
 
          return actuallyExtracted;
@@ -216,7 +215,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
          firstItem.toCenter = face1 == null;
          firstItem.colour = colour;
          firstItem.side = face0 == null ? face1 : face0;
-         firstItem.speed = 0.08;
+         firstItem.speed = EXTRACT_SPEED;
          firstItem.genTimings(now, this.getPipeLength(firstItem.side));
          this.items.add(firstItem.timeToDest, firstItem);
          this.sendItemDataToClient(firstItem);
@@ -227,7 +226,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
             secondItem.toCenter = false;
             secondItem.colour = colour;
             secondItem.side = face2;
-            secondItem.speed = 0.08;
+            secondItem.speed = EXTRACT_SPEED;
             secondItem.genTimings(firstItem.tickFinished, this.getPipeLength(secondItem.side));
             this.items.add(secondItem.timeToDest, secondItem);
             this.sendItemDataToClient(secondItem);

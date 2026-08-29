@@ -76,7 +76,7 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
    @Override
    public void onStatementChange() {
       if (this.player != null && this.player.level() != null && this.player.level().isClientSide()) {
-         this.sendMessage(11, buf -> {
+         this.sendMessage(NET_STATEMENT, buf -> {
             PacketBufferBC buffer = BcPayloadBuffers.ensure(buf.unwrap());
             this.patternStatementClient.writeToBuffer(buffer);
          });
@@ -122,7 +122,7 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
-      if (id == 11) {
+      if (id == NET_STATEMENT) {
          if (isClient) {
             this.patternStatementClient.readFromBuffer(buffer);
          } else if (this.addon != null) {
@@ -132,7 +132,7 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
       } else {
          super.readMessage(id, buffer, isClient, ctx);
          if (!isClient) {
-            if (id == 12 && this.addon != null) {
+            if (id == NET_INVERT && this.addon != null) {
                this.addon.inverted = !this.addon.inverted;
                this.valuesChanged();
             }
@@ -151,7 +151,7 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
          temp.release();
          if (this.lastStatementHash == null || !Arrays.equals(this.lastStatementHash, current)) {
             this.lastStatementHash = current;
-            this.sendMessage(11, buf -> buf.writeBytes(current));
+            this.sendMessage(NET_STATEMENT, buf -> buf.writeBytes(current));
          }
       }
    }

@@ -36,7 +36,7 @@ public class ItemGuideNote extends Item {
    public static ItemStack withPage(Identifier page) {
       ItemStack stack = new ItemStack(BCLibItems.GUIDE_NOTE);
       CompoundTag tag = new CompoundTag();
-      tag.putString("page", page.toString());
+      tag.putString(TAG_PAGE, page.toString());
       stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
       return stack;
    }
@@ -48,7 +48,7 @@ public class ItemGuideNote extends Item {
          return null;
       }
 
-      String page = BcNbt.getString(data.copyTag(), "page", "");
+      String page = BcNbt.getString(data.copyTag(), TAG_PAGE, "");
       return page.isEmpty() ? null : Identifier.tryParse(page);
    }
 
@@ -67,9 +67,9 @@ public class ItemGuideNote extends Item {
       Identifier page = getLinkedPage(stack);
       if (level.isClientSide()) {
          if (page != null) {
-            BCLibClientBridge.openGuidePage("buildcraftcore:main", page);
+            BCLibClientBridge.openGuidePage(DEFAULT_BOOK, page);
          } else {
-            BCLibClientBridge.openGuideScreen("buildcraftcore:main");
+            BCLibClientBridge.openGuideScreen(DEFAULT_BOOK);
          }
       }
 
