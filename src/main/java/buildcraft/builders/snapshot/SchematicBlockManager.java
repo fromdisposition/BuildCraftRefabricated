@@ -28,13 +28,7 @@ public class SchematicBlockManager {
          } catch (Exception e) {
             throw new InvalidInputDataException("Invalid schematic type name '" + raw + "'", e);
          }
-         return switch (name.toString()) {
-            case "buildcraft:default", "buildcraftbuilders:default" -> DEFAULT_FACTORY;
-            case "buildcraft:air", "buildcraftbuilders:air" -> Identifier.parse("buildcraftrefabricated:air");
-            case "buildcraft:pipe", "buildcrafttransport:pipe" -> Identifier.parse("buildcraftrefabricated:pipe");
-            case "buildcraft:fluid", "buildcraftbuilders:fluid" -> Identifier.parse("buildcraftrefabricated:fluid");
-            default -> name;
-         };
+         return name;
       } else {
          throw new InvalidInputDataException("Missing schematic type name");
       }
