@@ -16,12 +16,6 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 
 final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
-   // Biome ids that exist on the generator node (26.x) but not on every target: emitted as optional tag
-   // entries ({"id":...,"required":false}) so the shared tag still loads where the biome is absent.
-   // minecraft:pale_garden was added in 1.21.4, minecraft:sulfur_caves in 26.2, minecraft:dappled_forest in
-   // 26.3 — a required entry for a biome the target lacks makes MC drop the WHOLE tag, so normal oil stops
-   // spawning there. Compared by id string (RegistryKeyUtil) to stay independent of each node's mappings.
-   private static final Set<String> OPTIONAL_NORMAL_SPAWN = Set.of("minecraft:pale_garden", "minecraft:sulfur_caves", "minecraft:dappled_forest");
    private static final List<ResourceKey<Biome>> FIELD_DESERT = List.of(Biomes.DESERT, Biomes.BADLANDS, Biomes.WOODED_BADLANDS);
    private static final List<ResourceKey<Biome>> FIELD_OCEAN = List.of(
       Biomes.OCEAN,
@@ -84,11 +78,7 @@ final class BCEnergyBiomeTagProvider extends FabricTagsProvider<Biome> {
 
       var normalSpawn = builder(BCEnergyBiomeTags.OIL_SPAWN_NORMAL);
       for (ResourceKey<Biome> key : normalSpawnBiomes) {
-         if (OPTIONAL_NORMAL_SPAWN.contains(buildcraft.lib.misc.RegistryKeyUtil.id(key).toString())) {
-            normalSpawn.addOptional(key);
-         } else {
-            normalSpawn.add(key);
-         }
+         normalSpawn.add(key);
       }
    }
 }

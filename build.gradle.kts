@@ -57,11 +57,6 @@ repositories {
 // ---------------------------------------------------------------------------
 
 loom {
-    mods {
-        create("buildcraftrefabricated") {
-            sourceSet(sourceSets["main"])
-        }
-    }
     runs.configureEach {
         // Java 23+ only: 26.x needs it (LWJGL/MC use sun.misc.Unsafe), Java 21 refuses to start with it.
         if (sc.current.parsed >= "26.1") {
@@ -70,27 +65,38 @@ loom {
     }
 }
 
-if (isGeneratorNode) {
-    fabricApi {
-        configureDataGeneration {
-            client = true
-            // Must be the ROOT src/main/generated — otherwise output lands in the node's own dir and is never consumed.
-            outputDirectory = rootProject.layout.projectDirectory.file("src/main/generated")
-        }
+val datagenDir = layout.buildDirectory.dir("generated/datagen")
+
+fabricApi {
+    configureDataGeneration {
+        client = true
+        addToResources = false
+        outputDirectory = layout.buildDirectory.file("generated/datagen")
+    }
+}
+
+loom.mods.create("buildcraftrefabricated") {
+    sourceSet(sourceSets["main"])
+    modFiles.from(datagenDir)
+}
+
+afterEvaluate {
+    tasks.named("runDatagen") {
+        inputs.files(sourceSets["main"].output.classesDirs).withPropertyName("datagenClasses")
+        outputs.dir(datagenDir).withPropertyName("datagenOutput")
+    }
+    tasks.named<Jar>("jar") {
+        dependsOn("runDatagen")
+        from(datagenDir)
+    }
+    tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
+        dependsOn("runDatagen")
     }
 }
 
 // ---------------------------------------------------------------------------
 // Source sets
 // ---------------------------------------------------------------------------
-
-sourceSets {
-    main {
-        resources {
-            srcDir("src/main/generated")
-        }
-    }
-}
 
 val versionJavaSrc = projectDir.resolve("src/main/java")
 if (versionJavaSrc.exists()) {
@@ -195,8 +201,10 @@ dependencies {
 
     if (sc.current.parsed < "26.1") {
         modCompileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
+        modLocalRuntime("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
     } else {
         compileOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
+        runtimeOnly("teamreborn:energy:${sc.properties.raw("deps", "energy")}")
     }
 
     if (reiVer != null) {
@@ -401,117 +409,12 @@ if (sc.current.parsed < "1.21.2") {
     }
 }
 
-// ===========================================================================
-// PRE-26.3 DATA BACKPORT (build-time converter)
-//
-// Advancements/loot are authored once in the 26.3 registry format (condition discriminator "type", single
-// "condition"/"player", recipe_crafted "recipes"); this rewrites them into the pre-26.3 shapes for the
-// older nodes only. fabric:load_conditions subtrees keep Fabric's own schema and are skipped.
-// ===========================================================================
-val bcPre263DataDir = layout.buildDirectory.dir("generated/bc-pre263-data")
-if (sc.current.parsed < "26.3-pre-1") {
-    @Suppress("UNCHECKED_CAST")
-    fun backportCondition(node: Any?) {
-        val map = node as? MutableMap<String, Any?> ?: return
-        val type = map.remove("type")
-        if (type is String) {
-            map["condition"] = type
-        }
-        (map["terms"] as? List<*>)?.forEach { backportCondition(it) }
-        backportCondition(map["term"])
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun backportLoot(node: Any?) {
-        when (node) {
-            is MutableMap<*, *> -> {
-                val map = node as MutableMap<String, Any?>
-                val single = map["condition"]
-                if (single is Map<*, *>) {
-                    map.remove("condition")
-                    backportCondition(single)
-                    map["conditions"] = listOf(single)
-                }
-                map.forEach { (key, value) ->
-                    if (key != "fabric:load_conditions") {
-                        backportLoot(value)
-                    }
-                }
-            }
-            is List<*> -> node.forEach { backportLoot(it) }
-            else -> {}
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun backportAdvancement(json: Any?) {
-        val map = json as? MutableMap<String, Any?> ?: return
-        val criteria = map["criteria"] as? MutableMap<String, Any?> ?: return
-        for (c in criteria.values) {
-            val crit = c as? MutableMap<String, Any?> ?: continue
-            val conditions = crit["conditions"] as? MutableMap<String, Any?> ?: continue
-            val recipes = conditions.remove("recipes")
-            if (recipes is List<*> && recipes.size == 1) {
-                conditions["recipe_id"] = recipes[0]
-            }
-            val player = conditions["player"]
-            if (player is Map<*, *>) {
-                backportCondition(player)
-                conditions["player"] = listOf(player)
-            }
-        }
-        backportLoot(map["criteria"])
-    }
-
-    tasks.register("convertDataPre263") {
-        group = "buildcraft"
-        description = "Rewrite advancement + loot table JSON into the pre-26.3 registry format."
-        val srcRoots = listOf(rootProject.file("src/main/resources"), rootProject.file("src/main/generated"))
-        val outDir = bcPre263DataDir.get().asFile
-        srcRoots.forEachIndexed { i, root -> inputs.dir(root).withPropertyName("dataSource$i") }
-        outputs.dir(outDir).withPropertyName("convertedPre263Data")
-        doLast {
-            outDir.deleteRecursively()
-            var advancements = 0
-            var lootTables = 0
-            srcRoots.forEach { root ->
-                fileTree(root) { include("data/*/advancement/**/*.json", "data/*/loot_table/**/*.json") }.forEach { file ->
-                    val rel = file.relativeTo(root).invariantSeparatorsPath
-                    val json = JsonSlurper().parse(file)
-                    if (rel.contains("/advancement/")) {
-                        backportAdvancement(json)
-                        advancements++
-                    } else {
-                        backportLoot(json)
-                        lootTables++
-                    }
-                    val target = outDir.resolve(rel)
-                    target.parentFile.mkdirs()
-                    target.writeText(JsonOutput.prettyPrint(JsonOutput.toJson(json)) + "\n")
-                }
-            }
-            logger.lifecycle("Converted $advancements advancement + $lootTables loot table JSON(s) to the pre-26.3 format -> ${outDir.path}")
-        }
-    }
-
-    sourceSets.named("main") {
-        resources {
-            exclude("data/*/advancement/**", "data/*/loot_table/**")
-        }
-    }
-}
-
 tasks.processResources {
     // Added last so the converted 1.21.1 dir wins duplicates against the modern copies.
     if (sc.current.parsed < "1.21.2") {
         dependsOn("convertDataFor1211")
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         from(bc1211DataDir)
-    }
-    if (sc.current.parsed < "26.3-pre-1") {
-        dependsOn("convertDataPre263")
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-        from(bcPre263DataDir)
     }
     // Generators are deliberately NOT in the build graph: a clean build only packages the committed output and
     // never mutates shared source. Refresh it explicitly with `:26.3:generateAssets`.
