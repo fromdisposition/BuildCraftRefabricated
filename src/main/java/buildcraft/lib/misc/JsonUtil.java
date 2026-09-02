@@ -256,21 +256,6 @@ public class JsonUtil {
    public static GsonBuilder registerTypeAdaptors(GsonBuilder builder) {
       return registerNbtSerializersDeserializers(builder);
    }
-
-   public static JsonObject inheritTags(JsonObject parent, JsonObject child) {
-      JsonObject result = new JsonObject();
-
-      for (Entry<String, JsonElement> entry : parent.entrySet()) {
-         result.add(entry.getKey(), entry.getValue());
-      }
-
-      for (Entry<String, JsonElement> entry : child.entrySet()) {
-         result.add(entry.getKey(), entry.getValue());
-      }
-
-      return result;
-   }
-
    public static float[] getSubAsFloatArray(JsonObject obj, String member) {
       if (!obj.has(member)) {
          throw new JsonSyntaxException("Required member '" + member + "' in '" + obj + "'");

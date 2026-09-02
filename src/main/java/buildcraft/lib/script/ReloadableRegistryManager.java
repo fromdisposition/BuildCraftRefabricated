@@ -90,7 +90,7 @@ public enum ReloadableRegistryManager implements IReloadableRegistryManager {
 
          for (IReloadableRegistry<?> registry : set) {
             if (registry instanceof ScriptableRegistry) {
-               ((ScriptableRegistry)registry).loadScripts(gson);
+               ((ScriptableRegistry)registry).loadEntries(gson);
             }
          }
 

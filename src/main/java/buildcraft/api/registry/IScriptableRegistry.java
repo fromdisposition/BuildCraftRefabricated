@@ -10,26 +10,17 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import java.util.Map;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public interface IScriptableRegistry<E> extends IReloadableRegistry<E> {
    String getEntryType();
 
-   Map<String, Class<? extends E>> getScriptableTypes();
-
    Map<String, IScriptableRegistry.IEntryDeserializer<? extends E>> getCustomDeserializers();
-
-   default void addSimpleType(String name, Class<? extends E> type) {
-      this.getScriptableTypes().put(name, type);
-   }
 
    default void addCustomType(String name, IScriptableRegistry.IEntryDeserializer<? extends E> deserializer) {
       this.getCustomDeserializers().put(name, deserializer);
    }
-
-   Set<String> getSourceDomains();
 
    @FunctionalInterface
    interface IEntryDeserializer<E> {
