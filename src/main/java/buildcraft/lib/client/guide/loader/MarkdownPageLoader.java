@@ -7,6 +7,7 @@
 package buildcraft.lib.client.guide.loader;
 
 import buildcraft.api.core.BCDebugging;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.registry.IScriptableRegistry;
 import buildcraft.lib.client.guide.entry.PageEntry;
@@ -48,11 +49,7 @@ public enum MarkdownPageLoader implements IPageLoaderText {
          return new IScriptableRegistry.OptionallyDisabled<>(args[0] + " was not a valid item identifier!");
       }
 
-      //? if >= 1.21.10 {
-      Item item = BuiltInRegistries.ITEM.get(itemId).map(ref -> ref.value()).orElse(null);
-      //?} else {
-      /*Item item = BuiltInRegistries.ITEM.get(itemId);
-      *///?}
+      Item item = BcRegistryUtil.getItem(itemId);
       if (item == null) {
          return new IScriptableRegistry.OptionallyDisabled<>(args[0] + " was not a valid item!");
       }

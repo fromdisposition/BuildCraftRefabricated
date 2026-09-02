@@ -21,12 +21,11 @@ import net.minecraft.client.renderer.block.BlockAndTintGetter;
 *///?}
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
-//? if >= 26.1 {
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+//? if >= 26.1 {
 import net.minecraft.client.resources.model.sprite.Material.Baked;
 //?} else {
-/*import net.minecraft.client.renderer.block.model.BlockModelPart;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+/*import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 *///?}
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.core.BlockPos;
@@ -56,11 +55,7 @@ public class PipeBlockStateModel implements BlockStateModel {
       this.vanillaDelegate = vanillaDelegate;
    }
 
-   //? if >= 26.1 {
    public void collectParts(RandomSource random, List<BlockStateModelPart> parts) {
-   //?} else {
-   /*public void collectParts(RandomSource random, List<BlockModelPart> parts) {
-   *///?}
       this.vanillaDelegate.collectParts(random, parts);
    }
 

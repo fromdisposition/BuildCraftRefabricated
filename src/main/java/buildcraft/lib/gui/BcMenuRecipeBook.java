@@ -7,6 +7,7 @@
 package buildcraft.lib.gui;
 
 import buildcraft.api.core.BCLog;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.slot.SlotPhantom;
 import buildcraft.lib.recipe.BucketRecipeTransfer;
@@ -41,6 +42,7 @@ import net.minecraft.world.inventory.Slot;
 //? if >= 1.21.10 {
 import net.minecraft.world.inventory.RecipeBookMenu.PostPlaceAction;
 //?}
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
@@ -183,17 +185,10 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
                return;
             }
 
-            //? if >= 1.21.10 {
-            BuiltInRegistries.ITEM.get(itemIdentifier).ifPresent(itemRef -> {
-               ItemStack stack = new ItemStack((ItemLike)itemRef.value(), 1);
-               phantom.set(stack);
-            });
-            //?} else {
-            /*net.minecraft.world.item.Item bcItem = BuiltInRegistries.ITEM.get(itemIdentifier);
+            Item bcItem = BcRegistryUtil.getItem(itemIdentifier);
             if (bcItem != null) {
                phantom.set(new ItemStack((ItemLike) bcItem, 1));
             }
-            *///?}
          }
       } else if (id == NET_BUCKET_TRANSFER && !isClient) {
          ItemHandlerSimple machineSlots = this.getBucketTransferSlots();

@@ -21,11 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
-//? if >= 26.1 {
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
-//?} else {
-/*import net.minecraft.client.renderer.block.model.BlockModelPart;
-*///?}
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.Direction;
@@ -49,19 +45,11 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
    private static final RandomSource RANDOM = RandomSource.create();
 
    private static List<BakedQuad> getQuadsFromModel(BlockStateModel model, Direction side) {
-      //? if >= 26.1 {
       List<BlockStateModelPart> parts = new ArrayList<>();
-      //?} else {
-      /*List<BlockModelPart> parts = new ArrayList<>();
-      *///?}
       model.collectParts(RANDOM, parts);
       List<BakedQuad> result = new ArrayList<>();
 
-      //? if >= 26.1 {
       for (BlockStateModelPart part : parts) {
-      //?} else {
-      /*for (BlockModelPart part : parts) {
-      *///?}
          result.addAll(part.getQuads(side));
       }
 

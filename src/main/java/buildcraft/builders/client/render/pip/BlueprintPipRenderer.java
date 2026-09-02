@@ -51,11 +51,7 @@ import net.minecraft.client.renderer.SubmitNodeStorage;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 *///?}
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
-//? if >= 26.1 {
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
-//?} else {
-/*import net.minecraft.client.renderer.block.model.BlockModelPart;
-*///?}
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -863,11 +859,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       //?} else {
       /*BlockStateModel model = mc.getBlockRenderer().getBlockModelShaper().getBlockModel(state);
       *///?}
-      //? if >= 26.1 {
       List<BlockStateModelPart> parts = new ArrayList<>();
-      //?} else {
-      /*List<BlockModelPart> parts = new ArrayList<>();
-      *///?}
       if (model == null) {
          return NO_QUADS;
       }
@@ -875,11 +867,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       model.collectParts(QUAD_RANDOM, parts);
       List<BakedQuad> baked = new ArrayList<>();
 
-      //? if >= 26.1 {
       for (BlockStateModelPart part : parts) {
-      //?} else {
-      /*for (BlockModelPart part : parts) {
-      *///?}
          baked.addAll(part.getQuads(null));
 
          for (Direction face : Direction.values()) {

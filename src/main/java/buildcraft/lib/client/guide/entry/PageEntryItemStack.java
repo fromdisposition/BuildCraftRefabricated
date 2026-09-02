@@ -7,6 +7,7 @@
 package buildcraft.lib.client.guide.entry;
 
 import buildcraft.api.core.BCLog;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.registry.IScriptableRegistry;
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.GuideManager;
@@ -89,11 +90,7 @@ public class PageEntryItemStack extends PageValueType<ItemStackValueFilter> {
 
       str = str.trim();
       Identifier loc = Identifier.parse(str);
-      //? if >= 1.21.10 {
-      Item item = BuiltInRegistries.ITEM.get(loc).map(ref -> ref.value()).orElse(null);
-      //?} else {
-      /*Item item = BuiltInRegistries.ITEM.get(loc);
-      *///?}
+      Item item = BcRegistryUtil.getItem(loc);
       if (item == null) {
          return new IScriptableRegistry.OptionallyDisabled<>("Unknown item '" + str + "' (from stack '" + json.get("stack").getAsString() + "')");
       }

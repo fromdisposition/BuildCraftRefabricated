@@ -7,6 +7,7 @@
 package buildcraft.lib.client.guide.entry;
 
 import buildcraft.api.registry.IScriptableRegistry;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.guide.data.JsonTypeTags;
@@ -68,11 +69,7 @@ public class PageEntryFluidStack extends PageValueType<FluidStackValueFilter> {
 
       String str = json.get("fluid").getAsString().trim();
       Identifier loc = Identifier.parse(str);
-      //? if >= 1.21.10 {
-      Fluid fluid = BuiltInRegistries.FLUID.get(loc).map(ref -> ref.value()).orElse(null);
-      //?} else {
-      /*Fluid fluid = BuiltInRegistries.FLUID.get(loc);
-      *///?}
+      Fluid fluid = BcRegistryUtil.getFluid(loc);
       if (fluid == null) {
          return new IScriptableRegistry.OptionallyDisabled<>("Unknown fluid '" + str + "'");
       }
