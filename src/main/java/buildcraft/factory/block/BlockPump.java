@@ -24,18 +24,18 @@ import org.jetbrains.annotations.Nullable;
 
 public class BlockPump extends BaseEntityBlock {
    //? if < 26.3-pre-1 {
-   public static final MapCodec<BlockPump> CODEC = simpleCodec(BlockPump::new);
-   //?}
+   /*public static final MapCodec<BlockPump> CODEC = simpleCodec(BlockPump::new);
+   *///?}
 
    public BlockPump(Properties properties) {
       super(properties);
    }
 
    //? if < 26.3-pre-1 {
-   protected MapCodec<? extends BaseEntityBlock> codec() {
+   /*protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
-   //?}
+   *///?}
 
    @Nullable
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {

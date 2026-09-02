@@ -158,7 +158,7 @@ public class FacadeItemModel implements ItemModel {
          renderState.appendModelIdentityElement(this);
          renderState.appendModelIdentityElement(key);
          LayerRenderState layer = renderState.newLayer();
-         layer.prepareQuadList().addAll(quads);
+         layer.setQuads(net.minecraft.client.resources.model.geometry.ItemQuads.split(quads));
          fillTintLayers(layer, state.stateInfo.state);
          // The GUI icon is the purpose-built flat tile from guiCache (identity transform fills the slot face-on);
          // every world context gets the standard block-item display transform, or the item renders full block size.

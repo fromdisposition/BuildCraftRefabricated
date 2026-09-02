@@ -35,7 +35,7 @@ public class EntityUtil {
    /** Common feedback for a successful wrench action: award the "wrenched" advancement and swing the arm. */
    public static void wrenchUsed(Player player, InteractionHand hand, ItemStack wrench, @Nullable HitResult trace) {
       AdvancementUtil.unlockAdvancement(player, WRENCH_ADVANCEMENT);
-      player.swing(hand);
+      player.swing(hand, player.getItemInHand(hand).getOrDefault(net.minecraft.core.component.DataComponents.INTERACT_ANIMATION, net.minecraft.world.item.component.SwingAnimation.DEFAULT), false);
    }
 
    @Nullable

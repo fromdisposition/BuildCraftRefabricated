@@ -128,7 +128,7 @@ public class LensItemModel implements ItemModel {
          renderState.appendModelIdentityElement(key.lensKey());
          renderState.appendModelIdentityElement(displayContext);
          LayerRenderState layer = renderState.newLayer();
-         layer.prepareQuadList().addAll(quads);
+         layer.setQuads(net.minecraft.client.resources.model.geometry.ItemQuads.split(quads));
          //? if >= 26.1 {
          // Supply the dye colour for tint layer 0 (the overlay quads are tagged with tintIndex 0). The render-state
          // item pipeline ignores per-vertex quad colour, so this layer tint is the only way the dye reaches the GUI.

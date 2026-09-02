@@ -17,7 +17,7 @@ import net.fabricmc.fabric.api.client.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
 //?} else {
 /*import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
 *///?}
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
@@ -116,7 +116,7 @@ public class PipeBlockStateModel implements BlockStateModel {
       *///?}
       // Flat like the block-entity renderer this replaces: the templates bake their own colours, and the paint
       // shell hugs the body, so diffuse/AO would double-darken it.
-      emitter.diffuseShade(false);
+      emitter.shadeDirectionOverride(net.minecraft.core.Direction.UP);
       emitter.ambientOcclusion(TriState.FALSE);
       emitter.emit();
    }

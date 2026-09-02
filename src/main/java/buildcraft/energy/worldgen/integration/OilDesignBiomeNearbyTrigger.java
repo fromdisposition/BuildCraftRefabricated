@@ -4,12 +4,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Optional;
 //? if >= 26.3-pre-1 {
-/*import net.minecraft.core.Holder;
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-*///?} else {
-import net.minecraft.advancements.predicates.entity.EntityPredicate;
+//?} else {
+/*import net.minecraft.advancements.predicates.entity.EntityPredicate;
 import net.minecraft.advancements.predicates.ContextAwarePredicate;
-//?}
+*///?}
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -24,18 +24,18 @@ public final class OilDesignBiomeNearbyTrigger extends SimpleCriterionTrigger<Oi
    }
 
    //? if >= 26.3-pre-1 {
-   /*public record TriggerInstance(Optional<Holder<LootItemCondition>> player)
+   public record TriggerInstance(Optional<Holder<LootItemCondition>> player)
       implements SimpleCriterionTrigger.SimpleInstance {
       public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
          LootItemCondition.CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player)
       ).apply(instance, TriggerInstance::new));
    }
-   *///?} else {
-   public record TriggerInstance(Optional<net.minecraft.advancements.predicates.ContextAwarePredicate> player)
+   //?} else {
+   /*public record TriggerInstance(Optional<net.minecraft.advancements.predicates.ContextAwarePredicate> player)
       implements SimpleCriterionTrigger.SimpleInstance {
       public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
          EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player)
       ).apply(instance, TriggerInstance::new));
    }
-   //?}
+   *///?}
 }

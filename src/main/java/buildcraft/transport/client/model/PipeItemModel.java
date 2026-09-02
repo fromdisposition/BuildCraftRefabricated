@@ -111,7 +111,7 @@ public class PipeItemModel implements ItemModel {
       }
 
       LayerRenderState overlayLayer = renderState.newLayer();
-      overlayLayer.prepareQuadList().addAll(overlayQuads);
+      overlayLayer.setQuads(net.minecraft.client.resources.model.geometry.ItemQuads.split(overlayQuads));
       if (this.extents != null) {
          overlayLayer.setExtents(this.extents);
       }

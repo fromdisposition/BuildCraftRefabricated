@@ -32,8 +32,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class BlockArchitectTable extends HorizontalDirectionalBlock implements EntityBlock {
    //? if < 26.3-pre-1 {
-   public static final MapCodec<BlockArchitectTable> CODEC = simpleCodec(BlockArchitectTable::new);
-   //?}
+   /*public static final MapCodec<BlockArchitectTable> CODEC = simpleCodec(BlockArchitectTable::new);
+   *///?}
 
    public BlockArchitectTable(Properties properties) {
       super(properties);
@@ -41,10 +41,10 @@ public class BlockArchitectTable extends HorizontalDirectionalBlock implements E
    }
 
    //? if < 26.3-pre-1 {
-   protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
+   /*protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
       return CODEC;
    }
-   //?}
+   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});

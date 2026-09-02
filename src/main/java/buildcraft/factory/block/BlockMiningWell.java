@@ -31,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
 public class BlockMiningWell extends BaseEntityBlock {
    public static final Property<Direction> FACING = BuildCraftProperties.BLOCK_FACING;
    //? if < 26.3-pre-1 {
-   public static final MapCodec<BlockMiningWell> CODEC = simpleCodec(BlockMiningWell::new);
-   //?}
+   /*public static final MapCodec<BlockMiningWell> CODEC = simpleCodec(BlockMiningWell::new);
+   *///?}
 
    public BlockMiningWell(Properties properties) {
       super(properties);
@@ -40,10 +40,10 @@ public class BlockMiningWell extends BaseEntityBlock {
    }
 
    //? if < 26.3-pre-1 {
-   protected MapCodec<? extends BaseEntityBlock> codec() {
+   /*protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
-   //?}
+   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});

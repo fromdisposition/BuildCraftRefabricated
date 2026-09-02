@@ -97,7 +97,7 @@ public class GateItemModel implements ItemModel {
             renderState.appendModelIdentityElement(variant);
             renderState.appendModelIdentityElement(displayContext);
             LayerRenderState layer = renderState.newLayer();
-            layer.prepareQuadList().addAll(quads);
+            layer.setQuads(net.minecraft.client.resources.model.geometry.ItemQuads.split(quads));
             //? if < 26.1 {
             /*layer.setRenderType(buildcraft.lib.client.render.BCLibRenderTypes.cutoutBlockSheet());
             *///?}

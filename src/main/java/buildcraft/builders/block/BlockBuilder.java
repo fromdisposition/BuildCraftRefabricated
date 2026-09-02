@@ -36,8 +36,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class BlockBuilder extends HorizontalDirectionalBlock implements EntityBlock {
    //? if < 26.3-pre-1 {
-   public static final MapCodec<BlockBuilder> CODEC = simpleCodec(BlockBuilder::new);
-   //?}
+   /*public static final MapCodec<BlockBuilder> CODEC = simpleCodec(BlockBuilder::new);
+   *///?}
    public static final EnumProperty<EnumOptionalSnapshotType> SNAPSHOT_TYPE = EnumProperty.create("snapshot_type", EnumOptionalSnapshotType.class);
 
    public BlockBuilder(Properties properties) {
@@ -50,10 +50,10 @@ public class BlockBuilder extends HorizontalDirectionalBlock implements EntityBl
    }
 
    //? if < 26.3-pre-1 {
-   protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
+   /*protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
       return CODEC;
    }
-   //?}
+   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING, SNAPSHOT_TYPE});

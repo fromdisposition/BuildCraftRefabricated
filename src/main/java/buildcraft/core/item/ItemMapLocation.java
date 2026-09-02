@@ -261,7 +261,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
       setCustomTag(modified, cpt);
       updateModelData(modified, newType);
       if (modified != stack && !player.getInventory().add(modified)) {
-         player.drop(modified, false);
+         player.drop(modified, false, net.minecraft.util.Prediction.SERVER_ONLY);
       }
 
       return InteractionResult.SUCCESS;

@@ -117,18 +117,18 @@ public class EntityMinerShaft extends Entity {
    // Snap to each synced position instead of the default 3-tick client interpolation, so the collider tracks the
    // shaft tightly as it extends (see EntityQuarryRig — same moving-collision-platform desync).
    //? if >= 26.3-pre-1 {
-   /*@Override
+   @Override
    protected InterpolationHandler createInterpolationHandler() {
       return net.minecraft.world.entity.LinearInterpolationHandler.create(this, 0);
    }
-   *///?} else if >= 1.21.10 {
-   private final InterpolationHandler interpolation = new InterpolationHandler(this, 0);
+   //?} else if >= 1.21.10 {
+   /*private final InterpolationHandler interpolation = new InterpolationHandler(this, 0);
 
    @Override
    public InterpolationHandler getInterpolation() {
       return this.interpolation;
    }
-   //?} else {
+   *///?} else {
    /*@Override
    public void lerpTo(double x, double y, double z, float yRot, float xRot, int steps) {
       this.setPos(x, y, z);

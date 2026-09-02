@@ -63,7 +63,7 @@ public class BlockEngineIron_BC8 extends BlockEngineBase_BC8 {
             SoundUtil.playSlideSound(level, pos, state, InteractionResult.SUCCESS);
          }
 
-         player.swing(hand);
+         player.swing(hand, player.getItemInHand(hand).getOrDefault(net.minecraft.core.component.DataComponents.INTERACT_ANIMATION, net.minecraft.world.item.component.SwingAnimation.DEFAULT), false);
          return InteractionResult.CONSUME;
       } else if (stack.getItem() instanceof IItemPipe pipe) {
          InteractionResult placed = EnginePipeInteraction.tryPlacePipe(pipe, stack, level, player, hand, hitResult, PipeApi.flowFluids, PipeApi.flowPower);
@@ -82,7 +82,7 @@ public class BlockEngineIron_BC8 extends BlockEngineBase_BC8 {
                level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.4F, 1.3F);
             }
 
-            player.swing(hand);
+            player.swing(hand, player.getItemInHand(hand).getOrDefault(net.minecraft.core.component.DataComponents.INTERACT_ANIMATION, net.minecraft.world.item.component.SwingAnimation.DEFAULT), false);
             return InteractionResult.CONSUME;
          } else if (engine != null && FluidStorageInteractions.onTankActivated(player, pos, hand, engine.getCombinedFluidStorage())) {
             return InteractionResult.SUCCESS;

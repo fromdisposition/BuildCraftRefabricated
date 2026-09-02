@@ -91,7 +91,7 @@ public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
 
       poseStack.pushPose();
       poseStack.translate(0.0, 0.25, 0.0);
-      poseStack.mulPose(Axis.YP.rotationDegrees(-state.aimYaw));
+      poseStack.rotate(Axis.YP.rotationDegrees(-state.aimYaw));
 
       RenderType body = BCLibRenderTypes.entityCutout(tex(state.texture));
       collector.submitCustomGeometry(poseStack, body, (pose, buffer) -> {
@@ -122,9 +122,9 @@ public class RenderRobot extends EntityRenderer<EntityRobot, RobotRenderState> {
       if (!state.heldItemState.isEmpty()) {
          poseStack.pushPose();
          poseStack.translate(0.0, 0.25, 0.0);
-         poseStack.mulPose(Axis.YP.rotationDegrees(-state.aimYaw));
+         poseStack.rotate(Axis.YP.rotationDegrees(-state.aimYaw));
          poseStack.translate(-0.4, 0.0, 0.0);
-         poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+         poseStack.rotate(Axis.YP.rotationDegrees(135.0F));
          poseStack.scale(0.8F, 0.8F, 0.8F);
          state.heldItemState.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, 0);
          poseStack.popPose();

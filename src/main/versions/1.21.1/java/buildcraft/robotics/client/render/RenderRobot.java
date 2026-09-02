@@ -78,7 +78,7 @@ public class RenderRobot extends EntityRenderer<EntityRobot> {
 
       poseStack.pushPose();
       poseStack.translate(0.0, 0.25, 0.0);
-      poseStack.mulPose(Axis.YP.rotationDegrees(-aimYaw));
+      poseStack.rotate(Axis.YP.rotationDegrees(-aimYaw));
 
       VertexConsumer body = buffers.getBuffer(BCLibRenderTypes.entityCutout(tex(texture)));
       Pose bodyPose = poseStack.last();
@@ -106,9 +106,9 @@ public class RenderRobot extends EntityRenderer<EntityRobot> {
       if (held != null && !held.isEmpty()) {
          poseStack.pushPose();
          poseStack.translate(0.0, 0.25, 0.0);
-         poseStack.mulPose(Axis.YP.rotationDegrees(-aimYaw));
+         poseStack.rotate(Axis.YP.rotationDegrees(-aimYaw));
          poseStack.translate(-0.4, 0.0, 0.0);
-         poseStack.mulPose(Axis.YP.rotationDegrees(135.0F));
+         poseStack.rotate(Axis.YP.rotationDegrees(135.0F));
          poseStack.scale(0.8F, 0.8F, 0.8F);
          Minecraft.getInstance()
             .getItemRenderer()

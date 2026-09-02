@@ -106,8 +106,8 @@ public final class BlueprintPipRenderer {
       // renders into an offscreen texture; replicating that Z flip here cancelled the reflection (det > 0), which
       // culled the OUTWARD faces (structure looked inside-out) and inverted depth (camera looked mirrored).
       poseStack.scale(1.0F, -1.0F, 1.0F);
-      poseStack.mulPose(Axis.XP.rotationDegrees(20.0F));
-      poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
+      poseStack.rotate(Axis.XP.rotationDegrees(20.0F));
+      poseStack.rotate(Axis.YP.rotationDegrees(yaw));
       poseStack.translate(-sizeX / 2.0F, -sizeY / 2.0F, -sizeZ / 2.0F);
 
       for (TemplateEntry entry : plan.templateEntries) {

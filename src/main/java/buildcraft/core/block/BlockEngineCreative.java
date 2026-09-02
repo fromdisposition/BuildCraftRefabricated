@@ -57,7 +57,7 @@ public class BlockEngineCreative extends BlockEngineBase_BC8 {
                   level.playSound(null, pos, SoundEvents.LEVER_CLICK, SoundSource.BLOCKS, 0.4F, 1.3F);
                }
 
-               player.swing(hand);
+               player.swing(hand, player.getItemInHand(hand).getOrDefault(net.minecraft.core.component.DataComponents.INTERACT_ANIMATION, net.minecraft.world.item.component.SwingAnimation.DEFAULT), false);
                return InteractionResult.CONSUME;
             }
          } else {

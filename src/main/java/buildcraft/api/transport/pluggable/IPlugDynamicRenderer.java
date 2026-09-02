@@ -22,19 +22,19 @@ public interface IPlugDynamicRenderer<P extends PipePluggable> {
       ps.translate(0.5F, 0.5F, 0.5F);
       switch (side) {
          case EAST:
-            ps.mulPose(Axis.YP.rotationDegrees(180.0F));
+            ps.rotate(Axis.YP.rotationDegrees(180.0F));
             break;
          case NORTH:
-            ps.mulPose(Axis.YP.rotationDegrees(-90.0F));
+            ps.rotate(Axis.YP.rotationDegrees(-90.0F));
             break;
          case SOUTH:
-            ps.mulPose(Axis.YP.rotationDegrees(90.0F));
+            ps.rotate(Axis.YP.rotationDegrees(90.0F));
             break;
          case DOWN:
-            ps.mulPose(Axis.ZP.rotationDegrees(90.0F));
+            ps.rotate(Axis.ZP.rotationDegrees(90.0F));
             break;
          case UP:
-            ps.mulPose(Axis.ZP.rotationDegrees(-90.0F));
+            ps.rotate(Axis.ZP.rotationDegrees(-90.0F));
             break;
          case WEST:
          default:

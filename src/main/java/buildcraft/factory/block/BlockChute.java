@@ -46,8 +46,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class BlockChute extends BaseEntityBlock {
    //? if < 26.3-pre-1 {
-   public static final MapCodec<BlockChute> CODEC = simpleCodec(BlockChute::new);
-   //?}
+   /*public static final MapCodec<BlockChute> CODEC = simpleCodec(BlockChute::new);
+   *///?}
    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
    public static final Map<Direction, Property<Boolean>> CONNECTED_MAP = BuildCraftProperties.CONNECTED_MAP;
 
@@ -63,10 +63,10 @@ public class BlockChute extends BaseEntityBlock {
    }
 
    //? if < 26.3-pre-1 {
-   protected MapCodec<? extends BaseEntityBlock> codec() {
+   /*protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
-   //?}
+   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(FACING);

@@ -45,7 +45,7 @@ public final class BcFluidFogEnvironment extends FogEnvironment {
    }
 
    //? if >= 26.3-pre-1 {
-   /*@Override
+   @Override
    public boolean providesColor() {
       return true;
    }
@@ -60,8 +60,8 @@ public final class BcFluidFogEnvironment extends FogEnvironment {
 
       return new org.joml.Vector3f(appearance.fogRed(), appearance.fogGreen(), appearance.fogBlue());
    }
-   *///?} else {
-   @Override
+   //?} else {
+   /*@Override
    public int getBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks) {
       BcFluidAppearance appearance = FluidWorldRenderer.appearanceAtCamera(camera, level);
       if (appearance == null) {
@@ -70,5 +70,5 @@ public final class BcFluidFogEnvironment extends FogEnvironment {
 
       return ARGB.colorFromFloat(appearance.fogAlpha(), appearance.fogRed(), appearance.fogGreen(), appearance.fogBlue());
    }
-   //?}
+   *///?}
 }

@@ -47,7 +47,7 @@ public final class PipePartBreakHandler {
                // Ship the exact crosshair hit point: the server must remove precisely the part the player aimed at,
                // not whatever its own (lagging) re-raytrace would land on -- see MessageRemovePipePart.
                BcPacketDistributor.sendToServer(new MessageRemovePipePart(pos, (float)lx, (float)ly, (float)lz));
-               player.swing(hand);
+               player.swing(hand, player.getItemInHand(hand).getOrDefault(net.minecraft.core.component.DataComponents.INTERACT_ANIMATION, net.minecraft.world.item.component.SwingAnimation.DEFAULT), false);
                // FAIL, not SUCCESS: Fabric's AttackBlockCallback (fabric_fireAttackBlockCallback) sends the vanilla
                // START_DESTROY_BLOCK packet whenever the result consumesAction() (SUCCESS/CONSUME). A creative-mode
                // server instant-breaks the whole block on START, so SUCCESS destroyed the entire pipe in creative.

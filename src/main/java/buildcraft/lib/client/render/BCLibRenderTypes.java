@@ -7,11 +7,11 @@
 package buildcraft.lib.client.render;
 
 //? if >= 26.1 {
-import com.mojang.blaze3d.pipeline.DepthStencilState;
+import com.mojang.renderpearl.api.pipeline.DepthStencilState;
 //?}
 //? if >= 1.21.10 {
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.pipeline.RenderPipeline.Snippet;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline.Snippet;
 import net.minecraft.client.renderer.RenderPipelines;
 //?}
 //? if < 1.21.10 {

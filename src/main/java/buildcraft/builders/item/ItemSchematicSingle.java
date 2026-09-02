@@ -152,7 +152,7 @@ public class ItemSchematicSingle extends Item {
                         StackUtil.mergeSameItems(requiredItems)
                            .forEach(s -> itemTransactor.extract(extracted -> StackUtil.canMerge(s, extracted), s.getCount(), s.getCount(), false));
                         SoundUtil.playBlockPlace(world, placePos);
-                        player.swing(hand);
+                        player.swing(hand, player.getItemInHand(hand).getOrDefault(net.minecraft.core.component.DataComponents.INTERACT_ANIMATION, net.minecraft.world.item.component.SwingAnimation.DEFAULT), false);
                         return InteractionResult.SUCCESS;
                      }
                   } else {

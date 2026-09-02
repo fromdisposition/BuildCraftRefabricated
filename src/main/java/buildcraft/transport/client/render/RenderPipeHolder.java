@@ -275,19 +275,19 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
    private static void applyDirectionRotation(PoseStack ps, Direction dir) {
       switch (dir) {
          case NORTH:
-            ps.mulPose(Axis.YP.rotationDegrees(180.0F));
+            ps.rotate(Axis.YP.rotationDegrees(180.0F));
             break;
          case EAST:
-            ps.mulPose(Axis.YP.rotationDegrees(90.0F));
+            ps.rotate(Axis.YP.rotationDegrees(90.0F));
             break;
          case WEST:
-            ps.mulPose(Axis.YP.rotationDegrees(-90.0F));
+            ps.rotate(Axis.YP.rotationDegrees(-90.0F));
             break;
          case UP:
-            ps.mulPose(Axis.XP.rotationDegrees(-90.0F));
+            ps.rotate(Axis.XP.rotationDegrees(-90.0F));
             break;
          case DOWN:
-            ps.mulPose(Axis.XP.rotationDegrees(90.0F));
+            ps.rotate(Axis.XP.rotationDegrees(90.0F));
             break;
          case SOUTH:
          default:

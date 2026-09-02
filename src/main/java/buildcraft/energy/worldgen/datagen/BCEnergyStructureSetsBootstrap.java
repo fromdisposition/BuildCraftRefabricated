@@ -56,7 +56,7 @@ final class BCEnergyStructureSetsBootstrap {
             structures.getOrThrow(structureKey),
             new RandomSpreadStructurePlacement(
                new net.minecraft.core.Vec3i(8, 0, 8),
-               net.minecraft.world.level.levelgen.structure.placement.StructurePlacement.FrequencyReductionMethod.DEFAULT,
+               net.minecraft.world.level.levelgen.structure.placement.AbstractSpreadingStructurePlacement.FrequencyReductionMethod.DEFAULT,
                1.0F,
                placement.salt(),
                java.util.Optional.empty(),

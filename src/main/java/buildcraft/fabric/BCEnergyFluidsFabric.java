@@ -113,7 +113,7 @@ public final class BCEnergyFluidsFabric {
                .mapColor(gaseous ? MapColor.NONE : MapColor.COLOR_BLACK)
                .replaceable()
                .strength(100.0F)
-               .pushReaction(PushReaction.DESTROY)
+               .pushReaction(PushReaction.POPPED)
                .noLootTable()
                .liquid()
                .sound(SoundType.HONEY_BLOCK)

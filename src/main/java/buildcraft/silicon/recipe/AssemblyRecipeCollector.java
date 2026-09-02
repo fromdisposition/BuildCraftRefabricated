@@ -136,7 +136,7 @@ public final class AssemblyRecipeCollector {
    private static ContextMap displayContext() {
       Minecraft mc = Minecraft.getInstance();
       ClientLevel level = mc == null ? null : mc.level;
-      return level != null ? SlotDisplayContext.fromLevel(level) : new Builder().create(SlotDisplayContext.CONTEXT);
+      return level != null ? SlotDisplayContext.fromLevel(level) : net.minecraft.util.context.ContextMap.builder().buildAndValidate(SlotDisplayContext.CONTEXT);
    }
    //?}
 }

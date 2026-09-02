@@ -100,7 +100,7 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
 
    private int getBurnTime(@Nonnull ItemStack stack) {
       //? if >= 26.3-pre-1 {
-      /*if (stack.isEmpty() || this.level == null) {
+      if (stack.isEmpty() || this.level == null) {
          return 0;
       }
       if (!(this.level instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
@@ -116,9 +116,9 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
          ).create(java.util.Optional.empty()),
          0
       );
-      *///?} else if >= 1.21.10 {
-      return !stack.isEmpty() && this.level != null ? this.level.fuelValues().burnDuration(stack) : 0;
-      //?} else {
+      //?} else if >= 1.21.10 {
+      /*return !stack.isEmpty() && this.level != null ? this.level.fuelValues().burnDuration(stack) : 0;
+      *///?} else {
       /*return !stack.isEmpty() && this.level != null
          ? net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.getFuel().getOrDefault(stack.getItem(), 0)
          : 0;

@@ -49,8 +49,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
    //? if < 26.3-pre-1 {
-   public static final MapCodec<BlockTank> CODEC = simpleCodec(BlockTank::new);
-   //?}
+   /*public static final MapCodec<BlockTank> CODEC = simpleCodec(BlockTank::new);
+   *///?}
    public static final Property<Boolean> JOINED_BELOW = BuildCraftProperties.JOINED_BELOW;
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftfactory:fluid_storage");
    private static final VoxelShape SHAPE = Block.box(2.0, 0.0, 2.0, 14.0, 16.0, 14.0);
@@ -61,10 +61,10 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
    }
 
    //? if < 26.3-pre-1 {
-   protected MapCodec<? extends BaseEntityBlock> codec() {
+   /*protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
-   //?}
+   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(JOINED_BELOW);

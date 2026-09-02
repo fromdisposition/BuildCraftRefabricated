@@ -2,7 +2,7 @@ plugins {
     id("dev.kikugie.stonecutter")
 }
 
-stonecutter active "26.2" /* [SC] DO NOT EDIT */
+stonecutter active "26.3" /* [SC] DO NOT EDIT */
 
 // See https://stonecutter.kikugie.dev/wiki/config/params
 stonecutter parameters {
