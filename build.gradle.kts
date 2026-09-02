@@ -38,8 +38,8 @@ base {
 
 repositories {
     maven("https://maven.blamejared.com")
-    // teamreborn's maven times out on foreign groups — scope every repo so one flaky mirror cannot abort the rest.
-    maven("https://maven.teamreborn.org") {
+    // Scope every repo so one flaky mirror cannot abort the rest.
+    maven("https://maven.fabricmc.net") {
         content { includeGroup("teamreborn") }
     }
     maven("https://maven.shedaniel.me") {
