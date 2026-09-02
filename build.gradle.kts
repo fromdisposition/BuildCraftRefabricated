@@ -85,9 +85,16 @@ afterEvaluate {
         inputs.files(sourceSets["main"].output.classesDirs).withPropertyName("datagenClasses")
         outputs.dir(datagenDir).withPropertyName("datagenOutput")
     }
+    val datagenRoot = datagenDir.get().asFile
     tasks.named<Jar>("jar") {
         dependsOn("runDatagen")
         from(datagenDir)
+        eachFile {
+            val fromStatic = !file.path.replace('\\', '/').startsWith(datagenRoot.path.replace('\\', '/'))
+            if (fromStatic && datagenRoot.resolve(path).isFile) {
+                exclude()
+            }
+        }
     }
     tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
         dependsOn("runDatagen")
@@ -174,6 +181,10 @@ if (overrideDirNames.isNotEmpty()) {
 
 dependencies {
     minecraft("com.mojang:minecraft:$mcVersion")
+    // The datagen output is part of the mod in dev runs: classPathGroups only groups paths that are already
+    // on the JVM classpath, so the bare dir has to be a runtime entry too (no builtBy — runClient/runServer
+    // depend on runDatagen explicitly, and a task edge here would cycle runDatagen into its own output).
+    runtimeOnly(files(datagenDir))
     loomx.applyMojangMappings()
     implementation("net.fabricmc:fabric-loader:${sc.properties.raw("deps", "loader")}")
     // Loom attaches these on 26.x but not on the 1.21.x loom-back-compat path; loader provides them at runtime.
@@ -267,32 +278,6 @@ tasks.withType<JavaCompile>().configureEach {
     }
     if (reiVer == null) {
         exclude("**/integration/rei/**")
-    }
-}
-
-// 1.21.1 packages the datagen'd legacy item models (BCItemModelBackportProvider); the modern copies that
-// those replace are dropped from the jar only, so the datagen classpath still sees them for the merge.
-if (sc.current.parsed < "1.21.2") {
-    val rangeDispatchModelExcludes = buildList {
-        val assetsRoot = rootProject.file("src/main/resources/assets")
-        (assetsRoot.listFiles() ?: emptyArray()).forEach { nsDir ->
-            val itemsDir = nsDir.resolve("items")
-            if (itemsDir.isDirectory) {
-                itemsDir.walkTopDown().filter { it.isFile && it.extension == "json" && it.readText().contains("range_dispatch") }
-                    .forEach { add("assets/${nsDir.name}/models/item/${it.relativeTo(itemsDir).invariantSeparatorsPath.removeSuffix(".json")}.json") }
-            }
-        }
-    }
-    val excludedModelPaths = rangeDispatchModelExcludes.toSet()
-    afterEvaluate {
-        val datagenRoot = datagenDir.get().asFile.path.replace('\\', '/')
-        tasks.named<Jar>("jar") {
-            eachFile {
-                if (path.replace('\\', '/') in excludedModelPaths && !file.path.replace('\\', '/').startsWith(datagenRoot)) {
-                    exclude()
-                }
-            }
-        }
     }
 }
 

@@ -256,6 +256,7 @@ stonecutter parameters {
             // Scoped to the BC tag-provider call sites (BCEnergyBiomeTags is unique to that file), reverse-safe.
             replace("builder(BCEnergyBiomeTags.", "getOrCreateTagBuilder(BCEnergyBiomeTags.")
             replace("builder(BCEnergyStructures.", "getOrCreateTagBuilder(BCEnergyStructures.")
+            replace("builder(TagKey.create(", "getOrCreateTagBuilder(TagKey.create(")
             // JEI's recipe-type holder was the concrete class mezz.jei.api.recipe.RecipeType in JEI 19
             // (1.21.1); it became the interface mezz.jei.api.recipe.types.IRecipeType in newer JEI (26.x+).
             // Both expose the same static create(namespace, path, class) factory, so the BC jei integration is

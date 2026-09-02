@@ -1,6 +1,5 @@
 package buildcraft.datagen;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.concurrent.CompletableFuture;
@@ -12,9 +11,9 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 
 /** 1.21.1 resolves item models straight from models/item/&lt;id&gt;.json and has no client item-definition
- * system, so on that node this rebuilds the legacy files from the authored assets/&lt;ns&gt;/items definitions
- * (read off the datagen classpath): a plain model definition becomes a parent stub, and a custom_model_data
- * range_dispatch becomes integer overrides merged onto the base model. Later nodes emit nothing here. */
+ * system, so on that node this rebuilds the legacy files from {@link BCAssetDefs}: a plain model reference
+ * becomes a parent stub, and a custom_model_data dispatch becomes integer overrides merged onto the base
+ * model (read off the datagen classpath). Later nodes emit nothing here. */
 public final class BCItemModelBackportProvider implements DataProvider {
    //? if < 1.21.10 {
    /*private final PackOutput.PathProvider pathProvider;
@@ -30,22 +29,9 @@ public final class BCItemModelBackportProvider implements DataProvider {
    public CompletableFuture<?> run(CachedOutput cache) {
       //? if < 1.21.10 {
       /*java.util.List<CompletableFuture<?>> futures = new java.util.ArrayList<>();
-      for (net.minecraft.world.item.Item item : net.minecraft.core.registries.BuiltInRegistries.ITEM) {
-         Identifier id = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item);
-         if (!id.getNamespace().startsWith("buildcraft")) {
-            continue;
-         }
-
-         JsonObject definition = readClasspathJson("/assets/" + id.getNamespace() + "/items/" + id.getPath() + ".json");
-         if (definition == null) {
-            continue;
-         }
-
-         JsonObject existing = readClasspathJson("/assets/" + id.getNamespace() + "/models/item/" + id.getPath() + ".json");
-         JsonObject converted = convert(definition, existing);
-         if (converted != null) {
-            futures.add(DataProvider.saveStable(cache, converted, this.pathProvider.json(id)));
-         }
+      BCAssetDefs.ITEM_MODELS.forEach((id, ref) -> emit(cache, futures, id, ref, null));
+      for (BCAssetDefs.Dispatch dispatch : BCAssetDefs.ITEM_DISPATCH) {
+         emit(cache, futures, dispatch.id(), dispatch.fallback(), dispatch.entries());
       }
 
       return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
@@ -55,60 +41,40 @@ public final class BCItemModelBackportProvider implements DataProvider {
    }
 
    //? if < 1.21.10 {
-   /*private static JsonObject convert(JsonObject definition, JsonObject existing) {
-      JsonObject model = definition.getAsJsonObject("model");
-      if (model == null) {
-         return null;
-      }
-
+   /*private void emit(
+      CachedOutput cache, java.util.List<CompletableFuture<?>> futures, String id, String baseRef, java.util.Map<Integer, String> entries
+   ) {
+      Identifier itemId = Identifier.parse(id);
+      JsonObject existing = readClasspathJson("/assets/" + itemId.getNamespace() + "/models/item/" + itemId.getPath() + ".json");
       com.google.gson.JsonArray overrides = new com.google.gson.JsonArray();
-      String baseRef = null;
-      String type = model.has("type") ? model.get("type").getAsString() : null;
-      if ("minecraft:range_dispatch".equals(type)) {
-         if (!"minecraft:custom_model_data".equals(model.get("property").getAsString())) {
-            return null;
-         }
-
-         for (JsonElement entryElement : model.getAsJsonArray("entries")) {
-            JsonObject entry = entryElement.getAsJsonObject();
+      if (entries != null) {
+         entries.forEach((threshold, ref) -> {
             JsonObject predicate = new JsonObject();
-            predicate.addProperty("custom_model_data", entry.get("threshold").getAsInt());
+            predicate.addProperty("custom_model_data", threshold);
             JsonObject override = new JsonObject();
             override.add("predicate", predicate);
-            override.addProperty("model", entry.getAsJsonObject("model").get("model").getAsString());
+            override.addProperty("model", ref);
             overrides.add(override);
-         }
-
-         JsonObject fallback = model.getAsJsonObject("fallback");
-         if (fallback != null) {
-            baseRef = fallback.get("model").getAsString();
-         }
-      } else if ("minecraft:model".equals(type)) {
-         baseRef = model.get("model").getAsString();
-      } else {
-         return null;
+         });
       }
 
+      JsonObject out;
       if (existing != null) {
          if (overrides.isEmpty()) {
-            return null;
+            return;
          }
 
          existing.add("overrides", overrides);
-         return existing;
+         out = existing;
+      } else {
+         out = new JsonObject();
+         out.addProperty("parent", baseRef);
+         if (!overrides.isEmpty()) {
+            out.add("overrides", overrides);
+         }
       }
 
-      if (baseRef == null) {
-         return null;
-      }
-
-      JsonObject out = new JsonObject();
-      out.addProperty("parent", baseRef);
-      if (!overrides.isEmpty()) {
-         out.add("overrides", overrides);
-      }
-
-      return out;
+      futures.add(DataProvider.saveStable(cache, out, this.pathProvider.json(itemId)));
    }
 
    private static JsonObject readClasspathJson(String path) {
