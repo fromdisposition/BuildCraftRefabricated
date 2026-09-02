@@ -32,7 +32,9 @@ import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockQuarry extends HorizontalDirectionalBlock implements EntityBlock {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockQuarry> CODEC = simpleCodec(BlockQuarry::new);
+   //?}
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftbuilders:shaping_the_world");
 
    public BlockQuarry(Properties properties) {
@@ -40,9 +42,11 @@ public class BlockQuarry extends HorizontalDirectionalBlock implements EntityBlo
       this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
       return CODEC;
    }
+   //?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});

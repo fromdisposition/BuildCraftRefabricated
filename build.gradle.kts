@@ -107,7 +107,8 @@ if (versionJavaSrc.exists()) {
 fun bcVerCompare(a: String, b: String): Int {
     val pa = a.split('.'); val pb = b.split('.')
     for (i in 0 until maxOf(pa.size, pb.size)) {
-        val d = (pa.getOrNull(i)?.toIntOrNull() ?: 0) - (pb.getOrNull(i)?.toIntOrNull() ?: 0)
+        val d = (pa.getOrNull(i)?.takeWhile { c -> c.isDigit() }?.toIntOrNull() ?: 0) -
+            (pb.getOrNull(i)?.takeWhile { c -> c.isDigit() }?.toIntOrNull() ?: 0)
         if (d != 0) return d
     }
     return 0
@@ -400,12 +401,113 @@ if (sc.current.parsed < "1.21.2") {
     }
 }
 
+// ===========================================================================
+// 26.3 DATA FORWARD-PORT (build-time converter)
+//
+// Advancement/loot schema tightened in 26.3-pre-1 (condition discriminator "type", single "condition"/
+// "player", recipe_crafted "recipes"); data stays authored in the 26.2 format and is rewritten into a
+// generated dir that overrides it on the 26.3 node only. fabric:load_conditions subtrees are skipped.
+// ===========================================================================
+val bc263DataDir = layout.buildDirectory.dir("generated/bc263-data")
+if (sc.current.parsed >= "26.3-pre-1") {
+    @Suppress("UNCHECKED_CAST")
+    fun convertLootConditions(node: Any?) {
+        when (node) {
+            is MutableMap<*, *> -> {
+                val map = node as MutableMap<String, Any?>
+                val discriminator = map["condition"]
+                if (discriminator is String) {
+                    map.remove("condition")
+                    map["type"] = discriminator
+                }
+                val list = map["conditions"]
+                if (list is List<*>) {
+                    map.remove("conditions")
+                    map["condition"] = if (list.size == 1) list[0]
+                    else linkedMapOf("type" to "minecraft:all_of", "terms" to list)
+                }
+                map.forEach { (key, value) ->
+                    if (key != "fabric:load_conditions") {
+                        convertLootConditions(value)
+                    }
+                }
+            }
+            is List<*> -> node.forEach { convertLootConditions(it) }
+            else -> {}
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun convertAdvancement(json: Any?) {
+        val map = json as? MutableMap<String, Any?> ?: return
+        val criteria = map["criteria"] as? MutableMap<String, Any?> ?: return
+        for (c in criteria.values) {
+            val crit = c as? MutableMap<String, Any?> ?: continue
+            val conditions = crit["conditions"] as? MutableMap<String, Any?> ?: continue
+            if (crit["trigger"] == "minecraft:recipe_crafted") {
+                val id = conditions.remove("recipe_id")
+                if (id != null) {
+                    conditions["recipes"] = listOf(id)
+                }
+            }
+            val player = conditions["player"]
+            if (player is List<*>) {
+                conditions["player"] = if (player.size == 1) player[0]
+                else linkedMapOf("type" to "minecraft:all_of", "terms" to player)
+            }
+        }
+        convertLootConditions(map["criteria"])
+    }
+
+    tasks.register("convertDataFor263") {
+        group = "buildcraft"
+        description = "Rewrite advancement + loot table JSON into the 26.3 registry format."
+        val srcRoots = listOf(rootProject.file("src/main/resources"), rootProject.file("src/main/generated"))
+        val outDir = bc263DataDir.get().asFile
+        srcRoots.forEachIndexed { i, root -> inputs.dir(root).withPropertyName("dataSource$i") }
+        outputs.dir(outDir).withPropertyName("converted263Data")
+        doLast {
+            outDir.deleteRecursively()
+            var advancements = 0
+            var lootTables = 0
+            srcRoots.forEach { root ->
+                fileTree(root) { include("data/*/advancement/**/*.json", "data/*/loot_table/**/*.json") }.forEach { file ->
+                    val rel = file.relativeTo(root).invariantSeparatorsPath
+                    val json = JsonSlurper().parse(file)
+                    if (rel.contains("/advancement/")) {
+                        convertAdvancement(json)
+                        advancements++
+                    } else {
+                        convertLootConditions(json)
+                        lootTables++
+                    }
+                    val target = outDir.resolve(rel)
+                    target.parentFile.mkdirs()
+                    target.writeText(JsonOutput.prettyPrint(JsonOutput.toJson(json)) + "\n")
+                }
+            }
+            logger.lifecycle("Converted $advancements advancement + $lootTables loot table JSON(s) to 26.3 format -> ${outDir.path}")
+        }
+    }
+
+    sourceSets.named("main") {
+        resources {
+            exclude("data/*/advancement/**", "data/*/loot_table/**")
+        }
+    }
+}
+
 tasks.processResources {
     // Added last so the converted 1.21.1 dir wins duplicates against the modern copies.
     if (sc.current.parsed < "1.21.2") {
         dependsOn("convertDataFor1211")
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         from(bc1211DataDir)
+    }
+    if (sc.current.parsed >= "26.3-pre-1") {
+        dependsOn("convertDataFor263")
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        from(bc263DataDir)
     }
     // Generators are deliberately NOT in the build graph: a clean build only packages the committed output and
     // never mutates shared source. Refresh it explicitly with `:26.2:generateAssets`.

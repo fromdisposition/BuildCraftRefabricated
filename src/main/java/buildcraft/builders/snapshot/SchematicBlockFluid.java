@@ -47,8 +47,7 @@ public class SchematicBlockFluid implements ISchematicBlock {
    @Override
    public Set<BlockPos> getRequiredBlockOffsets() {
       return Stream.concat(Arrays.stream(Direction.values()).filter(d -> d.getAxis().isHorizontal()), Stream.of(Direction.DOWN))
-         .map(Direction::getUnitVec3i)
-         .<BlockPos>map(BlockPos::new)
+         .map(BlockPos.ZERO::relative)
          .collect(Collectors.toSet());
    }
 
@@ -83,7 +82,7 @@ public class SchematicBlockFluid implements ISchematicBlock {
       if (this.isFlowing) {
          return true;
       } else if (level.setBlock(blockPos, this.blockState, 11)) {
-         Stream.concat(Stream.of(Direction.values()).map(Direction::getUnitVec3i).map(BlockPos::new), Stream.of(BlockPos.ZERO))
+         Stream.concat(Stream.of(Direction.values()).map(BlockPos.ZERO::relative), Stream.of(BlockPos.ZERO))
             .<BlockPos>map(blockPos::offset)
             //? if >= 1.21.10 {
             .forEach(updatePos -> level.neighborChanged(updatePos, this.blockState.getBlock(), null));

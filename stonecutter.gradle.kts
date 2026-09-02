@@ -110,6 +110,48 @@ stonecutter parameters {
             replace("this.raw.fakeItem(", "this.raw.renderFakeItem(")
             replace("this.raw.itemDecorations(", "this.raw.renderItemDecorations(")
         }
+        // 26.3 pure renames (canonical-new, reverse-safe): blaze3d→renderpearl, mulPose(Quaternionf)→rotate,
+        // swing/drop arity, ContextMap builder, ItemQuads, PushReaction.POPPED, FrequencyReductionMethod owner.
+        string(current.parsed < "26.3-pre-1") {
+            replace("com.mojang.renderpearl.api.pipeline.RenderPipeline", "com.mojang.blaze3d.pipeline.RenderPipeline")
+            replace("com.mojang.renderpearl.api.pipeline.DepthStencilState", "com.mojang.blaze3d.pipeline.DepthStencilState")
+            replace("com.mojang.renderpearl.api.buffers.GpuBuffer", "com.mojang.blaze3d.buffers.GpuBuffer")
+            replace("com.mojang.renderpearl.api.device.GpuDevice", "com.mojang.blaze3d.systems.GpuDevice")
+            replace("rotate(Axis.", "mulPose(Axis.")
+            replace(
+                "player.swing(hand, player.getItemInHand(hand).getOrDefault(net.minecraft.core.component.DataComponents.INTERACT_ANIMATION, net.minecraft.world.item.component.SwingAnimation.DEFAULT), false);",
+                "player.swing(hand);"
+            )
+            replace(
+                "player.drop(stack, false, net.minecraft.util.Prediction.SERVER_ONLY);",
+                "player.drop(stack, false);"
+            )
+            replace(
+                "player.drop(modified, false, net.minecraft.util.Prediction.SERVER_ONLY);",
+                "player.drop(modified, false);"
+            )
+            replace(
+                "net.minecraft.util.context.ContextMap.builder().buildAndValidate(SlotDisplayContext.CONTEXT)",
+                "new Builder().create(SlotDisplayContext.CONTEXT)"
+            )
+            replace(
+                "layer.setQuads(net.minecraft.client.resources.model.geometry.ItemQuads.split(quads));",
+                "layer.prepareQuadList().addAll(quads);"
+            )
+            replace(
+                "overlayLayer.setQuads(net.minecraft.client.resources.model.geometry.ItemQuads.split(overlayQuads));",
+                "overlayLayer.prepareQuadList().addAll(overlayQuads);"
+            )
+            replace("PushReaction.POPPED", "PushReaction.DESTROY")
+            replace(
+                "net.minecraft.world.level.levelgen.structure.placement.AbstractSpreadingStructurePlacement.FrequencyReductionMethod",
+                "net.minecraft.world.level.levelgen.structure.placement.StructurePlacement.FrequencyReductionMethod"
+            )
+            replace(
+                "emitter.shadeDirectionOverride(net.minecraft.core.Direction.UP);",
+                "emitter.diffuseShade(false);"
+            )
+        }
         // advancements.criterion split into predicates.* / triggers.* in 26.2
         string(current.parsed >= "26.2") {
             replace(

@@ -96,7 +96,6 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       this.revalidateMeshes = state.terrainVersion() != this.lastMeshValidationVersion;
       this.lastMeshValidationVersion = state.terrainVersion();
       this.evictFarMeshes(state);
-      Minecraft mc = Minecraft.getInstance();
 
       if (this.perspBuffer == null) {
          this.perspBuffer = new ProjectionMatrixBuffer("PIP zone map persp");
@@ -108,7 +107,9 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
 
       this.emitTerrain(state, poseStack, (SubmitNodeStorage) submitNodeCollector);
 
-      mc.gameRenderer.featureRenderDispatcher().renderAllFeatures((SubmitNodeStorage) submitNodeCollector);
+      //? if < 26.3-pre-1 {
+      Minecraft.getInstance().gameRenderer.featureRenderDispatcher().renderAllFeatures((SubmitNodeStorage) submitNodeCollector);
+      //?}
    }
    //?} else if >= 26.1 {
    /*@Override

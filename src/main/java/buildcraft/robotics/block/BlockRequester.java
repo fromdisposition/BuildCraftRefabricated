@@ -37,7 +37,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockRequester extends BaseEntityBlock {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockRequester> CODEC = simpleCodec(BlockRequester::new);
+   //?}
    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
    public BlockRequester(Properties properties) {
@@ -45,9 +47,11 @@ public class BlockRequester extends BaseEntityBlock {
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
+   //?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});

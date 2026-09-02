@@ -28,15 +28,19 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockAutoWorkbenchItems extends BaseEntityBlock {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockAutoWorkbenchItems> CODEC = simpleCodec(BlockAutoWorkbenchItems::new);
+   //?}
 
    public BlockAutoWorkbenchItems(Properties properties) {
       super(properties);
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
+   //?}
 
    @Nullable
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {

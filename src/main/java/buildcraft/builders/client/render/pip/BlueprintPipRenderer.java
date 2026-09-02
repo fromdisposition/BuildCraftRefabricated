@@ -134,7 +134,6 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       this.writeLightDirections(light0Camera, light1Camera);
       GpuBufferSlice savedShaderLights = RenderSystem.getShaderLights();
       RenderSystem.setShaderLights(this.lightingBuffer.slice(0,  Lighting.UBO_SIZE));
-      net.minecraft.client.renderer.feature.FeatureRenderDispatcher featureRenderDispatcher = mc.gameRenderer.featureRenderDispatcher();
       BlueprintPipRenderer.PreviewPlan plan = this.planFor(snapshot, mc);
 
       for (BlueprintPipRenderer.TemplateEntry entry : plan.templateEntries) {
@@ -157,7 +156,9 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
          );
       }
 
-      featureRenderDispatcher.renderAllFeatures(storage);
+      //? if < 26.3-pre-1 {
+      mc.gameRenderer.featureRenderDispatcher().renderAllFeatures(storage);
+      //?}
       RenderSystem.setShaderLights(savedShaderLights);
       if (!plan.logged) {
          plan.logged = true;

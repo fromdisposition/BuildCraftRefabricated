@@ -45,7 +45,9 @@ import net.minecraft.world.level.material.Fluids;
 // (the glass/ice interface) instead of the flowing texture fighting the gel's own coplanar translucent face.
 // Extending it makes the gel behave exactly like ice in water, including any future vanilla special cases.
 public class BlockWaterGel extends HalfTransparentBlock {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockWaterGel> CODEC = simpleCodec(BlockWaterGel::new);
+   //?}
    public static final EnumProperty<BlockWaterGel.GelStage> PROP_STAGE = EnumProperty.create("stage", BlockWaterGel.GelStage.class);
 
    public BlockWaterGel(Properties properties) {
@@ -53,9 +55,11 @@ public class BlockWaterGel extends HalfTransparentBlock {
       this.registerDefaultState((this.stateDefinition.any()).setValue(PROP_STAGE, BlockWaterGel.GelStage.SPREAD_0));
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends BlockWaterGel> codec() {
       return CODEC;
    }
+   //?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{PROP_STAGE});

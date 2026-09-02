@@ -52,7 +52,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotationHandler {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockHeatExchange> CODEC = simpleCodec(BlockHeatExchange::new);
+   //?}
    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
    public static final EnumProperty<BlockHeatExchange.EnumExchangePart> PART = EnumProperty.create("part", BlockHeatExchange.EnumExchangePart.class);
    public static final BooleanProperty CONNECTED_LEFT = BooleanProperty.create("connected_left");
@@ -68,9 +70,11 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
       );
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
+   //?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING, PART, CONNECTED_LEFT, CONNECTED_RIGHT});

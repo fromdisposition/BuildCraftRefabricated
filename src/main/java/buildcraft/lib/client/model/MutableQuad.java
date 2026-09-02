@@ -130,6 +130,18 @@ public class MutableQuad {
 
    public BakedQuad toBakedBlock() {
       //? if >= 26.1 {
+      //? if >= 26.3-pre-1 {
+      /*MaterialInfo matInfo = new MaterialInfo(
+         this.sprite,
+         this.translucent ? ChunkSectionLayer.TRANSLUCENT : ChunkSectionLayer.CUTOUT,
+         this.translucent ? Sheets.translucentBlockItemSheet() : Sheets.cutoutBlockItemSheet(),
+         this.translucent ? Sheets.translucentBlockItemGlintSheet() : Sheets.cutoutBlockItemGlintSheet(),
+         this.translucent ? Sheets.translucentBlockItemGlintSpecialSheet() : Sheets.cutoutBlockItemGlintSpecialSheet(),
+         this.tintIndex,
+         this.shade ? null : Direction.UP,
+         this.lightEmission
+      );
+      *///?} else {
       MaterialInfo matInfo = new MaterialInfo(
          this.sprite,
          this.translucent ? ChunkSectionLayer.TRANSLUCENT : ChunkSectionLayer.CUTOUT,
@@ -138,6 +150,7 @@ public class MutableQuad {
          this.shade,
          this.lightEmission
       );
+      //?}
       return new BakedQuad(
          this.vertex_0.positionvf(),
          this.vertex_1.positionvf(),
@@ -187,9 +200,22 @@ public class MutableQuad {
 
    public BakedQuad toBakedTranslucent() {
       //? if >= 26.1 {
+      //? if >= 26.3-pre-1 {
+      /*MaterialInfo matInfo = new MaterialInfo(
+         this.sprite,
+         ChunkSectionLayer.TRANSLUCENT,
+         Sheets.translucentBlockItemSheet(),
+         Sheets.translucentBlockItemGlintSheet(),
+         Sheets.translucentBlockItemGlintSpecialSheet(),
+         this.tintIndex,
+         this.shade ? null : Direction.UP,
+         this.lightEmission
+      );
+      *///?} else {
       MaterialInfo matInfo = new MaterialInfo(
          this.sprite, ChunkSectionLayer.TRANSLUCENT, Sheets.translucentBlockItemSheet(), this.tintIndex, this.shade, this.lightEmission
       );
+      //?}
       return new BakedQuad(
          this.vertex_0.positionvf(),
          this.vertex_1.positionvf(),
@@ -271,7 +297,11 @@ public class MutableQuad {
       MaterialInfo mat = quad.materialInfo();
       this.tintIndex = mat.tintIndex();
       this.sprite = mat.sprite();
+      //? if >= 26.3-pre-1 {
+      /*this.shade = mat.shadeDirectionOverride() == null;
+      *///?} else {
       this.shade = mat.shade();
+      //?}
       this.lightEmission = mat.lightEmission();
       this.translucent = mat.layer() == ChunkSectionLayer.TRANSLUCENT;
       //?} else {

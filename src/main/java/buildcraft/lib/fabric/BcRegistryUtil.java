@@ -113,7 +113,11 @@ public final class BcRegistryUtil {
    }
 
    public static float composterValue(ItemStack stack) {
+      //? if >= 26.3-pre-1 {
+      /*return stack.has(net.minecraft.core.component.DataComponents.COMPOSTABLE) ? 1.0F : 0.0F;
+      *///?} else {
       return ComposterBlock.COMPOSTABLES.getFloat(stack.getItem());
+      //?}
    }
 
    public static Holder<Fluid> fluidHolder(Fluid fluid) {

@@ -34,7 +34,9 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class BlockFrame extends Block {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockFrame> CODEC = simpleCodec(BlockFrame::new);
+   //?}
    public static final Map<Direction, Property<Boolean>> CONNECTED_MAP = BuildCraftProperties.CONNECTED_MAP;
    private static final VoxelShape BASE_SHAPE = Block.box(4.0, 4.0, 4.0, 12.0, 12.0, 12.0);
    private static final Map<Direction, VoxelShape> CONNECTION_SHAPES = Map.of(
@@ -63,9 +65,11 @@ public class BlockFrame extends Block {
       this.registerDefaultState(defaultState);
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends Block> codec() {
       return CODEC;
    }
+   //?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       for (Property<Boolean> prop : CONNECTED_MAP.values()) {

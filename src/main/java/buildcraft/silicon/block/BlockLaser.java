@@ -34,7 +34,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockLaser extends BaseEntityBlock {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockLaser> CODEC = simpleCodec(BlockLaser::new);
+   //?}
    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
    // Hitbox matching the model: the full 16x4 base plate on the mounting (-FACING) face plus a centred 6x6, 9-deep
    // emitter extending toward FACING -- so you can click and walk between closely-packed lasers, not a full cube.
@@ -54,9 +56,11 @@ public class BlockLaser extends BaseEntityBlock {
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.UP));
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
+   //?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});

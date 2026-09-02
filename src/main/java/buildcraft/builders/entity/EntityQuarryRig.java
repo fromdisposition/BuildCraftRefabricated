@@ -110,7 +110,12 @@ public class EntityQuarryRig extends Entity {
    // client interpolates an entity's synced position over DEFAULT_INTERPOLATION_STEPS (3) ticks, so the collision
    // box LAGGED ~3 ticks behind the smoothly rendered gantry — the player walking on the moving part fell through
    // where the box had not caught up yet. Snap the rig straight to each synced position so collision tracks tight.
-   //? if >= 1.21.10 {
+   //? if >= 26.3-pre-1 {
+   /*@Override
+   protected InterpolationHandler createInterpolationHandler() {
+      return net.minecraft.world.entity.LinearInterpolationHandler.create(this, 0);
+   }
+   *///?} else if >= 1.21.10 {
    private final InterpolationHandler interpolation = new InterpolationHandler(this, 0);
 
    public InterpolationHandler getInterpolation() {

@@ -30,16 +30,20 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockReplacer extends HorizontalDirectionalBlock implements EntityBlock {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockReplacer> CODEC = simpleCodec(BlockReplacer::new);
+   //?}
 
    public BlockReplacer(Properties properties) {
       super(properties);
       this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
       return CODEC;
    }
+   //?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});

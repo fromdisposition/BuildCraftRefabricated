@@ -44,6 +44,23 @@ public final class BcFluidFogEnvironment extends FogEnvironment {
       return FluidWorldRenderer.appearanceAtEye(entity, level) != null;
    }
 
+   //? if >= 26.3-pre-1 {
+   /*@Override
+   public boolean providesColor() {
+      return true;
+   }
+
+   @Override
+   public org.joml.Vector3fc getBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks) {
+      BcFluidAppearance appearance = FluidWorldRenderer.appearanceAtCamera(camera, level);
+      if (appearance == null) {
+         return (org.joml.Vector3fc) camera.attributeProbe()
+            .getValue(net.minecraft.world.attribute.EnvironmentAttributes.WATER_FOG_COLOR, partialTicks);
+      }
+
+      return new org.joml.Vector3f(appearance.fogRed(), appearance.fogGreen(), appearance.fogBlue());
+   }
+   *///?} else {
    @Override
    public int getBaseColor(ClientLevel level, Camera camera, int renderDistance, float partialTicks) {
       BcFluidAppearance appearance = FluidWorldRenderer.appearanceAtCamera(camera, level);
@@ -53,4 +70,5 @@ public final class BcFluidFogEnvironment extends FogEnvironment {
 
       return ARGB.colorFromFloat(appearance.fogAlpha(), appearance.fogRed(), appearance.fogGreen(), appearance.fogBlue());
    }
+   //?}
 }

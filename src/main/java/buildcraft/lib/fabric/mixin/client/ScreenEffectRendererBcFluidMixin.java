@@ -15,15 +15,30 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(ScreenEffectRenderer.class)
 public class ScreenEffectRendererBcFluidMixin {
+   //? if < 26.3-pre-1 {
    @Final
    @Shadow
    private Minecraft minecraft;
+   //?}
 
    // ScreenEffectRenderer.renderScreenEffect differs by version:
    //   1.21.11 : renderScreenEffect(boolean sleeping, float partialTicks, SubmitNodeCollector) — 3-arg
    //   26.1.2  : renderScreenEffect(boolean isFirstPerson, boolean isSleeping, float, SubmitNodeCollector, boolean hideGui) — 5-arg
-   //   26.2+ : same 5 args but the method was renamed to submit(...)
-   //? if >= 26.2 {
+   //   26.2    : same 5 args but the method was renamed to submit(...)
+   //   26.3-pre: submit(float, SubmitNodeCollector, PlayerRenderState, CameraRenderState, boolean) — TAIL + fresh identity PoseStack
+   //? if >= 26.3-pre-1 {
+   /*@Inject(method = "submit", at = @At("TAIL"))
+   private void buildcraft$renderBcFluidOverlay(
+      float partialTicks,
+      SubmitNodeCollector submitNodeCollector,
+      net.minecraft.client.renderer.state.level.PlayerRenderState playerRenderState,
+      net.minecraft.client.renderer.state.level.CameraRenderState cameraRenderState,
+      boolean hideGui,
+      CallbackInfo ci
+   ) {
+      FluidWorldRenderer.renderSubmergedOverlay(Minecraft.getInstance(), new PoseStack(), submitNodeCollector);
+   }
+   *///?} else if >= 26.2 {
    @Inject(
       method = "submit",
       at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;isOnFire()Z"),

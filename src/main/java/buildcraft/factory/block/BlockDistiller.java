@@ -42,7 +42,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHandler {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockDistiller> CODEC = simpleCodec(BlockDistiller::new);
+   //?}
    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
    public BlockDistiller(Properties properties) {
@@ -50,9 +52,11 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.WEST));
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
+   //?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});

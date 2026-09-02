@@ -58,8 +58,13 @@ public final class OilStructureSpawnConditions {
       if (tier == Tier.NORMAL && !BCEnergyConfig.oilOceanFields.get()) {
          int sampleX = context.chunkPos().getMiddleBlockX();
          int sampleZ = context.chunkPos().getMiddleBlockZ();
+         //? if >= 26.3-pre-1 {
+         /*Holder<Biome> biome = context.biomeResolver()
+            .getNoiseBiome(QuartPos.fromBlock(sampleX), QuartPos.fromBlock(0), QuartPos.fromBlock(sampleZ));
+         *///?} else {
          Holder<Biome> biome = context.biomeSource()
             .getNoiseBiome(QuartPos.fromBlock(sampleX), QuartPos.fromBlock(0), QuartPos.fromBlock(sampleZ), context.randomState().sampler());
+         //?}
          if (biome.is(BCEnergyBiomeTags.OIL_OCEAN)) {
             return false;
          }

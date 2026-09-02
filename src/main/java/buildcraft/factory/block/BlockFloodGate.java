@@ -40,7 +40,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockFloodGate extends BaseEntityBlock {
+   //? if < 26.3-pre-1 {
    public static final MapCodec<BlockFloodGate> CODEC = simpleCodec(BlockFloodGate::new);
+   //?}
    public static final Map<Direction, Property<Boolean>> CONNECTED_MAP = new HashMap<>(BuildCraftProperties.CONNECTED_MAP);
 
    public BlockFloodGate(Properties properties) {
@@ -54,9 +56,11 @@ public class BlockFloodGate extends BaseEntityBlock {
       this.registerDefaultState(defaultState);
    }
 
+   //? if < 26.3-pre-1 {
    protected MapCodec<? extends BaseEntityBlock> codec() {
       return CODEC;
    }
+   //?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       for (Property<Boolean> prop : CONNECTED_MAP.values()) {

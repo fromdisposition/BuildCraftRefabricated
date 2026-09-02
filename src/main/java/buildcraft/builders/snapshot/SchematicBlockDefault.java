@@ -182,7 +182,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
       if (rules.stream().map(rule -> rule.updateBlockOffsets).anyMatch(Objects::nonNull)) {
          rules.stream().map(rule -> rule.updateBlockOffsets).filter(Objects::nonNull).flatMap(Collection::stream).forEach(this.updateBlockOffsets::add);
       } else {
-         Stream.of(Direction.values()).map(Direction::getUnitVec3i).map(BlockPos::new).forEach(this.updateBlockOffsets::add);
+         Stream.of(Direction.values()).map(BlockPos.ZERO::relative).forEach(this.updateBlockOffsets::add);
          this.updateBlockOffsets.add(BlockPos.ZERO);
       }
    }
