@@ -39,22 +39,4 @@ public interface IItemTransactor {
    default boolean canPartiallyAccept(@Nonnull ItemStack stack) {
       return this.insert(stack, false, true).getCount() < stack.getCount();
    }
-
-   @FunctionalInterface
-   interface IItemExtractable extends IItemTransactor {
-      @Nonnull
-      @Override
-      default ItemStack insert(@Nonnull ItemStack stack, boolean allOrNone, boolean simulate) {
-         return stack;
-      }
-   }
-
-   @FunctionalInterface
-   interface IItemInsertable extends IItemTransactor {
-      @Nonnull
-      @Override
-      default ItemStack extract(IStackFilter filter, int min, int max, boolean simulate) {
-         return ItemStack.EMPTY;
-      }
-   }
 }

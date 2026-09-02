@@ -9,7 +9,6 @@ package buildcraft.lib.tile;
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.lib.fabric.transfer.ItemStorageResolve;
-import buildcraft.lib.misc.INBTSerializable;
 import buildcraft.lib.misc.InventoryUtil;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -27,11 +26,11 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 
-public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
+public class ItemHandlerManager {
    public final StackChangeCallback callback;
    private final List<Storage<ItemVariant>> handlersToDrop = new ArrayList<>();
    private final Map<EnumPipePart, ItemHandlerManager.Wrapper> wrappers = new EnumMap<>(EnumPipePart.class);
-   private final Map<String, INBTSerializable<CompoundTag>> handlers = new HashMap<>();
+   private final Map<String, BcItemInventory> handlers = new HashMap<>();
 
    public ItemHandlerManager(StackChangeCallback defaultCallback) {
       this.callback = defaultCallback;
@@ -41,7 +40,7 @@ public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
       }
    }
 
-   public <T extends INBTSerializable<CompoundTag> & Storage<ItemVariant>> T addInvHandler(
+   public <T extends BcItemInventory> T addInvHandler(
       String key, T handler, ItemHandlerManager.EnumAccess access, EnumPipePart... parts
    ) {
       if (parts == null) {
@@ -136,7 +135,7 @@ public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
    public CompoundTag serializeNBT() {
       CompoundTag nbt = new CompoundTag();
 
-      for (Entry<String, INBTSerializable<CompoundTag>> entry : this.handlers.entrySet()) {
+      for (Entry<String, BcItemInventory> entry : this.handlers.entrySet()) {
          String key = entry.getKey();
          nbt.put(key, entry.getValue().serializeNBT());
       }
@@ -145,7 +144,7 @@ public class ItemHandlerManager implements INBTSerializable<CompoundTag> {
    }
 
    public void deserializeNBT(CompoundTag nbt) {
-      for (Entry<String, INBTSerializable<CompoundTag>> entry : this.handlers.entrySet()) {
+      for (Entry<String, BcItemInventory> entry : this.handlers.entrySet()) {
          String key = entry.getKey();
          entry.getValue().deserializeNBT(BcNbt.getCompound(nbt, key));
       }

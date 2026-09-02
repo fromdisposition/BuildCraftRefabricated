@@ -6,11 +6,9 @@
 
 package buildcraft.lib.tile;
 
-import buildcraft.lib.misc.INBTSerializable;
 import org.jspecify.annotations.Nullable;
-import net.minecraft.nbt.CompoundTag;
 
-public class ItemHandlerSimple extends BcItemInventory implements INBTSerializable<CompoundTag> {
+public class ItemHandlerSimple extends BcItemInventory {
    public ItemHandlerSimple(int size) {
       super(size);
    }

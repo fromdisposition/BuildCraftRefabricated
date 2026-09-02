@@ -11,7 +11,6 @@ import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.lib.inventory.AbstractInvItemTransactor;
 import buildcraft.lib.fabric.transfer.FabricDeferredCommit;
-import buildcraft.lib.misc.INBTSerializable;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.StackUtil;
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class BcItemInventory extends AbstractInvItemTransactor implements Storage<ItemVariant>, StackInsertionChecker, INBTSerializable<CompoundTag> {
+public class BcItemInventory extends AbstractInvItemTransactor implements Storage<ItemVariant>, StackInsertionChecker {
    public final NonNullList<ItemStack> stacks;
    private final SnapshotParticipant<ItemStack[]> journal = new SnapshotParticipant<ItemStack[]>() {
       protected ItemStack[] createSnapshot() {

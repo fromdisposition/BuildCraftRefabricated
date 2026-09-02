@@ -18,10 +18,10 @@ import buildcraft.lib.engine.EngineConnector;
 import buildcraft.lib.engine.TileEngineBase_BC8;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.misc.AdvancementUtil;
-import buildcraft.lib.transfer.handler.ItemStackResourceHandler;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -54,7 +54,7 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
    public int totalBurnTime = 0;
    private long esum = 0L;
    private ItemStack fuelStack = ItemStack.EMPTY;
-   public final ItemStackResourceHandler fuelItemHandler = new ItemStackResourceHandler() {
+   public final SingleStackStorage fuelItemHandler = new SingleStackStorage() {
       @Override
       protected ItemStack getStack() {
          return TileEngineStone_BC8.this.fuelStack;
@@ -66,10 +66,11 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
       }
 
       @Override
-      protected boolean isValid(ItemStack stack) {
-         return TileEngineStone_BC8.this.isValidFuel(stack);
+      protected boolean canInsert(ItemVariant variant) {
+         return TileEngineStone_BC8.this.isValidFuel(variant.toStack());
       }
 
+      @Override
       protected void onFinalCommit() {
          TileEngineStone_BC8.this.setChanged();
       }
