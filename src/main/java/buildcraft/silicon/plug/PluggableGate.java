@@ -15,7 +15,6 @@ import buildcraft.api.transport.pluggable.PluggableModelKey;
 import buildcraft.lib.fabric.menu.GateMenuKey;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.MessageUtil;
-import buildcraft.lib.misc.data.ModelVariableData;
 import buildcraft.lib.net.IPayloadWriter;
 import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
@@ -50,7 +49,6 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
    private static final Identifier ADVANCEMENT_PLACE_GATE = Identifier.parse("buildcrafttransport:pipe_logic");
    private static final Identifier ADVANCEMENT_PLACE_ADV_GATE = Identifier.parse("buildcrafttransport:extended_logic");
    public final GateLogic logic;
-   public final ModelVariableData clientModelData = new ModelVariableData();
 
    public PluggableGate(PluggableDefinition def, IPipeHolder holder, Direction side, GateVariant variant) {
       super(def, holder, side);
@@ -243,9 +241,6 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
    @Override
    public void onTick() {
       this.logic.onTick();
-      if (this.holder.getPipeWorld().isClientSide()) {
-         this.clientModelData.tick();
-      }
    }
 
    @Override

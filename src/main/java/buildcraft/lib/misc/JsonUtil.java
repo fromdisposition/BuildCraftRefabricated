@@ -291,26 +291,6 @@ public class JsonUtil {
       return result;
    }
 
-   public static String[] getSubAsStringArray(JsonObject obj, String member) {
-      if (!obj.has(member)) {
-         throw new JsonSyntaxException("Required member '" + member + "' in '" + obj + "'");
-      }
-
-      JsonElement elem = obj.get(member);
-      if (!elem.isJsonArray()) {
-         throw new JsonSyntaxException("Expected an array for '" + member + "', got " + elem);
-      }
-
-      JsonArray arr = elem.getAsJsonArray();
-      String[] result = new String[arr.size()];
-
-      for (int i = 0; i < result.length; i++) {
-         result[i] = arr.get(i).getAsString();
-      }
-
-      return result;
-   }
-
    @SuppressWarnings("unchecked")
    public static <T extends Map<?, ?>> T getSubAsImmutableMap(JsonObject obj, String member, TypeToken<T> token) {
       return (T)(!obj.has(member) ? Collections.emptyMap() : new Gson().fromJson(obj.get(member), token.getType()));
@@ -318,9 +298,5 @@ public class JsonUtil {
 
    public static String getAsString(JsonElement elem) {
       return elem.isJsonPrimitive() && elem.getAsJsonPrimitive().isString() ? elem.getAsString() : elem.toString();
-   }
-
-   public static JsonObject inlineCustom(JsonObject obj) {
-      return obj;
    }
 }

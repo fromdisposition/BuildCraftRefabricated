@@ -18,7 +18,6 @@ import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.LocaleUtil;
-import buildcraft.lib.misc.data.ModelVariableData;
 import com.mojang.authlib.GameProfile;
 import java.util.List;
 import java.util.UUID;
@@ -76,7 +75,6 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
    protected boolean checkRedstonePower = true;
    protected int redstonePollTimer = 0;
    private EnumPowerStage powerStage = EnumPowerStage.BLUE;
-   public final ModelVariableData clientModelData = new ModelVariableData();
    private IMjConnector mjConnector;
 
    public long getPower() {
@@ -604,12 +602,6 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       left.add("stage = " + this.getPowerStage());
       left.add("progress = " + this.progress);
       left.add("last = " + LocaleUtil.localizeMjFlow(this.currentOutput));
-   }
-
-   @Override
-   public void getClientDebugInfo(List<String> left, List<String> right, Direction side) {
-      left.add("Current Model Variables:");
-      this.clientModelData.addDebugInfo(left);
    }
 
    //? if >= 1.21.10 {
