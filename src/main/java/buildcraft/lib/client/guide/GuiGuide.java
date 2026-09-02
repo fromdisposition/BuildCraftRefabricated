@@ -548,7 +548,7 @@ public class GuiGuide extends Screen {
          return true;
       }
 
-      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button(), doubleClick) || super.mouseClicked(event, doubleClick);
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), GuiUtil.classicButton(event.button()), doubleClick) || super.mouseClicked(event, doubleClick);
    }
    //?} else {
    /*public boolean mouseClicked(double mouseXd, double mouseYd, int button) {

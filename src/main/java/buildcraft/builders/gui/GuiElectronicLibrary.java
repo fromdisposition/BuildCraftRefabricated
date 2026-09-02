@@ -6,6 +6,7 @@
 
 package buildcraft.builders.gui;
 
+import buildcraft.lib.misc.GuiUtil;
 import buildcraft.builders.container.ContainerElectronicLibrary;
 import buildcraft.builders.snapshot.GlobalSavedDataSnapshots;
 import buildcraft.builders.snapshot.Snapshot;
@@ -208,7 +209,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
    @Override
    //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), GuiUtil.classicButton(event.button())) || super.mouseClicked(event, doubleClick);
    }
    //?} else {
    /*public boolean mouseClicked(double mouseXd, double mouseYd, int button) {

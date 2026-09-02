@@ -6,6 +6,7 @@
 
 package buildcraft.builders.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.builders.client.render.BlueprintRenderer;
 import buildcraft.builders.container.ContainerReplacer;
@@ -394,12 +395,12 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       if (this.nameField != null && this.nameField.isFocused()) {
-         if (event.key() == 257 || event.key() == 335) {
+         if (event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER) {
             this.setFocused(null);
             return true;
          }
 
-         if (event.key() == 256) {
+         if (event.key() == InputConstants.KEY_ESCAPE) {
             return super.keyPressed(event);
          }
 

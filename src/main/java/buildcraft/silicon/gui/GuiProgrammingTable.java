@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.gui;
 
+import buildcraft.lib.misc.GuiUtil;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.GuiIcon;
@@ -113,7 +114,7 @@ public class GuiProgrammingTable extends BcScreen<ContainerProgrammingTable> {
    @Override
    //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), GuiUtil.classicButton(event.button())) || super.mouseClicked(event, doubleClick);
    }
    //?} else {
    /*public boolean mouseClicked(double mouseX, double mouseY, int button) {

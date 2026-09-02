@@ -6,6 +6,7 @@
 
 package buildcraft.builders.gui;
 
+import buildcraft.lib.misc.GuiUtil;
 import buildcraft.api.core.render.ISprite;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.api.statements.IStatementContainer;
@@ -236,7 +237,7 @@ public class GuiFiller extends BcScreen<ContainerFiller> {
    @Override
    //? if >= 1.21.10 {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-      return this.bcMouseClicked((int)event.x(), (int)event.y(), event.button()) || super.mouseClicked(event, doubleClick);
+      return this.bcMouseClicked((int)event.x(), (int)event.y(), GuiUtil.classicButton(event.button())) || super.mouseClicked(event, doubleClick);
    }
    //?} else {
    /*public boolean mouseClicked(double mouseX, double mouseY, int button) {

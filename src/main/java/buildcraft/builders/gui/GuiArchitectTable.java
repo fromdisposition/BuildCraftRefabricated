@@ -6,6 +6,7 @@
 
 package buildcraft.builders.gui;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import buildcraft.builders.client.render.BlueprintRenderer;
 import buildcraft.builders.container.ContainerArchitectTable;
 import buildcraft.builders.item.ItemSnapshot;
@@ -122,12 +123,12 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       if (this.nameField.isFocused()) {
-         if (event.key() == 257 || event.key() == 335) {
+         if (event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER) {
             this.setFocused(null);
             return true;
          }
 
-         if (event.key() == 256) {
+         if (event.key() == InputConstants.KEY_ESCAPE) {
             return super.keyPressed(event);
          }
 

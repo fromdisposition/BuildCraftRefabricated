@@ -6,6 +6,7 @@
 
 package buildcraft.lib.gui;
 
+import buildcraft.lib.misc.GuiUtil;
 import buildcraft.lib.gui.ledger.LedgerHelp;
 import buildcraft.lib.gui.ledger.Ledger_Neptune;
 import buildcraft.lib.gui.pos.IGuiArea;
@@ -248,14 +249,14 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
       int mouseX = (int)event.x();
       int mouseY = (int)event.y();
-      int button = event.button();
+      int button = GuiUtil.classicButton(event.button());
       return this.mainGui.onMouseClicked(mouseX, mouseY, button) ? true : super.mouseClicked(event, doubleClick);
    }
 
    public boolean mouseReleased(MouseButtonEvent event) {
       int mouseX = (int)event.x();
       int mouseY = (int)event.y();
-      int button = event.button();
+      int button = GuiUtil.classicButton(event.button());
       this.mainGui.onMouseReleased(mouseX, mouseY, button);
       return super.mouseReleased(event);
    }
@@ -263,7 +264,7 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
       int mouseX = (int)event.x();
       int mouseY = (int)event.y();
-      int button = event.button();
+      int button = GuiUtil.classicButton(event.button());
       this.mainGui.onMouseDragged(mouseX, mouseY, button, 0L);
       return super.mouseDragged(event, dragX, dragY);
    }

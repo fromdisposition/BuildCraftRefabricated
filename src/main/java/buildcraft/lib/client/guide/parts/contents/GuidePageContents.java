@@ -6,6 +6,7 @@
 
 package buildcraft.lib.client.guide.parts.contents;
 
+import buildcraft.lib.misc.GuiUtil;
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.guide.TypeOrder;
@@ -289,7 +290,7 @@ public class GuidePageContents extends GuidePageBase {
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
       double mouseX = event.x();
       double mouseY = event.y();
-      int mouseButton = event.button();
+      int mouseButton = GuiUtil.classicButton(event.button());
       if (this.searchText.isFocused() && this.searchText.mouseClicked(event, doubleClick)) {
          return true;
       } else if (this.getIndex() != 0 && this.isOverOrderIcon(mouseX, mouseY)) {

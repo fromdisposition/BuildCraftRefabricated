@@ -6,6 +6,7 @@
 
 package buildcraft.core.list;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import buildcraft.core.item.ItemList_BC8;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
@@ -242,7 +243,7 @@ public class GuiList extends BcScreen<ContainerList> {
    //? if >= 1.21.10 {
    public boolean keyPressed(KeyEvent event) {
       if (this.labelField != null && this.labelField.isFocused()) {
-         if (event.key() == 257 || event.key() == 335) {
+         if (event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER) {
             this.setFocused(null);
             return true;
          }
