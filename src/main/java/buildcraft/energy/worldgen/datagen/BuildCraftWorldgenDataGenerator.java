@@ -18,6 +18,8 @@ public final class BuildCraftWorldgenDataGenerator implements DataGeneratorEntry
       pack.addProvider(BCEnergyStructureProvider::new);
       pack.addProvider(buildcraft.datagen.BCBlockLootProvider::new);
       pack.addProvider(buildcraft.datagen.BCAdvancementJsonProvider::new);
+      pack.addProvider(buildcraft.datagen.BCRecipeProvider::new);
+      pack.addProvider(buildcraft.datagen.BCItemModelBackportProvider::new);
    }
 
    @Override

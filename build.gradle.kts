@@ -270,127 +270,9 @@ tasks.withType<JavaCompile>().configureEach {
     }
 }
 
-// ===========================================================================
-// 1.21.1 DATA BACKPORT (build-time converter)
-//
-// Data/assets are authored once in the modern (1.21.2+/26.x) JSON format; this rewrites the affected files
-// into a generated dir that overrides them on the 1.21.1 node only, so shared src/main stays the one source.
-// ===========================================================================
-val bc1211DataDir = layout.buildDirectory.dir("generated/bc1211-data")
+// 1.21.1 packages the datagen'd legacy item models (BCItemModelBackportProvider); the modern copies that
+// those replace are dropped from the jar only, so the datagen classpath still sees them for the merge.
 if (sc.current.parsed < "1.21.2") {
-    // string -> {item|tag}, array -> array of those, object -> unchanged. A Fabric custom ingredient
-    // ("fabric:type") is reduced to its base item/tag: 1.21.1 cannot parse it, so a gate recipe there accepts
-    // any base plug_gate rather than failing to load.
-    fun convIngredient(v: Any?): Any? = when (v) {
-        is String -> if (v.startsWith("#")) mapOf("tag" to v.substring(1)) else mapOf("item" to v)
-        is List<*> -> v.map { convIngredient(it) }
-        is Map<*, *> -> {
-            val base = (v["base"] ?: v["item"] ?: v["tag"]) as? String
-            if (v.containsKey("fabric:type") && base != null) {
-                if (base.startsWith("#")) mapOf("tag" to base.substring(1)) else mapOf("item" to base)
-            } else v
-        }
-        else -> v
-    }
-    @Suppress("UNCHECKED_CAST")
-    fun convertRecipe(json: Any?) {
-        if (json !is MutableMap<*, *>) return
-        val map = json as MutableMap<String, Any?>
-        when (map["type"]) {
-            "minecraft:crafting_shaped" -> (map["key"] as? MutableMap<String, Any?>)?.let { k ->
-                k.keys.toList().forEach { kk -> k[kk] = convIngredient(k[kk]) }
-            }
-            "minecraft:crafting_shapeless" -> (map["ingredients"] as? MutableList<Any?>)?.let { list ->
-                for (i in list.indices) list[i] = convIngredient(list[i])
-            }
-            "minecraft:smelting", "minecraft:blasting", "minecraft:smoking",
-            "minecraft:campfire_cooking", "minecraft:stonecutting" ->
-                map["ingredient"] = convIngredient(map["ingredient"])
-        }
-        // result.components custom_model_data: floats[0] -> int; strings/flags cannot map -> drop
-        val components = (map["result"] as? MutableMap<String, Any?>)?.get("components") as? MutableMap<String, Any?>
-        if (components != null) {
-            val cmd = components["minecraft:custom_model_data"]
-            if (cmd is Map<*, *>) {
-                val floats = cmd["floats"] as? List<*>
-                if (floats != null && floats.isNotEmpty()) {
-                    components["minecraft:custom_model_data"] = (floats[0] as Number).toInt()
-                } else {
-                    components.remove("minecraft:custom_model_data")
-                }
-            }
-        }
-    }
-
-    // 1.21.1 has no client-item-definition system (assets/<ns>/items/<id>.json); it resolves models straight
-    // from assets/<ns>/models/item/<id>.json. A plain "model" def becomes {"parent": <target>}; a
-    // custom_model_data range_dispatch becomes legacy integer "overrides" merged onto the base model.
-    @Suppress("UNCHECKED_CAST")
-    fun build1211ItemModel(def: Map<*, *>, existing: File): MutableMap<String, Any?>? {
-        val model = def["model"] as? Map<String, Any?> ?: return null
-        val overrides = mutableListOf<Map<String, Any?>>()
-        val baseRef: String? = when (model["type"]) {
-            "minecraft:range_dispatch" -> {
-                if (model["property"] != "minecraft:custom_model_data") return null
-                (model["entries"] as? List<*>)?.forEach { e ->
-                    val em = e as? Map<*, *> ?: return@forEach
-                    val th = (em["threshold"] as? Number)?.toInt() ?: return@forEach
-                    val mref = (em["model"] as? Map<*, *>)?.get("model") as? String ?: return@forEach
-                    overrides.add(linkedMapOf("predicate" to linkedMapOf("custom_model_data" to th), "model" to mref))
-                }
-                (model["fallback"] as? Map<*, *>)?.get("model") as? String
-            }
-            "minecraft:model" -> model["model"] as? String
-            else -> return null
-        }
-        return if (existing.exists()) {
-            // base model already exists on 1.21.1; only range_dispatch needs the extra overrides merged in
-            if (overrides.isEmpty()) null
-            else (JsonSlurper().parse(existing) as MutableMap<String, Any?>).also { it["overrides"] = overrides }
-        } else {
-            if (baseRef == null) return null
-            linkedMapOf<String, Any?>("parent" to baseRef).also { if (overrides.isNotEmpty()) it["overrides"] = overrides }
-        }
-    }
-
-    tasks.register("convertDataFor1211") {
-        group = "buildcraft"
-        description = "Rewrite modern recipe + item-model JSON into the 1.21.1 legacy format."
-        val srcResources = rootProject.file("src/main/resources")
-        val outDir = bc1211DataDir.get().asFile
-        inputs.dir(srcResources).withPropertyName("sharedResources")
-        outputs.dir(outDir).withPropertyName("converted1211Data")
-        doLast {
-            outDir.deleteRecursively()
-            var recipeCount = 0
-            fileTree(srcResources) { include("data/*/recipe/**/*.json") }.forEach { file ->
-                val json = JsonSlurper().parse(file)
-                convertRecipe(json)
-                val rel = file.relativeTo(srcResources).invariantSeparatorsPath
-                val target = outDir.resolve(rel)
-                target.parentFile.mkdirs()
-                target.writeText(JsonOutput.prettyPrint(JsonOutput.toJson(json)) + "\n")
-                recipeCount++
-            }
-            var modelCount = 0
-            fileTree(srcResources) { include("assets/*/items/**/*.json") }.forEach { file ->
-                val parts = file.relativeTo(srcResources).invariantSeparatorsPath.split("/") // assets/<ns>/items/<id...>.json
-                val ns = parts[1]
-                val id = parts.drop(3).joinToString("/").removeSuffix(".json")
-                val def = JsonSlurper().parse(file) as? Map<*, *> ?: return@forEach
-                val existing = srcResources.resolve("assets/$ns/models/item/$id.json")
-                val result = build1211ItemModel(def, existing) ?: return@forEach
-                val outFile = outDir.resolve("assets/$ns/models/item/$id.json")
-                outFile.parentFile.mkdirs()
-                outFile.writeText(JsonOutput.prettyPrint(JsonOutput.toJson(result)) + "\n")
-                modelCount++
-            }
-            logger.lifecycle("Converted $recipeCount recipe + $modelCount item-model JSON(s) to 1.21.1 format -> ${outDir.path}")
-        }
-    }
-
-    // Drop the modern copies the converter replaces, or processResources keeps them and the converted models
-    // lose their integer overrides (this is what once left paintbrush without any).
     val rangeDispatchModelExcludes = buildList {
         val assetsRoot = rootProject.file("src/main/resources/assets")
         (assetsRoot.listFiles() ?: emptyArray()).forEach { nsDir ->
@@ -401,21 +283,20 @@ if (sc.current.parsed < "1.21.2") {
             }
         }
     }
-    sourceSets.named("main") {
-        resources {
-            exclude("data/*/recipe/**")
-            rangeDispatchModelExcludes.forEach { exclude(it) }
+    val excludedModelPaths = rangeDispatchModelExcludes.toSet()
+    afterEvaluate {
+        val datagenRoot = datagenDir.get().asFile.path.replace('\\', '/')
+        tasks.named<Jar>("jar") {
+            eachFile {
+                if (path.replace('\\', '/') in excludedModelPaths && !file.path.replace('\\', '/').startsWith(datagenRoot)) {
+                    exclude()
+                }
+            }
         }
     }
 }
 
 tasks.processResources {
-    // Added last so the converted 1.21.1 dir wins duplicates against the modern copies.
-    if (sc.current.parsed < "1.21.2") {
-        dependsOn("convertDataFor1211")
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-        from(bc1211DataDir)
-    }
     // Generators are deliberately NOT in the build graph: a clean build only packages the committed output and
     // never mutates shared source. Refresh it explicitly with `:26.3:generateAssets`.
     val mixinCompatLevel = if (javaRelease >= 25) "JAVA_25" else "JAVA_21"
