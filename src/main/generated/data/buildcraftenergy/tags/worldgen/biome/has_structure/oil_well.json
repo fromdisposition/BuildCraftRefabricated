@@ -6,6 +6,10 @@
     "minecraft:birch_forest",
     "minecraft:cherry_grove",
     "minecraft:cold_ocean",
+    {
+      "id": "minecraft:dappled_forest",
+      "required": false
+    },
     "minecraft:dark_forest",
     "minecraft:deep_cold_ocean",
     "minecraft:deep_dark",

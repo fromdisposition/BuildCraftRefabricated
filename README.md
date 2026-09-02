@@ -67,10 +67,10 @@ cd BuildCraftRefabricated
 That builds every Minecraft line at once (on Windows use `.\gradlew.bat`). Building a single line is faster:
 
 ```sh
-./gradlew :26.2:build
+./gradlew :26.3:build
 ```
 
-Stonecutter drives one node per line (`1.21.1`, `1.21.10`, `1.21.11`, `26.1`, `26.2`). Each jar lands in `versions/<line>/build/libs/` as `BCRefabricated-<yy.M.d>+mc<version>.jar`, versioned by build date.
+Stonecutter drives one node per line (`1.21.1`, `1.21.10`, `1.21.11`, `26.1`, `26.2`, `26.3`). Each jar lands in `versions/<line>/build/libs/` as `BCRefabricated-<yy.M.d>+mc<version>.jar`, versioned by build date.
 
 ## Credits
 

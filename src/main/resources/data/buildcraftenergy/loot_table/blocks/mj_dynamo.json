@@ -1,5 +1,12 @@
 {
-  "fabric:load_conditions": [{ "condition": "fabric:all_mods_loaded", "values": ["team_reborn_energy"] }],
+  "fabric:load_conditions": [
+    {
+      "condition": "fabric:all_mods_loaded",
+      "values": [
+        "team_reborn_energy"
+      ]
+    }
+  ],
   "type": "minecraft:block",
   "pools": [
     {
@@ -10,11 +17,9 @@
           "name": "buildcraftenergy:mj_dynamo"
         }
       ],
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
-        }
-      ]
+      "condition": {
+        "type": "minecraft:survives_explosion"
+      }
     }
   ]
 }

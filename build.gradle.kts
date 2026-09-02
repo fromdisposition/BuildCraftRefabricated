@@ -27,7 +27,7 @@ val javaRelease = if (sc.current.parsed >= "26.1") 25 else 21
 val javaVer = if (javaRelease >= 25) JavaVersion.VERSION_25 else JavaVersion.VERSION_21
 
 // Generators mutate shared src/main; they run on ONE node and the output is committed for all the others.
-val isGeneratorNode = project.name == "26.2"
+val isGeneratorNode = project.name == "26.3"
 
 val buildDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yy.M.d"))
 version = "$buildDate+mc$mcVersion"
@@ -402,70 +402,74 @@ if (sc.current.parsed < "1.21.2") {
 }
 
 // ===========================================================================
-// 26.3 DATA FORWARD-PORT (build-time converter)
+// PRE-26.3 DATA BACKPORT (build-time converter)
 //
-// Advancement/loot schema tightened in 26.3-pre-1 (condition discriminator "type", single "condition"/
-// "player", recipe_crafted "recipes"); data stays authored in the 26.2 format and is rewritten into a
-// generated dir that overrides it on the 26.3 node only. fabric:load_conditions subtrees are skipped.
+// Advancements/loot are authored once in the 26.3 registry format (condition discriminator "type", single
+// "condition"/"player", recipe_crafted "recipes"); this rewrites them into the pre-26.3 shapes for the
+// older nodes only. fabric:load_conditions subtrees keep Fabric's own schema and are skipped.
 // ===========================================================================
-val bc263DataDir = layout.buildDirectory.dir("generated/bc263-data")
-if (sc.current.parsed >= "26.3-pre-1") {
+val bcPre263DataDir = layout.buildDirectory.dir("generated/bc-pre263-data")
+if (sc.current.parsed < "26.3-pre-1") {
     @Suppress("UNCHECKED_CAST")
-    fun convertLootConditions(node: Any?) {
+    fun backportCondition(node: Any?) {
+        val map = node as? MutableMap<String, Any?> ?: return
+        val type = map.remove("type")
+        if (type is String) {
+            map["condition"] = type
+        }
+        (map["terms"] as? List<*>)?.forEach { backportCondition(it) }
+        backportCondition(map["term"])
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun backportLoot(node: Any?) {
         when (node) {
             is MutableMap<*, *> -> {
                 val map = node as MutableMap<String, Any?>
-                val discriminator = map["condition"]
-                if (discriminator is String) {
+                val single = map["condition"]
+                if (single is Map<*, *>) {
                     map.remove("condition")
-                    map["type"] = discriminator
-                }
-                val list = map["conditions"]
-                if (list is List<*>) {
-                    map.remove("conditions")
-                    map["condition"] = if (list.size == 1) list[0]
-                    else linkedMapOf("type" to "minecraft:all_of", "terms" to list)
+                    backportCondition(single)
+                    map["conditions"] = listOf(single)
                 }
                 map.forEach { (key, value) ->
                     if (key != "fabric:load_conditions") {
-                        convertLootConditions(value)
+                        backportLoot(value)
                     }
                 }
             }
-            is List<*> -> node.forEach { convertLootConditions(it) }
+            is List<*> -> node.forEach { backportLoot(it) }
             else -> {}
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun convertAdvancement(json: Any?) {
+    fun backportAdvancement(json: Any?) {
         val map = json as? MutableMap<String, Any?> ?: return
         val criteria = map["criteria"] as? MutableMap<String, Any?> ?: return
         for (c in criteria.values) {
             val crit = c as? MutableMap<String, Any?> ?: continue
             val conditions = crit["conditions"] as? MutableMap<String, Any?> ?: continue
-            if (crit["trigger"] == "minecraft:recipe_crafted") {
-                val id = conditions.remove("recipe_id")
-                if (id != null) {
-                    conditions["recipes"] = listOf(id)
-                }
+            val recipes = conditions.remove("recipes")
+            if (recipes is List<*> && recipes.size == 1) {
+                conditions["recipe_id"] = recipes[0]
             }
             val player = conditions["player"]
-            if (player is List<*>) {
-                conditions["player"] = if (player.size == 1) player[0]
-                else linkedMapOf("type" to "minecraft:all_of", "terms" to player)
+            if (player is Map<*, *>) {
+                backportCondition(player)
+                conditions["player"] = listOf(player)
             }
         }
-        convertLootConditions(map["criteria"])
+        backportLoot(map["criteria"])
     }
 
-    tasks.register("convertDataFor263") {
+    tasks.register("convertDataPre263") {
         group = "buildcraft"
-        description = "Rewrite advancement + loot table JSON into the 26.3 registry format."
+        description = "Rewrite advancement + loot table JSON into the pre-26.3 registry format."
         val srcRoots = listOf(rootProject.file("src/main/resources"), rootProject.file("src/main/generated"))
-        val outDir = bc263DataDir.get().asFile
+        val outDir = bcPre263DataDir.get().asFile
         srcRoots.forEachIndexed { i, root -> inputs.dir(root).withPropertyName("dataSource$i") }
-        outputs.dir(outDir).withPropertyName("converted263Data")
+        outputs.dir(outDir).withPropertyName("convertedPre263Data")
         doLast {
             outDir.deleteRecursively()
             var advancements = 0
@@ -475,10 +479,10 @@ if (sc.current.parsed >= "26.3-pre-1") {
                     val rel = file.relativeTo(root).invariantSeparatorsPath
                     val json = JsonSlurper().parse(file)
                     if (rel.contains("/advancement/")) {
-                        convertAdvancement(json)
+                        backportAdvancement(json)
                         advancements++
                     } else {
-                        convertLootConditions(json)
+                        backportLoot(json)
                         lootTables++
                     }
                     val target = outDir.resolve(rel)
@@ -486,7 +490,7 @@ if (sc.current.parsed >= "26.3-pre-1") {
                     target.writeText(JsonOutput.prettyPrint(JsonOutput.toJson(json)) + "\n")
                 }
             }
-            logger.lifecycle("Converted $advancements advancement + $lootTables loot table JSON(s) to 26.3 format -> ${outDir.path}")
+            logger.lifecycle("Converted $advancements advancement + $lootTables loot table JSON(s) to the pre-26.3 format -> ${outDir.path}")
         }
     }
 
@@ -504,13 +508,13 @@ tasks.processResources {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         from(bc1211DataDir)
     }
-    if (sc.current.parsed >= "26.3-pre-1") {
-        dependsOn("convertDataFor263")
+    if (sc.current.parsed < "26.3-pre-1") {
+        dependsOn("convertDataPre263")
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-        from(bc263DataDir)
+        from(bcPre263DataDir)
     }
     // Generators are deliberately NOT in the build graph: a clean build only packages the committed output and
-    // never mutates shared source. Refresh it explicitly with `:26.2:generateAssets`.
+    // never mutates shared source. Refresh it explicitly with `:26.3:generateAssets`.
     val mixinCompatLevel = if (javaRelease >= 25) "JAVA_25" else "JAVA_21"
     val props = mapOf(
         "mod_version" to version,
@@ -876,7 +880,7 @@ if (isGeneratorNode) {
 
     tasks.register("generateAssets") {
         group = "buildcraft"
-        description = "Run all asset generators (fluid bucket baking + data generation). 26.2 only."
+        description = "Run all asset generators (fluid bucket baking + data generation). 26.3 only."
         dependsOn("generateFluidBucketAssets", "runDatagen")
     }
 }
