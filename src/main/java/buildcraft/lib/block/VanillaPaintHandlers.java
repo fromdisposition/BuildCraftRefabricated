@@ -8,9 +8,12 @@ package buildcraft.lib.block;
 
 import buildcraft.api.blocks.CustomPaintHelper;
 import buildcraft.api.blocks.ICustomPaintHandler;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import java.util.IdentityHashMap;
 import java.util.Map;
+import java.util.Objects;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.BedBlock;
@@ -21,223 +24,26 @@ import net.minecraft.world.level.block.state.properties.Property;
 
 public class VanillaPaintHandlers {
    public static void init() {
-      //? if >= 26.2 {
-      registerColorFamily(Blocks.GLASS, Blocks.STAINED_GLASS.asList().toArray(new Block[0]));
-      registerColorFamily(Blocks.GLASS_PANE, Blocks.STAINED_GLASS_PANE.asList().toArray(new Block[0]));
-      registerColorFamily(Blocks.TERRACOTTA, Blocks.DYED_TERRACOTTA.asList().toArray(new Block[0]));
-      registerColorOnlyFamily(Blocks.WOOL.asList().toArray(new Block[0]));
-      registerColorOnlyFamily(Blocks.CARPET.asList().toArray(new Block[0]));
-      registerColorOnlyFamily(Blocks.CONCRETE.asList().toArray(new Block[0]));
-      registerColorOnlyFamily(Blocks.CONCRETE_POWDER.asList().toArray(new Block[0]));
-      registerColorFamily(Blocks.SHULKER_BOX, Blocks.DYED_SHULKER_BOX.asList().toArray(new Block[0]));
-      registerColorOnlyFamily(Blocks.GLAZED_TERRACOTTA.asList().toArray(new Block[0]));
-      registerColorFamily(Blocks.CANDLE, Blocks.DYED_CANDLE.asList().toArray(new Block[0]));
-      registerBedFamily(Blocks.BED.asList().toArray(new Block[0]));
-      //?} else {
-      /*registerColorFamily(
-         Blocks.GLASS,
-         Blocks.WHITE_STAINED_GLASS,
-         Blocks.ORANGE_STAINED_GLASS,
-         Blocks.MAGENTA_STAINED_GLASS,
-         Blocks.LIGHT_BLUE_STAINED_GLASS,
-         Blocks.YELLOW_STAINED_GLASS,
-         Blocks.LIME_STAINED_GLASS,
-         Blocks.PINK_STAINED_GLASS,
-         Blocks.GRAY_STAINED_GLASS,
-         Blocks.LIGHT_GRAY_STAINED_GLASS,
-         Blocks.CYAN_STAINED_GLASS,
-         Blocks.PURPLE_STAINED_GLASS,
-         Blocks.BLUE_STAINED_GLASS,
-         Blocks.BROWN_STAINED_GLASS,
-         Blocks.GREEN_STAINED_GLASS,
-         Blocks.RED_STAINED_GLASS,
-         Blocks.BLACK_STAINED_GLASS
-      );
-      registerColorFamily(
-         Blocks.GLASS_PANE,
-         Blocks.WHITE_STAINED_GLASS_PANE,
-         Blocks.ORANGE_STAINED_GLASS_PANE,
-         Blocks.MAGENTA_STAINED_GLASS_PANE,
-         Blocks.LIGHT_BLUE_STAINED_GLASS_PANE,
-         Blocks.YELLOW_STAINED_GLASS_PANE,
-         Blocks.LIME_STAINED_GLASS_PANE,
-         Blocks.PINK_STAINED_GLASS_PANE,
-         Blocks.GRAY_STAINED_GLASS_PANE,
-         Blocks.LIGHT_GRAY_STAINED_GLASS_PANE,
-         Blocks.CYAN_STAINED_GLASS_PANE,
-         Blocks.PURPLE_STAINED_GLASS_PANE,
-         Blocks.BLUE_STAINED_GLASS_PANE,
-         Blocks.BROWN_STAINED_GLASS_PANE,
-         Blocks.GREEN_STAINED_GLASS_PANE,
-         Blocks.RED_STAINED_GLASS_PANE,
-         Blocks.BLACK_STAINED_GLASS_PANE
-      );
-      registerColorFamily(
-         Blocks.TERRACOTTA,
-         Blocks.WHITE_TERRACOTTA,
-         Blocks.ORANGE_TERRACOTTA,
-         Blocks.MAGENTA_TERRACOTTA,
-         Blocks.LIGHT_BLUE_TERRACOTTA,
-         Blocks.YELLOW_TERRACOTTA,
-         Blocks.LIME_TERRACOTTA,
-         Blocks.PINK_TERRACOTTA,
-         Blocks.GRAY_TERRACOTTA,
-         Blocks.LIGHT_GRAY_TERRACOTTA,
-         Blocks.CYAN_TERRACOTTA,
-         Blocks.PURPLE_TERRACOTTA,
-         Blocks.BLUE_TERRACOTTA,
-         Blocks.BROWN_TERRACOTTA,
-         Blocks.GREEN_TERRACOTTA,
-         Blocks.RED_TERRACOTTA,
-         Blocks.BLACK_TERRACOTTA
-      );
-      registerColorOnlyFamily(
-         Blocks.WHITE_WOOL,
-         Blocks.ORANGE_WOOL,
-         Blocks.MAGENTA_WOOL,
-         Blocks.LIGHT_BLUE_WOOL,
-         Blocks.YELLOW_WOOL,
-         Blocks.LIME_WOOL,
-         Blocks.PINK_WOOL,
-         Blocks.GRAY_WOOL,
-         Blocks.LIGHT_GRAY_WOOL,
-         Blocks.CYAN_WOOL,
-         Blocks.PURPLE_WOOL,
-         Blocks.BLUE_WOOL,
-         Blocks.BROWN_WOOL,
-         Blocks.GREEN_WOOL,
-         Blocks.RED_WOOL,
-         Blocks.BLACK_WOOL
-      );
-      registerColorOnlyFamily(
-         Blocks.WHITE_CARPET,
-         Blocks.ORANGE_CARPET,
-         Blocks.MAGENTA_CARPET,
-         Blocks.LIGHT_BLUE_CARPET,
-         Blocks.YELLOW_CARPET,
-         Blocks.LIME_CARPET,
-         Blocks.PINK_CARPET,
-         Blocks.GRAY_CARPET,
-         Blocks.LIGHT_GRAY_CARPET,
-         Blocks.CYAN_CARPET,
-         Blocks.PURPLE_CARPET,
-         Blocks.BLUE_CARPET,
-         Blocks.BROWN_CARPET,
-         Blocks.GREEN_CARPET,
-         Blocks.RED_CARPET,
-         Blocks.BLACK_CARPET
-      );
-      registerColorOnlyFamily(
-         Blocks.WHITE_CONCRETE,
-         Blocks.ORANGE_CONCRETE,
-         Blocks.MAGENTA_CONCRETE,
-         Blocks.LIGHT_BLUE_CONCRETE,
-         Blocks.YELLOW_CONCRETE,
-         Blocks.LIME_CONCRETE,
-         Blocks.PINK_CONCRETE,
-         Blocks.GRAY_CONCRETE,
-         Blocks.LIGHT_GRAY_CONCRETE,
-         Blocks.CYAN_CONCRETE,
-         Blocks.PURPLE_CONCRETE,
-         Blocks.BLUE_CONCRETE,
-         Blocks.BROWN_CONCRETE,
-         Blocks.GREEN_CONCRETE,
-         Blocks.RED_CONCRETE,
-         Blocks.BLACK_CONCRETE
-      );
-      registerColorOnlyFamily(
-         Blocks.WHITE_CONCRETE_POWDER,
-         Blocks.ORANGE_CONCRETE_POWDER,
-         Blocks.MAGENTA_CONCRETE_POWDER,
-         Blocks.LIGHT_BLUE_CONCRETE_POWDER,
-         Blocks.YELLOW_CONCRETE_POWDER,
-         Blocks.LIME_CONCRETE_POWDER,
-         Blocks.PINK_CONCRETE_POWDER,
-         Blocks.GRAY_CONCRETE_POWDER,
-         Blocks.LIGHT_GRAY_CONCRETE_POWDER,
-         Blocks.CYAN_CONCRETE_POWDER,
-         Blocks.PURPLE_CONCRETE_POWDER,
-         Blocks.BLUE_CONCRETE_POWDER,
-         Blocks.BROWN_CONCRETE_POWDER,
-         Blocks.GREEN_CONCRETE_POWDER,
-         Blocks.RED_CONCRETE_POWDER,
-         Blocks.BLACK_CONCRETE_POWDER
-      );
-      registerColorFamily(
-         Blocks.SHULKER_BOX,
-         Blocks.WHITE_SHULKER_BOX,
-         Blocks.ORANGE_SHULKER_BOX,
-         Blocks.MAGENTA_SHULKER_BOX,
-         Blocks.LIGHT_BLUE_SHULKER_BOX,
-         Blocks.YELLOW_SHULKER_BOX,
-         Blocks.LIME_SHULKER_BOX,
-         Blocks.PINK_SHULKER_BOX,
-         Blocks.GRAY_SHULKER_BOX,
-         Blocks.LIGHT_GRAY_SHULKER_BOX,
-         Blocks.CYAN_SHULKER_BOX,
-         Blocks.PURPLE_SHULKER_BOX,
-         Blocks.BLUE_SHULKER_BOX,
-         Blocks.BROWN_SHULKER_BOX,
-         Blocks.GREEN_SHULKER_BOX,
-         Blocks.RED_SHULKER_BOX,
-         Blocks.BLACK_SHULKER_BOX
-      );
-      registerColorOnlyFamily(
-         Blocks.WHITE_GLAZED_TERRACOTTA,
-         Blocks.ORANGE_GLAZED_TERRACOTTA,
-         Blocks.MAGENTA_GLAZED_TERRACOTTA,
-         Blocks.LIGHT_BLUE_GLAZED_TERRACOTTA,
-         Blocks.YELLOW_GLAZED_TERRACOTTA,
-         Blocks.LIME_GLAZED_TERRACOTTA,
-         Blocks.PINK_GLAZED_TERRACOTTA,
-         Blocks.GRAY_GLAZED_TERRACOTTA,
-         Blocks.LIGHT_GRAY_GLAZED_TERRACOTTA,
-         Blocks.CYAN_GLAZED_TERRACOTTA,
-         Blocks.PURPLE_GLAZED_TERRACOTTA,
-         Blocks.BLUE_GLAZED_TERRACOTTA,
-         Blocks.BROWN_GLAZED_TERRACOTTA,
-         Blocks.GREEN_GLAZED_TERRACOTTA,
-         Blocks.RED_GLAZED_TERRACOTTA,
-         Blocks.BLACK_GLAZED_TERRACOTTA
-      );
-      registerColorFamily(
-         Blocks.CANDLE,
-         Blocks.WHITE_CANDLE,
-         Blocks.ORANGE_CANDLE,
-         Blocks.MAGENTA_CANDLE,
-         Blocks.LIGHT_BLUE_CANDLE,
-         Blocks.YELLOW_CANDLE,
-         Blocks.LIME_CANDLE,
-         Blocks.PINK_CANDLE,
-         Blocks.GRAY_CANDLE,
-         Blocks.LIGHT_GRAY_CANDLE,
-         Blocks.CYAN_CANDLE,
-         Blocks.PURPLE_CANDLE,
-         Blocks.BLUE_CANDLE,
-         Blocks.BROWN_CANDLE,
-         Blocks.GREEN_CANDLE,
-         Blocks.RED_CANDLE,
-         Blocks.BLACK_CANDLE
-      );
-      registerBedFamily(
-         Blocks.WHITE_BED,
-         Blocks.ORANGE_BED,
-         Blocks.MAGENTA_BED,
-         Blocks.LIGHT_BLUE_BED,
-         Blocks.YELLOW_BED,
-         Blocks.LIME_BED,
-         Blocks.PINK_BED,
-         Blocks.GRAY_BED,
-         Blocks.LIGHT_GRAY_BED,
-         Blocks.CYAN_BED,
-         Blocks.PURPLE_BED,
-         Blocks.BLUE_BED,
-         Blocks.BROWN_BED,
-         Blocks.GREEN_BED,
-         Blocks.RED_BED,
-         Blocks.BLACK_BED
-      );
-      *///?}
+      registerColorFamily(Blocks.GLASS, dyed("stained_glass"));
+      registerColorFamily(Blocks.GLASS_PANE, dyed("stained_glass_pane"));
+      registerColorFamily(Blocks.TERRACOTTA, dyed("terracotta"));
+      registerColorOnlyFamily(dyed("wool"));
+      registerColorOnlyFamily(dyed("carpet"));
+      registerColorOnlyFamily(dyed("concrete"));
+      registerColorOnlyFamily(dyed("concrete_powder"));
+      registerColorFamily(Blocks.SHULKER_BOX, dyed("shulker_box"));
+      registerColorOnlyFamily(dyed("glazed_terracotta"));
+      registerColorFamily(Blocks.CANDLE, dyed("candle"));
+      registerBedFamily(dyed("bed"));
+   }
+
+   private static Block[] dyed(String suffix) {
+      Block[] blocks = new Block[16];
+      for (DyeColor color : DyeColor.values()) {
+         blocks[color.ordinal()] = Objects.requireNonNull(BcRegistryUtil.getBlock(Identifier.withDefaultNamespace(color.getName() + "_" + suffix)), suffix);
+      }
+
+      return blocks;
    }
 
    private static void registerColorFamily(Block clearBlock, Block... coloredBlocks) {
