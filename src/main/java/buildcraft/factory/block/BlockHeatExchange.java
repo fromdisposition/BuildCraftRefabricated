@@ -6,7 +6,7 @@
 
 package buildcraft.factory.block;
 
-import buildcraft.lib.compat.BcInteract;
+import buildcraft.lib.block.BcTileBlock;
 
 
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
@@ -14,7 +14,6 @@ import buildcraft.api.blocks.ICustomRotationHandler;
 import buildcraft.lib.misc.EntityUtil;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileHeatExchange;
-import com.mojang.serialization.MapCodec;
 import java.util.Locale;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -32,9 +31,7 @@ import net.minecraft.world.level.LevelReader;
 //? if >= 1.21.10 {
 import net.minecraft.world.level.ScheduledTickAccess;
 //?}
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -51,10 +48,7 @@ import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotationHandler {
-   //? if < 26.3-pre-1 {
-   /*public static final MapCodec<BlockHeatExchange> CODEC = simpleCodec(BlockHeatExchange::new);
-   *///?}
+public class BlockHeatExchange extends BcTileBlock implements ICustomRotationHandler {
    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
    public static final EnumProperty<BlockHeatExchange.EnumExchangePart> PART = EnumProperty.create("part", BlockHeatExchange.EnumExchangePart.class);
    public static final BooleanProperty CONNECTED_LEFT = BooleanProperty.create("connected_left");
@@ -69,12 +63,6 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
             .setValue(CONNECTED_RIGHT, false)
       );
    }
-
-   //? if < 26.3-pre-1 {
-   /*protected MapCodec<? extends BaseEntityBlock> codec() {
-      return CODEC;
-   }
-   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING, PART, CONNECTED_LEFT, CONNECTED_RIGHT});
@@ -164,16 +152,6 @@ public class BlockHeatExchange extends BaseEntityBlock implements ICustomRotatio
       return level.isClientSide()
          ? createTickerHelper(type, BCFactoryBlockEntities.HEAT_EXCHANGE, (lvl, pos, st, tile) -> tile.clientTick())
          : createTickerHelper(type, BCFactoryBlockEntities.HEAT_EXCHANGE, (lvl, pos, st, tile) -> tile.serverTick());
-   }
-
-   protected RenderShape getRenderShape(BlockState state) {
-      return RenderShape.MODEL;
-   }
-
-   protected InteractionResult useItemOn(
-      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
-   ) {
-      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
    }
 
    protected InteractionResult bcUseItemOn(

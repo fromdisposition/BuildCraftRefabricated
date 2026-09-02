@@ -6,6 +6,7 @@
 
 package buildcraft.factory.block;
 
+import buildcraft.lib.block.BcTileBlock;
 import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeHolder;
@@ -13,25 +14,20 @@ import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileChute;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.transport.pipe.flow.PipeFlowItems;
-import com.mojang.serialization.MapCodec;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 //? if >= 1.21.10 {
 import net.minecraft.world.level.ScheduledTickAccess;
 //?}
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -44,10 +40,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockChute extends BaseEntityBlock {
-   //? if < 26.3-pre-1 {
-   /*public static final MapCodec<BlockChute> CODEC = simpleCodec(BlockChute::new);
-   *///?}
+public class BlockChute extends BcTileBlock {
    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
    public static final Map<Direction, Property<Boolean>> CONNECTED_MAP = BuildCraftProperties.CONNECTED_MAP;
 
@@ -61,12 +54,6 @@ public class BlockChute extends BaseEntityBlock {
 
       this.registerDefaultState(defaultState);
    }
-
-   //? if < 26.3-pre-1 {
-   /*protected MapCodec<? extends BaseEntityBlock> codec() {
-      return CODEC;
-   }
-   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(FACING);
@@ -126,16 +113,6 @@ public class BlockChute extends BaseEntityBlock {
       }
    }
 
-   //? if < 1.21.10 {
-   /*@Override
-   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileChute tile) {
-         tile.preRemoveSideEffects(pos, state);
-      }
-      super.onRemove(state, level, pos, newState, movedByPiston);
-   }
-   *///?}
-
    @Nullable
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileChute(pos, state);
@@ -146,25 +123,7 @@ public class BlockChute extends BaseEntityBlock {
       return level.isClientSide() ? null : createTickerHelper(type, BCFactoryBlockEntities.CHUTE, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
-   protected RenderShape getRenderShape(BlockState state) {
-      return RenderShape.MODEL;
-   }
-
-   public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-      super.setPlacedBy(level, pos, state, placer, stack);
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileChute chute) {
-         chute.onPlacedBy(placer, stack);
-      }
-   }
-
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-      if (!level.isClientSide()) {
-         BlockEntity be = level.getBlockEntity(pos);
-         if (be instanceof TileChute) {
-            player.openMenu((TileChute)be);
-         }
-      }
-
-      return InteractionResult.SUCCESS;
+      return this.openMenu(level, pos, player);
    }
 }

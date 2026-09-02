@@ -6,19 +6,13 @@
 
 package buildcraft.factory.block;
 
+import buildcraft.lib.block.BcTileBlock;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileAutoWorkbenchItems;
-import buildcraft.lib.misc.BlockDropsUtil;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -27,20 +21,10 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockAutoWorkbenchItems extends BaseEntityBlock {
-   //? if < 26.3-pre-1 {
-   /*public static final MapCodec<BlockAutoWorkbenchItems> CODEC = simpleCodec(BlockAutoWorkbenchItems::new);
-   *///?}
-
+public class BlockAutoWorkbenchItems extends BcTileBlock {
    public BlockAutoWorkbenchItems(Properties properties) {
       super(properties);
    }
-
-   //? if < 26.3-pre-1 {
-   /*protected MapCodec<? extends BaseEntityBlock> codec() {
-      return CODEC;
-   }
-   *///?}
 
    @Nullable
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -52,36 +36,8 @@ public class BlockAutoWorkbenchItems extends BaseEntityBlock {
       return level.isClientSide() ? null : createTickerHelper(type, BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
-   public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-      super.setPlacedBy(level, pos, state, placer, stack);
-      if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileAutoWorkbenchItems workbench) {
-         workbench.onPlacedBy(placer, stack);
-      }
-   }
-
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-      if (level.isClientSide()) {
-         return InteractionResult.SUCCESS;
-      }
-
-      if (level.getBlockEntity(pos) instanceof TileAutoWorkbenchItems workbench && player instanceof ServerPlayer serverPlayer) {
-         serverPlayer.openMenu(workbench);
-      }
-
-      return InteractionResult.SUCCESS;
+      return this.openMenu(level, pos, player);
    }
 
-   protected RenderShape getRenderShape(BlockState state) {
-      return RenderShape.MODEL;
-   }
-
-   //? if < 1.21.10 {
-   /*@Override
-   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileAutoWorkbenchItems tile) {
-         tile.preRemoveSideEffects(pos, state);
-      }
-      super.onRemove(state, level, pos, newState, movedByPiston);
-   }
-   *///?}
 }

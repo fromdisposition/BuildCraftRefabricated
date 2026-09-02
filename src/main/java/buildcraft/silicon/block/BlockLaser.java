@@ -6,9 +6,9 @@
 
 package buildcraft.silicon.block;
 
+import buildcraft.lib.block.BcTileBlock;
 import buildcraft.silicon.BCSiliconBlockEntities;
 import buildcraft.silicon.tile.TileLaser;
-import com.mojang.serialization.MapCodec;
 import java.util.EnumMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
@@ -16,9 +16,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -33,10 +31,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockLaser extends BaseEntityBlock {
-   //? if < 26.3-pre-1 {
-   /*public static final MapCodec<BlockLaser> CODEC = simpleCodec(BlockLaser::new);
-   *///?}
+public class BlockLaser extends BcTileBlock {
    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
    // Hitbox matching the model: the full 16x4 base plate on the mounting (-FACING) face plus a centred 6x6, 9-deep
    // emitter extending toward FACING -- so you can click and walk between closely-packed lasers, not a full cube.
@@ -56,12 +51,6 @@ public class BlockLaser extends BaseEntityBlock {
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.UP));
    }
 
-   //? if < 26.3-pre-1 {
-   /*protected MapCodec<? extends BaseEntityBlock> codec() {
-      return CODEC;
-   }
-   *///?}
-
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});
    }
@@ -80,10 +69,6 @@ public class BlockLaser extends BaseEntityBlock {
       return level.isClientSide()
          ? createTickerHelper(type, BCSiliconBlockEntities.LASER, (lvl, pos, st, tile) -> tile.clientTick())
          : createTickerHelper(type, BCSiliconBlockEntities.LASER, (lvl, pos, st, tile) -> tile.serverTick());
-   }
-
-   protected RenderShape getRenderShape(BlockState state) {
-      return RenderShape.MODEL;
    }
 
    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {

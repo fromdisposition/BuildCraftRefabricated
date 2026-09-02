@@ -6,7 +6,6 @@
 
 package buildcraft.energy.blocks;
 
-import buildcraft.lib.compat.BcInteract;
 
 import buildcraft.lib.misc.EntityUtil;
 import buildcraft.api.transport.pipe.IItemPipe;
@@ -14,7 +13,6 @@ import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.energy.tile.TileEngineRF;
 import buildcraft.lib.engine.BlockEngineBase_BC8;
 import buildcraft.lib.engine.TileEngineBase_BC8;
-import buildcraft.lib.misc.BlockDropsUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -38,13 +36,6 @@ public class BlockEngineFE extends BlockEngineBase_BC8 {
    @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileEngineRF(pos, state);
-   }
-
-   @Override
-   protected InteractionResult useItemOn(
-      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
-   ) {
-      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
    }
 
    protected InteractionResult bcUseItemOn(

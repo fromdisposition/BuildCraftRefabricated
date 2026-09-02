@@ -6,7 +6,7 @@
 
 package buildcraft.energy.blocks;
 
-import buildcraft.lib.compat.BcInteract;
+import buildcraft.lib.block.BcTileBlock;
 
 import buildcraft.api.blocks.ICustomRotationHandler;
 import buildcraft.api.properties.BuildCraftProperties;
@@ -15,7 +15,6 @@ import buildcraft.api.transport.pipe.IItemPipe;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.energy.tile.TileDynamoMJ;
 import buildcraft.lib.engine.TileEngineBase_BC8;
-import buildcraft.lib.misc.BlockDropsUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvents;
@@ -29,8 +28,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -46,7 +43,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockDynamoMJ extends Block implements EntityBlock, ICustomRotationHandler {
+public class BlockDynamoMJ extends BcTileBlock implements ICustomRotationHandler {
    public BlockDynamoMJ(Properties properties) {
       super(properties.noOcclusion());
       this.registerDefaultState(this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, Direction.UP));
@@ -81,10 +78,6 @@ public class BlockDynamoMJ extends Block implements EntityBlock, ICustomRotation
 
    public boolean useShapeForLightOcclusion(BlockState state) {
       return true;
-   }
-
-   protected RenderShape getRenderShape(BlockState state) {
-      return RenderShape.MODEL;
    }
 
    @Nullable
@@ -122,12 +115,6 @@ public class BlockDynamoMJ extends Block implements EntityBlock, ICustomRotation
       } else {
          return InteractionResult.FAIL;
       }
-   }
-
-   protected InteractionResult useItemOn(
-      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
-   ) {
-      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
    }
 
    protected InteractionResult bcUseItemOn(

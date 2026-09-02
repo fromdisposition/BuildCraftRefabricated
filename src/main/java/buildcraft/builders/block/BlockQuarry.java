@@ -6,54 +6,29 @@
 
 package buildcraft.builders.block;
 
+import buildcraft.lib.block.BcHorizontalTileBlock;
 import buildcraft.builders.BCBuildersBlockEntities;
 import buildcraft.builders.BCBuildersBlocks;
 import buildcraft.builders.tile.TileQuarry;
 import buildcraft.lib.misc.AdvancementUtil;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
-import net.minecraft.world.level.block.state.StateDefinition.Builder;
-import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockQuarry extends HorizontalDirectionalBlock implements EntityBlock {
-   //? if < 26.3-pre-1 {
-   /*public static final MapCodec<BlockQuarry> CODEC = simpleCodec(BlockQuarry::new);
-   *///?}
+public class BlockQuarry extends BcHorizontalTileBlock {
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftbuilders:shaping_the_world");
 
    public BlockQuarry(Properties properties) {
       super(properties);
-      this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-   }
-
-   //? if < 26.3-pre-1 {
-   /*protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
-      return CODEC;
-   }
-   *///?}
-
-   protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
-      builder.add(new Property[]{FACING});
-   }
-
-   public BlockState getStateForPlacement(BlockPlaceContext context) {
-      return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
    @Nullable
@@ -72,10 +47,6 @@ public class BlockQuarry extends HorizontalDirectionalBlock implements EntityBlo
 
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
-      if (level.getBlockEntity(pos) instanceof TileQuarry quarry) {
-         quarry.onPlacedBy(placer, stack);
-      }
-
       if (!level.isClientSide() && placer instanceof Player player) {
          AdvancementUtil.unlockAdvancement(player, ADVANCEMENT);
       }

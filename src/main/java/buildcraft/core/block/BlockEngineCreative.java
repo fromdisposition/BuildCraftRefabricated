@@ -6,7 +6,6 @@
 
 package buildcraft.core.block;
 
-import buildcraft.lib.compat.BcInteract;
 
 import buildcraft.lib.misc.EntityUtil;
 import buildcraft.core.tile.TileEngineCreative;
@@ -35,13 +34,6 @@ public class BlockEngineCreative extends BlockEngineBase_BC8 {
    @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileEngineCreative(pos, state);
-   }
-
-   @Override
-   protected InteractionResult useItemOn(
-      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
-   ) {
-      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
    }
 
    protected InteractionResult bcUseItemOn(

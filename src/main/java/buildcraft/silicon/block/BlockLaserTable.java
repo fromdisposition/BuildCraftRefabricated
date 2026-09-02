@@ -6,13 +6,13 @@
 
 package buildcraft.silicon.block;
 
+import buildcraft.lib.block.BcTileBlock;
 import buildcraft.api.mj.ILaserTargetBlock;
 import buildcraft.silicon.tile.TileLaserTableBase;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -24,7 +24,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -35,7 +34,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class BlockLaserTable extends Block implements ILaserTargetBlock, EntityBlock {
+public class BlockLaserTable extends BcTileBlock implements ILaserTargetBlock {
    private static final VoxelShape SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 9.0, 16.0);
    private final Supplier<? extends BlockEntityType<? extends TileLaserTableBase>> beTypeSupplier;
    private final BlockLaserTable.ServerMenuFactory menuFactory;
@@ -98,21 +97,10 @@ public class BlockLaserTable extends Block implements ILaserTargetBlock, EntityB
 
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
-      if (level.getBlockEntity(pos) instanceof TileLaserTableBase table) {
-         table.onPlacedBy(placer, stack);
+      if (level.getBlockEntity(pos) instanceof TileLaserTableBase) {
          level.sendBlockUpdated(pos, state, state, 2);
       }
    }
-
-   //? if < 1.21.10 {
-   /*@Override
-   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileLaserTableBase tile) {
-         tile.preRemoveSideEffects(pos, state);
-      }
-      super.onRemove(state, level, pos, newState, movedByPiston);
-   }
-   *///?}
 
    @FunctionalInterface
    public interface ServerMenuFactory {

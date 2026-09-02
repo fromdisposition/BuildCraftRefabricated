@@ -6,7 +6,7 @@
 
 package buildcraft.factory.block;
 
-import buildcraft.lib.compat.BcInteract;
+import buildcraft.lib.block.BcTileBlock;
 
 
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
@@ -14,7 +14,6 @@ import buildcraft.api.blocks.ICustomRotationHandler;
 import buildcraft.lib.misc.EntityUtil;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileDistiller;
-import com.mojang.serialization.MapCodec;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
@@ -26,9 +25,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -41,22 +38,13 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHandler {
-   //? if < 26.3-pre-1 {
-   /*public static final MapCodec<BlockDistiller> CODEC = simpleCodec(BlockDistiller::new);
-   *///?}
+public class BlockDistiller extends BcTileBlock implements ICustomRotationHandler {
    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
    public BlockDistiller(Properties properties) {
       super(properties);
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.WEST));
    }
-
-   //? if < 26.3-pre-1 {
-   /*protected MapCodec<? extends BaseEntityBlock> codec() {
-      return CODEC;
-   }
-   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});
@@ -95,16 +83,6 @@ public class BlockDistiller extends BaseEntityBlock implements ICustomRotationHa
       return level.isClientSide()
          ? createTickerHelper(type, BCFactoryBlockEntities.DISTILLER, (lvl, pos, st, tile) -> tile.clientTick())
          : createTickerHelper(type, BCFactoryBlockEntities.DISTILLER, (lvl, pos, st, tile) -> tile.serverTick());
-   }
-
-   protected RenderShape getRenderShape(BlockState state) {
-      return RenderShape.MODEL;
-   }
-
-   protected InteractionResult useItemOn(
-      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
-   ) {
-      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
    }
 
    protected InteractionResult bcUseItemOn(

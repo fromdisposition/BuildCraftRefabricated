@@ -6,7 +6,7 @@
 
 package buildcraft.factory.block;
 
-import buildcraft.lib.compat.BcInteract;
+import buildcraft.lib.block.BcTileBlock;
 
 
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
@@ -14,7 +14,6 @@ import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileTank;
 import buildcraft.lib.misc.AdvancementUtil;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -31,9 +30,7 @@ import net.minecraft.world.level.LevelReader;
 //? if >= 1.21.10 {
 import net.minecraft.world.level.ScheduledTickAccess;
 //?}
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -47,10 +44,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
-   //? if < 26.3-pre-1 {
-   /*public static final MapCodec<BlockTank> CODEC = simpleCodec(BlockTank::new);
-   *///?}
+public class BlockTank extends BcTileBlock implements ITankBlockConnector {
    public static final Property<Boolean> JOINED_BELOW = BuildCraftProperties.JOINED_BELOW;
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftfactory:fluid_storage");
    private static final VoxelShape SHAPE = Block.box(2.0, 0.0, 2.0, 14.0, 16.0, 14.0);
@@ -59,12 +53,6 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
       super(properties);
       this.registerDefaultState((this.stateDefinition.any()).setValue(JOINED_BELOW, false));
    }
-
-   //? if < 26.3-pre-1 {
-   /*protected MapCodec<? extends BaseEntityBlock> codec() {
-      return CODEC;
-   }
-   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(JOINED_BELOW);
@@ -95,10 +83,6 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
       return level.isClientSide()
          ? createTickerHelper(type, BCFactoryBlockEntities.TANK, (lvl, pos, st, tile) -> tile.clientTick())
          : createTickerHelper(type, BCFactoryBlockEntities.TANK, (lvl, pos, st, tile) -> tile.serverTick());
-   }
-
-   protected RenderShape getRenderShape(BlockState state) {
-      return RenderShape.MODEL;
    }
 
    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
@@ -170,12 +154,6 @@ public class BlockTank extends BaseEntityBlock implements ITankBlockConnector {
       }
 
       return InteractionResult.PASS;
-   }
-
-   protected InteractionResult useItemOn(
-      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
-   ) {
-      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
    }
 
    protected InteractionResult bcUseItemOn(

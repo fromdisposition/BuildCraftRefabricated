@@ -6,22 +6,18 @@
 
 package buildcraft.silicon.block;
 
+import buildcraft.lib.block.BcTileBlock;
 import buildcraft.silicon.tile.TilePackager;
 import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -29,7 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class BlockPackager extends Block implements EntityBlock {
+public class BlockPackager extends BcTileBlock {
    private final java.util.function.Supplier<? extends BlockEntityType<TilePackager>> beTypeSupplier;
    private final BlockPackager.ServerMenuFactory menuFactory;
 
@@ -80,23 +76,6 @@ public class BlockPackager extends Block implements EntityBlock {
          }
       }
    }
-
-   public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-      super.setPlacedBy(level, pos, state, placer, stack);
-      if (level.getBlockEntity(pos) instanceof TilePackager packager) {
-         packager.onPlacedBy(placer, stack);
-      }
-   }
-
-   //? if < 1.21.10 {
-   /*@Override
-   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TilePackager tile) {
-         tile.preRemoveSideEffects(pos, state);
-      }
-      super.onRemove(state, level, pos, newState, movedByPiston);
-   }
-   *///?}
 
    @FunctionalInterface
    public interface ServerMenuFactory {

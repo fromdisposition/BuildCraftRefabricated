@@ -6,7 +6,7 @@
 
 package buildcraft.lib.engine;
 
-import buildcraft.lib.compat.BcInteract;
+import buildcraft.lib.block.BcTileBlock;
 
 import buildcraft.api.blocks.ICustomRotationHandler;
 import buildcraft.api.properties.BuildCraftProperties;
@@ -21,8 +21,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -38,7 +36,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class BlockEngineBase_BC8 extends Block implements EntityBlock, ICustomRotationHandler {
+public abstract class BlockEngineBase_BC8 extends BcTileBlock implements ICustomRotationHandler {
    public BlockEngineBase_BC8(Properties properties) {
       super(properties.noOcclusion());
       this.registerDefaultState(this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, Direction.UP));
@@ -75,10 +73,6 @@ public abstract class BlockEngineBase_BC8 extends Block implements EntityBlock, 
       return true;
    }
 
-   protected RenderShape getRenderShape(BlockState state) {
-      return RenderShape.MODEL;
-   }
-
    @Nullable
    public abstract BlockEntity newBlockEntity(BlockPos var1, BlockState var2);
 
@@ -112,12 +106,6 @@ public abstract class BlockEngineBase_BC8 extends Block implements EntityBlock, 
       } else {
          return InteractionResult.FAIL;
       }
-   }
-
-   protected InteractionResult useItemOn(
-      ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
-   ) {
-      return BcInteract.toItem(bcUseItemOn(stack, state, level, pos, player, hand, hitResult));
    }
 
    protected InteractionResult bcUseItemOn(

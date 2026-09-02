@@ -6,19 +6,16 @@
 
 package buildcraft.robotics.block;
 
-import buildcraft.lib.misc.BlockDropsUtil;
+import buildcraft.lib.block.BcTileBlock;
 import buildcraft.robotics.BCRoboticsBlockEntities;
 import buildcraft.robotics.tile.TileZonePlanner;
-import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -31,22 +28,13 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockZonePlanner extends BaseEntityBlock {
-   //? if < 26.3-pre-1 {
-   /*public static final MapCodec<BlockZonePlanner> CODEC = simpleCodec(BlockZonePlanner::new);
-   *///?}
+public class BlockZonePlanner extends BcTileBlock {
    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
    public BlockZonePlanner(Properties properties) {
       super(properties);
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
    }
-
-   //? if < 26.3-pre-1 {
-   /*protected MapCodec<? extends BaseEntityBlock> codec() {
-      return CODEC;
-   }
-   *///?}
 
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});
@@ -66,28 +54,8 @@ public class BlockZonePlanner extends BaseEntityBlock {
       return level.isClientSide() ? null : createTickerHelper(type, BCRoboticsBlockEntities.ZONE_PLANNER, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
-   protected RenderShape getRenderShape(BlockState state) {
-      return RenderShape.MODEL;
-   }
-
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-      if (!level.isClientSide()) {
-         BlockEntity be = level.getBlockEntity(pos);
-         if (be instanceof TileZonePlanner) {
-            player.openMenu((TileZonePlanner)be);
-         }
-      }
-
-      return InteractionResult.SUCCESS;
+      return this.openMenu(level, pos, player);
    }
 
-   //? if < 1.21.10 {
-   /*@Override
-   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-      if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof TileZonePlanner tile) {
-         tile.preRemoveSideEffects(pos, state);
-      }
-      super.onRemove(state, level, pos, newState, movedByPiston);
-   }
-   *///?}
 }
