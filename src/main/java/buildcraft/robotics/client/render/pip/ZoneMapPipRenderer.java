@@ -7,6 +7,7 @@
 package buildcraft.robotics.client.render.pip;
 
 import buildcraft.lib.client.render.BCLibRenderTypes;
+import buildcraft.lib.client.render.GeometrySink;
 import buildcraft.robotics.zone.ZonePlannerChunkKeys;
 import buildcraft.robotics.zone.ZonePlannerMapColours;
 import com.mojang.blaze3d.ProjectionType;
@@ -105,7 +106,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       Pose pose = poseStack.last();
       pose.pose().set(state.viewMatrix());
 
-      this.emitTerrain(state, poseStack, (SubmitNodeStorage) submitNodeCollector);
+      this.emitTerrain(state, poseStack, GeometrySink.of((SubmitNodeStorage) submitNodeCollector));
 
       //? if < 26.3-pre-1 {
       /*Minecraft.getInstance().gameRenderer.featureRenderDispatcher().renderAllFeatures((SubmitNodeStorage) submitNodeCollector);
@@ -132,7 +133,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       Pose pose = poseStack.last();
       pose.pose().set(state.viewMatrix());
 
-      this.emitTerrain(state, pose);
+      this.emitTerrain(state, poseStack, GeometrySink.of(this.bufferSource));
       this.bufferSource.endBatch();
 
       this.orthoRestore.setupOrtho(-1000.0F, 1000.0F, width, height, true);
@@ -154,23 +155,25 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       RenderSystem.setProjectionMatrix(this.perspBuffer.getBuffer(state.projMatrix()), ProjectionType.PERSPECTIVE);
       Pose pose = poseStack.last();
       pose.pose().set(state.viewMatrix());
-      this.emitTerrain(state, pose);
+      this.emitTerrain(state, poseStack, GeometrySink.of(this.bufferSource));
       this.bufferSource.endBatch();
       RenderSystem.restoreProjectionMatrix();
    }
    *///?}
 
-   //? if >= 26.2 {
-   private void emitTerrain(ZoneMapPipRenderState state, PoseStack poseStack, SubmitNodeStorage storage) {
+   private void emitTerrain(ZoneMapPipRenderState state, PoseStack poseStack, GeometrySink sink) {
       ZonePlannerMapColours cache = state.colours();
-      if (cache == null) return;
+      if (cache == null) {
+         return;
+      }
+
       int originX = state.originX();
       int originZ = state.originZ();
       int cx0 = state.minChunkX();
       int cx1 = state.maxChunkX();
       int cz0 = state.minChunkZ();
       int cz1 = state.maxChunkZ();
-      storage.submitCustomGeometry(poseStack, BCLibRenderTypes.debugSolid(), (pose, vc) -> {
+      sink.submit(poseStack, BCLibRenderTypes.debugSolid(), (pose, vc) -> {
          for (int cx = cx0; cx <= cx1; cx++) {
             for (int cz = cz0; cz <= cz1; cz++) {
                long key = ZonePlannerChunkKeys.chunkKey(cx, cz);
@@ -184,33 +187,6 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
          this.emitOverlay(state, pose, vc);
       });
    }
-   //?} else {
-   /*private void emitTerrain(ZoneMapPipRenderState state, Pose pose) {
-      ZonePlannerMapColours cache = state.colours();
-      if (cache != null) {
-         int originX = state.originX();
-         int originZ = state.originZ();
-         int cx0 = state.minChunkX();
-         int cx1 = state.maxChunkX();
-         int cz0 = state.minChunkZ();
-         int cz1 = state.maxChunkZ();
-         VertexConsumer vc = this.bufferSource.getBuffer(BCLibRenderTypes.debugSolid());
-
-         for (int cx = cx0; cx <= cx1; cx++) {
-            for (int cz = cz0; cz <= cz1; cz++) {
-               long key = ZonePlannerChunkKeys.chunkKey(cx, cz);
-               if (cache.versionOf(key) != 0) {
-                  CachedMesh mesh = this.meshFor(cache, cx, cz, key);
-                  mesh.emit(vc, pose, originX, originZ);
-               }
-            }
-         }
-
-         this.emitOverlay(state, pose, vc);
-      }
-   }
-   *///?}
-
 
    private void evictFarMeshes(ZoneMapPipRenderState state) {
       if (this.meshCache.size() > 1024) {
