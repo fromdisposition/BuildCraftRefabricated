@@ -22,14 +22,6 @@ public final class ItemFluidLookup {
       return stack.isEmpty() ? null : storage(stack, ContainerItemContext.withConstant(stack));
    }
 
-   public static boolean hasStorage(ItemStack stack) {
-      return storage(stack) != null;
-   }
-
-   public static boolean hasStorage(ItemStack stack, ContainerItemContext context) {
-      return storage(stack, context) != null;
-   }
-
    public static @Nullable FluidStack firstFluid(@Nullable Storage<FluidVariant> storage) {
       if (storage == null) {
          return null;

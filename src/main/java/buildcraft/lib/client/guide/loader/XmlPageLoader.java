@@ -780,49 +780,6 @@ public enum XmlPageLoader implements IPageLoaderText {
       return list;
    }
 
-   public static void appendAllCrafting(ItemStack stack, List<GuidePart> parts, GuiGuide gui) {
-      List<GuidePartFactory> recipeFactories = RecipeLookupHelper.getAllRecipes(stack);
-      List<GuidePart> recipeParts = new ArrayList<>();
-
-      for (GuidePartFactory factory : recipeFactories) {
-         recipeParts.add(factory.createNew(gui));
-      }
-
-      recipeParts.removeAll(parts);
-      if (recipeParts.size() > 0) {
-         parts.add(new GuidePartNewPage(gui, 30));
-         if (recipeParts.size() == 1) {
-            parts.add(chapter("buildcraft.guide.recipe.create", 0).createNew(gui));
-         } else {
-            parts.add(chapter("buildcraft.guide.recipe.create.plural", 0).createNew(gui));
-         }
-
-         parts.addAll(recipeParts);
-      }
-
-      List<GuidePartFactory> usageFactories = RecipeLookupHelper.getAllUsages(stack);
-      List<GuidePart> usageParts = new ArrayList<>();
-
-      for (GuidePartFactory factory : usageFactories) {
-         usageParts.add(factory.createNew(gui));
-      }
-
-      usageParts.removeAll(parts);
-      if (usageParts.size() > 0) {
-         if (usageParts.size() != 1) {
-            parts.add(new GuidePartNewPage(gui, 30));
-         }
-
-         if (usageParts.size() == 1) {
-            parts.add(chapter("buildcraft.guide.recipe.use", 0).createNew(gui));
-         } else {
-            parts.add(chapter("buildcraft.guide.recipe.use.plural", 0).createNew(gui));
-         }
-
-         parts.addAll(usageParts);
-      }
-   }
-
    public static GuidePartFactory chapter(String after) {
       return chapter(after, 0);
    }

@@ -60,14 +60,6 @@ public final class LocaleUtil {
       return localize(key, scaled, MjAPI.EXTERNAL_ENERGY_UNIT);
    }
 
-   public static String localizeRf(int e) {
-      if (BCCoreConfig.hidePower.get()) {
-         return "";
-      }
-
-      return localize("buildcraft.unit.energy", e, MjAPI.EXTERNAL_ENERGY_UNIT);
-   }
-
    public static String localizeExternalBuffer(int currentE, int maxE) {
       if (BCCoreConfig.hidePower.get()) {
          return "";

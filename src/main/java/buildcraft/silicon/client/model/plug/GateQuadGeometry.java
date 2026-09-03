@@ -40,23 +40,6 @@ public final class GateQuadGeometry {
       };
    }
 
-   public static void appendStaticWestFacing(List<MutableQuad> list, GateVariant variant, Function<String, TextureAtlasSprite> sprites, boolean shade) {
-      TextureAtlasSprite matSprite = sprites.apply(materialSpritePath(variant.material));
-      addWestFacingBox(list, 0.125F, 0.3125F, 0.3125F, 0.250625F, 0.6875F, 0.6875F, matSprite, shade);
-      if (variant.material != EnumGateMaterial.CLAY_BRICK) {
-         TextureAtlasSprite logicSprite = sprites.apply("buildcraftsilicon:block/gates/gate_" + variant.logic.tag);
-         addWestFacingBox(list, 0.1125F, 0.4375F, 0.4375F, 0.2625F, 0.5625F, 0.5625F, logicSprite, shade);
-      }
-
-      if (variant.modifier != EnumGateModifier.NO_MODIFIER) {
-         TextureAtlasSprite modSprite = sprites.apply(modifierSpritePath(variant.modifier));
-         addWestFacingBox(list, 0.1125F, 0.34375F, 0.34375F, 0.2625F, 0.40625F, 0.40625F, modSprite, shade);
-         addWestFacingBox(list, 0.1125F, 0.59375F, 0.34375F, 0.2625F, 0.65625F, 0.40625F, modSprite, shade);
-         addWestFacingBox(list, 0.1125F, 0.34375F, 0.59375F, 0.2625F, 0.40625F, 0.65625F, modSprite, shade);
-         addWestFacingBox(list, 0.1125F, 0.59375F, 0.59375F, 0.2625F, 0.65625F, 0.65625F, modSprite, shade);
-      }
-   }
-
    public static void appendStaticBaked(
       List<BakedQuad> list, GateVariant variant, Direction side, Function<String, TextureAtlasSprite> sprites, boolean shade, int light
    ) {

@@ -83,8 +83,4 @@ public class SchematicBlockManager {
          throw new InvalidInputDataException("Failed to load the schematic from " + data, e);
       }
    }
-
-   public static boolean isSchematicTypeRegistered(Identifier name) {
-      return SchematicBlockFactoryRegistry.getFactoryByName(name) != null;
-   }
 }

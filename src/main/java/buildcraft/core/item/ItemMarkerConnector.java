@@ -103,10 +103,6 @@ public class ItemMarkerConnector extends Item {
       return true;
    }
 
-   public static boolean doesInteract(BlockPos a, BlockPos b, Player player) {
-      return new ItemMarkerConnector.MarkerLineInteraction(a, b, player.position().add(0.0, player.getEyeHeight(), 0.0), player.getLookAngle()).didInteract();
-   }
-
    private InteractionResult onUseVolumeBoxes(Level level, Player player) {
       if (level.isClientSide()) {
          return InteractionResult.PASS;

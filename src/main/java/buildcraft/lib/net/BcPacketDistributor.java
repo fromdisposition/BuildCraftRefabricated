@@ -33,10 +33,4 @@ public final class BcPacketDistributor {
    public static void sendToPlayersTrackingChunk(ServerLevel level, ChunkPos chunkPos, CustomPacketPayload payload) {
       PacketDistributor.sendToPlayersTrackingChunk(level, chunkPos, payload);
    }
-
-   public static void sendToPlayersTracking(ServerLevel level, BlockPos pos, CustomPacketPayload payload) {
-      for (ServerPlayer player : PlayerLookup.tracking(level, pos)) {
-         sendToPlayer(player, payload);
-      }
-   }
 }

@@ -47,14 +47,6 @@ public class PositionUtil {
       *///?}
    }
 
-   public static long chunkPack(ChunkPos cp) {
-      //? if >= 26.1 {
-      return cp.pack();
-      //?} else {
-      /*return cp.toLong();
-      *///?}
-   }
-
    @Nullable
    public static Direction getDirectFacingOffset(BlockPos from, BlockPos to) {
       BlockPos diff = to.subtract(from);
@@ -70,44 +62,6 @@ public class PositionUtil {
             return diff.getZ() > 0 ? Direction.SOUTH : Direction.NORTH;
          } else {
             return null;
-         }
-      } else {
-         return null;
-      }
-   }
-
-   @Nullable
-   public static Integer getDirectFacingDistance(BlockPos from, BlockPos to) {
-      BlockPos diff = to.subtract(from);
-      boolean x = diff.getX() != 0;
-      boolean y = diff.getY() != 0;
-      boolean z = diff.getZ() != 0;
-      if ((!x || !y) && (!x || !z) && (!y || !z)) {
-         if (x) {
-            return diff.getX();
-         } else if (y) {
-            return diff.getY();
-         } else {
-            return z ? diff.getZ() : null;
-         }
-      } else {
-         return null;
-      }
-   }
-
-   @Nullable
-   public static FaceDistance getDirectOffset(BlockPos from, BlockPos to) {
-      BlockPos diff = to.subtract(from);
-      boolean x = diff.getX() != 0;
-      boolean y = diff.getY() != 0;
-      boolean z = diff.getZ() != 0;
-      if ((!x || !y) && (!x || !z) && (!y || !z)) {
-         if (x) {
-            return new FaceDistance(Axis.X, diff.getX());
-         } else if (y) {
-            return new FaceDistance(Axis.Y, diff.getY());
-         } else {
-            return z ? new FaceDistance(Axis.Z, diff.getZ()) : null;
          }
       } else {
          return null;
@@ -201,18 +155,6 @@ public class PositionUtil {
       return y && z ? false : x != z;
    }
 
-   public static Rotation getRotatedFacing(Direction from, Direction to, Axis axis) {
-      if (from.getAxis() == axis || to.getAxis() == axis) {
-         throw new IllegalArgumentException("Cannot rotate around " + axis + " with " + from + " and " + to);
-      } else if (from == to) {
-         return Rotation.NONE;
-      } else if (from.getOpposite() == to) {
-         return Rotation.CLOCKWISE_180;
-      } else {
-         return from.getClockWise(axis) == to ? Rotation.CLOCKWISE_90 : Rotation.COUNTERCLOCKWISE_90;
-      }
-   }
-
    public static Direction rotateFacing(Direction from, Axis axis, Rotation rotation) {
       if (rotation != Rotation.NONE && rotation != null) {
          if (from.getAxis() == axis) {
@@ -231,32 +173,6 @@ public class PositionUtil {
       } else {
          return from;
       }
-   }
-
-   public static Vec3 rotateVec(Vec3 from, Axis axis, Rotation rotation) {
-      Vec3 rotated = new Vec3(0.0, 0.0, 0.0);
-      double numEast = from.x;
-      double numUp = from.y;
-      double numSouth = from.z;
-      Direction newEast = rotateFacing(Direction.EAST, axis, rotation);
-      Direction newUp = rotateFacing(Direction.UP, axis, rotation);
-      Direction newSouth = rotateFacing(Direction.SOUTH, axis, rotation);
-      rotated = VecUtil.replaceValue(rotated, newEast.getAxis(), numEast * newEast.getAxisDirection().getStep());
-      rotated = VecUtil.replaceValue(rotated, newUp.getAxis(), numUp * newUp.getAxisDirection().getStep());
-      return VecUtil.replaceValue(rotated, newSouth.getAxis(), numSouth * newSouth.getAxisDirection().getStep());
-   }
-
-   public static BlockPos rotatePos(Vec3i from, Axis axis, Rotation rotation) {
-      BlockPos rotated = new BlockPos(0, 0, 0);
-      int numEast = from.getX();
-      int numUp = from.getY();
-      int numSouth = from.getZ();
-      Direction newEast = rotateFacing(Direction.EAST, axis, rotation);
-      Direction newUp = rotateFacing(Direction.UP, axis, rotation);
-      Direction newSouth = rotateFacing(Direction.SOUTH, axis, rotation);
-      rotated = VecUtil.replaceValue(rotated, newEast.getAxis(), numEast * newEast.getAxisDirection().getStep());
-      rotated = VecUtil.replaceValue(rotated, newUp.getAxis(), numUp * newUp.getAxisDirection().getStep());
-      return VecUtil.replaceValue(rotated, newSouth.getAxis(), numSouth * newSouth.getAxisDirection().getStep());
    }
 
    public static PositionUtil.LineSkewResult findLineSkewPoint(PositionUtil.Line line, Vec3 start, Vec3 direction) {
@@ -534,9 +450,6 @@ public class PositionUtil {
       }
    }
 
-   public static void forAllOnArc2d(int a, int b, int degrees, PositionUtil.PathIterator2d iter) {
-   }
-
    public static BlockPos randomBlockPos(Random rand, BlockPos size) {
       return new BlockPos(rand.nextInt(size.getX()), rand.nextInt(size.getY()), rand.nextInt(size.getZ()));
    }
@@ -556,10 +469,6 @@ public class PositionUtil {
       public Line(Vec3 start, Vec3 end) {
          this.start = start;
          this.end = end;
-      }
-
-      public static PositionUtil.Line createLongLine(Vec3 start, Vec3 direction) {
-         return new PositionUtil.Line(start, VecUtil.scale(direction, 1024.0));
       }
 
       public Vec3 interpolate(double interp) {

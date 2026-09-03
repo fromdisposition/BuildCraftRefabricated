@@ -101,18 +101,6 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    private final @Nullable Holder<Fluid> fluid;
    private final PatchedDataComponentMap components;
 
-   public static Codec<FluidStack> fixedAmountCodec(int amount) {
-      return Codec.lazyInitialized(
-         () -> RecordCodecBuilder.create(
-            instance -> instance.group(
-                  FLUID_HOLDER_CODEC.fieldOf("id").forGetter(FluidStack::typeHolder),
-                  DataComponentPatch.CODEC.optionalFieldOf("components", DataComponentPatch.EMPTY).forGetter(stack -> stack.components.asPatch())
-               )
-               .apply(instance, (holder, patch) -> new FluidStack(holder, amount, patch))
-         )
-      );
-   }
-
    public DataComponentMap getComponents() {
       return (this.isEmpty() ? DataComponentMap.EMPTY : this.components);
    }

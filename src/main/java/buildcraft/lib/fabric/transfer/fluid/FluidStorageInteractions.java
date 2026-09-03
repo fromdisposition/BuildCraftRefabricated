@@ -1,6 +1,5 @@
 package buildcraft.lib.fabric.transfer.fluid;
 
-
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageOps;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.fabric.transfer.BcTransfers;
@@ -60,13 +59,6 @@ public final class FluidStorageInteractions {
       return world.isClientSide() ? true : interactWithFluidStorage(player, hand, pos, storage);
    }
 
-   public static boolean interactWithFluidHandler(Player player, InteractionHand hand, Level level, BlockPos pos, @Nullable Direction side) {
-      Preconditions.checkNotNull(level);
-      Preconditions.checkNotNull(pos);
-      Storage<FluidVariant> storage = BcTransfers.fluid(level, pos, side);
-      return storage != null && interactWithFluidStorage(player, hand, pos, storage);
-   }
-
    public static boolean interactWithFluidStorage(Player player, InteractionHand hand, @Nullable BlockPos pos, Storage<FluidVariant> tank) {
       ContainerItemContext handContext = ContainerItemContext.forPlayerInteraction(player, hand);
       if (handContext.getItemVariant().isBlank()) {
@@ -79,66 +71,6 @@ public final class FluidStorageInteractions {
          ? false
          : moveStorageWithSound(tank, handStorage, player.level(), pos, player, true)
             || moveStorageWithSound(handStorage, tank, player.level(), pos, player, false);
-   }
-
-   public static FluidStack tryPickupFluid(
-      @Nullable Storage<FluidVariant> destination, @Nullable Player player, Level level, BlockPos pos, @Nullable Direction side
-   ) {
-      if (destination == null) {
-         return FluidStack.EMPTY;
-      }
-
-      BlockState state = level.getBlockState(pos);
-      if (!(state.getBlock() instanceof BucketPickup bucketPickup)) {
-         Storage<FluidVariant> blockStorage = BcTransfers.fluid(level, pos, state, null, side);
-         if (blockStorage == null) {
-            return FluidStack.EMPTY;
-         }
-
-         FluidStack moved = moveStorageWithSoundReturning(blockStorage, destination, level, pos, player, true);
-         return moved != null ? moved : FluidStack.EMPTY;
-      } else {
-         Fluid fluid = level.getFluidState(pos).getType();
-         if (fluid == Fluids.EMPTY) {
-            return FluidStack.EMPTY;
-         }
-
-         FluidStack resource = FluidIdentity.canonicalFluidStack(new FluidStack(fluid, 1));
-         FluidVariant variant = FluidVariants.toVariant(resource);
-         long bucketDroplets = FluidVariants.mbToDroplets(1000L);
-         try (Transaction transaction = Transaction.openOuter()) {
-            long inserted = destination.insert(variant, bucketDroplets, transaction);
-            if (inserted != bucketDroplets || level.getFluidState(pos).getType() != fluid) {
-               return FluidStack.EMPTY;
-            }
-
-            ItemStack pickedUpStack = bucketPickup.pickupBlock(player, level, pos, level.getBlockState(pos));
-            if (pickedUpStack.getItem() instanceof BucketItem bucket) {
-               Fluid bucketFluid = BcRegistryUtil.bucketFluid(bucket);
-               FluidStack extracted = new FluidStack(bucketFluid, 1000);
-               if (!FluidIdentity.areEquivalentFluidStacks(resource, extracted.copyWithAmount(1))) {
-                  LOGGER.warn(
-                     "Fluid removed without successfully being picked up. Fluid {} at {} in {} matched requested type, but after performing pickup was {}.",
-                     new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, buildcraft.lib.misc.RegistryKeyUtil.id(level.dimension()), BuiltInRegistries.FLUID.getKey(bucketFluid)}
-                  );
-                  return FluidStack.EMPTY;
-               }
-
-               transaction.commit();
-               FluidWorldFeedback.playAtBlockOrPlayer(resource, level, pos, player, true);
-               return extracted;
-            }
-
-            if (!pickedUpStack.isEmpty()) {
-               LOGGER.warn(
-                  "Picked up stack is not a bucket. Fluid {} at {} in {} picked up as {}.",
-                  new Object[]{BuiltInRegistries.FLUID.getKey(fluid), pos, buildcraft.lib.misc.RegistryKeyUtil.id(level.dimension()), pickedUpStack}
-               );
-            }
-
-            return FluidStack.EMPTY;
-         }
-      }
    }
 
    public static FluidStack tryPlaceFluid(@Nullable Storage<FluidVariant> source, @Nullable Player player, Level level, InteractionHand hand, BlockPos pos) {

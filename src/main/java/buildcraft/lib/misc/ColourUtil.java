@@ -49,14 +49,6 @@ public class ColourUtil {
       return format.toString() + localized + ChatFormatting.RESET;
    }
 
-   public static ChatFormatting convertColourToTextFormat(DyeColor colour) {
-      if (!BCLibConfig.useColouredLabels.get()) {
-         return ChatFormatting.GRAY;
-      }
-
-      return BCLibConfig.useHighContrastLabelColours.get() ? highContrastFormat(colour) : COLOUR_TO_FORMAT[colour.ordinal()];
-   }
-
    private static ChatFormatting highContrastFormat(DyeColor colour) {
       return switch (colour) {
          case BLACK, BLUE, PURPLE, BROWN, GREEN, RED, GRAY -> ChatFormatting.WHITE;

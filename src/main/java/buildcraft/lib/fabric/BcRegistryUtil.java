@@ -35,10 +35,6 @@ public final class BcRegistryUtil {
    private BcRegistryUtil() {
    }
 
-   public static Identifier biomeId(Holder<Biome> biome) {
-      return registryId(biome).orElse(UNKNOWN_BIOME);
-   }
-
    public static Optional<Identifier> registryId(Holder<?> holder) {
       return holder.unwrapKey().map(buildcraft.lib.misc.RegistryKeyUtil::id);
    }
@@ -84,39 +80,6 @@ public final class BcRegistryUtil {
       return bucket.getContent();
       //?} else {
       /*return ((buildcraft.lib.fabric.mixin.BucketItemAccessor) (Object) bucket).buildcraft$getContent();
-      *///?}
-   }
-
-   public static Item fluidBucketItem(Fluid fluid) {
-      if (fluid.isSame(Fluids.EMPTY)) {
-         return Items.BUCKET;
-      }
-
-      // No lock-free fast path: IdentityHashMap reads racing a rehashing put can corrupt the map. The lookup is
-      // rare enough that taking the lock every time is the simple correct answer.
-      synchronized (FLUID_BUCKET_CACHE) {
-         Item cached = FLUID_BUCKET_CACHE.get(fluid);
-         if (cached != null) {
-            return cached;
-         }
-
-         for (Item item : BuiltInRegistries.ITEM) {
-            if (item instanceof BucketItem bucket && bucketFluid(bucket).isSame(fluid)) {
-               FLUID_BUCKET_CACHE.put(fluid, item);
-               return item;
-            }
-         }
-
-         FLUID_BUCKET_CACHE.put(fluid, Items.AIR);
-         return Items.AIR;
-      }
-   }
-
-   public static float composterValue(ItemStack stack) {
-      //? if >= 26.3-pre-1 {
-      return stack.has(net.minecraft.core.component.DataComponents.COMPOSTABLE) ? 1.0F : 0.0F;
-      //?} else {
-      /*return ComposterBlock.COMPOSTABLES.getFloat(stack.getItem());
       *///?}
    }
 

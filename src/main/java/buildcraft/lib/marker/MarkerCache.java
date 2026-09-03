@@ -34,19 +34,6 @@ public abstract class MarkerCache<S extends MarkerSubCache<?>> {
       }
    }
 
-   public static void postInit() {
-      if (DEBUG) {
-         BCLog.logger.info("[lib.markers] Sorted list of cache types:");
-
-         for (int i = 0; i < CACHES.size(); i++) {
-            MarkerCache<?> cache = CACHES.get(i);
-            BCLog.logger.info("  " + i + " = " + cache.name);
-         }
-
-         BCLog.logger.info("[lib.markers] Total of " + CACHES.size() + " cache types");
-      }
-   }
-
    public static void onPlayerJoinWorld(ServerPlayer player) {
       for (MarkerCache<?> cache : CACHES) {
          Level world = player.level();

@@ -32,10 +32,6 @@ public final class BcLaserRenderer {
    private BcLaserRenderer() {
    }
 
-   public static void clearModels() {
-      COMPILED_LASER_TYPES.clear();
-   }
-
    private static CompiledLaserType compileType(LaserData_BC8.LaserType laserType) {
       return COMPILED_LASER_TYPES.computeIfAbsent(laserType, CompiledLaserType::new);
    }

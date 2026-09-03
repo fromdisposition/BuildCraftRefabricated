@@ -50,12 +50,6 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
    private PipeHolderClientExtensions() {
    }
 
-   /** The client crosshair hit, if it is a block hit. Common return type so the caller stays dist-clean. */
-   @Nullable
-   public static BlockHitResult clientBlockHit() {
-      return Minecraft.getInstance().hitResult instanceof BlockHitResult blockHit ? blockHit : null;
-   }
-
    /** The local client player as the common {@link Player} type (hides the client-only LocalPlayer). */
    @Nullable
    public static Player clientPlayer() {

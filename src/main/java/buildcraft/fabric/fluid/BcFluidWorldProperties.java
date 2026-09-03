@@ -107,41 +107,4 @@ public record BcFluidWorldProperties(
          dropOff
       );
    }
-
-   public static List<String> liquidFluidTagValues() {
-      List<String> values = new ArrayList<>();
-
-      for (int i = 0; i < FLUID_DATA.length; i++) {
-         int[] data = FLUID_DATA[i];
-         String baseName = FLUID_NAMES[i];
-
-         for (int heat = 0; heat < 3; heat++) {
-            BcFluidWorldProperties props = compute(baseName, heat, data[0], data[1], data[2], data[3], data[4], data[5], true, data[6], true, data[7]);
-            if (!props.gaseous()) {
-               String reg = regName(baseName, heat);
-               values.add("buildcraftenergy:" + reg);
-               values.add("buildcraftenergy:" + reg + "_flowing");
-            }
-         }
-      }
-
-      return values;
-   }
-
-   public static List<String> allFluidTagValues() {
-      List<String> values = new ArrayList<>();
-
-      for (int i = 0; i < FLUID_DATA.length; i++) {
-         int[] data = FLUID_DATA[i];
-         String baseName = FLUID_NAMES[i];
-
-         for (int heat = 0; heat < 3; heat++) {
-            String reg = regName(baseName, heat);
-            values.add("buildcraftenergy:" + reg);
-            values.add("buildcraftenergy:" + reg + "_flowing");
-         }
-      }
-
-      return values;
-   }
 }

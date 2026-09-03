@@ -35,11 +35,4 @@ public final class BcFluidTintUtil {
    public static int recolorChannel(int dark, int light, int v) {
       return (dark * (256 - v) + light * v) / 256;
    }
-
-   public static int recolorRgb(int texLight, int texDark, int gray) {
-      int r = recolorChannel(texDark >> 16 & 0xFF, texLight >> 16 & 0xFF, gray);
-      int g = recolorChannel(texDark >> 8 & 0xFF, texLight >> 8 & 0xFF, gray);
-      int b = recolorChannel(texDark & 0xFF, texLight & 0xFF, gray);
-      return 0xFF000000 | r << 16 | g << 8 | b;
-   }
 }

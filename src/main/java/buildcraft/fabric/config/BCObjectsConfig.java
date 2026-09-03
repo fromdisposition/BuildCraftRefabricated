@@ -61,18 +61,6 @@ public final class BCObjectsConfig {
       return isEnabled(ITEMS, id);
    }
 
-   public static boolean isPipeEnabled(String modid, String path) {
-      return isEnabled(PIPES, modid + ":" + path);
-   }
-
-   public static boolean hasBlockBeenDisabled(String modid, String path) {
-      return BLOCKS.containsKey(modid + ":" + path) && !BLOCKS.get(modid + ":" + path);
-   }
-
-   public static boolean hasItemBeenDisabled(String modid, String path) {
-      return ITEMS.containsKey(modid + ":" + path) && !ITEMS.get(modid + ":" + path);
-   }
-
    private static boolean isEnabled(Map<String, Boolean> category, String id) {
       return category.getOrDefault(id, true);
    }

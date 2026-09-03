@@ -54,8 +54,4 @@ public class BCTooltips {
    public static void addTooltip(ItemLike item, String translationKey) {
       TOOLTIPS.put(item.asItem(), translationKey);
    }
-
-   public static void markDevOnly(ItemLike item) {
-      DEV_ONLY.add(item.asItem());
-   }
 }

@@ -50,9 +50,6 @@ public class LocalBlockUpdateNotifier {
       }
    }
 
-   public static void registerBreakListener() {
-   }
-
    public static void onLevelBlockStateChanged(Level level, BlockPos pos, BlockState oldState, BlockState newState, int flags) {
       if (!level.isClientSide()) {
          dispatch(level, pos, oldState, newState, flags);

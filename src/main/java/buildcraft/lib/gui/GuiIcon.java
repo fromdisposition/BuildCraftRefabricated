@@ -146,10 +146,6 @@ public class GuiIcon implements ISimpleDrawable {
       }
    }
 
-   public static void drawBoundQuad(double xMin, double yMin, double xMax, double yMax, double uMin, double vMin, double uMax, double vMax) {
-      drawBoundQuadTinted(xMin, yMin, xMax, yMax, uMin, vMin, uMax, vMax, -1);
-   }
-
    public static void drawBoundQuadTinted(double xMin, double yMin, double xMax, double yMax, double uMin, double vMin, double uMax, double vMax, int colour) {
       if (currentGraphics != null && lastBoundLocation != null) {
          int xLow = (int)Math.round(xMin);

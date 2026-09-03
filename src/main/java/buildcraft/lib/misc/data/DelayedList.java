@@ -32,24 +32,6 @@ public class DelayedList<E> {
       this(new ArrayList<>(), ArrayList::new);
    }
 
-   public static <E> DelayedList<E> createConcurrent() {
-      return new DelayedList<E>(Collections.synchronizedList(new ArrayList<>()), () -> Collections.synchronizedList(new ArrayList<>())) {
-         @Override
-         public List<E> advance() {
-            synchronized (this.elements) {
-               return super.advance();
-            }
-         }
-
-         @Override
-         public void add(int delay, E element) {
-            synchronized (this.elements) {
-               super.add(delay, element);
-            }
-         }
-      };
-   }
-
    private DelayedList(List<List<E>> actualList, Supplier<List<E>> innerList) {
       this.elements = actualList;
       this.innerListSupplier = innerList;

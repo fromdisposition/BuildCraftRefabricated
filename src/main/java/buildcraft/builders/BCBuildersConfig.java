@@ -22,10 +22,6 @@ public final class BCBuildersConfig {
    public static void ensureLoaded() {
    }
 
-   @Deprecated
-   public static void buildGeneral(Object builder) {
-   }
-
    public static void applyQuarry(JsonObject quarry) {
       if (quarry != null) {
          if (quarry.has("quarryFrameMinHeight")) {

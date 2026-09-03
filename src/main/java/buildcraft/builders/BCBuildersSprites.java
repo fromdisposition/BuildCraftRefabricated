@@ -52,9 +52,6 @@ public class BCBuildersSprites {
       return SpriteHolderRegistry.getHolder("buildcraftbuilders:" + suffix);
    }
 
-   public static void fmlPreInit() {
-   }
-
    static {
       for (int r = 0; r < 4; r++) {
          PARAM_ROTATION[r] = getHolder("filler/parameters/rotation_" + r);

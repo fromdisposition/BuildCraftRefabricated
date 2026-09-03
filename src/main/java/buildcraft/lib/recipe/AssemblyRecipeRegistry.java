@@ -21,17 +21,4 @@ public class AssemblyRecipeRegistry {
    public static void register(AssemblyRecipe recipe) {
       REGISTRY.put(recipe.getRegistryName(), recipe);
    }
-
-   @Nonnull
-   public static List<AssemblyRecipe> getRecipesFor(@Nonnull NonNullList<ItemStack> possibleIn) {
-      List<AssemblyRecipe> all = new ArrayList<>();
-
-      for (AssemblyRecipe ar : REGISTRY.values()) {
-         if (!ar.getOutputs(possibleIn).isEmpty()) {
-            all.add(ar);
-         }
-      }
-
-      return all;
-   }
 }

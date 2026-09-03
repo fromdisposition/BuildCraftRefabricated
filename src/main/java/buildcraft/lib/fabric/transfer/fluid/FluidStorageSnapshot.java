@@ -23,15 +23,6 @@ public record FluidStorageSnapshot(FluidStack fluid, int amountMb, int capacityM
       }
    }
 
-   public static FluidStorageSnapshot fromSingleSlot(@Nullable SingleFluidTank tank) {
-      if (tank == null) {
-         return EMPTY;
-      }
-
-      FluidStack contents = tank.getFluidStack();
-      return new FluidStorageSnapshot(contents, tank.getAmountMb(), tank.getCapacityMb());
-   }
-
    public static FluidStack identityFrom(@Nullable Storage<FluidVariant> storage) {
       if (storage == null) {
          return FluidStack.EMPTY;
@@ -77,5 +68,4 @@ public record FluidStorageSnapshot(FluidStack fluid, int amountMb, int capacityM
    public FluidStack toFluidStack() {
       return this.isEmpty() ? FluidStack.EMPTY : this.fluid.copyWithAmount(this.amountMb);
    }
-
 }

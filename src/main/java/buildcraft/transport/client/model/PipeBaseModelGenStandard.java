@@ -414,10 +414,6 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
       return c == null ? -1 : 0xFF000000 | ColourUtil.swapArgbToAbgr(ColourUtil.getLightHex(c));
    }
 
-   public static int getDyeTintColour(DyeColor c) {
-      return getPipeModelColour(c);
-   }
-
    /** Moves the quad along its face normal by {@code by} blocks. */
    private static void inflate(MutableQuad quad, float by) {
       Vector3f normal = quad.getCalculatedNormal();

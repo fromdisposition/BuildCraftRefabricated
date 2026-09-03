@@ -28,16 +28,6 @@ public enum MarkdownPageLoader implements IPageLoaderText {
 
    public static final boolean DEBUG = BCDebugging.shouldDebugLog("lib.markdown");
 
-   public static ItemStack loadComplexItemStack(String line) {
-      IScriptableRegistry.OptionallyDisabled<ItemStack> stackq = parseItemStack(line);
-      if (stackq.isPresent()) {
-         return stackq.get();
-      }
-
-      BCLog.logger.warn("[lib.guide.loader.markdown] " + stackq.getDisabledReason());
-      return ItemStack.EMPTY;
-   }
-
    public static IScriptableRegistry.OptionallyDisabled<ItemStack> parseItemStack(String line) {
       String[] args = line.split(",");
       if (args.length == 0) {

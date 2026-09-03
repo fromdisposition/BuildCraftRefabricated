@@ -60,10 +60,6 @@ public class MathUtil {
       return a;
    }
 
-   public static int findLowestCommonMultiple(int a, int b) {
-      return a / findHighestCommonFactor(a, b) * b;
-   }
-
    static {
       short a = 0;
 

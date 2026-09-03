@@ -18,17 +18,6 @@ public class ToolTip extends ForwardingList<String> implements RandomAccess {
    private final long delay;
    private long mouseOverStart;
 
-   public static ToolTip createLocalized(String... localeKeys) {
-      List<String> allLines = new ArrayList<>();
-
-      for (String key : localeKeys) {
-         String localized = LocaleUtil.localize(key);
-         Collections.addAll(allLines, localized.split("\n"));
-      }
-
-      return new ToolTip(allLines);
-   }
-
    public ToolTip(String... lines) {
       this.delay = 0L;
       Collections.addAll(this.delegate, lines);

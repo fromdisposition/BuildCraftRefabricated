@@ -73,35 +73,6 @@ public final class NeighborTransfers {
       return insertItemsShuffled(level, pos, stack, ignore, null);
    }
 
-   public static int insertItemCountShuffled(Level level, BlockPos pos, ItemStack template, int amount, @Nullable Direction ignore) {
-      if (!template.isEmpty() && amount > 0) {
-         List<Direction> toTry = new ArrayList<>(6);
-         Collections.addAll(toTry, Direction.values());
-         Collections.shuffle(toTry);
-         int remaining = amount;
-         int totalInserted = 0;
-
-         for (Direction face : toTry) {
-            if (remaining <= 0) {
-               break;
-            }
-
-            if (face != ignore) {
-               Storage<ItemVariant> storage = BcTransfers.item(level, pos.relative(face), face.getOpposite());
-               if (storage != null) {
-                  int inserted = TransferCommits.insertItems(storage, template, remaining, true);
-                  totalInserted += inserted;
-                  remaining -= inserted;
-               }
-            }
-         }
-
-         return totalInserted;
-      } else {
-         return 0;
-      }
-   }
-
    public static void pushFluidToNeighbors(Level level, BlockPos pos, Storage<FluidVariant> from) {
       pushFluidToNeighbors(level, pos, from, 1000);
    }

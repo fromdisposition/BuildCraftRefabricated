@@ -121,11 +121,6 @@ public class AIRobotLoad extends AIRobot {
       return consistent && loaded > 0;
    }
 
-   /** Take exactly one matching item, used to equip a tool. Same all-or-nothing contract as {@link #load}. */
-   public static ItemStack takeSingle(DockingStation station, IStackFilter filter, boolean doTake) {
-      return take(station, filter, 1, doTake);
-   }
-
    /** Take up to {@code max} of one matching item -- a tool is one, a consumable like seed is a whole stack. */
    public static ItemStack take(DockingStation station, IStackFilter filter, int max, boolean doTake) {
       if (station == null || filter == null) {

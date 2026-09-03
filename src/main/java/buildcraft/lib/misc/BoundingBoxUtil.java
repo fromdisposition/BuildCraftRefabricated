@@ -76,19 +76,4 @@ public class BoundingBoxUtil {
 
       return new AABB(min.getX(), min.getY(), min.getZ(), max.getX() + 1, max.getY() + 1, max.getZ() + 1);
    }
-
-   public static AABB extrudeFace(BlockPos pos, Direction face, double depth) {
-      Vec3 from = Vec3.atLowerCornerOf(pos);
-      Vec3 to = Vec3.atLowerCornerOf(pos).add(1.0, 1.0, 1.0);
-      Axis axis = face.getAxis();
-      if (face.getAxisDirection() == AxisDirection.POSITIVE) {
-         from = VecUtil.replaceValue(from, axis, VecUtil.getValue(from, axis) + 1.0);
-         to = VecUtil.replaceValue(to, axis, VecUtil.getValue(to, axis) + depth);
-      } else {
-         to = VecUtil.replaceValue(to, axis, VecUtil.getValue(to, axis) - 1.0);
-         from = VecUtil.replaceValue(from, axis, VecUtil.getValue(from, axis) - depth);
-      }
-
-      return makeFrom(from, to);
-   }
 }

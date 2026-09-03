@@ -57,37 +57,6 @@ public class StackUtil {
       return false;
    }
 
-   public static boolean containsAll(Collection<ItemStack> required, Collection<ItemStack> containers) {
-      for (ItemStack req : required) {
-         if (req == null) {
-            throw new NullPointerException("Found a null itemstack in " + containers);
-         }
-
-         if (!req.isEmpty() && !contains(req, containers)) {
-            return false;
-         }
-      }
-
-      return true;
-   }
-
-   public static int mergeStacks(@Nonnull ItemStack mergeSource, @Nonnull ItemStack mergeTarget, boolean doMerge) {
-      if (!canMerge(mergeSource, mergeTarget)) {
-         return 0;
-      }
-
-      int mergeCount = Math.min(mergeTarget.getMaxStackSize() - mergeTarget.getCount(), mergeSource.getCount());
-      if (mergeCount < 1) {
-         return 0;
-      }
-
-      if (doMerge) {
-         mergeTarget.setCount(mergeTarget.getCount() + mergeCount);
-      }
-
-      return mergeCount;
-   }
-
    public static boolean isMatchingItem(@Nonnull ItemStack base, @Nonnull ItemStack comparison) {
       return !base.isEmpty() && !comparison.isEmpty() ? ItemStack.isSameItemSameComponents(base, comparison) : false;
    }
@@ -138,10 +107,6 @@ public class StackUtil {
    @Nonnull
    public static ItemStack asNonNullSoft(@Nullable ItemStack stack) {
       return asNonNullSoft(stack, EMPTY);
-   }
-
-   public static <E> Collector<E, ?, NonNullList<E>> nonNullListCollector() {
-      return Collectors.toCollection(NonNullList::create);
    }
 
    public static NonNullList<ItemStack> mergeSameItems(List<ItemStack> items) {

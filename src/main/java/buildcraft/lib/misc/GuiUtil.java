@@ -46,15 +46,6 @@ public class GuiUtil {
       return IGuiArea.create(position, area.width, area.height);
    }
 
-   public static <D> void drawVerticallyAppending(IGuiPosition element, Iterable<? extends D> iterable, GuiUtil.IVerticalAppendingDrawer<D> drawer) {
-      double x = element.getX();
-      double y = element.getY();
-
-      for (D drawable : iterable) {
-         y += drawer.draw(drawable, x, y);
-      }
-   }
-
    public static GuiUtil.AutoGlScissor scissor(final BCGraphics graphics, double x, double y, double w, double h) {
       graphics.enableScissor((int)x, (int)y, (int)(x + w), (int)(y + h));
       return new GuiUtil.AutoGlScissor() {

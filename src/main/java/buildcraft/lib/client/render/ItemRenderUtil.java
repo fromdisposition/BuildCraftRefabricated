@@ -38,10 +38,6 @@ public class ItemRenderUtil {
       itemStateCache.clear();
    }
 
-   public static PoseStack getCurrentPoseStack() {
-      return currentPoseStack;
-   }
-
    public static void renderItemStack(double x, double y, double z, ItemStack stack, int lightc, Direction dir, VertexConsumer bb) {
       renderItemStack(x, y, z, stack, stack.getCount(), lightc, dir, bb);
    }
@@ -131,11 +127,5 @@ public class ItemRenderUtil {
       } else {
          return stackCount > 1 ? 2 : 1;
       }
-   }
-
-   public static void endItemBatch() {
-      currentPoseStack = null;
-      currentCollector = null;
-      itemStateCache.clear();
    }
 }

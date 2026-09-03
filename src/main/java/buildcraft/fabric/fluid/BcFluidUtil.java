@@ -49,10 +49,5 @@ public final class BcFluidUtil {
 
       return isSubmergedInBcFluid(entity.level(), entity.getX(), entity.getEyeY(), entity.getZ());
    }
-
-   /** Entity eye is inside a BC fluid (tracker for liquids, height check for gases and edge cases). */
-   public static boolean isEyeInBcFluid(Entity entity) {
-      return entity.isEyeInFluid(BcFluidTags.BC_LIQUIDS) || isBcFluidAtEye(entity);
-   }
 }
-
+

@@ -59,10 +59,6 @@ public class GlobalSavedDataSnapshots {
       }
    }
 
-   public static void reInit(GlobalSavedDataSnapshots.Side side) {
-      INSTANCES.put(side, new GlobalSavedDataSnapshots(side));
-   }
-
    public static GlobalSavedDataSnapshots get(GlobalSavedDataSnapshots.Side side) {
       if (!INSTANCES.containsKey(side)) {
          INSTANCES.put(side, new GlobalSavedDataSnapshots(side));

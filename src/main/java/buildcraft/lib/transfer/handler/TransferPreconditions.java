@@ -44,19 +44,4 @@ public class TransferPreconditions {
          throw new IllegalArgumentException("Expected value to be non-negative: " + value);
       }
    }
-
-   public static void checkNonEmptyNonNegative(FluidStack stack, int value) {
-      checkNonEmpty(stack);
-      checkNonNegative(value);
-   }
-
-   public static void checkNonEmptyNonNegative(ItemStack stack, int value) {
-      checkNonEmpty(stack);
-      checkNonNegative(value);
-   }
-
-   public static void checkNonEmptyNonNegative(ItemVariant variant, int value) {
-      checkNonEmpty(variant);
-      checkNonNegative(value);
-   }
 }

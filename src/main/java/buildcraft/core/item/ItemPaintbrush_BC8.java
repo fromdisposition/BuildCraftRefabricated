@@ -59,15 +59,6 @@ public class ItemPaintbrush_BC8 extends Item {
       }
    }
 
-   public static ItemStack createColoredStack(Item paintbrushItem, @Nullable DyeColor colour) {
-      ItemStack stack = new ItemStack(paintbrushItem);
-      if (colour != null) {
-         setBrushData(stack, colour, MAX_USES);
-      }
-
-      return stack;
-   }
-
    public Component getName(ItemStack stack) {
       DyeColor colour = getColour(stack);
       if (colour != null) {

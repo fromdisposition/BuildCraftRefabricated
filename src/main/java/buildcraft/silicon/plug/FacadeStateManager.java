@@ -125,10 +125,6 @@ public enum FacadeStateManager implements IFacadeRegistry {
       return Comparator.comparingInt(state -> Block.BLOCK_STATE_REGISTRY.getId(state));
    }
 
-   public static FacadeBlockStateInfo getInfoForBlock(Block block) {
-      return getInfoForState(block.defaultBlockState());
-   }
-
    private static FacadeBlockStateInfo getInfoForState(BlockState state) {
       return validFacadeStates.get(state);
    }

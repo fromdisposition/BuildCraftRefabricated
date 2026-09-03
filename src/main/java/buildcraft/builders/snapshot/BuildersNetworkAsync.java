@@ -59,8 +59,4 @@ public final class BuildersNetworkAsync {
    public static void runDiskWrite(Runnable task) {
       DISK_WRITE.execute(task);
    }
-
-   public static void runServerSerialize(Runnable task) {
-      SERVER_SERIALIZE.execute(task);
-   }
 }

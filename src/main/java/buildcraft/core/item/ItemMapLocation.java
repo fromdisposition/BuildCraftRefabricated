@@ -324,11 +324,6 @@ public class ItemMapLocation extends Item implements IMapLocation {
       }
    }
 
-   public static Direction getPointFace(@Nonnull ItemStack stack) {
-      CompoundTag cpt = getCustomTag(stack);
-      return readSide(cpt);
-   }
-
    @Override
    public IBox getBox(@Nonnull ItemStack item) {
       IMapLocation.MapLocationType type = getTypeFromStack(item);
