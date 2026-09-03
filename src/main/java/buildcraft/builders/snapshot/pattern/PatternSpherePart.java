@@ -11,17 +11,15 @@ import buildcraft.api.filler.IFilledTemplate;
 import buildcraft.api.filler.IFillerPatternShape;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.builders.BCBuildersSprites;
-import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.builders.snapshot.pattern.parameter.PatternParameterFacing;
 import buildcraft.builders.snapshot.pattern.parameter.PatternParameterHollow;
 import buildcraft.builders.snapshot.pattern.parameter.PatternParameterRotation;
 import buildcraft.lib.misc.VecUtil;
-import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Set;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.Direction;
 import net.minecraft.world.phys.Vec3;
 
 public final class PatternSpherePart extends Pattern implements IFillerPatternShape {
@@ -109,132 +107,7 @@ public final class PatternSpherePart extends Pattern implements IFillerPatternSh
          }
       }
 
-      double cx = center.x;
-      double cy = center.y;
-      double cz = center.z;
-      double rx = radius.x;
-      double ry = radius.y;
-      double rz = radius.z;
-      BitSet data = null;
-      if (hollow != PatternParameterHollow.FILLED_INNER) {
-         data = new BitSet(Snapshot.getDataSize(filledTemplate.getSize()));
-      }
-
-      for (int x = 0; x <= filledTemplate.getMax().getX(); x++) {
-         double dx = Math.abs(x - cx) / rx;
-         double dxx = dx * dx;
-
-         for (int y = 0; y <= filledTemplate.getMax().getY(); y++) {
-            double dy = Math.abs(y - cy) / ry;
-            double dyy = dy * dy;
-
-            for (int z = 0; z <= filledTemplate.getMax().getZ(); z++) {
-               double dz = Math.abs(z - cz) / rz;
-               double dzz = dz * dz;
-               if (dxx + dyy + dzz < 1.0) {
-                  if (hollow != PatternParameterHollow.FILLED_INNER) {
-                     data.set(Snapshot.posToIndex(filledTemplate.getSize(), x, y, z), true);
-                  } else {
-                     filledTemplate.set(x, y, z, true);
-                  }
-               }
-            }
-         }
-      }
-
-      boolean outerFilled = hollow.outerFilled;
-      if (hollow != PatternParameterHollow.FILLED_INNER) {
-         for (int x = 0; x <= filledTemplate.getMax().getX(); x++) {
-            for (int y = 0; y <= filledTemplate.getMax().getY(); y++) {
-               if (!innerSides.contains(Direction.NORTH)) {
-                  for (int z = 0; z <= filledTemplate.getMax().getZ(); z++) {
-                     if (data.get(Snapshot.posToIndex(filledTemplate.getSize(), x, y, z))) {
-                        filledTemplate.set(x, y, z, true);
-                        break;
-                     }
-
-                     if (outerFilled) {
-                        filledTemplate.set(x, y, z, true);
-                     }
-                  }
-               }
-
-               if (!innerSides.contains(Direction.SOUTH)) {
-                  for (int z = filledTemplate.getMax().getZ(); z >= 0; z--) {
-                     if (data.get(Snapshot.posToIndex(filledTemplate.getSize(), x, y, z))) {
-                        filledTemplate.set(x, y, z, true);
-                        break;
-                     }
-
-                     if (outerFilled) {
-                        filledTemplate.set(x, y, z, true);
-                     }
-                  }
-               }
-            }
-         }
-
-         for (int x = 0; x <= filledTemplate.getMax().getX(); x++) {
-            for (int z = 0; z <= filledTemplate.getMax().getZ(); z++) {
-               if (!innerSides.contains(Direction.DOWN)) {
-                  for (int y = 0; y <= filledTemplate.getMax().getY(); y++) {
-                     if (data.get(Snapshot.posToIndex(filledTemplate.getSize(), x, y, z))) {
-                        filledTemplate.set(x, y, z, true);
-                        break;
-                     }
-
-                     if (outerFilled) {
-                        filledTemplate.set(x, y, z, true);
-                     }
-                  }
-               }
-
-               if (!innerSides.contains(Direction.UP)) {
-                  for (int y = filledTemplate.getMax().getY(); y >= 0; y--) {
-                     if (data.get(Snapshot.posToIndex(filledTemplate.getSize(), x, y, z))) {
-                        filledTemplate.set(x, y, z, true);
-                        break;
-                     }
-
-                     if (outerFilled) {
-                        filledTemplate.set(x, y, z, true);
-                     }
-                  }
-               }
-            }
-         }
-
-         for (int y = 0; y <= filledTemplate.getMax().getY(); y++) {
-            for (int z = 0; z <= filledTemplate.getMax().getZ(); z++) {
-               if (!innerSides.contains(Direction.WEST)) {
-                  for (int x = 0; x <= filledTemplate.getMax().getX(); x++) {
-                     if (data.get(Snapshot.posToIndex(filledTemplate.getSize(), x, y, z))) {
-                        filledTemplate.set(x, y, z, true);
-                        break;
-                     }
-
-                     if (outerFilled) {
-                        filledTemplate.set(x, y, z, true);
-                     }
-                  }
-               }
-
-               if (!innerSides.contains(Direction.EAST)) {
-                  for (int x = filledTemplate.getMax().getX(); x >= 0; x--) {
-                     if (data.get(Snapshot.posToIndex(filledTemplate.getSize(), x, y, z))) {
-                        filledTemplate.set(x, y, z, true);
-                        break;
-                     }
-
-                     if (outerFilled) {
-                        filledTemplate.set(x, y, z, true);
-                     }
-                  }
-               }
-            }
-         }
-      }
-
+      fillEllipsoid(filledTemplate, center, radius, hollow, innerSides);
       return true;
    }
 
