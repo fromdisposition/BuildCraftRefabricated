@@ -7,12 +7,13 @@
 package buildcraft.robotics;
 
 import buildcraft.fabric.BCRegistries;
+import buildcraft.lib.block.BcHorizontalTileBlock;
 import buildcraft.robotics.block.BlockRequester;
-import buildcraft.robotics.block.BlockZonePlanner;
+import buildcraft.robotics.tile.TileZonePlanner;
 import net.minecraft.world.level.block.SoundType;
 
 public final class BCRoboticsBlocks {
-   public static BlockZonePlanner ZONE_PLANNER;
+   public static BcHorizontalTileBlock ZONE_PLANNER;
    public static BlockRequester REQUESTER;
 
    private BCRoboticsBlocks() {
@@ -20,7 +21,10 @@ public final class BCRoboticsBlocks {
 
    public static void register() {
       ZONE_PLANNER = BCRegistries.registerBlock(
-         "buildcraftrobotics", "zone_planner", BlockZonePlanner::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         "buildcraftrobotics",
+         "zone_planner",
+         p -> new BcHorizontalTileBlock(p, () -> BCRoboticsBlockEntities.ZONE_PLANNER, TileZonePlanner::serverTick, null, true),
+         p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       REQUESTER = BCRegistries.registerBlock(
          "buildcraftrobotics", "requester", BlockRequester::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()

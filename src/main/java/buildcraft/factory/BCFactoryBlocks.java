@@ -7,21 +7,22 @@
 package buildcraft.factory;
 
 import buildcraft.fabric.BCRegistries;
-import buildcraft.factory.block.BlockAutoWorkbenchItems;
 import buildcraft.factory.block.BlockChute;
 import buildcraft.factory.block.BlockDistiller;
 import buildcraft.factory.block.BlockFloodGate;
 import buildcraft.factory.block.BlockHeatExchange;
 import buildcraft.factory.block.BlockMiningWell;
-import buildcraft.factory.block.BlockPump;
 import buildcraft.factory.block.BlockTank;
 import buildcraft.factory.block.BlockWaterGel;
+import buildcraft.factory.tile.TileAutoWorkbenchItems;
+import buildcraft.factory.tile.TilePump;
+import buildcraft.lib.block.BcTileBlock;
 import net.minecraft.world.level.block.SoundType;
 
 public final class BCFactoryBlocks {
-   public static BlockAutoWorkbenchItems AUTOWORKBENCH_ITEM;
+   public static BcTileBlock AUTOWORKBENCH_ITEM;
    public static BlockMiningWell MINING_WELL;
-   public static BlockPump PUMP;
+   public static BcTileBlock PUMP;
    public static BlockFloodGate FLOOD_GATE;
    public static BlockTank TANK;
    public static BlockChute CHUTE;
@@ -34,13 +35,19 @@ public final class BCFactoryBlocks {
 
    public static void register() {
       AUTOWORKBENCH_ITEM = BCRegistries.registerBlock(
-         "buildcraftfactory", "autoworkbench_item", BlockAutoWorkbenchItems::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         "buildcraftfactory",
+         "autoworkbench_item",
+         p -> new BcTileBlock(p, () -> BCFactoryBlockEntities.AUTO_WORKBENCH_ITEMS, TileAutoWorkbenchItems::serverTick, null, true),
+         p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       MINING_WELL = BCRegistries.registerBlock(
          "buildcraftfactory", "mining_well", BlockMiningWell::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       PUMP = BCRegistries.registerBlock(
-         "buildcraftfactory", "pump", BlockPump::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         "buildcraftfactory",
+         "pump",
+         p -> new BcTileBlock(p, () -> BCFactoryBlockEntities.PUMP, TilePump::serverTick, TilePump::clientTick, false),
+         p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       FLOOD_GATE = BCRegistries.registerBlock(
          "buildcraftfactory", "flood_gate", BlockFloodGate::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()

@@ -11,10 +11,11 @@ import buildcraft.core.block.BlockEngineCreative;
 import buildcraft.core.block.BlockEngineRedstone_BC8;
 import buildcraft.core.block.BlockMarkerPath;
 import buildcraft.core.block.BlockMarkerVolume;
-import buildcraft.core.block.BlockPowerConsumerTester;
 import buildcraft.core.block.BlockSpring;
 import buildcraft.core.block.BlockSpringOil;
+import buildcraft.core.tile.TilePowerConsumerTester;
 import buildcraft.fabric.BCRegistries;
+import buildcraft.lib.block.BcTileBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 
@@ -29,7 +30,7 @@ public class BCCoreBlocks {
    public static BlockMarkerPath MARKER_PATH;
    public static BlockEngineRedstone_BC8 ENGINE_REDSTONE;
    public static BlockEngineCreative ENGINE_CREATIVE;
-   public static BlockPowerConsumerTester POWER_TESTER;
+   public static BcTileBlock POWER_TESTER;
 
    private BCCoreBlocks() {
    }
@@ -66,7 +67,10 @@ public class BCCoreBlocks {
          "buildcraftcore", "engine_creative", BlockEngineCreative::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       POWER_TESTER = BCRegistries.registerBlock(
-         "buildcraftcore", "power_tester", BlockPowerConsumerTester::new, p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         "buildcraftcore",
+         "power_tester",
+         p -> new BcTileBlock(p, () -> BCCoreBlockEntities.POWER_TESTER, TilePowerConsumerTester::serverTick, null, false),
+         p -> p.strength(3.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
    }
 }

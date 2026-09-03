@@ -7,6 +7,8 @@
 package buildcraft.lib.block;
 
 import buildcraft.lib.compat.BcInteract;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -23,9 +25,55 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class BcTileBlock extends Block implements EntityBlock {
+public class BcTileBlock extends Block implements EntityBlock {
+   @Nullable
+   private final Supplier<? extends BlockEntityType<?>> tileType;
+   @Nullable
+   private final Consumer<?> serverTick;
+   @Nullable
+   private final Consumer<?> clientTick;
+   private final boolean opensMenu;
+
    protected BcTileBlock(Properties properties) {
+      this(properties, null, null, null, false);
+   }
+
+   public <T extends BlockEntity> BcTileBlock(
+      Properties properties,
+      @Nullable Supplier<BlockEntityType<T>> tileType,
+      @Nullable Consumer<T> serverTick,
+      @Nullable Consumer<T> clientTick,
+      boolean opensMenu
+   ) {
       super(properties);
+      this.tileType = tileType;
+      this.serverTick = serverTick;
+      this.clientTick = clientTick;
+      this.opensMenu = opensMenu;
+   }
+
+   @Nullable
+   @Override
+   public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+      return this.tileType == null ? null : this.tileType.get().create(pos, state);
+   }
+
+   @Nullable
+   @Override
+   @SuppressWarnings("unchecked")
+   public <A extends BlockEntity> BlockEntityTicker<A> getTicker(Level level, BlockState state, BlockEntityType<A> type) {
+      Consumer<?> tick = level.isClientSide() ? this.clientTick : this.serverTick;
+      if (tick == null || this.tileType == null || type != this.tileType.get()) {
+         return null;
+      }
+
+      Consumer<A> typed = (Consumer<A>) tick;
+      return (lvl, pos, st, tile) -> typed.accept(tile);
+   }
+
+   @Override
+   protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+      return this.opensMenu ? this.openMenu(level, pos, player) : super.useWithoutItem(state, level, pos, player, hitResult);
    }
 
    @Nullable

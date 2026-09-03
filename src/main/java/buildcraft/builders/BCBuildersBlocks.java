@@ -6,24 +6,24 @@
 
 package buildcraft.builders;
 
-import buildcraft.builders.block.BlockArchitectTable;
 import buildcraft.builders.block.BlockBuilder;
 import buildcraft.builders.block.BlockConstructionMarker;
-import buildcraft.builders.block.BlockElectronicLibrary;
 import buildcraft.builders.block.BlockFiller;
 import buildcraft.builders.block.BlockFrame;
 import buildcraft.builders.block.BlockQuarry;
-import buildcraft.builders.block.BlockReplacer;
+import buildcraft.builders.tile.TileArchitectTable;
+import buildcraft.builders.tile.TileElectronicLibrary;
 import buildcraft.fabric.BCRegistries;
+import buildcraft.lib.block.BcHorizontalTileBlock;
 import net.minecraft.world.level.block.SoundType;
 
 public final class BCBuildersBlocks {
    public static BlockFrame FRAME;
    public static BlockFiller FILLER;
    public static BlockBuilder BUILDER;
-   public static BlockArchitectTable ARCHITECT;
-   public static BlockElectronicLibrary LIBRARY;
-   public static BlockReplacer REPLACER;
+   public static BcHorizontalTileBlock ARCHITECT;
+   public static BcHorizontalTileBlock LIBRARY;
+   public static BcHorizontalTileBlock REPLACER;
    public static BlockQuarry QUARRY;
    public static BlockConstructionMarker CONSTRUCTION_MARKER;
 
@@ -41,13 +41,22 @@ public final class BCBuildersBlocks {
          "buildcraftbuilders", "builder", BlockBuilder::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       ARCHITECT = BCRegistries.registerBlock(
-         "buildcraftbuilders", "architect", BlockArchitectTable::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         "buildcraftbuilders",
+         "architect",
+         p -> new BcHorizontalTileBlock(p, () -> BCBuildersBlockEntities.ARCHITECT, TileArchitectTable::tick, TileArchitectTable::tick, true),
+         p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       LIBRARY = BCRegistries.registerBlock(
-         "buildcraftbuilders", "library", BlockElectronicLibrary::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         "buildcraftbuilders",
+         "library",
+         p -> new BcHorizontalTileBlock(p, () -> BCBuildersBlockEntities.LIBRARY, TileElectronicLibrary::tick, TileElectronicLibrary::tick, true),
+         p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       REPLACER = BCRegistries.registerBlock(
-         "buildcraftbuilders", "replacer", BlockReplacer::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
+         "buildcraftbuilders",
+         "replacer",
+         p -> new BcHorizontalTileBlock(p, () -> BCBuildersBlockEntities.REPLACER, null, null, true),
+         p -> p.strength(5.0F, 10.0F).sound(SoundType.METAL).requiresCorrectToolForDrops()
       );
       QUARRY = BCRegistries.registerBlock(
          "buildcraftbuilders", "quarry", BlockQuarry::new, p -> p.strength(5.0F, 10.0F).sound(SoundType.ANVIL).requiresCorrectToolForDrops()

@@ -6,28 +6,22 @@
 
 package buildcraft.factory.block;
 
-import buildcraft.lib.block.BcTileBlock;
 import buildcraft.api.properties.BuildCraftProperties;
 import buildcraft.factory.BCFactoryBlockEntities;
 import buildcraft.factory.tile.TileMiningWell;
-import net.minecraft.core.BlockPos;
+import buildcraft.lib.block.BcTileBlock;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition.Builder;
 import net.minecraft.world.level.block.state.properties.Property;
-import org.jetbrains.annotations.Nullable;
 
 public class BlockMiningWell extends BcTileBlock {
    public static final Property<Direction> FACING = BuildCraftProperties.BLOCK_FACING;
    public BlockMiningWell(Properties properties) {
-      super(properties);
+      super(properties, () -> BCFactoryBlockEntities.MINING_WELL, TileMiningWell::serverTick, TileMiningWell::clientTick, false);
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
    }
 
@@ -37,18 +31,6 @@ public class BlockMiningWell extends BcTileBlock {
 
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-   }
-
-   @Nullable
-   public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-      return new TileMiningWell(pos, state);
-   }
-
-   @Nullable
-   public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-      return level.isClientSide()
-         ? createTickerHelper(type, BCFactoryBlockEntities.MINING_WELL, (lvl, pos, st, tile) -> tile.clientTick())
-         : createTickerHelper(type, BCFactoryBlockEntities.MINING_WELL, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
 }
