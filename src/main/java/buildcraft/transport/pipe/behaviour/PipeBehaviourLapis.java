@@ -8,18 +8,11 @@ package buildcraft.transport.pipe.behaviour;
 
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.transport.pipe.IPipe;
-import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pipe.PipeBehaviour;
-import buildcraft.api.transport.pipe.PipeEventActionActivate;
 import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.PipeEventItem;
-import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFaceTex;
-import buildcraft.lib.misc.EntityUtil;
-import buildcraft.transport.BCTransportStatements;
-import buildcraft.transport.statements.ActionPipeColor;
 
-import java.util.Collections;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -71,36 +64,16 @@ public class PipeBehaviourLapis extends PipeBehaviour {
 
    @Override
    public boolean onPipeActivate(Player player, HitResult trace, float hitX, float hitY, float hitZ, EnumPipePart part) {
-      if (this.pipe.getHolder().getPipeWorld().isClientSide()) {
-         return EntityUtil.getWrenchHand(player) != null;
-      } else if (EntityUtil.getWrenchHand(player) != null) {
-         EntityUtil.activateWrench(player, trace);
-         return this.colourData.cycleOnWrench(player, IPipeHolder.PipeMessageReceiver.BEHAVIOUR, this.pipe.getHolder());
-      } else {
-         return false;
-      }
+      return this.colourData.onPipeActivate(player, trace, this.pipe.getHolder());
    }
 
    public void onReachCenter(PipeEventItem.ReachCenter reachCenter) {
       reachCenter.colour = this.colourData.getColour();
    }
 
-   public void addPaintActions(PipeEventStatement.AddActionInternal event) {
-      Collections.addAll(event.actions, BCTransportStatements.ACTION_PIPE_COLOUR);
-   }
-
-   public void onPaintActionActivate(PipeEventActionActivate event) {
-      if (event.action instanceof ActionPipeColor action && this.colourData.getColour() != action.color) {
-         this.colourData.setColour(action.color);
-         this.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
-         this.pipe.getHolder().scheduleRenderUpdate();
-      }
-   }
-
    @Override
    public void registerEventHandlers(IPipeEventBus bus) {
       bus.on(PipeEventItem.ReachCenter.class, this, this::onReachCenter);
-      bus.on(PipeEventStatement.AddActionInternal.class, this, this::addPaintActions);
-      bus.on(PipeEventActionActivate.class, this, this::onPaintActionActivate);
+      this.colourData.registerPaintActions(bus, this);
    }
 }

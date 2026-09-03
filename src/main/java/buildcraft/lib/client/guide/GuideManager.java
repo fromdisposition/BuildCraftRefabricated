@@ -35,7 +35,7 @@ import buildcraft.lib.client.guide.parts.contents.ContentsNodeGui;
 import buildcraft.lib.client.guide.parts.contents.GuidePageContents;
 import buildcraft.lib.client.guide.parts.contents.IContentsNode;
 import buildcraft.lib.client.guide.parts.contents.PageLink;
-import buildcraft.lib.client.guide.parts.contents.PageLinkItemStack;
+import buildcraft.lib.client.guide.parts.contents.PageLinkStack;
 import buildcraft.lib.client.guide.parts.contents.PageLinkNormal;
 import buildcraft.lib.client.guide.ref.GuideGroupManager;
 import buildcraft.lib.client.guide.ref.GuideGroupSet;
@@ -574,7 +574,7 @@ public enum GuideManager {
          LocaleUtil.localize("buildcraft.guide.page.extraction_presets"),
          g -> {
             ItemStack emzuliStack = new ItemStack(BCTransportItems.PIPE_EMZULI_ITEM);
-            PageLink emzuliLink = PageLinkItemStack.create(true, emzuliStack, InactiveProfiler.INSTANCE);
+            PageLink emzuliLink = PageLinkStack.item(true, emzuliStack, InactiveProfiler.INSTANCE);
             return ImmutableList.of(new GuidePartLink(g, emzuliLink));
          }
       );

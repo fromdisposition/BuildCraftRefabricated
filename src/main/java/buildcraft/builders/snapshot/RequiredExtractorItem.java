@@ -27,18 +27,7 @@ public class RequiredExtractorItem extends RequiredExtractor {
    @Nonnull
    @Override
    public List<ItemStack> extractItemsFromBlock(@Nonnull BlockState blockState, @Nullable CompoundTag tileNbt) {
-      if (tileNbt != null && this.path != null) {
-         if (this.path.get(tileNbt) instanceof CompoundTag ct) {
-            ItemStack stack = parseItemStack(ct);
-            if (!stack.isEmpty()) {
-               return Collections.singletonList(stack);
-            }
-         }
-
-         return Collections.emptyList();
-      } else {
-         return Collections.emptyList();
-      }
+      return tileNbt == null ? Collections.emptyList() : this.extractItemsFromEntity(tileNbt);
    }
 
    @Nonnull

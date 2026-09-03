@@ -12,7 +12,7 @@ import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.guide.data.JsonTypeTags;
 import buildcraft.lib.client.guide.parts.GuidePart;
-import buildcraft.lib.client.guide.parts.contents.PageLinkFluidStack;
+import buildcraft.lib.client.guide.parts.contents.PageLinkStack;
 import buildcraft.lib.client.guide.ref.GuideGroupManager;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.GuiFluid;
@@ -52,7 +52,7 @@ public class PageEntryFluidStack extends PageValueType<FluidStackValueFilter> {
             if (!stack.isEmpty() && GuideManager.INSTANCE.objectsAdded.add(fluid)) {
                String displayName = stack.getHoverName().getString();
                if (displayName != null && !displayName.trim().isEmpty()) {
-                  consumer.addChild(OTHER_FLUIDS_TAGS, PageLinkFluidStack.create(false, stack, prof));
+                  consumer.addChild(OTHER_FLUIDS_TAGS, PageLinkStack.fluid(false, stack, prof));
                }
             }
          }

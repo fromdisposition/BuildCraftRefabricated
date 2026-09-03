@@ -14,7 +14,7 @@ import buildcraft.lib.client.guide.GuideManager;
 import buildcraft.lib.client.guide.data.JsonTypeTags;
 import buildcraft.lib.client.guide.loader.MarkdownPageLoader;
 import buildcraft.lib.client.guide.parts.GuidePart;
-import buildcraft.lib.client.guide.parts.contents.PageLinkItemStack;
+import buildcraft.lib.client.guide.parts.contents.PageLinkStack;
 import buildcraft.lib.client.guide.ref.GuideGroupManager;
 import buildcraft.lib.gui.GuiStack;
 import buildcraft.lib.gui.ISimpleDrawable;
@@ -56,7 +56,7 @@ public class PageEntryItemStack extends PageValueType<ItemStackValueFilter> {
                try {
                   String displayName = stack.getHoverName().getString();
                   if (displayName != null && !displayName.trim().isEmpty()) {
-                     consumer.addChild(OTHER_ITEMS_TAGS, PageLinkItemStack.create(false, stack, prof));
+                     consumer.addChild(OTHER_ITEMS_TAGS, PageLinkStack.item(false, stack, prof));
                   }
                } catch (Exception e) {
                   BCLog.logger
@@ -143,7 +143,7 @@ public class PageEntryItemStack extends PageValueType<ItemStackValueFilter> {
    public IScriptableRegistry.OptionallyDisabled<Object> createLink(String to, ProfilerFiller prof) {
       IScriptableRegistry.OptionallyDisabled<ItemStack> stackq = MarkdownPageLoader.parseItemStack(to);
       return stackq.isPresent()
-         ? new IScriptableRegistry.OptionallyDisabled<>(PageLinkItemStack.create(true, stackq.get(), prof))
+         ? new IScriptableRegistry.OptionallyDisabled<>(PageLinkStack.item(true, stackq.get(), prof))
          : new IScriptableRegistry.OptionallyDisabled<>(stackq.getDisabledReason());
    }
 }

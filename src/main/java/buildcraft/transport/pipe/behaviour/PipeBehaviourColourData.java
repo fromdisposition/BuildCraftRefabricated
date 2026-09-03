@@ -6,12 +6,21 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import buildcraft.api.transport.pipe.IPipeEventBus;
 import buildcraft.api.transport.pipe.IPipeHolder;
+import buildcraft.api.transport.pipe.PipeBehaviour;
+import buildcraft.api.transport.pipe.PipeEventActionActivate;
+import buildcraft.api.transport.pipe.PipeEventStatement;
+import buildcraft.lib.misc.EntityUtil;
 import buildcraft.lib.misc.NBTUtilBC;
+import buildcraft.transport.BCTransportStatements;
+import buildcraft.transport.statements.ActionPipeColor;
+import java.util.Collections;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.phys.HitResult;
 
 public final class PipeBehaviourColourData {
    private DyeColor colour = DyeColor.WHITE;
@@ -41,6 +50,28 @@ public final class PipeBehaviourColourData {
 
    public void readPayload(FriendlyByteBuf buffer) {
       this.colour = DyeColor.byId(buffer.readUnsignedByte());
+   }
+
+   public boolean onPipeActivate(Player player, HitResult trace, IPipeHolder holder) {
+      if (holder.getPipeWorld().isClientSide()) {
+         return EntityUtil.getWrenchHand(player) != null;
+      } else if (EntityUtil.getWrenchHand(player) != null) {
+         EntityUtil.activateWrench(player, trace);
+         return this.cycleOnWrench(player, IPipeHolder.PipeMessageReceiver.BEHAVIOUR, holder);
+      } else {
+         return false;
+      }
+   }
+
+   public void registerPaintActions(IPipeEventBus bus, PipeBehaviour behaviour) {
+      bus.on(PipeEventStatement.AddActionInternal.class, behaviour, event -> Collections.addAll(event.actions, BCTransportStatements.ACTION_PIPE_COLOUR));
+      bus.on(PipeEventActionActivate.class, behaviour, event -> {
+         if (event.action instanceof ActionPipeColor action && this.colour != action.color) {
+            this.colour = action.color;
+            behaviour.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
+            behaviour.pipe.getHolder().scheduleRenderUpdate();
+         }
+      });
    }
 
    public boolean cycleOnWrench(Player player, IPipeHolder.PipeMessageReceiver receiver, IPipeHolder holder) {

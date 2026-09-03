@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import org.jspecify.annotations.Nullable;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.FilteringStorage;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -54,9 +55,9 @@ public class ItemHandlerManager {
             throw new IllegalArgumentException("Completely useless to not allow access to multiple sides! Just don't pass any sides!");
          }
       } else if (access == ItemHandlerManager.EnumAccess.EXTRACT) {
-         external = new WrappedItemStorageExtract(handler);
+         external = FilteringStorage.extractOnlyOf(handler);
       } else if (access == ItemHandlerManager.EnumAccess.INSERT) {
-         external = new WrappedItemStorageInsert(handler);
+         external = FilteringStorage.insertOnlyOf(handler);
       }
 
       if (external != null) {

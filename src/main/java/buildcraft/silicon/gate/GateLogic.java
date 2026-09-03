@@ -584,8 +584,8 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
             GateLogic.this.markResolveDirty();
             GateLogic.this.sendStatementUpdate(true, index);
          };
-         this.trigger = new FullStatement<>(TriggerType.INSTANCE, GateLogic.this.variant.numTriggerArgs, tChange);
-         this.action = new FullStatement<>(ActionType.INSTANCE, GateLogic.this.variant.numActionArgs, aChange);
+         this.trigger = new FullStatement<>(StatementWrapperType.TRIGGER, GateLogic.this.variant.numTriggerArgs, tChange);
+         this.action = new FullStatement<>(StatementWrapperType.ACTION, GateLogic.this.variant.numActionArgs, aChange);
       }
    }
 }
