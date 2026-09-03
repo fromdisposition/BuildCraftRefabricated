@@ -2,6 +2,7 @@ package buildcraft.lib.fabric.client;
 
 import buildcraft.builders.client.render.pip.BlueprintPipRenderer;
 import buildcraft.builders.client.render.pip.TooltipBlueprintPipRenderer;
+import buildcraft.robotics.client.render.pip.ZoneMapOverlayPipRenderer;
 import buildcraft.robotics.client.render.pip.ZoneMapPipRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry;
 
@@ -19,5 +20,6 @@ public final class PictureInPictureRegistration {
       SpecialGuiElementRegistry.register(ctx -> new BlueprintPipRenderer(ctx.vertexConsumers()));
       SpecialGuiElementRegistry.register(ctx -> new TooltipBlueprintPipRenderer(ctx.vertexConsumers()));
       SpecialGuiElementRegistry.register(ctx -> new ZoneMapPipRenderer(ctx.vertexConsumers()));
+      SpecialGuiElementRegistry.register(ctx -> new ZoneMapOverlayPipRenderer(ctx.vertexConsumers()));
    }
 }

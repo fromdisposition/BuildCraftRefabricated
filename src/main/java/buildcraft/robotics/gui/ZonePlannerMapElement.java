@@ -162,6 +162,20 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return new int[]{minCX, minCZ, maxCX, maxCZ};
    }
 
+   /** Terrain cells of {@code 1 << lod} blocks: coarser while zoomed out, where a block is smaller than a texture pixel anyway. */
+   private int lodFor(ZonePlannerMapColours cache) {
+      double aboveGround = Math.max(8.0, this.camY(cache) - this.focusHeight(cache));
+      double viewBlocks = 2.0 * aboveGround * Math.tan(Math.toRadians(ZoneMapPipRenderState.FOV / 2.0)) * this.mapW / this.mapH;
+      double pxPerBlock = this.mapW * Minecraft.getInstance().getWindow().getGuiScale() / viewBlocks;
+      int lod = 0;
+
+      while (lod < ZoneMapPipRenderState.LOD_LEVELS - 1 && pxPerBlock * (1 << lod) < 1.5) {
+         lod++;
+      }
+
+      return lod;
+   }
+
    private int focusHeight(ZonePlannerMapColours cache) {
       if (cache != null) {
          int wx = Mth.floor(this.camX);
@@ -218,6 +232,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
             //? if >= 1.21.10 {
             ZoneMapPipRenderState state = this.buildState(g, cache, true);
             GuiGraphicsCompat.submitPictureInPictureRenderState(g.raw, state);
+            GuiGraphicsCompat.submitPictureInPictureRenderState(g.raw, new buildcraft.robotics.client.render.pip.ZoneMapOverlayPipRenderState(state));
             //?} else {
             /*// 1.21.1 has no PictureInPictureRenderer; draw the perspective map straight into its GUI rect.
             // Flush the pending 2D batch first so the direct GL render is correctly ordered behind the
@@ -281,6 +296,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
          bounds[1],
          bounds[2],
          bounds[3],
+         this.lodFor(cache),
          overlayColour,
          overlayCells,
          overlayColours,

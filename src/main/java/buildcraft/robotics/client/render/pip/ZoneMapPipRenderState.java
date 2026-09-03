@@ -29,6 +29,7 @@ public record ZoneMapPipRenderState(
    int minChunkZ,
    int maxChunkX,
    int maxChunkZ,
+   int lod,
    int overlayColour,
    int[] overlayCells,
    @Nullable int[] overlayColours,
@@ -58,6 +59,7 @@ public record ZoneMapPipRenderState(
    public static final float FOV = 70.0F;
    public static final float NEAR = 1.0F;
    public static final float FAR = 10000.0F;
+   public static final int LOD_LEVELS = 4;
 
    public ZoneMapPipRenderState(
       ZonePlannerMapColours colours,
@@ -72,6 +74,7 @@ public record ZoneMapPipRenderState(
       int minChunkZ,
       int maxChunkX,
       int maxChunkZ,
+      int lod,
       int overlayColour,
       int[] overlayCells,
       @Nullable int[] overlayColours,
@@ -94,7 +97,7 @@ public record ZoneMapPipRenderState(
       @Nullable ScreenRectangle scissorArea
    ) {
       this(
-         colours, originX, originZ, camX, camZ, camY, pitchDeg, yawDeg, minChunkX, minChunkZ, maxChunkX, maxChunkZ,
+         colours, originX, originZ, camX, camZ, camY, pitchDeg, yawDeg, minChunkX, minChunkZ, maxChunkX, maxChunkZ, lod,
          overlayColour, overlayCells, overlayColours, overlayStamp, hasSelection, selX0, selZ0, selX1, selZ1, selColour, hasHover,
          hoverX, hoverZ, terrainVersion, x0, y0, x1, y1, scale, scissorArea,
          //? if >= 1.21.10 {
@@ -152,17 +155,34 @@ public record ZoneMapPipRenderState(
    }
 
    
-   public long renderStamp() {
+   private long cameraStamp() {
       long h = 1125899906842597L;
       h = 31L * h + Double.doubleToLongBits(this.camX);
       h = 31L * h + Double.doubleToLongBits(this.camZ);
       h = 31L * h + Double.doubleToLongBits(this.camY);
       h = 31L * h + Float.floatToIntBits(this.pitchDeg);
       h = 31L * h + Float.floatToIntBits(this.yawDeg);
+      h = 31L * h + this.x0;
+      h = 31L * h + this.y0;
+      h = 31L * h + this.x1;
+      h = 31L * h + this.y1;
+      return 31L * h + Float.floatToIntBits(this.scale);
+   }
+
+   /** Identity of the terrain layer: camera, visible chunks, level of detail and terrain data. */
+   public long terrainRenderStamp() {
+      long h = this.cameraStamp();
       h = 31L * h + this.minChunkX;
       h = 31L * h + this.minChunkZ;
       h = 31L * h + this.maxChunkX;
       h = 31L * h + this.maxChunkZ;
+      h = 31L * h + this.lod;
+      return 31L * h + this.terrainVersion;
+   }
+
+   /** Identity of the overlay layer: camera plus the painted zones, the drag selection and the hovered block. */
+   public long overlayRenderStamp() {
+      long h = this.cameraStamp();
       h = 31L * h + this.terrainVersion;
       h = 31L * h + this.overlayColour;
       // The painted-zone overlay is a pure function of (clientLayerVersion, activeLayer), folded into overlayStamp
@@ -177,7 +197,6 @@ public record ZoneMapPipRenderState(
       h = 31L * h + this.selColour;
       h = 31L * h + (this.hasHover ? 1 : 0);
       h = 31L * h + this.hoverX;
-      h = 31L * h + this.hoverZ;
-      return h;
+      return 31L * h + this.hoverZ;
    }
 }
