@@ -147,20 +147,52 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return Minecraft.getInstance().getWindow().getGuiScale();
    }
 
+   /** Zoomed all the way out, the loaded square of chunks around the planner exactly fills the map's height. */
+   private double minZoom() {
+      int loaded = 2 * Minecraft.getInstance().options.getEffectiveRenderDistance() + 1;
+      return this.mapH * guiScale() / (Math.min(MAX_CHUNK_SPAN, loaded) * 16.0);
+   }
+
+   /** Screen pixels per block for every zoom step: the fit-to-loaded-area step, then the whole-pixel steps above it. */
+   private double[] levels() {
+      double min = this.minZoom();
+      int count = 1;
+
+      for (double level : ZOOM_LEVELS) {
+         if (level > min * 1.05) {
+            count++;
+         }
+      }
+
+      double[] levels = new double[count];
+      levels[0] = min;
+      int n = 1;
+
+      for (double level : ZOOM_LEVELS) {
+         if (level > min * 1.05) {
+            levels[n++] = level;
+         }
+      }
+
+      return levels;
+   }
+
    /** Screen pixels per block. */
    private double zoom() {
+      double[] levels = this.levels();
       if (this.zoomIndex < 0) {
          double wanted = DEFAULT_GUI_PIXELS_PER_BLOCK * guiScale();
          this.zoomIndex = 0;
 
-         for (int i = 1; i < ZOOM_LEVELS.length; i++) {
-            if (Math.abs(ZOOM_LEVELS[i] - wanted) < Math.abs(ZOOM_LEVELS[this.zoomIndex] - wanted)) {
+         for (int i = 1; i < levels.length; i++) {
+            if (Math.abs(levels[i] - wanted) < Math.abs(levels[this.zoomIndex] - wanted)) {
                this.zoomIndex = i;
             }
          }
       }
 
-      return ZOOM_LEVELS[this.zoomIndex];
+      this.zoomIndex = Mth.clamp(this.zoomIndex, 0, levels.length - 1);
+      return levels[this.zoomIndex];
    }
 
    /** GUI units per block. */
@@ -603,7 +635,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
          return false;
       }
 
-      int next = Mth.clamp(this.zoomIndex + (amount > 0.0 ? 1 : -1), 0, ZOOM_LEVELS.length - 1);
+      int next = Mth.clamp(this.zoomIndex + (amount > 0.0 ? 1 : -1), 0, this.levels().length - 1);
       if (next == this.zoomIndex) {
          return true;
       }

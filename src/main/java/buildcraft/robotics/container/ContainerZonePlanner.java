@@ -21,6 +21,8 @@ import buildcraft.robotics.BCRoboticsMenuTypes;
 import buildcraft.robotics.tile.TileZonePlanner;
 import buildcraft.robotics.zone.ZonePlan;
 import buildcraft.robotics.zone.ZonePlannerMapColours;
+import it.unimi.dsi.fastutil.longs.LongArrayFIFOQueue;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -35,6 +37,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap.Types;
+import net.minecraft.world.level.material.MapColor;
 
 public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    public static final int NET_REQUEST_LAYERS = 201;
@@ -42,13 +45,17 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    public static final int NET_MAP_REQUEST = 203;
    public static final int NET_MAP_DATA = 204;
    public static final int NET_PAINT_RECT = 205;
-   private static final int MAP_DATA_BATCH = 12;
+   private static final int MAP_CHUNKS_PER_TICK = 32;
+   private static final int MAP_DEQUEUES_PER_TICK = 512;
+   private static final int MAP_QUEUE_LIMIT = 4096;
    private static final int PLAYER_SLOTS_END = 36;
    private static final int MACHINE_SLOTS_END = 58;
    public final ZonePlannerMapColours mapColours = new ZonePlannerMapColours();
    
    public int clientLayerVersion;
    private int lastLayersVersion = -1;
+   private final LongArrayFIFOQueue mapQueue = new LongArrayFIFOQueue();
+   private final LongOpenHashSet mapQueued = new LongOpenHashSet();
    private static final Predicate<ItemStack> IS_BRUSH = stack -> stack.getItem() instanceof ItemPaintbrush_BC8;
    private static final Predicate<ItemStack> IS_MAP = stack -> stack.getItem() instanceof ItemMapLocation;
 
@@ -169,7 +176,8 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       } else if (id == NET_MAP_REQUEST && !isClient) {
          this.handleMapRequest(buffer);
       } else if (id == NET_MAP_DATA && isClient) {
-         int count = buffer.readVarInt();
+         Level level = this.tile != null ? this.tile.getLevel() : null;
+         int count = Math.min(buffer.readVarInt(), buffer.readableBytes() / (Long.BYTES + 256 * 3));
 
          for (int i = 0; i < count; i++) {
             long key = buffer.readLong();
@@ -177,14 +185,19 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
             int[] height = new int[256];
 
             for (int k = 0; k < 256; k++) {
-               col[k] = buffer.readInt();
-            }
-
-            for (int k = 0; k < 256; k++) {
-               height[k] = buffer.readInt();
+               int colourId = buffer.readUnsignedByte();
+               int y = buffer.readShort();
+               height[k] = y;
+               col[k] = colourId == 0 ? 0 : 0xFF000000 | shadeByHeight(MapColor.byId(colourId).col & 0xFFFFFF, level, y);
             }
 
             this.mapColours.put(key, col, height);
+         }
+
+         int denied = Math.min(buffer.readVarInt(), buffer.readableBytes() / Long.BYTES);
+
+         for (int i = 0; i < denied; i++) {
+            this.mapColours.markDenied(buffer.readLong());
          }
       } else if (id == NET_REQUEST_LAYERS && !isClient) {
          if (this.tile != null) {
@@ -213,6 +226,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    @Override
    public void broadcastChanges() {
       super.broadcastChanges();
+      this.serveMapQueue();
       if (this.tile != null && this.tile.getLevel() != null && !this.tile.getLevel().isClientSide() && this.tile.layersVersion != this.lastLayersVersion) {
          this.lastLayersVersion = this.tile.layersVersion;
          this.sendMessage(NET_LAYERS, buf -> {
@@ -279,65 +293,69 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
 
    private void handleMapRequest(FriendlyByteBuf buffer) {
       int count = buffer.readVarInt();
-      // Never allocate on the client-declared count: a forged request can claim billions of keys in a handful of
-      // bytes. Read at most as many longs as the (already size-bounded) packet actually contains.
       int cap = Math.min(Math.max(count, 0), buffer.readableBytes() / Long.BYTES);
 
-      Level level = this.tile != null ? this.tile.getLevel() : null;
-      if (level != null && level.getServer() != null) {
-         // The map is centred on this tile; only chunks within the server view-distance around it are ever loaded
-         // and legitimately viewable. Gating on that bounds the per-chunk colour scan (256 blocks each) and stops a
-         // client from harvesting map colours of arbitrary loaded chunks elsewhere on the server.
-         int viewDist = level.getServer().getPlayerList().getViewDistance();
-         int centerX = this.tile.getBlockPos().getX() >> 4;
-         int centerZ = this.tile.getBlockPos().getZ() >> 4;
-         List<Long> okKeys = new ArrayList<>();
-         List<int[]> cols = new ArrayList<>();
-         List<int[]> heights = new ArrayList<>();
-
-         for (int i = 0; i < cap; i++) {
-            long key = buffer.readLong();
-            int cx = ChunkPos.getX(key);
-            int cz = ChunkPos.getZ(key);
-            if (Math.max(Math.abs(cx - centerX), Math.abs(cz - centerZ)) > viewDist) {
-               continue;
-            }
-            if (!level.getChunkSource().hasChunk(cx, cz)) {
-               continue;
-            }
-            int[] col = new int[256];
-            int[] height = new int[256];
-            computeChunk(level, cx, cz, col, height);
-            okKeys.add(key);
-            cols.add(col);
-            heights.add(height);
-         }
-
-         int total = okKeys.size();
-
-         for (int start = 0; start < total; start += MAP_DATA_BATCH) {
-            int end = Math.min(total, start + MAP_DATA_BATCH);
-            int fromIdx = start;
-            int toIdx = end;
-            this.sendMessage(NET_MAP_DATA, buf -> {
-               buf.writeVarInt(toIdx - fromIdx);
-
-               for (int n = fromIdx; n < toIdx; n++) {
-                  buf.writeLong(okKeys.get(n));
-                  int[] c = cols.get(n);
-                  int[] h = heights.get(n);
-
-                  for (int k = 0; k < 256; k++) {
-                     buf.writeInt(c[k]);
-                  }
-
-                  for (int k = 0; k < 256; k++) {
-                     buf.writeInt(h[k]);
-                  }
-               }
-            });
+      for (int i = 0; i < cap; i++) {
+         long key = buffer.readLong();
+         if (this.mapQueued.size() < MAP_QUEUE_LIMIT && this.mapQueued.add(key)) {
+            this.mapQueue.enqueue(key);
          }
       }
+   }
+
+   private void serveMapQueue() {
+      Level level = this.tile != null ? this.tile.getLevel() : null;
+      if (level == null || level.isClientSide() || level.getServer() == null || this.mapQueue.isEmpty()) {
+         return;
+      }
+
+      int viewDist = level.getServer().getPlayerList().getViewDistance();
+      int centerX = this.tile.getBlockPos().getX() >> 4;
+      int centerZ = this.tile.getBlockPos().getZ() >> 4;
+      List<Long> okKeys = new ArrayList<>();
+      List<int[]> cols = new ArrayList<>();
+      List<int[]> heights = new ArrayList<>();
+      List<Long> denied = new ArrayList<>();
+      int dequeued = 0;
+
+      while (!this.mapQueue.isEmpty() && okKeys.size() < MAP_CHUNKS_PER_TICK && dequeued++ < MAP_DEQUEUES_PER_TICK) {
+         long key = this.mapQueue.dequeueLong();
+         this.mapQueued.remove(key);
+         int cx = ChunkPos.getX(key);
+         int cz = ChunkPos.getZ(key);
+         if (Math.max(Math.abs(cx - centerX), Math.abs(cz - centerZ)) > viewDist || !level.getChunkSource().hasChunk(cx, cz)) {
+            denied.add(key);
+            continue;
+         }
+
+         int[] col = new int[256];
+         int[] height = new int[256];
+         computeChunk(level, cx, cz, col, height);
+         okKeys.add(key);
+         cols.add(col);
+         heights.add(height);
+      }
+
+      this.sendMessage(NET_MAP_DATA, buf -> {
+         buf.writeVarInt(okKeys.size());
+
+         for (int n = 0; n < okKeys.size(); n++) {
+            buf.writeLong(okKeys.get(n));
+            int[] c = cols.get(n);
+            int[] h = heights.get(n);
+
+            for (int k = 0; k < 256; k++) {
+               buf.writeByte(c[k]);
+               buf.writeShort(h[k]);
+            }
+         }
+
+         buf.writeVarInt(denied.size());
+
+         for (long key : denied) {
+            buf.writeLong(key);
+         }
+      });
    }
 
    private static void computeChunk(Level level, int cx, int cz, int[] colOut, int[] heightOut) {
@@ -352,23 +370,23 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
             int y = Math.max(level.getMinY(), topY - 1);
             mpos.set(wx, y, wz);
             BlockState state = level.getBlockState(mpos);
-
-            int rgb;
+            int colourId;
             try {
-               rgb = state.getMapColor(level, mpos).col;
+               colourId = state.getMapColor(level, mpos).id;
             } catch (Throwable t) {
-               rgb = 0;
+               colourId = 0;
             }
 
             heightOut[idx] = y;
-            colOut[idx] = rgb == 0 ? 0 : 0xFF000000 | shadeByHeight(rgb & 16777215, level, y);
+            colOut[idx] = colourId;
          }
       }
    }
 
    private static int shadeByHeight(int rgb, Level level, int surfaceY) {
-      int range = level.getHeight();
-      double norm = range <= 0 ? 0.5 : (surfaceY - level.getMinY()) / (double)range;
+      int minY = level == null ? -64 : level.getMinY();
+      int range = level == null ? 384 : level.getHeight();
+      double norm = range <= 0 ? 0.5 : (surfaceY - minY) / (double)range;
       norm = Math.max(0.0, Math.min(1.0, norm));
       double shade = 0.6 + 0.4 * norm;
       int r = (int)Math.min(255.0, ((rgb >> 16) & 0xFF) * shade);

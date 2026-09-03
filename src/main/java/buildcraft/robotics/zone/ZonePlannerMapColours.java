@@ -19,6 +19,8 @@ public class ZonePlannerMapColours {
    private final Long2ObjectOpenHashMap<int[]> height = new Long2ObjectOpenHashMap<>();
    private final Long2IntOpenHashMap version = new Long2IntOpenHashMap();
    private final LongSet requested = new LongOpenHashSet();
+   private final LongSet denied = new LongOpenHashSet();
+   private int deniedRetry;
    private int globalVersion;
 
    public boolean hasData(long key) {
@@ -38,6 +40,11 @@ public class ZonePlannerMapColours {
       this.height.put(key, heights);
       this.version.put(key, ++this.globalVersion);
       this.requested.remove(key);
+      this.denied.remove(key);
+   }
+
+   public void markDenied(long key) {
+      this.denied.add(key);
    }
 
    
@@ -72,6 +79,12 @@ public class ZonePlannerMapColours {
 
    public void retryMissing() {
       this.requested.clear();
+      if (++this.deniedRetry >= 10) {
+         this.deniedRetry = 0;
+         this.denied.clear();
+      } else {
+         this.requested.addAll(this.denied);
+      }
    }
 
    public void clear() {
@@ -79,5 +92,6 @@ public class ZonePlannerMapColours {
       this.height.clear();
       this.version.clear();
       this.requested.clear();
+      this.denied.clear();
    }
 }
