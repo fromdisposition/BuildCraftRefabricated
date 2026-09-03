@@ -113,9 +113,18 @@ public final class PipePlacementHighlight {
       ) {
          Vec3 cam = levelRenderState.cameraRenderState.pos;
          BlockPos pos = renderState.pos();
+         boolean highContrast = renderState.highContrast();
+         boolean translucent = renderState.isTranslucent();
          poseStack.pushPose();
          poseStack.translate(pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z);
-         submitNodeCollector.submitShapeOutline(poseStack, this.shape, BCLibRenderTypes.lines(), ARGB.black(102), 2.5F, renderState.isTranslucent());
+         if (highContrast) {
+            submitNodeCollector.submitShapeOutline(poseStack, this.shape, BCLibRenderTypes.secondaryBlockOutline(), 0xFF000000, 7.0F, translucent);
+         }
+
+         int colour = highContrast ? 0xFF57FF61 : ARGB.black(102);
+         submitNodeCollector.submitShapeOutline(
+            poseStack, this.shape, BCLibRenderTypes.blockOutline(highContrast), colour, BCLibRenderTypes.blockOutlineWidth(), translucent
+         );
          poseStack.popPose();
          return true;
       }
@@ -128,20 +137,30 @@ public final class PipePlacementHighlight {
       ) {
          Vec3 cam = levelRenderState.cameraRenderState.pos;
          BlockPos pos = renderState.pos();
-         VertexConsumer lines = buffer.getBuffer(BCLibRenderTypes.lines());
+         double x = pos.getX() - cam.x;
+         double y = pos.getY() - cam.y;
+         double z = pos.getZ() - cam.z;
+         boolean highContrast = renderState.highContrast();
+         int colour = highContrast ? 0xFF57FF61 : ARGB.black(102);
          //? if >= 1.21.11 {
-         ShapeRenderer.renderShape(poseStack, lines, this.shape, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102), 2.5F);
+         if (highContrast) {
+            ShapeRenderer.renderShape(poseStack, buffer.getBuffer(BCLibRenderTypes.secondaryBlockOutline()), this.shape, x, y, z, 0xFF000000, 7.0F);
+         }
+
+         ShapeRenderer.renderShape(poseStack, buffer.getBuffer(BCLibRenderTypes.lines()), this.shape, x, y, z, colour, BCLibRenderTypes.blockOutlineWidth());
          //?} else {
-         /^// 1.21.10 ShapeRenderer.renderShape has no line-width parameter.
-         ShapeRenderer.renderShape(poseStack, lines, this.shape, pos.getX() - cam.x, pos.getY() - cam.y, pos.getZ() - cam.z, ARGB.black(102));
+         /^if (highContrast) {
+            ShapeRenderer.renderShape(poseStack, buffer.getBuffer(BCLibRenderTypes.secondaryBlockOutline()), this.shape, x, y, z, 0xFF000000);
+         }
+
+         ShapeRenderer.renderShape(poseStack, buffer.getBuffer(BCLibRenderTypes.lines()), this.shape, x, y, z, colour);
          ^///?}
          buffer.endLastBatch();
          return true;
       }
    }
    *///?} else {
-   /*// 1.21.1: BlockOutlineRenderer is an empty marker (custom outlines absent); no render override.
-   private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
+   /*private record PreviewRenderer(VoxelShape shape) implements BlockOutlineRenderer {
    }
    *///?}
 }

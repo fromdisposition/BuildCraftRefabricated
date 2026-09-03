@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import com.mojang.blaze3d.vertex.VertexFormat;
 *///?}
 import java.util.function.Function;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Sheets;
 //? if >= 1.21.11 {
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
@@ -156,6 +157,40 @@ public final class BCLibRenderTypes {
       /*return RenderType.entitySolid(texture);
       *///?}
    }
+
+   //? if >= 1.21.10 {
+   public static RenderType secondaryBlockOutline() {
+      //? if >= 1.21.11 {
+      return RenderTypes.secondaryBlockOutline();
+      //?} else {
+      /*return RenderType.secondaryBlockOutline();
+      *///?}
+   }
+
+   public static RenderType blockOutline(boolean highContrast) {
+      //? if >= 26.3-pre-1 {
+      if (highContrast) {
+         return RenderTypes.linesDepthBias();
+      }
+
+      return Minecraft.getInstance().gameRenderer.useImprovedTransparency() ? RenderTypes.linesTranslucentNoDepthWrite() : RenderTypes.linesTranslucent();
+      //?} else {
+      /*return lines();
+      *///?}
+   }
+   //?}
+
+   //? if >= 1.21.11 {
+   public static float blockOutlineWidth() {
+      //? if >= 26.2 {
+      return Minecraft.getInstance().gameRenderer.gameRenderState().windowRenderState.appropriateLineWidth;
+      //?} else if >= 26.1 {
+      /*return Minecraft.getInstance().gameRenderer.getGameRenderState().windowRenderState.appropriateLineWidth;
+      *///?} else {
+      /*return Minecraft.getInstance().getWindow().getAppropriateLineWidth();
+      *///?}
+   }
+   //?}
 
    public static RenderType lines() {
       //? if >= 1.21.11 {
