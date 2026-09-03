@@ -66,6 +66,7 @@ loom {
 }
 
 val datagenDir = layout.buildDirectory.dir("generated/datagen")
+val fluidAssetsDir = rootProject.layout.buildDirectory.dir("generated/fluid_assets")
 
 fabricApi {
     configureDataGeneration {
@@ -78,17 +79,19 @@ fabricApi {
 loom.mods.create("buildcraftrefabricated") {
     sourceSet(sourceSets["main"])
     modFiles.from(datagenDir)
+    modFiles.from(fluidAssetsDir)
 }
 
 afterEvaluate {
     tasks.named("runDatagen") {
+        dependsOn(":26.3:generateFluidBucketAssets")
         inputs.files(sourceSets["main"].output.classesDirs).withPropertyName("datagenClasses")
         outputs.dir(datagenDir).withPropertyName("datagenOutput")
     }
     val datagenRoot = datagenDir.get().asFile
     tasks.named<Jar>("jar") {
-        dependsOn("runDatagen")
-        from(datagenDir)
+        dependsOn("runDatagen", ":26.3:generateFluidBucketAssets")
+        from(datagenDir, fluidAssetsDir)
         eachFile {
             val fromStatic = !file.path.replace('\\', '/').startsWith(datagenRoot.path.replace('\\', '/'))
             if (fromStatic && datagenRoot.resolve(path).isFile) {
@@ -97,7 +100,7 @@ afterEvaluate {
         }
     }
     tasks.matching { it.name == "runClient" || it.name == "runServer" }.configureEach {
-        dependsOn("runDatagen")
+        dependsOn("runDatagen", ":26.3:generateFluidBucketAssets")
     }
 }
 
@@ -184,7 +187,7 @@ dependencies {
     // The datagen output is part of the mod in dev runs: classPathGroups only groups paths that are already
     // on the JVM classpath, so the bare dir has to be a runtime entry too (no builtBy — runClient/runServer
     // depend on runDatagen explicitly, and a task edge here would cycle runDatagen into its own output).
-    runtimeOnly(files(datagenDir))
+    runtimeOnly(files(datagenDir, fluidAssetsDir))
     loomx.applyMojangMappings()
     implementation("net.fabricmc:fabric-loader:${sc.properties.raw("deps", "loader")}")
     // Loom attaches these on 26.x but not on the 1.21.x loom-back-compat path; loader provides them at runtime.
@@ -282,8 +285,8 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 tasks.processResources {
-    // Generators are deliberately NOT in the build graph: a clean build only packages the committed output and
-    // never mutates shared source. Refresh it explicitly with `:26.3:generateAssets`.
+    // Datagen and the fluid texture generator write under build/ and are packaged by the jar task; nothing in the
+    // build graph mutates shared source.
     val mixinCompatLevel = if (javaRelease >= 25) "JAVA_25" else "JAVA_21"
     val props = mapOf(
         "mod_version" to version,
@@ -451,9 +454,10 @@ if (isGeneratorNode) {
         description = "Regenerate fluid block textures, bucket icons and underwater overlays."
         val heatStill = rootProject.file("gradle/fluid_assets/heat_still.png")
         val fluidMask = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/item/mask/bucket_fluid.png")
-        val fluidOutDir = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/item/bucket_fluid")
-        val underwaterOutDir = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/underwater")
-        val bakedOutDir = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/baked")
+        val texturesOut = fluidAssetsDir.get().asFile.resolve("assets/buildcraftenergy/textures")
+        val fluidOutDir = texturesOut.resolve("item/bucket_fluid")
+        val underwaterOutDir = texturesOut.resolve("block/fluids/underwater")
+        val bakedOutDir = texturesOut.resolve("block/fluids/baked")
         inputs.file(heatStill)
         inputs.file(fluidMask)
         inputs.files((0..2).map { rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_still.png") })
@@ -462,7 +466,7 @@ if (isGeneratorNode) {
         outputs.dir(bakedOutDir)
         outputs.dir(underwaterOutDir)
         outputs.dir(fluidOutDir)
-        outputs.files((0..2).map { rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_flow.png") })
+        outputs.files((0..2).map { texturesOut.resolve("block/fluids/heat_${it}_flow.png") })
         doLast {
             require(heatStill.isFile) { "Missing ${heatStill.path} — extract from a built JAR or add the texture." }
             require(fluidMask.isFile) { "Missing ${fluidMask.path} (bucket fluid mask)." }
@@ -512,7 +516,7 @@ if (isGeneratorNode) {
                 ImageIO.write(
                     heatFlowTemplate,
                     "PNG",
-                    rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png")
+                    texturesOut.resolve("block/fluids/heat_${heat}_flow.png")
                 )
             }
 
@@ -552,7 +556,7 @@ if (isGeneratorNode) {
                     val adjDark = dark
 
                     val heatStillTemplate = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_still.png")
-                    val heatFlowTemplate = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${heat}_flow.png")
+                    val heatFlowTemplate = texturesOut.resolve("block/fluids/heat_${heat}_flow.png")
                     require(heatStillTemplate.isFile) { "Missing ${heatStillTemplate.path}" }
                     require(heatFlowTemplate.isFile) { "Missing ${heatFlowTemplate.path}" }
                     val stillTemplate = ImageIO.read(heatStillTemplate)
@@ -613,12 +617,6 @@ if (isGeneratorNode) {
             }
             logger.lifecycle("Regenerated ${fluidData.size * heats.size} fluid block, bucket, and underwater assets")
         }
-    }
-
-    // The generator writes into src/main/resources, which these tasks read; without an explicit order Gradle
-    // rejects the undeclared producer→consumer relationship whenever both end up in the same graph.
-    listOf("stonecutterPrepare", "stonecutterGenerate", "processResources").forEach { tn ->
-        tasks.matching { it.name == tn }.configureEach { mustRunAfter("generateFluidBucketAssets") }
     }
 
     tasks.register("generateAssets") {
