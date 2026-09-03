@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.ChunkPos;
 
 /**
  * The zone planner map as textures: one 256x256 texture per region of 16x16 chunks, a pixel per column, repainted
@@ -22,6 +23,8 @@ import net.minecraft.util.Mth;
 final class ZoneMapTextures implements AutoCloseable {
    static final int REGION_CHUNKS = 16;
    static final int REGION_BLOCKS = REGION_CHUNKS * 16;
+   private static final int MAX_REGIONS = 48;
+   private static final int EVICT_MARGIN = 2;
    private static int nextInstance;
    private final int instance = nextInstance++;
    private final Long2ObjectOpenHashMap<Region> regions = new Long2ObjectOpenHashMap<>();
@@ -32,6 +35,23 @@ final class ZoneMapTextures implements AutoCloseable {
    }
 
    void update(ZonePlannerMapColours cache, int cx0, int cz0, int cx1, int cz1) {
+      if (this.regions.size() > MAX_REGIONS) {
+         int rx0 = (cx0 >> 4) - EVICT_MARGIN;
+         int rx1 = (cx1 >> 4) + EVICT_MARGIN;
+         int rz0 = (cz0 >> 4) - EVICT_MARGIN;
+         int rz1 = (cz1 >> 4) + EVICT_MARGIN;
+         this.regions.long2ObjectEntrySet().removeIf(entry -> {
+            int rx = ChunkPos.getX(entry.getLongKey());
+            int rz = ChunkPos.getZ(entry.getLongKey());
+            if (rx < rx0 || rx > rx1 || rz < rz0 || rz > rz1) {
+               Minecraft.getInstance().getTextureManager().release(entry.getValue().id);
+               return true;
+            }
+
+            return false;
+         });
+      }
+
       for (int cx = cx0; cx <= cx1; cx++) {
          for (int cz = cz0; cz <= cz1; cz++) {
             long key = ZonePlannerChunkKeys.chunkKey(cx, cz);
@@ -137,21 +157,22 @@ final class ZoneMapTextures implements AutoCloseable {
       }
 
       /**
-       * Cartographic relief: like vanilla maps a column lit from the north is brighter than its north neighbour and
-       * darker when lower, higher ground is tinted lighter overall, and a contour line is drawn wherever the height
-       * crosses a 16-block level between neighbours.
+       * Cartographic relief lit from the north-west: the colour (already tinted by altitude on the server) gets
+       * brighter the more the column rises above its north and west neighbours and darker the more it drops, in the
+       * same range as vanilla map shading, and a contour line is drawn wherever the height crosses a 16-block level
+       * between neighbours.
        */
       private static int shade(int colour, int h, int hN, int hW) {
-         float f = 0.86F;
+         int slope = 0;
          if (hN != ZonePlannerMapColours.NO_HEIGHT) {
-            if (h > hN) {
-               f = 1.0F;
-            } else if (h < hN) {
-               f = 0.71F;
-            }
+            slope += h - hN;
          }
 
-         f *= 0.88F + 0.24F * Mth.clamp((h - 32) / 160.0F, 0.0F, 1.0F);
+         if (hW != ZonePlannerMapColours.NO_HEIGHT) {
+            slope += h - hW;
+         }
+
+         float f = 0.86F + 0.025F * Mth.clamp(slope, -6, 6);
          if (hN != ZonePlannerMapColours.NO_HEIGHT && h >> 4 != hN >> 4 || hW != ZonePlannerMapColours.NO_HEIGHT && h >> 4 != hW >> 4) {
             f *= 0.78F;
          }

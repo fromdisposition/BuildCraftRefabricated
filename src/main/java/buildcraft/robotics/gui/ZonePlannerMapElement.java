@@ -18,6 +18,7 @@ import buildcraft.robotics.zone.ZonePlan;
 import buildcraft.robotics.zone.ZonePlannerChunkKeys;
 import buildcraft.robotics.zone.ZonePlannerMapColours;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -30,17 +31,21 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 
-/** Top-down map of the zone planner: region textures panned and zoomed as flat quads, zones and selection as fills. */
+/**
+ * Top-down map of the zone planner. Region textures are drawn as flat quads in a pose scaled to real screen pixels,
+ * with a whole number of pixels per block, so texels, zone fills, borders and the hovered block all sit on the same
+ * grid at every zoom level.
+ */
 public class ZonePlannerMapElement implements IInteractionElement {
    private static final int PAN_STEP = 4;
-   private static final double MIN_SCALE = 0.25;
-   private static final double MAX_SCALE = 8.0;
-   private static final double DEFAULT_SCALE = 1.5;
-   private static final double ZOOM_STEP = 1.25;
+   /** Screen pixels per block; below one the map is drawn through a downscaling pose. */
+   private static final double[] ZOOM_LEVELS = {0.25, 0.5, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 24.0, 32.0};
+   private static final double DEFAULT_GUI_PIXELS_PER_BLOCK = 1.5;
    private static final int RETRY_INTERVAL = 60;
    private static final int MARGIN_CHUNKS = 1;
    private static final int MAX_CHUNK_SPAN = 48;
    private static final int OVERLAY_ALPHA = 0x55;
+   private static final int BORDER_ALPHA = 0xE0;
    private static final int SELECTION_ALPHA = 0x99;
    private static final int HOVER_COLOUR = 0x80FFFFFF;
    private final GuiZonePlanner gui;
@@ -52,13 +57,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private final ZoneMapTextures textures = new ZoneMapTextures();
    private double camX;
    private double camZ;
-   private double scale = DEFAULT_SCALE;
-   private double targetScale = DEFAULT_SCALE;
-   private boolean zoomAnchored;
-   private double zoomAnchorMouseX;
-   private double zoomAnchorMouseY;
-   private double zoomAnchorWorldX;
-   private double zoomAnchorWorldZ;
+   private int zoomIndex = -1;
    private int retryCounter;
    private boolean panning;
    private double panStartMouseX;
@@ -78,6 +77,8 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private int cachedOverlayVersion = Integer.MIN_VALUE;
    private int cachedOverlayLayer = Integer.MIN_VALUE;
    private int[] overlayRuns = new int[0];
+   private int[] overlayEdgesX = new int[0];
+   private int[] overlayEdgesZ = new int[0];
    private int[] lastScanBounds;
 
    public ZonePlannerMapElement(GuiZonePlanner gui, TileZonePlanner tile, int mapOffsetX, int mapOffsetY, int mapW, int mapH) {
@@ -122,14 +123,6 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return this.gui.getGuiTopPos() + this.mapOffsetY;
    }
 
-   private double centreX() {
-      return this.mapX() + this.mapW / 2.0;
-   }
-
-   private double centreY() {
-      return this.mapY() + this.mapH / 2.0;
-   }
-
    @Override
    public double getX() {
       return this.mapX();
@@ -150,9 +143,60 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return this.mapH;
    }
 
+   private static double guiScale() {
+      return Minecraft.getInstance().getWindow().getGuiScale();
+   }
+
+   /** Screen pixels per block. */
+   private double zoom() {
+      if (this.zoomIndex < 0) {
+         double wanted = DEFAULT_GUI_PIXELS_PER_BLOCK * guiScale();
+         this.zoomIndex = 0;
+
+         for (int i = 1; i < ZOOM_LEVELS.length; i++) {
+            if (Math.abs(ZOOM_LEVELS[i] - wanted) < Math.abs(ZOOM_LEVELS[this.zoomIndex] - wanted)) {
+               this.zoomIndex = i;
+            }
+         }
+      }
+
+      return ZOOM_LEVELS[this.zoomIndex];
+   }
+
+   /** GUI units per block. */
+   private double guiPerBlock() {
+      return this.zoom() / guiScale();
+   }
+
+   /** Drawing units per block: a whole number of screen pixels, or one unit under a downscaling pose. */
+   private int unit() {
+      return (int)Math.max(1.0, this.zoom());
+   }
+
+   /** GUI units per drawing unit. */
+   private double poseScale() {
+      return this.zoom() / (this.unit() * guiScale());
+   }
+
+   private long originX() {
+      return Math.round(this.mapW / (2.0 * this.poseScale()) - this.camX * this.unit());
+   }
+
+   private long originZ() {
+      return Math.round(this.mapH / (2.0 * this.poseScale()) - this.camZ * this.unit());
+   }
+
+   private int blockX(double mouseX) {
+      return (int)Math.floorDiv(Math.round((mouseX - this.mapX()) / this.poseScale()) - this.originX(), (long)this.unit());
+   }
+
+   private int blockZ(double mouseY) {
+      return (int)Math.floorDiv(Math.round((mouseY - this.mapY()) / this.poseScale()) - this.originZ(), (long)this.unit());
+   }
+
    private int[] visibleChunkBounds() {
-      double halfX = this.mapW / (2.0 * this.scale);
-      double halfZ = this.mapH / (2.0 * this.scale);
+      double halfX = this.mapW / (2.0 * this.guiPerBlock());
+      double halfZ = this.mapH / (2.0 * this.guiPerBlock());
       int minCX = Mth.floor((this.camX - halfX) / 16.0) - MARGIN_CHUNKS;
       int maxCX = Mth.floor((this.camX + halfX) / 16.0) + MARGIN_CHUNKS;
       int minCZ = Mth.floor((this.camZ - halfZ) / 16.0) - MARGIN_CHUNKS;
@@ -172,27 +216,6 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return new int[]{minCX, minCZ, maxCX, maxCZ};
    }
 
-   private void advanceZoom() {
-      if (this.scale == this.targetScale) {
-         return;
-      }
-
-      double next = this.scale + (this.targetScale - this.scale) * 0.3;
-      if (Math.abs(this.targetScale - next) < 0.001 * this.targetScale) {
-         next = this.targetScale;
-      }
-
-      if (this.zoomAnchored) {
-         this.camX = this.zoomAnchorWorldX - (this.zoomAnchorMouseX - this.centreX()) / next;
-         this.camZ = this.zoomAnchorWorldZ - (this.zoomAnchorMouseY - this.centreY()) / next;
-      }
-
-      this.scale = next;
-      if (this.scale == this.targetScale) {
-         this.zoomAnchored = false;
-      }
-   }
-
    @Override
    public void drawBackground(float partialTicks) {
       BCGraphics g = GuiIcon.getGuiGraphics();
@@ -202,7 +225,6 @@ public class ZonePlannerMapElement implements IInteractionElement {
 
       ContainerZonePlanner menu = this.container();
       ZonePlannerMapColours cache = menu != null ? menu.mapColours : null;
-      this.advanceZoom();
       this.ensureVisibleChunks(menu, cache);
       if (cache == null) {
          return;
@@ -212,15 +234,17 @@ public class ZonePlannerMapElement implements IInteractionElement {
       this.ensureOverlay(menu);
       int[] bounds = this.visibleChunkBounds();
       this.textures.update(cache, bounds[0], bounds[1], bounds[2], bounds[3]);
+      int unit = this.unit();
+      long ox = this.originX();
+      long oz = this.originZ();
       int x0 = this.mapX();
       int y0 = this.mapY();
       g.enableScissor(x0, y0, x0 + this.mapW, y0 + this.mapH);
-      double originX = this.centreX() - this.camX * this.scale;
-      double originY = this.centreY() - this.camZ * this.scale;
-      int baseX = Mth.floor(originX);
-      int baseY = Mth.floor(originY);
       g.pushPoseGui();
-      g.translateGui((float)(originX - baseX), (float)(originY - baseY));
+      g.translateGui(x0, y0);
+      float poseScale = (float)this.poseScale();
+      g.scaleGui(poseScale, poseScale);
+      int regionUnits = ZoneMapTextures.REGION_BLOCKS * unit;
       int rx0 = Math.floorDiv(bounds[0] * 16, ZoneMapTextures.REGION_BLOCKS);
       int rx1 = Math.floorDiv(bounds[2] * 16, ZoneMapTextures.REGION_BLOCKS);
       int rz0 = Math.floorDiv(bounds[1] * 16, ZoneMapTextures.REGION_BLOCKS);
@@ -230,12 +254,10 @@ public class ZonePlannerMapElement implements IInteractionElement {
          for (int rz = rz0; rz <= rz1; rz++) {
             Identifier texture = this.textures.textureOf(rx, rz);
             if (texture != null) {
-               int sx0 = baseX + this.toScreen(rx * ZoneMapTextures.REGION_BLOCKS);
-               int sx1 = baseX + this.toScreen((rx + 1) * ZoneMapTextures.REGION_BLOCKS);
-               int sy0 = baseY + this.toScreen(rz * ZoneMapTextures.REGION_BLOCKS);
-               int sy1 = baseY + this.toScreen((rz + 1) * ZoneMapTextures.REGION_BLOCKS);
+               int sx = (int)(ox + (long)rx * regionUnits);
+               int sy = (int)(oz + (long)rz * regionUnits);
                g.blit(
-                  texture, sx0, sy0, 0.0F, 0.0F, sx1 - sx0, sy1 - sy0, ZoneMapTextures.REGION_BLOCKS, ZoneMapTextures.REGION_BLOCKS,
+                  texture, sx, sy, 0.0F, 0.0F, regionUnits, regionUnits, ZoneMapTextures.REGION_BLOCKS, ZoneMapTextures.REGION_BLOCKS,
                   ZoneMapTextures.REGION_BLOCKS, ZoneMapTextures.REGION_BLOCKS
                );
             }
@@ -243,31 +265,64 @@ public class ZonePlannerMapElement implements IInteractionElement {
       }
 
       for (int i = 0; i + 4 < this.overlayRuns.length; i += 5) {
-         this.fillBlocks(g, baseX, baseY, this.overlayRuns[i], this.overlayRuns[i + 1], this.overlayRuns[i + 2], this.overlayRuns[i + 3], this.overlayRuns[i + 4]);
+         this.fillBlocks(g, ox, oz, this.overlayRuns[i], this.overlayRuns[i + 1], this.overlayRuns[i + 2], this.overlayRuns[i + 3], this.overlayRuns[i + 4]);
+      }
+
+      int border = Math.max(1, unit / 6);
+
+      for (int i = 0; i + 4 < this.overlayEdgesX.length; i += 5) {
+         int bx0 = this.overlayEdgesX[i];
+         int bx1 = this.overlayEdgesX[i + 1];
+         int bz = this.overlayEdgesX[i + 2];
+         boolean top = this.overlayEdgesX[i + 3] != 0;
+         long y = oz + (long)bz * unit - (top ? 0 : border);
+         g.fill((int)(ox + (long)bx0 * unit), (int)y, (int)(ox + (long)bx1 * unit), (int)(y + border), this.overlayEdgesX[i + 4]);
+      }
+
+      for (int i = 0; i + 4 < this.overlayEdgesZ.length; i += 5) {
+         int bz0 = this.overlayEdgesZ[i];
+         int bz1 = this.overlayEdgesZ[i + 1];
+         int bx = this.overlayEdgesZ[i + 2];
+         boolean left = this.overlayEdgesZ[i + 3] != 0;
+         long x = ox + (long)bx * unit - (left ? 0 : border);
+         g.fill((int)x, (int)(oz + (long)bz0 * unit), (int)(x + border), (int)(oz + (long)bz1 * unit), this.overlayEdgesZ[i + 4]);
       }
 
       if (this.selecting) {
          int minX = Math.min(this.selStartBX, this.selEndBX);
-         int maxX = Math.max(this.selStartBX, this.selEndBX);
+         int maxX = Math.max(this.selStartBX, this.selEndBX) + 1;
          int minZ = Math.min(this.selStartBZ, this.selEndBZ);
-         int maxZ = Math.max(this.selStartBZ, this.selEndBZ);
-         this.fillBlocks(g, baseX, baseY, minX, minZ, maxX + 1, maxZ + 1, SELECTION_ALPHA << 24 | this.selColourValue & 0xFFFFFF);
+         int maxZ = Math.max(this.selStartBZ, this.selEndBZ) + 1;
+         this.fillBlocks(g, ox, oz, minX, minZ, maxX, maxZ, SELECTION_ALPHA << 24 | this.selColourValue & 0xFFFFFF);
+         int edge = borderColour(this.selColourValue);
+         int sx0 = (int)(ox + (long)minX * unit);
+         int sx1 = (int)(ox + (long)maxX * unit);
+         int sz0 = (int)(oz + (long)minZ * unit);
+         int sz1 = (int)(oz + (long)maxZ * unit);
+         g.fill(sx0, sz0, sx1, sz0 + border, edge);
+         g.fill(sx0, sz1 - border, sx1, sz1, edge);
+         g.fill(sx0, sz0, sx0 + border, sz1, edge);
+         g.fill(sx1 - border, sz0, sx1, sz1, edge);
       }
 
       if (this.hasHover) {
-         this.fillBlocks(g, baseX, baseY, this.hoverBlockX, this.hoverBlockZ, this.hoverBlockX + 1, this.hoverBlockZ + 1, HOVER_COLOUR);
+         this.fillBlocks(g, ox, oz, this.hoverBlockX, this.hoverBlockZ, this.hoverBlockX + 1, this.hoverBlockZ + 1, HOVER_COLOUR);
       }
 
       g.popPoseGui();
       g.disableScissor();
    }
 
-   private int toScreen(double world) {
-      return Mth.floor(world * this.scale);
+   private void fillBlocks(BCGraphics g, long ox, long oz, int bx0, int bz0, int bx1, int bz1, int argb) {
+      int unit = this.unit();
+      g.fill((int)(ox + (long)bx0 * unit), (int)(oz + (long)bz0 * unit), (int)(ox + (long)bx1 * unit), (int)(oz + (long)bz1 * unit), argb);
    }
 
-   private void fillBlocks(BCGraphics g, int baseX, int baseY, int bx0, int bz0, int bx1, int bz1, int argb) {
-      g.fill(baseX + this.toScreen(bx0), baseY + this.toScreen(bz0), baseX + this.toScreen(bx1), baseY + this.toScreen(bz1), argb);
+   private static int borderColour(int argb) {
+      int r = (argb >> 16 & 0xFF) * 55 / 100;
+      int g = (argb >> 8 & 0xFF) * 55 / 100;
+      int b = (argb & 0xFF) * 55 / 100;
+      return BORDER_ALPHA << 24 | r << 16 | g << 8 | b;
    }
 
    @Override
@@ -295,13 +350,19 @@ public class ZonePlannerMapElement implements IInteractionElement {
 
       this.cachedOverlayVersion = version;
       this.cachedOverlayLayer = layer;
+      int[] cells;
       if (this.tile == null) {
-         this.overlayRuns = new int[0];
+         cells = new int[0];
       } else if (layer >= 0 && layer < this.tile.layers.length) {
-         this.overlayRuns = bakeRuns(this.collectLayers(layer, layer));
+         cells = this.collectLayers(layer, layer);
       } else {
-         this.overlayRuns = bakeRuns(this.collectLayers(0, this.tile.layers.length - 1));
+         cells = this.collectLayers(0, this.tile.layers.length - 1);
       }
+
+      this.overlayRuns = bakeRuns(cells);
+      int[][] edges = bakeEdges(cells);
+      this.overlayEdgesX = edges[0];
+      this.overlayEdgesZ = edges[1];
    }
 
    /** Painted cells of the layers as (x, z, argb) triples in world coordinates. */
@@ -363,6 +424,82 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return out.toIntArray();
    }
 
+   /**
+    * Outline of every painted area in a darker shade of its colour: an edge is drawn where the neighbouring cell is
+    * not painted in the same colour. Returns horizontal edges as (x0, x1, z, top, argb) and vertical edges as
+    * (z0, z1, x, left, argb), each merged along its length.
+    */
+   private static int[][] bakeEdges(int[] cells) {
+      Long2IntOpenHashMap byCell = new Long2IntOpenHashMap();
+
+      for (int i = 0; i + 2 < cells.length; i += 3) {
+         byCell.put(ZonePlannerChunkKeys.chunkKey(cells[i], cells[i + 1]), cells[i + 2]);
+      }
+
+      Map<Long, List<Integer>> horizontal = new HashMap<>();
+      Map<Long, List<Integer>> vertical = new HashMap<>();
+
+      for (int i = 0; i + 2 < cells.length; i += 3) {
+         int x = cells[i];
+         int z = cells[i + 1];
+         int colour = cells[i + 2];
+         if (byCell.get(ZonePlannerChunkKeys.chunkKey(x, z - 1)) != colour) {
+            horizontal.computeIfAbsent(edgeKey(z, true, colour), k -> new ArrayList<>()).add(x);
+         }
+
+         if (byCell.get(ZonePlannerChunkKeys.chunkKey(x, z + 1)) != colour) {
+            horizontal.computeIfAbsent(edgeKey(z + 1, false, colour), k -> new ArrayList<>()).add(x);
+         }
+
+         if (byCell.get(ZonePlannerChunkKeys.chunkKey(x - 1, z)) != colour) {
+            vertical.computeIfAbsent(edgeKey(x, true, colour), k -> new ArrayList<>()).add(z);
+         }
+
+         if (byCell.get(ZonePlannerChunkKeys.chunkKey(x + 1, z)) != colour) {
+            vertical.computeIfAbsent(edgeKey(x + 1, false, colour), k -> new ArrayList<>()).add(z);
+         }
+      }
+
+      return new int[][]{mergeEdges(horizontal), mergeEdges(vertical)};
+   }
+
+   private static long edgeKey(int line, boolean leading, int colour) {
+      return (long)line << 33 | (leading ? 1L << 32 : 0L) | colour & 0xFFFFFFFFL;
+   }
+
+   private static int[] mergeEdges(Map<Long, List<Integer>> edges) {
+      IntArrayList out = new IntArrayList();
+
+      for (Map.Entry<Long, List<Integer>> entry : edges.entrySet()) {
+         long key = entry.getKey();
+         int line = (int)(key >> 33);
+         boolean leading = (key >> 32 & 1L) != 0;
+         int colour = borderColour((int)key);
+         List<Integer> along = entry.getValue();
+         along.sort(null);
+         int k = 0;
+
+         while (k < along.size()) {
+            int a0 = along.get(k);
+            int a1 = a0 + 1;
+            k++;
+
+            while (k < along.size() && along.get(k) == a1) {
+               a1++;
+               k++;
+            }
+
+            out.add(a0);
+            out.add(a1);
+            out.add(line);
+            out.add(leading ? 1 : 0);
+            out.add(colour);
+         }
+      }
+
+      return out.toIntArray();
+   }
+
    private void ensureVisibleChunks(ContainerZonePlanner menu, ZonePlannerMapColours cache) {
       if (menu != null && cache != null) {
          boolean retry = ++this.retryCounter >= RETRY_INTERVAL;
@@ -395,14 +532,6 @@ public class ZonePlannerMapElement implements IInteractionElement {
 
          menu.requestChunks(missing);
       }
-   }
-
-   private int blockX(double mouseX) {
-      return Mth.floor(this.camX + (mouseX - this.centreX()) / this.scale);
-   }
-
-   private int blockZ(double mouseY) {
-      return Mth.floor(this.camZ + (mouseY - this.centreY()) / this.scale);
    }
 
    @Override
@@ -438,8 +567,9 @@ public class ZonePlannerMapElement implements IInteractionElement {
          this.selEndBX = this.blockX(mx);
          this.selEndBZ = this.blockZ(my);
       } else if (this.panning) {
-         this.camX = this.panStartCamX - (mx - this.panStartMouseX) / this.scale;
-         this.camZ = this.panStartCamZ - (my - this.panStartMouseY) / this.scale;
+         double guiPerBlock = this.guiPerBlock();
+         this.camX = this.panStartCamX - (mx - this.panStartMouseX) / guiPerBlock;
+         this.camZ = this.panStartCamZ - (my - this.panStartMouseY) / guiPerBlock;
       }
    }
 
@@ -473,12 +603,18 @@ public class ZonePlannerMapElement implements IInteractionElement {
          return false;
       }
 
-      this.targetScale = Mth.clamp(this.targetScale * Math.pow(ZOOM_STEP, amount), MIN_SCALE, MAX_SCALE);
-      this.zoomAnchorMouseX = mx;
-      this.zoomAnchorMouseY = my;
-      this.zoomAnchorWorldX = this.camX + (mx - this.centreX()) / this.scale;
-      this.zoomAnchorWorldZ = this.camZ + (my - this.centreY()) / this.scale;
-      this.zoomAnchored = true;
+      int next = Mth.clamp(this.zoomIndex + (amount > 0.0 ? 1 : -1), 0, ZOOM_LEVELS.length - 1);
+      if (next == this.zoomIndex) {
+         return true;
+      }
+
+      double before = this.guiPerBlock();
+      double worldX = this.camX + (mx - this.mapX() - this.mapW / 2.0) / before;
+      double worldZ = this.camZ + (my - this.mapY() - this.mapH / 2.0) / before;
+      this.zoomIndex = next;
+      double after = this.guiPerBlock();
+      this.camX = worldX - (mx - this.mapX() - this.mapW / 2.0) / after;
+      this.camZ = worldZ - (my - this.mapY() - this.mapH / 2.0) / after;
       return true;
    }
 

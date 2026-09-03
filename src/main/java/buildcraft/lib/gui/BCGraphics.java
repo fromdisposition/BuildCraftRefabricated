@@ -123,6 +123,14 @@ public final class BCGraphics {
       *///?}
    }
 
+   public void scaleGui(float x, float y) {
+      //? if >= 1.21.10 {
+      this.raw.pose().scale(x, y);
+      //?} else {
+      /*this.raw.pose().scale(x, y, 1.0F);
+      *///?}
+   }
+
    /**
     * Rotates the GUI pose around its origin by {@code radians}. Screen space is y-down, so a positive angle turns
     * clockwise: local (x, y) lands at (-y, x). Determinant stays +1, which matters because GUI_TEXTURED is a
