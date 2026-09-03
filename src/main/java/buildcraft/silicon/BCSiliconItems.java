@@ -12,9 +12,10 @@ import buildcraft.silicon.item.ItemPackage;
 import buildcraft.silicon.item.ItemPluggableFacade;
 import buildcraft.silicon.item.ItemPluggableGate;
 import buildcraft.silicon.item.ItemPluggableLens;
-import buildcraft.silicon.item.ItemPluggableLightSensor;
-import buildcraft.silicon.item.ItemPluggablePulsar;
-import buildcraft.silicon.item.ItemPluggableTimer;
+import buildcraft.silicon.plug.PluggableLightSensor;
+import buildcraft.silicon.plug.PluggablePulsar;
+import buildcraft.silicon.plug.PluggableTimer;
+import buildcraft.transport.item.ItemPluggableSimple;
 import java.util.Objects;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -37,10 +38,10 @@ public final class BCSiliconItems {
    public static ItemGateCopier GATE_COPIER;
    public static ItemPluggableFacade PLUG_FACADE;
    public static ItemPluggableGate PLUG_GATE;
-   public static ItemPluggablePulsar PLUG_PULSAR;
+   public static ItemPluggableSimple PLUG_PULSAR;
    public static ItemPluggableLens PLUG_LENS;
-   public static ItemPluggableLightSensor PLUG_LIGHT_SENSOR;
-   public static ItemPluggableTimer PLUG_TIMER;
+   public static ItemPluggableSimple PLUG_LIGHT_SENSOR;
+   public static ItemPluggableSimple PLUG_TIMER;
 
    private BCSiliconItems() {
    }
@@ -65,10 +66,18 @@ public final class BCSiliconItems {
       GATE_COPIER = BCRegistries.registerItem("buildcraftsilicon", "gate_copier", ItemGateCopier::new);
       PLUG_FACADE = BCRegistries.registerItemDynamicName("buildcraftsilicon", "plug_facade", ItemPluggableFacade::new);
       PLUG_GATE = BCRegistries.registerItemDynamicName("buildcraftsilicon", "plug_gate", ItemPluggableGate::new);
-      PLUG_PULSAR = BCRegistries.registerItem("buildcraftsilicon", "plug_pulsar", ItemPluggablePulsar::new);
+      PLUG_PULSAR = BCRegistries.registerItem(
+         "buildcraftsilicon", "plug_pulsar", props -> new ItemPluggableSimple(props, () -> BCSiliconPlugs.pulsar, PluggablePulsar::new, true, null)
+      );
       PLUG_LENS = BCRegistries.registerItemDynamicName("buildcraftsilicon", "plug_lens", ItemPluggableLens::new);
-      PLUG_LIGHT_SENSOR = BCRegistries.registerItem("buildcraftsilicon", "plug_light_sensor", ItemPluggableLightSensor::new);
-      PLUG_TIMER = BCRegistries.registerItem("buildcraftsilicon", "plug_timer", ItemPluggableTimer::new);
+      PLUG_LIGHT_SENSOR = BCRegistries.registerItem(
+         "buildcraftsilicon",
+         "plug_light_sensor",
+         props -> new ItemPluggableSimple(props, () -> BCSiliconPlugs.lightSensor, PluggableLightSensor::new, false, null)
+      );
+      PLUG_TIMER = BCRegistries.registerItem(
+         "buildcraftsilicon", "plug_timer", props -> new ItemPluggableSimple(props, () -> BCSiliconPlugs.timer, PluggableTimer::new, false, null)
+      );
       buildcraft.api.facades.FacadeAPI.facadeItem = PLUG_FACADE;
       buildcraft.api.facades.FacadeAPI.registry = buildcraft.silicon.plug.FacadeStateManager.INSTANCE;
    }

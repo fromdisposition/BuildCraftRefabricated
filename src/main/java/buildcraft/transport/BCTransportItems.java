@@ -9,8 +9,9 @@ package buildcraft.transport;
 import buildcraft.api.transport.pipe.PipeDefinition;
 import buildcraft.fabric.BCRegistries;
 import buildcraft.transport.item.ItemPipeHolder;
-import buildcraft.transport.item.ItemPluggableBlocker;
-import buildcraft.transport.item.ItemPluggablePowerAdaptor;
+import buildcraft.transport.item.ItemPluggableSimple;
+import buildcraft.transport.plug.PluggableBlocker;
+import buildcraft.transport.plug.PluggablePowerAdaptor;
 import buildcraft.transport.item.ItemWire;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -26,8 +27,8 @@ public final class BCTransportItems {
    public static DataComponentType<DyeColor> PIPE_COLOUR;
    public static BlockItem FILTERED_BUFFER;
    public static Item WATERPROOF;
-   public static ItemPluggableBlocker PLUG_BLOCKER;
-   public static ItemPluggablePowerAdaptor PLUG_POWER_ADAPTOR;
+   public static ItemPluggableSimple PLUG_BLOCKER;
+   public static ItemPluggableSimple PLUG_POWER_ADAPTOR;
    public static Map<DyeColor, ItemWire> WIRE_ITEMS;
    public static ItemPipeHolder PIPE_STRUCTURE;
    public static ItemPipeHolder PIPE_WOOD_ITEM;
@@ -87,8 +88,18 @@ public final class BCTransportItems {
       );
       FILTERED_BUFFER = BCRegistries.registerBlockItem("buildcrafttransport", "filtered_buffer", BCTransportBlocks.FILTERED_BUFFER);
       WATERPROOF = BCRegistries.registerItem("buildcrafttransport", "waterproof", Item::new);
-      PLUG_BLOCKER = BCRegistries.registerItem("buildcrafttransport", "plug_blocker", ItemPluggableBlocker::new);
-      PLUG_POWER_ADAPTOR = BCRegistries.registerItem("buildcrafttransport", "plug_power_adaptor", ItemPluggablePowerAdaptor::new);
+      PLUG_BLOCKER = BCRegistries.registerItem(
+         "buildcrafttransport",
+         "plug_blocker",
+         props -> new ItemPluggableSimple(props, () -> BCTransportPlugs.blocker, PluggableBlocker::new, false, PluggableBlocker::boundingBoxFor)
+      );
+      PLUG_POWER_ADAPTOR = BCRegistries.registerItem(
+         "buildcrafttransport",
+         "plug_power_adaptor",
+         props -> new ItemPluggableSimple(
+            props, () -> BCTransportPlugs.powerAdaptor, PluggablePowerAdaptor::new, true, PluggablePowerAdaptor::boundingBoxFor
+         )
+      );
       Map<DyeColor, ItemWire> wires = new EnumMap<>(DyeColor.class);
 
       for (DyeColor color : DyeColor.values()) {

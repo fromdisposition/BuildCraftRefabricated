@@ -7,8 +7,9 @@
 package buildcraft.robotics;
 
 import buildcraft.fabric.BCRegistries;
-import buildcraft.robotics.item.ItemPluggableRobotStation;
 import buildcraft.robotics.item.ItemRobot;
+import buildcraft.robotics.plug.PluggableRobotStation;
+import buildcraft.transport.item.ItemPluggableSimple;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
@@ -24,7 +25,11 @@ public final class BCRoboticsItems {
 
    public static void register() {
       REDSTONE_BOARD = BCRegistries.registerItemDynamicName("buildcraftrobotics", "redstone_board", props -> new ItemRedstoneBoard(props.stacksTo(16)));
-      ROBOT_STATION = BCRegistries.registerItem("buildcraftrobotics", "robot_station", ItemPluggableRobotStation::new);
+      ROBOT_STATION = BCRegistries.registerItem(
+         "buildcraftrobotics",
+         "robot_station",
+         props -> new ItemPluggableSimple(props, () -> BCRoboticsPlugs.robotStation, PluggableRobotStation::new, false, null)
+      );
       ROBOT = BCRegistries.registerItem("buildcraftrobotics", "robot", ItemRobot::new);
       if (BCRoboticsBlocks.ZONE_PLANNER != null) {
          ZONE_PLANNER = BCRegistries.registerBlockItem("buildcraftrobotics", "zone_planner", BCRoboticsBlocks.ZONE_PLANNER);
