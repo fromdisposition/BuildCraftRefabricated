@@ -21,43 +21,26 @@ import net.minecraft.core.Direction;
 
 /** 1.21.1 (versions/1.21.1) filler renderer: immediate-mode status LEDs (mode/power/finished). */
 public class RenderFiller implements BlockEntityRenderer<TileFiller> {
-   private static final RenderPartCube[] LED_GREEN = new RenderPartCube[4];
-   private static final RenderPartCube[] LED_RED = new RenderPartCube[4];
+   private static final RenderPartCube[] LED_ENERGY = new RenderPartCube[4];
+   private static final RenderPartCube[] LED_STATE = new RenderPartCube[4];
 
    public RenderFiller(BlockEntityRendererProvider.Context context) {
    }
 
    @Override
    public void render(TileFiller tile, float partialTick, PoseStack poseStack, MultiBufferSource buffers, int light, int overlay) {
-      IControllable.Mode controlMode = tile.getControlMode();
-      boolean hasPower = tile.hasPower();
-      boolean finished = tile.isFinished();
-      int greenColour;
-      int redColour;
-      if (controlMode == IControllable.Mode.OFF) {
-         greenColour = -14741477;
-         redColour = -14741477;
-      } else if (!hasPower) {
-         greenColour = -14741477;
-         redColour = -14540067;
-      } else if (finished) {
-         greenColour = -8921737;
-         redColour = -14540067;
-      } else if (controlMode == IControllable.Mode.LOOP) {
-         greenColour = -12617921;
-         redColour = -14741477;
-      } else {
-         greenColour = -8921737;
-         redColour = -14741477;
-      }
+      boolean active = tile.getControlMode() != IControllable.Mode.OFF && !tile.isFinished();
+      boolean ready = tile.hasPower() && tile.isValid();
+      int energyColour = LedRenderUtil.energyColour((float)tile.getBattery().getStored() / tile.getBattery().getCapacity());
+      int stateColour = LedRenderUtil.stateColour(active && ready, active && !ready);
 
       poseStack.pushPose();
       VertexConsumer led = buffers.getBuffer(BCLibRenderTypes.led());
       Pose pose = poseStack.last();
       for (int i = 0; i < 4; i++) {
          Direction skipFace = Direction.from2DDataValue(i).getOpposite();
-         LedRenderUtil.render(LED_GREEN[i], pose, led, skipFace, greenColour);
-         LedRenderUtil.render(LED_RED[i], pose, led, skipFace, redColour);
+         LedRenderUtil.render(LED_ENERGY[i], pose, led, skipFace, energyColour);
+         LedRenderUtil.render(LED_STATE[i], pose, led, skipFace, stateColour);
       }
       poseStack.popPose();
    }
@@ -65,10 +48,10 @@ public class RenderFiller implements BlockEntityRenderer<TileFiller> {
    static {
       for (int i = 0; i < 4; i++) {
          Direction face = Direction.from2DDataValue(i);
-         LED_GREEN[i] = new RenderPartCube();
-         LED_RED[i] = new RenderPartCube();
-         LedRenderUtil.setFacePosition(LED_GREEN[i], face, 0.025, 0.09375, 0.84375);
-         LedRenderUtil.setFacePosition(LED_RED[i], face, 0.025, 0.21875, 0.84375);
+         LED_ENERGY[i] = new RenderPartCube();
+         LED_STATE[i] = new RenderPartCube();
+         LedRenderUtil.setFacePosition(LED_ENERGY[i], face, 0.025, 0.09375, 0.84375);
+         LedRenderUtil.setFacePosition(LED_STATE[i], face, 0.025, 0.21875, 0.84375);
       }
    }
 }

@@ -13,6 +13,6 @@ import net.minecraft.core.Direction;
 public class ArchitectTableRenderState extends BcBerState<TileArchitectTable> {
    public Direction facing;
    public Direction skipFace;
-   public int greenColour;
-   public int redColour;
+   public int energyColour;
+   public int stateColour;
 }

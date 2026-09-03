@@ -30,7 +30,6 @@ import org.jspecify.annotations.Nullable;
 public class RenderPump implements BlockEntityRenderer<TilePump, PumpRenderState> {
    private static final Identifier BLOCKS_ATLAS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/blocks.png");
    private static final Identifier SHAFT_TEXTURE = Identifier.fromNamespaceAndPath("buildcraftfactory", "block/pump/tube");
-   private static final int[] COLOUR_POWER = new int[16];
    private static final RenderPartCube[] LED_POWER = new RenderPartCube[4];
    private static final RenderPartCube[] LED_STATUS = new RenderPartCube[4];
    private final TextureAtlasSprite shaftSprite;
@@ -55,8 +54,9 @@ public class RenderPump implements BlockEntityRenderer<TilePump, PumpRenderState
 
    private void extract(TilePump tile, PumpRenderState state, float partialTick) {
       float percentFilled = tile.getPercentFilledForRender();
-      state.powerColour = COLOUR_POWER[(int)(percentFilled * (COLOUR_POWER.length - 1))];
-      state.statusColour = tile.isComplete() ? -14741477 : -8921737;
+      state.powerColour = LedRenderUtil.energyColour(percentFilled);
+      boolean working = tile.hasWork();
+      state.statusColour = LedRenderUtil.stateColour(working, !tile.isComplete() && !working);
       state.shaftLength = tile.getLength(partialTick);
    }
 
@@ -94,12 +94,6 @@ public class RenderPump implements BlockEntityRenderer<TilePump, PumpRenderState
    }
 
    static {
-      for (int i = 0; i < COLOUR_POWER.length; i++) {
-         int c = i * 64 / COLOUR_POWER.length;
-         int r = i * 224 / COLOUR_POWER.length + 31;
-         COLOUR_POWER[i] = 0xFF000000 | c << 16 | c << 8 | r;
-      }
-
       for (int i = 0; i < 4; i++) {
          Direction face = Direction.from2DDataValue(i);
          LED_POWER[i] = new RenderPartCube();

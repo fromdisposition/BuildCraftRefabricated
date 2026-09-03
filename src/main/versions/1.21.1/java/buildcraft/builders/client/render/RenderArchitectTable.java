@@ -22,9 +22,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 /** 1.21.1 (versions/1.21.1) architect-table renderer: immediate-mode status/validity LEDs. */
 public class RenderArchitectTable implements BlockEntityRenderer<TileArchitectTable> {
-   private static final int COLOUR_RED_HALF = -15658633;
-   private static final RenderPartCube LED_GREEN = new RenderPartCube();
-   private static final RenderPartCube LED_RED = new RenderPartCube();
+   private static final RenderPartCube LED_ENERGY = new RenderPartCube();
+   private static final RenderPartCube LED_STATE = new RenderPartCube();
 
    public RenderArchitectTable(BlockEntityRendererProvider.Context context) {
    }
@@ -37,32 +36,16 @@ public class RenderArchitectTable implements BlockEntityRenderer<TileArchitectTa
       }
       Direction facing = blockState.getValue(HorizontalDirectionalBlock.FACING);
       Direction skipFace = facing.getOpposite();
-      boolean valid = tile.getIsValid();
-      boolean hasInput = !tile.getSnapshotIn().isEmpty();
-      boolean hasOutput = !tile.getSnapshotOut().isEmpty();
-      int greenColour;
-      int redColour;
-      if (!valid) {
-         greenColour = -14741477;
-         redColour = -14540067;
-      } else if (hasOutput) {
-         greenColour = -8921737;
-         redColour = COLOUR_RED_HALF;
-      } else if (hasInput) {
-         greenColour = -8921737;
-         redColour = -14540067;
-      } else {
-         greenColour = -8921737;
-         redColour = -14741477;
-      }
+      int energyColour = LedRenderUtil.COLOUR_OFF;
+      int stateColour = LedRenderUtil.stateColour(tile.isScanning(), !tile.getIsValid());
 
-      LedRenderUtil.setFacePosition(LED_GREEN, facing, 0.025, 0.15625, 0.21875);
-      LedRenderUtil.setFacePosition(LED_RED, facing, 0.025, 0.28125, 0.21875);
+      LedRenderUtil.setFacePosition(LED_ENERGY, facing, 0.025, 0.15625, 0.21875);
+      LedRenderUtil.setFacePosition(LED_STATE, facing, 0.025, 0.28125, 0.21875);
       poseStack.pushPose();
       VertexConsumer led = buffers.getBuffer(BCLibRenderTypes.led());
       Pose pose = poseStack.last();
-      LedRenderUtil.render(LED_GREEN, pose, led, skipFace, greenColour);
-      LedRenderUtil.render(LED_RED, pose, led, skipFace, redColour);
+      LedRenderUtil.render(LED_ENERGY, pose, led, skipFace, energyColour);
+      LedRenderUtil.render(LED_STATE, pose, led, skipFace, stateColour);
       poseStack.popPose();
    }
 }

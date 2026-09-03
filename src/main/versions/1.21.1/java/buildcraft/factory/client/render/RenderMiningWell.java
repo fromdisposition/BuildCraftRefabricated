@@ -32,7 +32,6 @@ import net.minecraft.world.phys.Vec3;
 public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell> {
    private static final Identifier BLOCKS_ATLAS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/blocks.png");
    private static final Identifier SHAFT_TEXTURE = Identifier.fromNamespaceAndPath("buildcraftfactory", "block/mining_well/tube");
-   private static final int[] COLOUR_POWER = new int[16];
    private static final RenderPartCube LED_POWER = new RenderPartCube();
    private static final RenderPartCube LED_STATUS = new RenderPartCube();
    private final TextureAtlasSprite shaftSprite;
@@ -46,8 +45,9 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell> {
       BlockState blockState = tile.getBlockState();
       Direction facing = blockState.is(BCFactoryBlocks.MINING_WELL) ? blockState.getValue(BuildCraftProperties.BLOCK_FACING) : Direction.NORTH;
       float percentFilled = tile.getPercentFilledForRender();
-      int powerColour = COLOUR_POWER[(int) (percentFilled * (COLOUR_POWER.length - 1))];
-      int statusColour = tile.isComplete() ? -14741477 : -8921737;
+      int powerColour = LedRenderUtil.energyColour(percentFilled);
+      boolean working = tile.hasWork();
+      int statusColour = LedRenderUtil.stateColour(working, !tile.isComplete() && !working);
 
       poseStack.pushPose();
       LedRenderUtil.setFacePosition(LED_POWER, facing, 0.0125, 0.15625, 0.34375);
@@ -83,10 +83,5 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell> {
    }
 
    static {
-      for (int i = 0; i < COLOUR_POWER.length; i++) {
-         int c = i * 64 / COLOUR_POWER.length & 0xFF;
-         int r = (i * 176 / COLOUR_POWER.length & 0xFF) + 79;
-         COLOUR_POWER[i] = 0xFF000000 | c << 16 | c << 8 | r;
-      }
    }
 }

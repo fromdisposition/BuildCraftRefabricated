@@ -10,5 +10,6 @@ Place the Filler at the corner of a <link inline="buildcraft:block/marker_volume
 The <bold>Excavate</bold> toggle clears the interior of the shape before filling. Excavated blocks will be ejected from the filler (assuming they are mineable by an Iron-tier pick).
 The <bold>Invert</bold> toggle augments the pattern by affecting the blocks that <italic>are not</italic> a part of the pattern's shape.
 The <bold>Control mode</bold> indicator (set by pipe gates) cycles between ON(default state), OFF, and LOOP. A padlock will appear if an adjacent gate is currently setting the pattern settings.
+Two <bold>LEDs</bold> report the machine's state. The first glows from dark to bright red as its stored power fills up. The second is <green>green</green> while the machine is working, <red>red</red> when it has work but cannot proceed (no power or an invalid area), and dark when it is idle or finished.
 
 <recipes_usages stack="buildcraftbuilders:filler"/>

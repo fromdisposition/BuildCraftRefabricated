@@ -14,11 +14,29 @@ import com.mojang.blaze3d.vertex.PoseStack.Pose;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 //?}
 import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 
 public final class LedRenderUtil {
    public static final int COLOUR_OFF = -14741477;
    public static final int COLOUR_GREEN_ON = -8921737;
    public static final int COLOUR_RED_ON = -14540067;
+   private static final int[] COLOUR_ENERGY = new int[16];
+
+   static {
+      for (int i = 0; i < COLOUR_ENERGY.length; i++) {
+         int c = i * 64 / COLOUR_ENERGY.length;
+         int r = i * 176 / COLOUR_ENERGY.length + 79;
+         COLOUR_ENERGY[i] = 0xFF000000 | c << 16 | c << 8 | r;
+      }
+   }
+
+   public static int energyColour(float fraction) {
+      return fraction > 0.01F ? COLOUR_ENERGY[Mth.clamp((int)(fraction * (COLOUR_ENERGY.length - 1)), 0, COLOUR_ENERGY.length - 1)] : COLOUR_OFF;
+   }
+
+   public static int stateColour(boolean working, boolean blocked) {
+      return working ? COLOUR_GREEN_ON : blocked ? COLOUR_RED_ON : COLOUR_OFF;
+   }
 
    //? if >= 1.21.10 {
    public static void submit(PoseStack poseStack, SubmitNodeCollector collector, RenderPartCube led, Direction skipFace, int colour) {

@@ -109,6 +109,7 @@ public class TileFiller
    private byte lockedTicks = 0;
    private boolean deferredChunkLoad = false;
    private IControllable.Mode mode = IControllable.Mode.ON;
+   private int lastLedSync = -1;
    public final Box box = new Box();
    public AddonFillerPlanner addon;
    public boolean markerBox = true;
@@ -289,6 +290,11 @@ public class TileFiller
             }
 
             this.battery.tick(this.level, this.worldPosition);
+            int ledSync = (int)(this.battery.getStored() * 16L / Math.max(1L, this.battery.getCapacity())) * 2 + (this.finished ? 1 : 0);
+            if (ledSync != this.lastLedSync && this.level.getGameTime() % 20L == 0L) {
+               this.lastLedSync = ledSync;
+               this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+            }
             this.lockedTicks--;
             if (this.lockedTicks < 0) {
                this.lockedTicks = 0;

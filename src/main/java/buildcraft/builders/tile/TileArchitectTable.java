@@ -162,7 +162,10 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
          if (!this.level.isClientSide()) {
             ItemStack stackIn = this.invSnapshotIn.getStackInSlot(0);
             if (stackIn.isEmpty() || !this.invSnapshotOut.getStackInSlot(0).isEmpty() || !this.isValid) {
-               this.scanning = false;
+               if (this.scanning) {
+                  this.scanning = false;
+                  this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+               }
                if (this.dropCountdown == 0) {
                   this.scanProgress = 0;
                   this.scanTotal = 0;
@@ -180,6 +183,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
                this.scanInitialized = false;
                this.blueprintScannedPalette.clear();
                this.dropCountdown = 0;
+               this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
             }
 
             if (this.scanning) {

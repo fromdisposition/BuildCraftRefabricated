@@ -24,11 +24,11 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRenderState> {
    private static final double LED_INSET = 0.025;
-   private static final double GREEN_OFFSET = 0.09375;
-   private static final double RED_OFFSET = 0.21875;
+   private static final double ENERGY_OFFSET = 0.09375;
+   private static final double STATE_OFFSET = 0.21875;
    private static final double Y = 0.84375;
-   private static final RenderPartCube[] LED_GREEN = new RenderPartCube[4];
-   private static final RenderPartCube[] LED_RED = new RenderPartCube[4];
+   private static final RenderPartCube[] LED_ENERGY = new RenderPartCube[4];
+   private static final RenderPartCube[] LED_STATE = new RenderPartCube[4];
 
    public RenderQuarry(Context context) {
    }
@@ -46,10 +46,8 @@ public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRender
       state.rear = front.getOpposite();
       boolean hasPower = tile.hasPower();
       boolean hasTask = tile.isMining();
-      boolean greenOn = hasPower || !hasTask;
-      boolean redOn = !hasPower || !hasTask;
-      state.greenColour = greenOn ? -8921737 : -14741477;
-      state.redColour = redOn ? -14540067 : -14741477;
+      state.energyColour = LedRenderUtil.energyColour((float)tile.getBattery().getStored() / tile.getBattery().getCapacity());
+      state.stateColour = LedRenderUtil.stateColour(hasPower && hasTask, !hasPower && hasTask);
    }
 
    public void submit(QuarryRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
@@ -59,8 +57,8 @@ public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRender
          Direction dir = Direction.from2DDataValue(i);
          if (dir != renderState.rear) {
             Direction skipFace = dir.getOpposite();
-            LedRenderUtil.submit(poseStack, collector, LED_GREEN[i], skipFace, renderState.greenColour);
-            LedRenderUtil.submit(poseStack, collector, LED_RED[i], skipFace, renderState.redColour);
+            LedRenderUtil.submit(poseStack, collector, LED_ENERGY[i], skipFace, renderState.energyColour);
+            LedRenderUtil.submit(poseStack, collector, LED_STATE[i], skipFace, renderState.stateColour);
          }
       }
 
@@ -101,10 +99,10 @@ public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRender
    static {
       for (int i = 0; i < 4; i++) {
          Direction face = Direction.from2DDataValue(i);
-         LED_GREEN[i] = new RenderPartCube();
-         LED_RED[i] = new RenderPartCube();
-         LedRenderUtil.setFacePosition(LED_GREEN[i], face, LED_INSET, GREEN_OFFSET, Y);
-         LedRenderUtil.setFacePosition(LED_RED[i], face, LED_INSET, RED_OFFSET, Y);
+         LED_ENERGY[i] = new RenderPartCube();
+         LED_STATE[i] = new RenderPartCube();
+         LedRenderUtil.setFacePosition(LED_ENERGY[i], face, LED_INSET, ENERGY_OFFSET, Y);
+         LedRenderUtil.setFacePosition(LED_STATE[i], face, LED_INSET, STATE_OFFSET, Y);
       }
    }
 }

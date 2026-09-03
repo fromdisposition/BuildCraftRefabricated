@@ -11,4 +11,5 @@ It will pump fluids in a 64 blocks radius from top to bottom and the outer edges
 <chapter name="Machine Mechanics"/>
 As with most machines, it requires power. The more power you supply it, the faster it will pump.
 Applying a redstone signal to the pump will stop the pump from pumping so be careful where you place your levers.
+Two <bold>LEDs</bold> report the machine's state. The first glows from dark to bright red as its stored power fills up. The second is <green>green</green> while the machine is working, <red>red</red> when it has work but cannot proceed (no power or an invalid area), and dark when it is idle or finished.
 <recipes_usages stack="buildcraftfactory:pump"/>

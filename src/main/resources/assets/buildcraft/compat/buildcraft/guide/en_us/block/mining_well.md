@@ -12,6 +12,7 @@ The harder the block it is trying to break is, the longer it takes to mine.
 <chapter name="Machine Mechanics"/>
 As with most machines, it requires power. The more power you supply it, the faster it will dig.
 If you give it a redstone signal, the Mining Well will stop running.
+Two <bold>LEDs</bold> report the machine's state. The first glows from dark to bright red as its stored power fills up. The second is <green>green</green> while the machine is working, <red>red</red> when it has work but cannot proceed (no power or an invalid area), and dark when it is idle or finished.
 <chapter name="Mining Tier"/>
 The Mining Well harvests blocks as if it were holding an iron pickaxe. Anything an iron pickaxe can mine drops the same items it would when broken by a player (cobblestone from stone, raw iron from iron ore, diamond from diamond ore, and so on). Experience orbs awarded by these breaks spawn at the Mining Well itself, so you can collect XP at the machine you placed without walking down the shaft.
 Blocks that need a higher-tier pickaxe (such as obsidians and netherite related blocks) make the well stop. Should the miner encounter one of these blocks, or a dense liquid (such as lava or oil), the well will halt until the obstruction is cleared.

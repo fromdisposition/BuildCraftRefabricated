@@ -6,7 +6,7 @@ The Quarry strip-mines a marked area down to bedrock, depositing every block it 
 </no_lore>
 <chapter name="Information"/>
 Surround the area you want mined with Land Marks (up to 64×64 by default), place the Quarry next to one of the marks, and supply it with power. The Quarry builds a frame around the area first, then a head travels inside that frame to mine each block in turn. Output flows into any adjacent inventory or pipe; if there's nowhere to put a drop, the Quarry will eject the item into the world.
-The Quarry continues until it reaches bedrock or runs out of unmineable blocks. A red <red>LED</red> on its sides indicates it has work but no power; a green <green>LED</green> indicates it is actively mining; both <red>LE</red><green>Ds</green> together mean it's idle or finished.
+The Quarry continues until it reaches bedrock or runs out of unmineable blocks. Two <bold>LEDs</bold> report the machine's state. The first glows from dark to bright red as its stored power fills up. The second is <green>green</green> while the machine is working, <red>red</red> when it has work but cannot proceed (no power or an invalid area), and dark when it is idle or finished.
 <recipes_usages stack="buildcraftbuilders:quarry"/>
 <chapter name="Mining Tier"/>
 The Quarry's head harvests blocks as if wielding a diamond pickaxe. It will only skip mining if it encounters an impassible fluid (such as lava or oil), or a block that cannot be successfully mined by a diamond pick.

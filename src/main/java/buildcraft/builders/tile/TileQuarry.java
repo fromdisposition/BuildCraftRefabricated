@@ -103,6 +103,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    );
    private final Set<BlockPos> framePlaceFramePoses = new HashSet<>();
    public TileQuarry.Task currentTask = null;
+   private int lastLedSync = -1;
    public Vec3 drillPos;
    public Vec3 clientDrillPos;
    public Vec3 prevClientDrillPos;
@@ -565,6 +566,11 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
 
             this.flushPipeNeighborNotify();
             this.battery.tick(this.level, this.worldPosition);
+            int ledSync = (int)(this.battery.getStored() * 16L / Math.max(1L, this.battery.getCapacity())) * 2 + (this.currentTask != null ? 1 : 0);
+            if (ledSync != this.lastLedSync && this.level.getGameTime() % 20L == 0L) {
+               this.lastLedSync = ledSync;
+               this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
+            }
 
             if (this.frameBox.isInitialized() && this.miningBox.isInitialized()) {
                int desiredMinY = this.computeMiningMinY();

@@ -33,7 +33,6 @@ import org.jspecify.annotations.Nullable;
 public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, MiningWellRenderState> {
    private static final Identifier BLOCKS_ATLAS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/blocks.png");
    private static final Identifier SHAFT_TEXTURE = Identifier.fromNamespaceAndPath("buildcraftfactory", "block/mining_well/tube");
-   private static final int[] COLOUR_POWER = new int[16];
    private static final RenderPartCube LED_POWER = new RenderPartCube();
    private static final RenderPartCube LED_STATUS = new RenderPartCube();
    private final TextureAtlasSprite shaftSprite;
@@ -60,8 +59,9 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, Min
       BlockState blockState = tile.getBlockState();
       state.facing = blockState.is(BCFactoryBlocks.MINING_WELL) ? blockState.getValue(BuildCraftProperties.BLOCK_FACING) : Direction.NORTH;
       float percentFilled = tile.getPercentFilledForRender();
-      state.powerColour = COLOUR_POWER[(int)(percentFilled * (COLOUR_POWER.length - 1))];
-      state.statusColour = tile.isComplete() ? -14741477 : -8921737;
+      state.powerColour = LedRenderUtil.energyColour(percentFilled);
+      boolean working = tile.hasWork();
+      state.statusColour = LedRenderUtil.stateColour(working, !tile.isComplete() && !working);
       state.shaftLength = tile.getLength(partialTick);
    }
 
@@ -98,10 +98,5 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, Min
    }
 
    static {
-      for (int i = 0; i < COLOUR_POWER.length; i++) {
-         int c = i * 64 / COLOUR_POWER.length & 0xFF;
-         int r = (i * 176 / COLOUR_POWER.length & 0xFF) + 79;
-         COLOUR_POWER[i] = 0xFF000000 | c << 16 | c << 8 | r;
-      }
    }
 }
