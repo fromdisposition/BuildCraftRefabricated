@@ -1,5 +1,4 @@
 {
-  "parent": "buildcraftfactory:block/tank",
   "display": {
     "gui": {
       "rotation": [

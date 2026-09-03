@@ -84,6 +84,36 @@ public final class BCAssetProvider implements DataProvider {
          futures.add(DataProvider.saveStable(cache, root, this.blockstates.json(Identifier.parse(id))));
       });
 
+      for (BCAssetDefs.Model model : BCAssetDefs.PIPE_ITEM_MODELS) {
+         futures.add(DataProvider.saveStable(cache, model(model.parent(), model.textures()), this.itemModels.json(Identifier.parse(model.id()))));
+      }
+
+      BCAssetDefs.PARENT_ITEM_MODELS.forEach((id, parent) ->
+         futures.add(DataProvider.saveStable(cache, model(parent, Map.of()), this.itemModels.json(Identifier.parse(id)))));
+      BCAssetDefs.PARTICLE_BLOCK_MODELS.forEach((id, particle) ->
+         futures.add(DataProvider.saveStable(cache, model(null, Map.of("particle", particle)), this.blockModels.json(Identifier.parse(id)))));
+
+      for (String fluid : BCAssetDefs.FLUIDS) {
+         Identifier block = Identifier.fromNamespaceAndPath("buildcraftenergy", fluid);
+         futures.add(DataProvider.saveStable(
+            cache,
+            model("minecraft:item/generated", Map.of("layer0", "minecraft:item/bucket", "layer1", "buildcraftenergy:item/bucket_fluid/" + fluid)),
+            this.itemModels.json(Identifier.fromNamespaceAndPath("buildcraftenergy", "fluid_buckets/" + fluid + "_bucket"))
+         ));
+         futures.add(DataProvider.saveStable(cache, model(null, Map.of("particle", "buildcraftenergy:block/fluids/baked/" + fluid)), this.blockModels.json(block)));
+         JsonObject apply = new JsonObject();
+         apply.addProperty("model", "buildcraftenergy:block/" + fluid);
+         apply.addProperty("x", 0);
+         apply.addProperty("y", 0);
+         JsonObject part = new JsonObject();
+         part.add("apply", apply);
+         JsonArray multipart = new JsonArray();
+         multipart.add(part);
+         JsonObject root = new JsonObject();
+         root.add("multipart", multipart);
+         futures.add(DataProvider.saveStable(cache, root, this.blockstates.json(block)));
+      }
+
       for (BCAssetDefs.BlockModel blockModel : BCAssetDefs.BLOCK_MODELS) {
          JsonObject textures = new JsonObject();
          for (Map.Entry<String, String> texture : blockModel.textures().entrySet()) {
@@ -96,6 +126,21 @@ public final class BCAssetProvider implements DataProvider {
       }
 
       return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
+   }
+
+   private static JsonObject model(String parent, Map<String, String> textures) {
+      JsonObject root = new JsonObject();
+      if (parent != null) {
+         root.addProperty("parent", parent);
+      }
+
+      if (!textures.isEmpty()) {
+         JsonObject json = new JsonObject();
+         textures.forEach(json::addProperty);
+         root.add("textures", json);
+      }
+
+      return root;
    }
 
    private static JsonObject model(String ref) {

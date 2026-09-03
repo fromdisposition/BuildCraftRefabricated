@@ -1,4 +1,5 @@
 {
+  "parent": "buildcraftlib:block/item_display",
   "elements": [
     {
       "comment": "Top box",

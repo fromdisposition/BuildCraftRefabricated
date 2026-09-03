@@ -448,14 +448,12 @@ if (isGeneratorNode) {
 
     tasks.register("generateFluidBucketAssets") {
         group = "buildcraft"
-        description = "Regenerate fluid block textures, bucket icons, underwater overlays, and bucket item JSON."
+        description = "Regenerate fluid block textures, bucket icons and underwater overlays."
         val heatStill = rootProject.file("gradle/fluid_assets/heat_still.png")
         val fluidMask = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/item/mask/bucket_fluid.png")
         val fluidOutDir = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/item/bucket_fluid")
         val underwaterOutDir = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/underwater")
         val bakedOutDir = rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/baked")
-        val itemsDir = rootProject.file("src/main/resources/assets/buildcraftenergy/items")
-        val modelsDir = rootProject.file("src/main/resources/assets/buildcraftenergy/models/item/fluid_buckets")
         inputs.file(heatStill)
         inputs.file(fluidMask)
         inputs.files((0..2).map { rootProject.file("src/main/resources/assets/buildcraftenergy/textures/block/fluids/heat_${it}_still.png") })
@@ -471,7 +469,6 @@ if (isGeneratorNode) {
             fluidOutDir.mkdirs()
             bakedOutDir.mkdirs()
             underwaterOutDir.mkdirs()
-            modelsDir.mkdirs()
 
             fun recolor(
                 lumPixel: Int,
@@ -612,29 +609,6 @@ if (isGeneratorNode) {
                         }
                     }
                     ImageIO.write(underwater, "PNG", underwaterOutDir.resolve("$fluid.png"))
-
-                    val bucket = "${fluid}_bucket"
-                    modelsDir.resolve("$bucket.json").writeText(
-                        """
-                        {
-                            "parent": "minecraft:item/generated",
-                            "textures": {
-                                "layer0": "minecraft:item/bucket",
-                                "layer1": "buildcraftenergy:item/bucket_fluid/$fluid"
-                            }
-                        }
-                        """.trimIndent() + "\n"
-                    )
-                    itemsDir.resolve("$bucket.json").writeText(
-                        """
-                        {
-                            "model": {
-                                "type": "minecraft:model",
-                                "model": "buildcraftenergy:item/fluid_buckets/$bucket"
-                            }
-                        }
-                        """.trimIndent() + "\n"
-                    )
                 }
             }
             logger.lifecycle("Regenerated ${fluidData.size * heats.size} fluid block, bucket, and underwater assets")
