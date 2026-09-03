@@ -26,11 +26,11 @@ public final class DebugRenderHelper {
 
    //? if >= 26.2 {
    public static void renderTranslucentBox(PoseStack poseStack, AABB box, Vec3 cameraPos, int argb) {
-      renderBox(poseStack, box, cameraPos, argb, BCLibRenderTypes.debugFilled());
+      renderBox(poseStack, box, cameraPos, argb, BCLibRenderTypes.debugQuads());
    }
 
    public static void renderSolidBox(PoseStack poseStack, AABB box, Vec3 cameraPos, int argb) {
-      renderBox(poseStack, box, cameraPos, argb, BCLibRenderTypes.debugSolid());
+      renderBox(poseStack, box, cameraPos, argb, BCLibRenderTypes.debugQuads());
    }
 
    private static void renderBox(PoseStack poseStack, AABB box, Vec3 cameraPos, int argb, RenderType type) {
@@ -51,11 +51,11 @@ public final class DebugRenderHelper {
    }
    //?} else {
    /*public static void renderTranslucentBox(PoseStack poseStack, MultiBufferSource bufferSource, AABB box, Vec3 cameraPos, int argb) {
-      renderBox(poseStack, bufferSource, box, cameraPos, argb, BCLibRenderTypes.debugFilled());
+      renderBox(poseStack, bufferSource, box, cameraPos, argb, BCLibRenderTypes.debugQuads());
    }
 
    public static void renderSolidBox(PoseStack poseStack, MultiBufferSource bufferSource, AABB box, Vec3 cameraPos, int argb) {
-      renderBox(poseStack, bufferSource, box, cameraPos, argb, BCLibRenderTypes.debugSolid());
+      renderBox(poseStack, bufferSource, box, cameraPos, argb, BCLibRenderTypes.debugQuads());
    }
 
    private static void renderBox(PoseStack poseStack, MultiBufferSource bufferSource, AABB box, Vec3 cameraPos, int argb, RenderType type) {

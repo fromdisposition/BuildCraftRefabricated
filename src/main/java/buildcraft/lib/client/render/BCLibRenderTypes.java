@@ -6,12 +6,7 @@
 
 package buildcraft.lib.client.render;
 
-//? if >= 26.1 {
-import com.mojang.renderpearl.api.pipeline.DepthStencilState;
-//?}
 //? if >= 1.21.10 {
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline.Snippet;
 import net.minecraft.client.renderer.RenderPipelines;
 //?}
 //? if < 1.21.10 {
@@ -35,20 +30,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 
 public final class BCLibRenderTypes {
-   //? if >= 1.21.10 {
-   public static final RenderPipeline LED_PIPELINE = RenderPipeline.builder(new Snippet[]{RenderPipelines.DEBUG_FILLED_SNIPPET})
-      .withLocation(Identifier.fromNamespaceAndPath("buildcraftlib", "pipeline/led"))
-      //? if >= 26.1 {
-      .withDepthStencilState(DepthStencilState.DEFAULT)
-      //?}
-      .build();
-   //?}
-
+   private static final Identifier WHITE = Identifier.fromNamespaceAndPath("buildcraftlib", "textures/misc/white.png");
    //? if >= 1.21.11 {
    private static final RenderType LED = RenderType.create(
-      "buildcraft:led", RenderSetup.builder(LED_PIPELINE).setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).createRenderSetup()
+      "buildcraft:led", RenderSetup.builder(RenderPipelines.DEBUG_QUADS).setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).createRenderSetup()
    );
-   private static final RenderType DEBUG_SOLID = RenderType.create("buildcraft:debug_solid", RenderSetup.builder(LED_PIPELINE).createRenderSetup());
    private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(
       texture -> RenderType.create(
          "buildcraft:entity_translucent_cull",
@@ -70,11 +56,8 @@ public final class BCLibRenderTypes {
    /*// 1.21.10 uses the legacy RenderType.create(name, bufferSize[, crumbling, sort], pipeline, CompositeState) API;
    // RenderSetup / RenderTypes / the rendertype.* package do not exist yet there.
    private static final RenderType LED = RenderType.create(
-      "buildcraft:led", 1536, LED_PIPELINE,
+      "buildcraft:led", 1536, RenderPipelines.DEBUG_QUADS,
       RenderType.CompositeState.builder().setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING).createCompositeState(false)
-   );
-   private static final RenderType DEBUG_SOLID = RenderType.create(
-      "buildcraft:debug_solid", 1536, LED_PIPELINE, RenderType.CompositeState.builder().createCompositeState(false)
    );
    private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(
       texture -> RenderType.create(
@@ -88,7 +71,7 @@ public final class BCLibRenderTypes {
    );
    *///?} else {
    /*// 1.21.1 predates RenderPipeline: build render types the classic way (VertexFormat + ShaderStateShard).
-   // LED/DEBUG_SOLID mirror vanilla debug_filled_box (POSITION_COLOR, position-color shader, translucent);
+   // LED mirrors vanilla debug_filled_box (POSITION_COLOR, position-color shader, translucent);
    // ENTITY_TRANSLUCENT_CULL maps straight to the vanilla helper.
    // BuildCraft's RenderPartCube emits 4 vertices per face in quad winding, so these use QUADS mode.
    // (Vanilla debug_filled_box is TRIANGLE_STRIP with a special vertex order; copying that mode here turned
@@ -101,13 +84,6 @@ public final class BCLibRenderTypes {
          // the standard fix for a quad coplanar with the machine face. VIEW_OFFSET_Z_LAYERING was too weak
          // and z-fought; this removes the need for the old positional epsilon nudge in LedRenderUtil.
          .setLayeringState(RenderStateShard.POLYGON_OFFSET_LAYERING)
-         .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
-         .createCompositeState(false)
-   );
-   private static final RenderType DEBUG_SOLID = RenderType.create(
-      "buildcraft:debug_solid", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 1536, false, true,
-      RenderType.CompositeState.builder()
-         .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
          .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
          .createCompositeState(false)
    );
@@ -126,8 +102,20 @@ public final class BCLibRenderTypes {
       *///?}
    }
 
-   public static RenderType debugSolid() {
-      return DEBUG_SOLID;
+   public static RenderType debugQuads() {
+      //? if >= 1.21.11 {
+      return RenderTypes.debugQuads();
+      //?} else {
+      /*return RenderType.debugQuads();
+      *///?}
+   }
+
+   public static RenderType zoneMap(boolean translucent) {
+      //? if >= 1.21.11 {
+      return RenderTypes.beaconBeam(WHITE, translucent);
+      //?} else {
+      /*return RenderType.beaconBeam(WHITE, translucent);
+      *///?}
    }
 
    public static RenderType entityTranslucentCull(Identifier texture) {

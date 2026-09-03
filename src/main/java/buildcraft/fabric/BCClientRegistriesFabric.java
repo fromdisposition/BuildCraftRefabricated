@@ -5,7 +5,6 @@ public final class BCClientRegistriesFabric {
    }
 
    public static void register() {
-      BCRenderPipelinesFabric.register();
       BCItemTintSourcesFabric.register();
    }
 }

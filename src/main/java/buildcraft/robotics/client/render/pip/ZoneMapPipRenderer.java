@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.client.Minecraft;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
 //? if >= 26.2 {
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -173,7 +174,7 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       int cx1 = state.maxChunkX();
       int cz0 = state.minChunkZ();
       int cz1 = state.maxChunkZ();
-      sink.submit(poseStack, BCLibRenderTypes.debugSolid(), (pose, vc) -> {
+      sink.submit(poseStack, BCLibRenderTypes.zoneMap(false), (pose, vc) -> {
          for (int cx = cx0; cx <= cx1; cx++) {
             for (int cz = cz0; cz <= cz1; cz++) {
                long key = ZonePlannerChunkKeys.chunkKey(cx, cz);
@@ -183,9 +184,8 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
                }
             }
          }
-
-         this.emitOverlay(state, pose, vc);
       });
+      sink.submit(poseStack, BCLibRenderTypes.zoneMap(true), (pose, vc) -> this.emitOverlay(state, pose, vc));
    }
 
    private void evictFarMeshes(ZoneMapPipRenderState state) {
@@ -308,10 +308,10 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       VertexConsumer vc, Pose pose, float ax, float ay, float az, float bx, float by, float bz, float cx, float cy, float cz,
       float dx, float dy, float dz, int r, int g, int b, int a
    ) {
-      vc.addVertex(pose, ax, ay, az).setColor(r, g, b, a);
-      vc.addVertex(pose, bx, by, bz).setColor(r, g, b, a);
-      vc.addVertex(pose, cx, cy, cz).setColor(r, g, b, a);
-      vc.addVertex(pose, dx, dy, dz).setColor(r, g, b, a);
+      vc.addVertex(pose, ax, ay, az).setColor(r, g, b, a).setUv(0.0F, 0.0F).setLight(LightCoordsUtil.FULL_BRIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
+      vc.addVertex(pose, bx, by, bz).setColor(r, g, b, a).setUv(0.0F, 0.0F).setLight(LightCoordsUtil.FULL_BRIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
+      vc.addVertex(pose, cx, cy, cz).setColor(r, g, b, a).setUv(0.0F, 0.0F).setLight(LightCoordsUtil.FULL_BRIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
+      vc.addVertex(pose, dx, dy, dz).setColor(r, g, b, a).setUv(0.0F, 0.0F).setLight(LightCoordsUtil.FULL_BRIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
    }
 
    @Override
@@ -364,7 +364,10 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
       void emit(VertexConsumer vc, Pose pose, int originX, int originZ) {
          for (int i = 0; i < this.rgb.length; i++) {
             int c = this.rgb[i];
-            vc.addVertex(pose, this.px[i] - originX, this.py[i], this.pz[i] - originZ).setColor(c >> 16 & 0xFF, c >> 8 & 0xFF, c & 0xFF, 255);
+            vc.addVertex(pose, this.px[i] - originX, this.py[i], this.pz[i] - originZ).setColor(c >> 16 & 0xFF, c >> 8 & 0xFF, c & 0xFF, 255)
+               .setUv(0.0F, 0.0F)
+               .setLight(LightCoordsUtil.FULL_BRIGHT)
+               .setNormal(pose, 0.0F, 1.0F, 0.0F);
          }
       }
 
@@ -534,7 +537,10 @@ public class ZoneMapPipRenderer extends PictureInPictureRenderer<ZoneMapPipRende
          for (int i = 0; i < this.argb.length; i++) {
             int c = this.argb[i];
             vc.addVertex(pose, this.px[i] - originX, this.py[i], this.pz[i] - originZ)
-               .setColor(c >> 16 & 0xFF, c >> 8 & 0xFF, c & 0xFF, c >>> 24);
+               .setColor(c >> 16 & 0xFF, c >> 8 & 0xFF, c & 0xFF, c >>> 24)
+               .setUv(0.0F, 0.0F)
+               .setLight(LightCoordsUtil.FULL_BRIGHT)
+               .setNormal(pose, 0.0F, 1.0F, 0.0F);
          }
       }
 
