@@ -30,7 +30,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 
 public final class BCLibRenderTypes {
-   private static final Identifier WHITE = Identifier.fromNamespaceAndPath("buildcraftlib", "textures/misc/white.png");
    //? if >= 1.21.11 {
    private static final RenderType LED = RenderType.create(
       "buildcraft:led", RenderSetup.builder(RenderPipelines.DEBUG_QUADS).setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).createRenderSetup()
@@ -107,14 +106,6 @@ public final class BCLibRenderTypes {
       return RenderTypes.debugQuads();
       //?} else {
       /*return RenderType.debugQuads();
-      *///?}
-   }
-
-   public static RenderType zoneMap(boolean translucent) {
-      //? if >= 1.21.11 {
-      return RenderTypes.beaconBeam(WHITE, translucent);
-      //?} else {
-      /*return RenderType.beaconBeam(WHITE, translucent);
       *///?}
    }
 

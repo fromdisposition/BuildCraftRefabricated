@@ -2,8 +2,6 @@ package buildcraft.lib.fabric.client;
 
 import buildcraft.builders.client.render.pip.BlueprintPipRenderer;
 import buildcraft.builders.client.render.pip.TooltipBlueprintPipRenderer;
-import buildcraft.robotics.client.render.pip.ZoneMapOverlayPipRenderer;
-import buildcraft.robotics.client.render.pip.ZoneMapPipRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
 
 /**
@@ -22,13 +20,9 @@ public final class PictureInPictureRegistration {
       //? if >= 26.2 {
       PictureInPictureRendererRegistry.register(ctx -> new BlueprintPipRenderer());
       PictureInPictureRendererRegistry.register(ctx -> new TooltipBlueprintPipRenderer());
-      PictureInPictureRendererRegistry.register(ctx -> new ZoneMapPipRenderer());
-      PictureInPictureRendererRegistry.register(ctx -> new ZoneMapOverlayPipRenderer());
       //?} else {
       /*PictureInPictureRendererRegistry.register(ctx -> new BlueprintPipRenderer(ctx.bufferSource()));
       PictureInPictureRendererRegistry.register(ctx -> new TooltipBlueprintPipRenderer(ctx.bufferSource()));
-      PictureInPictureRendererRegistry.register(ctx -> new ZoneMapPipRenderer(ctx.bufferSource()));
-      PictureInPictureRendererRegistry.register(ctx -> new ZoneMapOverlayPipRenderer(ctx.bufferSource()));
       *///?}
    }
 }

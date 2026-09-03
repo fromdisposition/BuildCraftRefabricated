@@ -23,6 +23,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
+   private ZonePlannerMapElement map;
    private static final Identifier TEXTURE = Identifier.parse("buildcraftrobotics:textures/gui/bcr/zone_planner.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 256.0, 244.0);
    // The texture only carries the right-pointing (import) arrow now. The export arrow is the same sprite drawn
@@ -135,7 +136,8 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
    @Override
    protected void initGuiElements() {
       TileZonePlanner tile = (this.getMenu()).tile;
-      this.mainGui.shownElements.add(new ZonePlannerMapElement(this, tile, 8, 18, 213, 100));
+      this.map = new ZonePlannerMapElement(this, tile, 8, 18, 213, 100);
+      this.mainGui.shownElements.add(this.map);
       this.mainGui
          .shownElements
          .add(
@@ -212,5 +214,13 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
                new ElementHelpInfo("buildcraft.help.zone_planner.export_result.title", -10665929, "buildcraft.help.zone_planner.export_result.desc")
             )
          );
+   }
+
+   @Override
+   public void removed() {
+      super.removed();
+      if (this.map != null) {
+         this.map.close();
+      }
    }
 }
