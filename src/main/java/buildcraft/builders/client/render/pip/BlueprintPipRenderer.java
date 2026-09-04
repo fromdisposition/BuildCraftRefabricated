@@ -68,13 +68,10 @@ import net.minecraft.world.level.EmptyBlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
 
 public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipRenderState> {
-   private static final Logger LOGGER = LogManager.getLogger("BCBlueprintPipRenderer");
    private static final float PITCH_DEG = 20.0F;
    private static final int YAW_PERIOD_TICKS = 72;
    private static final int FULL_BRIGHT = 15728880;
@@ -167,20 +164,6 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
 
       flush.run();
       RenderSystem.setShaderLights(savedShaderLights);
-      if (!plan.logged) {
-         plan.logged = true;
-         LOGGER.info(
-            "renderToTexture: type={} size={}x{}x{} submitted={} submittedFluid={} submittedTemplate={} submittedPipe={} skippedNoItem={} skippedAirOrEmpty={} skippedHidden={} sampleSchBlock={} distinctStates={}",
-            new Object[]{
-               snapshot.getClass().getSimpleName(),
-               sizeX, sizeY, sizeZ,
-               plan.blockEntries.size(), plan.fluidEntries.size(),
-               plan.templateEntries.size(), plan.pipeEntries.size(),
-               plan.skippedNoItem, plan.skippedAirOrEmpty, plan.skippedHidden,
-               plan.sampleClassName, plan.distinctStates
-            }
-         );
-      }
    }
 
    private static void submitTemplateGhostCube(PoseStack poseStack, BlueprintPipRenderer.TemplateEntry entry, GeometrySink sink) {
@@ -345,8 +328,6 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
                      if (!faces.isEmpty()) {
                         plan.templateEntries.add(new BlueprintPipRenderer.TemplateEntry(x, y, z, faces));
                      }
-                  } else {
-                     plan.skippedAirOrEmpty++;
                   }
                } else if (blueprint != null && blueprint.data != null) {
                   int index = blueprint.data[dataIndex];
@@ -355,10 +336,6 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
                      if (schBlock != null && !schBlock.isAir()) {
                         BlockState state = schBlock.getBlockStateForRender();
                         if (state != null && !state.isAir()) {
-                           if (plan.sampleClassName.equals("n/a")) {
-                              plan.sampleClassName = schBlock.getClass().getSimpleName();
-                           }
-
                            if (PipePreviewModel.isPipe(state)) {
                               PipeModelKey pipeKey = PipePreviewModel.modelKey(schBlock.getTileNbtForRender());
                               if (pipeKey != null) {
@@ -394,38 +371,25 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
                                        neighborIsSameFluid(blueprint, size, x + 1, y, z, fluid)
                                     )
                                  );
-                           } else if (shouldCullItemBlock(blueprint, size, x, y, z, state)) {
-                              plan.skippedHidden++;
-                           } else {
+                           } else if (!shouldCullItemBlock(blueprint, size, x, y, z, state)) {
                               List<MutableQuad> quads = stateCache.get(state);
                               if (quads == null) {
                                  quads = buildBlockQuads(state);
                                  stateCache.put(state, quads);
                               }
 
-                              if (quads.isEmpty()) {
-                                 plan.skippedNoItem++;
-                              } else {
+                              if (!quads.isEmpty()) {
                                  plan.blockEntries.add(new BlueprintPipRenderer.BlockEntry(x, y, z, quads));
                               }
                            }
-                        } else {
-                           plan.skippedAirOrEmpty++;
                         }
-                     } else {
-                        plan.skippedAirOrEmpty++;
                      }
-                  } else {
-                     plan.skippedAirOrEmpty++;
                   }
-               } else {
-                  plan.skippedAirOrEmpty++;
                }
             }
          }
       }
 
-      plan.distinctStates = stateCache.size();
       return plan;
    }
 
@@ -626,12 +590,6 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       private final List<BlueprintPipRenderer.PipeEntry> pipeEntries = new ArrayList<>();
       private final List<BlueprintPipRenderer.FluidEntry> fluidEntries = new ArrayList<>();
       private final List<BlueprintPipRenderer.TemplateEntry> templateEntries = new ArrayList<>();
-      private int skippedNoItem;
-      private int skippedAirOrEmpty;
-      private int skippedHidden;
-      private int distinctStates;
-      private boolean logged;
-      private String sampleClassName = "n/a";
    }
 
    private record TemplateEntry(int x, int y, int z, EnumSet<Direction> faces) {

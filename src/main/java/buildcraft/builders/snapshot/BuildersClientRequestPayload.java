@@ -108,7 +108,6 @@ public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kin
                BuildersNetworkAsync.releaseSnapshot(serverPlayer.getUUID());
                LOGGER.warn("Snapshot NOT FOUND on server: hash={} (player level={})", hashHex, level.dimension());
             } else {
-               LOGGER.info("Preparing snapshot reply: class={} hash={} size={}", snapshot.getClass().getSimpleName(), hashHex, snapshot.size);
                BuildersNetworkAsync.runServerCompress(() -> {
                   try {
                      byte[] compressed = BuildersServerPayload.compressSnapshot(snapshot);
