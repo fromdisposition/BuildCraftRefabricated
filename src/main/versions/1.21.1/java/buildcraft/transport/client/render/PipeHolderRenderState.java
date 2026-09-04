@@ -7,8 +7,8 @@
 package buildcraft.transport.client.render;
 
 /**
- * 1.21.1 stub (versions/1.21.1): the modern class extends 1.21.5 BlockEntityRenderState and uses
- * ItemStackRenderState (1.21.4). Unreferenced on 1.21.1 (RenderPipeHolder is a stub), so empty.
+ * The modern class extends 1.21.5 BlockEntityRenderState and uses ItemStackRenderState, unavailable here.
+ * Unreferenced since RenderPipeHolder is a stub too.
  */
 public class PipeHolderRenderState {
 }

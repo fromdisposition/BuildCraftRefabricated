@@ -35,18 +35,12 @@ public class ItemWrench_Neptune extends Item {
 
    public InteractionResult useOn(UseOnContext context) {
       InteractionResult result = applyWrench(context);
-      // Swallow a right-click the wrench didn't act on (plain ground, a non-BuildCraft block, ...) so the
-      // interaction doesn't fall through to the OFF-HAND item and accidentally place a block. Only our own item
-      // does this: the shared applyWrench keeps returning PASS for the UseBlockCallback path, so a foreign
-      // wrench's own block interaction can still continue.
+      // PASS would fall through to the off-hand item and place a block. Only this item consumes: applyWrench
+      // keeps PASS so a foreign wrench's own block interaction still runs.
       return result == InteractionResult.PASS ? InteractionResult.CONSUME : result;
    }
 
-   /**
-    * The BuildCraft wrench behaviour, callable for ANY wrench (this item, or another mod's {@code c:tools/wrench}
-    * item routed here by {@code UseBlockCallback}): plain right-click rotates the block, sneak + right-click
-    * dismantles it. Returns PASS for anything it can't act on so the normal interaction continues.
-    */
+   /** Also serves foreign c:tools/wrench items; returns PASS when nothing was done so the interaction continues. */
    public static InteractionResult applyWrench(UseOnContext context) {
       Level world = context.getLevel();
       BlockPos pos = context.getClickedPos();
@@ -59,8 +53,6 @@ public class ItemWrench_Neptune extends Item {
          return tryDismantle(context, world, pos, player, hand, side, state);
       }
 
-      // Plain right-click: rotate. attemptRotateBlock handles ICustomRotationHandler blocks (e.g. engines) and any
-      // block with a registered rotation handler, and returns PASS for everything else.
       InteractionResult result = CustomRotationHelper.INSTANCE.attemptRotateBlock(world, pos, state, side);
       if (result == InteractionResult.SUCCESS && player != null) {
          BlockHitResult hitResult = new BlockHitResult(context.getClickLocation(), side, pos, context.isInside());
@@ -82,35 +74,27 @@ public class ItemWrench_Neptune extends Item {
          return InteractionResult.PASS;
       }
       if (blockId.getPath().equals("frame")) {
-         // The quarry frame is a technical block the quarry builds and removes itself — don't let the wrench
-         // dismantle it into an item (it also drops nothing when broken), so it stays non-obtainable in play.
+         // The quarry frame is a technical block that must stay non-obtainable.
          return InteractionResult.PASS;
       }
       if (blockId.getPath().startsWith("spring")) {
-         // Water/oil springs are world-generated technical blocks hidden under geysers — never wrench-removable.
+         // Springs are hidden worldgen technical blocks; never obtainable.
          return InteractionResult.PASS;
       }
       if (!(state.getBlock() instanceof EntityBlock)) {
-         // Only actual machines (block-entity blocks) can be dismantled. Terrain-ish BuildCraft blocks — gelled
-         // water, decorative blocks, fluid blocks — must be broken normally so their own loot applies: popping a
-         // block item here would void e.g. the gel's gelled_water drop (the gel block has no item form at all).
+         // Non-machine blocks must break normally so their own loot applies; some, like gel, have no item form.
          return InteractionResult.PASS;
       }
 
       if (!world.isClientSide()) {
-         // Dismantling removes the block, so it must clear the same protection a normal break does. Without this
-         // the wrench took machines out of land that forbids breaking but allows interaction -- every BuildCraft
-         // machine already routes through BreakEventCompat via BlockUtil.canMachineBreak, only the wrench did not.
-         // The real player is passed (not canMachineBreak's fake one, which is for machines mining someone
-         // else's land and is disabled by the minePlayerProtected config).
+         // Dismantling is a break and must clear the same claim protection. The real player is passed, not
+         // canMachineBreak's fake one, which is for machines mining someone else's land.
          if (!world.mayInteract(player, pos)
             || world instanceof ServerLevel serverLevel && !BreakEventCompat.canBreak(serverLevel, pos, state, player)) {
             return InteractionResult.PASS;
          }
 
-         // Run the block's own break logic first: a machine drops its inventory and the quarry tears down its
-         // frame lattice inside playerWillDestroy, which world.removeBlock skips. Without this the wrench would
-         // silently void machine contents and orphan quarry frames.
+         // removeBlock skips playerWillDestroy, which drops machine contents and tears down quarry frames.
          state.getBlock().playerWillDestroy(world, pos, state, player);
          ItemStack drop = new ItemStack(state.getBlock().asItem());
          if (!drop.isEmpty()) {

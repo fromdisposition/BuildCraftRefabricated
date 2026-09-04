@@ -86,7 +86,7 @@ public final class AdvDebugRenderer {
          runOverlay(context.matrices(), context.worldState().cameraRenderState.pos)
       );
       *///?}
-      // 1.21.1: the dev-only adv-debug overlay is not wired (WorldRenderEvents API differs) — debug-only loss.
+      // No 1.21.1 branch: the overlay is dev-only and the WorldRenderEvents API differs there.
    }
 
    private static void runOverlay(PoseStack poseStack, Vec3 cameraPos) {

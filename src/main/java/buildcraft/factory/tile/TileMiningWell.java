@@ -60,9 +60,7 @@ public class TileMiningWell extends TileMiner {
    @Override
    protected void mine() {
       BlockPos previousTarget = this.currentPos;
-      // The full column rescan walks from the machine down through every already-dug air block; doing that
-      // every tick made a 100-deep well pay ~100 block reads per tick. Rescan on a short cadence (and right
-      // after a break below) — a block appearing mid-shaft is picked up at most 4 ticks late.
+      // Rescan on a 4-tick cadence, not every tick: a full column walk on a 100-deep well costs ~100 block reads.
       if (this.level.getGameTime() >= this.nextColumnScanTick) {
          this.nextColumnScanTick = this.level.getGameTime() + 4L;
          this.syncColumnState();

@@ -56,9 +56,8 @@ public class BCEnergyRecipes {
             BuildcraftRecipeRegistry.refineryRecipes.addHeatableRecipe(water, null, 0, 1);
             FluidStack lava = new FluidStack(Fluids.LAVA, 5);
             BuildcraftRecipeRegistry.refineryRecipes.addCoolableRecipe(lava, null, 4, 2);
-            // Diagnostic: if JEI's distiller shows fewer entries than this count, the gap is JEI-side
-            // (ingredient display), not recipe registration; if this count is itself low, a fraction fluid
-            // failed to resolve (addDistillation skips empty-fluid recipes).
+            // A count lower than JEI's shown entries points to a JEI-side gap, not registration;
+            // a low count itself means addDistillation skipped an unresolved fluid.
             BCLog.logger.info(
                "[BuildCraft] Refinery recipes registered: {} distillation, {} heatable, {} coolable",
                BuildcraftRecipeRegistry.refineryRecipes.getDistillationRegistry().getAllRecipes().size(),

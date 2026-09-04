@@ -23,10 +23,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * 1.21.1 (versions/1.21.1) pump renderer: immediate-mode port. Status/power LEDs drawn via the version-neutral
- * LedRenderUtil.render, and the mining shaft via the version-neutral MinerShaftBer.renderShaft.
- */
 public class RenderPump implements BlockEntityRenderer<TilePump> {
    private static final Identifier BLOCKS_ATLAS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/blocks.png");
    private static final Identifier SHAFT_TEXTURE = Identifier.fromNamespaceAndPath("buildcraftfactory", "block/pump/tube");

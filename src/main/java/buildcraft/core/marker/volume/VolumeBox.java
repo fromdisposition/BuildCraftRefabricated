@@ -64,9 +64,7 @@ public class VolumeBox {
 
       this.box = new Box();
       this.box.initialize(BcNbt.getCompound(nbt, "box"));
-      // Null-safe like the id above: a malformed player/oldPlayer UUID (edited/legacy save) would otherwise throw
-      // out of VolumeBox(world, tag), which is constructed with no try/catch inside the SavedData codec — crashing
-      // the whole volume-boxes load. Recover to null (unclaimed) instead.
+      // A throw here escapes the SavedData codec and fails the whole volume-box load; recover to unclaimed.
       this.player = parseUuidOrNull(nbt.contains("player") ? BcNbt.getString(nbt, "player", "") : null);
       this.oldPlayer = parseUuidOrNull(nbt.contains("oldPlayer") ? BcNbt.getString(nbt, "oldPlayer", "") : null);
       if (nbt.contains("held")) {

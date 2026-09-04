@@ -24,10 +24,8 @@ import net.minecraft.world.phys.Vec3;
 
 public class ZonePlan implements IZone {
    private final HashMap<ChunkPos, ZoneChunk> chunkMapping = new HashMap<>();
-   // Robot scans probe contains() for thousands of nearby positions per tick, which walk the plan chunk by chunk.
-   // Remember the last chunk column looked up (including "absent") so consecutive probes in the same chunk skip
-   // the ChunkPos allocation and map lookup entirely. Single-slot on purpose: each plan instance is used by one
-   // consumer on one thread (server AI or the client GUI copy).
+   // Robot scans probe contains() thousands of times per tick; remember the last chunk looked up so consecutive
+   // probes in the same chunk skip the allocation/lookup. Single-slot is safe: one plan instance, one consumer thread.
    private ZoneChunk lastChunk;
    private int lastChunkX;
    private int lastChunkZ;

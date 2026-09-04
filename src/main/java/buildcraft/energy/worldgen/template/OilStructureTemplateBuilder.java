@@ -15,15 +15,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * Builds oil deposit NBT templates for jigsaw pools.
- *
- * <p>Well template Y convention ({@link OilWellProjectionProcessor} + gravity):
- * y&ge;0 surface/spout via gravity; deposit body fixed-Y with every sphere's bottom resting on
- * {@code DEPOSIT_BOTTOM_WORLD_Y} (just above bedrock, spring marker one block below); connector bridge
- * ({@code template 100+} &rarr; fixed world Y) then terrain shaft ({@code template -11..-1} &rarr; surface).
- * Shaft width: BC 8.0 small/medium radius 0 (1 block), large/giant radius 1 (3×3).
- */
+/** Well template Y convention (see {@link OilWellProjectionProcessor}): y&ge;0 surface/spout via gravity, deposit
+ *  body fixed on {@code DEPOSIT_BOTTOM_WORLD_Y}, then bridge ({@code template 100+}) and terrain shaft ({@code -11..-1}). */
 public final class OilStructureTemplateBuilder {
    private static final Identifier OIL_BLOCK_ID = Identifier.parse("buildcraftenergy:oil");
    private static final Identifier SPRING_BLOCK_ID = Identifier.parse("buildcraftcore:spring_oil");
@@ -43,9 +36,8 @@ public final class OilStructureTemplateBuilder {
       writeLake(cache, structuresDir.resolve("oil_lake_patch_d.nbt"), blocks, 0x51AF1004L, 6, 30);
       writeLake(cache, structuresDir.resolve("oil_lake_patch_e.nbt"), blocks, 0x51AF1005L, 6, 42);
 
-      // Four unified tiers (~x3 buckets per step: 925 / 3071 / 7153 / 14147). Every sphere bottom rests
-      // on DEPOSIT_BOTTOM_WORLD_Y; large/giant get the 3x3 shaft, spout spire and the spring marker.
-      // Thin small/medium spouts are tall enough to clear tree cover, so a located well is visible.
+      // Four unified tiers (~x3 buckets per step: 925 / 3071 / 7153 / 14147). Large/giant add the 3x3 shaft, spout
+      // spire and spring marker; small/medium spouts stay tall enough to clear tree cover so a located well is visible.
       writeWell(cache, structuresDir.resolve("oil_well_small.nbt"), blocks, 2, 8, 6, 10, 0, false);
       writeWell(cache, structuresDir.resolve("oil_well_medium.nbt"), blocks, 2, 12, 9, 14, 0, false);
       writeWell(cache, structuresDir.resolve("oil_well_large.nbt"), blocks, 4, 30, 12, 14, 1, true);
@@ -208,11 +200,8 @@ public final class OilStructureTemplateBuilder {
       }
    }
 
-   /**
-    * Centre anchor for {@code start_jigsaw_name}: the jigsaw placer aligns this block onto the structure
-    * start pos, so random rotation spins the template around its CENTRE and the oil column always lands on
-    * the chunk middle (= /locate target). JigsawReplacementProcessor turns it into plain oil on placement.
-    */
+   /** Jigsaw placer aligns this block onto the structure start pos, so random rotation spins the template around its
+    *  centre and the oil column lands on the chunk middle ({@code /locate} target); JigsawReplacementProcessor turns it into oil. */
    private static void addCenterAnchor(final List<StructureTemplateExporter.BlockEntry> entries, final HolderGetter<Block> blocks) {
       int center = OilStructureDefaults.TEMPLATE_CENTER;
       entries.removeIf(e -> e.x() == center && e.y() == OilStructureDefaults.SURFACE_TEMPLATE_Y && e.z() == center);
@@ -227,7 +216,6 @@ public final class OilStructureTemplateBuilder {
       ));
    }
 
-   /** Port of BC 8.0 {@code OilGenerator.createTendril}. */
    static boolean[][] bcTendrilPattern(final int lakeRadius, final int tendrilRadius, final long seed) {
       int diameter = tendrilRadius * 2 + 1;
       boolean[][] pattern = new boolean[diameter][diameter];

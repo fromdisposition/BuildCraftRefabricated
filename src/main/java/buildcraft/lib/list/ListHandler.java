@@ -34,11 +34,8 @@ import net.minecraft.world.item.component.CustomData;
 public final class ListHandler {
    public static final int WIDTH = 9;
    public static final int HEIGHT = 2;
-   // matches() runs in pipe/gate filters for every tested stack; re-decoding the whole CUSTOM_DATA tag with
-   // ItemStack.CODEC each call is pure GC pressure. CustomData is immutable (every list edit produces a new
-   // component instance), so the parsed lines are cached per component: weak keys let entries die with their
-   // stacks and an edited list naturally misses to a fresh parse. Cached lines are shared READ-ONLY — the
-   // editing path (getLines) still parses fresh mutable copies.
+   // matches() runs per tested stack in pipe/gate filters, so parsed lines are cached per (immutable) CustomData
+   // component with weak keys to avoid re-decoding with ItemStack.CODEC every call; getLines still parses fresh copies.
    private static final Map<CustomData, ListHandler.Line[]> MATCH_LINE_CACHE = Collections.synchronizedMap(new WeakHashMap<>());
    private static final ListHandler.Line[] NO_LINES = new ListHandler.Line[0];
 

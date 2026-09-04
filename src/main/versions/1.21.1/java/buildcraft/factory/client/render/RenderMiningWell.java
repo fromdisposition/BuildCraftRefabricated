@@ -26,9 +26,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * 1.21.1 (versions/1.21.1) mining-well renderer: immediate-mode port (status/power LEDs + mining shaft).
- */
 public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell> {
    private static final Identifier BLOCKS_ATLAS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/blocks.png");
    private static final Identifier SHAFT_TEXTURE = Identifier.fromNamespaceAndPath("buildcraftfactory", "block/mining_well/tube");

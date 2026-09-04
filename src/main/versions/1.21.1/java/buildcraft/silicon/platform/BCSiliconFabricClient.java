@@ -31,11 +31,8 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 
-/**
- * 1.21.1 implementation (versions/1.21.1). Fires the laser overlay on Fabric's immediate
- * WorldRenderEvents.AFTER_TRANSLUCENT (no submit pipeline / level render-state on 1.21.1) and registers the
- * package noop entity renderer through Fabric's registry (vanilla EntityRenderers.register is private here).
- */
+// laser overlay fires on Fabric's immediate WorldRenderEvents.AFTER_TRANSLUCENT (1.21.1 has no submit pipeline);
+// package renderer registers via Fabric's registry since vanilla EntityRenderers.register is private here.
 public final class BCSiliconFabricClient {
    private BCSiliconFabricClient() {
    }
@@ -56,9 +53,7 @@ public final class BCSiliconFabricClient {
       MenuScreens.register(BCSiliconMenuTypes.PACKAGER, GuiPackager::new);
       MenuScreens.register(BCSiliconMenuTypes.GATE, GuiGate::new);
       EntityRendererRegistry.register(BCSiliconEntities.PACKAGE, NoopRenderer::new);
-      // The programming table model has a glass top (minecraft:block/glass); without an explicit cutout
-      // render layer it draws on the solid layer and the glass turns opaque (flat dark centre). 1.21.1
-      // resolves render layers via Fabric's BlockRenderLayerMap (RenderType, not ChunkSectionLayer).
+      // without an explicit cutout layer the glass top draws on the solid layer and turns opaque.
       BlockRenderLayerMap.INSTANCE.putBlock(BCSiliconBlocks.PROGRAMMING_TABLE, RenderType.cutout());
    }
 }

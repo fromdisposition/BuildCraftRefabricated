@@ -10,11 +10,8 @@ import com.mojang.authlib.GameProfile;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 
-/**
- * Version-neutral authlib accessors. The authlib bundled with 1.21.5+ exposes record-style {@code id()} /
- * {@code name()} on {@link GameProfile}; the 1.21.1 authlib uses {@code getId()} / {@code getName()}. Both
- * versions share the type, so this hides the accessor rename in ONE place instead of per call site.
- */
+// 1.21.5+ authlib exposes record-style id()/name() on {@link GameProfile}; 1.21.1 uses getId()/getName(). This
+// hides the accessor rename in one place instead of per call site.
 public final class BcAuth {
    private BcAuth() {
    }

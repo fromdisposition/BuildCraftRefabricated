@@ -119,8 +119,7 @@ public class EntityRobot extends EntityRobotBase {
 
    @Override
    protected void defineSynchedData(SynchedEntityData.Builder builder) {
-      // Must register the inherited LivingEntity/Entity accessors (id 8 = LIVING_ENTITY_FLAGS, health, ...)
-      // first, or SynchedEntityData.Builder.build() throws "has not defined synched data value 8".
+      // Must call super first: SynchedEntityData.Builder.build() throws if id 8 (LIVING_ENTITY_FLAGS) is undefined.
       super.defineSynchedData(builder);
       builder.define(DATA_ITEM_ACTIVE, false);
       builder.define(DATA_ENERGY, 0.0F);
@@ -181,9 +180,8 @@ public class EntityRobot extends EntityRobotBase {
       }
 
       this.battery.tick(this.level(), this.position());
-      // The synced energy is display-only (getEnergyFraction -> RenderRobot), so quantize it to 1% steps: the
-      // raw ratio changes every tick while charging/discharging, which re-dirtied the data watcher and
-      // broadcast a float to every tracking client each tick per robot for an invisible change.
+      // Quantized to 1% steps: the raw ratio changes every tick while charging, which would otherwise
+      // dirty and broadcast the data watcher value to every tracking client each tick for an invisible change.
       float energyFraction = Math.round(this.battery.getStored() * 100.0F / this.battery.getCapacity()) / 100.0F;
       if (energyFraction != this.lastSentEnergy) {
          this.lastSentEnergy = energyFraction;
@@ -196,8 +194,7 @@ public class EntityRobot extends EntityRobotBase {
       }
       this.entityData.set(DATA_ITEM, this.itemInUse == null ? ItemStack.EMPTY : this.itemInUse);
       if (this.board != null && this.board.getNBTHandler() != null) {
-         // Only rebuild + sync the texture string when the texture actually changes (it almost never does),
-         // instead of allocating a String via toString() and running the data-watcher set every tick.
+         // Skip the toString()/data-watcher set when the texture hasn't changed; it almost never does.
          Object texture = this.board.getNBTHandler().getRobotTexture();
          if (texture != null && !texture.equals(this.lastRobotTexture)) {
             this.lastRobotTexture = texture;
@@ -229,10 +226,8 @@ public class EntityRobot extends EntityRobotBase {
       } else {
          double speed = Math.min(buildcraft.robotics.BCRoboticsConfig.flightSpeed.get(), dist);
          Vec3 move = diff.normalize().scale(speed);
-         // Position-driven flight: leave NO residual velocity for LivingEntity.travel to re-apply next tick.
-         // The double-move (setPos here + physics applying the same delta again) overshot the destination by a
-         // full step every tick, so the final approach ping-ponged around the dock spot at exactly the 0.1
-         // arrival threshold -- the robot hovered "docked" forever, never called dock(), and never charged.
+         // Zero residual velocity: LivingEntity.travel would reapply the same delta and overshoot the
+         // 0.1 arrival threshold, so the approach never converges.
          this.setDeltaMovement(Vec3.ZERO);
          this.setPos(current.add(move));
       }
@@ -359,10 +354,8 @@ public class EntityRobot extends EntityRobotBase {
             && slot.parameters.length > 0 && slot.parameters[0] != null) {
             ItemStack stack = slot.parameters[0].getItemStack();
             if (!stack.isEmpty() && stack.getItem() instanceof buildcraft.api.items.IMapLocation map) {
-               // Parsing a zone map copies the item's whole NBT (CustomData.copyTag) and rebuilds a ZonePlan --
-               // far too heavy to redo every search cycle. CustomData is immutable and replaced wholesale on any
-               // edit (setCustomTag -> CustomData.of), so (item, component reference) identity is an exact
-               // freshness key: any change to the map produces a new CustomData instance and misses the cache.
+               // Parsing a zone map rebuilds a ZonePlan from its whole NBT, too heavy to redo every search cycle.
+               // CustomData is immutable and replaced wholesale on edit, so component-reference identity is an exact freshness key.
                Object data = stack.get(net.minecraft.core.component.DataComponents.CUSTOM_DATA);
                CachedZone cached = this.zoneCache.get(actionTag);
                if (cached != null && cached.sourceItem == stack.getItem() && cached.sourceData == data) {
@@ -467,11 +460,7 @@ public class EntityRobot extends EntityRobotBase {
       return remaining;
    }
 
-   /**
-    * Non-mutating twin of {@link #receiveItem}: how many of {@code stack} would fit right now. Simulation paths
-    * (station-search probes run {@code AIRobotLoad.load(..., doLoad=false)} against every candidate station) MUST
-    * use this -- calling receiveItem there put items into the robot while the chest kept its stack: a pure dupe.
-    */
+   /** Non-mutating twin of {@link #receiveItem}; simulation probes must use this or calling receiveItem there duplicates items. */
    public int roomFor(ItemStack stack) {
       int room = 0;
       for (ItemStack slot : this.inv) {
@@ -492,8 +481,7 @@ public class EntityRobot extends EntityRobotBase {
    @Override
    public void unreachableEntityDetected(Entity entity) {
       long now = this.level().getGameTime();
-      // Adds are rare (one per failed approach), so this is the cheap place to drop expired entries and keep the
-      // map from accumulating ids of long-gone entities.
+      // Adds are rare, so this is the cheap place to prune expired entries before the map grows unbounded.
       this.unreachableEntities.values().removeIf(deadline -> deadline <= now);
       this.unreachableEntities.put(entity.getId(), now + UNREACHABLE_TTL_TICKS);
    }
@@ -638,7 +626,6 @@ public class EntityRobot extends EntityRobotBase {
       return this.aimPitch;
    }
 
-   // Entity#interact gained a Vec3 hit-location parameter in the 26.x line; older nodes are 2-arg.
    //? if >= 26.1 {
    @Override
    public InteractionResult interact(Player player, InteractionHand hand, Vec3 hitPos) {
@@ -655,12 +642,7 @@ public class EntityRobot extends EntityRobotBase {
       return this.wrenchInteract(player, hand);
    }
 
-   /**
-    * Wrench right-click removes the robot. Robots are invulnerable (hurtServer returns false), so without this there
-    * is no way to remove a placed one -- breaking its station just leaves it hanging. Rebuild the robot item from
-    * its board + stored energy, hand back whatever it was carrying (equipped tool + collected drops), then discard
-    * it: remove() routes through the registry (killRobot) so the station it held frees up. Non-wrench = PASS.
-    */
+   /** Robots are invulnerable (hurtServer returns false); without this there is no way to remove a placed one. */
    private InteractionResult wrenchInteract(Player player, InteractionHand hand) {
       ItemStack held = player.getItemInHand(hand);
       if (!EntityUtil.isWrench(held)) {
@@ -699,11 +681,7 @@ public class EntityRobot extends EntityRobotBase {
       }
    }
 
-   /**
-    * Destroy-the-station removal: drop the robot (its board + stored energy, plus whatever tool/loot it carried) as
-    * item entities at its position and discard it. Called when the robot's home (main) station is broken, so that
-    * leaves a picked-up-able board on the ground instead of a hanging, homeless robot.
-    */
+   /** Called when the robot's home station is broken, so it leaves a recoverable board instead of a homeless robot. */
    public void dropAsItemAndDiscard() {
       if (!this.level().isClientSide()) {
          RedstoneBoardRobot boardRobot = this.getBoard();
@@ -894,11 +872,7 @@ public class EntityRobot extends EntityRobotBase {
    }
    *///?}
 
-   /**
-    * {@code LivingEntity.kill} is "hurt for Float.MAX_VALUE" and discards the result, so it cannot remove an
-    * entity that takes no damage. Removing a robot is its own operation: drop it as its board (with stored
-    * energy and carried cargo) and discard it, which frees the station it held through the registry.
-    */
+   /** LivingEntity.kill is hurt-for-MAX_VALUE and no-ops on an invulnerable entity, so removal must be its own operation. */
    //? if >= 1.21.10 {
    @Override
    public void kill(ServerLevel level) {

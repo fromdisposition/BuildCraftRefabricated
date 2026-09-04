@@ -15,11 +15,8 @@ import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.level.levelgen.WorldgenRandom;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
-/**
- * Config/dimension gates shared by the oil structures. Biome selection is plain vanilla — each
- * structure's {@code biomes} tag ({@code has_structure/...}) — and field rarity is plain
- * structure_set spacing, so there is no custom region logic here.
- */
+/** Config/dimension gates shared by the oil structures; biome selection is plain vanilla ({@code has_structure/...} tags)
+ *  and field rarity is plain structure_set spacing, so there is no custom region logic here. */
 public final class OilStructureSpawnConditions {
    public enum Tier {
       NORMAL,

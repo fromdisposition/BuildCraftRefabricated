@@ -66,10 +66,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
          return null;
       }
 
-      // Bounds-check the palette index every read, not just in the BuildingInfo constructor: getSchematicBlock runs
-      // on every tick (isAir/isBlockCorrect/canPlace/doPlaceTask), and a corrupt or foreign blueprint whose data
-      // holds an out-of-range index would otherwise throw IndexOutOfBoundsException out of ImmutableList.get and
-      // crash the builder tick. Treat a bad cell as absent (null -> air), matching the constructor guard.
+      // Bounds-check every read, not just at construction: a corrupt or foreign blueprint's out-of-range index would otherwise throw and crash the builder tick.
       int cell = info.getSnapshot().data[info.getSnapshot().posToIndex(info.fromWorld(blockPos))];
       return cell >= 0 && cell < info.rotatedPalette.size() ? info.rotatedPalette.get(cell) : null;
    }
@@ -137,8 +134,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
    }
 
    private Optional<List<ItemStack>> tryExtractRequired(List<ItemStack> requiredItems, List<FluidStack> requiredFluids, boolean simulate) {
-      // Entity requirement maps can return null for an entity with no cost; the block path always passes non-null
-      // arrays but treat both defensively so the streams below never NPE.
+      // Entity requirement maps may return null for a zero-cost entity; treat both defensively so the streams below never NPE.
       List<ItemStack> items = requiredItems == null ? Collections.emptyList() : requiredItems;
       List<FluidStack> fluids = requiredFluids == null ? Collections.emptyList() : requiredFluids;
       Supplier<Optional<List<ItemStack>>> function = () -> StackUtil.mergeSameItems(items)
@@ -190,11 +186,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
          return function.get();
       }
 
-      // NOT computeIfAbsent: function.get() reads the builder's inventory/tanks, and that access re-entrantly fires
-      // onResourcesChanged -> resourcesChanged() -> extractRequiredCache.clear() on this very map. Clearing a
-      // HashMap inside computeIfAbsent's mapping function trips its modCount guard and throws
-      // ConcurrentModificationException, crashing the builder tick. Plain get/compute/put has no such guard -- a
-      // re-entrant clear simply means the entry we put afterwards is the only survivor, which is still correct.
+      // Not computeIfAbsent: function.get() re-entrantly clears this map via onResourcesChanged, which trips computeIfAbsent's modCount guard and throws CME.
       Pair<List<ItemStack>, List<FluidStack>> key = Pair.of(items, fluids);
       Optional<List<ItemStack>> cached = this.extractRequiredCache.get(key);
       if (cached != null) {

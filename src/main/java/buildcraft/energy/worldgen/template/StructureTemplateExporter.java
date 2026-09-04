@@ -86,9 +86,8 @@ public final class StructureTemplateExporter {
 
       StructureTemplate template = new StructureTemplate();
       template.load(blocks, tag);
-      // Write through the datagen CachedOutput so the file is registered in its manifest. Writing the NBT straight to
-      // disk (NbtIo/StructureTemplateManager.save) does create it, but the CachedOutput then prunes it as an untracked
-      // "stale" file at the end of the run -- which is why the structure directory kept ending up empty.
+      // Write through the datagen CachedOutput so the file is registered in its manifest; writing straight to disk
+      // (NbtIo/StructureTemplateManager.save) works but CachedOutput then prunes it as an untracked stale file.
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       NbtIo.writeCompressed(template.save(new CompoundTag()), out);
       byte[] data = out.toByteArray();

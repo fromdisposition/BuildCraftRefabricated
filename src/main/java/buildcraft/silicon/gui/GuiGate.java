@@ -288,8 +288,7 @@ public class GuiGate extends BcScreen<ContainerGate> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      // The gate is null when this side could not resolve the pluggable (see ContainerGate); every other draw
-      // path here already guards for it, this one did not and took the whole screen render down with an NPE.
+      // gate can be null if this side never resolved the pluggable.
       GateLogic gate = (this.menu).gate;
       if (gate != null) {
          String titleStr = gate.variant.getLocalizedName().getString();

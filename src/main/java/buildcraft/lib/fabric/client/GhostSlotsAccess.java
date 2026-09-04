@@ -8,11 +8,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 //?}
 
-/**
- * Bridges to the 1.21.5 recipe-book ghost-slot invoker. GhostSlots/SlotDisplay/ContextMap do not exist on
- * 1.21.1 (which uses GhostRecipe), and BC's recipe-book components are versions/1.21.1 stubs there, so this
- * helper degrades to an empty class on 1.21.1.
- */
 public final class GhostSlotsAccess {
    private GhostSlotsAccess() {
    }

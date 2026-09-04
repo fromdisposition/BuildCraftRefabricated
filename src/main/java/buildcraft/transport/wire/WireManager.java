@@ -85,8 +85,7 @@ public class WireManager implements IWireManager {
          if (!this.holder.getPipeWorld().isClientSide()) {
             this.getWireSystems().buildAndAddWireSystem(new WireSystem.WireElement(this.holder.getPipePos(), part));
             this.holder.getPipeTile().setChanged();
-            // Ship the new part list to every watching client (the pipe's full-state packet carries "wires");
-            // setChanged alone only marks the chunk dirty for disk, so other players never saw wire changes.
+            // setChanged only marks the chunk dirty for disk; scheduleRenderUpdate ships the wire list to watching clients.
             this.holder.scheduleRenderUpdate();
          }
 
@@ -122,8 +121,8 @@ public class WireManager implements IWireManager {
 
    public void removeParts(Collection<EnumWirePart> toRemove) {
       toRemove.forEach(this.parts::remove);
-      // Mirrors removePart: without this a gate reading isPowered in the same tick still sees the broken
-      // wire as powered until the game-time cache key rolls over.
+      // Without this a gate reading isPowered in the same tick still sees the removed wire as powered until
+      // the game-time cache key rolls over.
       this.invalidatePoweredCache();
       if (!this.holder.getPipeWorld().isClientSide()) {
          this.removePartsFromSystem(toRemove);
@@ -148,10 +147,9 @@ public class WireManager implements IWireManager {
 
    @Override
    public void updateBetweens(boolean recursive) {
-      // Never touch a detached holder: block entities are deserialised BEFORE the level is attached, and a world
-      // dereference here would throw inside loadAdditional -- aborting the pipe's data read entirely, which the
-      // next save then overwrites with an empty tile (this exact failure once wiped every loaded pipe in a save).
-      // A freshly loaded pipe gets its betweens built by the first tick() instead.
+      // Must not touch a detached holder: block entities deserialise before the level attaches, and a world
+      // dereference here would throw inside loadAdditional, aborting the pipe's data read. A freshly loaded
+      // pipe gets its betweens built by the first tick() instead.
       if (this.holder.getPipeWorld() == null) {
          return;
       }
@@ -179,9 +177,8 @@ public class WireManager implements IWireManager {
                }
             }
          );
-      // Refresh the neighbours' halves too (a cross-pipe between is stored on both sides, each checking the other's
-      // parts). This must run on the CLIENT as well: after a synced part change, the neighbouring client pipes hold
-      // stale betweens pointing at parts that no longer exist -- the floating "phantom" wire stubs.
+      // Must also run on the client: a cross-pipe between is stored on both sides, and after a synced part
+      // change the neighbour's stale betweens leave floating "phantom" wire stubs otherwise.
       if (!recursive) {
          for (Direction side : Direction.values()) {
             BlockEntity tile = this.holder.getPipeWorld().getBlockEntity(this.holder.getPipePos().relative(side));

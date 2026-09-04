@@ -26,9 +26,7 @@ public class ItemRenderUtil {
    private static PoseStack currentPoseStack;
    private static SubmitNodeCollector currentCollector;
    private static int currentLight;
-   // Resolved item models for the current batch, keyed by ItemStack.hashItemAndComponents. Place-task ghosts
-   // render the same stack many times, so resolving once per distinct stack (instead of per call into a shared
-   // state) avoids re-running the item model resolver every frame for every ghost.
+   // Ghosts render the same stack many times per frame; resolve the model once per distinct stack.
    private static final Int2ObjectOpenHashMap<ItemStackRenderState> itemStateCache = new Int2ObjectOpenHashMap<>();
 
    public static void beginItemBatch(PoseStack poseStack, SubmitNodeCollector collector, int light) {

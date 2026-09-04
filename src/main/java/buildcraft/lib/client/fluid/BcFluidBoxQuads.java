@@ -13,7 +13,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.Direction;
 import org.jspecify.annotations.Nullable;
 
-/** Shared flat fluid cuboid quads for tanks, pipes, and other BER fluid boxes. */
 public final class BcFluidBoxQuads {
    private BcFluidBoxQuads() {
    }

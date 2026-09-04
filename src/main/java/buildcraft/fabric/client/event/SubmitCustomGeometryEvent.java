@@ -13,12 +13,7 @@ import net.minecraft.client.renderer.state.level.LevelRenderState;
 /*import net.minecraft.client.renderer.MultiBufferSource;
 *///?}
 
-/**
- * Version-neutral "submit custom geometry during the level render" event. On 1.21.5+ it wraps the deferred
- * SubmitNodeCollector; on 1.21.1 there is no submit pipeline, so it wraps the immediate MultiBufferSource and
- * {@link #submitCustomGeometry} draws straight away. Consumers use only {@link #getPoseStack()},
- * {@link #getCameraPos()} and {@link #submitCustomGeometry} so their code is identical on every node.
- */
+/** Shared consumers may use only getPoseStack(), getCameraPos() and submitCustomGeometry(); the rest is per-version. */
 public final class SubmitCustomGeometryEvent {
    private final PoseStack poseStack;
    //? if >= 1.21.10 {
@@ -39,7 +34,6 @@ public final class SubmitCustomGeometryEvent {
       this.submitNodeCollector.submitCustomGeometry(pose, renderType, (p, vc) -> callback.accept(p, vc));
    }
 
-   /** Raw collector for batch item rendering (ItemRenderUtil) on the deferred pipeline. */
    public SubmitNodeCollector getSubmitNodeCollector() {
       return this.submitNodeCollector;
    }

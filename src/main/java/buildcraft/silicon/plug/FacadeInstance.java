@@ -86,9 +86,8 @@ public class FacadeInstance implements IFacade {
       PacketBufferBC bc = BcPayloadBuffers.ensure(buf);
       boolean isHollow = bc.readBoolean();
       int count = bc.readFixedBits(5);
-      // 5 bits decode to 0..31 but the constructor only accepts 1..17; writeToBuffer never emits anything
-      // else, so an out-of-range count means a corrupt/hostile packet -- degrade to the default facade
-      // instead of letting the constructor's IllegalArgumentException escape the network decode.
+      // 5 bits decode to 0..31 but only 1..17 is valid; treat out-of-range as a hostile packet and
+      // degrade to the default facade instead of throwing from the network decode.
       if (count < 1 || count > 17) {
          return createSingle(FacadeStateManager.defaultState, isHollow);
       }

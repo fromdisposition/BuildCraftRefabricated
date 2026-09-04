@@ -69,18 +69,14 @@ public abstract class DockingStation {
    }
 
    /**
-    * The single source of truth for occupancy: the claim itself. It is set by {@link #take}/{@link #takeAsMain}
-    * and cleared only by {@link #unsafeRelease}, which every removal path runs through
-    * ({@code EntityRobot.remove} -> {@code IRobotRegistry.killRobot}), so a robot that is merely unloaded keeps
-    * its station -- it is away working, not gone. {@link #isTaken}, {@link #takeAsMain} and {@link #take} all
-    * route through this one check so they can never disagree.
+    * Source of truth for occupancy. Set by {@link #take}/{@link #takeAsMain}, cleared only by
+    * {@link #unsafeRelease} (every removal path routes through it), so an unloaded robot keeps its station.
     */
    private boolean isClaimed() {
       return this.robotTakingId != Long.MAX_VALUE;
    }
 
-   /** Whether this station's claim belongs to the given robot. Matched by id, never by entity identity: the
-    *  cached entity reference is dropped whenever the robot unloads, and reloading gives a new instance. */
+   /** Matches by robot id, not entity identity: the cached entity reference is dropped on unload and reload creates a new instance. */
    private boolean isHeldBy(EntityRobotBase robot) {
       return robot != null && this.isClaimed() && this.robotTakingId == robot.getRobotId();
    }
@@ -205,9 +201,8 @@ public abstract class DockingStation {
 
    public abstract Iterable<StatementSlot> getActiveActions();
 
-   /** True if any active gate action on this station carries the given unique tag. A sleeping docked robot polls
-    * this every tick for the wakeup action (a gate pulse can be active for a single tick, so sampling less often
-    * would miss it) -- subclasses should override it allocation-free instead of building the full action list. */
+   /** Polled every tick by a sleeping docked robot for its wakeup action -- a gate pulse can last one tick, so
+    *  sampling less often would miss it; override allocation-free instead of building the full action list. */
    public boolean hasActiveAction(String uniqueTag) {
       for (StatementSlot slot : this.getActiveActions()) {
          if (slot.statement != null && uniqueTag.equals(slot.statement.getUniqueTag())) {
@@ -226,9 +221,8 @@ public abstract class DockingStation {
       return EnumPipePart.CENTER;
    }
 
-   /** The inventory behind this station, as a transactional storage. Mirrors {@link #getFluidInput()}: routing
-    *  through the item-storage lookup is what makes double chests, {@code WorldlyContainerHolder} blocks and
-    *  storage that only exposes the transfer API visible to robots at all. */
+   /** Transactional storage behind this station; routing through the storage lookup (not a container cast) is
+    *  what makes double chests, {@code WorldlyContainerHolder} blocks and transfer-API-only storage visible to robots. */
    public Storage<ItemVariant> getItemInput() {
       return null;
    }

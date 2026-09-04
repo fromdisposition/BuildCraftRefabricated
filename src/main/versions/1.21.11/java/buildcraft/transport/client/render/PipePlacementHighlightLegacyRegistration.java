@@ -21,9 +21,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * 1.21.x has no {@code LevelRenderer.extractBlockOutline}/{@code renderBlockOutline}; hook Fabric
- * {@link WorldRenderEvents} instead. Loaded only on 1.21.x builds via reflection from
- * {@link buildcraft.transport.platform.BCTransportFabricClient}.
+ * No {@code LevelRenderer.extractBlockOutline}/{@code renderBlockOutline} here; hooks Fabric
+ * {@link WorldRenderEvents} instead, loaded only via reflection from {@link buildcraft.transport.platform.BCTransportFabricClient}.
  */
 public final class PipePlacementHighlightLegacyRegistration {
    private PipePlacementHighlightLegacyRegistration() {
@@ -55,8 +54,7 @@ public final class PipePlacementHighlightLegacyRegistration {
          return true;
       }
 
-      // Placement preview (holding a pluggable/wire), else the tight outline of the existing sub-part under the
-      // crosshair; null means the pipe body -> let vanilla draw the whole-pipe outline.
+      // null means the pipe body -> let vanilla draw the whole-pipe outline.
       VoxelShape preview = PipePlacementHighlight.placementShape(tile, hit, player);
       if (preview == null) {
          preview = PipePlacementHighlight.hoveredPartShape(tile, hit);

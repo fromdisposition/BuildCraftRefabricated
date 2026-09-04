@@ -113,9 +113,7 @@ public class LaserContext {
       this.index++;
       if (this.index == 4) {
          this.index = 0;
-         // One chunk light sample per quad, from its centre, instead of one per vertex: the four corners of a
-         // laser segment quad share essentially the same block, so this is visually identical while cutting the
-         // per-frame light-engine queries 4x (the dominant cost for long quarry-frame / shaft lasers).
+         // One light sample per quad: the corners share a block and per-vertex queries dominate long laser cost.
          int lmap = BcLaserRenderer.computeLightmap(
             (this.x[0] + this.x[1] + this.x[2] + this.x[3]) * 0.25,
             (this.y[0] + this.y[1] + this.y[2] + this.y[3]) * 0.25,

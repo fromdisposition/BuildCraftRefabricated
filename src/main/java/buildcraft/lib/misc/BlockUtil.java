@@ -120,10 +120,8 @@ public class BlockUtil {
       FluidState fluidState = world.getFluidState(pos);
       if (!fluidState.isEmpty() && fluidState.isSource()) {
          Fluid fluid = fluidState.getType();
-         // The protection check must gate the SIMULATE answer too, not just the removal: the pump commits the
-         // drained fluid into its tank off the simulate result and only then does the real drain (whose failure
-         // it ignores) -- so a protected source that simulates "yes" but never actually drains is an infinite
-         // fluid dupe. If the machine may not break the block, it may not see the fluid either.
+         // Must gate the SIMULATE answer too, not just the removal: the pump commits drained fluid off the simulate
+         // result and ignores the real drain's failure, so a source that simulates "yes" but never drains dupes fluid.
          if (world instanceof ServerLevel serverLevel && !canMachineBreak(serverLevel, pos, owner)) {
             return null;
          }

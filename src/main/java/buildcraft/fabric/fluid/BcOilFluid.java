@@ -122,11 +122,8 @@ public abstract class BcOilFluid extends FlowingFluid implements BcFluidPhysicsH
          return false;
       }
 
-      // Vanilla never lets a fluid displace its own blocks (WaterFluid: direction == DOWN && !isSame) —
-      // levels equalise through ticks instead. Mirror that for SOURCES: without this a source column
-      // "flows into itself" downward, eating its own sources, and spreadToSides never runs (the
-      // down-spread path needs >=3 source neighbours) — well spouts stood still instead of gushing.
-      // Own FLOWING states stay replaceable: BcGaseousFluidPhysics moves gas up by replacing them.
+      // Own sources must not be replaced or a column eats itself downward and never spreads sideways; own
+      // flowing states stay replaceable because BcGaseousFluidPhysics moves gas up by replacing them.
       if (!state.isEmpty() && this.isSame(state.getType()) && state.isSource()) {
          return false;
       }

@@ -9,11 +9,8 @@ package buildcraft.robotics.path;
 import java.util.Iterator;
 import net.minecraft.core.BlockPos;
 
-/**
- * Walks the shells of an expanding cube around the origin (relative coordinates). Like vanilla
- * {@code BlockPos.betweenClosed}, the iterator returns one reused {@link BlockPos.MutableBlockPos} instance --
- * read or copy ({@code immutable()}) the position before calling {@code next()} again, never store it directly.
- */
+/** Walks the shells of an expanding cube around the origin. Like vanilla BlockPos.betweenClosed, the iterator
+ * returns one reused MutableBlockPos instance; read or copy it before calling next() again, never store it directly. */
 public class BlockScannerExpanding implements Iterable<BlockPos> {
    private final int maxRadius;
    private int searchRadius = 1;

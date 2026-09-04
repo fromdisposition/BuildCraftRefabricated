@@ -200,8 +200,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
 
          String titleStr = Component.translatable("tile.buildcraftbuilders.library.name").getString();
          graphics.text(this.font, titleStr, 8, 6, -12566464, false);
-         // "Inventory" label: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives
-         // from the real slot rows, so it follows the +7px inventory shift automatically.
+         // Y = playerInventoryLabelY() derives from the real slot rows, so it follows inventory-shift automatically.
          graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
       }
    }

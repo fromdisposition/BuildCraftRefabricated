@@ -33,14 +33,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * 1.21.1 implementation (versions/1.21.1). The shared mixin draws BuildCraft's submerged screen overlay via the
- * 1.21.5 submit pipeline (FluidWorldRenderer.renderSubmergedOverlay + SubmitNodeCollector), which does not exist
- * on 1.21.1. Here the overlay is drawn immediately, mirroring vanilla 1.21.1 {@code ScreenEffectRenderer.renderTex}:
- * a single textured quad in the {@code POSITION_TEX_COLOR} format (NOT a block/entity render type, which would
- * demand UV1/UV2/Normal and crash with "Missing elements in vertex"), via Tesselator + BufferUploader with the
- * position_tex_color shader. UVs drift with the look direction; colour = overlay alpha × local brightness.
- */
+// 1.21.1 has no submit pipeline, so the overlay is drawn immediately here, mirroring vanilla's renderTex: a single
+// POSITION_TEX_COLOR quad (a block/entity format here would crash with "Missing elements in vertex").
 @Mixin(ScreenEffectRenderer.class)
 public class ScreenEffectRendererBcFluidMixin {
    @Inject(

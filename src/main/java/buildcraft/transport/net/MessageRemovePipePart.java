@@ -18,15 +18,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 
 /**
- * Serverbound: the client left-clicked a pluggable/wire on the pipe at {@code pos} and wants just that part removed.
- * Sent instead of the vanilla break so the client never starts breaking the whole pipe (no break-crack flicker).
- *
- * <p>Carries the client's exact in-block hit point (like vanilla's own dig packet carries pos+face) instead of
- * re-raytracing on the server: the server-side player position lags the client's (worst while flying/looking down),
- * so a server re-pick could resolve a DIFFERENT part than the one under the client's crosshair -- removing a gate on
- * a side face worked, but aiming down at a gate on top removed the wrong thing. The server still validates: the
- * player must be within reach of the pipe, the hit point is clamped inside the block, and only a part that actually
- * exists at that point can be removed -- so a spoofed packet can at most remove a pluggable within normal reach.
+ * Carries the client's exact hit point instead of a server re-raytrace, since the server-side player position lags
+ * the client's and could otherwise resolve a different part. Server still bounds it to reach range and an existing part.
  */
 public record MessageRemovePipePart(BlockPos pos, float lx, float ly, float lz) implements CustomPacketPayload {
    public static final Type<MessageRemovePipePart> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:remove_pipe_part"));

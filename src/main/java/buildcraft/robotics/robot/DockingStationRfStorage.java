@@ -10,16 +10,8 @@ import buildcraft.api.mj.MjRfConversion;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import team.reborn.energy.api.EnergyStorage;
 
-/**
- * RF/E view of a {@link DockingStationPipe}'s power buffer, letting an RF pipe charge the station.
- *
- * <p>Kept in its own class on purpose: the Team Reborn Energy API is an <em>optional</em> interop dependency (only
- * RF pipes need it), so {@link DockingStationPipe} must never mention {@link EnergyStorage} in its own signature --
- * otherwise the whole class fails to link when the API is absent, and since a saved robot deserialises its docking
- * stations on world load, that would crash the world just for having a robot placed (with no energy mod installed).
- * This class is only ever loaded from {@link DockingStationPipe#getEnergyStorage()}, which is in turn only reached
- * while the energy mod is present (the station's RF capability is registered behind an {@code isModLoaded} guard).
- */
+/** Kept in its own class because the Team Reborn Energy API is optional: if DockingStationPipe mentioned
+ * EnergyStorage directly, the class would fail to link and crash on world load whenever the energy mod is absent. */
 final class DockingStationRfStorage implements EnergyStorage {
    private final DockingStationPipe station;
 

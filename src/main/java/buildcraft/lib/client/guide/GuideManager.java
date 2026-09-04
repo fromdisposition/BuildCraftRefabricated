@@ -96,8 +96,7 @@ public enum GuideManager {
    public static final boolean DEBUG = BCDebugging.shouldDebugLog("lib.guide.loader");
    private final List<PageEntry<?>> entries = new ArrayList<>();
    private final Map<Identifier, GuidePageFactory> pages = new HashMap<>();
-   // Keyed by ItemStackKey: ItemStack has identity equals/hashCode, so a raw-stack key never hits and the
-   // "cache" grew one entry per lookup for the whole session.
+   // ItemStack has identity equals/hashCode: a raw-stack key never hits and the map grows per lookup.
    private final Map<ItemStackKey, GuidePageFactory> generatedPages = new HashMap<>();
    public ISuffixArray<PageLink> quickSearcher;
    private final Set<PageLink> pageLinksAdded = new HashSet<>();
@@ -249,9 +248,6 @@ public enum GuideManager {
                   }
 
                   if (bytes.length != 0 && !new String(bytes, StandardCharsets.UTF_8).trim().isEmpty()) {
-                     // Defer the (expensive) markdown parse + recipe-usage scan until this page is actually
-                     // opened, then cache it. Parsing every page up front is what made the first book open stall
-                     // for hundreds of ms; now only the page you click pays its own parse cost, once.
                      this.pages.put(entryKey, lazyPage(entry.getValue(), bytes, entryKey, mapEntry.getValue()));
                      loadedPage = true;
                      break;
@@ -280,11 +276,7 @@ public enum GuideManager {
       }
    }
 
-   /**
-    * A lazily-parsed page: the markdown is parsed — and its {@code <recipes_usages>} tags resolved against the
-    * whole recipe manager — only the first time the page is opened, then cached. This keeps the first book open
-    * cheap; each page pays its own parse cost once, on demand.
-    */
+   // Parsing every page up front stalls the first book open for hundreds of ms.
    private GuidePageFactory lazyPage(IPageLoader loader, byte[] bytes, Identifier entryKey, PageEntry<?> entry) {
       GuidePageFactory[] cached = new GuidePageFactory[1];
       return gui -> {
@@ -301,7 +293,6 @@ public enum GuideManager {
       };
    }
 
-   /** A "not written yet" placeholder page, also used as a fallback when a real page fails to parse. */
    private GuidePageFactory stubFactory(Identifier entryKey, PageEntry<?> entry) {
       String title = entry.title != null ? entry.title : entryKey.getPath();
       String stubContent = "<chapter name=\""

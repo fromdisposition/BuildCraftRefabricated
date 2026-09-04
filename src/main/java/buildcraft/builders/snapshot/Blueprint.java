@@ -231,8 +231,7 @@ public class Blueprint extends Snapshot {
                for (int x = 0; x < this.getSnapshot().size.getX(); x++) {
                   int cell = Blueprint.this.data[Blueprint.this.posToIndex(x, y, z)];
                   if (cell < 0 || cell >= this.rotatedPalette.size()) {
-                     // Corrupt/hand-edited blueprint: skip the bad cell instead of crashing the builder tick
-                     // (countNonAirCells/countMatchingCells guard the same way).
+                     // Corrupt/hand-edited blueprint: skip the bad cell instead of crashing the builder tick.
                      continue;
                   }
 
@@ -274,8 +273,7 @@ public class Blueprint extends Snapshot {
                   int idx = Blueprint.this.posToIndex(x, y, z);
                   int cell = Blueprint.this.data[idx];
                   if (cell < 0 || cell >= this.rotatedPalette.size()) {
-                     // Corrupt/hand-edited blueprint: skip the bad cell instead of crashing the builder tick, the
-                     // same guard the BuildingInfo constructor and countNonAirCells/countMatchingCells already use.
+                     // Corrupt/hand-edited blueprint: skip the bad cell instead of crashing the builder tick.
                      continue;
                   }
 

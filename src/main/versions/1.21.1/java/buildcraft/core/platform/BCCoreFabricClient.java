@@ -29,11 +29,6 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 
-/**
- * 1.21.1 implementation (versions/1.21.1). Markers render on Fabric's immediate WorldRenderEvents.AFTER_TRANSLUCENT
- * (1.21.1 has no AfterTranslucentFeatures phase / submit pipeline), and the debug overlay registers via the legacy
- * HudRenderCallback (the 1.21.5+ HudElementRegistry does not exist on 1.21.1).
- */
 public final class BCCoreFabricClient {
    private BCCoreFabricClient() {
    }
@@ -46,9 +41,7 @@ public final class BCCoreFabricClient {
       WorldRenderEvents.AFTER_TRANSLUCENT.register(
          context -> MarkerRenderer.renderMarkers(context.matrixStack(), context.camera().getPosition())
       );
-      // Marker blocks use a partly transparent texture (the coloured post sides); without an explicit cutout
-      // render layer they draw on the solid layer and the transparent pixels turn black. 1.21.1 resolves render
-      // layers via Fabric's BlockRenderLayerMap (RenderType, not the 26.1+ ChunkSectionLayer).
+      // Marker textures have transparent pixels, which render black on the solid layer.
       BlockRenderLayerMap.INSTANCE.putBlock(BCCoreBlocks.MARKER_PATH, RenderType.cutout());
       BlockRenderLayerMap.INSTANCE.putBlock(BCCoreBlocks.MARKER_VOLUME, RenderType.cutout());
       BlockEntityRenderers.register(BCCoreBlockEntities.ENGINE_REDSTONE, ctx -> new RenderEngine_BC8(BCCoreModels::getWoodEngineQuads));

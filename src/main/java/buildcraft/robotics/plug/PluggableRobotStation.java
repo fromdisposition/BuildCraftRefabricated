@@ -18,8 +18,7 @@ import buildcraft.api.transport.pluggable.PluggableModelKey;
 import buildcraft.robotics.BCRoboticsItems;
 import buildcraft.robotics.entity.EntityRobot;
 import buildcraft.robotics.robot.DockingStationPipe;
-// Client-only model key; only referenced from getModelRenderKey, which is invoked exclusively client-side during
-// model baking -- so the class is never loaded on a dedicated server (same pattern as PluggableBlocker).
+// Only referenced from getModelRenderKey, invoked exclusively client-side, so never loaded on a dedicated server.
 import buildcraft.transport.client.model.key.KeyPlugBlocker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -55,8 +54,7 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
 
    @Override
    public PluggableModelKey getModelRenderKey(Object layer) {
-      // The port never gave the docking station an in-world model, so it was invisible. Render it as the standard
-      // plug box (reusing the already-registered blocker baker) so it shows on the pipe and can be aimed at.
+      // Reuses the already-registered blocker baker as a stand-in model, so it renders on the pipe and can be aimed at.
       return "cutout".equals(layer) ? new KeyPlugBlocker(this.side) : null;
    }
 
@@ -81,8 +79,7 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
       if (this.station == null && world != null && !world.isClientSide()) {
          DockingStation existing = RobotManager.registryProvider.getRegistry(world).getStation(this.holder.getPipePos(), this.side);
          if (existing instanceof DockingStationPipe pipeStation) {
-            // A station reused from the registry may have been loaded detached (world/pipe null); bind it to this
-            // live holder so robotTaking()/powerRoom() can resolve the registry without NPEing.
+            // A reused station may have been loaded detached (world/pipe null); bind it or robotTaking()/powerRoom() NPE.
             pipeStation.bindToPipe(this.holder);
             this.station = pipeStation;
          } else {
@@ -111,18 +108,14 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
 
       BlockPos pos = this.holder.getPipePos();
       var registry = RobotManager.registryProvider.getRegistry(world);
-      // this.station is a lazily-populated transient (can be null right after a reload); fall back to the
-      // authoritative registry station for this position.
+      // this.station is a lazily-populated transient, can be null right after a reload; fall back to the registry.
       DockingStation station = this.station != null ? this.station : registry.getStation(pos, this.side);
       if (station instanceof DockingStationPipe pipeStation) {
          pipeStation.bindToPipe(this.holder);
       }
 
-      // Breaking the station destroys the robot that calls it home: drop it as its board (with stored energy and
-      // carried tool/loot) where it stood -- robots are otherwise invulnerable/unremovable. Try the direct
-      // station->robot link first, then scan nearby robot entities matched by their persisted home-station pos/side.
-      // The scan is the robust path: the registry link can be momentarily unresolved on the single-plug removal
-      // path, which is why a plain robotTaking() check silently missed and left the robot hanging.
+      // Robots are invulnerable/unremovable, so breaking their home station must drop them directly; the registry
+      // link can be momentarily unresolved here, so also scan by persisted home-station pos/side as a fallback.
       if (station != null && station.isMainStation() && station.robotTaking() instanceof EntityRobot linked) {
          linked.dropAsItemAndDiscard();
       }
@@ -149,8 +142,7 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
       }
    }
 
-   /** Set once the station throws while ticking (usually a legacy/corrupt state); it then stops ticking instead of
-    * crashing the pipe every tick. */
+   /** Set once the station throws while ticking; it then stops ticking instead of crashing the pipe every tick. */
    private boolean tickFaulted;
 
    @Override
@@ -174,9 +166,8 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
          RobotStationState newState = this.computeState();
          if (newState != this.renderState) {
             this.renderState = newState;
-            // renderState travels in writeClientUpdateData (the "plugsClient" bundle), which is re-sent by the
-            // holder's block update — scheduleNetworkUpdate() would dispatch the PLUGGABLES payload, and this
-            // class writes nothing into that channel, so it never delivered the new state.
+            // renderState travels only in writeClientUpdateData (the "plugsClient" bundle); this class writes
+            // nothing into the PLUGGABLES payload, so scheduleNetworkUpdate() would never deliver the new state.
             this.holder.scheduleRenderUpdate();
          }
       } catch (Exception e) {
@@ -187,8 +178,7 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
       }
    }
 
-   // The pipe delivers power to the station like any machine: kinesis pipes push MJ into the receiver, RF pipes
-   // insert into the energy storage. Both feed the station's buffer, which drip-feeds the docked robot.
+   // Kinesis pipes push MJ into the receiver, RF pipes insert into the energy storage; both feed the station's buffer.
    @Override
    @SuppressWarnings("unchecked")
    public <T> T getCapability(Object cap) {

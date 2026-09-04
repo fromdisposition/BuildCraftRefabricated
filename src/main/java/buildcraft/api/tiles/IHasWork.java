@@ -8,13 +8,10 @@ package buildcraft.api.tiles;
 
 public interface IHasWork {
    /**
-    * Reports whether this machine is actively working right now, for gates and the
-    * {@code TriggerMachine} "machine working"/"machine inactive" triggers.
+    * Whether this machine is actively working right now; drives gates and the {@code TriggerMachine} triggers.
     *
-    * <p>This must reflect real activity: a machine that is out of power, paused, or has nothing left
-    * to process should return {@code false} even if it still has a queued job. Returning {@code true}
-    * while idle makes gates report a machine as working when it is not. This is distinct from
-    * {@code Pipe.hasSimulationWork()}, which only gates pipe ticking and is unrelated to this trigger.
+    * <p>Must reflect real activity: return {@code false} if out of power, paused, or idle, even with a queued
+    * job. Distinct from {@code Pipe.hasSimulationWork()}, which only gates pipe ticking.
     */
    boolean hasWork();
 }

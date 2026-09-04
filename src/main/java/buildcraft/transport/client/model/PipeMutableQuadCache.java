@@ -28,10 +28,7 @@ public final class PipeMutableQuadCache {
       MASK.clear();
    }
 
-   /**
-    * Cached body templates for the chunk-baked pipe model (dye baked into the vertex colours where the colour
-    * type calls for it). Safe to call from chunk-build worker threads.
-    */
+   /** Safe to call from chunk-build worker threads. */
    public static List<MutableQuad> cutoutQuads(PipeModelCacheBase.PipeBaseCutoutKey key) {
       return CUTOUT_MUTABLE.computeIfAbsent(key, k -> PipeBaseModelGenStandard.INSTANCE.generateCutoutMutable(k));
    }
@@ -44,11 +41,7 @@ public final class PipeMutableQuadCache {
       CUTOUT.render(key, pose, buffer, light);
    }
 
-   /**
-    * Cached paint-mask templates for (pipe shape, alpha) — dye and alpha are baked into the vertex colours.
-    * Safe to call from chunk-build worker threads: the map is concurrent and the generator only reads
-    * immutable templates and atlas sprites.
-    */
+   /** Safe to call from chunk-build worker threads: the map is concurrent and the generator only reads immutables. */
    public static List<MutableQuad> maskQuads(PipeModelCacheBase.PipeBaseCutoutKey key, int alpha) {
       return MASK.computeIfAbsent(
          new PipeMutableQuadCache.MaskCacheKey(key, alpha), k -> PipeBaseModelGenStandard.INSTANCE.generateMaskMutable(k.key(), k.alpha())

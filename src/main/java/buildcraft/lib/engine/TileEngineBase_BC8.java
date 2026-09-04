@@ -228,10 +228,7 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       }
 
       this.heat = 20.0F;
-      // Drain the buffer too. For buffer-driven engines (the stone engine derives heat from power/maxPower), a full
-      // buffer is what pushed it into OVERHEAT in the first place; leaving it full means updateHeatLevel re-derives
-      // ~max heat next tick and re-latches OVERHEAT instantly, so the wrench appeared to do nothing. Clearing power
-      // removes the heat source so the reset actually sticks (and is the fair cost of overheating).
+      // A full buffer re-derives ~max heat next tick and re-latches OVERHEAT, so the reset only sticks if power is drained too.
       this.power = 0L;
       this.powerStage = this.computePowerStage();
       this.isPumping = false;
@@ -399,10 +396,8 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
             }
 
             if (!pulsedPower) {
-               // Deliver buffered power whenever the engine is on, even if it is not currently producing (out of
-               // fuel / FE): already-generated MJ must always flow onward to a consumer instead of sitting frozen
-               // in the buffer. Otherwise an FE engine on a slow feed converts a full buffer, runs its fuel to 0,
-               // and then starves the network while holding a full charge until fuel returns.
+               // Buffered MJ must keep flowing while the engine is on even when it is not producing;
+               // otherwise an engine out of fuel holds a full charge and starves the network.
                if (engine.isRedstonePowered && (engine.isBurning() || engine.power > 0L)) {
                   engine.sendPower(receiver);
                } else {
@@ -430,9 +425,7 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
                engine.setChanged();
                level.sendBlockUpdated(pos, state, state, 3);
             } else if (engine.isBurning() && level.getGameTime() % 100L == 0L) {
-               // The old unconditional per-tick setChanged kept every engine chunk permanently dirty. Visible
-               // state changes mark + sync above; a slow keepalive while burning covers autosave of the
-               // gradually moving power/heat without per-tick chunk dirtying.
+               // Slow keepalive while burning: gradually moving power/heat still reaches autosave without dirtying the chunk every tick.
                engine.setChanged();
             }
 
@@ -524,17 +517,8 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       this.spawnHeatParticles();
    }
 
-   /**
-    * Ambient smoke rising from the top of an overheating engine. Intensity ramps with the (synced) power stage --
-    * a thin wisp at YELLOW, a steadier plume at RED, and a heavy plume once OVERHEAT latches -- so a dangerously
-    * hot engine reads at a glance. Client-only; engines that never build heat (the electric converters, kept at
-    * BLUE) never enter these stages, so they stay clean.
-    */
    private void spawnHeatParticles() {
-      // Only engines that can actually be destroyed by heat give the smoke warning. The Redstone (wooden) engine
-      // warms through the colour stages purely to ramp its piston speed -- it caps below OVERHEAT and never explodes
-      // (explosionRange 0), so smoke there would falsely signal danger. The electric converters never leave BLUE, so
-      // they never reach the stages below regardless.
+      // Only engines that can actually explode smoke; the redstone engine climbs the colour stages purely for piston speed.
       if (this.level == null || this.explosionRange() <= 0.0F) {
          return;
       }
@@ -626,8 +610,7 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
    }
    *///?}
 
-   /** A read exception must never escape loadAdditional: the engine would end up empty/discarded and the next save
-    * would overwrite the stored data with that empty state. Keep whatever was read and log loudly instead. */
+   // A read exception escaping loadAdditional would leave the engine empty and the next save would persist that.
    private void readDataGuarded(BcValueIn input) {
       try {
          this.readData(input);

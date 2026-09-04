@@ -37,11 +37,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
    public static final double SHAFT_RADIUS = 0.0625D;
    public static final double SHAFT_CROSS_HALF = SHAFT_RADIUS * 4.0D;
    public static final double SHAFT_TOP_INSET = 0.001D;
-   /** Cap on how much power the machine spends toward its work per tick. The battery still requests (and buffers)
-    * a full charge, but consumption is rate-limited like the distiller (MAX_MJ_PER_TICK) -- so digging speed
-    * tracks the power actually flowing in rather than being spent in a burst whenever the buffer happens to be
-    * full. Without this a full 500 MJ buffer would break several blocks in a single tick, then stall, which reads
-    * as erratic "fast then slow" mining. */
+   /** Rate-limits work spending per tick so a full battery buffer doesn't burst-mine then stall. */
    public static final long MAX_MJ_PER_TICK = 40L * MjAPI.MJ;
    protected long progress = 0L;
    @Nullable
@@ -74,9 +70,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
       this.flushPipeNeighborNotify();
       this.battery.tick(this.getLevel(), this.getBlockPos());
       if (this.getLevel().getGameTime() % 10L == this.offset) {
-         // Only broadcast when the client-visible state actually changed: the shaft length already has its own
-         // on-change sync (updateLength), so gate the periodic one on a 1%-quantized battery + position
-         // signature — an idle miner/pump stops re-sending its full tag (and re-dirtying the chunk) 2x/s forever.
+         // Gate on a 1%-quantized battery + position signature so an idle miner stops re-sending its full tag 2x/s.
          long batteryPct = this.battery.getCapacity() > 0L ? this.battery.getStored() * 100L / this.battery.getCapacity() : 0L;
          long syncSig = (this.wantedLength * 31L + batteryPct) * 31L + (this.currentPos != null ? this.currentPos.asLong() : 0L);
          if (syncSig != this.lastSyncSig) {
@@ -116,10 +110,7 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
       }
    }
 
-   /**
-    * World position of the shaft bottom (where the tube visually ends).
-    * {@link #getTargetPos()} is the active work target; the shaft end is derived from it per machine type.
-    */
+   /** Shaft bottom, derived from {@link #getTargetPos()} per machine type. */
    @Nullable
    protected BlockPos getShaftEndPos() {
       BlockPos target = this.getTargetPos();

@@ -23,8 +23,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 
-/** Drop-self loot for blocks that only register when a companion mod is present; the table carries the matching
- * Fabric load condition so a game without that mod never parses it. */
+/** Carries a Fabric load condition so a game without the companion mod never parses this table. */
 public final class BCConditionalLootProvider implements DataProvider {
    private static final Map<String, String> MOD_GATED = Map.of(
       "buildcraftenergy:engine_rf", "team_reborn_energy",

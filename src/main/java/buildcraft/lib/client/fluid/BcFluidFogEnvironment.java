@@ -11,9 +11,6 @@ import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.material.FogType;
 
-/**
- * Vanilla {@link FogEnvironment} hook for BuildCraft world fluids (oil, fuel, gas tiers).
- */
 public final class BcFluidFogEnvironment extends FogEnvironment {
    //? if >= 1.21.11 {
    @Override

@@ -33,12 +33,10 @@ public class GuiChute extends BcScreen<ContainerChute> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      // Block name, centred: the chute's slots are a small centred cluster, so a centred title balances over them
-      // (vanilla centres the title for compact machines like the furnace/dispenser). Centred on imageWidth.
+      // Centred like vanilla titles for compact machines (furnace/dispenser), matching the chute's small slot cluster.
       String titleStr = this.title.getString();
       graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
-      // "Inventory" label: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from
-      // the real slot rows (firstPlayerRowY() - 12), so it follows the +3px shift automatically.
+      // X = 8 matches the player inventory's left edge; Y derives from the real slot rows, not hardcoded.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 

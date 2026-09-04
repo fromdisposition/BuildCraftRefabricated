@@ -37,13 +37,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector3f;
 
-/**
- * 1.21.1 (versions/1.21.1) dynamic gate item model. Vanilla 1.21.1 has no ItemModel/ItemStackRenderState and
- * its ItemOverrides cannot be subclassed (private ctor) and BakedModel has no applyTransform/getRenderTypes
- * (those are Forge-only), so per-stack geometry is emitted through Fabric's FabricBakedModel.emitItemQuads:
- * the gate variant is read from the stack, base NORTH-facing quads from PlugGateBaker are emitted, and the
- * per-ItemDisplayContext camera placement is supplied by getTransforms() (built from the XFORM table).
- */
+// vanilla 1.21.1 ItemOverrides can't be subclassed and BakedModel has no applyTransform, so geometry is emitted via Fabric's FabricBakedModel.emitItemQuads.
 public class GateItemModel implements BakedModel {
    private static final RenderMaterial MATERIAL = RendererAccess.INSTANCE.getRenderer().materialFinder().find();
    private static final ItemTransforms TRANSFORMS = buildTransforms();
@@ -125,7 +119,7 @@ public class GateItemModel implements BakedModel {
       return ItemOverrides.EMPTY;
    }
 
-   /** Per-context camera transforms (degrees / 1-16 units / uniform scale), matching the modern XFORM table. */
+   // degrees / 1-16 units / uniform scale.
    private static ItemTransforms buildTransforms() {
       EnumMap<ItemDisplayContext, float[]> x = new EnumMap<>(ItemDisplayContext.class);
       // rotX, rotY, rotZ, tx, ty, tz, scale

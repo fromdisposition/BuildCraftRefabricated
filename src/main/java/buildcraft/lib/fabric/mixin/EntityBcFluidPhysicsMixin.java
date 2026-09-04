@@ -23,25 +23,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 *///?}
 
-/**
- * Gives BuildCraft liquids (the {@link buildcraft.fabric.fluid.BcFluidTags#BC_LIQUIDS} tag) full water-like
- * entity physics on 1.21.x.
- *
- * <p>26.x gets this from Fabric's {@code EntityFluidInteractionRegistry} / {@code FluidBehavior.WATER_LIKE}
- * (the {@code fabric-content-registries} custom-interactable-fluid subsystem), which does not exist in the
- * 1.21.x Fabric API. Fabric implements it by making the entity's {@code FluidTags.WATER}-keyed checks also
- * answer for the registered fluid tag; this mixin does exactly the same thing natively for BC_LIQUIDS:
- * <ul>
- *   <li>{@code updateInWaterStateAndDoWaterCurrentPushing} — record fluid height + apply the water current
- *       push and flag the entity as touching water (drives {@code isInWater()} → travel buoyancy/drag/fall reset).</li>
- *   <li>{@code isEyeInFluid(WATER)} — also true when the eye is in a BC liquid (drives {@code isUnderWater()},
- *       breath loss / drowning in {@code LivingEntity.baseTick}, and the underwater fog).</li>
- *   <li>{@code getFluidHeight(WATER)} — includes BC liquid height (drives the swim-up jump and jump threshold).</li>
- * </ul>
- * The swim crawl ({@code updateSwimming}), sprinting, boats floating and ridden-mob floating are deliberately
- * NOT enabled — kept in parity with the 26.x registration which uses a custom non-swimming FluidBehavior.
- * Compiled out on 26.x (the Fabric registry handles it there), leaving an empty inert mixin.
- */
+// Stands in for Fabric's EntityFluidInteractionRegistry (WATER_LIKE), absent from the 1.21.x Fabric API.
+// Swimming, sprinting and boat/mob floating stay off deliberately, matching the non-swimming 26.x FluidBehavior.
 @Mixin(Entity.class)
 public abstract class EntityBcFluidPhysicsMixin {
    //? if < 26.1 {

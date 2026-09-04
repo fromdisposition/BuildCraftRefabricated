@@ -69,9 +69,8 @@ public class BoardRobotBuilder extends RedstoneBoardRobot {
 
       BlueprintBuilder builder = this.context.getBlueprintBuilder();
 
-      // The builder caches "cannot afford this block" per position and only re-checks when it is told the
-      // resources changed. A machine builder is told by its inventory; a robot carries its own, so it has to
-      // report the change itself -- otherwise it fetches materials and then never spends them.
+      // The builder caches "cannot afford" per position and only re-checks when told resources changed; a
+      // machine is told by its inventory, but a robot carries its own and must report the change itself.
       int carried = this.carriedCount(entityRobot);
       if (carried != this.lastCarried) {
          this.lastCarried = carried;
@@ -105,9 +104,8 @@ public class BoardRobotBuilder extends RedstoneBoardRobot {
          return;
       }
 
-      // Nothing left in reach to place (centroid == null) but the build still needs materials we couldn't load:
-      // clear the "unavailable" latch so the next pass retries the station, and rest instead of spinning a tight
-      // fail loop. Otherwise (still something to build, or fully stocked) fall through and keep ticking the builder.
+      // Nothing left in reach but materials couldn't be loaded: clear the "unavailable" latch so the next pass
+      // retries the station, and rest instead of spinning a tight fail loop.
       if (centroid == null && missing != null) {
          this.materialsUnavailable = false;
          this.startDelegateAI(new AIRobotGotoSleep(this.robot));

@@ -19,11 +19,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * 1.21.1 implementation (versions/1.21.1). 1.21.1 has no deferred submit pipeline, so in-world item stacks are
- * drawn immediately via ItemRenderer.renderStatic into the frame's MultiBufferSource. The shared (26.x) copy
- * uses ItemStackRenderState.submit into a SubmitNodeCollector instead.
- */
 public class ItemRenderUtil {
    private static final Random modelOffsetRandom = new Random(0L);
    private static PoseStack currentPoseStack;

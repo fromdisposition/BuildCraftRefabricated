@@ -456,11 +456,8 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return out.toIntArray();
    }
 
-   /**
-    * Outline of every painted area in a darker shade of its colour: an edge is drawn where the neighbouring cell is
-    * not painted in the same colour. Returns horizontal edges as (x0, x1, z, top, argb) and vertical edges as
-    * (z0, z1, x, left, argb), each merged along its length.
-    */
+   /** Edge where the neighbouring cell differs in colour. Returns horizontal edges as (x0, x1, z, top, argb) and
+    * vertical edges as (z0, z1, x, left, argb), each merged along its length. */
    private static int[][] bakeEdges(int[] cells) {
       Long2IntOpenHashMap byCell = new Long2IntOpenHashMap();
 

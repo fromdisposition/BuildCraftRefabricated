@@ -29,9 +29,7 @@ public class KeyPlugLens extends PluggableModelKey {
 
    @Override
    public int getTintColour() {
-      // The dye that tints the lens glass at render time (BakedQuads carry no per-vertex colour on 26.x, so the
-      // colour the baker sets per-vertex is lost through the bake). An uncoloured lens uses the default blue the
-      // baker draws for it.
+      // BakedQuads carry no per-vertex colour on 26.x, so the baker's per-vertex tint is lost through baking; falls back to the default blue.
       if (this.colour != null) {
          return 0xFF000000 | this.colour.getTextureDiffuseColor() & 0xFFFFFF;
       }

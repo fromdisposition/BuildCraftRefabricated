@@ -70,8 +70,7 @@ public class ContainerAutoCraftItems extends ContainerBCTileRecipeBook<TileAutoW
 
       this.addSlot(new SlotDisplay(i -> tile != null ? tile.resultClient : ItemStack.EMPTY, 0, 93, 28));
 
-      // Vanilla data slots are 16-bit on the wire (see BcMenu.chunk16), so the stored-power long travels as
-      // four unsigned 16-bit chunks; each client-side set() splices its chunk back into the mirror tile.
+      // Vanilla data slots are 16-bit on the wire, so the stored-power long travels as four chunks (BcMenu.chunk16).
       for (int chunk = 0; chunk < 4; chunk++) {
          final int c = chunk;
          this.addDataSlot(new DataSlot() {

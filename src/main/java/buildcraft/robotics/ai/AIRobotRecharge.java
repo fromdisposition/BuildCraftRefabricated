@@ -13,16 +13,11 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.IStationFilter;
 
 public class AIRobotRecharge extends AIRobot {
-   // Waiting for a near-full battery is only correct while power actually flows in. If the pipe stops feeding the
-   // station mid-charge (engine off, RF network empty), the robot used to sit docked in this AI forever, ignoring
-   // all work until a world reload dropped the (non-persisted) AI. Slowest legit source is a pulsing redstone
-   // engine (seconds between pulses), so 30s with zero gain is a safe "supply is dead" signal.
+   // Slowest legit power source is a pulsing redstone engine (seconds between pulses), so 30s with zero gain is a
+   // safe "supply is dead" signal, in case the pipe stops feeding the station mid-charge.
    private static final int STALL_TICKS = 30 * 20;
-   // Recharge starts below SAFETY_POWER (20%); from twice that the robot is operational again. A weak source
-   // (single engine, ~1 MJ/t) needs the best part of an hour to reach the classic near-full exit, and the robot
-   // ignored all work the whole time -- looking exactly like a hang. So once operational, grant the charger a
-   // short top-up grace window: a proper kinesis/RF supply still fills the battery within it, a trickle charger
-   // releases the robot to go work on what it has. The 2x gap doubles as hysteresis against dock/undock ping-pong.
+   // A weak source can take the best part of an hour to reach near-full, so once operational (2x SAFETY_POWER) grant
+   // a short top-up grace window instead: a trickle charger releases the robot early; the 2x gap also hystereses dock/undock.
    private static final long RESUME_POWER = EntityRobotBase.SAFETY_POWER * 2L;
    private static final int TOPUP_GRACE_TICKS = 10 * 20;
 

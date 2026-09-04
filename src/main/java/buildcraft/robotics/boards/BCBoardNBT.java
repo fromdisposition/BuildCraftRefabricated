@@ -107,9 +107,8 @@ public class BCBoardNBT extends RedstoneBoardRobotNBT {
       return ChatFormatting.WHITE;
    }
 
-   /** Shared tooltip styling for any redstone board (robot boards and the raw board item): the first line is the
-    * board name tinted by its tier colour, the rest is the description in the usual muted grey -- so both items
-    * render identically. */
+   /** Shared tooltip styling for any redstone board: first line is the name tinted by tier colour, the rest
+    * is the description in muted grey, so robot boards and the raw board item render identically. */
    public static void appendColouredInfo(RedstoneBoardNBT<?> board, ItemStack stack, boolean advanced, List<Component> tooltip) {
       List<String> lines = new ArrayList<>();
       board.addInformation(stack, null, lines, advanced);

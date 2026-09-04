@@ -33,10 +33,7 @@ public class EntityQuarryRig extends Entity {
    public EntityQuarryRig(EntityType<?> type, Level level) {
       super(type, level);
       this.noPhysics = true;
-      // Never frustum-cull this invisible collision rig. After the section-split its boxes can be small, and the
-      // camera leaving one would otherwise drop its F3+B debug hitbox (collision is unaffected — it is server-side
-      // + a section query, never frustum-based). On >= 1.21.10 the renderer's affectedByCulling()=false does this
-      // (set at registration in BCBuildersFabricClient); 1.21.1 has no such renderer hook, so use Entity.noCulling.
+      // Must never be frustum-culled: collision is server-side, but culling this invisible rig would drop its F3+B debug hitbox.
       //? if < 1.21.10 {
       /*this.noCulling = true;
       *///?}
@@ -106,10 +103,7 @@ public class EntityQuarryRig extends Entity {
       return false;
    }
 
-   // The tile repositions this collision rig every server tick to follow the moving drill/frame. By default the
-   // client interpolates an entity's synced position over DEFAULT_INTERPOLATION_STEPS (3) ticks, so the collision
-   // box LAGGED ~3 ticks behind the smoothly rendered gantry — the player walking on the moving part fell through
-   // where the box had not caught up yet. Snap the rig straight to each synced position so collision tracks tight.
+   // Default client interpolation lags the synced position ~3 ticks, letting the player fall through the moving collision box; snap straight to each update instead.
    //? if >= 26.3-pre-1 {
    @Override
    protected InterpolationHandler createInterpolationHandler() {

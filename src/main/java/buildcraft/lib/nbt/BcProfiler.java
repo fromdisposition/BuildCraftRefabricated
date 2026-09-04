@@ -13,11 +13,8 @@ import net.minecraft.util.profiling.Profiler;
 /*import net.minecraft.util.profiling.InactiveProfiler;
 *///?}
 
-/**
- * Version-neutral current-thread profiler accessor. 1.21.5 added the static {@code Profiler.get()} holder;
- * 1.21.1 has no such accessor, so this falls back to the no-op {@code InactiveProfiler} there (BC's profiler
- * sections are debug-only, so losing them on the legacy target is harmless).
- */
+// 1.21.5+ has a static Profiler.get() holder; 1.21.1 has none, so this falls back to the no-op InactiveProfiler
+// there (BC's profiler sections are debug-only, so losing them on the legacy target is harmless).
 public final class BcProfiler {
    private BcProfiler() {
    }

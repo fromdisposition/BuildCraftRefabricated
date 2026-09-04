@@ -55,18 +55,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * Client-only world renderer for the builders module (quarry frames, filler/builder lasers, architect-table
- * digitizing cubes, place-task ghost items). Split out of the common {@link BCBuildersEventDist} so that
- * server-loaded class never references net.minecraft.client.* (the verifier would resolve it and crash a
- * dedicated server). Reads the live per-level tile collections through getters on the singleton.
- */
+/** Split out of {@link BCBuildersEventDist} so the server-loaded class never references net.minecraft.client.*,
+ * which the verifier would resolve and crash a dedicated server. */
 public final class BCBuildersWorldRenderer {
    private static final Identifier SCAN_TEXTURE = Identifier.parse("buildcraftbuilders:textures/block/scan.png");
 
-   // Laser appearance constants for the quarry frame/drill. Client-only render data — kept here (not on the
-   // common BCBuildersEventDist) so that server-loaded class neither references LaserData_BC8 nor triggers
-   // SpriteHolderRegistry lookups during its static init on a dedicated server.
+   // Kept off BCBuildersEventDist so a dedicated server never triggers LaserData_BC8/SpriteHolderRegistry static init.
    private static final LaserData_BC8.LaserType FRAME;
    private static final LaserData_BC8.LaserType FRAME_BOTTOM;
    private static final LaserData_BC8.LaserType DRILL;
@@ -99,11 +93,8 @@ public final class BCBuildersWorldRenderer {
    }
 
    public static void renderAllQuarries(RenderLevelStageEvent.AfterTranslucentBlocks event) {
-      // < 26.1 draws the quarry frame/drill from its BlockEntityRenderer instead (the block-entity pass runs
-      // BEFORE translucent water, so the drill is no longer depth-occluded by the water surface from above).
-      // This world-renderer path composites AFTER water on < 26.1 (WorldRenderEvents.END_MAIN), so skip it there
-      // to avoid both the water cut and double-rendering the (now correct) BER lasers. 26.1+ uses
-      // AFTER_TRANSLUCENT_FEATURES, which composites these immediate draws WITH water, so it keeps this path.
+      // < 26.1's BlockEntityRenderer pass runs before translucent water; this path composites after water there,
+      // so skip it to avoid double-rendering the drill.
       boolean handledByBer = false;
       //? if < 26.1 {
       /*handledByBer = true;

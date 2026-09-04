@@ -95,12 +95,7 @@ public class PluggableFacade extends PipePluggable implements IFacade {
       return boundingBoxFor(this.side);
    }
 
-   /**
-    * Hollow facades render a frame with an 8px hole for the pipe (the baker cuts 0.25..0.75), but the bounding box
-    * is the full face panel -- so the vanilla raytrace stopped on invisible geometry when aiming through the hole,
-    * targeting this pipe instead of whatever is visibly behind. Return the true frame-with-hole shape so rays pass
-    * through the hole exactly like the visuals suggest.
-    */
+   /** Hollow facades render with an 8px pipe hole (baker cuts 0.25..0.75); the shape must match or raytraces target this pipe through the hole. */
    @Override
    public VoxelShape getShape() {
       return (this.isHollow() ? HOLLOW_SHAPES : SOLID_SHAPES)[this.side.get3DDataValue()];
@@ -154,7 +149,7 @@ public class PluggableFacade extends PipePluggable implements IFacade {
 
    @Override
    public boolean needsTick() {
-      // A plain facade (every state has a null colour) never switches, so it needn't tick.
+      // A plain facade (every state has a null colour) never switches, so it needs no tick.
       return this.isPhased();
    }
 
@@ -164,9 +159,7 @@ public class PluggableFacade extends PipePluggable implements IFacade {
          return;
       }
 
-      // Phased facades change appearance based on which coloured pipe wire is powered. activeState was only ever
-      // set at construction, so this switching never happened — resolve it each server tick and push a render
-      // update (which syncs the new activeState to clients via the pluggable client-update data) when it changes.
+      // Scheduling a render update on change syncs the new activeState to clients via the pluggable client-update data.
       int target = this.resolveActiveState();
       if (target != this.activeState) {
          this.activeState = target;
@@ -184,10 +177,6 @@ public class PluggableFacade extends PipePluggable implements IFacade {
       return false;
    }
 
-   /**
-    * The state to display now: the first colour-keyed state whose wire colour is powered on this pipe, else the
-    * default (null-colour) state, else state 0.
-    */
    private int resolveActiveState() {
       IWireManager wires = this.holder.getWireManager();
       int defaultState = 0;

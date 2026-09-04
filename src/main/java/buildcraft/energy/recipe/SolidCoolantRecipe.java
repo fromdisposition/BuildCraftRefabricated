@@ -32,10 +32,7 @@ import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
 
-/**
- * Converts a solid item (e.g. ice) into a coolant fluid when placed in the engine coolant tank.
- * {@code coolantAmountPerItem} is the mB of coolant fluid produced per one item of {@code item}.
- */
+/** {@code coolantAmountPerItem} is mB of coolant produced per item. */
 public record SolidCoolantRecipe(
    Item item,
    Fluid coolantFluid,

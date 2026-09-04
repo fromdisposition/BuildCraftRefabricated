@@ -128,8 +128,7 @@ public class ItemMarkerConnector extends Item {
                volumeBoxes.markDirtyAndBroadcast();
             }
 
-            // The addon interaction ran on the server, so report success — otherwise the shared fall-through below
-            // returns FAIL and the player's arm never swings for a placement/removal that actually happened.
+            // Falling through would return FAIL and skip the arm swing for an interaction that did happen.
             return InteractionResult.SUCCESS;
          }
       } else if (player.isShiftKeyDown()) {

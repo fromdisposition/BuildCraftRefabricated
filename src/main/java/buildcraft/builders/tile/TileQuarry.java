@@ -117,16 +117,11 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    private List<AABB> collisionBoxes = ImmutableList.of();
    private Vec3 collisionDrillPos;
    private final List<EntityQuarryRig> rigs = new ArrayList<>();
-   // The getCollisionBoxes() list reference + phasing the rig segments were last built from, so updateRigs can
-   // skip the per-tick section-split + rig re-set while the drill sits on one block (the common case).
+   // Cache key for updateRigs: skip the rebuild when neither the box list reference nor phasing changed.
    private List<AABB> rigsBuiltFromBoxes;
    private boolean rigsBuiltPhasing;
-   // Minecraft stores each entity in the single 16-block section of its CENTRE, and a player's collision query
-   // only scans the sections around the player. A rig box that CROSSES a section boundary is therefore not found
-   // when the player stands on the part that lies in a different section than the box centre (the hitbox still
-   // renders — rendering iterates every entity — but there is no collision). So a rig box is cut at the 16-block
-   // section boundaries: each piece lies within one section, where the player standing on it always queries it.
-   // A box that already fits inside one section (the common case for a normal quarry) stays a single entity.
+   // Entity collision is section-local to the box's centre; a rig box crossing a 16-block section boundary
+   // renders but has no collision outside the centre's section, so rig boxes are cut at section boundaries.
 
    public TileQuarry(BlockPos pos, BlockState state) {
       super(BCBuildersBlockEntities.QUARRY, pos, state);
@@ -745,20 +740,14 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
             } else {
                boolean isDrillMoving = this.currentTask instanceof TileQuarry.TaskMoveDrill;
 
-               // The drill sits on one block for many ticks while breaking it; getCollisionBoxes() returns the
-               // same cached list by reference until the drill actually moves. When neither the geometry nor the
-               // phasing changed, every rig already holds the right box/position/phasing, so skip the rebuild —
-               // otherwise each idle tick churns the segments ArrayList + splitBoxAtSections AABBs and re-runs
-               // Entity.setPos -> makeBoundingBox on every rig, per quarry. (HARD chunk-loading keeps the rig
-               // entities alive, so nothing needs re-validating while idle.)
+               // getCollisionBoxes() returns the same list by reference while the drill sits still; skip the
+               // rebuild to avoid re-running Entity.setPos -> makeBoundingBox on every rig each idle tick.
                if (boxes == this.rigsBuiltFromBoxes && isDrillMoving == this.rigsBuiltPhasing) {
                   return;
                }
 
-               // Cut each beam/drill box at section boundaries so every piece is found by the player's
-               // section-local collision query (see the rigs field). A box inside one section stays one entity.
-               // Index >= drillSegmentStart are the vertical-drill pieces, which phase (no collision) while the
-               // drill is travelling.
+               // Segments from drillSegmentStart on are the vertical-drill pieces, which phase (no collision)
+               // while the drill is travelling.
                List<AABB> segments = new ArrayList<>();
                splitBoxAtSections(boxes.get(0), segments);
                splitBoxAtSections(boxes.get(1), segments);
@@ -797,10 +786,6 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       }
    }
 
-   /**
-    * Cuts {@code box} along its longest axis at 16-block section boundaries so every piece lies within a single
-    * entity section, appending the pieces to {@code out}. A box that already fits one section is added unchanged.
-    */
    private static void splitBoxAtSections(AABB box, List<AABB> out) {
       double dx = box.maxX - box.minX;
       double dy = box.maxY - box.minY;

@@ -5,11 +5,7 @@ import net.minecraft.world.level.material.Fluid;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-/**
- * Exposes BucketItem's {@code content} field. On 1.21.5+ BucketItem.getContent() is public, but on 1.21.1
- * the field has no public getter, so BcRegistryUtil reads it through this accessor on that node. The
- * {@code content} field is long-standing vanilla, present on every targeted version.
- */
+// 1.21.1 has no public BucketItem.getContent(); only that node reads through this accessor.
 @Mixin(BucketItem.class)
 public interface BucketItemAccessor {
    @Accessor("content")

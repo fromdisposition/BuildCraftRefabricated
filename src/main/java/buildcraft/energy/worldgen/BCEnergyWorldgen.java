@@ -11,9 +11,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 /*import net.minecraft.advancements.CriteriaTriggers;
 *///?}
 
-/**
- * Runtime entry point for energy worldgen: structure types, processors, and advancement hooks.
- */
 public final class BCEnergyWorldgen {
    //? if >= 26.2 {
    public static final OilDesignBiomeNearbyTrigger OIL_DESIGN_BIOME_NEARBY = Registry.register(

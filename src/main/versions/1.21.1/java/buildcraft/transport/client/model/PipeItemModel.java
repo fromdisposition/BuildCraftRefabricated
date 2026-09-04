@@ -7,8 +7,8 @@
 package buildcraft.transport.client.model;
 
 /**
- * 1.21.1 stub (versions/1.21.1). The 1.21.5 ItemModel/BlockStateModel custom-model API does not exist on
- * 1.21.1, so the custom pipe model is disabled there; this placeholder only satisfies the (gated-out) import.
+ * The 1.21.5 ItemModel/BlockStateModel custom-model API does not exist here, so the custom pipe model is
+ * disabled; this placeholder only satisfies the gated-out import.
  */
 public final class PipeItemModel {
    private PipeItemModel() {

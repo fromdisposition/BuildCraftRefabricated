@@ -32,8 +32,8 @@ public final class PipeItemInjectStorage implements Storage<ItemVariant> {
       this.pendingInjects = new FabricDeferredCommit<>(stack -> {
          ItemStack leftover = flow.injectItem(stack, true, side, null, DEFAULT_SPEED);
          if (!leftover.isEmpty()) {
-            // The commit can accept less than the simulation did (another insert in the same outer transaction
-            // filled the pipe first); force the remainder in rather than silently voiding items.
+            // Commit may accept less than the simulation did if another insert in the same transaction filled
+            // the pipe first; force the remainder in rather than silently void it.
             flow.insertItemsForce(leftover, side, null, DEFAULT_SPEED);
          }
       });

@@ -75,11 +75,7 @@ public final class PipeFlowRendererEnergy {
          return;
       }
 
-      // Drive the flow animation ourselves. MC 26.2's per-tick atlas animation blit is not reflected through this
-      // BER submit path (the fluid sprites are static for the same reason), so relying on an animated .mcmeta gave a
-      // frozen frame. Instead the sprite is the full 32x512, 16-frame strip (its .mcmeta was removed) and we pick
-      // the current frame from client game time, sampling only that frame's 1/16 V-band. Still allocation-free
-      // (ThreadLocal scratch): the geometry is unchanged, only the sampled UV band shifts per frame.
+      // Atlas frame-animation never reaches BER-submitted geometry, so the frame is stepped manually from game time.
       int frame = (int) ((pipe.getHolder().getPipeWorld().getGameTime() / 2L) % (long) FRAMES);
       double[] bounds = TL_BOUNDS.get();
 
@@ -95,12 +91,7 @@ public final class PipeFlowRendererEnergy {
       emitFrameCuboid(pose, buffer, sprite, bounds, 0, frame, packedLight);
    }
 
-   /**
-    * An arm cuboid running from the pipe centre out to {@code side}. The cross-section scales with this side's
-    * power (a thin core at low throughput, near the bore at high), capped at 0.24 = the fluid ARM_RADIUS so it
-    * stays inside the pipe wall; the centre end is pulled back as the centre cuboid grows. Writes minX,minY,minZ,
-    * maxX,maxY,maxZ into {@code out}.
-    */
+   /** Cross-section is capped at 0.24, the fluid ARM_RADIUS, to stay inside the pipe wall. */
    private static void sideFlowBounds(Direction side, double power, double centrePower, double[] out) {
       double p = Math.min(Math.max(power, 0.0), 1.0);
       double c = Math.min(Math.max(centrePower, 0.0), 1.0);
@@ -122,7 +113,6 @@ public final class PipeFlowRendererEnergy {
       out[5] = cz + rz;
    }
 
-   /** The centre cuboid, sized by the maximum power passing through the pipe (clamped inside the pipe wall). */
    private static void centreFlowBounds(double centrePower, double[] out) {
       double radius = 0.24 * Math.min(Math.max(centrePower, 0.0), 1.0);
       out[0] = 0.5 - radius;
@@ -133,11 +123,7 @@ public final class PipeFlowRendererEnergy {
       out[5] = 0.5 + radius;
    }
 
-   /**
-    * Cuboid emit mirroring {@code BcFluidBoxQuads.emitCuboid}, but sampling only the current animation frame's
-    * 1/16 V-band of the strip sprite. Kept local so the shared fluid emitter (used by tanks / heat exchange) is
-    * untouched. Vertices go straight through {@link BcFluidVertexEmitter}; no per-face allocation.
-    */
+   /** Mirrors BcFluidBoxQuads.emitCuboid but samples the animation frame's V-band; kept separate so the shared fluid emitter stays untouched. */
    private static void emitFrameCuboid(Pose pose, VertexConsumer buffer, TextureAtlasSprite s, double[] b, int skipFaceMask, int frame, int packedLight) {
       float minX = (float)b[0], minY = (float)b[1], minZ = (float)b[2];
       float maxX = (float)b[3], maxY = (float)b[4], maxZ = (float)b[5];

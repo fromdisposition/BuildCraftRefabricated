@@ -52,9 +52,8 @@ public class PluggablePulsar extends PipePluggable {
       this.gateEnabledTicks = BcNbt.getInt(nbt, "gateEnabledTicks", 0);
       this.gateSinglePulses = BcNbt.getInt(nbt, "gateSinglePulses", 0);
       this.pulseStage = MathUtil.clamp(BcNbt.getInt(nbt, "pulseStage", 0), 0, PULSE_STAGE);
-      // The gate counters are server-only; derive the client-facing flags from them the same way writeData
-      // does, so a client rebuilt from this NBT (chunk sync) starts in the correct visual state instead of
-      // waiting for the next on/off edge broadcast.
+      // Gate counters are server-only; derive client-facing flags the same way writeData does so a
+      // client rebuilt from this NBT (chunk sync) starts in the correct visual state.
       this.autoEnabled = this.gateEnabledTicks > 0 || this.gateSinglePulses > 0;
       this.isPulsing = this.manuallyEnabled || this.autoEnabled;
    }
@@ -142,9 +141,7 @@ public class PluggablePulsar extends PipePluggable {
    @Override
    public void onTick() {
       if (this.holder.getPipeWorld().isClientSide()) {
-         // Drive the animation from the SYNCED flags only. isPulsing() reads the gate counters, which are
-         // server-only (always 0 on a live client) — recomputing it here used to clobber the network-sent
-         // state, so gate-driven pulsing never animated on the client.
+         // Client must use the synced flags: isPulsing() reads gate counters, which are server-only (always 0 here).
          this.isPulsing = this.manuallyEnabled || this.autoEnabled;
          if (this.isPulsing) {
             this.pulseStage++;

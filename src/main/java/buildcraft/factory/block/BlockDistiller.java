@@ -66,8 +66,7 @@ public class BlockDistiller extends BcTileBlock implements ICustomRotationHandle
       return new TileDistiller(pos, state);
    }
 
-   // 1.21.1: vanilla never calls the BE hook preRemoveSideEffects (1.21.2+); drop the fluid shards from the
-   // classic Block.onRemove (BE still present before super removes it). 1.21.10+ uses the BE hook directly.
+   // Vanilla only calls the BE hook preRemoveSideEffects from 1.21.2; below that, drop the fluid shards here instead.
    //? if < 1.21.10 {
    /*@Override
    protected void onRemove(net.minecraft.world.level.block.state.BlockState state, net.minecraft.world.level.Level level, net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState newState, boolean movedByPiston) {

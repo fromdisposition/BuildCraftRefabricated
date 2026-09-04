@@ -371,9 +371,8 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             }
          }
 
-         // Same identity gate every other intake path applies (insertFluidsForce, Section.insert): the sections are
-         // all labeled currentFluid, so extracting a DIFFERENT neighbour fluid would destroy it at the source and
-         // mint currentFluid in the pipe -- transmutation, and with a cheap source fluid an unbounded dupe.
+         // Same identity gate as insertFluidsForce/Section.insert: accepting a different neighbour fluid here
+         // would relabel it as currentFluid, an unbounded dupe with a cheap source fluid.
          if (!this.currentFluid.isEmpty() && !FluidStack.isSameFluidSameComponents(this.currentFluid, resource)) {
             return null;
          }
@@ -577,8 +576,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
    private void setFluid(@Nonnull FluidStack fluid) {
       this.currentFluid = fluid;
-      // Delay is per-pipe here (upstream's per-fluid viscosity branch collapsed into one value during the
-      // port). Must stay >= 1: currentTime is taken % currentDelay every tick and incoming[] is sized by it.
+      // currentDelay must stay >= 1: currentTime is taken % currentDelay every tick and incoming[] is sized by it.
       this.currentDelay = Math.max(1, (int)PipeApi.getFluidTransferInfo(this.pipe.getDefinition()).transferDelayMultiplier);
 
       for (PipeFlowFluids.Section section : this.sections.values()) {
@@ -766,8 +764,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       }
    }
 
-   /** Transaction snapshot of the whole-flow fluid identity, restored field-directly (not via setFluid,
-    * which would clobber the per-section arrays the section snapshots restore). */
+   /** Restored field-directly, not via setFluid, which would clobber the per-section arrays the section snapshots restore. */
    private record FlowFluidState(FluidStack fluid, int delay) {
    }
 
@@ -1039,8 +1036,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
                return 0;
             }
 
-            // Fabric transaction contract: external callers routinely simulate-and-abort, so every mutation
-            // below must be snapshot for rollback — otherwise a simulated insert really stays in the pipe.
+            // Fabric transaction contract: mutations below must be snapshot for rollback, or a simulated insert really stays in the pipe.
             if (PipeFlowFluids.this.currentFluid.isEmpty()) {
                // setFluid touches the whole flow (fluid identity + every section's arrays): snapshot it all.
                PipeFlowFluids.this.transactionFluidState.updateSnapshots(transaction);
@@ -1086,8 +1082,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             return 0;
          }
 
-         // Fabric transaction contract: a simulated extract must fully roll back on abort, or the fluid is
-         // really deleted from the pipe.
+         // Fabric transaction contract: a simulated extract must fully roll back on abort, or the fluid is really deleted from the pipe.
          this.updateSnapshots(transaction);
          int drained = this.drainInternal(extractAmount, true);
          if (drained > 0) {

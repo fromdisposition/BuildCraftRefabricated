@@ -25,9 +25,8 @@ public class GateVariant {
       this.logic = logic;
       this.material = material;
       this.modifier = modifier;
-      // Clamp to >= 1: an invalid material+modifier combo (e.g. the unmodifiable CLAY_BRICK, numSlots 1, paired
-      // with a slotDivisor-2 modifier via edited/hostile NBT) divides to 0, and GateLogic then allocates
-      // new boolean[numSlots - 1] = new boolean[-1] -> NegativeArraySizeException on the pluggable load path.
+      // Clamped to >= 1: a hostile/edited NBT combo (e.g. CLAY_BRICK with a slotDivisor-2 modifier) can divide to
+      // 0, and GateLogic would then allocate new boolean[-1].
       this.numSlots = Math.max(1, material.numSlots / modifier.slotDivisor);
       this.numTriggerArgs = modifier.triggerParams;
       this.numActionArgs = modifier.actionParams;

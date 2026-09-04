@@ -37,8 +37,7 @@ public class ClientDebuggables {
          return null;
       }
 
-      // The server half (MessageDebugRequest) only sends debug data when the player holds the Debugger (or is
-      // in creative); mirror that here so the client-computed getDebugInfo doesn't leak onto F3 for everyone.
+      // Mirror the server-side Debugger/creative gate so client-computed debug info does not show on F3 for everyone.
       if (!ItemDebugger.isShowDebugInfo(mc.player)) {
          return null;
       }

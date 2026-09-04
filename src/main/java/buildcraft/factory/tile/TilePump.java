@@ -257,9 +257,7 @@ public class TilePump extends TileMiner implements IDebuggable {
          nextPosesToCheck.clear();
 
          for (BlockPos posToCheck : nextPosesToCheckCopy) {
-            // Every node in the copy already had its infinite-source check when it was discovered below (the
-            // seed is covered by the check above), so just honour the flag instead of re-probing 5 block states
-            // per node — and stop expanding the rest of the ring once one node found an infinite pool.
+            // Nodes already had their infinite-source check on discovery, so just honour the flag instead of re-probing.
             if (stopSearching) {
                break;
             }
@@ -296,8 +294,7 @@ public class TilePump extends TileMiner implements IDebuggable {
          List<BlockPos> springPositions = new ArrayList<>();
          BlockPos center = VecUtil.replaceValue(this.worldPosition, Axis.Y, this.level.getMinY());
 
-         // The spring sits one block under the deposit sphere's bottom (just above bedrock), not on the
-         // world floor itself — scan a short vertical band, not a single Y plane.
+         // The spring sits one block under the deposit sphere's bottom (just above bedrock), not on the world floor.
          for (BlockPos spring : BlockPos.betweenClosed(center.offset(-10, 0, -10), center.offset(10, 8, 10))) {
             if (this.level.getBlockState(spring).is(BCCoreBlocks.SPRING_OIL)) {
                BlockEntity tile = this.level.getBlockEntity(spring);

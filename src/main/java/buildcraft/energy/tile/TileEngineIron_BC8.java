@@ -337,9 +337,8 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
       *///?}
    }
 
-   // Fuel/coolant lookups iterate the ENTIRE recipe manager, and they run on per-tick paths (updateHeatLevel
-   // while heat != target, plus the tank insert filters on every pipe push). The results are global per server,
-   // so memoize them per Fluid; BCReloadFabric invalidates on datapack reload. NaN marks "no coolant recipe".
+   // Fuel/coolant lookups scan the whole recipe manager and run on per-tick paths; memoized per Fluid and
+   // invalidated by BCReloadFabric on datapack reload. NaN marks "no coolant recipe".
    private static final java.util.concurrent.ConcurrentHashMap<Fluid, java.util.Optional<CombustionFuelRecipe>> FUEL_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
    private static final java.util.concurrent.ConcurrentHashMap<Fluid, Float> COOLANT_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 

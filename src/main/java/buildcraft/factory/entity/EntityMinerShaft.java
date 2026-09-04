@@ -32,8 +32,7 @@ public class EntityMinerShaft extends Entity {
    public EntityMinerShaft(EntityType<?> type, Level level) {
       super(type, level);
       this.noPhysics = true;
-      // Never frustum-cull this invisible collision shaft (see EntityQuarryRig). >= 1.21.10 uses the renderer's
-      // affectedByCulling()=false (set in BCFactoryFabricClient); 1.21.1 uses Entity.noCulling.
+      // Never frustum-cull this invisible collider; >= 1.21.10 sets affectedByCulling()=false in BCFactoryFabricClient instead.
       //? if < 1.21.10 {
       /*this.noCulling = true;
       *///?}
@@ -114,8 +113,7 @@ public class EntityMinerShaft extends Entity {
       return false;
    }
 
-   // Snap to each synced position instead of the default 3-tick client interpolation, so the collider tracks the
-   // shaft tightly as it extends (see EntityQuarryRig — same moving-collision-platform desync).
+   // Snap to each synced position instead of the default 3-tick interpolation, so the collider tracks the shaft as it extends.
    //? if >= 26.3-pre-1 {
    @Override
    protected InterpolationHandler createInterpolationHandler() {

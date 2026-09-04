@@ -221,13 +221,8 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
          return true;
       }
 
-      // A pipe touching a machine must keep ticking even when idle. Transfer is demand-driven: the
-      // consumer-adjacent pipe has to run requestFromConnectedTiles every tick to (re)create the query that
-      // propagates upstream, and the source-adjacent pipe has to be ready to receive. Otherwise, once a consumer
-      // stops asking for a moment the query decays, the pipe sleeps, and nothing wakes it when the machine wants
-      // power again (machines don't call wakePipe) -- transfer latches off. For an energy pipe a TILE connection
-      // is always an energy machine, so this is the exact "adjacent to a machine" test: a cached EnumMap read,
-      // no per-tick world/capability lookup. Pure transport pipes with nothing attached still sleep.
+      // Must keep ticking if touching a machine (TILE connection): demand decays and nothing calls wakePipe
+      // once a consumer stops asking, so transfer would otherwise latch off.
       for (Direction face : Direction.values()) {
          if (this.pipe.getConnectedType(face) == IPipe.ConnectedType.TILE) {
             return true;
@@ -305,15 +300,13 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
    private void requestPower(Direction from, long amount) {
       this.step();
       PipeFlowPower.Section s = this.sections.get(from);
-      // A neighbour that reports a negative request must not eat demand already queued here, nor push the query
-      // itself negative -- getPowerRequested sums these and would hand the negative on to the next pipe.
+      // Negative requests are ignored: getPowerRequested sums queries, so accepting one would propagate a negative demand.
       if (amount > 0L) {
          s.nextPowerQuery += amount;
          s.nextPowerQuery = Math.min(s.nextPowerQuery, this.maxPower);
       }
-      // Demand arriving must wake this pipe, exactly as arriving power does (receivePowerInternal). Otherwise a
-      // query propagated into a sleeping intermediate pipe sits unprocessed -- the demand loop latches and the
-      // upstream generator never sees the consumer, so transfer stalls until an unrelated block update.
+      // Must wake the pipe like receivePowerInternal does, or a query into a sleeping intermediate pipe sits
+      // unprocessed and transfer stalls until an unrelated block update.
       if (amount > 0L && this.pipe.getHolder().getPipeTile() instanceof TilePipeHolder holder) {
          holder.wakePipe();
       }

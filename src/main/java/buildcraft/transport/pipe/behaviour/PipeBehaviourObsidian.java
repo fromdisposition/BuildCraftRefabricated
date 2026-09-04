@@ -68,8 +68,7 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
                   this.pipeCenterCache = Vec3.atCenterOf(pos);
                }
 
-               // Obsidian pipes never sleep (an open face keeps hasSimulationWork true), so back the entity
-               // query off to every 8 ticks while it keeps coming up empty; any hit resets to per-tick.
+               // an open face keeps hasSimulationWork true forever, so back the entity scan off to every 8 ticks while empty; any hit resets to per-tick
                if (!this.suckScanBackoff || (this.pipe.getHolder().getPipeWorld().getGameTime() & 7L) == 0L) {
                   var found = this.pipe.getHolder().getPipeWorld().getEntitiesOfClass(ItemEntity.class, this.collisionBoxCache, Entity::isAlive);
                   this.suckScanBackoff = found.isEmpty();
@@ -200,14 +199,12 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
 
    private boolean suckScanBackoff;
    private long lastRequestedPower;
-   // -4, not Long.MIN_VALUE: game time minus MIN_VALUE overflows negative, so the "< 4" memo check was always
-   // true and this permanently answered the initial 0 -- engines never powered the extended suction.
+   // -4 not Long.MIN_VALUE: now - MIN_VALUE overflows, which breaks the "< 4" memo check on the first tick
    private long lastRequestedTick = -4L;
 
    @Override
    public long getPowerRequested() {
-      // Engines poll this every tick, and answering honestly runs up to four escalating entity AABB queries.
-      // Memoize for 4 ticks; the pipe's own suction cadence hides the difference.
+      // answering honestly runs up to four escalating entity AABB queries per call; memoize for 4 ticks
       long now = this.pipe.getHolder().getPipeWorld().getGameTime();
       if (now - this.lastRequestedTick < 4L) {
          return this.lastRequestedPower;

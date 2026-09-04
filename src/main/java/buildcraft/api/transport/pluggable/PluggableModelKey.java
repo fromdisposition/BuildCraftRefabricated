@@ -27,26 +27,24 @@ public abstract class PluggableModelKey {
    }
 
    /**
-    * A packed ARGB colour to tint this pluggable's rendered quads with, or {@code -1} for none. Needed because
-    * modern (26.x/1.21.11) {@code BakedQuad}s carry no per-vertex colour, so a dye baked per-vertex (e.g. lens
-    * glass) is lost through the bake; the tint is instead applied at render time from this key.
+    * Packed ARGB tint for this pluggable's rendered quads, or {@code -1} for none. Needed because baked quads carry
+    * no per-vertex colour, so per-vertex tinting (e.g. dyed lens glass) must be reapplied here at render time.
     */
    public int getTintColour() {
       return -1;
    }
 
    /**
-    * Whether this pluggable's quads carry world-dependent tint indices (biome colours -- e.g. a grass facade).
-    * Such pluggables are rendered individually so each quad's tint can be resolved against the world; returning
-    * true excludes the key from the merged untinted batch.
+    * True if quads carry world-dependent (biome) tint indices; such pluggables render individually and are
+    * excluded from the merged untinted batch.
     */
    public boolean hasWorldTint() {
       return false;
    }
 
    /**
-    * Resolve one of this key's baked tint indices to a packed RGB for the given world position (biome-aware),
-    * or {@code -1} for no tint. Only called when {@link #hasWorldTint()} is true.
+    * Resolves a baked tint index to a packed RGB for the given position, or {@code -1} for none. Called only
+    * when {@link #hasWorldTint()} is true.
     */
    public int resolveWorldTint(int tintIndex, Level level, BlockPos pos) {
       return -1;
@@ -67,8 +65,7 @@ public abstract class PluggableModelKey {
       }
 
       PluggableModelKey other = (PluggableModelKey)obj;
-      // Objects.equals, not ==: layers are usually interned string literals, but the contract must not
-      // silently break cache hits for a computed layer object.
+      // Objects.equals, not ==: layer may be a computed (non-interned) object.
       return Objects.equals(this.layer, other.layer) && this.side == other.side;
    }
 

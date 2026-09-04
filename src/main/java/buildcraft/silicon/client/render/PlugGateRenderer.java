@@ -66,8 +66,7 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
       ps.translate(x, y, z);
       IPlugDynamicRenderer.rotateToSide(ps, plug.side);
 
-      // Only the animated on/off indicator box is drawn here; the static gate body comes from the baked cutout
-      // path (PlugGateBaker). Drawing both here and in the baker was the Z-fighting cause, now removed.
+      // Only the on/off indicator is drawn here; the static body comes from PlugGateBaker to avoid Z-fighting.
       MutableQuad scratch = RENDER_SCRATCH.get();
 
       for (MutableQuad q : on ? onBox : offBox) {

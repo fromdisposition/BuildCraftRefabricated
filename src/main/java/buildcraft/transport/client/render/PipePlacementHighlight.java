@@ -57,11 +57,8 @@ public final class PipePlacementHighlight {
                return;
             }
 
-            // Otherwise: outline just the sub-part (pluggable/wire/arm/centre) under the crosshair instead of the
-            // vanilla whole-pipe outline -- getShape now returns the full composed shape, so without this the
-            // outline would wrap the entire pipe instead of the part the player is aiming at. NOTE: do NOT
-            // setCanceled here -- cancelling nulls the outline state and drops custom renderers with it (nothing
-            // renders at all); PreviewRenderer.render returning true already suppresses the vanilla outline.
+            // Do not setCanceled here: it nulls the outline state and drops custom renderers with it (nothing
+            // renders); PreviewRenderer.render returning true already suppresses the vanilla outline.
             event.addCustomRenderer(new PipePlacementHighlight.PreviewRenderer(hoveredPartShape(tile, event.getHitResult())));
          }
       }

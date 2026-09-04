@@ -12,13 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
-/**
- * A list of time-delayed buckets: {@link #add(int, Object)} schedules an element to come due after {@code delay}
- * advances, and {@link #advance()} returns the bucket due now. Backed by an {@link ArrayList} with a moving
- * {@code head} index, so {@code advance()} is O(1) amortized (it never shifts the whole list from the front —
- * unlike {@code list.remove(0)}) while {@code add()} stays O(1) via head-relative indexing. This is on the
- * item-pipe hot path (one advance per item pipe per tick), so the front shift was worth removing.
- */
+// Backed by an ArrayList with a moving head index so advance() is O(1) amortized (unlike list.remove(0)); this is
+// on the item-pipe hot path (one advance per pipe per tick), so the front shift was worth removing.
 public class DelayedList<E> {
    /** Compact (drop spent front buckets in one shift) once this many have been advanced past. */
    private static final int COMPACT_THRESHOLD = 64;

@@ -44,11 +44,6 @@ public class ModelUtil {
       return createFace(face, points, uvs).normalf(face.getStepX(), face.getStepY(), face.getStepZ());
    }
 
-   /**
-    * Adds the six sprite-mapped faces of the box {@code [x0,y0,z0]..[x1,y1,z1]} to {@code quads}. Per-face UVs come
-    * from {@code faceUvs} (indexed by {@link Direction#ordinal()}), or are derived from the box bounds via
-    * {@link #mapBoxToUvs} when {@code faceUvs} is null. Shared by the small static plug/pulsar box builders.
-    */
    public static void addSpriteBox(
       java.util.List<MutableQuad> quads,
       TextureAtlasSprite sprite,

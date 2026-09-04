@@ -21,9 +21,8 @@ public class EntityUtil {
    /** The Fabric convention tag for wrenches (ConventionalItemTags.WRENCH_TOOLS = c:tools/wrench) -- the official,
     * forward-looking standard. BuildCraft's own wrench is in this tag. */
    public static final TagKey<Item> WRENCHES = TagKey.create(Registries.ITEM, Identifier.parse("c:tools/wrench"));
-   /** The older de-facto wrench tag still used across the industrial ecosystem (Tech Reborn, Modern
-    * Industrialization, Applied Energistics, ...). BuildCraft's wrench is added to this one too, and we accept it,
-    * so wrenching is two-way with those mods -- there is no single universal wrench tag, so we honour both. */
+   /** Older de-facto wrench tag from the industrial ecosystem (Tech Reborn, Modern Industrialization, AE2, ...);
+    * BuildCraft's wrench is added to it too so wrenching works two-way with those mods. */
    public static final TagKey<Item> WRENCHES_LEGACY = TagKey.create(Registries.ITEM, Identifier.parse("c:wrenches"));
    private static final Identifier WRENCH_ADVANCEMENT = Identifier.parse("buildcraftcore:wrenched");
 

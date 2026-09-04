@@ -13,13 +13,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
-/**
- * Routes machine-driven attacks on entities through the native Fabric {@link AttackEntityCallback}
- * so land-claim mods (e.g. Open Parties and Claims) can authorize them exactly as they would a
- * player swing. The supplied {@code player} should be the owning fake player; when no listener
- * objects (e.g. outside any claim) the event returns a non-{@code FAIL} result and the attack is
- * allowed, preserving vanilla behaviour.
- */
+// Routes machine-driven attacks through {@link AttackEntityCallback} so land-claim mods can authorize them like a
+// player swing; a non-FAIL result with no listener objecting preserves vanilla behaviour.
 public final class AttackEntityCompat {
    private AttackEntityCompat() {
    }

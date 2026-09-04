@@ -84,8 +84,7 @@ public class MjBattery {
       return extracting;
    }
 
-   /** Free space, never negative: callers subtracting getStored() from getCapacity() by hand reported a negative
-    * request whenever a battery sat above its nominal capacity, which reads downstream as "give me back power". */
+   /** Free space, never negative — unlike getCapacity() - getStored(), which goes negative once stored power exceeds capacity. */
    public long getRoom() {
       return Math.max(0L, this.capacity - this.microJoules);
    }
@@ -103,9 +102,7 @@ public class MjBattery {
    }
 
    public void tick(Level world, BlockPos position) {
-      // The Vec3 is only ever used by losePower's visual effect, which triggers solely when we are over-full.
-      // Guard first so we don't allocate a Vec3 every tick for every energy tile (quarry, miner, pump, laser,
-      // engines, robots) when nothing is being lost.
+      // guard avoids allocating a Vec3 every tick per energy tile when nothing is lost
       if (this.microJoules > this.capacity * 2L) {
          this.losePower(world, new Vec3(position.getX() + 0.5, position.getY() + 0.5, position.getZ() + 0.5));
       }

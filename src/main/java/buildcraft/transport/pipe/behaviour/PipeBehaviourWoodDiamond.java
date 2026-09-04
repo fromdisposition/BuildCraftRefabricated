@@ -160,11 +160,7 @@ public class PipeBehaviourWoodDiamond extends PipeBehaviourWood {
       return extracted;
    }
 
-   // Fluid counterpart of extractItems. Only Whitelist/Blacklist: Round Robin is an item-only mode (the GUI hides
-   // its button for fluid pipes — see GuiDiamondWoodPipe), so there is no per-slot cycling here. Without this
-   // override the base wooden pipe extracted any fluid (null filter), ignoring the filter entirely. The filter
-   // slots hold items; FilterFluidStacks maps each to the fluid it contains (bucket/container). tryExtractFluidAdv
-   // probes the neighbour and pulls only when the predicate matches; an empty whitelist extracts any fluid.
+   // Round Robin is an item-only mode (GUI hides its button for fluid pipes); filter slots hold items, each mapped to the fluid it contains
    @Override
    protected FluidStack extractFluid(IFlowFluid flow, Direction dir, int millibuckets, boolean simulate) {
       return (FluidStack)flow.tryExtractFluidAdv(millibuckets, this.getCurrentDir(), this.getFluidFilter(), simulate);
@@ -186,7 +182,7 @@ public class PipeBehaviourWoodDiamond extends PipeBehaviourWood {
          return fluid -> !this.filterContainsFluid(fluid);
       }
 
-      // Whitelist (the only other mode a fluid pipe can be in): an empty filter extracts anything.
+      // the only other mode a fluid pipe can be in; an empty filter extracts anything
       if (!this.hasAnyFilter()) {
          return fluid -> true;
       }

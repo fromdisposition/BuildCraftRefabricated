@@ -145,7 +145,7 @@ public final class BCTransportItems {
       PIPE_SANDSTONE_POWER = registerPipeItem("pipe_sandstone_power", () -> BCTransportPipes.sandstonePower);
       PIPE_DIAMOND_POWER = registerPipeItem("pipe_diamond_power", () -> BCTransportPipes.diamondPower);
       PIPE_DIAMOND_WOOD_POWER = registerPipeItem("pipe_diamond_wood_power", () -> BCTransportPipes.diaWoodPower);
-      // RF pipe items registered in BCTransportRfPipes.preInit() — only when TRE is loaded
+      // RF pipe items are registered by BCTransportRfPipes, only when team_reborn_energy is loaded.
    }
 
    static ItemPipeHolder registerPipeItem(String path, Supplier<PipeDefinition> definition) {

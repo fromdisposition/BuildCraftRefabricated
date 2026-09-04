@@ -33,8 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BlockLaser extends BcTileBlock {
    public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
-   // Hitbox matching the model: the full 16x4 base plate on the mounting (-FACING) face plus a centred 6x6, 9-deep
-   // emitter extending toward FACING -- so you can click and walk between closely-packed lasers, not a full cube.
+   // Hitbox mirrors the model (base plate + emitter), not a full cube, so tightly packed lasers stay clickable and walkable between.
    private static final Map<Direction, VoxelShape> SHAPES = new EnumMap<>(Direction.class);
 
    static {

@@ -8,10 +8,6 @@ package buildcraft.silicon.gui;
 
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 
-/**
- * 1.21.1 override (versions/1.21.1). On 1.21.1 the vanilla {@link RecipeBookComponent} is a CONCRETE class,
- * so this is a thin no-arg alias with no overrides (the shared src/main version subclasses the abstract
- * generic {@code RecipeBookComponent<M>}).
- */
+// 1.21.1's vanilla RecipeBookComponent is concrete (not the generic abstract type the shared version subclasses), so this is a plain alias.
 public class ACTRecipeBookComponent extends RecipeBookComponent {
 }

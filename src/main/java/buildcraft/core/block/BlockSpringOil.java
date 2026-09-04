@@ -14,16 +14,10 @@ import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Oil spring — the only spring variant that carries a block entity ({@link buildcraft.energy.tile.TileSpringOil},
- * which tracks per-player pump progress and the black_gold advancement). The water spring is a plain
- * {@link BlockSpring}: declaring EntityBlock on a block with no tile makes vanilla treat every spring_water
- * position as block-entity-bearing and log "Tried to load a block entity ... but failed" on chunk load.
- *
- * The tile factory is injected from the energy module (which owns TileSpringOil) at registration time, since
- * core must not depend on energy.
- */
+// EntityBlock stays on the oil spring only: declaring it on a tile-less block makes vanilla log
+// "Tried to load a block entity ... but failed" at every such position on chunk load.
 public class BlockSpringOil extends BlockSpring implements EntityBlock {
+   // Injected by the energy module: core must not depend on energy.
    @Nullable
    public static OilTileFactory oilTileFactory;
 

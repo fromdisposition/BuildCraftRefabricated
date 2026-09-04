@@ -235,9 +235,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
 
       boolean checkResultsChanged = false;
 
-      // A degenerate snapshot (zero volume) leaves the order arrays empty; without this guard the modulo
-      // below throws ArithmeticException inside the block-entity ticker, which is a hard "ticking block
-      // entity" crash rather than a harmless no-op.
+      // Zero-volume snapshot leaves checkOrder empty; skip or the modulo below throws and crashes the block entity ticker.
       if (this.checkOrder.length != 0) {
          for (int i = 0; i < CHECKS_PER_TICK; i++) {
             if (this.check(this.indexToPos(this.checkOrder[this.currentCheckIndex]))) {
@@ -292,13 +290,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             breakTasksIndexes.add(this.posToIndex(breakTask.pos));
          }
 
-         // Fused single pass over breakOrder. The old stream materialized every candidate into an int[], then
-         // re-probed the world's FluidState per element in the accept filter AND on every comparison of the
-         // boxed priority sort — O(k log k) block lookups per tick just to pick <= 16 tasks. The stable sort
-         // by tier (0 = source, 1 = flowing, 2 = dry) + limit is equivalent to three order-preserving buckets
-         // capped at the task budget, fed by ONE FluidState probe per candidate; once the source bucket is
-         // full no later candidate can enter the selection, so the rest of the pass only counts — and the
-         // count never needed world access in the first place.
+         // Buckets substitute for a stable sort by tier (source, flowing, dry) capped at the task budget; each candidate needs only one FluidState probe.
          int needed = max > 0L ? MAX_QUEUE_SIZE - this.breakTasks.size() : 0;
          boolean clearFluidMode = this.getFluidMode() == EnumFluidHandlingMode.CLEAR;
          IntArrayList sourceBucket = new IntArrayList();
@@ -352,11 +344,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          && this.buildAreaHasAnyFluid();
       boolean clearStillMopping = areaHasFluid && this.getFluidMode() == EnumFluidHandlingMode.CLEAR;
       boolean replaceFragileGated = areaHasFluid && this.getFluidMode() == EnumFluidHandlingMode.REPLACE;
-      // Fused single pass, mirroring the break path: the old code materialized every candidate into an int[]
-      // just to count them, then re-scanned it with a second stream. The selection chain below runs exactly as
-      // the stream did — limit() counted the candidates that passed isReadyToPlace, with canPlace and the item
-      // lookup applied only to those — and stops evaluating once the task budget is met, while the cheap count
-      // continues to the end of the order.
+      // Candidate counting continues past the task budget so leftToPlace reflects the true total, while task creation stops once the budget is met.
       boolean selecting = !this.tile.canExcavate() || this.breakTasks.isEmpty();
       int neededPlace = selecting && max > 0L ? MAX_QUEUE_SIZE - this.placeTasks.size() : 0;
       int placeCandidates = 0;
@@ -601,7 +589,6 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       }
    }
 
-   /** Whether the current snapshot actually covers this world position, i.e. whether posToIndex is in range. */
    private boolean isWithinSnapshot(BlockPos worldPos) {
       Snapshot.BuildingInfo info = this.getBuildingInfo();
       if (info == null) {
@@ -705,10 +692,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             System.arraycopy(loadedCheckResults, 0, this.checkResults, 0, this.checkResults.length);
          }
 
-         // Saved tasks can belong to a DIFFERENT snapshot than the one now loaded -- a construction marker
-         // re-blueprinted while the robot that queued them was away, or hand-edited NBT. Their positions would
-         // index checkResults out of range on the next tick, which is a hard ticking-block-entity crash, so keep
-         // only what this snapshot can address (same stance as the checkResults length guard above).
+         // Saved tasks may belong to a different snapshot (re-blueprinted marker, hand-edited NBT); filter to positions this snapshot can index or the next tick crashes.
          this.breakTasks.clear();
          NBTUtilBC.readCompoundList(nbt.get("breakTasks"))
             .map(x$0 -> new BreakTask(x$0))

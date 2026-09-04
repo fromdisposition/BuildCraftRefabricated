@@ -306,8 +306,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    protected void drawBackgroundTexture(BCGraphics graphics) {
       graphics.blit(TEXTURE, this.leftPos, this.topPos, 0.0F, 0.0F, this.imageWidth, 256, 256, 256);
       if (this.replaceAnimTicks > 0) {
-         // The server replace is instant, so play a one-shot cosmetic fill sweep over the from->to arrow: source
-         // sprite at atlas (176, 0), drawn over the base arrow at GUI (29, 142), revealed left-to-right.
+         // The server replace is instant; this is a purely cosmetic fill sweep over the from->to arrow.
          float t = (REPLACE_ANIM_DURATION - this.replaceAnimTicks) / (float) REPLACE_ANIM_DURATION;
          int progressWidth = Math.min(22, Math.max(1, (int) Math.ceil(22.0F * t)));
          graphics.blit(TEXTURE, this.leftPos + 29, this.topPos + 142, 176.0F, 0.0F, progressWidth, 16, 256, 256);
@@ -337,13 +336,8 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       if (graphics != null) {
-         // Block name, left-anchored at x=8, y=6 (canonical vanilla title anchor); sits in the top band.
          graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
-         // "Inventory" label at the canonical anchor (12px above the first player row).
          graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
-         // Replacement summary as a caption bar flush with the bottom of the preview box (it describes the shown
-         // blueprint). The preview interior is y 18..113; the translucent bar spans the full width (x 8..168) and
-         // sits at the bottom, light text centred over it.
          String summary = this.getSummaryText();
          if (summary != null) {
             graphics.fill(8, 102, 168, 114, -2013265920);

@@ -16,12 +16,8 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.level.storage.ValueOutput;
 //?}
 
-/**
- * Version-neutral write side of block-entity serialization. 1.21.5 replaced the direct {@code CompoundTag}
- * save API with {@code ValueOutput}; on 1.21.1 that type does not exist, so this wraps a {@code CompoundTag}
- * (plus the registry provider needed for codec stores). BuildCraft tiles override the neutral
- * {@code writeData(BcValueOut)} and use this uniform API, so their bodies are identical on every node.
- */
+// 1.21.5+ replaced the CompoundTag save API with ValueOutput; 1.21.1 has no such type, so this wraps a
+// CompoundTag (plus the registry provider needed for codec stores) behind one writeData(BcValueOut) API.
 public final class BcValueOut {
    //? if >= 1.21.10 {
    public final ValueOutput raw;

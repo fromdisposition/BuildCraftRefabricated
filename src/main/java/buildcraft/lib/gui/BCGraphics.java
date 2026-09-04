@@ -20,12 +20,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.renderer.RenderPipelines;
 //?}
 
-/**
- * Thin GuiGraphicsExtractor wrapper. On 1.21.5+ the GuiGraphicsExtractor draw methods take a RenderPipeline first arg (always
- * GUI_TEXTURED for these flat 2D blits) and pose() is a 2D Matrix3x2fStack; on 1.21.1 the draw methods have no
- * pipeline arg and pose() is the PoseStack. The public API here hides both: blit/blitSprite/fill take no pipeline
- * (it is supplied internally on modern), and GUI transforms go through pushPoseGui/translateGui/popPoseGui.
- */
+// Hides the 1.21.5+/1.21.1 split in GuiGraphicsExtractor: modern draw methods take a RenderPipeline and pose() is a
+// Matrix3x2fStack, while 1.21.1 has neither; blit/fill/pushPoseGui etc. present one API over both.
 public final class BCGraphics {
    public final GuiGraphicsExtractor raw;
 
@@ -131,11 +127,8 @@ public final class BCGraphics {
       *///?}
    }
 
-   /**
-    * Rotates the GUI pose around its origin by {@code radians}. Screen space is y-down, so a positive angle turns
-    * clockwise: local (x, y) lands at (-y, x). Determinant stays +1, which matters because GUI_TEXTURED is a
-    * back-face-culling pipeline -- a mirroring pose would flip the quad winding and drop the draw entirely.
-    */
+   // Screen space is y-down, so a positive angle turns clockwise: (x, y) becomes (-y, x). Determinant must stay +1 --
+   // GUI_TEXTURED back-face-culls, so a mirroring pose would drop the draw.
    public void rotateGui(float radians) {
       //? if >= 1.21.10 {
       this.raw.pose().rotate(radians);

@@ -174,9 +174,8 @@ public class NBTUtilBC {
          if (idStr.isEmpty()) {
             return ItemStack.EMPTY;
          } else {
-            // tryParse, not parse: the id comes from NBT and a malformed value (uppercase, spaces, ...) makes the
-            // throwing parse abort the whole surrounding tile read mid-way. Degrade one bad stack to EMPTY instead,
-            // matching BcItemInventory.deserializeNBT.
+            // tryParse, not parse: a malformed NBT id (uppercase, spaces, ...) would throw and abort the whole
+            // surrounding tile read; degrade to EMPTY instead, matching BcItemInventory.deserializeNBT.
             Identifier itemId = Identifier.tryParse(idStr);
             if (itemId == null) {
                return ItemStack.EMPTY;

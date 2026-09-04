@@ -20,7 +20,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** 1.21.1 (versions/1.21.1) architect-table renderer: immediate-mode status/validity LEDs. */
 public class RenderArchitectTable implements BlockEntityRenderer<TileArchitectTable> {
    private static final RenderPartCube LED_ENERGY = new RenderPartCube();
    private static final RenderPartCube LED_STATE = new RenderPartCube();

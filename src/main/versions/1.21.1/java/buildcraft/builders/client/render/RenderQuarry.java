@@ -22,7 +22,6 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-/** 1.21.1 (versions/1.21.1) quarry renderer: immediate-mode status LEDs (skips the rear face). */
 public class RenderQuarry implements BlockEntityRenderer<TileQuarry> {
    private static final RenderPartCube[] LED_ENERGY = new RenderPartCube[4];
    private static final RenderPartCube[] LED_STATE = new RenderPartCube[4];
@@ -55,11 +54,8 @@ public class RenderQuarry implements BlockEntityRenderer<TileQuarry> {
       }
       poseStack.popPose();
 
-      // Frame + drill rendered HERE in the BER. The block-entity pass runs BEFORE the translucent water pass, so
-      // (unlike the END_MAIN world-render path) the underwater drill lands in the depth buffer first and the
-      // water then blends over it — visible through water from above, exactly like the LEDs above already are.
-      // cameraPos = this quarry's own BlockPos makes renderQuarry's absolute world coords block-relative, which
-      // matches this BER's pose (already translated to blockPos - camera). LaserBatch flushes inside the BE pass.
+      // BE pass runs before the translucent water pass, so the drill lands in the depth buffer first and water blends over it.
+      // cameraPos = this tile's BlockPos makes renderQuarry's world coords block-relative, matching this BER's already-translated pose.
       LaserBatch.begin();
       BCBuildersWorldRenderer.renderQuarry(tile, poseStack, Vec3.atLowerCornerOf(tile.getBlockPos()), partialTick);
       LaserBatch.end();
@@ -73,8 +69,7 @@ public class RenderQuarry implements BlockEntityRenderer<TileQuarry> {
 
    @Override
    public int getViewDistance() {
-      // A large quarry's frame/drill reaches well past the default 64-block BER view distance; raise it (like a
-      // beacon) so the render does not vanish when the camera is near the frame but far from the quarry block.
+      // 256 covers a large quarry's frame/drill reach past the default 64-block BER view distance, so it doesn't vanish near the frame.
       return 256;
    }
 

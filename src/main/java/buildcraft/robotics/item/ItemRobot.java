@@ -106,9 +106,8 @@ public class ItemRobot extends Item {
       Vec3 spawn = Vec3.atCenterOf(pos).add(face.getStepX() * 0.5, face.getStepY() * 0.5, face.getStepZ() * 0.5);
       robot.setPos(spawn.x, spawn.y, spawn.z);
       robot.getRegistry().registerRobot(robot);
-      // One station holds exactly one robot: claim it BEFORE spawning. takeAsMain also links the robot to the
-      // station. If a live robot already holds it, the claim fails -> unregister the just-built robot and abort,
-      // so no orphan entity is ever added to the world.
+      // One station holds exactly one robot: claim it before spawning, so a failed claim can unregister the
+      // just-built robot and abort instead of adding an orphan entity to the world.
       if (!station.takeAsMain(robot)) {
          robot.getRegistry().killRobot(robot);
          return InteractionResult.FAIL;
@@ -124,13 +123,8 @@ public class ItemRobot extends Item {
       return InteractionResult.SUCCESS;
    }
 
-   /**
-    * Resolve the docking-station pluggable the player aimed at. {@code getClickedFace()} only matches the station's
-    * side when the ray hits the station box's outward face; aiming at the box's protruding side edges yields a
-    * different face, so {@code getPluggable(face)} misses and the deploy silently fails. Fall back to the hit
-    * location tested against each pluggable's bounding box -- the same way {@link buildcraft.transport.block.BlockPipeHolder}
-    * resolves clicks on pluggables.
-    */
+   /** getClickedFace() only matches the station's outward face; aiming at its protruding side edges yields a
+    * different face and getPluggable(face) misses, so fall back to hit-testing each pluggable's bounding box. */
    private static IDockingStationProvider resolveStation(IPipeHolder holder, Direction clickedFace, BlockPos pos, Vec3 hit) {
       if (holder.getPluggable(clickedFace) instanceof IDockingStationProvider direct) {
          return direct;

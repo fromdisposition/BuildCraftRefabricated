@@ -6,12 +6,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.client.renderer.state.level.LevelRenderState;
 //?}
 
-/**
- * Version-neutral "after translucent blocks" level-render stage. On 1.21.5+ it carries the LevelRenderState
- * (camera comes from cameraRenderState); on 1.21.1 there is no LevelRenderState, so the camera position is
- * passed directly. Consumers use only {@link AfterTranslucentBlocks#getPoseStack()} and
- * {@link AfterTranslucentBlocks#getCameraPos()}.
- */
 public class RenderLevelStageEvent {
    public static final class AfterTranslucentBlocks {
       private final PoseStack poseStack;

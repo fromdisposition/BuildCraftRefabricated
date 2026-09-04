@@ -43,9 +43,7 @@ public class ItemWaterGel extends Item {
       BlockHitResult ray = getPlayerPOVHitResult(level, player, Fluid.SOURCE_ONLY);
       if (ray.getType() != Type.MISS && ray.getBlockPos() != null) {
          if (BlockWaterGel.isGellableWater(level, ray.getBlockPos()) && level.getFluidState(ray.getBlockPos()).isSource()) {
-            // The gellifier targets water via its own ray trace (a plain use(), not useOn), so the interaction
-            // protection claim mods hook never fires for it. Gate the seed conversion through the native break
-            // event with the player's own profile — inside a foreign claim this fails and nothing is consumed.
+            // use() bypasses claim-protection mods' interaction hook; gate via the break-event check instead.
             if (!level.isClientSide()
                && level instanceof net.minecraft.server.level.ServerLevel serverLevel
                && !buildcraft.lib.misc.BlockUtil.canMachineBreak(serverLevel, ray.getBlockPos(), player.getGameProfile())) {
@@ -72,7 +70,7 @@ public class ItemWaterGel extends Item {
                   .setValue(BlockWaterGel.PROP_STAGE, BlockWaterGel.GelStage.SPREAD_0);
                level.setBlockAndUpdate(ray.getBlockPos(), gelState);
                level.scheduleTick(ray.getBlockPos(), BCFactoryBlocks.WATER_GEL, 200);
-               // Remember who seeded this gel: the spread gates every later water conversion on this profile.
+               // Spread gates every later water conversion on the seeding player's profile.
                GelOwnerSavedData.getOrCreate(level).setOwner(ray.getBlockPos(), player.getGameProfile());
             }
 

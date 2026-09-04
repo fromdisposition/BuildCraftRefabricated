@@ -156,12 +156,8 @@ final class ZoneMapTextures implements AutoCloseable {
          this.dirty = true;
       }
 
-      /**
-       * Cartographic relief lit from the north-west: the colour (already tinted by altitude on the server) gets
-       * brighter the more the column rises above its north and west neighbours and darker the more it drops, in the
-       * same range as vanilla map shading, and a contour line is drawn wherever the height crosses a 16-block level
-       * between neighbours.
-       */
+      /** Relief lit from the north-west: brighter where the column rises above its north/west neighbours, darker
+       * where it drops (vanilla map shading range); a contour line is drawn at each 16-block height crossing. */
       private static int shade(int colour, int h, int hN, int hW) {
          int slope = 0;
          if (hN != ZonePlannerMapColours.NO_HEIGHT) {

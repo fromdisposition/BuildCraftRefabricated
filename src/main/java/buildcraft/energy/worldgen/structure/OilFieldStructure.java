@@ -20,11 +20,8 @@ import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilde
 import net.minecraft.world.level.levelgen.structure.structures.JigsawStructure;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 
-/**
- * An oil field: ONE structure that scatters several wells/lakes around its centre, mineshaft-style
- * (many pieces, one structure). {@code /locate} therefore points at the middle of a real cluster,
- * and rarity is plain vanilla structure_set spacing — no custom sector hashing.
- */
+/** An oil field is ONE mineshaft-style structure scattering wells/lakes around its centre, so {@code /locate} points at
+ *  a real cluster's middle; rarity is plain vanilla structure_set spacing, no custom sector hashing. */
 public final class OilFieldStructure extends Structure {
    public static final MapCodec<OilFieldStructure> CODEC = RecordCodecBuilder.<OilFieldStructure>mapCodec(
       instance -> instance.group(
@@ -101,9 +98,8 @@ public final class OilFieldStructure extends Structure {
             }
          }
 
-         // Per-spot flatness (same 3x3 sample as lone wells): rugged spots are simply re-rolled, so the
-         // field flows around dunes and cliffs instead of being rejected or draped over them. The sample
-         // uses WORLD_SURFACE_WG, which counts the water surface — ocean floors pass untouched.
+         // Per-spot flatness (same 3x3 sample as lone wells) simply re-rolls rugged spots so the field flows around
+         // dunes and cliffs; WORLD_SURFACE_WG counts the water surface, so ocean floors pass untouched.
          if (!isFlatEnough(context, center.getX() + dx, center.getZ() + dz)) {
             continue;
          }

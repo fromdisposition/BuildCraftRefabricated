@@ -8,11 +8,6 @@ package buildcraft.factory.gui;
 
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 
-/**
- * 1.21.1 override (versions/1.21.1). On 1.21.1 the vanilla {@link RecipeBookComponent} is a CONCRETE class
- * that implements the whole widget itself and is driven by the RecipeBookMenu container, so this is a thin
- * no-arg alias with no overrides. The shared src/main version (compiled on 1.21.10+/26.x) subclasses the
- * abstract generic {@code RecipeBookComponent<M>} and supplies the ghost-recipe hooks by hand.
- */
+/** 1.21.1's vanilla {@link RecipeBookComponent} is a concrete, non-generic class, so this override needs no method bodies. */
 public class AWRecipeBookComponent extends RecipeBookComponent {
 }

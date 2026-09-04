@@ -23,8 +23,7 @@ public final class BCReloadFabric {
       if (!commonInit) {
          commonInit = true;
          BuildCraftRegistryManager.managerDataPacks = ReloadableRegistryManager.DATA_PACKS;
-         // The guidebook is client-only (GuideManager references RenderPipelines/Minecraft/TextureAtlasSprite).
-         // Register its reload hook only on the client so the class never loads on a dedicated server.
+         // GuideManager is client-only; the hook must not load the class on a dedicated server.
          if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
             EventBuildCraftReload.onFinishLoad(GuideManager.INSTANCE::onRegistryReload);
          }

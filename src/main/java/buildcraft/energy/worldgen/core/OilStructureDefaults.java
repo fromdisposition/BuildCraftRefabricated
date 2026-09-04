@@ -15,11 +15,8 @@ public final class OilStructureDefaults {
    /** Extra single-block spire above a large well's spout so the tip is clearly visible (blocks). */
    public static final int LARGE_SPOUT_TIP_HEIGHT = 6;
 
-   /**
-    * Every deposit sphere sits with its BOTTOM on this Y — one block above the first bedrock (the bedrock
-    * gradient starts at -60, and the jigsaw replaces whatever the template covers, bedrock included, so the
-    * sphere must not reach into it). The sphere centre is radius-dependent: {@code DEPOSIT_BOTTOM_WORLD_Y + r}.
-    */
+   /** Deposit sphere bottom sits one block above the first bedrock (gradient starts at -60); jigsaw replacement
+    *  would otherwise eat into bedrock. Sphere centre is radius-dependent: {@code DEPOSIT_BOTTOM_WORLD_Y + r}. */
    public static final int DEPOSIT_BOTTOM_WORLD_Y = -59;
    /** Largest sphere radius any well template uses (giant). */
    public static final int MAX_SPHERE_RADIUS = 15;
@@ -30,31 +27,20 @@ public final class OilStructureDefaults {
 
    /** Connector from deposit top ({@code DEPOSIT_MAX_WORLD_Y + 1}) up to just below the surface film. */
    public static final int CONNECTOR_MIN_WORLD_Y = DEPOSIT_MAX_WORLD_Y + 1;
-   /**
-    * Fixed bridge template band ({@code CONNECTOR_MIN_WORLD_Y + (templateY - base)}). Ends where the
-    * terrain-relative shaft begins ({@code heightmap - 1 + CONNECTOR_TERRAIN_MIN_TEMPLATE_Y}).
-    */
+   /** Fixed bridge template band ({@code CONNECTOR_MIN_WORLD_Y + (templateY - base)}); ends where the
+    *  terrain-relative shaft begins ({@code heightmap - 1 + CONNECTOR_TERRAIN_MIN_TEMPLATE_Y}). */
    public static final int CONNECTOR_BRIDGE_TEMPLATE_BASE = 100;
    public static final int CONNECTOR_BRIDGE_LAYER_COUNT = 320;
    /** Terrain-relative shaft template band ({@code heightmap - 1 + templateY}), BC-style {@code -11..-1}. */
    public static final int CONNECTOR_TERRAIN_MIN_TEMPLATE_Y = -11;
    public static final int CONNECTOR_TERRAIN_MAX_TEMPLATE_Y = -1;
 
-   /**
-    * Spring marker, placed at this fixed world Y — directly under the sphere bottom so the tile's
-    * advancement check ({@code springPos.above()} is the last pumped source) can actually pass.
-    * Must stay OUTSIDE the deposit band or the projection decoder would read it as deposit oil.
-    */
+   /** Spring marker sits directly under the sphere bottom so the tile's advancement check ({@code springPos.above()}
+    *  is the last pumped source) can pass; must stay outside the deposit band or the decoder reads it as deposit oil. */
    public static final int SPRING_TEMPLATE_Y = DEPOSIT_BOTTOM_WORLD_Y - 1;
 
-   /**
-    * Well templates use negative template Y as placement markers (deposit/shaft/spring), but Minecraft's structure
-    * NBT format requires every stored block position to be non-negative -- Structure Blocks and NBT tooling reject
-    * negatives, and the jigsaw placer drops out-of-bounds blocks so the deposit never spawns. Every well block's Y is
-    * shifted up by this constant on export to keep all positions {@code >= 0}, and
-    * {@link buildcraft.energy.worldgen.processor.OilWellProjectionProcessor} subtracts it back to recover the semantic
-    * template Y. Equals {@code -SPRING_TEMPLATE_Y}, the lowest template Y any well uses.
-    */
+   /** Template Y is negative for placement markers, but structure NBT requires non-negative positions, so export shifts
+    *  every well block up by this and {@link buildcraft.energy.worldgen.processor.OilWellProjectionProcessor} subtracts it back. */
    public static final int WELL_TEMPLATE_Y_OFFSET = -SPRING_TEMPLATE_Y;
 
    /** Base seed; each {@link PlacementSet} offsets by ordinal so placement grids stay independent. */

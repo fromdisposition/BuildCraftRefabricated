@@ -25,10 +25,7 @@ public final class PipePluggableQuadCache {
    private PipePluggableQuadCache() {
    }
 
-   /**
-    * Drops the render templates AND the baked-quad caches underneath them on a resource/model reload — without
-    * this, every pluggable kept rendering with the pre-reload atlas sprites until a full restart.
-    */
+   /** Must drop both the render templates and the baked-quad caches, or stale atlas sprites survive a reload. */
    public static void clearCaches() {
       CUTOUT.clear();
       TRANSLUCENT.clear();
@@ -42,15 +39,13 @@ public final class PipePluggableQuadCache {
       CUTOUT.render(key, pose, buffer, light);
    }
 
-   /** Per-pluggable cutout render with a per-quad tint resolver -- see PluggableModelKey.resolveWorldTint. */
    public static void renderCutoutTintResolved(
       PluggableModelKey key, Pose pose, VertexConsumer buffer, int light, java.util.function.IntUnaryOperator tintToRgb
    ) {
       CUTOUT_SINGLE.renderTintResolved(key, pose, buffer, light, tintToRgb);
    }
 
-   /** Rendered per single pluggable (not the merged per-tile set) so each keeps its own tint colour — e.g. the
-    * lens dye, which must be applied here because the BakedQuad bake drops per-vertex colour on modern MC. */
+   /** Rendered per pluggable, not the merged set: BakedQuad bake drops per-vertex colour, so tint applies here. */
    public static void renderTranslucent(PluggableModelKey key, Pose pose, VertexConsumer buffer, int light) {
       int tint = key.getTintColour();
       if (tint != -1) {

@@ -93,12 +93,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return level.getBlockEntity(pos) instanceof TilePipeHolder tile && tile.getPipe() != null ? tile.getFullShape() : CENTER;
    }
 
-   /**
-    * Composes the full outline/collision shape. Only called by {@link TilePipeHolder#getFullShape()} on cache
-    * miss: dynamicShape() disables vanilla's per-state shape cache, and shape queries run hot (every entity
-    * collision each tick, neighbour sturdiness checks, interaction rays), so recomposing these Shapes.or
-    * merges per query made dense pipe chunks pay for it thousands of times a tick.
-    */
+   /** Only called on cache miss (dynamicShape() disables vanilla's per-state shape cache); shape queries run hot, so recomposing these merges is expensive. */
    public static VoxelShape buildFullShape(TilePipeHolder tile) {
       Pipe pipe = tile.getPipe();
       if (pipe == null) {
@@ -114,14 +109,12 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
 
          PipePluggable plug = tile.getPluggable(dir);
          if (plug != null) {
-            // getShape, not the bounding box: a hollow facade's true shape has the 8px pipe hole, and the raytrace
-            // must pass through it exactly like the visuals do (the solid box made rays stop on invisible geometry).
+            // getShape, not the bounding box: a hollow facade's true shape has the pipe hole, and the raytrace must pass through it like the visuals do.
             shape = Shapes.or(shape, plug.getShape());
          }
       }
 
-      // Wires are 1px geometry; inflated by WIRE_HIT_INFLATE (same growth the hit tests and outline use) so the
-      // raytrace has a 3px target instead of an unaimable 1px one -- otherwise wires were near-impossible to hit.
+      // Wires are 1px geometry; inflated by WIRE_HIT_INFLATE so the raytrace has an aimable target instead of an unaimable 1px one.
       for (EnumWirePart part : tile.getWireManager().parts.keySet()) {
          shape = Shapes.or(shape, Shapes.create(part.boundingBox.inflate(WIRE_HIT_INFLATE)));
       }
@@ -133,10 +126,8 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return shape;
    }
 
-   // Always the full composed shape. Deriving a per-part shape from the client's crosshair hit (as this used to) is
-   // circular -- the raytrace that produces that hit itself queries getShape -- so it lagged and outlined the wrong
-   // sub-box. Raytracing the full shape resolves the exact hit precisely; the tight per-part OUTLINE is drawn from
-   // that resolved hit by PipePlacementHighlight (the block-outline render event), with no feedback loop.
+   // Always the full composed shape: deriving a per-part shape from the crosshair hit would be circular, since that
+   // hit itself comes from querying getShape. The tight per-part outline is drawn separately, from the resolved hit.
    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
       return this.getFullShape(level, pos);
    }
@@ -362,9 +353,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return arm != null ? EnumPipePart.fromFacing(arm) : EnumPipePart.CENTER;
    }
 
-   /** Raytrace hit points land EXACTLY on a box face, so a boundary compare is a rounding-error lottery: aiming down
-    *  at a gate on top of the pipe put the hit a hair ABOVE box.maxY and the gate was missed entirely (the pipe centre
-    *  was outlined/broken instead). Grow the test box by this epsilon to absorb the ulp noise; 0.001 is 1/60 px. */
+   // Raytrace hit points land exactly on a box face, so an exact boundary compare is a rounding-error lottery; grow the test box by this epsilon to absorb ulp noise (0.001 = 1/60 px).
    private static final double HIT_EPS = 0.001;
 
    @Nullable
@@ -385,8 +374,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    @Nullable
    public static EnumWirePart getHitWire(TilePipeHolder tile, double lx, double ly, double lz) {
       for (EnumWirePart part : tile.getWireManager().parts.keySet()) {
-         // WIRE_HIT_INFLATE matches the wire's inflated box in the composed shape; HIT_EPS absorbs the ulp noise of
-         // a hit point landing exactly on that surface (same boundary lottery the pluggable test guards against).
+         // WIRE_HIT_INFLATE matches the wire's inflated box in the composed shape; HIT_EPS absorbs ulp noise at the boundary.
          AABB box = part.boundingBox.inflate(WIRE_HIT_INFLATE + HIT_EPS);
          if (lx >= box.minX && lx <= box.maxX && ly >= box.minY && ly <= box.maxY && lz >= box.minZ && lz <= box.maxZ) {
             return part;
@@ -408,18 +396,13 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return null;
    }
 
-   /**
-    * The tight shape of the single sub-part at the given in-block hit location: a pluggable's box, a wire (inflated
-    * like the hit tests), a connection arm, or the pipe centre as the final fallback. This is the one source of
-    * truth for "what part is the crosshair on" used by the outline renderers on every version -- getShape itself
-    * must stay the full composed shape (the vanilla raytrace queries it to produce the hit this resolves).
-    */
+   /** Single source of truth for "what part is the crosshair on"; getShape itself must stay the full composed shape since the raytrace that produces the hit queries it. */
    public static VoxelShape partShapeAt(TilePipeHolder tile, double lx, double ly, double lz) {
       Direction plugDir = getHitPluggable(tile, lx, ly, lz);
       if (plugDir != null) {
          PipePluggable plug = tile.getPluggable(plugDir);
          if (plug != null) {
-            // True shape: a hollow facade outlines as its frame (with the pipe hole), not a solid panel.
+            // True shape: a hollow facade outlines as its frame with the pipe hole, not a solid panel.
             return plug.getShape();
          }
       }
@@ -439,18 +422,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return arm != null ? ARMS[arm.ordinal()] : CENTER;
    }
 
-   /**
-    * Left-click removal of a single pluggable (gate, lens, plug, ...) or wire on the pipe. Vanilla has no "break a
-    * sub-part" hook, so this is driven by Fabric's {@link net.fabricmc.fabric.api.event.player.AttackBlockCallback}
-    * (registered in {@code BuildCraftFabricMod}) rather than a block override -- the old Forge-style
-    * {@code onDestroyedByPlayer} was never called on Fabric, so breaking any part destroyed the whole pipe.
-    *
-    * <p>Server-side only. Removes the part at the given in-block hit point (popping its item outside creative). The
-    * point comes from the CLIENT's crosshair via {@code MessageRemovePipePart} -- deliberately not re-raytraced here:
-    * the server-side player position lags the client's (worst while flying/looking down), so a server re-pick could
-    * resolve a different part than the one the player actually aimed at. Returns {@code false} when nothing but the
-    * pipe body is at that point.
-    */
+   /** Server-side only; uses the client's crosshair hit point rather than re-raytracing here, since the server-side player position lags the client's and could resolve a different part. */
    public static boolean removeHitPart(Level level, BlockPos pos, Player player, double lx, double ly, double lz) {
       if (!(level.getBlockEntity(pos) instanceof TilePipeHolder tile)) {
          return false;
@@ -515,11 +487,10 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    }
 
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-      // Reaching here means the pipe BODY is genuinely being destroyed: aiming at a pluggable/wire never starts the
+      // Reaching here means the pipe body is genuinely being destroyed: aiming at a pluggable/wire never starts the
       // vanilla break at all (PipePartBreakHandler cancels the attack and removes just that part). So always run the
       // full teardown -- pluggable onRemove (station/robot cleanup) and wire invalidation -- popping item drops only
-      // in survival. The old flow re-raytraced the look here to sometimes skip this, which could silently skip
-      // cleanup on a stale server-side pick.
+      // in survival.
       if (level.getBlockEntity(pos) instanceof TilePipeHolder tile && !level.isClientSide()) {
          tile.dropPipeItems(level, pos, !player.isCreative());
          tile.wireManager.invalidate();
@@ -538,8 +509,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       if (level.getBlockEntity(pos) instanceof TilePipeHolder tile && tile.getPipe() != null) {
          tile.getPipe().scheduleConnectionRecheck();
          tile.wakePipe();
-         // A neighbouring pipe may just have been destroyed (break, explosion, piston): rebuild our cross-pipe wire
-         // betweens or the half pointing at it keeps floating in mid-air. Only sync when something actually changed.
+         // A neighbouring pipe may just have been destroyed: rebuild cross-pipe wire betweens or the half pointing at it keeps floating in mid-air.
          if (!level.isClientSide() && tile.getWireManager().hasParts()) {
             Map<EnumWireBetween, DyeColor> before = new HashMap<>(tile.getWireManager().betweens);
             tile.getWireManager().updateBetweens(true);
@@ -619,10 +589,8 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       *///?}
    }
 
-   // Client-only crosshair query delegated to PipeHolderClientExtensions so this common block class never names
-   // net.minecraft.client.* in its bytecode (the verifier would otherwise resolve LocalPlayer and crash a dedicated
-   // server). Only reached behind a Level.isClientSide() guard, so the client extensions class is never loaded
-   // server-side. The return type is common (Player).
+   // Delegated to PipeHolderClientExtensions so this common block class never names net.minecraft.client.* in its
+   // bytecode (the verifier would otherwise resolve LocalPlayer and crash a dedicated server).
    @Nullable
    private static Player clientPlayer() {
       return PipeHolderClientExtensions.clientPlayer();

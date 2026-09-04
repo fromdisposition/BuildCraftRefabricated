@@ -6,13 +6,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 
-/**
- * Queues side effects until the ROOT transaction commits, mirroring how Fabric's own
- * {@code SnapshotParticipant} tracks state per nesting level: each depth that holds entries has a
- * close callback; when a nested transaction commits, its entries are adopted by the parent (hooking
- * it on demand — the parent is still open at that point), so the chain always reaches depth 0. An
- * abort at any depth discards only the entries queued at or below it.
- */
+// Mirrors Fabric's SnapshotParticipant nesting: a nested commit hands its entries to the still-open parent
+// (hooking it on demand) so the chain always reaches depth 0; an abort discards entries at or below its depth.
 public final class FabricDeferredCommit<T> {
    private final List<T> pending = new ArrayList<>();
    private final List<Integer> watermarks = new ArrayList<>();

@@ -49,11 +49,6 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.ItemLike;
 
-/**
- * RecipeBookMenu variant of BcMenu — used only by the three crafting containers
- * (AdvancedCraftingTable, AutoWorkbenchItems, AutoWorkbenchFluids) that show a recipe book panel.
- * All other BC containers extend the leaner {@link BcMenu}.
- */
 //? if >= 1.21.10 {
 public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu {
 //?} else {
@@ -76,10 +71,8 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
    }
 
    protected void addFullPlayerInventory(int startX, int startY, Inventory inv) {
-      // Build the player-inventory slots through vanilla's addStandardInventorySlots (same 36-slot layout the
-      // manual loop produced) so mods that extend the player inventory by mixin-ing that helper -- e.g.
-      // Inventory Extended -- add their extra rows to BuildCraft GUIs too. 1.21.1 has no such helper, so it
-      // keeps the manual loop.
+      // addStandardInventorySlots lets mods that mixin-extend the player inventory (e.g. Inventory Extended) add
+      // their extra rows to BC GUIs too; 1.21.1 has no such helper, so it keeps the manual loop.
       //? if >= 1.21.10 {
       this.addStandardInventorySlots(inv, startX, startY);
       //?} else {

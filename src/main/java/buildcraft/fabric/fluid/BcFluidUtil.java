@@ -6,18 +6,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 
-/**
- * BC fluid helpers shared by world physics and client fog/overlay.
- * Liquids use {@link BcFluidTags#BC_LIQUIDS} via {@link BcFluidEntityInteractions};
- * all variants use {@link BcFluidTags#BC_FLUIDS} for block-level detection.
- */
 public final class BcFluidUtil {
    private static final double SUBMERGED_EPSILON = 1.0E-5;
 
    private BcFluidUtil() {
    }
 
-   /** True only for vanilla water — BC fluids must never pass this check. */
    public static boolean isVanillaWater(FluidState state) {
       return !state.isEmpty() && state.getType().isSame(Fluids.WATER);
    }
@@ -26,10 +20,7 @@ public final class BcFluidUtil {
       return !state.isEmpty() && state.is(BcFluidTags.BC_FLUIDS);
    }
 
-   /**
-    * Sample point is below the BC fluid surface in its block.
-    * Matches vanilla {@code EntityFluidInteraction} height logic for fog and overlay.
-    */
+   // Same surface test as vanilla's fluid fog and overlay logic.
    public static boolean isSubmergedInBcFluid(Level level, double x, double sampleY, double z) {
       BlockPos pos = BlockPos.containing(x, sampleY, z);
       FluidState state = level.getFluidState(pos);
@@ -41,7 +32,6 @@ public final class BcFluidUtil {
       return sampleY < surfaceY - SUBMERGED_EPSILON;
    }
 
-   /** Block at the entity eye is below a BC fluid surface (liquids and gases). */
    public static boolean isBcFluidAtEye(Entity entity) {
       if (entity.level() == null) {
          return false;

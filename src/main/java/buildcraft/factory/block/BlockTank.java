@@ -63,9 +63,7 @@ public class BlockTank extends BcTileBlock implements ITankBlockConnector {
       return new TileTank(pos, state);
    }
 
-   // On 1.21.1 the block-entity hook preRemoveSideEffects (1.21.2+) is never invoked by vanilla, so the
-   // fluid-shard drop is triggered here from the classic Block.onRemove (BE still present before super removes
-   // it). On 1.21.10+ vanilla calls TileTank.preRemoveSideEffects directly, so this override is omitted.
+   // Vanilla only calls the BE hook preRemoveSideEffects from 1.21.2; below that, drop the fluid shard here instead.
    //? if < 1.21.10 {
    /*@Override
    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {

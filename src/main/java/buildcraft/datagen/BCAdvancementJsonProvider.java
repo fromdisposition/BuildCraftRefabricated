@@ -10,8 +10,8 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 
-/** Emits the two advancements whose criteria JSON diverges between the 26.3 registry format and the older
- * one; the shared handwritten advancement files stay format-neutral and are not generated. */
+/** Emits the two advancements whose criteria JSON differs per node's registry format; the rest stay
+ * handwritten and format-neutral. */
 public final class BCAdvancementJsonProvider implements DataProvider {
    private final PackOutput.PathProvider pathProvider;
 

@@ -87,8 +87,7 @@ public record MessagePipePayload(BlockPos pos, int receiverOrdinal, byte[] paylo
                BCLog.logger.warn("[transport.net] Error handling pipe payload at " + message.pos, e);
             }
 
-            // A payload can change the pipe's connections (model key) without a block-entity packet following
-            // it; this funnels into the key-gated refreshClientModel, so it is free when nothing visual changed.
+            // A payload can change connections without a block-entity packet following; refreshClientModel is key-gated so this is free when nothing visual changed.
             holder.scheduleRenderUpdate();
          }
       }

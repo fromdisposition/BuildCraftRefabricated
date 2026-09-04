@@ -35,9 +35,8 @@ public class AIRobotSearchEntity extends AIRobot {
    @Override
    public void start() {
       double best = Double.MAX_VALUE;
-      // Leash the search to the home station, not the robot's drifting position: with no zone we scan a fixed sphere
-      // of DEFAULT_SEARCH_RANGE around the station; a Zone Planner area overrides it (wider query box, zone.contains
-      // does the real clamp). Nearest-to-robot still wins among the eligible targets so the robot heads to the closest.
+      // Leash the search to the home station, not the robot's drifting position; a Zone Planner area overrides
+      // the fixed DEFAULT_SEARCH_RANGE sphere. Nearest-to-robot wins among the eligible targets.
       Vec3 anchor = this.robot.getWorkAnchor();
       AABB box = queryBox(anchor, this.zone, this.maxRange);
 

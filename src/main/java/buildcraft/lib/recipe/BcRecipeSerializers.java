@@ -12,12 +12,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
-/**
- * Cross-version factory for {@link RecipeSerializer}. 26.1 turned RecipeSerializer into a concrete
- * class taking a {@code (MapCodec, StreamCodec)} pair; 1.21.x keeps it as an interface declaring
- * {@code codec()} / {@code streamCodec()}. This wrapper hides that difference so recipe classes can
- * build their serializer the same way on every target.
- */
+// 26.1 turned RecipeSerializer into a concrete class taking a (MapCodec, StreamCodec) pair; 1.21.x keeps it as
+// an interface declaring codec()/streamCodec(). This wrapper builds either the same way on every target.
 public final class BcRecipeSerializers {
    private BcRecipeSerializers() {
    }

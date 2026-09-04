@@ -36,9 +36,8 @@ public class PlugGateBaker implements IPluggableStaticBaker<KeyPlugGate> {
    }
 
    private List<BakedQuad> bakeUncached(KeyPlugGate key) {
-      // Static gate body only. The animated on/off indicator box is drawn live by PlugGateRenderer (the dynamic
-      // renderer); baking it here as well drew the whole gate twice at identical coordinates, which is what caused
-      // the Z-fighting on gates placed on pipes.
+      // Bakes only the static body; PlugGateRenderer draws the on/off indicator live to avoid duplicate
+      // identical-coordinate geometry Z-fighting on pipe-mounted gates.
       List<BakedQuad> quads = new ArrayList<>();
       GateQuadGeometry.appendStaticBaked(quads, key.variant, key.side, this::getSprite, true, 0);
       return quads;

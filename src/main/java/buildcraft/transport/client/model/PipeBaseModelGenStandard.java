@@ -37,8 +37,7 @@ import org.joml.Vector3f;
 public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
    INSTANCE;
 
-   // Concurrent: the mask path feeds the chunk-baked paint shell, so it is read (and lazily filled) from
-   // chunk-build worker threads, not just the render thread.
+   // Concurrent: read and lazily filled from chunk-build worker threads, not just the render thread.
    private static final Map<Long, TextureAtlasSprite[]> SPRITES = new ConcurrentHashMap<>();
    private static final Map<Long, TextureAtlasSprite[]> MASK_SPRITES = new ConcurrentHashMap<>();
    private static final Map<String, String> MASK_MAP = new HashMap<>();
@@ -133,13 +132,11 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
    }
 
    public static void onColorBlindToggle() {
-      // The quad template caches bake the colour-blind sprite variant in without it being part of the key,
-      // so they must be dropped alongside the sprite maps or later remeshes keep serving the old variant.
+      // Quad template caches bake the colour-blind variant in without it being part of the key; must be dropped too.
       PipeMutableQuadCache.clearCaches();
       Minecraft mc = Minecraft.getInstance();
       if (mc != null && mc.levelRenderer != null && mc.level != null) {
          //? if >= 26.2 {
-         // 26.2 renamed allChanged(); this is its successor and remeshes every compiled section.
          mc.levelRenderer.invalidateCompiledGeometry(mc.level, mc.options, mc.gameRenderer.mainCamera(), mc.getBlockColors());
          //?} else {
          /*mc.levelRenderer.allChanged();
@@ -196,8 +193,7 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
          PipeFaceTex tex = size > 0.0F ? key.sideSprites[face.ordinal()] : key.centerSprite;
          int quadsIndex = size > 0.0F ? 1 : 0;
          MutableQuad[] quadArray = QUADS[quadsIndex][face.ordinal()];
-         // An opaque pipe's interior is sealed everywhere except a tube whose end opens against a TILE (the
-         // machine face can be inset, letting the player peek in), so only those tubes keep their inner shell.
+         // Opaque pipe interiors stay sealed except a tube end open against an inset tile face.
          boolean fullQuads = seeThrough || quadsIndex == 1 && (key.tileConnections & 1 << face.ordinal()) != 0;
          int startIndex = quads.size();
 
@@ -237,12 +233,7 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
       return quads;
    }
 
-   /**
-    * Whether any of the pipe's textures can be seen through. An opaque pipe (gold, stone, …) can never show the
-    * dupDarker inner shell, so the model drops it — inner faces are half of every pipe's quads, and in dense
-    * builds they double what the chunk mesher has to build, sort and upload for nothing. 26.1+ exposes each
-    * sprite's precomputed transparency; older versions keep the full geometry.
-    */
+   /** Opaque pipes drop the dupDarker inner shell, which is half of every pipe's quads. */
    private static boolean isSeeThrough(@Nullable TextureAtlasSprite[] sprites) {
       //? if >= 26.1 {
       if (sprites == null) {
@@ -261,12 +252,7 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
       *///?}
    }
 
-   /**
-    * How far the paint shell is pushed off the pipe body along each quad's normal. The body renders through the
-    * block-entity transform while the shell is chunk geometry; exactly-coplanar quads through the two matrix
-    * paths round to slightly different depths per pixel and checkerboard-z-fight, so the shell must not share
-    * the body's planes.
-    */
+   /** Coplanar quads through the body's block-entity transform and the shell's chunk-geometry transform z-fight. */
    private static final float MASK_SHELL_OFFSET = 0.001F;
 
    public List<MutableQuad> generateMaskMutable(PipeModelCacheBase.PipeBaseCutoutKey key, int alpha) {
@@ -288,9 +274,7 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
             for (int i = 0; i < tex.getCount(); i++) {
                TextureAtlasSprite maskSprite = getSprite(maskArray, tex, i);
                if (maskSprite != SpriteUtil.missingSprite()) {
-                  // Outer faces only: the second template half is the dupDarker inner shell, which for the paint
-                  // is only visible by peering into an open pipe end — but doubles the translucent quads the
-                  // chunk mesher has to build, sort and upload for every painted pipe in the section.
+                  // Outer faces only: the inner shell doubles translucent quads for no visible gain on paint.
                   addOuterQuads(quadArray, quads, maskSprite);
 
                   for (int q = startIndex; q < quads.size(); q++) {
@@ -414,7 +398,6 @@ public enum PipeBaseModelGenStandard implements IPipeBaseModelGen {
       return c == null ? -1 : 0xFF000000 | ColourUtil.swapArgbToAbgr(ColourUtil.getLightHex(c));
    }
 
-   /** Moves the quad along its face normal by {@code by} blocks. */
    private static void inflate(MutableQuad quad, float by) {
       Vector3f normal = quad.getCalculatedNormal();
       float length = normal.length();

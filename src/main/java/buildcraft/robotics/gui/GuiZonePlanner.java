@@ -26,16 +26,14 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
    private ZonePlannerMapElement map;
    private static final Identifier TEXTURE = Identifier.parse("buildcraftrobotics:textures/gui/bcr/zone_planner.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 256.0, 244.0);
-   // The texture only carries the right-pointing (import) arrow now. The export arrow is the same sprite drawn
-   // transposed -- see drawProgressDown.
+   // Only the right-pointing (import) arrow is in the texture; the export arrow is the same sprite drawn transposed, see drawProgressDown.
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE, 0.0, 244.0, 28.0, 9.0);
    private static final int PROGRESS_U = 0;
    private static final int PROGRESS_V = 244;
    private static final int PROGRESS_LENGTH = 28;
    private static final int PROGRESS_THICKNESS = 9;
-   // Native divider strip between the paintbrush grid and the player inventory (tex x=80..82). Masks the generic
-   // vanilla panel's intruding left edge (opaque black outline + white bevel) when a mod-extended inventory is
-   // drawn here; the 1px foot restores the divider's bottom shadow.
+   // Divider strip masking the generic vanilla panel's intruding left edge when a mod-extended inventory is drawn
+   // here (tex x=80..82); the 1px foot restores the divider's bottom shadow.
    private static final GuiIcon ICON_INV_DIVIDER = new GuiIcon(TEXTURE, 80.0, 161.0, 3.0, 80.0);
    private static final GuiIcon ICON_INV_DIVIDER_FOOT = new GuiIcon(TEXTURE, 80.0, 241.0, 1.0, 2.0);
    private boolean requestedLayers = false;
@@ -72,16 +70,8 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
       }
    }
 
-   /**
-    * Draws the single right-pointing progress sprite as a down-pointing one at (x, y), filling top to bottom.
-    *
-    * <p>The needed mapping is the transpose (sprite pixel (sx, sy) -> screen (x + sy, y + sx)): a plain 90 degree turn
-    * would put the sprite's bottom shadow row on the arrow's left instead of its right. A transpose mirrors, and a
-    * mirroring pose is not an option -- GUI_TEXTURED culls back faces, so the flipped winding would drop the quad. So
-    * the mirror is folded into the source instead: under a clockwise quarter turn, feeding the sprite's rows bottom-up
-    * is exactly the transpose. Hence one 1px-tall blit per sprite row, row {@code r} placed at local y = -r-1 so that
-    * the turn lands it on screen column x + r.
-    */
+   /** Rotated 90 degrees rather than mirrored: GUI_TEXTURED culls back faces, so a mirrored winding would drop the
+    * quad; feeding sprite rows bottom-up under a clockwise turn achieves the same transpose without one. */
    private static void drawProgressDown(BCGraphics graphics, int x, int y, double fraction) {
       int filled = (int)(PROGRESS_LENGTH * fraction);
       if (filled > 0) {
@@ -99,9 +89,8 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
 
    @Override
    protected void drawExtendedInventoryChrome() {
-      // A mod-extended inventory draws the generic vanilla panel at x=80; its left edge (opaque black outline +
-      // white bevel) clashes with the light paintbrush/inventory divider. Re-blit the machine's own divider slice
-      // over it, plus a 1px foot for the divider's bottom shadow.
+      // The vanilla panel's left edge clashes with the light paintbrush/inventory divider; re-blit the machine's
+      // own divider slice over it, plus a 1px foot for the bottom shadow.
       ICON_INV_DIVIDER.drawAt(this.mainGui.rootElement.offset(80.0, 161.0));
       ICON_INV_DIVIDER_FOOT.drawAt(this.mainGui.rootElement.offset(80.0, 241.0));
    }
@@ -111,9 +100,8 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       // x=8 is the canonical title anchor and also the map's left edge; the label sits in the 14px band above it.
       graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
-      // The brush grid and the player inventory share a first row, so both labels share playerInventoryLabelY()
-      // (firstPlayerRowY() - 12) and stay level. Each sits on its own grid's left edge: this GUI is 256 wide, so the
-      // 176-wide player inventory is inset to x=88 rather than the vanilla x=8.
+      // The brush grid and player inventory share a first row, so both labels share playerInventoryLabelY() and stay
+      // level; this GUI is 256 wide, so the 176-wide player inventory is inset to x=88 rather than vanilla x=8.
       int labelY = this.playerInventoryLabelY();
       graphics.text(this.font, LocaleUtil.localize("buildcraft.gui.zone_planner.brushes"), 8, labelY, -12566464, false);
       graphics.text(this.font, this.playerInventoryTitle, 88, labelY, -12566464, false);

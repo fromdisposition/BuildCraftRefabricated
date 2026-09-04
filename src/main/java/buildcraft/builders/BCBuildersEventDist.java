@@ -39,9 +39,7 @@ public enum BCBuildersEventDist {
    static final int SCAN_INTERVAL_TICKS = 20;
    private long serverTickCounter = 0L;
 
-   // Live per-level collections, read by the client-only BCBuildersWorldRenderer. Returning the backing
-   // deque (nullable) lets the renderer prune dead weak refs in place. Kept here so the render layer holds
-   // no server-side state and this common class names no client types.
+   // Returns the backing deque so the client-only renderer can prune dead weak refs in place; kept here so the render layer holds no server-side state.
    public Deque<WeakReference<TileQuarry>> renderQuarries(Level level) {
       return this.allQuarries.get(level);
    }

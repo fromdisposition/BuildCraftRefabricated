@@ -45,11 +45,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * 1.21.1 (versions/1.21.1) pipe block-entity renderer. The shared renderer uses the 1.21.5 render-state +
- * submit pipeline (extractRenderState/submit, SubmitNodeCollector, ItemStackRenderState); here everything is
- * drawn immediately into a MultiBufferSource. The pipe geometry helpers (ModelPipe, PipeWireRenderer, the
- * flow/behaviour/pluggable renderers) are version-neutral (Pose + VertexConsumer); travelling items render
- * through the classic ItemRenderer.renderStatic.
+ * Draws immediately into a MultiBufferSource; the 1.21.5 render-state + submit pipeline
+ * (extractRenderState/submit, SubmitNodeCollector, ItemStackRenderState) is unavailable here.
  */
 public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
 
@@ -110,9 +107,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder> {
       ModelPipe.renderCutoutPluggables(pipe, cutoutPose, cutout, light);
       PipeWireRenderer.renderWires(pipe, cutoutPose, light, cutout);
 
-      // Translucent pluggable layer (e.g. coloured lens glass) — drawn on the normal depth-sorted translucent
-      // block sheet, so the glass occludes correctly. Without this the lens glass was baked but never
-      // submitted, so it showed nothing in-world.
+      // Drawn on the depth-sorted translucent block sheet so glass occludes correctly.
       VertexConsumer translucentPluggables = buffers.getBuffer(BCLibRenderTypes.translucentBlockSheet());
       ModelPipe.renderTranslucentPluggables(pipe, cutoutPose, translucentPluggables, light);
 

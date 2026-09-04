@@ -38,9 +38,7 @@ public final class FluidGuiRenderer {
          for (int tileX = x; tileX < x + width; tileX += spriteSize) {
             int drawW = Math.min(spriteSize, x + width - tileX);
             int drawH = Math.min(spriteSize, y + height - tileY);
-            // Tinted sub-region blit of the block atlas: sample a drawW x drawH region (unscaled) at the
-            // sprite's pixel offset, coloured by the fluid tint. The 12-arg overload carries the colour;
-            // the previous 10-arg call bound the tint to the textureSize param, producing garbage UVs.
+            // Must be the 12-arg blit overload: the 10-arg one takes the tint as textureSize and yields garbage UVs.
             graphics.blit(
                BcTextureAtlases.BLOCKS_TEXTURE,
                tileX,

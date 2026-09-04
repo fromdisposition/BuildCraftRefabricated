@@ -34,11 +34,7 @@ import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joml.Vector3f;
 
-/**
- * 1.21.1 (versions/1.21.1) facade plug baker. Identical geometry to the shared baker, but the source block's
- * quads are read through the classic 1.21.1 BakedModel.getQuads(state, side, random) API instead of the 1.21.5
- * BlockStateModel/BlockModelPart/QuadCollection pipeline.
- */
+// quads are read via the classic BakedModel.getQuads API since 1.21.1 lacks the BlockStateModel/QuadCollection pipeline.
 public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
    INSTANCE;
 
@@ -52,14 +48,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       return model.getQuads(state, side, RANDOM);
    }
 
-   /**
-    * The renderer asks for the facade once per pass ("cutout" / "translucent"), and the source quads must land on
-    * exactly ONE of them: without this filter the translucent pass re-drew the whole facade over the cutout copy,
-    * untinted and unshaded -- biome-tinted facades (grass, leaves) showed grey because the untinted translucent
-    * copy painted over the tint-resolved cutout one. Mirrors keepQuadForLayer in the shared (26.x) baker; on
-    * 1.21.1 a block state has a single chunk render type, so the whole facade picks its pass from
-    * ItemBlockRenderTypes. Any other layer key (the item model bakes with "item") keeps the whole facade.
-    */
+   // quads must land on exactly one pass or the translucent copy redraws the whole facade untinted over the cutout one.
    private static boolean keepQuadsForLayer(Object layer, BlockState state) {
       boolean wantTranslucent;
       if ("translucent".equals(layer)) {
@@ -197,7 +186,6 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
    }
 
    public List<MutableQuad> bakeForKey(KeyPlugFacade key) {
-      // One chunk render type per state on 1.21.1, so the pass filter applies to the facade as a whole.
       if (!keepQuadsForLayer(key.layer, key.state)) {
          return new ArrayList<>();
       }
@@ -323,9 +311,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
          baked.add(quad.toBakedItem());
       }
 
-      // The opaque plug nub belongs to the cutout pass only (and the "item" bake). Appending it after the
-      // per-layer facade filter used to put it in BOTH pass keys, so it drew twice and z-fought through
-      // transparent (stained glass / ice) facades on the translucent pass.
+      // plug nub is cutout-only (and "item"); adding it to both pass keys double-draws and z-fights through translucent facades.
       if (!key.isHollow && !"translucent".equals(key.layer)) {
          baked.addAll(createPlugQuads(key.side));
       }

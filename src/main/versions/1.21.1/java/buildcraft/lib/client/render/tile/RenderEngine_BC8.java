@@ -16,10 +16,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 
-/**
- * 1.21.1 (versions/1.21.1) engine renderer: immediate-mode port. The animated trunk/chamber quads come from
- * the version-neutral quad provider; they are drawn straight into the cutout block sheet.
- */
 public class RenderEngine_BC8 implements BlockEntityRenderer<TileEngineBase_BC8> {
    private final BiFunction<TileEngineBase_BC8, Float, MutableQuad[]> quadProvider;
 

@@ -44,13 +44,7 @@ public class BCTransportClient {
    }
 
    //? if >= 1.21.10 {
-   /**
-    * Wraps the pipe block model via the native model-loading hook. This must NOT go through
-    * {@code onModifyBakingResult}: that event mutates {@code BakingResult.blockStateModels()}, but on 26.x
-    * ModelManager.loadModels copies that map into the ReloadState dispatch (createBlockStateToModelDispatch)
-    * before apply() ever runs, so a swap made there is silently dropped. AfterBakeBlock wraps the model at bake
-    * time, before any copy, on every version with the BlockStateModel pipeline.
-    */
+   /** Must not go through onModifyBakingResult: on 26.x that event's map mutation is copied into the reload dispatch before apply() runs, so a swap made there is silently dropped. */
    public static void registerModelLoadingPlugin() {
       net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin.register(
          pluginContext -> pluginContext.modifyBlockModelAfterBake()

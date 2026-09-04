@@ -64,8 +64,7 @@ public class MarkerRenderer {
       }
    }
 
-   // Reused across frames: this runs every frame while a connector is held, on the render thread only. The
-   // collected lasers are submitted as ONE batch instead of one submit node per marker pair.
+   // Render-thread only; reused every frame so the lasers go out as one batch rather than one node per pair.
    private static final Set<MarkerPair> renderedPairs = new HashSet<>();
    private static final List<LaserData_BC8> pendingLasers = new ArrayList<>();
 
@@ -107,8 +106,7 @@ public class MarkerRenderer {
       return from.add(VecUtil.scale(dir, 0.125));
    }
 
-   /** Order-independent exact key for a candidate marker line. (The previous {@code a * 31 + b} long hash could
-    * collide and silently skip a line for a frame; the boxed record costs the same as the boxed Long did.) */
+   // Exact key rather than a hash: a collision would silently skip a line for a frame.
    private record MarkerPair(long min, long max) {
       static MarkerPair of(BlockPos a, BlockPos b) {
          long ha = a.asLong();

@@ -101,8 +101,8 @@ public class TileConstructionMarker extends BcBlockEntity {
             Snapshot resolved = GlobalSavedDataSnapshots.get(this.level).getSnapshot(header.key);
             if (resolved instanceof Blueprint blueprint) {
                this.snapshot = blueprint;
-               // Rotation.rotate(null) NPEs (it reads facing.getAxis()); a blueprint from corrupt/foreign NBT can
-               // have a null facing. Fall back to NONE, mirroring TileBuilder.updateSnapshot which guards the same.
+               // Rotation.rotate(null) NPEs (reads facing.getAxis()); a blueprint from corrupt/foreign NBT can
+               // have a null facing, so fall back to NONE.
                this.rotation = blueprint.facing == null
                   ? Rotation.NONE
                   : Arrays.stream(Rotation.values())

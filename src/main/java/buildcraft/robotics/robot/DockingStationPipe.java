@@ -55,9 +55,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       this.world = pipe.getPipeWorld();
    }
 
-   /** Re-attach a station that was loaded detached (no-arg ctor, e.g. reused from the registry/NBT) to the live
-    * pipe holder, so its {@code world} and {@code pipe} are valid for registry lookups (robotTaking, powerRoom,
-    * tickPower). Idempotent. */
+   /** Rebinds a station loaded via the no-arg ctor so world/pipe are valid for registry lookups; idempotent. */
    public void bindToPipe(IPipeHolder holder) {
       this.pipe = holder;
       this.world = holder.getPipeWorld();
@@ -181,9 +179,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
          return null;
       }
 
-      // The station is a blocking pluggable, so the pipe exposes nothing on the station's own face: asking for a
-      // storage there always came back null and a robot could never empty its tank. Items already enter from the
-      // opposite face; fluid does the same.
+      // A blocking pluggable's own face exposes nothing on the pipe, so use the opposite face like items do.
       return buildcraft.lib.fabric.transfer.BcTransfers.fluid(this.world, this.getPos(), this.side().getOpposite());
    }
 
@@ -211,8 +207,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
 
    @Override
    public IRequestProvider getRequestProvider() {
-      // Serving an adjacent machine's requests is what the "Request Needed Items" action asks for, so it only
-      // happens when that action is set. Doing it unconditionally left the action with nothing to do.
+      // Gated on the action being active, or the "Request Needed Items" action would have nothing to enable.
       IPipeHolder holder = this.getPipe();
       if (holder != null && this.hasActiveAction(BCRoboticsStatements.ACTION_STATION_MACHINE_REQUEST.getUniqueTag())) {
          IRequestProvider machine = machineRequestProvider(holder);
@@ -224,7 +219,6 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       return this;
    }
 
-   /** The adjacent machine that can advertise requests through this station, if any. */
    public static IRequestProvider machineRequestProvider(IPipeHolder holder) {
       for (Direction dir : DIRECTIONS) {
          BlockEntity nearby = holder.getNeighbourTile(dir);
@@ -339,18 +333,12 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       return ItemStack.EMPTY;
    }
 
-   // --- Robot power ---------------------------------------------------------------------------------------------
-   // The station is a small energy buffer that the pipe pushes into like any machine, and that drip-feeds the docked
-   // robot. It exposes an MJ receiver (kinesis pipes) and an RF storage (RF pipes) to the pipe via the station
-   // pluggable's capability hooks, so the pipe's normal push logic delivers here; and it posts its demand each tick
-   // so upstream generators route power to this face. Charging the robot is then just draining the buffer -- no
-   // fragile "extract from a push-based pipe" that never actually yields power.
+   // Small buffer the pipe pushes into like any machine, and posts demand each tick so upstream generators
+   // route power here -- avoids extracting from a push-based pipe, which never yields power.
 
    static final long POWER_BUFFER_CAP = MjAPI.MJ * 512L;
    private long powerBuffer;
-   /** Cached RF/E adapter, typed as Object so DockingStationPipe itself never carries team.reborn.energy.EnergyStorage
-    *  in its own signature (see {@link DockingStationRfStorage}). Created lazily by {@link #getEnergyStorage()}, which
-    *  is only reached while the energy mod is installed. */
+   /** Typed as Object so this class never references team.reborn.energy.EnergyStorage directly; built lazily, only reached when the energy mod is present. */
    private Object rfStorageCache;
 
    private final IMjReceiver mjReceiver = new IMjReceiver() {
@@ -392,8 +380,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       return this.mjReceiver;
    }
 
-   /** The RF storage the pipe delivers power to (exposed via the station pluggable's {@code energyStorage}). Lazily
-    *  built so the {@link EnergyStorage} class is only touched when the energy mod is present -- see the field note. */
+   /** Lazily built so the {@link EnergyStorage} class is only touched when the energy mod is present. */
    public EnergyStorage getEnergyStorage() {
       if (this.rfStorageCache == null) {
          this.rfStorageCache = new DockingStationRfStorage(this);
@@ -407,15 +394,13 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       return this.powerBuffer;
    }
 
-   /** Add RF-sourced power (already converted to micro-joules) to the buffer inside a transaction, journalling so a
-    *  rolled-back RF transfer does not leak power. Package-private for {@link DockingStationRfStorage}. */
+   /** Journals the buffer add so a rolled-back RF transfer does not leak power. */
    void rfInsert(TransactionContext transaction, long microJoules) {
       this.rfJournal.updateSnapshots(transaction);
       this.powerBuffer += microJoules;
    }
 
-   /** Free MJ the buffer can still take -- but only "wanted" while a live robot bound to this station needs charge,
-    * so an idle station never drains the network. Package-private for {@link DockingStationRfStorage}. */
+   /** Free MJ the buffer can take; zero unless a bound robot needs charge, so an idle station never drains the network. */
    long powerRoom() {
       // robotTaking() resolves through the registry keyed by world; a detached station (world null) would NPE.
       if (this.world == null) {
@@ -435,9 +420,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
       return Math.max(0L, Math.min(POWER_BUFFER_CAP - this.powerBuffer, need));
    }
 
-   /** Post this station's power demand into the pipe each tick so upstream generators route power to this face.
-    * A blocking pluggable is skipped by the pipe's own {@code requestFromConnectedTiles}, so we drive the query
-    * directly. The pipe never sleeps while a station is present ({@code needsTick() == true}). */
+   /** Drives the power query directly because a blocking pluggable is skipped by the pipe's own requestFromConnectedTiles; the pipe never sleeps while a station is present. */
    public void tickPower() {
       long room = this.powerRoom();
       if (room <= 0L) {

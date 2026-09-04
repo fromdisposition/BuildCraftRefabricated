@@ -62,8 +62,7 @@ public class BlockFloodGate extends BcTileBlock {
       return new TileFloodGate(pos, state);
    }
 
-   // 1.21.1: vanilla never calls the BE hook preRemoveSideEffects (1.21.2+); drop the held fluid shard from the
-   // classic Block.onRemove (BE still present before super removes it). 1.21.10+ uses the BE hook directly.
+   // Vanilla only calls the BE hook preRemoveSideEffects from 1.21.2; below that, drop the fluid shard here instead.
    //? if < 1.21.10 {
    /*@Override
    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {

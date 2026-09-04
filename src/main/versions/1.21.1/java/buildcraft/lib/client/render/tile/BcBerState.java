@@ -8,7 +8,6 @@ package buildcraft.lib.client.render.tile;
 
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-/** 1.21.1 stub (versions/1.21.1): plain data holder; the modern base extends 1.21.5 BlockEntityRenderState. */
 public class BcBerState<T extends BlockEntity> {
    public T tile;
    public float partialTick;

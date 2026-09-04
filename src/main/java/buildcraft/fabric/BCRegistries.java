@@ -97,14 +97,7 @@ public final class BCRegistries {
       return registerItem(modid, path, factory, UnaryOperator.identity(), true);
    }
 
-   /**
-    * Like {@link #registerItem} but for items that build their display name in {@code getName(ItemStack)} (wire
-    * colour, fluid shard, gate/lens/facade variants, redstone board, paintbrush). On 1.21.1
-    * {@code ItemStack.getHoverName()} returns the ITEM_NAME component BEFORE consulting {@code Item.getName(stack)},
-    * so a generic ITEM_NAME ("item.modid.path") short-circuits the dynamic name (the wire showed the raw key, the
-    * shard lost its fluid). We therefore omit ITEM_NAME for these on 1.21.1, letting getHoverName fall through to
-    * getName. On >= 1.21.10 getName is reached regardless, so ITEM_NAME is still set there (no behaviour change).
-    */
+   /** For items whose name comes from getName(stack); older nodes must skip ITEM_NAME or getHoverName returns it first. */
    public static <I extends Item> I registerItemDynamicName(
       String modid,
       String path,

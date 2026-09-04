@@ -19,7 +19,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 
-/** 1.21.1 (versions/1.21.1) filler renderer: immediate-mode status LEDs (mode/power/finished). */
 public class RenderFiller implements BlockEntityRenderer<TileFiller> {
    private static final RenderPartCube[] LED_ENERGY = new RenderPartCube[4];
    private static final RenderPartCube[] LED_STATE = new RenderPartCube[4];

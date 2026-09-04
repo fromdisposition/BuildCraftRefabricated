@@ -14,12 +14,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProc
 *///?}
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
-/**
- * Runs after {@link net.minecraft.world.level.levelgen.structure.templatesystem.GravityProcessor}.
- * Surface tendrils/spouts keep gravity; the deposit body and the spring marker use fixed world Y; the connector
- * is a fixed bridge ({@code template 100+}) up to the terrain-relative shaft ({@code template -11..-1}).
- * Bridge must be handled before the surface gravity pass-through ({@code templateY >= 0}).
- */
+/** Runs after {@link net.minecraft.world.level.levelgen.structure.templatesystem.GravityProcessor}; template Y selects
+ *  spring/deposit/bridge/terrain-shaft/surface handling, and the bridge check must precede the {@code templateY >= 0} surface pass-through. */
 //? if >= 26.2 {
 public final class OilWellProjectionProcessor implements StructureProcessor {
 //?} else {

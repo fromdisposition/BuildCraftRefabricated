@@ -55,10 +55,8 @@ public final class BCTransportFabric {
       BCTransportAttachments.register();
       BCTransportConfig.registerPowerTransferData();
       if (FabricLoader.getInstance().isModLoaded("team_reborn_energy")) {
-         // Order matters: preInit() creates the RF PipeDefinition instances (BCTransportPipes.woodRf, ...);
-         // registerRfTransferData() keys its transfer map on exactly those instances. If registration ran first
-         // the defs would still be null, every put() would use a null key, and getRfTransferInfo() would fall
-         // back to rfInfoDefault (80, isReceiver=false) — leaving the wooden RF pipe unable to receive any power.
+         // Order matters: preInit() creates the RF PipeDefinition instances that registerRfTransferData() keys its
+         // transfer map on; running registration first would leave every entry keyed to a null definition.
          BCTransportRfPipes.preInit();
          BCTransportConfig.registerRfTransferData();
       }

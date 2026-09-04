@@ -12,12 +12,8 @@ import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.path.PathFinding;
 import net.minecraft.core.BlockPos;
 
-/**
- * Out of power. The robot returns to its home station and parks there, because a docked robot is charged by the
- * station whatever its AI is doing -- so restoring power to that station revives it with no player action. A
- * robot that instead sank to the ground where its battery died could never dock again, and was unrecoverable
- * short of a wrench. Without a home station to return to there is nowhere to go, so it settles in place.
- */
+/** Returns to the home station and parks there: a docked robot is charged by the station regardless of its AI,
+ * so restoring power revives it with no player action. Settles in place if there is no home station. */
 public class AIRobotShutdown extends AIRobotGoto {
    private boolean parked;
 

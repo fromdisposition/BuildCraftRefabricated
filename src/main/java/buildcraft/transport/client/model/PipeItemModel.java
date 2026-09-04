@@ -44,14 +44,11 @@ import org.jspecify.annotations.Nullable;
 public class PipeItemModel implements ItemModel {
    private static final Field PROPERTIES_FIELD;
    private static final Field EXTENTS_FIELD;
-   // The coloured-pipe overlay geometry depends only on the mask sprite, so bake it once per sprite instead of
-   // rebuilding ~14 quads on every item render. Keyed by the sprite, so a resource reload (new sprite instance)
-   // is a natural cache miss — no stale geometry — and unused entries expire on their own.
+   // Keyed by sprite instance, so a resource reload is a natural cache miss and stale geometry cannot survive it.
    private static final ModelCache<TextureAtlasSprite> OVERLAY_CACHE = new ModelCache<>(PipeItemModel::generateOverlayQuads);
    private final ItemModel vanillaDelegate;
    private final PipeDefinition definition;
    private final @Nullable ModelRenderProperties renderProperties;
-   // LayerRenderState.setExtents wants Supplier<Vector3fc[]> on 1.21.11 but Supplier<Vector3f[]> on 1.21.10.
    //? if >= 1.21.11 {
    private final @Nullable Supplier<Vector3fc[]> extents;
    //?} else {
@@ -180,12 +177,7 @@ public class PipeItemModel implements ItemModel {
          //?} else {
          /*Class<?> wrapperClass = BlockModelWrapper.class;
          *///?}
-         // Look the fields up BY TYPE, not by name: in 1.21.x production the runtime is
-         // intermediary-mapped, so the Mojang field name "properties" does not exist and a
-         // name-based getDeclaredField crashes model baking (black screen). Both the
-         // ModelRenderProperties field and the Supplier (extents) field are unique by type in
-         // CuboidItemModelWrapper (26.x) and BlockModelWrapper (1.21.x), so type lookup is
-         // mapping-independent and safe on every target.
+         // Lookup by type, not name: production runtimes are intermediary-mapped and lack the Mojang field name.
          PROPERTIES_FIELD = findFieldByType(wrapperClass, ModelRenderProperties.class);
          EXTENTS_FIELD = findFieldByType(wrapperClass, Supplier.class);
          PROPERTIES_FIELD.setAccessible(true);

@@ -35,12 +35,9 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
    private static final Identifier TEXTURE_BLUEPRINT = Identifier.parse("buildcraftbuilders:textures/gui/bcr/builder_blueprint.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 222.0);
    private static final GuiIcon ICON_BLUEPRINT_GUI = new GuiIcon(TEXTURE_BLUEPRINT, 169.0, 0.0, 87.0, 222.0);
-   // Box left divider (x=169..178), down to just above its solid bottom frame (tex y=214). Restores the box's
-   // clean vertical edge beside the tanks/slots when a mod-extended inventory has drawn the generic panel over it.
+   // Height 214 stops just above the box's bottom frame; redrawn when a mod-extended inventory overdraws the divider.
    private static final GuiIcon ICON_BLUEPRINT_EDGE = new GuiIcon(TEXTURE_BLUEPRINT, 169.0, 0.0, 10.0, 214.0);
-   // The box's bottom-left corner (tex x=173..178, y=214..220): the frame band + shadow that close the divider into
-   // the horizontal bottom frame. Blitted narrow (from x=173) so it covers the generic panel's dark groove/black
-   // edge without pushing the box's shadow onto x=169..172, where the divider stays light -- i.e. a clean L-corner.
+   // Blitted narrow from x=173 so it covers the generic panel's dark edge without overwriting the divider's light pixels at x=169..172.
    private static final GuiIcon ICON_BLUEPRINT_CORNER = new GuiIcon(TEXTURE_BLUEPRINT, 173.0, 214.0, 6.0, 7.0);
    private static final GuiIcon ICON_TANK_OVERLAY = new GuiIcon(TEXTURE_BLUEPRINT, 0.0, 54.0, 16.0, 47.0);
    private GuiBuilder.FluidModeButton fluidModeButton;
@@ -168,10 +165,7 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
 
    @Override
    protected void drawExtendedInventoryChrome() {
-      // A mod-extended inventory redraws the generic vanilla panel across the full 0..176 width, whose right frame
-      // covers the blueprint box's left divider. Re-blit the box's divider so it keeps its clean edge beside the
-      // tanks/slots, plus its bottom-left corner so the divider closes into the box's bottom frame (instead of the
-      // generic panel's dark groove + black edge showing through as a notch).
+      // Re-blit divider and corner because a mod-extended inventory's generic panel overdraws them.
       ICON_BLUEPRINT_EDGE.drawAt(this.mainGui.rootElement.offset(169.0, 0.0));
       ICON_BLUEPRINT_CORNER.drawAt(this.mainGui.rootElement.offset(173.0, 214.0));
    }
@@ -179,18 +173,13 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      // Block name on the canonical left title anchor (x=8, y=6).
       graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
-      // "Inventory" label, matching the fully-labelled screens (Tank, engines, ...). X = 8 is the inventory's own
-      // left edge (addFullPlayerInventory(8, 140)); Y comes from playerInventoryLabelY() = firstPlayerRowY() - 12,
-      // i.e. derived from the real slot rows (vanilla convention), not a hardcoded coordinate.
+      // X matches addFullPlayerInventory's left edge; Y derives from firstPlayerRowY(), not a hardcoded constant.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
       int leftToBreak = (this.menu).getSyncedLeftToBreak();
       int leftToPlace = (this.menu).getSyncedLeftToPlace();
       int y = 50;
-      // Draw these as plain strings in the vanilla label colour (-12566464 = 0xFF404040), the same as the title and
-      // Inventory labels above. A Component with .withStyle(DARK_GRAY) would override that colour with 0x555555, which
-      // is both inconsistent with the other labels and nearly invisible against a dark-mode resource pack's panel.
+      // -12566464 = 0xFF404040, the vanilla label colour; Component.withStyle(DARK_GRAY) would use 0x555555, faint on dark-mode packs.
       if (leftToBreak > 0) {
          graphics.text(this.font, LocaleUtil.localize("gui.leftToBreak") + ": " + leftToBreak, 8, y, -12566464, false);
          y += 10;

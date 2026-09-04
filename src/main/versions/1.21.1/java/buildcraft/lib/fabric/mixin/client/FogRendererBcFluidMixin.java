@@ -20,15 +20,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/**
- * 1.21.1 implementation (versions/1.21.1). The shared mixin installs a FogEnvironment into vanilla's 1.21.5 fog
- * list, which does not exist on 1.21.1. Here we set the BC fluid fog directly, mirroring upstream's
- * FluidType.setupFog: {@link #buildcraft$tintBcFluidFog} overrides the fog colour after setupColor (levelFogColor()
- * later reads these static fields for the fog shader uniform), and {@link #buildcraft$bcFluidFogDistance} overrides
- * the fog start/end after setupFog. Setting the distance directly (rather than relying on CameraBcFluidMixin's
- * FogType.WATER, whose getWaterVision()-based distance stays ~0 in a non-water fluid and renders no visible fog)
- * is what actually makes the fog appear and gives oil/fuel/gas the same density as upstream.
- */
+// 1.21.1 has no FogEnvironment list (unlike 1.21.5), so BC fluid fog is set directly here, mirroring upstream
+// FluidType.setupFog; setting distance directly (not via CameraBcFluidMixin's WATER type, whose getWaterVision() stays ~0) is what makes the fog visible.
 @Mixin(FogRenderer.class)
 public class FogRendererBcFluidMixin {
    @Shadow

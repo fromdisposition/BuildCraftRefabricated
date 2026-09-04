@@ -50,10 +50,8 @@ public class LensItemModel implements ItemModel {
 
          for (MutableQuad mq : PlugBakerLens.bakeForItem(lk.colour(), lk.isFilter(), false)) {
             transformForItem(mq, xform, false);
-            // The render-state item pipeline (1.21.10+, every version that uses this shared model) colours items
-            // through the layer tint, not per-vertex quad colour, so the dye PlugBakerLens applies via colouri(...)
-            // never reaches the GUI on bake. Tag the overlay with tintIndex 0; the actual dye is supplied through
-            // the render-state layer tint in update() (tintLayers() on 26.1+, prepareTintLayers() on 1.21.10/11).
+            // The item pipeline colours via layer tint, not per-vertex quad colour, so the baker's colouri() dye never
+            // reaches the GUI; tag overlay quads tintIndex 0 and supply the real dye through the layer tint in update().
             mq.setTint(0);
             quads.add(mq.toBakedItem());
          }
@@ -130,8 +128,7 @@ public class LensItemModel implements ItemModel {
          LayerRenderState layer = renderState.newLayer();
          layer.setQuads(net.minecraft.client.resources.model.geometry.ItemQuads.split(quads));
          //? if >= 26.1 {
-         // Supply the dye colour for tint layer 0 (the overlay quads are tagged with tintIndex 0). The render-state
-         // item pipeline ignores per-vertex quad colour, so this layer tint is the only way the dye reaches the GUI.
+         // Layer tint 0 supplies the dye for the tintIndex-0 overlay quads; the item pipeline ignores per-vertex colour.
          int lensTint = colour != null ? 0xFF000000 | colour.getTextureDiffuseColor() & 0xFFFFFF : 0xFF3F76E4;
          layer.tintLayers().add(lensTint);
          //?} else {
@@ -147,9 +144,8 @@ public class LensItemModel implements ItemModel {
    }
 
    static {
-      // 1.35, not the gate's 1.8: the GUI scale is applied literally to the baked quads (no fit-to-slot), and the
-      // lens/filter plate is an 8px face (0.25..0.75) vs the gate's 6px body — 8*1.35 = 6*1.8 = 10.8px, so filters
-      // fill the inventory slot with the same visual weight as gates instead of overflowing the frame.
+      // GUI scale 1.35 (not the gate's 1.8): applied literally to baked quads with no fit-to-slot; 8px lens face * 1.35
+      // = 6px gate body * 1.8, so filters match gates' visual weight instead of overflowing the slot.
       XFORMS.put(ItemDisplayContext.GUI, new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.35F));
       XFORMS.put(ItemDisplayContext.GROUND, new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 3.0F, 0.0F, 0.9F));
       XFORMS.put(ItemDisplayContext.HEAD, new LensItemModel.ContextXform(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.8F));

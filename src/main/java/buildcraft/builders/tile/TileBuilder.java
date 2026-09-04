@@ -238,9 +238,7 @@ public class TileBuilder
                boolean justCompletedBasePos = this.isDone && !this.wasDoneLastTick;
                this.wasDoneLastTick = this.isDone;
                if (this.isDone) {
-                  // Sync once on the done transition. Nothing changes while the builder stays done, and the
-                  // old per-tick sendBlockUpdated re-serialized and re-broadcast the full update tag to every
-                  // tracking player forever.
+                  // Sync only on the done transition; a done builder never changes, so this avoids re-broadcasting the full update tag every tick.
                   if (justCompletedBasePos) {
                      builder.onNetworkSync();
                      this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
@@ -289,10 +287,7 @@ public class TileBuilder
       Optional.ofNullable(this.getBuilder()).ifPresent(SnapshotBuilder::cancel);
       if (this.snapshot != null && this.getCurrentBasePos() != null) {
          this.snapshotType = this.snapshot.getType();
-         // Also compute when rotation is still unset: the snapshot often resolves a tick AFTER the item was
-         // inserted (async SavedData), on the updateSnapshot(false) path -- building with a null rotation NPEs in
-         // getRotated (BlockPos/BlockState.rotate(null)) and crashed the server tick. canGetFacing=false still
-         // never OVERWRITES a rotation restored from NBT.
+         // Also compute when rotation is unset: the snapshot can resolve a tick after item insertion (async SavedData), and a null rotation NPEs. canGetFacing=false still never overwrites a rotation restored from NBT.
          if (canGetFacing || this.rotation == null) {
             this.rotation = this.snapshot.facing == null
                ? Rotation.NONE
@@ -510,11 +505,7 @@ public class TileBuilder
       }
    }
 
-   /**
-    * The persisted builderState embeds checkResults — a byte array sized to the whole snapshot volume (256 KB
-    * for a 64x64x64 blueprint). Clients only consume builderClientData (the task lists), so the network update
-    * tag skips the heavy blob; readData tolerates the missing key.
-    */
+   /** builderState embeds checkResults (up to 256 KB for a 64^3 blueprint); the network update tag skips it since clients only need builderClientData. */
    @Override
    public CompoundTag getUpdateTag(Provider registries) {
       this.writingSyncTag = true;

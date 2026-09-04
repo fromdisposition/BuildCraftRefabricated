@@ -10,18 +10,15 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Shared face-mounted pluggable collision/selection boxes. Every pluggable builds the same six per-face boxes from a
- * width span {@code [min, max]} (across the mounting face) and a thickness range for the low faces
- * ({@code [near1, near2]}, used by DOWN/NORTH/WEST) and the high faces ({@code [far1, far2]}, used by UP/SOUTH/EAST).
- * This kept the identical 6-box static blocks copied into every pluggable; centralise it here so the geometry is
- * defined once and shared where it is literally the same (see {@link #CHIP}).
+ * Shared face-mounted pluggable collision/selection boxes, built from a width span {@code [min, max]} (across the
+ * mounting face) and a thickness range for the low faces ({@code [near1, near2]}, DOWN/NORTH/WEST) and the high
+ * faces ({@code [far1, far2]}, UP/SOUTH/EAST).
  */
 public final class PluggableBoxes {
    /**
-    * The small square chip mounted against the pipe body, shared by the gate, light sensor, pulsar and timer.
-    * Matched 1:1 to the rendered gate geometry ({@code GateQuadGeometry}): the 6px-wide body spans 0.125..0.2506
-    * off the block face (flush against the 4px pipe wall) and its logic/modifier overlays protrude 0.0125 beyond
-    * the body on both sides, so the box wraps 0.1125..0.2625 -- the exact visual envelope.
+    * Small chip mounted against the pipe body, shared by the gate, light sensor, pulsar and timer. Matched to the
+    * rendered gate geometry ({@code GateQuadGeometry}): body spans 0.125..0.2506 off the face, overlays protrude
+    * 0.0125 beyond it, so the box wraps 0.1125..0.2625 -- the exact visual envelope.
     */
    public static final AABB[] CHIP = faceBoxes(0.3125, 0.6875, 0.1125, 0.2625, 0.7375, 0.8875);
 

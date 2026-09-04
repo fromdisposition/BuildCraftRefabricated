@@ -11,12 +11,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.HolderLookup.Provider;
 import org.jspecify.annotations.Nullable;
 
-/**
- * Client-only holder for the {@link Minecraft} client-level registry access. Kept out of the common
- * {@link buildcraft.lib.fabric.BcRegistryUtil} so that class never names a client type in its bytecode
- * (which the verifier would resolve and fail on a dedicated server). Only invoked behind an
- * {@code EnvType.CLIENT} guard, so it is never loaded server-side.
- */
+// Kept out of BcRegistryUtil so the common class never names a client type; only loaded behind an EnvType.CLIENT guard.
 public final class BcClientRegistryAccess {
    private BcClientRegistryAccess() {
    }

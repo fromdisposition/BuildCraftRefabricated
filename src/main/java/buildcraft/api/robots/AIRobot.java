@@ -17,8 +17,7 @@ public class AIRobot {
    private AIRobot delegateAI;
    private AIRobot parentAI;
    private boolean success;
-   /** Set once this AI has ended. An AI may terminate from inside its own preempt(), and the cycle that called
-    *  that preempt must not then go on to update() an AI that is already gone. */
+   /** Set once this AI has ended; an AI can terminate from inside its own preempt(), and the caller must not then update() it. */
    private boolean finished;
 
    public AIRobot(EntityRobotBase iRobot) {
@@ -131,8 +130,7 @@ public class AIRobot {
       this.abortDelegateAI();
       this.delegateAI = ai;
       ai.parentAI = this;
-      // "finished" means "ended since it was last started". Boards are long-lived instances that AIRobotMain
-      // restarts every cycle, so a board that once aborted must be able to run again.
+      // finished means ended since last started; boards are long-lived and restarted every cycle, so one that aborted must run again
       ai.finished = false;
       this.delegateAI.start();
    }

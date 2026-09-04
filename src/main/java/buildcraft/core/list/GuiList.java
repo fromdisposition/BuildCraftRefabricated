@@ -70,8 +70,7 @@ public class GuiList extends BcScreen<ContainerList> {
                   new ElementHelpInfo("buildcraft.help.list.slots.title", -7811960, "buildcraft.help.list.slots.desc1", "buildcraft.help.list.slots.desc2")
                )
             );
-         // Buttons sit in the 18px band above their slot row (14px tall, 2px clear of the wells), so the caption on
-         // the band's left can describe them.
+         // Buttons sit in the 18px band above their slot row, leaving the band's left free for the caption.
          int btnRowY = rowY - 17;
          int bOffX = 127;
          this.mainGui
@@ -152,14 +151,10 @@ public class GuiList extends BcScreen<ContainerList> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      // Generic item name ("List") on the canonical title anchor; the custom label lives in the edit box below it.
       graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
-      // X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from the real slot rows
-      // (firstPlayerRowY() - 12), so it follows the inventory automatically.
+      // X = 8 is the player inventory's left edge.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
-      // Caption on the left of each row's button band. The two rows are independent filters, so number them rather
-      // than repeat one label; the P/T/M toggles to the right set that filter's match mode. Y is centred against the
-      // 14px buttons at rowY - 16 (rowY = 48 + line * 36).
+      // Numbered because the rows are independent filters; Y centres on the 14px button band.
       for (int line = 0; line < (this.menu).lines.length; line++) {
          graphics.text(this.font, LocaleUtil.localize("gui.list.filter_line", line + 1), 8, 35 + line * 36, -12566464, false);
       }
@@ -337,7 +332,7 @@ public class GuiList extends BcScreen<ContainerList> {
             sprite = SPRITE_NORMAL;
          }
 
-         // Opaque-scaled white (ARGB.white(float) is 1.21.5+; inline int-math works on every node).
+         // ARGB.white(float) is missing on the oldest node.
          int whiteArgb = (Math.round(this.alpha * 255.0F) & 0xFF) << 24 | 0xFFFFFF;
          graphics.blitSprite(sprite, this.getX(), this.getY(), this.getWidth(), this.getHeight(), whiteArgb);
          this.drawDefaultButtonLabel(graphics);

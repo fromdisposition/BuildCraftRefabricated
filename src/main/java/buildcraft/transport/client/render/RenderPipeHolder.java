@@ -91,14 +91,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       return new PipeHolderRenderState();
    }
 
-   /**
-    * The body and paint are chunk-baked (PipeBlockStateModel); the block-entity renderer only draws the dynamic
-    * remainder. When a pipe has none — no pluggables, no wires, no behaviour renderer, empty item/fluid flow —
-    * returning false makes the dispatcher skip extractRenderState AND submit entirely for it, so a wall of bare
-    * transport pipes costs zero block-entity-renderer time per frame. The body stays visible either way (it is
-    * section mesh, independent of this renderer). Cheap enough to run per pipe per frame: field reads and a
-    * couple of isEmpty checks.
-    */
+   /** False skips extractRenderState and submit entirely for this pipe; the chunk-baked body still renders. */
    @Override
    public boolean shouldRender(TilePipeHolder pipe, Vec3 cameraPosition) {
       return hasDynamicContent(pipe) && BlockEntityRenderer.super.shouldRender(pipe, cameraPosition);
@@ -130,8 +123,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
          FluidStack forRender = fluids.getFluidStackForRender();
          return forRender != null && !forRender.isEmpty();
       } else {
-         // Power/RF and anything else with a registered flow renderer: keep rendering, its transmission overlay
-         // draws from live state we do not cheaply probe here. Structure pipes have no renderer and skip.
+         // Keep rendering if a flow renderer is registered; its live state is not cheap to probe here.
          return flow != null && PipeRegistryClient.getFlowRenderer(flow) != null;
       }
    }
@@ -182,9 +174,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
          if (level != null) {
             int light = renderState.lightCoords;
             poseStack.pushPose();
-            // The static pipe body and paint shell are NOT submitted here: they are chunk-baked geometry
-            // (PipeBlockStateModel), rebuilt only when the pipe changes — so this per-frame path only draws the
-            // dynamic remainder, and a bare pipe (no pluggables, no wires) submits nothing at all.
+            // Body and paint shell are chunk-baked (PipeBlockStateModel); this path only submits the dynamic remainder.
             boolean hasPluggables = pipe.hasPluggables();
             WireManager wires = pipe.getWireManager();
             boolean hasWires = wires != null && (!wires.parts.isEmpty() || !wires.betweens.isEmpty());
@@ -309,8 +299,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       Pipe p = pipe.getPipe();
       if (p != null) {
          PipeRenderContext.setPackedLight(light);
-         // Submit only when something will actually draw: most behaviours and pluggables have no dynamic
-         // renderer, and an empty submit still costs a node, a lambda and a PoseStack copy per pipe per frame.
+         // Submit only when something will draw: an empty submit still costs a node, a lambda and a PoseStack copy.
          IPipeBehaviourRenderer<PipeBehaviour> behaviourRenderer = p.behaviour != null ? PipeRegistryClient.getBehaviourRenderer(p.behaviour) : null;
          boolean hasDynamicPlugs = false;
 
@@ -338,11 +327,8 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
          }
 
          if (p.flow != null && !(p.flow instanceof PipeFlowItems) && PipeRegistryClient.getFlowRenderer(p.flow) != null) {
-            // Energy flow (power_flow / _overload): use the entity-cutout render type against the block atlas --
-            // the SAME type the fluid path uses. cutoutBlockSheet (the block/item sheet) does not reflect the
-            // atlas's per-tick animation blit in this BER submit path on 26.2 (so the flow sprite froze on one
-            // frame), and its BLOCK vertex format also lacks the overlay that BcFluidVertexEmitter.putVertex
-            // writes. entityCutout samples the live animated atlas and matches the vertex format.
+            // cutoutBlockSheet does not reflect the atlas's per-tick animation in this BER submit path, and its
+            // BLOCK vertex format lacks the overlay BcFluidVertexEmitter.putVertex writes; entityCutout does both.
             RenderType flowType = BCLibRenderTypes.entityCutout(BcTextureAtlases.BLOCKS_TEXTURE);
             if (p.flow instanceof PipeFlowFluids fluids) {
                FluidStack forRender = fluids.getFluidStackForRender();

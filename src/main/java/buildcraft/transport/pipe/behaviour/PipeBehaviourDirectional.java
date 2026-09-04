@@ -97,12 +97,7 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
       return false;
    }
 
-   /**
-    * Set once the facing has been re-validated. Everything that can invalidate it (connection changes,
-    * neighbour updates, pluggable changes) wakes the holder for two ticks, during which onTick runs again —
-    * so a validated idle facing needs no per-tick simulation. Without this every directional pipe (wood,
-    * iron, emerald, daizuli, …) kept its holder in heavy simulation every tick forever.
-    */
+   // set once the facing is revalidated; anything invalidating it wakes the holder for two ticks so onTick reruns before this is trusted
    private boolean facingValidated;
 
    @Override

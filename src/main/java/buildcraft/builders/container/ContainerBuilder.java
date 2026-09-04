@@ -39,8 +39,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
-   // leftToBreak/leftToPlace are block counts and easily exceed a vanilla data slot's 16 wire bits
-   // (see BcMenu.chunk16), so each travels as two unsigned 16-bit chunks.
+   // leftToBreak/leftToPlace exceed a vanilla data slot's 16-bit wire limit (BcMenu.chunk16), so each travels as two 16-bit chunks.
    private static final int DATA_CAN_EXCAVATE = 0;
    private static final int DATA_SNAPSHOT_TYPE = 1;
    private static final int DATA_LEFT_TO_BREAK = 2;

@@ -15,12 +15,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class LocalBlockUpdateNotifier {
-   // Weak keys so an unloaded level is collected, synchronized because the integrated server and the client
-   // thread both resolve notifiers; a plain WeakHashMap corrupts (or spins) under concurrent writes.
+   // Resolved from both the integrated-server and client threads; an unsynchronized WeakHashMap corrupts under concurrent writes.
    private static final Map<Level, LocalBlockUpdateNotifier> instanceMap = Collections.synchronizedMap(new WeakHashMap<>());
-   // Copy-on-write: setLevelUpdated runs arbitrary tile logic that may place or break blocks, re-entering
-   // dispatch on this very list, or register/remove a subscriber. Iterating a plain Set there throws
-   // ConcurrentModificationException. Writes are rare (tile load/unload), iteration is per block change.
+   // setLevelUpdated may re-enter dispatch or (un)register a subscriber mid-iteration; a plain Set would throw CME.
    private final CopyOnWriteArrayList<ILocalBlockUpdateSubscriber> subscribers = new CopyOnWriteArrayList<>();
 
    private LocalBlockUpdateNotifier(Level world) {

@@ -29,13 +29,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 /**
- * The work cycle every block-working board runs: acquire tool, find one block, travel to it, work it, and
- * <b>deliver what that produced</b>. Subclasses supply only the parameters -- which blocks count, which tool is
- * needed, what "work" means -- and never the control flow, so a board cannot express an incomplete cycle.
- *
- * <p>Delivery in particular is not a per-board decision. It runs whenever the robot is out of room, and again
- * when there is no work left, which is what stops a miner from filling up and then scattering everything it
- * breaks across the work site.
+ * Fixed work cycle (acquire tool, find, travel, work, deliver); subclasses supply only parameters, never control
+ * flow, so a board cannot express an incomplete cycle. Delivery triggers on full cargo or no work left, not per board.
  */
 public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
    private BlockPos blockFound;

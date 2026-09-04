@@ -41,14 +41,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector3f;
 
-/**
- * 1.21.1 (versions/1.21.1) dynamic facade item model. Emits the NORTH-facing centred slab geometry via
- * Fabric's FabricBakedModel.emitItemQuads (vanilla 1.21.1 lacks ItemModel / per-context applyTransform), with
- * the facade block state read per-stack.
- */
+// vanilla 1.21.1 has no ItemModel/per-context applyTransform, so item quads are emitted via Fabric's FabricBakedModel.emitItemQuads.
 public class FacadeItemModel implements BakedModel {
-   // Two materials so a facade of a translucent source block (stained glass, ice) keeps its alpha in the item
-   // render; the default finder resolves to an opaque layer, which is why such facades were solid grey in hand.
+   // separate cutout/translucent materials: the default finder picks an opaque layer, which drops alpha for translucent source blocks (stained glass, ice).
    private static final RenderMaterial CUTOUT_MATERIAL =
       RendererAccess.INSTANCE.getRenderer().materialFinder().blendMode(BlendMode.CUTOUT).find();
    private static final RenderMaterial TRANSLUCENT_MATERIAL =
@@ -60,9 +55,7 @@ public class FacadeItemModel implements BakedModel {
          float offsetZ = 0.4375F;
          for (MutableQuad quad : PlugBakerFacade.INSTANCE.bakeForKey(key)) {
             quad.setShade(false);
-            // Bake the source block's BASE (world-less) tint into the quad -- otherwise a biome-tinted facade
-            // (grass, leaves) drew grey. resolveWorldTint with a null level returns the default colour, the same
-            // green a grass block item shows in the inventory.
+            // bake the base (world-less) tint here; resolveWorldTint(null) returns the default colour used for biome-tinted blocks in the inventory.
             int tint = quad.getTint();
             int rgb = tint >= 0 ? key.resolveWorldTint(tint, null, null) : -1;
             int r = rgb == -1 ? 255 : rgb >> 16 & 0xFF;
@@ -117,9 +110,7 @@ public class FacadeItemModel implements BakedModel {
 
    @Override
    public boolean isGui3d() {
-      // false = flat 2D GUI icon, matching how 26.2 draws the facade face-on (no block-camera tilt). The 3d path
-      // rendered the NORTH slab at the block-item camera angle, showing its back/inside ("the facade effect"). The
-      // flat path faces +Z, so the GUI transform below rotates the NORTH front 180 deg to point at the viewer.
+      // false avoids the block-camera tilt, which shows the slab's back; the GUI transform below rotates 180 deg to face the viewer instead.
       return false;
    }
 
@@ -148,11 +139,7 @@ public class FacadeItemModel implements BakedModel {
       return ItemOverrides.EMPTY;
    }
 
-   // The emitted geometry is the modern guiCache's FLAT face-on slab (bakeForKey NORTH + offsetZ + UP normal),
-   // identical to what 26.2 renders in the GUI as a flat texture tile. Vanilla 1.21.1 BakedModel has no
-   // per-context applyTransform, so getTransforms() is the only placement hook. The GUI MUST stay flat (rot 0,
-   // scale 1 = fills the slot face-on, like 26.2) — NOT the block/block 30/225 tilt, which turned the flat tile
-   // into a 3D block. Hand/ground keep the block-item poses (the flat slab as a held card is acceptable there).
+   // GUI transform must stay flat (rot 0, scale 1); the block tilt (30/225) turns the flat slab into a 3D block.
    private static final ItemTransforms TRANSFORMS = buildBlockTransforms();
 
    private static ItemTransforms buildBlockTransforms() {
@@ -162,7 +149,7 @@ public class FacadeItemModel implements BakedModel {
          xform(0, 225, 0, 0, 0, 0, 0.4F),        // firstperson_lefthand
          xform(0, 45, 0, 0, 0, 0, 0.4F),         // firstperson_righthand
          xform(0, 0, 0, 0, 0, 0, 1.0F),          // head
-         xform(0, 180, 0, 0, 0, 0, 1.0F),        // gui — flat face-on tile (matches 26.2); 180 Y turns the NORTH front toward the viewer
+         xform(0, 180, 0, 0, 0, 0, 1.0F),        // gui
          xform(0, 0, 0, 0, 3, 0, 0.25F),         // ground
          xform(0, 0, 0, 0, 0, 0, 0.5F)           // fixed
       );

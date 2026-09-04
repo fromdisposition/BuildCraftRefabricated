@@ -12,14 +12,8 @@ import net.minecraft.nbt.ListTag;
 /*import net.minecraft.nbt.Tag;
 *///?}
 
-/**
- * Version-neutral accessors for a raw {@link CompoundTag} (the non-block-entity NBT call sites: data/snapshot/
- * util classes). 1.21.5 reworked the read API — bare getters return {@code Optional} and {@code getXOr} /
- * {@code getCompoundOrEmpty} were added; on 1.21.1 the bare getters return the value directly. This hides
- * that in ONE place so call sites are identical on every node: both {@code tag.getIntOr(k,d)} and
- * {@code tag.getInt(k).orElse(d)} become {@code BcNbt.getInt(tag,k,d)}. (For BlockEntity save/load use the
- * {@link BcValueIn}/{@link BcValueOut} wrappers instead — those carry the version-specific override signature.)
- */
+// Hides the 1.21.5+ read-API rework (bare getters return Optional; getXOr/getCompoundOrEmpty were added) behind
+// one call site that works on every node; BlockEntity save/load uses {@link BcValueIn}/{@link BcValueOut} instead.
 public final class BcNbt {
    private BcNbt() {
    }
@@ -119,7 +113,6 @@ public final class BcNbt {
       /*return list.getCompound(index); *///?}
    }
 
-   /** Double at a list index. */
    public static double getDouble(ListTag list, int index, double def) {
       //? if >= 1.21.10 {
       return list.getDouble(index).orElse(def);

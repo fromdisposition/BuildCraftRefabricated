@@ -29,12 +29,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jspecify.annotations.Nullable;
 
-/**
- * 1.21.1 (versions/1.21.1) distiller renderer: immediate-mode port of the shared render-state/submit BER.
- * Draws the three fluid tanks (in / gas-out / liquid-out) via BcFluidTankRenderer and the two animated power
- * cubes, mirroring the shared RenderDistiller geometry exactly (this override replaces that class on 1.21.1,
- * so the geometry helpers are duplicated here). Power sprites come from the block atlas via SpriteUtil.
- */
+/** Duplicates the shared RenderDistiller geometry in immediate mode; keep both in sync by hand. */
 public class RenderDistiller implements BlockEntityRenderer<TileDistiller> {
    private static final Identifier BLOCKS_ATLAS_TEXTURE = Identifier.withDefaultNamespace("textures/atlas/blocks.png");
    private static final Map<Direction, TankSizes> TANK_SIZES = new EnumMap<>(Direction.class);

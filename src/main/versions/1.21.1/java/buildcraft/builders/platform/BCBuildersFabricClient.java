@@ -42,12 +42,8 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * 1.21.1 implementation (versions/1.21.1). 1.21.1 has no deferred submit pipeline or level render-state, so the
- * builder/quarry/filler in-world overlays fire on Fabric's immediate WorldRenderEvents.AFTER_TRANSLUCENT, passing
- * the live MultiBufferSource and camera position to the version-neutral events. Block render layers use the
- * 1.21.1 BlockRenderLayerMap (RenderType), and the noop entity renderer registers via Fabric's registry.
- */
+/** No deferred submit pipeline or level render-state here, so the in-world overlays fire on Fabric's immediate
+ * WorldRenderEvents.AFTER_TRANSLUCENT instead. */
 public final class BCBuildersFabricClient {
    private BCBuildersFabricClient() {
    }
@@ -85,8 +81,7 @@ public final class BCBuildersFabricClient {
          return null;
       });
       BCTooltips.addTooltip(BCBuildersItems.QUARRY, "tip.block.quarry");
-      // 1.21.1 ignores the model JSON "render_type"; register the cutout layer so the frame lattice and
-      // builder slots render with transparency instead of falling back to SOLID.
+      // The model JSON "render_type" is ignored here, so the cutout layer must be registered explicitly.
       BlockRenderLayerMap.INSTANCE.putBlock(BCBuildersBlocks.FRAME, RenderType.cutout());
       BlockRenderLayerMap.INSTANCE.putBlock(BCBuildersBlocks.BUILDER, RenderType.cutout());
    }

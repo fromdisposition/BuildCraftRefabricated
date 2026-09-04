@@ -124,9 +124,8 @@ public class VanillaPaintHandlers {
       }
    }
 
-   /** A bed is two blocks (head + foot). Recolouring only the struck half would leave the other half a different
-    * colour, and its {@code updateShape} would then see a mismatched partner and pop it off. So recolour BOTH
-    * halves, with {@code UPDATE_KNOWN_SHAPE} to suppress those shape updates mid-swap. */
+   // Recolouring only one bed half lets the other's updateShape see a mismatched partner and pop it off,
+   // so both halves swap under UPDATE_KNOWN_SHAPE.
    private static void registerBedFamily(Block... beds) {
       if (beds.length != 16) {
          throw new IllegalArgumentException("Expected 16 bed blocks, got " + beds.length);

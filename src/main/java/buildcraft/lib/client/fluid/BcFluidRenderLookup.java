@@ -34,11 +34,7 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import org.jspecify.annotations.Nullable;
 
-/**
- * Client fluid sprite/tint lookup.
- * World blocks, tanks, pipes, and GUI use pre-baked {@code block/fluids/baked/*} sprites from {@link FluidModel}.
- * BC vertex multiply stays white ({@code -1}) because color is baked into the atlas.
- */
+// BC fluid tint stays white: colour is pre-baked into the block/fluids/baked/* atlas sprites.
 public final class BcFluidRenderLookup {
    private BcFluidRenderLookup() {
    }

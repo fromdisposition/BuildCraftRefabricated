@@ -17,10 +17,7 @@ import net.minecraft.world.item.DyeColor;
 public class PipeHolderRenderState extends BlockEntityRenderState {
    public TilePipeHolder pipe;
    public float partialTick;
-   /**
-    * Backing pool of entries — grown on demand and reused across frames (never holds more than its high-water
-    * mark). Only the first {@link #itemEntryCount} are live this frame; iterate with that bound, not size().
-    */
+   /** Only the first {@link #itemEntryCount} entries are live this frame; iterate with that bound, not size(). */
    public final List<PipeHolderRenderState.ItemRenderEntry> itemEntries = new ArrayList<>();
    public int itemEntryCount;
    private final List<ItemStackRenderState> itemStatePool = new ArrayList<>();

@@ -12,8 +12,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
-/** Emits the handwritten convention/vanilla tags from {@link BCAssetDefs}; a value prefixed with '?' is an
- * optional entry (a block that only registers when its companion mod is loaded). */
+/** A tag value prefixed with '?' registers only if the companion mod providing it is loaded. */
 public final class BCTagDefProviders {
    public static final class Blocks extends FabricTagsProvider<Block> {
       public Blocks(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registries) {

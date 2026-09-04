@@ -12,12 +12,8 @@ import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.path.IFluidFilter;
 
-/**
- * What a robot is going to a station to do. There are exactly four of these -- load or unload, items or fluid --
- * and each answers the same two questions: whether a candidate station can serve it, and what the robot does once
- * docked there. Those answers are all that ever differed between the errands, so they are the only thing stated
- * per errand; finding the station and travelling to it is one shared implementation.
- */
+/** Four errands (load/unload x items/fluid) each answer only two questions: whether a candidate station
+ * can serve it, and what to do once docked; finding and travelling to the station is one shared implementation. */
 public final class StationErrand {
    public enum Kind {
       LOAD_ITEMS,

@@ -59,9 +59,8 @@ public abstract class BcBlockEntity extends BlockEntity {
    }
 
    public boolean canInteractWith(Player player) {
-      // Vanilla's container-validity check: the block entity is still the one at its position and the player is
-      // within block-interaction reach (reach-attribute aware) -- rather than a hand-rolled fixed 8-block (64 =
-      // 8^2) sphere. Used by every ContainerBCTile via stillValid.
+      // Vanilla's container-validity check: block entity still at its position, player within reach-attribute-aware
+      // interaction range -- not a hand-rolled fixed 8-block sphere. Used by every ContainerBCTile via stillValid.
       return Container.stillValidBlockEntity(this, player);
    }
 
@@ -105,12 +104,8 @@ public abstract class BcBlockEntity extends BlockEntity {
    }
    *///?}
 
-   /**
-    * A read exception must never escape loadAdditional: depending on the version/path the tile is then either
-    * discarded or left empty, and the NEXT SAVE overwrites the stored data with that empty state -- permanent,
-    * silent world damage (this exact failure mode once wiped every loaded pipe in a save). Keep whatever was read
-    * before the failure and log loudly; losing the unread remainder of one tile beats losing the tile forever.
-    */
+   /** A read exception must never escape loadAdditional: it would leave the tile empty and the next save persists
+    * that (this exact bug once wiped every loaded pipe); log loudly and keep whatever was read before the failure. */
    private void readDataGuarded(BcValueIn input) {
       guardTileRead(this, () -> this.readData(input));
    }

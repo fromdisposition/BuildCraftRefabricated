@@ -18,9 +18,7 @@ import net.minecraft.client.resources.model.geometry.BakedQuad;
 
 public final class BakedQuadTemplateCache<K> {
    private static final ThreadLocal<MutableQuad> RENDER_SCRATCH = ThreadLocal.withInitial(MutableQuad::new);
-   // Same expiry as the ModelCache underneath: a plain map here never evicted, so it pinned MutableQuad lists
-   // for keys whose baked quads had already expired below -- keys include facade block state x side x colour x
-   // connections, so a world with many distinct facades grew this without bound.
+   // Keys span facade state x side x colour x connections; without expiry this grows without bound.
    private final LoadingCache<K, List<MutableQuad>> templates = CacheBuilder.newBuilder()
       //? if >= 26.2 {
       .expireAfterAccess(java.time.Duration.ofMinutes(1))
@@ -54,9 +52,7 @@ public final class BakedQuadTemplateCache<K> {
 
       for (BakedQuad quad : baked) {
          MutableQuad mutable = new MutableQuad().fromBakedBlock(quad);
-         // setCalculatedDiffuse OVERWRITES the vertex colour with a grey face-shade — correct for sprite-coloured
-         // cutout geometry, but it would wipe the per-vertex dye baked into translucent quads (e.g. the lens
-         // glass), so translucent caches skip it and keep the baked colour.
+         // setCalculatedDiffuse overwrites the vertex colour, which would wipe the dye baked into translucent quads.
          if (this.applyDiffuse) {
             mutable.setCalculatedDiffuse();
          }
@@ -67,11 +63,7 @@ public final class BakedQuadTemplateCache<K> {
       return result;
    }
 
-   /**
-    * As {@link #render}, but resolves a packed RGB per quad from its baked tint index (resolver returns -1 for
-    * untinted). The colour MULTIPLIES the template's vertex colour so the diffuse face shade baked into cutout
-    * templates survives -- used for world-tinted facades (grass/leaves biome colours).
-    */
+   /** Resolver returns -1 for untinted; the colour multiplies the vertex colour so the baked face shade survives. */
    public void renderTintResolved(K key, Pose pose, VertexConsumer buffer, int light, java.util.function.IntUnaryOperator tintToRgb) {
       MutableQuad scratch = RENDER_SCRATCH.get();
 
@@ -108,8 +100,7 @@ public final class BakedQuadTemplateCache<K> {
       }
    }
 
-   /** As {@link #render}, but tints every vertex with the given packed ARGB — used to colour geometry whose dye
-    * cannot survive the {@code BakedQuad} bake (no per-vertex colour on 26.x), e.g. the lens glass. */
+   // Per-vertex colour does not survive the BakedQuad bake, so dyed geometry is tinted at render time.
    public void renderTinted(K key, Pose pose, VertexConsumer buffer, int light, int argb) {
       int a = argb >>> 24 & 0xFF;
       int r = argb >> 16 & 0xFF;

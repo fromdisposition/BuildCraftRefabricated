@@ -10,18 +10,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
-/**
- * Hands BC machines a fake player, straight from Fabric's {@link FakePlayer} cache.
- *
- * <p>Deliberately keeps no cache of its own. Fabric already caches per <em>(level, profile)</em> in a concurrent,
- * {@code weakValues()} map, which is exactly the right shape: a BC-side map keyed by profile alone handed every
- * level the first level's player (so a machine in another dimension dragged it across with a teleport, every
- * single check, in loops as hot as the quarry frame scanner), was not thread-safe, and -- by holding strong
- * references -- pinned every fake player, and through it its ServerLevel, alive until the server stopped.
- *
- * <p>Because Fabric's cache is per level, the player handed back always belongs to {@code level}; positioning it
- * is a plain setPos, never a cross-dimension teleport.
- */
+// No cache of its own: Fabric's FakePlayer cache is already per (level, profile), concurrent and weak-valued,
+// so the player returned always belongs to the given level and setPos never has to cross dimensions.
 public final class BCLibFakePlayerProvider implements IFakePlayerProvider {
    public static final GameProfile NULL_PROFILE = new GameProfile(FakePlayer.DEFAULT_UUID, "[BuildCraft]");
    private static final BCLibFakePlayerProvider INSTANCE = new BCLibFakePlayerProvider();

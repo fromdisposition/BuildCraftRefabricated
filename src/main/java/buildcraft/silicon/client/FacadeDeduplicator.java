@@ -203,14 +203,8 @@ public class FacadeDeduplicator {
 
    private static String computeTextureFingerprint(BlockStateModel model) {
       try {
-         // Identity = the SET of sprites, deliberately direction-agnostic. A facade is a 2px panel built from the
-         // state's own quads (PlugBakerFacade.getTransformedQuads reuses them verbatim) and the player picks the
-         // mounting face -- so two states drawing the same sprites merely arranged on different block faces produce
-         // the same panel looks and must collapse to ONE facade. Keying by "face:sprite" (the old form) kept every
-         // arrangement apart: a mushroom block (6 boolean face properties = 64 states, each face skin-or-inside)
-         // flooded the tab with 64 entries; a plain sprite set folds it to 3 (all-skin, all-inside, mixed), and
-         // pillar/log axis rotations fold into one. Crafting every collapsed state still works via the redirect
-         // map built from these same fingerprints.
+         // Fingerprint keys on the sprite set only, direction-agnostic: states differing merely in which face shows
+         // which sprite (e.g. mushroom blocks: 64 states) collapse into one facade; recipes still resolve via the redirect map.
          Set<String> textures = new LinkedHashSet<>();
 
          for (Direction dir : Direction.values()) {

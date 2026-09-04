@@ -34,18 +34,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * Pipe block model. The vanilla delegate carries the (empty) baked state; on top of it this emits the STATIC
- * pipe geometry as chunk geometry via the Fabric renderer API, driven by the tile's render data
- * ({@link PipeModelKey} snapshot): the body on the cutout layer and the paint shell on the translucent layer.
- * The block-entity renderer only draws the dynamic remainder (travelling items, fluid, pluggables, wires), so
- * a field of bare pipes costs nothing per frame — geometry rebuilds only when a pipe's colour or connections
- * change, via the existing sendBlockUpdated in TilePipeHolder#refreshClientModel.
- *
- * <p>The paint especially must be chunk geometry: BER translucency draws in a separate pass from translucent
- * terrain, so it can never sort against water/oil — either its depth writes hid the fluid behind the pipe, or
- * (without depth writes) the fluid drew over the paint and washed the tint out, plus the BER-vs-terrain
- * transform mismatch z-fought on shared planes. As chunk geometry the shell is depth-written and sorted
- * per-quad against fluids in the same translucent pass, exactly how stained glass behaves.
+ * Rebuilt only when a pipe's colour or connections change, via TilePipeHolder#refreshClientModel.
+ * Paint must be chunk geometry: BER translucency draws in a separate pass and cannot sort against water/oil.
  */
 public class PipeBlockStateModel implements BlockStateModel {
    private static final float BOUNDARY_EPS = 1.0E-4F;
@@ -109,8 +99,7 @@ public class PipeBlockStateModel implements BlockStateModel {
       //?} else {
       /*emitter.renderLayer(layer);
       *///?}
-      // Flat like the block-entity renderer this replaces: the templates bake their own colours, and the paint
-      // shell hugs the body, so diffuse/AO would double-darken it.
+      // Flat shading: templates bake their own colours, and diffuse/AO would double-darken the shell against the body.
       emitter.shadeDirectionOverride(net.minecraft.core.Direction.UP);
       emitter.ambientOcclusion(TriState.FALSE);
       emitter.emit();
@@ -122,12 +111,7 @@ public class PipeBlockStateModel implements BlockStateModel {
       emitter.uv(i, v.tex_u, v.tex_v);
    }
 
-   /**
-    * The block face this quad lies flat on (all four vertices at 0 or 1 on one axis), or null. Caps produced by
-    * connections end exactly on the block boundary; testing them against the neighbour via the model's cull
-    * test culls them like vanilla full-block faces, which both skips hidden geometry and avoids z-fighting a
-    * solid neighbour's coplanar face.
-    */
+   /** Used to cull boundary caps like vanilla full-block faces: skips hidden geometry and avoids z-fighting the neighbour. */
    private static Direction boundaryFace(MutableQuad q) {
       MutableVertex v0 = q.vertex_0;
       MutableVertex v1 = q.vertex_1;

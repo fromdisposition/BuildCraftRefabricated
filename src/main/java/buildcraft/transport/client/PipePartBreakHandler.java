@@ -16,15 +16,9 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * Client-side: left-clicking a pluggable (gate, lens, plug, ...) or wire on a pipe removes just that part, not the
- * whole pipe. Vanilla has no "break a sub-part" hook, so we detect the crosshair sub-part on the client and ask the
- * server (authoritatively) to remove it via {@link MessageRemovePipePart}, then return {@code FAIL} to cancel the
- * vanilla attack without letting Fabric send a break packet -- so the client never starts breaking the whole pipe
- * (no flicker) and a creative-mode server never instant-breaks it. A plain pipe-body hit falls through to normal
- * breaking. See the return site for why {@code FAIL} rather than {@code SUCCESS}.
- *
- * <p>Client-only (touches {@link Minecraft}); registered from {@code BCTransportFabricClient} and never loaded on a
- * dedicated server.
+ * Detects the crosshair sub-part client-side and asks the server to remove it via {@link MessageRemovePipePart},
+ * then returns {@code FAIL} (not {@code SUCCESS}) to cancel the vanilla attack without triggering a break packet --
+ * {@code SUCCESS} let a creative-mode server instant-break the whole pipe. Client-only; never loaded server-side.
  */
 public final class PipePartBreakHandler {
    private PipePartBreakHandler() {
@@ -44,15 +38,12 @@ public final class PipePartBreakHandler {
             if (BlockPipeHolder.getHitPluggable(tile, lx, ly, lz) != null
                || BlockPipeHolder.getHitWire(tile, lx, ly, lz) != null
                || BlockPipeHolder.getHitWireBetween(tile, lx, ly, lz) != null) {
-               // Ship the exact crosshair hit point: the server must remove precisely the part the player aimed at,
-               // not whatever its own (lagging) re-raytrace would land on -- see MessageRemovePipePart.
+               // Ship the exact crosshair hit point: the server must remove precisely the part aimed at, not whatever its own lagging re-raytrace would land on.
                BcPacketDistributor.sendToServer(new MessageRemovePipePart(pos, (float)lx, (float)ly, (float)lz));
                player.swing(hand, player.getItemInHand(hand).getOrDefault(net.minecraft.core.component.DataComponents.INTERACT_ANIMATION, net.minecraft.world.item.component.SwingAnimation.DEFAULT), false);
-               // FAIL, not SUCCESS: Fabric's AttackBlockCallback (fabric_fireAttackBlockCallback) sends the vanilla
-               // START_DESTROY_BLOCK packet whenever the result consumesAction() (SUCCESS/CONSUME). A creative-mode
-               // server instant-breaks the whole block on START, so SUCCESS destroyed the entire pipe in creative.
-               // FAIL still cancels the vanilla attack (setReturnValue(false)) but sends no break packet, leaving only
-               // our MessageRemovePipePart -- correct in both survival and creative, and no break-crack in either.
+               // FAIL, not SUCCESS: Fabric's AttackBlockCallback sends the vanilla START_DESTROY_BLOCK packet whenever
+               // the result consumesAction() (SUCCESS/CONSUME), and a creative-mode server instant-breaks the whole
+               // block on START. FAIL still cancels the vanilla attack but sends no break packet.
                return InteractionResult.FAIL;
             }
          }

@@ -37,13 +37,7 @@ public class PageEntryStatement extends PageValueType<IStatement> {
    private static final JsonTypeTags TRIGGER_TAGS = new JsonTypeTags("buildcraft.guide.contents.triggers");
    private static final JsonTypeTags ACTION_TAGS = new JsonTypeTags("buildcraft.guide.contents.actions");
 
-   /**
-    * Statement family (matched by uniqueTag prefix) -> a lang key describing what that whole family does. This
-    * only fills the auto-generated statement pages that have no written .md of their own (paint colours, pipe-wire
-    * signals, power limits, Emzuli presets, robot/station actions). Families whose every variant already has a
-    * written page never reach here. Longer prefixes MUST precede the shorter ones they contain (work_filter_tool
-    * before work_filter).
-    */
+   // Prefix-matched in insertion order: longer prefixes must precede the shorter ones they contain.
    private static final Map<String, String> FAMILY_DESC = new LinkedHashMap<>();
 
    static {
@@ -73,7 +67,6 @@ public class PageEntryStatement extends PageValueType<IStatement> {
       FAMILY_DESC.put("buildcraft:station.force_robot", "buildcraft.guide.statement.desc.station_forbid");
    }
 
-   /** The family description for a statement, falling back to a generic trigger/action note if the family is unknown. */
    private static String familyDescription(IStatement value) {
       String tag = value.getUniqueTag();
       if (tag != null) {
@@ -144,11 +137,7 @@ public class PageEntryStatement extends PageValueType<IStatement> {
    }
 
    public void addPageEntries(IStatement value, GuiGuide gui, List<GuidePart> parts) {
-      // A statement carries a name but no description of its own, and an auto-generated statement page is built
-      // with an empty body — so without this the page would be blank. When there is no written .md (parts holds
-      // only the auto-added title chapter), fill the page: the statement's own extra tooltip lines plus a real
-      // description of its family (familyDescription). Pages that already have a written .md are left as they
-      // were (their body + the usage links below).
+      // Auto-generated pages arrive with only the title chapter; anything more means a written .md exists.
       boolean hasWrittenBody = parts.size() > 1;
 
       if (!hasWrittenBody) {

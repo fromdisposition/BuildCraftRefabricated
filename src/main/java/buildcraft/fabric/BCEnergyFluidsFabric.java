@@ -117,7 +117,7 @@ public final class BCEnergyFluidsFabric {
                .noLootTable()
                .liquid()
                .sound(SoundType.HONEY_BLOCK)
-               // Vanilla carver/lava path: WorldGenRegion marks postProcess pos, then postProcessGeneration runs fluid tick.
+               // Worldgen-placed fluid only gets its first tick through the postProcess pass, as vanilla lava does.
                //? if >= 26.1 {
                .postProcess((state, level, pos) -> pos)
                //?}

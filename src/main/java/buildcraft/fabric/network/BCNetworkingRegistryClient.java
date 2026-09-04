@@ -27,13 +27,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
 import net.minecraft.world.entity.player.Player;
 
-/**
- * Clientbound packet receivers. SPLIT OUT of {@link BCNetworkingRegistry} because it references
- * {@code ClientPlayNetworking} and {@code net.minecraft.client.Minecraft}, which do not exist on a dedicated
- * server. This whole class is {@code @Environment(CLIENT)} (stripped on the server) and is only invoked from
- * {@code BuildCraftFabricClient}; the dedicated server therefore never loads any client networking type.
- * Wire codecs are registered for both sides in {@link BCNetworkingRegistry#registerCommon()}.
- */
+// Kept apart from BCNetworkingRegistry so the dedicated server never loads ClientPlayNetworking or Minecraft.
 @Environment(EnvType.CLIENT)
 public final class BCNetworkingRegistryClient {
    private BCNetworkingRegistryClient() {
@@ -66,7 +60,6 @@ public final class BCNetworkingRegistryClient {
       });
    }
 
-   /** Render-thread context: clientbound handlers run on the Minecraft client thread, replies go to the server. */
    private static BCPayloadContext clientContext(final Player player) {
       return new BCPayloadContext() {
          @Override

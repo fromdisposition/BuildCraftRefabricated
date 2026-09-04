@@ -54,11 +54,7 @@ public abstract class PipeEnergyFlowBase extends PipeFlow {
       this.displaySnapshot.capture(sections);
    }
 
-   /**
-    * Latched until actually sent: the snapshot re-captures every tick, so a change vetoed by the rate tracker
-    * would otherwise never be re-detected and the client kept a stale power display until the next unrelated
-    * change (possibly forever on a steady-state network).
-    */
+   // Snapshot re-captures every tick; latched so a rate-limited change isn't lost before it can be sent.
    private boolean displaySendPending;
 
    protected void sendDisplayIfChanged(EnumMap<Direction, ? extends PipeEnergyDisplaySupport.DisplaySection> sections, int payloadId) {

@@ -25,10 +25,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
-/**
- * 1.21.1 (versions/1.21.1) tank renderer: immediate-mode port of the shared render-state/submit BER. Computes
- * the smoothed fluid level inline and draws the filled box through the version-neutral BcFluidTankRenderer.
- */
 public class RenderTank implements BlockEntityRenderer<TileTank> {
    public RenderTank(BlockEntityRendererProvider.Context context) {
    }

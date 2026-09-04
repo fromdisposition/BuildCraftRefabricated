@@ -50,7 +50,6 @@ public final class FactoryFluidContainers {
       }
    }
 
-   /** Writes bucket/container item changes back into the machine slot after a transfer commit. */
    private static final class MachineSlotStorage extends SingleVariantStorage<ItemVariant> {
       private final ItemHandlerSimple slots;
       private final int slot;

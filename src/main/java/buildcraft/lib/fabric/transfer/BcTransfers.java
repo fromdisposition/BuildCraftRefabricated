@@ -23,11 +23,8 @@ import team.reborn.energy.api.EnergyStorage;
 
 public final class BcTransfers {
    private static boolean initialized;
-   // Per-position BlockApiCache pool. BlockApiCache skips the block-entity map lookup and the provider
-   // resolution on repeat queries, and self-invalidates when the target block entity changes. Engines and
-   // fluid/power pipes re-resolve their neighbours every tick, so routing these central helpers through the
-   // pool removes that cost for every caller at once. Bounded per level; entries die with the level (weak
-   // keys plus the explicit unload hook in BuildCraftFabricMod).
+   // Pools BlockApiCache per position so engines/pipes re-resolving neighbours every tick skip repeat block-entity
+   // and provider lookups; bounded per level, weak-keyed so entries die with the level.
    private static final int MAX_CACHED_POSITIONS_PER_LEVEL = 8192;
    private static final Map<ServerLevel, Long2ObjectOpenHashMap<BlockApiCache<Storage<FluidVariant>, Direction>>> FLUID_CACHES = new WeakHashMap<>();
    private static final Map<ServerLevel, Long2ObjectOpenHashMap<BlockApiCache<Storage<ItemVariant>, Direction>>> ITEM_CACHES = new WeakHashMap<>();

@@ -37,11 +37,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Vector3f;
 
-/**
- * 1.21.1 (versions/1.21.1) dynamic lens/filter item model. Emits the lens geometry (frame cutout + coloured
- * translucent overlay) per-stack via Fabric's FabricBakedModel.emitItemQuads; per-context placement comes from
- * getTransforms() (the XFORM table). Vanilla 1.21.1 lacks ItemModel / applyTransform.
- */
+// vanilla 1.21.1 lacks ItemModel/applyTransform, so lens quads are emitted via Fabric's FabricBakedModel.emitItemQuads.
 public class LensItemModel implements BakedModel {
    private static final RenderMaterial MATERIAL = RendererAccess.INSTANCE.getRenderer().materialFinder().find();
    private static final ItemTransforms TRANSFORMS = buildTransforms();
@@ -67,11 +63,7 @@ public class LensItemModel implements BakedModel {
       cache.invalidateAll();
    }
 
-   /**
-    * Geometry stays as baked (WEST-facing plate); per-context placement comes entirely from getTransforms(),
-    * mirroring plug_lens.json's display block. No geometry pre-rotation — the lens frame is symmetric, so the GUI
-    * yaw in getTransforms suffices and a geometry rotation would only risk double-rotating.
-    */
+   // no geometry pre-rotation: the lens frame is symmetric, so GUI yaw alone suffices and avoids double-rotating.
    private static void transformForItem(MutableQuad mq, boolean resetColors) {
       mq.setShade(false);
       mq.setCalculatedNormal();
@@ -142,9 +134,7 @@ public class LensItemModel implements BakedModel {
 
    private static ItemTransforms buildTransforms() {
       EnumMap<ItemDisplayContext, float[]> x = new EnumMap<>(ItemDisplayContext.class);
-      // 1.35, not the gate's 1.8: 1.21.1's isGui3d GUI applies scale literally (no fit-to-slot like 26.2's item
-      // pipeline), and the lens plate is an 8px face vs the gate's 6px body -- 8*1.35 matches the gate's 6*1.8
-      // slot fill, so the lens no longer overflows the inventory frame.
+      // scale 1.35 (not the gate's 1.8): GUI applies scale literally, and 8px lens * 1.35 matches 6px gate * 1.8 for the same slot fill.
       x.put(ItemDisplayContext.GUI, new float[] { 0, 90, 0, 0, 0, 0, 1.35F });
       x.put(ItemDisplayContext.GROUND, new float[] { 0, 0, 0, 0, 3, 0, 0.9F });
       x.put(ItemDisplayContext.HEAD, new float[] { 0, 0, 0, 0, 0, 0, 1.8F });

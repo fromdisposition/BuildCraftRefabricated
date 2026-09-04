@@ -9,9 +9,8 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 //?}
 import org.spongepowered.asm.mixin.Mixin;
 
-// 1.21.5 recipe-book ghost slots (GhostSlots + SlotDisplay/ContextMap) do not exist on 1.21.1 (which uses
-// GhostRecipe); BC's recipe-book components are versions/1.21.1 stubs there, so this accessor is unused and
-// degrades to an empty no-op mixin.
+// GhostSlots (SlotDisplay/ContextMap) does not exist on 1.21.1 (which uses GhostRecipe instead), so this
+// accessor is unused there and degrades to an empty no-op mixin.
 //? if >= 1.21.10 {
 @Mixin(GhostSlots.class)
 public interface GhostSlotsInvokerMixin {

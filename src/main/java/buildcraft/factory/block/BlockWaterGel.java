@@ -40,10 +40,8 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluids;
 
-// HalfTransparentBlock is not just same-block face culling: the vanilla fluid renderer special-cases it by
-// instanceof — water touching a HalfTransparentBlock draws its clean flat OVERLAY texture on the shared face
-// (the glass/ice interface) instead of the flowing texture fighting the gel's own coplanar translucent face.
-// Extending it makes the gel behave exactly like ice in water, including any future vanilla special cases.
+// The vanilla fluid renderer special-cases HalfTransparentBlock by instanceof: water touching one draws the
+// clean flat OVERLAY texture on the shared face instead of the flowing texture fighting the gel's own face.
 public class BlockWaterGel extends HalfTransparentBlock {
    //? if < 26.3-pre-1 {
    /*public static final MapCodec<BlockWaterGel> CODEC = simpleCodec(BlockWaterGel::new);
@@ -78,9 +76,7 @@ public class BlockWaterGel extends HalfTransparentBlock {
          Collections.shuffle(faces);
          seenSet.add(pos);
 
-         // Mark the seeds as seen up front — otherwise a sibling's expansion can re-queue them and the same
-         // position gets processed (and potentially converted) twice. The per-expansion shuffle below keeps
-         // the spread direction random.
+         // Mark the seeds as seen up front, otherwise a sibling's expansion can re-queue and convert them twice.
          for (Direction face : faces) {
             BlockPos seed = pos.relative(face);
             if (seenSet.add(seed)) {
@@ -110,10 +106,8 @@ public class BlockWaterGel extends HalfTransparentBlock {
 
          int time = next.spreading ? 200 : 400;
          if (changeable.size() == 3 || level.getRandom().nextDouble() < 0.5) {
-            // Converting someone's water must be attributable: gate each target through the machine-break
-            // event with the seeding player's profile (claim mods listen to it natively). Denied targets are
-            // skipped, so the gel stops at a claim border and keeps gelling on its own side; ownerless gel
-            // (legacy saves) fails closed and only hardens in place.
+            // Gate each target through the machine-break event with the seeding player's profile so claim mods
+            // can deny it; denied targets are skipped and ownerless gel fails closed, only hardening in place.
             GelOwnerSavedData ownersData = GelOwnerSavedData.getOrCreate(level);
             GameProfile gelOwner = ownersData.getOwner(pos);
 
@@ -134,7 +128,6 @@ public class BlockWaterGel extends HalfTransparentBlock {
 
          level.scheduleTick(pos, this, rand.nextInt(150) + time);
       } else if (stage != next) {
-         // No longer spreading: the ownership entry (if any survived, e.g. legacy data) is no longer needed.
          GelOwnerSavedData.getOrCreate(level).removeOwner(pos);
          if (notTouchingWater(level, pos)) {
             level.setBlockAndUpdate(pos, nextState);
@@ -155,9 +148,7 @@ public class BlockWaterGel extends HalfTransparentBlock {
       return true;
    }
 
-   /** Whether the gel should treat this position as water it can convert: plain water, or a no-collision block that
-    * merely holds a water source — the water plants (seagrass, tall seagrass, kelp, kelp_plant, ...). Solid
-    * waterlogged blocks (fences, slabs, stairs, ...) keep their collision and are deliberately left intact. */
+   /** Convertible water is plain water or a no-collision water-holding plant; solid waterlogged blocks keep collision and are left intact. */
    public static boolean isGellableWater(BlockGetter level, BlockPos pos) {
       BlockState state = level.getBlockState(pos);
       if (state.is(Blocks.WATER)) {

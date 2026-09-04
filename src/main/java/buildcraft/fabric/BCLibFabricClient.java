@@ -35,8 +35,7 @@ public final class BCLibFabricClient {
    private BCLibFabricClient() {
    }
 
-   // 1.21.x uses the (still-functional) resource-loader-v0 API; it is deprecated there in favour of
-   // the async resource.v1 reloader, but v0 is sufficient for these synchronous cache-clearing reloads.
+   // The deprecated v0 ResourceManagerHelper branch is sufficient for these synchronous cache-clearing reloads.
    @SuppressWarnings("deprecation")
    public static void init() {
       FluidDisplayNamesClient.register();

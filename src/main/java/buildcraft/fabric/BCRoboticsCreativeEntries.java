@@ -23,10 +23,7 @@ public final class BCRoboticsCreativeEntries {
       addProgrammed(output);
    }
 
-   /**
-    * One programmed board and one ready robot per board type. A blank robot cannot be deployed -- it needs a
-    * board fused in at the Integration Table -- so the plain item alone gives creative no way to place one.
-    */
+   // A blank robot cannot be deployed, so the plain item alone gives creative no way to place one.
    private static void addProgrammed(Output output) {
       if (BCRoboticsItems.REDSTONE_BOARD == null || BCRoboticsItems.ROBOT == null
          || RedstoneBoardRegistry.instance == null) {

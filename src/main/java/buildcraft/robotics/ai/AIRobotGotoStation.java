@@ -49,9 +49,8 @@ public class AIRobotGotoStation extends AIRobotStationNavigate {
 
    @Override
    public void end() {
-      // start() takes the station up front; if navigation fails (stuck path, abort) nothing docked and nothing
-      // released it -- the station stayed "taken" by this robot until its next releaseResources, so every other
-      // robot skipped it as occupied. On any non-docked exit, hand the reservation back.
+      // start() takes the station up front; if navigation fails and nothing docks, hand the reservation back
+      // here, or the station stays "taken" by this robot until its next releaseResources.
       DockingStation station = this.getStation();
       if (station != null && station != this.robot.getDockingStation() && station.robotTaking() == this.robot) {
          station.release(this.robot);

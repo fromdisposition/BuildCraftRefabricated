@@ -39,8 +39,7 @@ public class MutableQuad {
    private boolean shade = false;
    private TextureAtlasSprite sprite = null;
    private int lightEmission = 0;
-   /** Whether the source quad came from the translucent chunk layer -- carried into toBakedBlock so item rendering
-    * picks the translucent block-item sheet (stained glass / ice facades kept their alpha in hand). */
+   // Translucent-layer source quads must bake onto the translucent item sheet or facades lose their alpha.
    private boolean translucent = false;
    private boolean hasAmbientOcclusion = true;
    private static final ThreadLocal<Vector3f> TL_POS_SCRATCH = ThreadLocal.withInitial(Vector3f::new);

@@ -83,11 +83,7 @@ final class MinerShaftBer {
       cap(pose, buffer, sprite, bottomY, false, overlay, shaftLight(blockPos, level, bottomY));
    }
 
-   /**
-    * One light sample per shaft segment: every side and vertex of a segment maps to the same block cell (the X/Z
-    * are fixed at the shaft centre, only depth matters), so sampling at the segment's mid-depth once — instead of
-    * a chunk light query per vertex — is visually identical and turns ~16 queries per segment into one.
-    */
+   /** One light sample per shaft segment: X/Z are fixed at the shaft centre, so sampling once at mid-depth is visually identical to a query per vertex. */
    private static int spanLight(BlockPos origin, Level level, float lx0, float lx1) {
       return shaftLight(origin, level, (y(lx0) + y(lx1)) * 0.5F);
    }

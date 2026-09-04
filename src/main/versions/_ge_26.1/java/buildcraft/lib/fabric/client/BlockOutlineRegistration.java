@@ -22,23 +22,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 
-/**
- * Wires BC's custom block outlines (pipe plug previews) into Fabric's level-render events: collecting the
- * renderers during extraction, then dispatching them when vanilla is about to draw the outline.
- *
- * <p>Both halves used to be hand-written mixins on LevelRenderer/LevelExtractor. Neither is needed: Fabric injects
- * at exactly the same places (its own LevelExtractorMixin / LevelRendererMixin) and its contexts carry everything
- * those mixins dug out via {@code @Shadow}.
- *
- * <p>On the dispatch half specifically: vanilla returns early from {@code renderBlockOutline} unless
- * {@code outline.isTranslucent() == translucentPass}, and Fabric injects AFTER that check (at the
- * {@code CameraRenderState.pos} read), so {@code BEFORE_BLOCK_OUTLINE} only ever fires in the pass the outline
- * belongs to. The pass flag BC's renderers used to take is therefore implied -- its only use was skipping the
- * other pass. 26.2 dropped the flag from vanilla altogether (submit-based outline).
- *
- * <p>Installed from {@link buildcraft.fabric.BuildCraftFabricClient}; nodes below 26.1 shadow this class with a
- * no-op (versions/_lt_26.1).
- */
+// Replaces hand-written LevelRenderer/LevelExtractor mixins now that Fabric's own mixins inject at the same points.
+// BEFORE_BLOCK_OUTLINE fires only in the outline's own pass since Fabric injects after vanilla's pass check; 26.2 dropped that flag entirely.
 public final class BlockOutlineRegistration {
    private BlockOutlineRegistration() {
    }

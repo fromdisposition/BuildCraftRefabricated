@@ -186,8 +186,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
          int progress = (this.menu).getSyncedProgress();
          int progressWidth = Math.min(22, (int)(22.0F * progress / total));
          if (progressWidth > 0) {
-            // Progress-fill arrow: source sprite is at the top-right of the atlas (176, 0), drawn over the base
-            // arrow between the snapshot slots (GUI x 29, y 142) and revealed left-to-right as the scan advances.
+            // Progress-fill sprite sits at atlas (176, 0); this blit reveals it left-to-right over the base arrow.
             graphics.blit(TEXTURE_BASE, this.leftPos + 29, this.topPos + 142, 176.0F, 0.0F, progressWidth, 16, 256, 256);
          }
       }
@@ -237,9 +236,9 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       if (graphics != null) {
-         // Block name, left-anchored at x=8, y=6 (canonical vanilla title anchor).
+         // x=8, y=6 matches vanilla's title anchor.
          graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
-         // "Inventory" label at the canonical anchor (12px above the first player row).
+         // playerInventoryLabelY() is 12px above the first player row, vanilla's convention.
          graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
       }
    }

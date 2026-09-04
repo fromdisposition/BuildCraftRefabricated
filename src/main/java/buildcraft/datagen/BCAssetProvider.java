@@ -13,10 +13,7 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 
-/** Emits the boilerplate client assets from {@link BCAssetDefs}: item model definitions (1.21.10+ only —
- * 1.21.1 has no item-definition system and gets its legacy models from
- * {@link BCItemModelBackportProvider}), flat item models, single-variant and four-way-facing blockstates,
- * and the trivial cube block models. */
+/** Item model definitions are emitted only on 1.21.10+; 1.21.1 has no item-definition system and gets legacy models from {@link BCItemModelBackportProvider}. */
 public final class BCAssetProvider implements DataProvider {
    private final PackOutput.PathProvider items;
    private final PackOutput.PathProvider itemModels;

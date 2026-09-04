@@ -87,9 +87,8 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
          if (previous.isRemoved()) {
             BCLog.logger.warn("Robot with id " + robot.getRobotId() + " was not unregistered properly (old instance removed)");
          } else {
-            // Two LIVE entities with one id = a duplicated robot entity. The map can only resolve one of them, so
-            // station claims and charging break for the other. Give the newcomer a fresh id so both stay functional;
-            // its station claim self-heals on the next dock (take() re-claims under the new id).
+            // Two live entities sharing an id would break station claims/charging for one of them; give the
+            // newcomer a fresh id instead, its station claim self-heals on the next dock.
             long fresh = this.getNextRobotId();
             BCLog.logger.error("[robots] DUPLICATE robot id " + robot.getRobotId() + ": live instance at "
                + previous.blockPosition() + " and new one at " + robot.blockPosition()
@@ -186,8 +185,7 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
       this.setDirty();
       long robotId = robot.getRobotId();
       if (unloading) {
-         // An unloaded robot still exists and keeps every reservation it holds; only the cached references to the
-         // entity instance that is being discarded are dropped.
+         // An unloaded robot still exists and keeps its reservations; only the cached entity-instance references are dropped.
          Set<StationIndex> stationsHeld = this.stationsTakenByRobot.get(robotId);
          if (stationsHeld != null) {
             for (StationIndex index : stationsHeld) {
@@ -232,10 +230,8 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
 
    @Override
    public synchronized Collection<DockingStation> getStations() {
-      // Defensive copy: callers iterate this collection while methods invoked inside the loop -- station
-      // validation on a DockingStationPipe, ghost-station cleanup -- can removeStation() from the live map.
-      // Iterating the live values() view then throws ConcurrentModificationException (masked until now by the
-      // earlier null-world NPE that aborted the search first).
+      // Defensive copy: callers iterate this collection while methods invoked inside the loop (station validation,
+      // ghost-station cleanup) can removeStation() from the live map, which would throw ConcurrentModificationException.
       return new ArrayList<>(this.stations.values());
    }
 
@@ -375,10 +371,8 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
          RobotRegistry instance = TYPE.getOrCreate(world, () -> new RobotRegistry(null));
          instance.world = world;
          if (!instance.stationsWorldBound) {
-            // Stations are decoded from the SavedData NBT before this level is attached, so loadStations() bound
-            // them to a null world. Now that the ServerLevel is known, bind them once: otherwise every station
-            // lookup (robotTaking / isTaken / take) NPEs on world.isClientSide() and any robot that searches for a
-            // station -- deposit inventory, recharge, dock -- crashes its AI every tick after a world reload.
+            // Stations decode from NBT before this level is attached, so they bind to a null world; bind them once
+            // here or every station lookup NPEs on world.isClientSide(), crashing robot AI every tick after a reload.
             for (DockingStation station : instance.stations.values()) {
                if (station.world == null) {
                   station.world = world;

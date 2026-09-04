@@ -23,8 +23,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
    private int lastSectionSyncHash = Integer.MIN_VALUE;
    private static final Identifier TEXTURE = Identifier.parse("buildcraftfactory:textures/gui/bcr/heat_exchanger.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE, 0.0, 0.0, 176.0, 185.0);
-   // The atlas rows just below these sprites (y=223 / y=202) are solid black separators, not part of the overlays:
-   // start both at y=185 (the first fully transparent row under the panel) so they stay out of the drawn region.
+   // Atlas rows just below these sprites (y=223 / y=202) are solid black separators; both start at y=185 instead.
    private static final GuiIcon OVERLAY_VERTICAL = new GuiIcon(TEXTURE, 0.0, 185.0, 16.0, 38.0);
    private static final GuiIcon OVERLAY_HORIZONTAL = new GuiIcon(TEXTURE, 17.0, 185.0, 34.0, 17.0);
 
@@ -154,8 +153,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
       String titleStr = this.title.getString();
       graphics.text(this.font, titleStr, 8, 6, -12566464, false);
-      // "Inventory" label: X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from
-      // the real slot rows (firstPlayerRowY() - 12), so it follows the +7px inventory shift automatically.
+      // X = 8 matches the player inventory's left edge; Y derives from the real slot rows, not hardcoded.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 
@@ -185,8 +183,7 @@ public class GuiHeatExchange extends BcScreen<ContainerHeatExchange> {
 
             if (visibleW > 0) {
                int absX = this.leftPos + 61 + leftOffset;
-               // the sprite SOURCE stays at atlas y=71 (right column, x>=176, which did not move); only the draw
-               // position follows the machine content down.
+               // The sprite source stays at atlas y=71; only the draw position follows the machine content down.
                int absY = this.topPos + 17;
                new GuiIcon(TEXTURE, 176 + leftOffset, 71.0, visibleW, 71.0).drawAt(absX, absY);
             }

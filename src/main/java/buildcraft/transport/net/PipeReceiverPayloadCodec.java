@@ -100,11 +100,8 @@ public final class PipeReceiverPayloadCodec {
    }
 
    /**
-    * Each receiver's payload is length-prefixed and read from an isolated slice. The write and read sides of a
-    * segment can legitimately fall out of step for a tick — a pluggable can exist on only one side during
-    * place/remove races, and gate payloads bail out early on unknown statement tags — and without the frame any
-    * such mismatch silently shifted every byte of the receivers after it in the same packet. With it the damage
-    * is contained to (and logged for) the one segment.
+    * Length-prefixed per-receiver framing: write/read can fall out of step for a tick (place/remove races, unknown
+    * gate tags), and without the frame a mismatch would shift every following receiver's bytes in the packet.
     */
    public static void writeMulti(Set<IPipeHolder.PipeMessageReceiver> parts, TilePipeHolder holder, FriendlyByteBuf buffer) {
       int mask = buildMask(parts);
@@ -112,9 +109,7 @@ public final class PipeReceiverPayloadCodec {
 
       for (IPipeHolder.PipeMessageReceiver receiver : IPipeHolder.PipeMessageReceiver.VALUES) {
          if ((mask & 1 << receiver.ordinal()) != 0) {
-            // Each segment gets its own PacketBufferBC: receivers write bit-packed booleans, so a segment must
-            // both start with a fresh bit cache (no partial byte shared with the previous segment) and be read
-            // back through the same buffer class — a plain slice reader would consume whole bytes per boolean.
+            // Each segment needs its own PacketBufferBC for a fresh bit cache; a plain slice reader would consume whole bytes per boolean.
             PacketBufferBC segment = BcPayloadBuffers.create();
 
             try {

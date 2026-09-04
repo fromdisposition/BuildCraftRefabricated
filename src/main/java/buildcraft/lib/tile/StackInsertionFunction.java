@@ -31,10 +31,8 @@ public interface StackInsertionFunction {
             return new StackInsertionFunction.InsertionResult(inserted, toInsert);
          } else {
             int maxSize = Math.min(maxStackSize, addingTo.getMaxStackSize());
-            // Reject at OR OVER the limit, and against the same limit the merge below uses. Testing only
-            // "== maxStackSize" let an over-full slot fall through: setCount(maxSize) then shrank the stored
-            // stack (destroying the excess) and handed back more than was offered, which the caller reads as a
-            // negative inserted count -- returning more items than it received.
+            // Reject at OR OVER the limit, matching the merge below: testing only "== maxStackSize" let an
+            // over-full slot fall through and shrink the stored stack, handing back more items than it received.
             if (addingTo.getCount() >= maxSize || !StackUtil.canMerge(addingTo, toInsert)) {
                return new StackInsertionFunction.InsertionResult(addingTo, toInsert);
             }

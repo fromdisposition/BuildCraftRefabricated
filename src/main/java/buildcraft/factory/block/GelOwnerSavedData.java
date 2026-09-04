@@ -21,12 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jspecify.annotations.Nullable;
 
-/**
- * Owner of each actively spreading water-gel block, keyed by position. The gel has no block entity to carry
- * the placing player, but every conversion of a water block must be attributable so the machine-break gate
- * (and through it any land-claim mod listening to the native Fabric break events) can allow or deny it.
- * Entries only live while a block is in a spreading stage; they are dropped once it starts gelling.
- */
+/** Owner of each actively spreading water-gel block, keyed by position, since the gel has no block entity of its own to carry the placing player for the machine-break/claim gate. */
 public class GelOwnerSavedData extends SavedData {
    private static final Codec<GelOwnerSavedData.Entry> ENTRY_CODEC = RecordCodecBuilder.create(
       instance -> instance.group(
@@ -75,7 +70,7 @@ public class GelOwnerSavedData extends SavedData {
          try {
             data.owners.put(entry.pos(), new GameProfile(UUID.fromString(entry.uuid()), entry.name()));
          } catch (IllegalArgumentException ignored) {
-            // Malformed uuid in old data: skip the entry; the gel then just fails closed at that position.
+            // Malformed uuid: skip the entry so the gel fails closed at that position.
          }
       }
 

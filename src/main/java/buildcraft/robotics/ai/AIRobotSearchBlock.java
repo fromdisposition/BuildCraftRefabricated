@@ -21,14 +21,10 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 public class AIRobotSearchBlock extends AIRobot {
-   /** Cheap positions walked per expensive check allowed: most of an expanding cube is sky, void, out-of-zone or
-    * unloaded, all rejected by pure math (no chunk access), so skipping them must not eat the expensive-check
-    * budget -- otherwise a zoned sweep (radius 64 = ~2.1M positions) took ~9 minutes to notice new work. Still
-    * bounded so a tiny zone inside a big cube cannot spin the loop unbounded in one tick. The expensive budget
-    * itself (block-state + filter checks per tick) comes from {@code BCRoboticsConfig.scanBudgetPerTick}. */
+   /** Cheap positions walked per expensive check; skipping cheap rejects must not eat the expensive-check budget,
+    * but still bounded so a tiny zone inside a big cube cannot spin the loop unbounded in one tick. */
    private static final int ITERATIONS_PER_CHECK = 20;
-   /** Expanding-scan reach (blocks) when a Zone Planner area is set -- the classic BuildCraft cap, kept so zoned
-    *  harvesters still reach as far as before; zone.contains() does the precise clamp inside it. */
+   /** Expanding-scan reach in blocks when a Zone Planner area is set; zone.contains() does the precise clamp inside it. */
    private static final int ZONE_SCAN_RADIUS = 64;
    private static final java.util.Random RANDOM = new java.util.Random();
    private static final Heightmap.Types SURFACE = Heightmap.Types.MOTION_BLOCKING_NO_LEAVES;
@@ -59,9 +55,8 @@ public class AIRobotSearchBlock extends AIRobot {
 
    @Override
    public void start() {
-      // Leash block searches to the home station, not the robot's position, so a harvester cannot ratchet across the
-      // world following a trail of targets. No zone -> expand only DEFAULT_SEARCH_RANGE from the station; a Zone
-      // Planner area overrides it (walk out to the classic reach, then zone.contains() clamps to the drawn region).
+      // Leash block searches to the home station, not the robot's position, so a harvester cannot ratchet across
+      // the world following a trail of targets; a Zone Planner area overrides the default search range.
       this.origin = this.robot.getWorkAnchorPos();
       this.anchor = Vec3.atCenterOf(this.origin);
       if (!this.random) {
@@ -130,9 +125,8 @@ public class AIRobotSearchBlock extends AIRobot {
                return;
             }
 
-            // The zone only knows chunk-local X/Z; its Y is a world-agnostic placeholder (legacy 0..254). Re-roll
-            // Y across the ACTUAL build height here, where the level is known, so zoned random search can reach the
-            // negative-Y region of modern worlds instead of being clamped above y=0.
+            // The zone's Y is a world-agnostic placeholder (0..254); re-roll it across the actual build height here
+            // so zoned random search can reach the negative-Y region of modern worlds.
             net.minecraft.world.level.Level level = this.robot.level();
             bx = candidate.getX();
             by = level.getMinY() + RANDOM.nextInt(level.getHeight());
@@ -142,8 +136,7 @@ public class AIRobotSearchBlock extends AIRobot {
             float a = this.robot.level().getRandom().nextFloat() * 2.0F * (float)Math.PI;
             bx = (int)(Math.cos(a) * r + this.origin.getX());
             bz = (int)(Math.sin(a) * r + this.origin.getZ());
-            // Follow the ground rather than the station's own height: the heightmap gives the surface in one
-            // lookup, and the leash sphere still bounds how far from home that surface may be.
+            // Follow the ground via the heightmap rather than the station's height; the leash sphere still bounds the reach.
             if (!this.robot.level().getChunkSource().hasChunk(bx >> 4, bz >> 4)) {
                continue;
             }
@@ -157,8 +150,7 @@ public class AIRobotSearchBlock extends AIRobot {
             return;
          }
 
-         // The surface roll addresses "the block under the sky" and "the block it stands on" alike: a planter
-         // wants the ground, a stripes robot wants the air above it.
+         // Also try one block below the surface: a planter wants the ground, a stripes robot wants the air above it.
          if (this.zone == null && by > this.robot.level().getMinY()
             && this.cheapAccept(bx, by - 1, bz) && this.fullAccept(this.cursor.set(bx, by - 1, bz))) {
             this.blockFound = this.cursor.immutable();
@@ -168,9 +160,8 @@ public class AIRobotSearchBlock extends AIRobot {
       }
    }
 
-   /** Pure-math rejects, allocation-free (runs for every walked position): build height, zone / station leash,
-    * caller's reach limit, and whether the chunk is even loaded. Touching an unloaded chunk in {@code fullAccept}
-    * would sync-load it -- both a lag spike and a world-load side effect a scan must never have. */
+   /** Pure-math, allocation-free rejects run for every walked position; touching an unloaded chunk in fullAccept
+    * would sync-load it, both a lag spike and a side effect a scan must never have. */
    private boolean cheapAccept(int bx, int by, int bz) {
       net.minecraft.world.level.Level level = this.robot.level();
       if (by < level.getMinY() || by >= level.getMinY() + level.getHeight()) {

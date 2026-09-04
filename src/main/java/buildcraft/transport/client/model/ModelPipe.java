@@ -30,8 +30,7 @@ public class ModelPipe {
 
    public static void renderCutoutPluggables(TilePipeHolder tile, Pose pose, VertexConsumer buffer, int light) {
       if (tile != null && tile.getPipe() != null) {
-         // Derived once and reused below: asking each pluggable for its render key allocates a fresh key object,
-         // and this runs per pipe per frame.
+         // Cached: getModelRenderKey allocates a key, and this runs per pipe per frame.
          PluggableModelKey[] keys = new PluggableModelKey[Direction.values().length];
 
          for (Direction side : Direction.values()) {
@@ -42,9 +41,7 @@ public class ModelPipe {
          PipeModelCachePluggable.PluggableKey key = new PipeModelCachePluggable.PluggableKey(true, keys);
          PipePluggableQuadCache.renderCutout(key, pose, buffer, light);
 
-         // World-tinted pluggables (facades of biome-coloured blocks like grass/leaves) are excluded from the
-         // merged batch above and rendered one by one, resolving each quad's tint against this position -- the
-         // merged path has no tint at all, which is why such facades rendered grey.
+         // World-tinted pluggables (grass/leaves facades) can't use the merged batch above, which carries no tint.
          for (PluggableModelKey plugKey : keys) {
             if (plugKey != null && plugKey.hasWorldTint()) {
                PipePluggableQuadCache.renderCutoutTintResolved(
@@ -57,9 +54,7 @@ public class ModelPipe {
 
    public static void renderTranslucentPluggables(TilePipeHolder tile, Pose pose, VertexConsumer buffer, int light) {
       if (tile != null && tile.getPipe() != null) {
-         // The translucent pluggable layer (e.g. the coloured lens glass) is drawn per side so each pluggable
-         // keeps its own tint: the dye cannot survive the BakedQuad bake on modern MC, so it is applied at render
-         // time from the model key. Without this the lens glass rendered but showed no colour (white).
+         // Dye tint does not survive the BakedQuad bake, so it is applied here at render time instead.
          for (Direction side : Direction.values()) {
             PipePluggable plug = tile.getPluggable(side);
             if (plug != null) {

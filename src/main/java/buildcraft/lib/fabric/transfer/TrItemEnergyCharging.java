@@ -8,11 +8,8 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.world.item.ItemStack;
 import team.reborn.energy.api.EnergyStorage;
 
-/**
- * Holds every direct reference to the Team Reborn energy API, which is an optional dependency. Only ever reached from
- * behind {@link ItemEnergyCharging}'s availability guard, so the JVM never has to resolve {@link EnergyStorage} when
- * the API is absent.
- */
+// Holds every direct Team Reborn energy API reference; reached only behind {@link ItemEnergyCharging}'s guard so
+// the JVM never resolves {@link EnergyStorage} when the dependency is absent.
 final class TrItemEnergyCharging {
    private TrItemEnergyCharging() {
    }

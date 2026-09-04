@@ -25,13 +25,8 @@ import net.minecraft.world.inventory.Slot;
 public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractContainerMenu & IBcMenu> extends AbstractContainerScreen<C> {
    public final BuildCraftGui mainGui;
 
-   // Vanilla player-inventory texture, sliced like the vanilla chest screens do. One tile-able row of 9 slots,
-   // and the "gap + hotbar + bottom frame" block; both include the panel's side frames. Reused so a machine GUI
-   // only ships its own machine header and the whole player inventory comes from vanilla pixels (and any mod
-   // that extends the inventory composes for free).
-   // Exactly the texture and regions vanilla's ContainerScreen.extractBackground uses to draw the player
-   // inventory: generic_54.png, the (0,126,176,96) block. INV_ROW is one 9-slot row of it (tex y139, tileable at
-   // 18px); INV_BOTTOM is the rest of that block (gap + hotbar + bottom frame, tex y192..221).
+   // Sliced from vanilla generic_54.png like ContainerScreen.extractBackground: INV_ROW is one tileable 9-slot row
+   // (tex y139, 18px), INV_BOTTOM is gap+hotbar+bottom (tex y192-221) -- reused so machine GUIs ship no inventory art.
    private static final Identifier CONTAINER_BG = Identifier.parse("minecraft:textures/gui/container/generic_54.png");
    private static final GuiIcon INV_ROW = new GuiIcon(CONTAINER_BG, 0.0, 139.0, 176.0, 18.0);
    private static final GuiIcon INV_BOTTOM = new GuiIcon(CONTAINER_BG, 0.0, 192.0, 176.0, 30.0);
@@ -52,11 +47,8 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       return this.imageHeight;
    }
 
-   /**
-    * Height (px) needed to fit every slot of {@code menu}, never smaller than {@code defaultHeight}. Lets a GUI
-    * grow when a mod extends the player inventory (extra rows) so the added slots stay on the window. Uses the
-    * vanilla 6px bottom padding, so an un-extended inventory keeps the original size exactly (no regression).
-    */
+   /** Height needed to fit every slot of {@code menu}; grows for a mod-extended inventory (extra rows) using the
+    * vanilla 6px bottom padding, so an un-extended inventory keeps its original size exactly. */
    protected static int heightForSlots(net.minecraft.world.inventory.AbstractContainerMenu menu, int defaultHeight) {
       int maxY = -1;
       for (net.minecraft.world.inventory.Slot slot : menu.slots) {
@@ -68,12 +60,8 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
       return maxY < 0 ? defaultHeight : Math.max(defaultHeight, maxY + 18 + 6);
    }
 
-   /**
-    * When a mod has extended the player inventory beyond its vanilla 4 rows (3 main + hotbar), draws the vanilla
-    * inventory panel from generic_54.png so the added rows get a proper background. Otherwise draws nothing: the
-    * machine's own GUI texture already bakes a correct, pixel-perfect player inventory, so we leave it untouched
-    * (no seams, no double-drawing). Only the extended case -- which the baked art can't cover -- is rendered here.
-    */
+   /** Draws the vanilla inventory panel from generic_54.png only when a mod has extended the player inventory past
+    * 4 rows; an un-extended inventory already has a pixel-perfect background baked into the machine's own texture. */
    protected void drawPlayerInventoryBackground() {
       int top = (int) this.mainGui.rootElement.getY();
       java.util.SortedSet<Integer> rows = new java.util.TreeSet<>();
@@ -90,9 +78,8 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
          return;
       }
 
-      // Extended: the baked art can't match the moved hotbar / extra rows, so redraw the whole player inventory
-      // from vanilla generic_54.png. One tile-able 9-slot band per main row, then the gap+hotbar+bottom block for
-      // the lowest (hotbar) row, shifted to wherever this container's inventory starts.
+      // Baked art can't match moved/extra rows, so redraw the whole player inventory: one tileable 9-slot band per
+      // main row, then the gap+hotbar+bottom block for the hotbar row.
       int left = (int) this.mainGui.rootElement.getX() + minX - 8;
       int hotbarY = rows.last();
       for (int rowY : rows) {
@@ -103,19 +90,13 @@ public abstract class BcScreen<C extends net.minecraft.world.inventory.AbstractC
          }
       }
 
-      // The generic 176-wide vanilla panel above may not match a GUI whose inventory has custom chrome beside it
-      // (a side box, a divider, a non-standard frame). Only reached in the extended case, so a GUI can patch those
-      // regions with slices of its own texture without ever touching the pixel-perfect un-extended look.
+      // The generic 176-wide panel may not match custom chrome beside the inventory (a side box, divider, frame);
+      // only reached in the extended case, so a GUI can patch those regions without touching the un-extended look.
       this.drawExtendedInventoryChrome();
    }
 
-   /**
-    * Called after the vanilla inventory panel has been drawn for a mod-extended player inventory. Override in a GUI
-    * whose inventory area carries custom frames the generic panel can't reproduce, to blit those regions from the
-    * GUI's own texture back on top (e.g. a side divider, a box edge, a bottom frame). Position slices relative to
-    * {@link #firstPlayerRowY()} / the actual slot rows so they follow the inventory as the mod grows it. No-op by
-    * default; never runs for an un-extended inventory (nothing is overdrawn there).
-    */
+   /** Override to blit custom frames back over the generic panel for a mod-extended inventory (e.g. a side divider);
+    * position relative to {@link #firstPlayerRowY()} so slices follow the inventory as it grows. No-op by default. */
    protected void drawExtendedInventoryChrome() {
    }
 

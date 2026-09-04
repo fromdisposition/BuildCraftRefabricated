@@ -15,17 +15,15 @@ import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 public final class BCTransportRfPipes {
    private BCTransportRfPipes() {}
 
-   /** Called only when team_reborn_energy is loaded. Registers flowRf and all RF pipe definitions. */
+   /** Must only be called when team_reborn_energy is loaded. */
    public static void preInit() {
       PipeApi.flowRf = new PipeFlowType(PipeFlowRedstoneFlux::new, PipeFlowRedstoneFlux::new);
       BCTransportPipes.DefinitionBuilder builder = new BCTransportPipes.DefinitionBuilder();
 
-      // wood_rf — same logic/tex state as woodPower
       builder.logic(PipeBehaviourWoodPower::new, PipeBehaviourWoodPower::new).texSuffixes("_clear", "_filled");
       builder.builder.itemTex(0, 0, 1);
       BCTransportPipes.woodRf = builder.idTexPrefix("wood_rf").flowRf().define();
 
-      // simple variants — idTex resets texSuffixes to {""}
       builder.builder.itemTex(0);
       builder.logic(PipeBehaviourStone::new, PipeBehaviourStone::new);
       BCTransportPipes.stoneRf = builder.idTex("stone_rf").flowRf().define();
@@ -42,14 +40,12 @@ public final class BCTransportRfPipes {
       builder.logic(PipeBehaviourSandstone::new, PipeBehaviourSandstone::new);
       BCTransportPipes.sandstoneRf = builder.idTex("sandstone_rf").flowRf().define();
 
-      // iron_rf / diamond_rf — Limiter logic, multi-texture, itemTex(6)
       builder.logic(PipeBehaviourLimiter::new, PipeBehaviourLimiter::new).flowRf();
       builder.texSuffixes("_m0", "_m4", "_m8", "_m16", "_m32", "_m64", "_m128");
       builder.builder.itemTex(6);
       BCTransportPipes.ironRf = builder.idTexPrefix("iron_rf").define();
       BCTransportPipes.diamondRf = builder.idTexPrefix("diamond_rf").define();
 
-      // diamond_wood_rf — WoodPower logic, "_clear"/"_filled" tex
       builder.builder.itemTex(0);
       builder.logic(PipeBehaviourWoodDiamond::new, PipeBehaviourWoodDiamond::new).texSuffixes("_clear", "_filled");
       builder.builder.itemTex(0, 0, 1);

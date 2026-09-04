@@ -55,10 +55,7 @@ public abstract class TileAutoWorkbenchBase extends BcBlockEntity implements IHa
    private final IMjRedstoneReceiver mjReceiver = new IMjRedstoneReceiver() {
       @Override
       public long getPowerRequested() {
-         // Never negative: the passive top-up below overshoots POWER_REQUIRED, and while a craft cannot complete
-         // (full output slot) the buffer stays over it. Reporting the overshoot as a negative request made
-         // receivePower drain the buffer and hand back MORE than it was offered, which the kinesis pipe books as
-         // negative usage -- i.e. it created MJ out of nothing.
+         // Clamp to non-negative: reporting overshoot as a negative request let receivePower hand back more than offered, creating MJ.
          return Math.max(0L, TileAutoWorkbenchBase.POWER_REQUIRED - TileAutoWorkbenchBase.this.powerStored);
       }
 

@@ -57,7 +57,6 @@ public final class BcRegistryUtil {
       *///?}
    }
 
-   /** A HolderGetter view of the block registry (Registry is-a HolderGetter on 1.21.5+; via asLookup on 1.21.1). */
    public static net.minecraft.core.HolderGetter<Block> blockLookup() {
       //? if >= 1.21.10 {
       return BuiltInRegistries.BLOCK;
@@ -108,9 +107,7 @@ public final class BcRegistryUtil {
    }
 
    public static DynamicOps<Tag> registryAwareOps() {
-      // Client-level registry access lives in a client-only helper so this common class never names a
-      // client type (the verifier would otherwise resolve it and crash a dedicated server). Guard ensures
-      // the helper is never loaded outside the client environment.
+      // The client-level lookup lives in a client-only class: naming a client type here would crash the dedicated server's verifier.
       Provider client = null;
       if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
          client = buildcraft.lib.fabric.client.BcClientRegistryAccess.levelRegistryAccess();

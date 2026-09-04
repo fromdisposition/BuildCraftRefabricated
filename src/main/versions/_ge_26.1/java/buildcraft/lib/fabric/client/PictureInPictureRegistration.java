@@ -4,14 +4,8 @@ import buildcraft.builders.client.render.pip.BlueprintPipRenderer;
 import buildcraft.builders.client.render.pip.TooltipBlueprintPipRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
 
-/**
- * 26.x registers PiP renderers through Fabric's {@link PictureInPictureRendererRegistry} -- the same registry
- * 1.21.x exposes under its older name (see the _ge_1.21.10_lt_26.1 copy). Going through the API rather than
- * appending to GameRenderer's renderer list by mixin is what keeps this working wherever the API is reimplemented:
- * on NeoForge (Forgified Fabric API / Sinytra Connector) that vanilla list holds NeoForge registration objects,
- * not renderer instances, so hand-injected renderers there died with a ClassCastException.
- * Loaded via reflection from {@link buildcraft.fabric.BuildCraftFabricClient}.
- */
+// Uses Fabric's {@link PictureInPictureRendererRegistry} rather than mixin-appending to GameRenderer's renderer list:
+// under NeoForge/Sinytra Connector that vanilla list holds registration objects, not renderers, so injected ones ClassCastException.
 public final class PictureInPictureRegistration {
    private PictureInPictureRegistration() {
    }

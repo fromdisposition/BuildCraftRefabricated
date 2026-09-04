@@ -17,8 +17,7 @@ public interface IZone {
 
    boolean contains(Vec3 var1);
 
-   /** Same containment test as {@link #contains(Vec3)} without requiring a Vec3. Robot block scans call this for
-    * thousands of candidate positions per tick, so implementations should override it allocation-free. */
+   /** Equivalent to {@link #contains(Vec3)}; called for thousands of positions per tick by robot scans, so override allocation-free. */
    default boolean contains(double x, double y, double z) {
       return this.contains(new Vec3(x, y, z));
    }
@@ -26,9 +25,8 @@ public interface IZone {
    BlockPos getRandomBlockPos(Random var1);
 
    /**
-    * Horizontal extent of the zone, or {@code null} if it has none. Entity and item lookups need a finite box to
-    * gather candidates from; without this they have to guess one large enough for any drawn zone, which costs the
-    * same whether the painted area is four chunks or four hundred. {@link #contains} still does the real clamp.
+    * Horizontal extent of the zone, or {@code null} if none. Lets entity/item lookups use a finite box instead of
+    * an unbounded guess; {@link #contains} still does the real clamp.
     */
    default net.minecraft.world.phys.AABB horizontalBounds() {
       return null;

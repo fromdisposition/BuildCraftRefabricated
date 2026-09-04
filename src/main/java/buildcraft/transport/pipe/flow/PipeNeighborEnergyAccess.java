@@ -29,10 +29,8 @@ public final class PipeNeighborEnergyAccess {
 
    @Nullable
    private static EnergyStorage blockEnergyStorage(Level level, BlockPos pos, Direction side) {
-      // RF<->RF transport is not conversion: an RF pipe always connects to a neighbour's E storage. Whether a BC
-      // machine exposes an E port at all is decided at the machine (getSidedEnergyStorage, gated on the power
-      // mode) -- so in MJ_ONLY, MJ machines expose nothing here while native E machines and the converter engines
-      // still connect.
+      // An RF pipe always connects to the neighbour's E storage; whether a BC machine exposes one is decided
+      // at the machine (getSidedEnergyStorage, gated on power mode) -- MJ_ONLY machines expose nothing here.
       return BcTransfers.energy(level, pos, side);
    }
 

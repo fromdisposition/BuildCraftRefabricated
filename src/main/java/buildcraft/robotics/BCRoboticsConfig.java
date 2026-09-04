@@ -8,21 +8,17 @@ package buildcraft.robotics;
 
 import buildcraft.lib.BCLibConfig;
 
-/** Robot pacing knobs, loaded from the "robotics" section of the common config (see BCFabricConfig). All values
- * are read live at their use sites, so a config reload applies immediately; the loader clamps them to sane ranges
- * so a hand-edited file cannot stall or overload the AI. */
+// Read live at every use site, so a reload applies at once; the loader clamps each value to the range noted.
 public final class BCRoboticsConfig {
-   /** Flight speed in blocks per tick (vanilla-era default 0.15 = 3 blocks/s). Clamped to [0.02, 1.0]. */
+   // Blocks per tick; [0.02, 1.0].
    public static final BCLibConfig.DoubleValue flightSpeed = new BCLibConfig.DoubleValue(0.15);
-   /** Block-state checks a scanning robot may spend per tick -- the real per-tick cost cap of a search. The cheap
-    * iteration budget scales with it (x20). Clamped to [50, 2000]. */
+   // Block-state checks per tick; the cheap iteration budget is 20x this. [50, 2000].
    public static final BCLibConfig.IntValue scanBudgetPerTick = new BCLibConfig.IntValue(200);
-   /** Seconds a robot rests docked before re-checking for work. Clamped to [1, 60]. */
+   // Seconds; [1, 60].
    public static final BCLibConfig.IntValue sleepSeconds = new BCLibConfig.IntValue(3);
-   /** Ticks between melee swings of a fighting robot (20 = one hit per second). Clamped to [5, 100]. */
+   // Ticks between melee swings; [5, 100].
    public static final BCLibConfig.IntValue attackPeriodTicks = new BCLibConfig.IntValue(20);
-   /** Multiplier on block-breaking speed. The full energy price is still paid -- this only changes how much of it
-    * a robot may spend per tick. Clamped to [0.25, 10.0]. */
+   // Caps per-tick energy spend only; the block still costs its full price. [0.25, 10.0].
    public static final BCLibConfig.DoubleValue workSpeedMultiplier = new BCLibConfig.DoubleValue(1.0);
 
    private BCRoboticsConfig() {

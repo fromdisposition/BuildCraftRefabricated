@@ -42,9 +42,8 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 
-/** Emits the vanilla-type crafting recipes through each node's own Recipe codec, so every node packages its
- * native recipe JSON. The BC-typed recipes (fuel/coolant/pipe colour/facade swap) are format-neutral and stay
- * handwritten. */
+/** Emits vanilla-type recipes through each node's own Recipe codec; BC-typed recipes (fuel/coolant/pipe colour/
+ * facade swap) are format-neutral and stay handwritten. */
 public final class BCRecipeProvider implements DataProvider {
    record Ing(String spec, String nbt) {
    }
@@ -189,8 +188,8 @@ public final class BCRecipeProvider implements DataProvider {
       *///?}
    }
 
-   /** The patch codec re-encodes SNBT-string components (custom_data) as JSON objects, which turns NBT bytes
-    * into ints and breaks exact-NBT matching in game; put the authored string form back. */
+   /** The patch codec re-encodes SNBT-string components as JSON objects, turning NBT bytes into ints and
+    * breaking exact-NBT matching; restore the authored string form. */
    private static void restoreStringComponents(JsonElement json, String rawComponents) {
       if (rawComponents == null) {
          return;

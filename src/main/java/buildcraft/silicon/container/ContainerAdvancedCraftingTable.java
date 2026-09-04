@@ -33,9 +33,8 @@ public class ContainerAdvancedCraftingTable extends ContainerBCTileRecipeBook<Ti
 
    public ContainerAdvancedCraftingTable(int containerId, Player player, TileAdvancedCraftingTable tile) {
       super(BCSiliconMenuTypes.ADVANCED_CRAFTING_TABLE, containerId, player, tile);
-      // Null tile = the client factory could not resolve the block entity yet (not synced); dereferencing
-      // tile.resultClient / tile.invMaterials here NPEs the client. Still add the player inventory so the slot
-      // count matches the server, else the content packet indexes past an empty slot list and disconnects.
+      // Null tile means the block entity isn't synced to the client yet; dereferencing its fields here NPEs.
+      // Slot count must still match the server, or the content packet indexes past an empty list and disconnects.
       if (tile == null) {
          this.addFullPlayerInventory(8, 162);
       } else {

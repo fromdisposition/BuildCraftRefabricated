@@ -105,9 +105,8 @@ public final class BCBuildersFabricClient {
       MenuScreens.register(BCBuildersMenuTypes.LIBRARY, GuiElectronicLibrary::new);
       MenuScreens.register(BCBuildersMenuTypes.REPLACER, GuiReplacer::new);
       MenuScreens.register(BCBuildersMenuTypes.FILLER_PLANNER, GuiFillerPlanner::new);
-      // Don't frustum-cull the invisible collision rig (its section-split boxes can be small) — keep it present
-      // instead of dropping the hitbox when the camera looks away. Collision is unaffected (server-side + section
-      // query). 1.21.1 uses Entity.noCulling instead (it has no renderer affectedByCulling hook).
+      // Keeps the invisible collision rig unculled: its section-split hitboxes can be small enough for frustum
+      // culling to hide, but collision is server-side and unaffected either way.
       EntityRenderers.register(BCBuildersEntities.QUARRY_RIG, context -> new NoopRenderer<EntityQuarryRig>(context) {
          @Override
          protected boolean affectedByCulling(EntityQuarryRig entity) {
@@ -128,8 +127,8 @@ public final class BCBuildersFabricClient {
          return null;
       });
       BCTooltips.addTooltip(BCBuildersItems.QUARRY, "tip.block.quarry");
-      // 1.21.x ignores the model JSON "render_type" field; register the cutout layer explicitly so
-      // the frame lattice and builder slots render with transparency instead of falling back to SOLID.
+      // Model JSON "render_type" is ignored here; register the cutout layer explicitly so the frame lattice
+      // and builder slots stay translucent instead of falling back to SOLID.
       //? if < 26.1 {
       /*BlockRenderLayerMap.putBlock(BCBuildersBlocks.FRAME, ChunkSectionLayer.CUTOUT);
       BlockRenderLayerMap.putBlock(BCBuildersBlocks.BUILDER, ChunkSectionLayer.CUTOUT);

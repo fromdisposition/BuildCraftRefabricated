@@ -150,9 +150,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    }
    *///?}
 
-   /** A read exception must never escape loadAdditional: the tile would end up empty/discarded and the NEXT SAVE
-    * would overwrite the stored pipe with that empty state -- permanent world damage (this exact failure mode once
-    * wiped every loaded pipe in a save). Keep whatever was read and log loudly instead. */
+   /** A read exception must never escape loadAdditional: the tile would be discarded and the next save would overwrite the stored pipe with that empty state. Keep whatever was read and log loudly instead. */
    private void readDataGuarded(BcValueIn input) {
       try {
          this.readData(input);
@@ -246,8 +244,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
             if (next != existing && existing != null) {
                // The replaced instance would otherwise stay registered on the event bus forever — the loop
-               // below only re-registers the new array contents, so every full BE resync that swaps a
-               // pluggable object added a duplicate handler.
+               // below only re-registers the new array contents.
                this.eventBus.unregisterHandler(existing);
             }
 
@@ -268,21 +265,18 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
          this.eventBus.registerHandler(plug);
       }
 
-      // The update packet (getUpdateTag) ships client-only pluggable state under "plugsClient" — e.g. the gate's
-      // isOn glow. The handleUpdateTag/onDataPacket overrides that used to read it no longer match a BlockEntity
-      // method that modern MC actually calls (the packet is applied through loadAdditional -> readData), so that
-      // state was dropped on chunk (re)load and the gate rendered dark until it next toggled. Apply it here on the
-      // live load path. Disk saves contain no "plugsClient", so this no-ops there.
+      // The update packet ships client-only pluggable state under "plugsClient" (e.g. the gate's isOn glow); it is
+      // applied through loadAdditional -> readData rather than handleUpdateTag/onDataPacket, so it must be applied
+      // here. Disk saves contain no "plugsClient", so this no-ops there.
       this.applyClientUpdateData(input);
 
-      // Isolated on purpose: a wire failure must NEVER abort the pipe's data read -- an escaped exception here once
-      // left tiles empty, and the next save overwrote the whole pipe with that empty state (permanent world damage).
+      // Isolated on purpose: a wire failure must never abort the pipe's data read, or an escaped exception here
+      // would leave the tile empty and the next save would overwrite the whole pipe with that empty state.
       try {
          input.read("wires", CompoundTag.CODEC).ifPresent(wireTag -> {
             this.wireManager.readFromNbt(wireTag);
-            // readFromNbt only replaces the part map. On a LIVE sync (level attached) rebuild the visual betweens
-            // immediately -- ours and the neighbours' halves -- so a wire change shows without stale floating
-            // segments. During chunk load the level is not attached yet; the first tick() builds them instead.
+            // readFromNbt only replaces the part map; on a live sync (level attached) rebuild the visual betweens
+            // immediately, since during chunk load the level is not attached yet and the first tick() builds them instead.
             if (this.level != null) {
                this.wireManager.updateBetweens(false);
             }
@@ -324,13 +318,10 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
    private void refreshClientModel() {
       if (this.level != null && this.level.isClientSide()) {
-         // The chunk-baked pipe geometry (body + paint, PipeBlockStateModel) is a pure function of the pipe's
-         // model key, so only remesh the section when that snapshot actually changed. Everything else that
-         // funnels through here — gate glow, wire power, behaviour/flow syncs, plain BE re-sends — is drawn by
-         // the block-entity renderer from live tile state and must not pay for a rebuild: in a chunk dense with
-         // pipes one no-op sendBlockUpdated costs a six-figure quad remesh plus a translucent re-sort.
-         // The key is re-derived (not read from the cache) so a behaviour that changed its texture state without
-         // calling invalidateModelKey still gets picked up; equal keys compare equal by value either way.
+         // The chunk-baked pipe geometry is a pure function of the pipe's model key, so only remesh when that
+         // snapshot actually changed -- in a dense chunk a no-op remesh costs a six-figure quad rebuild.
+         // The key is re-derived, not read from the cache, so a behaviour that changed texture state without
+         // calling invalidateModelKey is still picked up.
          Object key = null;
          if (this.pipe != null) {
             this.pipe.invalidateModelKey();
@@ -344,19 +335,13 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       }
    }
 
-   /**
-    * Fabric block-view render data: the immutable {@link buildcraft.transport.client.model.key.PipeModelKey}
-    * snapshot the chunk mesher hands to the pipe's block model off-thread (it drives the chunk-baked body and
-    * paint shell). Returns the exact snapshot {@link #refreshClientModel()} last triggered a remesh for — a
-    * plain field read of an immutable object, so the capture can never race a lazy rebuild or mesh a key the
-    * gate has not seen.
-    */
+   /** Returns the immutable snapshot {@link #refreshClientModel()} last triggered a remesh for; a plain field read, so it never races a lazy rebuild or the chunk mesher reading it off-thread. */
    @Override
    public Object getRenderData() {
       return this.lastChunkModelKey;
    }
 
-   /** Whether any side carries a pluggable — lets the renderer skip whole submits for bare pipes. */
+   /** Lets the renderer skip whole submits for bare pipes. */
    public boolean hasPluggables() {
       for (PipePluggable plug : this.pluggables) {
          if (plug != null) {
@@ -388,12 +373,9 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       return tag;
    }
 
-   // NOTE: no handleUpdateTag/onDataPacket overrides here on purpose. Neither is a BlockEntity method modern
-   // Minecraft calls -- the update packet is applied through loadAdditional (which reads "plugs" AND, at its end,
-   // the client-only "plugsClient" state). Re-adding them is worse than dead code: a loader that DOES call them
-   // (NeoForge, i.e. anything running this jar through Sinytra Connector) routes the packet into them INSTEAD of
-   // loadAdditional, so only "plugsClient" gets applied and the pluggables themselves are never created client
-   // side -- gates and facades then never render and their GUIs open with a null gate.
+   // No handleUpdateTag/onDataPacket overrides here on purpose: a loader that calls them (NeoForge, i.e. this jar
+   // through Sinytra Connector) would route the packet into them instead of loadAdditional, applying only
+   // "plugsClient" and leaving the pluggables themselves never created client-side.
 
    private void applyClientUpdateData(BcValueIn input) {
       input.read("plugsClient", CompoundTag.CODEC).ifPresent(plugsClient -> {
@@ -594,8 +576,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
    private void sendScheduledPayloads(Set<IPipeHolder.PipeMessageReceiver> parts, Consumer<MessagePipePayload> sender) {
       if (!parts.isEmpty()) {
-         // Contained like sendMessage: a pluggable/behaviour whose writePayload throws (e.g. a statement whose
-         // tag vanished with a datapack) must not crash the block-entity ticker every tick.
+         // Contained like sendMessage: a pluggable/behaviour whose writePayload throws must not crash the block-entity ticker.
          try {
             if (parts.size() == 1) {
                IPipeHolder.PipeMessageReceiver part = parts.iterator().next();
@@ -659,7 +640,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    public void dropPipeItems(Level lvl, BlockPos pos, boolean dropItems) {
       // dropItems=false (creative) still runs pluggable onRemove + clears state -- only the item pops are skipped.
       // Pluggables clean up external state in onRemove (e.g. a robot station destroys its docked robot), which must
-      // happen on every break, not just survival, or a creative-broken pipe leaks its station and strands the robot.
+      // happen on every break or a creative-broken pipe leaks its station and strands the robot.
       if (dropItems && this.pipe != null) {
          PipeDefinition def = this.pipe.getDefinition();
          Item pipeItem = (Item)PipeApi.pipeRegistry.getItemForPipe(def);
@@ -731,8 +712,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
    @Override
    public boolean canPlayerInteract(Player player) {
-      // Vanilla's reach-attribute-aware container check (matching every BC block-entity GUI) rather than a
-      // hand-rolled fixed 8-block (64 = 8^2) sphere. Drives the Gate and pipe-filter GUIs' stillValid.
+      // Vanilla's reach-attribute-aware container check, matching every BC block-entity GUI, rather than a hand-rolled fixed 8-block (64 = 8^2) sphere.
       return this.level != null && Container.stillValidBlockEntity(this, player);
    }
 
@@ -750,7 +730,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       this.eventBus.unregisterHandler(old);
       if (old != null && old != with && this.level != null && !this.level.isClientSide()) {
          // Lifecycle parity with dropPipeItems: pluggables clean external state (wire emitters, caches) in
-         // onRemove, which was skipped when only the plug was broken off instead of the whole pipe.
+         // onRemove even when only this one plug is removed, not the whole pipe.
          old.onRemove();
       }
 
@@ -968,10 +948,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       return this.eventBus.fireEvent(event);
    }
 
-   /**
-    * Cached composed outline/collision shape (see BlockPipeHolder.buildFullShape). Volatile: shape queries can
-    * come from chunk-meshing workers through region copies while invalidation happens on the game thread.
-    */
+   // Volatile: shape queries can come from chunk-meshing workers through region copies while invalidation happens on the game thread.
    private volatile VoxelShape cachedFullShape;
 
    public VoxelShape getFullShape() {
@@ -990,8 +967,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
    @Override
    public void scheduleRenderUpdate() {
-      // Everything that changes the pipe's geometry (connections, pluggables, wires) funnels through here on
-      // both sides, so it doubles as the shape-cache chokepoint.
+      // Everything that changes the pipe's geometry funnels through here on both sides, so it doubles as the shape-cache chokepoint.
       this.invalidateShapeCache();
       if (this.level != null && this.level.isClientSide()) {
          this.refreshClientModel();

@@ -23,20 +23,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 import net.minecraft.client.resources.model.ModelManager;
 import org.spongepowered.asm.mixin.Mixin;
 
-/**
- * Fires {@code FabricModelModifyHooks} after the baking pass so BC can replace item and block-state models in
- * batch (pipe models, facade, gate, lens). On 1.21.10+ this redirects the BakingResult.itemStackModels() call;
- * on 1.21.1 (no BakingResult/ItemModel split) it redirects ModelManager.apply's
- * ModelBakery.getBakedTopLevelModels() call into a mutable copy, lets listeners swap entries, and returns it
- * (so the mutated map becomes ModelManager.bakedRegistry).
- *
- * <p>Not replaceable by Fabric's model-loading API: the per-item half would map onto
- * {@code ModelLoadingPlugin.Context.modifyItemModelAfterBake()}, but the listener also needs the COMPLETE baked
- * {@code blockStateModels()} map in one shot -- {@code FacadeDeduplicator} compares every block-state model
- * against every other to collapse visually identical facades. {@code ModelModifier.AfterBakeBlock} is per-model
- * and {@code FabricModelManager} only exposes extra models, so neither can hand over that global view; splitting
- * just the item half out would leave this mixin in place anyway.
- */
+// Redirects the post-bake model map so listeners can batch-swap entries (facade, gate, lens); FacadeDeduplicator
+// needs the whole block-state map at once, which Fabric's per-model AfterBakeBlock API cannot provide.
 @Mixin(ModelManager.class)
 public class ModelManagerMixin {
    //? if >= 1.21.10 {

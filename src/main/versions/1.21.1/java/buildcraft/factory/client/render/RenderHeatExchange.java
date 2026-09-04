@@ -34,12 +34,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-/**
- * 1.21.1 (versions/1.21.1) heat-exchange renderer: immediate-mode port of the shared render-state/submit BER.
- * Draws the input/output tanks (via the version-neutral BcFluidBerHelper MultiBufferSource overload) and the moving
- * coolant/heatant flow through the exchanger middle. Geometry duplicated from the shared RenderHeatExchange,
- * which this override replaces on 1.21.1.
- */
+/** Duplicates the shared RenderHeatExchange geometry in immediate mode; keep both in sync by hand. */
 public class RenderHeatExchange implements BlockEntityRenderer<TileHeatExchange> {
    private static final Map<Direction, TankSideData> TANK_SIDES = new EnumMap<>(Direction.class);
    private static final BcFluidBerHelper.TankBounds TANK_BOTTOM = new BcFluidBerHelper.TankBounds(2.0F, 0.0F, 2.0F, 14.0F, 2.0F, 14.0F);

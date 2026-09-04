@@ -438,9 +438,8 @@ public class TileFiller
       }
    }
 
-   /** The sync tag drops the inventory and — via writingSyncTag — the heavy builderState blob (checkResults is
-    * sized to the whole template volume); clients only consume builderClientData, and readData tolerates the
-    * missing keys. */
+   /** Sync tag drops inventory and the heavy builderState blob (sized to the whole template volume); clients get
+    * builderClientData only, and readData tolerates the missing keys. */
    @Override
    public CompoundTag getUpdateTag(Provider registries) {
       this.writingSyncTag = true;

@@ -17,12 +17,8 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.level.storage.ValueInput;
 //?}
 
-/**
- * Version-neutral read side of block-entity serialization. Mirror of {@link BcValueOut}. On 1.21.5+ it wraps
- * {@code ValueInput}; on 1.21.1 it wraps {@code CompoundTag} (+ registry provider for codecs) and emulates the
- * {@code getXOr} accessors (1.21.1 bare getters return the value directly, with no Optional/OrEmpty variants).
- * Method names mirror {@code ValueInput} so a tile's {@code readData} body is the same on every node.
- */
+// Mirror of {@link BcValueOut}. 1.21.5+ wraps ValueInput; 1.21.1 wraps CompoundTag (+ registry provider) and
+// emulates the getXOr accessors, so a tile's readData body is identical on every node.
 public final class BcValueIn {
    //? if >= 1.21.10 {
    public final ValueInput raw;

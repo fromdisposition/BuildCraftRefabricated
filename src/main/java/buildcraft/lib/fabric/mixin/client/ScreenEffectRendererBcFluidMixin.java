@@ -21,11 +21,8 @@ public class ScreenEffectRendererBcFluidMixin {
    private Minecraft minecraft;
    *///?}
 
-   // ScreenEffectRenderer.renderScreenEffect differs by version:
-   //   1.21.11 : renderScreenEffect(boolean sleeping, float partialTicks, SubmitNodeCollector) — 3-arg
-   //   26.1.2  : renderScreenEffect(boolean isFirstPerson, boolean isSleeping, float, SubmitNodeCollector, boolean hideGui) — 5-arg
-   //   26.2    : same 5 args but the method was renamed to submit(...)
-   //   26.3-pre: submit(float, SubmitNodeCollector, PlayerRenderState, CameraRenderState, boolean) — TAIL + fresh identity PoseStack
+   // renderScreenEffect (1.21.11-26.1, 3-5 args) is renamed submit in 26.2, then reworked in 26.3-pre into a TAIL
+   // injection over player/camera render states; each branch below matches its version's name and signature.
    //? if >= 26.3-pre-1 {
    @Inject(method = "submit", at = @At("TAIL"))
    private void buildcraft$renderBcFluidOverlay(

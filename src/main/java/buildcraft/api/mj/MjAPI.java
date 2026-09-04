@@ -25,16 +25,9 @@ public class MjAPI {
    public static IMjEffectManager EFFECT_MANAGER = MjAPI.NullaryEffectManager.INSTANCE;
 
    /**
-    * Fabric BlockApiLookup for each MJ interface. Use these to register providers on block
-    * entities and to look up MJ capability on neighboring blocks.
-    *
-    * The same instances double as capability-token constants passed to
-    * {@code PipeFlow.getCapability(Object, Direction)} for internal pipe routing — identity
-    * comparison ({@code capability == MjAPI.CAP_RECEIVER}) still works because
-    * {@link BlockApiLookup} is an {@link Object}.
-    *
-    * Register: {@code MjAPI.CAP_RECEIVER.registerForBlockEntity((be, side) -> ..., MY_TYPE);}
-    * Look up:  {@code MjAPI.CAP_RECEIVER.find(level, pos, null, null, side);}
+    * BlockApiLookup for each MJ interface; register providers on block entities, look up MJ capability on neighbors.
+    * These instances double as capability-token constants for {@code PipeFlow.getCapability(Object, Direction)} —
+    * identity comparison against them still works because {@link BlockApiLookup} is an {@link Object}.
     */
    @Nonnull
    public static final BlockApiLookup<IMjConnector, Direction> CAP_CONNECTOR =

@@ -27,8 +27,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class AssemblyTableCategory extends AbstractRecipeCategory<AssemblyRecipeView> {
    private static final Identifier TEX = Identifier.parse("buildcraftsilicon:textures/gui/bcr/assembly_table.png");
-   // Crop keeps a 4px panel margin on every side; ending it on the slot wells' white bevel row leaves a stray
-   // white line along the bottom of the recipe card.
+   // crop must keep a 4px margin; ending on the slot wells' white bevel leaves a stray line.
    private static final int BG_U = 3, BG_V = 13, BG_H = 80;
    private static final int INPUT_X = 5, INPUT_Y = 5, DISPLAY_X = 113, DISPLAY_Y = 5;
    private static final int BG_W = DISPLAY_X + 52 + INPUT_X;

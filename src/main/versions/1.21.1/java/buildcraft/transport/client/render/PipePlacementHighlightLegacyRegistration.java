@@ -15,14 +15,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * 1.21.1 has neither {@code extractBlockOutline} (26.x) nor the {@code rendering.v1.world} events (1.21.10/11);
- * hook the classic Fabric {@link WorldRenderEvents#BLOCK_OUTLINE} instead. Loaded only on the 1.21.1 build via
- * reflection from {@link buildcraft.transport.platform.BCTransportFabricClient}.
- *
- * <p>Draws the pluggable/wire placement preview when one is held, otherwise the tight outline of the sub-part
- * (pluggable, wire, arm or centre) under the crosshair; returning {@code false} cancels the vanilla outline, which
- * would otherwise wrap the pipe's full composed shape. Lines are emitted into the same buffer vanilla uses for its
- * own outline ({@link WorldRenderContext.BlockOutlineContext#vertexConsumer()}), colour-matched to vanilla.
+ * No {@code extractBlockOutline} or {@code rendering.v1.world} events here; hooks the classic Fabric
+ * {@link WorldRenderEvents#BLOCK_OUTLINE} instead, loaded only via reflection from {@link buildcraft.transport.platform.BCTransportFabricClient}.
  */
 public final class PipePlacementHighlightLegacyRegistration {
    private PipePlacementHighlightLegacyRegistration() {
@@ -66,7 +60,7 @@ public final class PipePlacementHighlightLegacyRegistration {
       return false;
    }
 
-   /** Vanilla 1.21.1 LevelRenderer.renderShape: one colour-and-normal'd line per shape edge. */
+   /** Copied from vanilla LevelRenderer.renderShape, unavailable to call directly. */
    private static void renderShape(PoseStack poseStack, VertexConsumer consumer, VoxelShape shape, double x, double y, double z) {
       PoseStack.Pose pose = poseStack.last();
       shape.forAllEdges((x1, y1, z1, x2, y2, z2) -> {

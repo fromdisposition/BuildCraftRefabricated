@@ -42,12 +42,9 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      // Title, centred: this.title is the name passed at menu open (the gui.buildcraft.pipe_diamond_wood.title
-      // lang string). Centred on imageWidth, no hardcoded coordinate.
       String titleStr = this.title.getString();
       graphics.text(this.font, titleStr, (this.imageWidth - this.font.width(titleStr)) / 2, 6, -12566464, false);
-      // "Inventory" label: X = 8 matches the player inventory's left edge (addFullPlayerInventory(8, 79)),
-      // Y = playerInventoryLabelY() derives from the real slot rows, not hardcoded.
+      // X = 8 must match addFullPlayerInventory(8, 79)'s left edge.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 

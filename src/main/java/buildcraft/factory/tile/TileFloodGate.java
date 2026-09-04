@@ -73,9 +73,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
    public final SingleFluidTank fluidTank = new SingleFluidTank(2000);
    public final EnumSet<Direction> openSides = EnumSet.of(Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
    public final Deque<BlockPos> queue = new ArrayDeque<>();
-   // Parent pointers instead of a full ImmutableList path per node: over an ocean the old scheme copied an
-   // O(depth) list for every one of up to ~10^5 visited positions on each rebuild. The single needed path is
-   // reconstructed by walking parents (the flood gate position marks a seed's root).
+   // Parent pointers, not a stored path per node: an O(depth) list per node would be copied up to ~10^5 times per rebuild over an ocean.
    private final Map<BlockPos, BlockPos> paths = new HashMap<>();
    private int delayIndex = 0;
    private int tick = 0;
@@ -89,8 +87,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
 
    @Nullable
    public Storage<FluidVariant> getSidedFluidStorage(@Nullable Direction direction) {
-      // Fill-only from the outside (matches upstream): exposing the raw OPEN tank let pipes pump the
-      // buffered fluid back out of the gate.
+      // Fill-only: exposing the raw tank let pipes pump the buffered fluid back out of the gate.
       return direction == null ? null : buildcraft.lib.fabric.transfer.fluid.SidedFluidStorages.insertOnly(this.fluidTank);
    }
 
@@ -139,8 +136,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
 
             for (BlockPos toCheck : nextPosesToCheckCopy) {
                if (!(toCheck.distSqr(this.worldPosition) > 4096.0) && checked.add(toCheck) && this.canSearch(toCheck)) {
-                  // Over an ocean the whole radius-64 sphere is searchable-but-not-fillable, so without this
-                  // cap a single rebuild visited up to ~10^5-10^6 positions in one tick.
+                  // Over an ocean the whole radius-64 sphere is searchable-but-not-fillable, so this cap bounds a rebuild to 65536 positions.
                   if (checked.size() >= 65536) {
                      return;
                   }
@@ -324,8 +320,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
          }
       }
 
-      // 61 = DOWN|NORTH|SOUTH|WEST|EAST -- the same set the field initialises to. (31 was a stale fallback that
-      // wrongly opened UP and dropped EAST for tags missing the key.)
+      // 61 = DOWN|NORTH|SOUTH|WEST|EAST bitmask, matching the field's default.
       byte sides = input.getByteOr("openSides", (byte)61);
       this.openSides.clear();
 

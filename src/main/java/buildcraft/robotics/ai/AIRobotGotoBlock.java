@@ -13,14 +13,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 
 /**
- * Fly the robot straight to a target block.
- *
- * Robots are {@code noPhysics} flyers, so a direct line always reaches the target. This deliberately replaces the
- * old voxel A* ({@code buildcraft.robotics.path.PathFinding}) which drove every robot move: that search frequently
- * returned no path (iteration budget, exact-block goal, over-pruned diagonals) and reported failure, which stranded
- * the robot -- unable to fly back to its station to recharge, or to reach a mob / work block -- so it just sat
- * there doing nothing. A straight flight can never "fail to find a route", only be interrupted, so navigation is
- * reliable. The precise final dock still uses {@link AIRobotStraightMoveTo}; this handles the long approach leg.
+ * Robots are {@code noPhysics} flyers, so a direct line always reaches the target and navigation cannot fail to
+ * find a route, only be interrupted. The precise final dock is handled separately by {@link AIRobotStraightMoveTo}.
  */
 public class AIRobotGotoBlock extends AIRobotGoto {
    /** Arrival tolerance (~0.6 block); the exact dock is done separately by AIRobotStraightMoveTo. */
@@ -45,7 +39,7 @@ public class AIRobotGotoBlock extends AIRobotGoto {
       this.finalZ = z;
    }
 
-   /** maxDistance is legacy from the A* era ("arrive within N"); a straight flight goes to the block, so it is ignored. */
+   /** maxDistance is unused: a straight flight always reaches the block regardless of how far away it started. */
    public AIRobotGotoBlock(EntityRobotBase robot, int x, int y, int z, double maxDistance) {
       this(robot, x, y, z);
    }

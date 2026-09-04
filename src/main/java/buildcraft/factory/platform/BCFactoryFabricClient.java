@@ -41,17 +41,14 @@ public final class BCFactoryFabricClient {
       BlockEntityRenderers.register(BCFactoryBlockEntities.HEAT_EXCHANGE, RenderHeatExchange::new);
       BlockEntityRenderers.register(BCFactoryBlockEntities.PUMP, RenderPump::new);
       BlockEntityRenderers.register(BCFactoryBlockEntities.MINING_WELL, RenderMiningWell::new);
-      // Don't frustum-cull the invisible collision shaft (see BCBuildersFabricClient / the rig). 1.21.1 uses
-      // Entity.noCulling instead.
+      // Invisible shaft must stay unculled; 1.21.1 has no affectedByCulling hook, so it sets Entity.noCulling instead.
       EntityRenderers.register(BCFactoryEntities.MINER_SHAFT, context -> new NoopRenderer<EntityMinerShaft>(context) {
          @Override
          protected boolean affectedByCulling(EntityMinerShaft entity) {
             return false;
          }
       });
-      // 1.21.x ignores the model JSON "render_type" field (a 26.1 model-system feature), so the
-      // chunk render layer must be registered explicitly via Fabric's BlockRenderLayerMap, otherwise
-      // these blocks fall back to SOLID and their glass/lattice parts render opaque.
+      // 1.21.x ignores the model JSON render_type field, so BlockRenderLayerMap must set these blocks' layer explicitly or they render opaque SOLID.
       //? if < 26.1 {
       /*BlockRenderLayerMap.putBlock(BCFactoryBlocks.TANK, ChunkSectionLayer.CUTOUT);
       BlockRenderLayerMap.putBlock(BCFactoryBlocks.DISTILLER, ChunkSectionLayer.CUTOUT);

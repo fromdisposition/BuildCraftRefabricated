@@ -31,10 +31,8 @@ public class ContainerAssemblyTable extends ContainerBCTile<TileAssemblyTable> {
 
    public ContainerAssemblyTable(int containerId, Player player, TileAssemblyTable tile) {
       super(BCSiliconMenuTypes.ASSEMBLY_TABLE, containerId, player, tile);
-      // Guard the null tile the same way ContainerIntegrationTable does: the client factory resolves the tile from
-      // the world and gets null when the block entity is not yet synced, and dereferencing tile.inv here NPEs the
-      // client. Still add the player inventory so the slot count matches the server (else the content packet
-      // indexes past an empty slot list and disconnects).
+      // Null tile means the block entity isn't synced to the client yet; dereferencing tile.inv here NPEs.
+      // Slot count must still match the server, or the content packet indexes past an empty list and disconnects.
       if (tile == null) {
          this.addFullPlayerInventory(8, 104);
       } else {

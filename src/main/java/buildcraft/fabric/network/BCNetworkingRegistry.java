@@ -48,10 +48,8 @@ public final class BCNetworkingRegistry {
       registerServerboundFriendly(BuildersClientRequestPayload.TYPE, BuildersClientRequestPayload.STREAM_CODEC, BuildersClientRequestPayload::handle);
    }
 
-   // NOTE: clientbound RECEIVERS (which need net.fabricmc...client.ClientPlayNetworking + Minecraft) live in
-   // BCNetworkingRegistryClient (@Environment CLIENT). This class is loaded on the dedicated server, so it must
-   // not reference any client-only type. The clientbound CODECS above are registered in registerCommon() so
-   // both sides agree on the wire format.
+   // Loaded on the dedicated server: no client-only types here. Clientbound receivers live in
+   // BCNetworkingRegistryClient; their codecs are registered above so both sides share the wire format.
 
    private static <T extends CustomPacketPayload> void registerCodecClientbound(Type<T> type, StreamCodec<? super RegistryFriendlyByteBuf, T> codec) {
       PayloadTypeRegistry.clientboundPlay().register(type, codec);
@@ -69,7 +67,7 @@ public final class BCNetworkingRegistry {
       PayloadTypeRegistry.serverboundPlay().register(type, codec);
    }
 
-   // package-private: shared by BCNetworkingRegistryClient (same package) for clientbound dispatch.
+   // Package-private: BCNetworkingRegistryClient dispatches through this too.
    static <T extends CustomPacketPayload> void dispatch(T payload, BCPayloadContext ctx, BiConsumer<T, BCPayloadContext> handler) {
       ctx.enqueueWork(() -> handler.accept(payload, ctx));
    }

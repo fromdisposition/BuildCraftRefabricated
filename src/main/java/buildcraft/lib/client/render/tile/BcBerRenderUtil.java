@@ -15,11 +15,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 //?}
 
-/**
- * Bridges block-entity geometry into the 1.21.5 submit-pipeline (SubmitNodeCollector.submitCustomGeometry).
- * That pipeline does not exist on 1.21.1 (BERs render immediately via MultiBufferSource), where BC's BER
- * overrides live in versions/1.21.1 and never call this helper — so it degrades to an empty class there.
- */
 public final class BcBerRenderUtil {
    private BcBerRenderUtil() {
    }

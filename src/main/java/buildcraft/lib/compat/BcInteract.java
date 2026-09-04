@@ -15,24 +15,15 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.ItemStack;
 *///?}
 
-/**
- * Bridges the block {@code useItemOn} return-type cliff. On 1.21.5+ it returns {@link InteractionResult};
- * on 1.21.1 it returns {@code ItemInteractionResult} (a separate enum, and 1.21.1's InteractionResult has
- * no TRY_WITH_EMPTY_HAND). BuildCraft blocks keep their logic in a neutral {@code bcUseItemOn(...)} that
- * returns InteractionResult, and a thin {@code useItemOn} wrapper does {@code return toItem(bcUseItemOn(...))}.
- * The wrapper's return type is switched to ItemInteractionResult on 1.21.1 by a stonecutter replace.
- */
+// Callers' useItemOn wrappers get their return type swapped to ItemInteractionResult on 1.21.1 by a stonecutter replace.
 public final class BcInteract {
    //? if >= 1.21.10 {
-   /** "Item didn't act, defer to the empty-hand interaction." Real value on modern. */
    public static final InteractionResult TRY_WITH_EMPTY_HAND = InteractionResult.TRY_WITH_EMPTY_HAND;
 
-   /** Identity on modern (useItemOn already returns InteractionResult). */
    public static InteractionResult toItem(InteractionResult result) {
       return result;
    }
 
-   /** Identity on modern (Item.use already returns InteractionResult). */
    public static InteractionResult toUse(InteractionResult result, Player player, InteractionHand hand) {
       return result;
    }

@@ -51,14 +51,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import org.joml.Vector3f;
 
-/**
- * 1.21.1 (versions/1.21.1) blueprint/template preview renderer. The shared class extends the 1.21.5
- * PictureInPictureRenderer (+ GPU lighting UBOs + ItemStackRenderState), none of which exist on 1.21.1.
- * Here the rotating 3D structure is drawn directly in the GUI pose space (like an enlarged 3D item icon):
- * blocks from their block model's quads, pipes via ModelPipe.renderDirect, fluids/template ghosts via
- * immediate quads, all clipped to the preview rect. The plan mirrors the shared buildPlan, but reads block
- * quads through the classic 1.21.1 BakedModel.getQuads API instead of the BlockStateModel pipeline.
- */
+/** No PictureInPictureRenderer on this version; draws the rotating 3D preview directly in the GUI pose space via the classic BakedModel.getQuads API. */
 public final class BlueprintPipRenderer {
    private static final int FULL_BRIGHT = 15728880;
    private static final Identifier SCAN_TEXTURE = Identifier.parse("buildcraftbuilders:textures/block/scan.png");
@@ -101,10 +94,8 @@ public final class BlueprintPipRenderer {
       poseStack.pushPose();
       poseStack.translate((x0 + x1) / 2.0F, (y0 + y1) / 2.0F, 250.0F);
       poseStack.scale(scale, scale, scale);
-      // Direct-to-GUI render (no PiP texture round-trip), so use vanilla's GUI 3D-item convention: flip Y ONLY,
-      // to map the model's y-up into the y-down GUI ortho. The shared PiP path additionally flips Z because it
-      // renders into an offscreen texture; replicating that Z flip here cancelled the reflection (det > 0), which
-      // culled the OUTWARD faces (structure looked inside-out) and inverted depth (camera looked mirrored).
+      // Flip Y only (GUI y-down vs model y-up); also flipping Z, as the offscreen PiP path does, cancels the
+      // reflection and culls outward faces / inverts depth, since this renders straight to the GUI, not a texture.
       poseStack.scale(1.0F, -1.0F, 1.0F);
       poseStack.rotate(Axis.XP.rotationDegrees(20.0F));
       poseStack.rotate(Axis.YP.rotationDegrees(yaw));

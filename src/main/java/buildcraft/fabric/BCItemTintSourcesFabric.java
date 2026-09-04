@@ -25,9 +25,7 @@ public final class BCItemTintSourcesFabric {
 
    public static void register() {
       //? if >= 1.21.10 {
-      // ItemTintSources.ID_MAPPER is deliberately opened by fabric-api's transitive access widener
-      // ("Adding custom item model types"); the mapper is late-bound and only read when item model JSONs are
-      // parsed during resource reload, so registering from the client entrypoint needs no bootstrap hook.
+      // ID_MAPPER is opened by fabric-api's access widener and only read at resource reload, so no bootstrap hook is needed.
       if (!registered) {
          try {
             ItemTintSources.ID_MAPPER.put(FLUID_SHARD_TINT_ID, FluidShardTintSource.MAP_CODEC);

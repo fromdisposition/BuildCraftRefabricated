@@ -38,11 +38,8 @@ import net.minecraft.world.phys.HitResult;
 import org.jspecify.annotations.Nullable;
 
 /**
- * 1.21.1 (versions/1.21.1) implementation of the custom pipe break/landing particles, textured from the pipe or
- * pluggable sprite (so a broken pipe sheds pipe-textured shards, not generic stone). The shared class uses the
- * 1.21.5 item render-state pipeline (ItemStackRenderState/ItemModelResolver) and the 1.21.5+ particle
- * {@code Layer} enum; here the equivalents are the classic {@code ItemRenderer.getModel(...).getParticleIcon()},
- * {@code BakedModel.getParticleIcon()}, {@code BakedQuad.getSprite()} and {@code ParticleRenderType.TERRAIN_SHEET}.
+ * Reimplements the pipe break/landing particles using the classic {@code ItemRenderer.getModel(...).getParticleIcon()}
+ * pipeline; the 1.21.5 ItemStackRenderState/ItemModelResolver pipeline is unavailable here.
  */
 public class PipeHolderClientExtensions implements ClientBlockExtensions {
    public static final PipeHolderClientExtensions INSTANCE = new PipeHolderClientExtensions();
@@ -50,7 +47,7 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
    private PipeHolderClientExtensions() {
    }
 
-   /** The client crosshair hit, if it is a block hit. Common return type so the caller stays dist-clean. */
+   /** Common return type so the caller stays dist-clean. */
    @Nullable
    public static BlockHitResult clientBlockHit() {
       return Minecraft.getInstance().hitResult instanceof BlockHitResult blockHit ? blockHit : null;

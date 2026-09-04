@@ -89,15 +89,12 @@ public class PipeBehaviourWood extends PipeBehaviourDirectional implements IMjRe
    }
 
    private long lastRequestedPower;
-   // -4, not Long.MIN_VALUE: game time minus MIN_VALUE overflows negative, so the "< 4" memo check was always
-   // true and this permanently answered the initial 0 -- engines saw no demand and the pipe never extracted.
+   // -4 not Long.MIN_VALUE: now - MIN_VALUE overflows, which breaks the "< 4" memo check on the first tick
    private long lastRequestedTick = -4L;
 
    @Override
    public long getPowerRequested() {
-      // Engines poll this every tick, and answering honestly means a full simulated extraction (an inventory
-      // scan plus two transactions) even over an empty chest. Memoize for 4 ticks — the first pump after a
-      // refill lands a few ticks late at worst, within the pipe's own extraction cadence.
+      // answering honestly means a full simulated extraction (inventory scan plus two transactions); memoize for 4 ticks
       long now = this.pipe.getHolder().getPipeWorld().getGameTime();
       if (now - this.lastRequestedTick < 4L) {
          return this.lastRequestedPower;

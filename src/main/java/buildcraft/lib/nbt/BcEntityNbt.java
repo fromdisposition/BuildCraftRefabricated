@@ -25,17 +25,12 @@ import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.entity.EntitySpawnRequest;
 //?}
 
-/**
- * Version-neutral entity NBT save/load. On 1.21.5+ entities serialize through the ValueInput/ValueOutput
- * system (TagValueOutput.save / EntityType.create(TagValueInput, ...)); on 1.21.1 they serialize straight
- * to a CompoundTag (Entity.save(CompoundTag) / EntityType.create(CompoundTag, Level)). Mirrors the other
- * lib.nbt facades ([[port-1-21-1]] BcValueIn/BcValueOut/BcNbt).
- */
+// 1.21.5+ entities serialize through ValueInput/ValueOutput; 1.21.1 serializes straight to a CompoundTag. Mirrors
+// the other lib.nbt facades (BcValueIn/BcValueOut/BcNbt).
 public final class BcEntityNbt {
    private BcEntityNbt() {
    }
 
-   /** Serialize an entity to a fresh CompoundTag. */
    public static CompoundTag save(Entity entity, RegistryAccess registryAccess) {
       //? if >= 1.21.10 {
       TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registryAccess);
@@ -64,7 +59,6 @@ public final class BcEntityNbt {
       *///?}
    }
 
-   /** Load a CompoundTag (incl. components) into an existing block entity. */
    public static void loadBlockEntity(BlockEntity be, CompoundTag nbt, RegistryAccess registryAccess) {
       //? if >= 1.21.10 {
       be.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, registryAccess, nbt));

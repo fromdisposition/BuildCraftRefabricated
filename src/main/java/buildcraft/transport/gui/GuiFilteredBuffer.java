@@ -95,10 +95,8 @@ public class GuiFilteredBuffer extends BcScreen<ContainerFilteredBuffer_BC8> {
    @Override
    protected void drawForegroundLayer() {
       BCGraphics graphics = GuiIcon.getGuiGraphics();
-      // Block name on the canonical left title anchor.
       graphics.text(this.font, this.title.getString(), 8, 6, -12566464, false);
-      // X = 8 matches the player inventory's left edge; Y = playerInventoryLabelY() derives from the real slot rows
-      // (firstPlayerRowY() - 12), so it follows the inventory automatically.
+      // X = 8 matches the player inventory's left edge.
       graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
    }
 }

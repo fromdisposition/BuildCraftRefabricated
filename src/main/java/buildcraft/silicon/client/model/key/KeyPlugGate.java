@@ -18,10 +18,7 @@ public class KeyPlugGate extends PluggableModelKey {
       this.variant = variant;
    }
 
-   /**
-    * Identity is deliberately side+variant only: the baker bakes just the static gate body, and the on/off
-    * indicator is drawn by the dynamic renderer — so the active state must NOT split the model cache.
-    */
+   /** Identity is side+variant only; the on/off indicator is drawn dynamically, so active state must not split the model cache. */
    @Override
    public boolean equals(Object obj) {
       if (obj == this) {

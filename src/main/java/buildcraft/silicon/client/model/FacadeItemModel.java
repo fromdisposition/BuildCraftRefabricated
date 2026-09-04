@@ -66,11 +66,8 @@ public class FacadeItemModel implements ItemModel {
          return quads;
       }));
 
-   // The canonical minecraft:block/block.json display transforms. Vanilla injects them into every block item via
-   // the JSON parent chain, but this ItemModel builds its quads in code, bypassing JSON entirely -- with no
-   // transform set the renderer used identity (scale 1.0), so a dropped/held facade rendered as big as a placed
-   // block. Translations are already /16, exactly as the vanilla deserializer stores them; the left third-person
-   // mirror is applied by ItemTransform itself via the leftHand flag.
+   // This model builds quads in code, bypassing the JSON parent chain that normally supplies block-item display
+   // transforms; without them a held facade rendered at full block scale. Translations are already /16.
    private static final ItemTransform TRANSFORM_GROUND =
       new ItemTransform(new Vector3f(), new Vector3f(0.0F, 0.1875F, 0.0F), new Vector3f(0.25F));
    private static final ItemTransform TRANSFORM_FIXED =
@@ -98,12 +95,7 @@ public class FacadeItemModel implements ItemModel {
       guiCache.invalidateAll();
    }
 
-   /**
-    * Fill the layer's tint colours so biome-tinted source blocks (grass, leaves) keep their BASE colour in the
-    * item render -- without them every remapped tint index resolved to nothing and the icon drew grey. Uses the
-    * world-less colour (BlockTintSource.color / getColor with no level), i.e. the same default green a grass
-    * block item shows in the inventory.
-    */
+   /** Fills tint layers with the world-less colour so biome-tinted item icons (grass, leaves) don't draw grey. */
    private static void fillTintLayers(LayerRenderState layer, net.minecraft.world.level.block.state.BlockState state) {
       //? if >= 26.1 {
       it.unimi.dsi.fastutil.ints.IntList tints = layer.tintLayers();
@@ -160,8 +152,7 @@ public class FacadeItemModel implements ItemModel {
          LayerRenderState layer = renderState.newLayer();
          layer.setQuads(net.minecraft.client.resources.model.geometry.ItemQuads.split(quads));
          fillTintLayers(layer, state.stateInfo.state);
-         // The GUI icon is the purpose-built flat tile from guiCache (identity transform fills the slot face-on);
-         // every world context gets the standard block-item display transform, or the item renders full block size.
+         // GUI uses the flat guiCache tile as-is; other contexts need the block-item display transform or the item renders full block size.
          if (displayContext != ItemDisplayContext.GUI) {
             //? if >= 26.1 {
             layer.setItemTransform(transformFor(displayContext));

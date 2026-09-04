@@ -10,10 +10,7 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 
-/** 1.21.1 resolves item models straight from models/item/&lt;id&gt;.json and has no client item-definition
- * system, so on that node this rebuilds the legacy files from {@link BCAssetDefs}: a plain model reference
- * becomes a parent stub, and a custom_model_data dispatch becomes integer overrides merged onto the base
- * model (read off the datagen classpath). Later nodes emit nothing here. */
+/** 1.21.1 has no item-definition system and resolves models straight from models/item/&lt;id&gt;.json, so this rebuilds those legacy files from {@link BCAssetDefs}; later nodes emit nothing here. */
 public final class BCItemModelBackportProvider implements DataProvider {
    //? if < 1.21.10 {
    /*private final PackOutput.PathProvider pathProvider;

@@ -26,7 +26,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.ServerStarting;
-// Fabric API renamed the per-level lifecycle events for 26.x: ServerWorldEvents (2.x) -> ServerLevelEvents (4.x).
 //? if >= 26.1 {
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 //?} else {
@@ -62,10 +61,8 @@ public class BuildCraftFabricMod implements ModInitializer {
          BCRecipeBootstrap.initEnergyRecipes();
       });
       BcTransfers.init();
-      // Any c:tools/wrench item that isn't our own wrench (which handles itself in useOn) gets the BuildCraft
-      // wrench behaviour on BuildCraft blocks -- rotate, or sneak-dismantle. Fires before block.useItemOn, so it
-      // only acts when applyWrench actually does something (rotatable/dismantlable); otherwise PASS lets the
-      // block's own wrench handling (e.g. flood gate side config) run.
+      // The own wrench handles itself in useOn. This fires before block.useItemOn, so PASS when applyWrench does
+      // nothing lets the block's own wrench handling run.
       UseBlockCallback.EVENT.register((player, world, hand, hit) -> {
          ItemStack held = player.getItemInHand(hand);
          if (EntityUtil.isWrench(held) && !(held.getItem() instanceof ItemWrench_Neptune)) {
@@ -87,10 +84,8 @@ public class BuildCraftFabricMod implements ModInitializer {
             SavedDataWireSystems.get(joinLevel).sendTo(handler.player);
          }
       });
-      // Marker sub-caches are keyed by dimension id, which collides across worlds in the same game session
-      // (singleplayer world switching): evict on unload so the next world builds a fresh cache instead of
-      // writing markers into the previous world's dead level + detached saved data. This restores the old
-      // BuildCraft WorldEvent.Unload semantics the Fabric port had lost.
+      // Marker sub-caches are keyed by dimension id, which collides across worlds in one session; without the
+      // eviction the next world writes markers into the previous world's dead level.
       //? if >= 26.1 {
       ServerLevelEvents.UNLOAD.register((server, level) -> {
          MarkerCache.onWorldUnload(level);

@@ -29,11 +29,7 @@ import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderers;
 import net.minecraft.client.renderer.entity.NoopRenderer;
 
-/**
- * 1.21.1 implementation (versions/1.21.1). Registers screens + (stub) block-entity renderers, the noop miner
- * shaft entity renderer via Fabric's registry (vanilla EntityRenderers.register is private on 1.21.1), and the
- * cutout/translucent block render layers via the 1.21.1 BlockRenderLayerMap (RenderType, not ChunkSectionLayer).
- */
+/** vanilla EntityRenderers.register is private on 1.21.1, so the noop shaft renderer goes through Fabric's registry. */
 public final class BCFactoryFabricClient {
    private BCFactoryFabricClient() {
    }

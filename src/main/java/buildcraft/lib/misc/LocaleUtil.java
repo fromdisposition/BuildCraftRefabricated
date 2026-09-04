@@ -23,9 +23,8 @@ public final class LocaleUtil {
       return Component.translatable(key, args).getString();
    }
 
-   // MJ is BuildCraft's internal unit and is always shown as MJ; external energy (Team Reborn "E") is always shown
-   // as E. No cross-conversion in the display -- only the RF Engine / MJ Dynamo bridge the two, so each number
-   // reads in its real type instead of the old "everything as E" auto-substitution.
+   // MJ is BuildCraft's internal unit and always shown as MJ; external energy (Team Reborn "E") always shown as E,
+   // with no cross-conversion except through the RF Engine / MJ Dynamo bridge.
    public static String localizeMj(long microMj) {
       if (BCCoreConfig.hidePower.get()) {
          return "";

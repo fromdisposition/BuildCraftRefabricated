@@ -29,22 +29,14 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 
-/**
- * Registry of the guide-book pages that exist. Which pages there are — plus their kind, contents-tab tags and
- * sort order — is declared purely as data in {@code assets/buildcraft/compat/buildcraft/guide_entries.json} and
- * loaded straight through GSON (no bespoke script parser). Page BODIES remain per-language markdown loaded by
- * {@link GuideManager}, and page TITLES resolve through lang keys, so the whole book stays translatable: a
- * resource pack only needs to add {@code guide/<lang>/**.md} and the matching {@code lang/<lang>.json} keys.
- */
+// Index is language-neutral: page bodies and titles come from per-language markdown and lang keys.
 public final class GuidePageRegistry {
    public static final GuidePageRegistry INSTANCE = new GuidePageRegistry();
 
    private static final Identifier ENTRY_INDEX = Identifier.fromNamespaceAndPath("buildcraft", "compat/buildcraft/guide_entries.json");
    private static final Gson GSON = new Gson();
 
-   /** Entry type ({@code "item_stack"}, {@code "external"}, {@code "statement"}, …) -> its deserializer. */
    public final Map<String, PageValueType<?>> types = new HashMap<>();
-   /** Registered entries, keyed by their {@link Identifier} (e.g. {@code buildcraft:block/quarry}). */
    private final Map<Object, PageEntry<?>> entries = new HashMap<>();
 
    private GuidePageRegistry() {
@@ -62,7 +54,6 @@ public final class GuidePageRegistry {
       return this.entries.values();
    }
 
-   /** Re-reads the entry index from the active resource packs. */
    public void reload(ResourceManager resources) {
       this.entries.clear();
 
@@ -98,7 +89,6 @@ public final class GuidePageRegistry {
             BCLog.logger.warn("[lib.guide] Skipping guide entry " + id + ": unknown type '" + typeName + "'.");
             return;
          }
-         // One bad entry never takes down the rest of the book.
          IScriptableRegistry.OptionallyDisabled<? extends PageEntry<?>> result = type.deserialize(id, json, GSON::fromJson);
          if (result.isPresent()) {
             this.entries.put(id, result.get());

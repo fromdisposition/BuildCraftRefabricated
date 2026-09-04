@@ -264,8 +264,7 @@ public final class Pipe implements IPipe, IDebuggable {
       _profiler.push("buildcraft:pipe_connections");
 
       try {
-         // Cleared on both sides: the clear used to sit inside the server branch, so a client-side mark kept
-         // hasSimulationWork() true and onTick re-entered here every ticked tick forever.
+         // must clear before the client-side branch below, else hasSimulationWork() stays true forever
          this.updateMarked = false;
          if (!this.holder.getPipeWorld().isClientSide()) {
             EnumMap<Direction, Float> old = this.connected.clone();

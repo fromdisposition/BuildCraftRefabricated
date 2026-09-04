@@ -53,12 +53,8 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
       this.player = player;
    }
 
-   /**
-    * Vanilla data slots are 16-bit on the wire (ClientboundContainerSetDataPacket writes the value with
-    * writeShort), so an int/long/float pushed through one slot arrives truncated and sign-extended — a float's
-    * bit pattern typically decodes as NaN. Wide values must be split into unsigned 16-bit chunks, one slot per
-    * chunk, and reassembled with masking on the client.
-    */
+   /** Data slots are 16-bit on the wire (writeShort), so a wider value arrives truncated and sign-extended (a
+    * float typically decodes as NaN); split into unsigned 16-bit chunks and reassemble with masking on the client. */
    public static int chunk16(long value, int chunk) {
       return (int)(value >>> chunk * 16) & 0xFFFF;
    }
@@ -80,10 +76,8 @@ public abstract class BcMenu extends AbstractContainerMenu implements IBcMenu {
    }
 
    protected void addFullPlayerInventory(int startX, int startY, Inventory inv) {
-      // Build the player-inventory slots through vanilla's addStandardInventorySlots (same 36-slot layout the
-      // manual loop produced) so mods that extend the player inventory by mixin-ing that helper -- e.g.
-      // Inventory Extended -- add their extra rows to BuildCraft GUIs too. 1.21.1 has no such helper, so it
-      // keeps the manual loop.
+      // addStandardInventorySlots lets mods that mixin-extend the player inventory (e.g. Inventory Extended) add
+      // their extra rows to BC GUIs too; 1.21.1 has no such helper, so it keeps the manual loop.
       //? if >= 1.21.10 {
       this.addStandardInventorySlots(inv, startX, startY);
       //?} else {

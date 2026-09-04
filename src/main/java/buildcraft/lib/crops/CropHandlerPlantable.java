@@ -38,11 +38,7 @@ import net.minecraft.world.phys.Vec3;
 public enum CropHandlerPlantable implements ICropHandler {
    INSTANCE;
 
-   /**
-    * The common superclass of plantable blocks. Crops sat under {@code BushBlock} up to 1.21.1 and under
-    * {@code VegetationBlock} from 1.21.10, where {@code BushBlock} became a sibling class -- so testing for
-    * {@code BushBlock} there matches no crop at all.
-    */
+   // BushBlock still exists on 1.21.10+ but is a sibling of VegetationBlock there and matches no crop.
    private static boolean isPlant(Block block) {
       //? if >= 1.21.10 {
       return block instanceof VegetationBlock;

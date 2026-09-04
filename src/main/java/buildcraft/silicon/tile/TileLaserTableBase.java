@@ -82,8 +82,7 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
          this.avgPower.clear();
       }
 
-      // power moves every tick while lasers feed the table; syncing on 1%-of-target steps (and on the
-      // empty/non-empty transition) keeps the progress display smooth without a full NBT broadcast per tick.
+      // sync at 1% of target (or on the empty/non-empty crossing) instead of every tick, to avoid an NBT broadcast per tick
       long syncQuantum = Math.max(MjAPI.MJ, this.getTarget() / 100L);
       boolean zeroCrossing = this.power == 0L != (this.lastSyncedPower == 0L);
       if (Math.abs(this.power - this.lastSyncedPower) >= syncQuantum || zeroCrossing) {
@@ -128,9 +127,7 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
    }
 
    protected boolean extract(ItemHandlerSimple inv, Collection<IngredientStack> items, boolean simulate, boolean precise) {
-      // All-or-nothing: the commit loop below mutates slots as it walks the ingredients and bails mid-way when one
-      // cannot be satisfied, which would leave the earlier ingredients already consumed. Verify with a simulate
-      // pass first so a failed extract never eats a partial set of inputs.
+      // simulate first: the real pass mutates slots while walking ingredients and would leave earlier ones consumed if a later one fails
       if (!simulate && !this.extract(inv, items, true, precise)) {
          return false;
       }

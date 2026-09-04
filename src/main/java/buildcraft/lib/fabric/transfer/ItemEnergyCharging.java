@@ -3,12 +3,8 @@ package buildcraft.lib.fabric.transfer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.item.ItemStack;
 
-/**
- * Charging of items that expose the Team Reborn energy API. That API is an optional dependency, so this class must not
- * name any of its types: every direct reference lives in {@link TrItemEnergyCharging}, which is only touched from
- * behind the availability guard. Without the guard the JVM resolves {@code team.reborn.energy.api.EnergyStorage} on the
- * first call and throws NoClassDefFoundError (e.g. dragging an item over a Charging Table slot).
- */
+// Must never name a Team Reborn energy type directly; every such reference lives behind {@link TrItemEnergyCharging}'s
+// availability guard, or an absent dependency throws NoClassDefFoundError on first resolution.
 public final class ItemEnergyCharging {
    private static final boolean AVAILABLE = FabricLoader.getInstance().isModLoaded("team_reborn_energy");
 

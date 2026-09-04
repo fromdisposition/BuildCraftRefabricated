@@ -35,21 +35,16 @@ public class RenderRobot extends EntityRenderer<EntityRobot> {
    private static final Identifier OVERLAY_SIDE = tex(Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_side"));
    private static final Identifier OVERLAY_BOTTOM = tex(Identifier.fromNamespaceAndPath("buildcraftrobotics", "entities/overlay_bottom"));
 
-   /**
-    * The robot/overlay texture ids are stored logically as {@code entities/<name>} (as classic BuildCraft used
-    * them, and how they travel over the entity's synched data). A render type needs the resolved file location,
-    * so expand them to {@code textures/<name>.png} exactly like a vanilla entity texture location.
-    */
+   /** Texture ids travel over synched data as {@code entities/<name>}; a render type needs the resolved file
+    * location, so expand to {@code textures/<name>.png} like a vanilla entity texture. */
    static Identifier tex(Identifier logical) {
       return Identifier.fromNamespaceAndPath(logical.getNamespace(), "textures/" + logical.getPath() + ".png");
    }
    private static final float RADIUS = 0.25F;
    private static final Vector3f CENTER = new Vector3f(0.0F, 0.0F, 0.0F);
    private static final Vector3f EXTENT = new Vector3f(RADIUS, RADIUS, RADIUS);
-   // The cube geometry + UVs never change, so build the six faces once and re-emit them each frame (only
-   // colour/light vary). Avoids allocating 6-18 MutableQuad + UvFaceData per robot per frame. Safe to share:
-   // entity rendering is single-threaded and MutableQuad.render() transforms into scratch + the buffer, never
-   // mutating the quad's stored geometry.
+   // Built once and shared across robots/frames to avoid allocating per-frame; safe because entity rendering is
+   // single-threaded and MutableQuad.render() transforms into scratch + the buffer, never mutating stored geometry.
    static final MutableQuad[] FACES = buildFaces();
 
    private static MutableQuad[] buildFaces() {

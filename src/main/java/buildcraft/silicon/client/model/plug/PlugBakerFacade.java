@@ -57,11 +57,8 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
    }
 
    /**
-    * Chunk baking asks for the facade once per pass ("cutout" / "translucent"), and every source quad must land on
-    * exactly ONE of them: emitting the full facade into both passes made the alpha-tested cutout copy of a stained
-    * glass / ice facade draw over the translucent copy, killing the transparency (plain glass hid the bug -- it is
-    * a cutout block, so both copies looked identical). Any other layer key (the item model bakes with "item")
-    * keeps the whole facade.
+    * Each source quad must land in exactly one chunk pass (cutout or translucent); duplicating into both made cutout
+    * draw over translucent, killing transparency. Any other layer key keeps the whole facade.
     */
    private static boolean keepQuadForLayer(Object layer, BlockState state, BakedQuad quad) {
       boolean wantTranslucent;
@@ -74,8 +71,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       }
 
       //? if >= 26.1 {
-      // 26.x quads carry their own chunk layer (model-driven render types): filter per quad, so mixed-layer
-      // source models split correctly between the passes.
+      // Quads carry their own chunk layer, so mixed-layer source models split correctly per quad between passes.
       return (quad.materialInfo().layer() == net.minecraft.client.renderer.chunk.ChunkSectionLayer.TRANSLUCENT) == wantTranslucent;
       //?} else {
       /*// 1.21.10/1.21.11: one chunk render type per state. (1.21.1 never compiles this file -- it has its own
@@ -343,9 +339,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
          baked.add(quad.toBakedItem());
       }
 
-      // The opaque plug nub belongs to the cutout pass only (and the "item" bake). Appending it after the
-      // per-layer quad filter used to put it in BOTH pass keys, so it drew twice and z-fought through
-      // transparent (stained glass / ice) facades on the translucent pass.
+      // Plug nub is cutout/item only; adding it for translucent too would z-fight the nub through transparent facades.
       if (!key.isHollow && !"translucent".equals(key.layer)) {
          baked.addAll(createPlugQuads(key.side));
       }

@@ -14,7 +14,6 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.slf4j.Logger;
 
-/** Data-driven fog/overlay tuning loaded from {@code assets/buildcraftenergy/bc_fluid_fog_profiles.json}. */
 public final class BcFluidFogProfiles {
    private static final Logger LOGGER = LogUtils.getLogger();
    private static final Identifier PROFILE_ID = Identifier.fromNamespaceAndPath("buildcraftenergy", "bc_fluid_fog_profiles.json");

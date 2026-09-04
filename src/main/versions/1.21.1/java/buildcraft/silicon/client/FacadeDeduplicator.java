@@ -35,15 +35,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-/**
- * 1.21.1 (versions/1.21.1) facade deduplicator. Mirrors the shared 26.1+ implementation exactly -- same
- * direction-agnostic sprite-SET fingerprint, same dedup + redirect authority -- but reads baked geometry through
- * the 1.21.1 {@link BakedModel} API ({@code BlockModelShaper.getBlockModel(state).getQuads(...)}), because the
- * shared version relies on {@code BlockStateModel}/{@code QuadCollection} which do not exist on 1.21.1. No captured
- * model map is needed: models are looked up on demand from the (already-baked) model manager at client login, so
- * the entry point takes no argument. The extra-redirect pass walks every block's default state (equivalent to the
- * shared pass over the full block-state model map, which only ever acts on default states anyway).
- */
+// reads quads via the classic BakedModel API since 1.21.1 lacks the BlockStateModel/QuadCollection pipeline used by the shared 26.1+ version.
 public class FacadeDeduplicator {
    private static final boolean DEBUG = BCDebugging.shouldDebugLog("silicon.facade");
    private static final RandomSource RANDOM = RandomSource.create(42L);
@@ -205,10 +197,7 @@ public class FacadeDeduplicator {
 
    private static String computeTextureFingerprint(BlockState state) {
       try {
-         // Identity = the SET of sprites, deliberately direction-agnostic (see the shared 26.1+ implementation for
-         // the full rationale: a facade is a 2px panel reusing the state's own quads, the player picks the mounting
-         // face, so two states drawing the same sprites on different faces collapse to one facade). On 1.21.1 the
-         // sprites come from the vanilla BakedModel (getQuads) rather than BlockStateModel/QuadCollection.
+         // fingerprint is the direction-agnostic SET of sprites: two states drawing the same sprites on different faces are the same facade.
          BakedModel model = modelFor(state);
          Set<String> textures = new LinkedHashSet<>();
 

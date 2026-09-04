@@ -49,8 +49,8 @@ public class TileEngineRF extends TileElectricEngineBase {
 
    @Override
    protected void engineUpdate() {
-      // The Energy Engine is the RF->MJ bridge, so it always converts regardless of the global auto-conversion
-      // mode (which now only governs whether ordinary machines/pipes accept E directly).
+      // The Energy Engine is the RF->MJ bridge: it always converts, regardless of the global auto-conversion
+      // mode, which only gates whether ordinary machines and pipes accept FE directly.
       this.pullFeFromNeighbors();
 
       this.currentOutput = 0L;
@@ -59,9 +59,7 @@ public class TileEngineRF extends TileElectricEngineBase {
          long mjPerRf = MjRfConversion.createParsed(BCLibConfig.mjRfConversionAmount.get()).mjPerRf;
          if (mjPerRf != 0L) {
             int maxFe = this.getFeConsumptionRate();
-            // Convert only as much FE as still fits in the MJ buffer (partial fill), instead of the old
-            // all-or-nothing gate that dropped the WHOLE tick's production -- burning no FE and showing Output 0 --
-            // whenever the buffer was within one tick of full. This is the clamp every other engine already uses.
+            // Clamp to the FE that still fits in the MJ buffer (partial fill) rather than an all-or-nothing gate.
             long room = this.getMaxPower() - this.power;
             int feConsumed = (int) Math.max(0L, Math.min((long) Math.min(currentFe, maxFe), room / mjPerRf));
             if (feConsumed > 0) {

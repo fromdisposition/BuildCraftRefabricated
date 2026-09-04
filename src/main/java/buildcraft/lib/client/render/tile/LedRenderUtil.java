@@ -66,9 +66,7 @@ public final class LedRenderUtil {
          ledZ = face == Direction.SOUTH ? 1.0 - insetBlocks : insetBlocks;
       }
 
-      // The LED quad sits exactly on the machine face; z-fighting is prevented by the LED RenderType's
-      // POLYGON_OFFSET_LAYERING depth bias (see BCLibRenderTypes.led()), so no positional nudge is needed
-      // on any version.
+      // Sits exactly on the machine face; the LED render type's layering bias prevents z-fighting, no nudge needed.
       led.center.positiond(ledX + dX * sideOffset, y, ledZ + dZ * sideOffset);
    }
 

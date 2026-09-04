@@ -159,9 +159,8 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
             int maxX = Math.max(x0, x1);
             int minZ = Math.min(z0, z1);
             int maxZ = Math.max(z0, z1);
-            // The on-screen map can only select a few hundred blocks per axis, so anything larger is a forged
-            // packet — without this cap a single message with extreme coordinates would spin the paint loop
-            // over billions of cells and freeze the server. (Long math: the span itself can overflow int.)
+            // The on-screen map can only select a few hundred blocks per axis, so anything larger is a forged packet
+            // that would spin the paint loop over billions of cells and freeze the server (long math: the span can overflow int).
             if ((long)maxX - minX > 1024L || (long)maxZ - minZ > 1024L) {
                BCLog.logger.warn("[robotics.zone] Rejected oversized paint rect from {}", ctx.player().getName().getString());
                return;

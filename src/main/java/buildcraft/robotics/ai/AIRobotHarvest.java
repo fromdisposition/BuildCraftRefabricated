@@ -66,8 +66,8 @@ public class AIRobotHarvest extends AIRobot {
          return;
       }
 
-      // Into the robot, exactly like a broken block: the work cycle then delivers it to an accepting station.
-      // Dropping the harvest on the floor made the Harvester useless on its own and needed a second robot.
+      // Into the robot, exactly like a broken block, so the work cycle can deliver it to an accepting
+      // station without needing a second robot to pick it up off the floor.
       if (this.robot.level() instanceof ServerLevel serverLevel && this.robot instanceof EntityRobot entityRobot) {
          for (ItemStack stack : drops) {
             ItemStack remaining = entityRobot.receiveItem(null, stack);

@@ -25,8 +25,7 @@ public class ActionPowerPulsar extends BCStatement implements IActionInternalSid
    public final boolean constant;
 
    public ActionPowerPulsar(boolean constant) {
-      // Second tag is the legacy (pre-colon) alias; it must be "buildcraft.pulsar.<kind>" -- a stray "constant"
-      // baked into the base string registered garbage aliases and legacy saves failed to resolve the action.
+      // Second arg is the legacy alias and must be exactly "buildcraft.pulsar.<kind>", or old saves can't resolve the action.
       super("buildcraft:pulsar." + (constant ? "constant" : "single"), "buildcraft.pulsar." + (constant ? "constant" : "single"));
       this.constant = constant;
    }

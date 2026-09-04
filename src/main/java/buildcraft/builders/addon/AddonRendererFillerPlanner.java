@@ -25,8 +25,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 public class AddonRendererFillerPlanner implements IFastAddonRenderer<AddonFillerPlanner> {
-   // Reused across frames — rebuilt only when the cached positions list reference changes,
-   // then re-sorted every frame for correct back-to-front alpha order.
+   // Re-sorted back to front every frame so the translucent cubes blend correctly.
    private List<BlockPos> lastCached;
    private final List<BlockPos> toDraw = new ArrayList<>();
 

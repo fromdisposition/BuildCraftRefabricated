@@ -161,10 +161,8 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
       return chunk;
    }
 
-   /** Applies the assembled-size cap WHILE the chunk stream accumulates, not only at assembly: without this a
-    * malicious client could stream endless non-final upload chunks (each individually valid) and grow the list
-    * without bound before {@link #assembleChunks} ever runs. On overflow the transfer is dropped and the stream
-    * restarts bounded — a later "last" chunk then assembles garbage, which the NBT parse rejects harmlessly. */
+   /** Caps size while the stream accumulates, not only at assembly, else a malicious client could grow an unbounded
+    * list before {@link #assembleChunks} runs; overflow drops and restarts the stream, so a later "last" chunk assembles garbage the NBT parse rejects. */
    private static int accumulateChunk(List<byte[]> chunks, int accumulatedBytes, byte[] chunk, String kind) {
       int total = accumulatedBytes + chunk.length;
       if (total > BCPacketLimits.MAX_ASSEMBLED_BYTES) {

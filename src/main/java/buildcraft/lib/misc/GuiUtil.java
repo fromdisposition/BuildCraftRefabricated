@@ -17,8 +17,7 @@ public class GuiUtil {
    public static final IGuiArea AREA_WHOLE_SCREEN = IGuiArea.create(() -> 0.0, () -> 0.0, GuiUtil::getScreenWidth, GuiUtil::getScreenHeight);
 
    /** Maps a vanilla {@link com.mojang.blaze3d.platform.InputConstants} mouse-button id onto the classic
-    * 0=left / 1=right / 2=middle numbering every BC click handler compares against (the vanilla ids became
-    * 1=left / 3=right / 2=middle in 26.3). */
+    * 0=left/1=right/2=middle numbering BC click handlers use (vanilla ids became 1=left/3=right/2=middle in 26.3). */
    public static int classicButton(int button) {
       if (button == com.mojang.blaze3d.platform.InputConstants.MOUSE_BUTTON_LEFT) {
          return 0;
