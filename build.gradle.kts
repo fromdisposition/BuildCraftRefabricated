@@ -242,7 +242,8 @@ tasks.register("stripUtf8Bom") {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-    dependsOn("stripUtf8Bom")
+    // The active node has no implicit edge to it, so its versions/ override roots go missing after a clean.
+    dependsOn("stripUtf8Bom", "stonecutterGenerate")
     options.release.set(javaRelease)
     options.compilerArgs.add("-Xlint:deprecation")
     options.compilerArgs.addAll(listOf("-Xmaxerrs", "2000"))
