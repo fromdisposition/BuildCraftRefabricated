@@ -5,7 +5,7 @@ A pipe network is the circulatory system of a base — items flow where you rout
 Item pipes extract, carry, sort and deposit items. Each pipe material gives a different routing behaviour.
 </no_lore>
 <chapter name="Extraction"/>
-The <link inline="buildcraft:pipe/wood_item"/> is the only pipe that pulls items <bold>out</bold> of a chest or machine — power its outward face with an engine and it sucks items into the network. The <link inline="buildcraft:pipe/emzuli_item"/> extracts on a filter with colour presets — see <link to="buildcraft:concept/emzuli_extraction_presets"/>.
+The <link inline="buildcraft:pipe/wood_item"/> is the only pipe that pulls items <bold>out</bold> of a chest or machine — power its outward face with an engine and it sucks items into the network. The <link inline="buildcraft:pipe/emzuli_item"/> extracts on a filter with colour presets — see <link to="buildcraft:extraction_presets"/>.
 <chapter name="Carrying & Speed"/>
 Plain <link inline="buildcraft:pipe/cobble_item"/> and <link inline="buildcraft:pipe/stone_item"/> simply move items along; the <link inline="buildcraft:pipe/gold_item"/> accelerates them and the <link inline="buildcraft:pipe/quartz_item"/> resets their speed. At a junction items pick an exit at random — unless a routing pipe decides for them.
 <chapter name="Sorting & Routing"/>

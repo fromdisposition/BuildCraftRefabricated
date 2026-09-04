@@ -404,13 +404,13 @@
       "type": "item_stack",
       "tag_type": "item",
       "tag_subtype": "pipe_plug",
-      "stack": "buildcraftsilicon:plug_blocker"
+      "stack": "buildcrafttransport:plug_blocker"
     },
     "item/plug_power_adaptor": {
       "type": "item_stack",
       "tag_type": "item",
       "tag_subtype": "pipe_plug",
-      "stack": "buildcraftsilicon:plug_power_adaptor"
+      "stack": "buildcrafttransport:plug_power_adaptor"
     },
     "item/plug_facade": {
       "type": "item_stack",

@@ -9,4 +9,4 @@ A gate is a small device bolted onto a pipe face — see <link to="buildcraft:co
 <chapter name="Wires"/>
 A <link inline="buildcraft:item/wire"/> comes in colours and clips onto pipes beside gates and plugs. A gate can switch a wire on, and any other gate touching that same colour can read it as a trigger — so a sensor on one machine drives an action on another far away.
 <chapter name="Common Patterns"/>
-Pulse an engine only while there is work to do; stop a quarry when its chest is full; alternate items between furnaces. For coordinating larger builds, 16-colour pipe signals are explained in <link to="buildcraft:concept/pipe_signals"/>.
+Pulse an engine only while there is work to do; stop a quarry when its chest is full; alternate items between furnaces. For coordinating larger builds, 16-colour pipe signals are explained in <link to="buildcraft:pipe_signals"/>.
