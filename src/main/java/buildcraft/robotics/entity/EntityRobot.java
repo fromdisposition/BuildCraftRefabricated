@@ -159,6 +159,10 @@ public class EntityRobot extends EntityRobotBase {
       }
 
       this.resolveStationsFromRegistry();
+      if (this.linkedStation == null) {
+         this.dropAsItemAndDiscard();
+         return;
+      }
 
       if (this.currentDockingStation != null) {
          this.setDeltaMovement(Vec3.ZERO);

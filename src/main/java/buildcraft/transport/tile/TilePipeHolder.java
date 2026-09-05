@@ -108,6 +108,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    private final Set<ServerPlayer> guiViewers = new HashSet<>();
    private int wakeTicks = 0;
    private boolean saveDirtyThisTick = false;
+   private boolean tornDown = false;
    private final int[] redstoneOutputs = new int[Direction.values().length];
    private final int[] redstoneOutputsThisTick = new int[Direction.values().length];
 
@@ -306,6 +307,18 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    }
 
    /** Server-side chunk-unload notification (wired to Fabric's BLOCK_ENTITY_UNLOAD in BCTransportFabric). */
+   //? if >= 1.21.10 {
+   @Override
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      if (this.level != null && !this.level.isClientSide()) {
+         this.dropPipeItems(this.level, pos, true);
+         this.wireManager.invalidate();
+      }
+
+      super.preRemoveSideEffects(pos, state);
+   }
+   //?}
+
    public void onChunkUnload() {
       for (PipePluggable plug : this.pluggables) {
          if (plug != null) {
@@ -641,6 +654,11 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    }
 
    public void dropPipeItems(Level lvl, BlockPos pos, boolean dropItems) {
+      if (this.tornDown) {
+         return;
+      }
+
+      this.tornDown = true;
       // dropItems=false (creative) still runs pluggable onRemove + clears state -- only the item pops are skipped.
       // Pluggables clean up external state in onRemove (e.g. a robot station destroys its docked robot), which must
       // happen on every break or a creative-broken pipe leaks its station and strands the robot.

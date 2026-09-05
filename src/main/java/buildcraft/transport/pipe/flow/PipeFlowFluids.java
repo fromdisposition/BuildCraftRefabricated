@@ -307,7 +307,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
    @Nullable
    public Storage<FluidVariant> getFluidStorage(@Nullable Direction facing) {
-      PipeFlowFluids.Section section = facing == null ? null : this.sections.get(EnumPipePart.fromFacing(facing));
+      PipeFlowFluids.Section section = this.sections.get(facing == null ? EnumPipePart.CENTER : EnumPipePart.fromFacing(facing));
       return section == null ? null : section.fluidStorage;
    }
 
@@ -999,7 +999,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          }
 
          FluidStack fluidStack = fluid.isEmpty() ? FluidStack.EMPTY : fluid.copyWithAmount(insertAmount);
-         if (this.getCurrentDirection().canInput() && PipeFlowFluids.this.pipe.isConnected(this.part.face) && !fluidStack.isEmpty()) {
+         if (this.getCurrentDirection().canInput() && (this.part.face == null || PipeFlowFluids.this.pipe.isConnected(this.part.face)) && !fluidStack.isEmpty()) {
             IPipeHolder holder = PipeFlowFluids.this.pipe.getHolder();
             PipeEventFluid.TryInsert tryInsert = PipeFlowFluids.this.routingTryInsert;
             if (tryInsert == null) {

@@ -179,13 +179,7 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
          return null;
       }
 
-      // A blocking pluggable's own face exposes nothing on the pipe, so use the opposite face like items do.
-      return buildcraft.lib.fabric.transfer.BcTransfers.fluid(this.world, this.getPos(), this.side().getOpposite());
-   }
-
-   @Override
-   public EnumPipePart getFluidOutputSide() {
-      return EnumPipePart.fromFacing(this.side().getOpposite());
+      return buildcraft.transport.pipe.flow.PipeFlowInternalAccess.fluidStorage(this.getPipe().getPipe() == null ? null : this.getPipe().getPipe().getFlow(), null);
    }
 
    @Override

@@ -14,6 +14,7 @@ import buildcraft.robotics.statement.StationActions;
 
 public class AIRobotUnloadFluids extends AIRobot {
    private int waitedCycles;
+   private int idleCycles;
 
    public AIRobotUnloadFluids(EntityRobotBase robot) {
       super(robot);
@@ -25,10 +26,12 @@ public class AIRobotUnloadFluids extends AIRobot {
       this.waitedCycles++;
       if (this.waitedCycles > 40) {
          if (unload(this.robot, this.robot.getDockingStation(), true) == 0) {
-            this.terminate();
+            if (++this.idleCycles > 40) {
+               this.terminate();
+            }
          } else {
             this.setSuccess(true);
-            this.waitedCycles = 0;
+            this.idleCycles = 0;
          }
       }
    }

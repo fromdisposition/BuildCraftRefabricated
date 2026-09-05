@@ -22,6 +22,7 @@ public class AIRobotLoadFluids extends AIRobot {
 
    private IFluidFilter filter;
    private int waitedCycles;
+   private int idleCycles;
 
    public AIRobotLoadFluids(EntityRobotBase robot) {
       super(robot);
@@ -43,10 +44,12 @@ public class AIRobotLoadFluids extends AIRobot {
       this.waitedCycles++;
       if (this.waitedCycles > 40) {
          if (load(this.robot, this.robot.getDockingStation(), this.filter, true) == 0) {
-            this.terminate();
+            if (++this.idleCycles > 40) {
+               this.terminate();
+            }
          } else {
             this.setSuccess(true);
-            this.waitedCycles = 0;
+            this.idleCycles = 0;
          }
       }
    }

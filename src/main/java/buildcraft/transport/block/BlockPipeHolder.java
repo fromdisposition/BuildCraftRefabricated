@@ -499,6 +499,18 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return false;
    }
 
+   //? if < 1.21.10 {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!state.is(newState.getBlock()) && !level.isClientSide() && level.getBlockEntity(pos) instanceof TilePipeHolder tile) {
+         tile.dropPipeItems(level, pos, true);
+         tile.wireManager.invalidate();
+      }
+
+      super.onRemove(state, level, pos, newState, movedByPiston);
+   }
+   *///?}
+
    @Override
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
       // Reaching here means the pipe body is genuinely being destroyed: aiming at a pluggable/wire never starts the

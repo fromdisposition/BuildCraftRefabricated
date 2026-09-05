@@ -20,7 +20,7 @@ public final class PipeFlowInternalAccess {
 
    @Nullable
    public static Storage<FluidVariant> fluidStorage(@Nullable PipeFlow flow, @Nullable Direction facing) {
-      return flow instanceof PipeFlowFluids fluids && facing != null ? fluids.getFluidStorage(facing) : null;
+      return flow instanceof PipeFlowFluids fluids ? fluids.getFluidStorage(facing) : null;
    }
 
    @Nullable
