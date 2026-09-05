@@ -21,7 +21,6 @@ import buildcraft.silicon.tile.TileAdvancedCraftingTable;
 import buildcraft.silicon.tile.TileAssemblyTable;
 import buildcraft.silicon.tile.TileChargingTable;
 import buildcraft.silicon.tile.TileIntegrationTable;
-import buildcraft.silicon.tile.TilePackager;
 import buildcraft.silicon.tile.TileProgrammingTable;
 import buildcraft.silicon.tile.TileStampingTable;
 import net.minecraft.world.level.block.SoundType;

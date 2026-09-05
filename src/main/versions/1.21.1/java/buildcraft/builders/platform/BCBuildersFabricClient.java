@@ -9,7 +9,6 @@ package buildcraft.builders.platform;
 import buildcraft.builders.BCBuildersBlockEntities;
 import buildcraft.builders.BCBuildersBlocks;
 import buildcraft.builders.BCBuildersEntities;
-import buildcraft.builders.BCBuildersEventDist;
 import buildcraft.builders.BCBuildersItems;
 import buildcraft.builders.BCBuildersMenuTypes;
 import buildcraft.builders.client.render.BCBuildersWorldRenderer;

@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.builders.tile.TileArchitectTable;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.misc.HashUtil;
@@ -40,7 +41,7 @@ public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kin
    }
 
    private static void encode(FriendlyByteBuf buf, BuildersClientRequestPayload payload) {
-      buf.writeEnum(payload.kind());
+      BcPayloadBuffers.writeEnum(buf, payload.kind());
       switch (payload.kind()) {
          case SNAPSHOT:
             writeSnapshotKey(buf, payload.snapshotKey());
@@ -51,7 +52,7 @@ public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kin
    }
 
    private static BuildersClientRequestPayload decode(FriendlyByteBuf buf) {
-      BuildersClientRequestPayload.Kind kind = buf.readEnum(BuildersClientRequestPayload.Kind.class);
+      BuildersClientRequestPayload.Kind kind = BcPayloadBuffers.readEnum(buf, BuildersClientRequestPayload.Kind.class);
 
       return switch (kind) {
          case SNAPSHOT -> new BuildersClientRequestPayload(kind, readSnapshotKey(buf), BlockPos.ZERO);

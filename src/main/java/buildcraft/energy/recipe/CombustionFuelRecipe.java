@@ -6,7 +6,6 @@
 
 package buildcraft.energy.recipe;
 
-import buildcraft.energy.BCEnergyRecipeSerializers;
 import buildcraft.energy.BCEnergyRecipeTypes;
 import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.recipe.BcRecipeSerializers;

@@ -16,7 +16,6 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.IBcMenu;
 import buildcraft.lib.gui.Widget_Neptune;
 import buildcraft.lib.misc.AdvancementUtil;
-import buildcraft.lib.net.PacketBufferBC;
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;

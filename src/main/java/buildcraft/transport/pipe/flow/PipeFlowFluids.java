@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.flow;
 
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
@@ -678,7 +679,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             }
 
             PipeFlowFluids.Dir should = PipeFlowFluids.Dir.get(section.ticksInDirection);
-            buffer.writeEnum(should);
+            BcPayloadBuffers.writeEnum(buffer, should);
             section.lastSentDirection = should;
          }
       }
@@ -706,7 +707,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
                }
             }
 
-            PipeFlowFluids.Dir dir = buffer.readEnum(PipeFlowFluids.Dir.class);
+            PipeFlowFluids.Dir dir = BcPayloadBuffers.readEnum(buffer, PipeFlowFluids.Dir.class);
             section.ticksInDirection = dir == PipeFlowFluids.Dir.NONE ? 0 : (dir == PipeFlowFluids.Dir.IN ? -DIRECTION_COOLDOWN : DIRECTION_COOLDOWN);
          }
 

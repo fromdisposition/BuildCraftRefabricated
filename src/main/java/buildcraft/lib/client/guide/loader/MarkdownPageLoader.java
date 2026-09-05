@@ -8,7 +8,6 @@ package buildcraft.lib.client.guide.loader;
 
 import buildcraft.api.core.BCDebugging;
 import buildcraft.lib.fabric.BcRegistryUtil;
-import buildcraft.api.core.BCLog;
 import buildcraft.api.registry.IScriptableRegistry;
 import buildcraft.lib.client.guide.entry.PageEntry;
 import buildcraft.lib.client.guide.parts.GuidePageFactory;
@@ -17,7 +16,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.List;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.item.Item;

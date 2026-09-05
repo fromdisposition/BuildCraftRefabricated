@@ -10,8 +10,6 @@ import buildcraft.api.items.IList;
 import buildcraft.api.recipes.IngredientStack;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.NonNullList;

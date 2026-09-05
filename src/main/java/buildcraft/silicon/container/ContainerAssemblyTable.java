@@ -13,7 +13,6 @@ import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.slot.SlotDisplay;
 import buildcraft.lib.recipe.RecipeTransferUtil;
 import buildcraft.lib.misc.NBTUtilBC;
-import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.silicon.BCSiliconMenuTypes;
 import buildcraft.silicon.EnumAssemblyRecipeState;
 import buildcraft.silicon.tile.TileAssemblyTable;

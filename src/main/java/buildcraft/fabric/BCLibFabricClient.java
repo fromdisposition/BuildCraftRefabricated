@@ -20,7 +20,6 @@ import net.fabricmc.fabric.api.resource.v1.reloader.SimpleReloadListener;
 /*import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 *///?}
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 //? if >= 26.1 {

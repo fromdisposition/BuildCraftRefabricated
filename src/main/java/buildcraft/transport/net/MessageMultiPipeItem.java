@@ -6,6 +6,7 @@
 
 package buildcraft.transport.net;
 
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.transport.pipe.IPipe;
@@ -167,7 +168,7 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
 
          buf.writeVarInt(this.stackCount);
          buf.writeBoolean(this.toCenter);
-         buf.writeEnum(this.side);
+         BcPayloadBuffers.writeEnum(buf, this.side);
          buf.writeByte(this.colour == null ? -1 : this.colour.getId());
          buf.writeVarInt(this.timeToDest);
       }
@@ -185,7 +186,7 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
 
          int stackCount = buf.readVarInt();
          boolean toCenter = buf.readBoolean();
-         Direction side = buf.readEnum(Direction.class);
+         Direction side = BcPayloadBuffers.readEnum(buf, Direction.class);
          int colourByte = buf.readByte();
          DyeColor colour = colourByte < 0 ? null : DyeColor.byId(colourByte);
          int timeToDest = buf.readVarInt();

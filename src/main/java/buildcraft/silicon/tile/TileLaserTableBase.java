@@ -13,7 +13,6 @@ import buildcraft.api.tiles.IDebuggable;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.data.AverageLong;
 import buildcraft.lib.tile.BcBlockEntity;
-import org.jspecify.annotations.Nullable;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import java.util.Collection;
 import java.util.List;

@@ -19,7 +19,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomModelData;
 
 public class ItemRedstoneBoard extends Item {
    private static final Map<String, Integer> BOARD_MODEL_INDEX = Map.of(

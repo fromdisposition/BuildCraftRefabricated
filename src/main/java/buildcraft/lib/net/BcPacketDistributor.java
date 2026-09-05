@@ -7,8 +7,6 @@
 package buildcraft.lib.net;
 
 import buildcraft.fabric.network.PacketDistributor;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;

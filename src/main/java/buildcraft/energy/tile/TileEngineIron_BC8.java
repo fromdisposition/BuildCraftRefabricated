@@ -8,10 +8,8 @@ package buildcraft.energy.tile;
 
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.nbt.BcAuth;
-import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
-import buildcraft.energy.BCEnergyRecipeTypes;
 import buildcraft.energy.recipe.CombustionFuelRecipe;
 import buildcraft.energy.recipe.CoolantRecipe;
 import buildcraft.api.mj.MjAPI;
@@ -32,7 +30,6 @@ import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;

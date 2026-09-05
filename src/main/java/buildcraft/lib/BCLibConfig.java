@@ -7,8 +7,6 @@
 package buildcraft.lib;
 
 import buildcraft.lib.chunkload.IChunkLoadingTile;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Direction.Axis;
 
 public final class BCLibConfig {
    public static final BCLibConfig.ColorBlindMode COLOR_BLIND_MODE = BCLibConfig.ColorBlindMode.AUTO;

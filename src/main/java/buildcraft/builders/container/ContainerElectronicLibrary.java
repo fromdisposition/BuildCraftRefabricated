@@ -18,7 +18,6 @@ import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.slot.SlotOutput;
 import buildcraft.lib.nbt.NbtSquisher;
 import buildcraft.lib.net.BCPacketLimits;
-import buildcraft.lib.net.PacketBufferBC;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

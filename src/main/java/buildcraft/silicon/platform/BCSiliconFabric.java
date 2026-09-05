@@ -16,13 +16,11 @@ import buildcraft.silicon.tile.TileAssemblyTable;
 import buildcraft.silicon.tile.TileChargingTable;
 import buildcraft.silicon.tile.TileIntegrationTable;
 import buildcraft.silicon.tile.TileLaser;
-import buildcraft.silicon.tile.TileLaserTableBase;
 import buildcraft.silicon.tile.TilePackager;
 import buildcraft.silicon.tile.TileProgrammingTable;
 import buildcraft.silicon.tile.TileStampingTable;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerBlockEntityEvents;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.loader.api.FabricLoader;
 
 public final class BCSiliconFabric {
    private BCSiliconFabric() {

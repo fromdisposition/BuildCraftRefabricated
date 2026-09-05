@@ -8,7 +8,6 @@ package buildcraft.builders.container;
 
 import buildcraft.lib.net.BcPayloadBuffers;
 import net.minecraft.network.FriendlyByteBuf;
-import buildcraft.api.core.BCLog;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.builders.BCBuildersMenuTypes;
 import buildcraft.builders.addon.AddonFillerPlanner;
@@ -27,7 +26,6 @@ import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.statement.StatementContext;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import java.io.IOException;
 import java.util.Arrays;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;

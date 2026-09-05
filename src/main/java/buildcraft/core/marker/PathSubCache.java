@@ -14,7 +14,6 @@ import buildcraft.lib.net.MessageMarker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.UnmodifiableIterator;
 import com.google.common.collect.ImmutableList.Builder;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 

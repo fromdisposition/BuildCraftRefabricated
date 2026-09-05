@@ -10,14 +10,12 @@ import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.crops.CropManager;
 import buildcraft.api.mj.MjAPI;
-import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.lib.misc.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 
 public class AIRobotPlant extends AIRobotGoto {

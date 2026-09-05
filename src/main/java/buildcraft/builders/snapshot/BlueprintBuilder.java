@@ -19,7 +19,6 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.StackUtil;
-import buildcraft.lib.net.PacketBufferBC;
 import com.mojang.authlib.GameProfile;
 import java.util.ArrayList;
 import java.util.Arrays;

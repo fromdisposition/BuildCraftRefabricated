@@ -11,9 +11,6 @@ import buildcraft.lib.misc.data.Box;
 import java.util.Collection;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Direction.Axis;
-import net.minecraft.core.Direction.AxisDirection;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 

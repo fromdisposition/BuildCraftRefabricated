@@ -23,7 +23,6 @@ import buildcraft.silicon.plug.FacadeStateManager;
 import buildcraft.silicon.plug.PluggableFacade;
 import com.google.common.collect.UnmodifiableIterator;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;

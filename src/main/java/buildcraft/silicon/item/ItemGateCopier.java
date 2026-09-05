@@ -10,7 +10,6 @@ import buildcraft.lib.nbt.BcNbt;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import java.util.List;
-import java.util.function.Consumer;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -21,10 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
-import net.minecraft.world.item.Item.TooltipContext;
-import net.minecraft.world.item.component.CustomModelData;
 //? if >= 1.21.10 {
-import net.minecraft.world.item.component.TooltipDisplay;
 //?}
 import net.minecraft.world.level.Level;
 

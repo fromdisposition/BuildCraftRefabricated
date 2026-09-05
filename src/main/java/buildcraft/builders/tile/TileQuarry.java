@@ -7,7 +7,6 @@
 package buildcraft.builders.tile;
 
 import buildcraft.lib.nbt.BcAuth;
-import buildcraft.api.core.BCDebugging;
 import buildcraft.api.core.IAreaProvider;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.mj.MjBattery;

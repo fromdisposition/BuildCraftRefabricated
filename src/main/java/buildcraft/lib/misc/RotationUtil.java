@@ -6,9 +6,7 @@
 
 package buildcraft.lib.misc;
 
-import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Rotation;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 public class RotationUtil {

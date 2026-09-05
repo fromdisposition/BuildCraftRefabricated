@@ -24,8 +24,6 @@ import buildcraft.lib.gui.statement.GuiElementStatementDrag;
 import buildcraft.lib.gui.statement.GuiElementStatementParam;
 import buildcraft.lib.gui.statement.GuiElementStatementSource;
 import buildcraft.lib.misc.LocaleUtil;
-import buildcraft.lib.statement.FullStatement;
-import buildcraft.lib.statement.StatementContext;
 import java.util.List;
 //? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
@@ -33,7 +31,6 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.entity.BlockEntity;

@@ -8,7 +8,6 @@ package buildcraft.lib.statement;
 
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.statements.IGuiSlot;
-import buildcraft.lib.net.PacketBufferBC;
 import javax.annotation.Nullable;
 import net.minecraft.nbt.CompoundTag;
 

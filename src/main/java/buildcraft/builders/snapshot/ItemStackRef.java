@@ -9,7 +9,6 @@ package buildcraft.builders.snapshot;
 import buildcraft.lib.fabric.BcRegistryUtil;
 import java.util.Objects;
 import java.util.Optional;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.StringTag;

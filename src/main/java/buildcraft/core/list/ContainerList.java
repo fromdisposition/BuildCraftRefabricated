@@ -17,7 +17,6 @@ import buildcraft.lib.list.ListHandler;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import javax.annotation.Nonnull;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;

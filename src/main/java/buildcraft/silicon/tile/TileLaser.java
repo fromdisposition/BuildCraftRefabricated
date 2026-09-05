@@ -44,7 +44,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 //?}
 import net.minecraft.world.phys.Vec3;
-import org.jspecify.annotations.Nullable;
 
 public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscriber, IDebuggable, IAdvDebugTarget {
    private static final int TARGETING_RANGE = 6;

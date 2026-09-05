@@ -29,8 +29,6 @@ import buildcraft.lib.gui.statement.GuiElementStatementDrag;
 import buildcraft.lib.gui.statement.GuiElementStatementParam;
 import buildcraft.lib.gui.statement.GuiElementStatementSource;
 import buildcraft.lib.misc.LocaleUtil;
-import buildcraft.lib.statement.FullStatement;
-import buildcraft.lib.statement.StatementContext;
 import java.util.List;
 import java.util.Locale;
 //? if >= 1.21.10 {

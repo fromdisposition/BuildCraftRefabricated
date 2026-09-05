@@ -7,7 +7,6 @@
 package buildcraft.energy.integration.jei;
 
 import buildcraft.energy.BCEnergyItems;
-import buildcraft.energy.BCEnergyRecipeTypes;
 import buildcraft.energy.recipe.CombustionFuelRecipe;
 import buildcraft.energy.recipe.CoolantRecipe;
 import buildcraft.energy.recipe.SolidCoolantRecipe;

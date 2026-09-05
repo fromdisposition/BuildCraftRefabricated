@@ -1,7 +1,5 @@
 package buildcraft.fabric.fluid;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public record BcFluidWorldProperties(
    String baseName,

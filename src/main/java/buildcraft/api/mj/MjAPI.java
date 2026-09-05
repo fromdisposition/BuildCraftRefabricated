@@ -9,7 +9,6 @@ package buildcraft.api.mj;
 import buildcraft.lib.BCLibConfig;
 import java.text.DecimalFormat;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;

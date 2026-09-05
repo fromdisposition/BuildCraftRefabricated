@@ -52,7 +52,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 /** Split out of {@link BCBuildersEventDist} so the server-loaded class never references net.minecraft.client.*,

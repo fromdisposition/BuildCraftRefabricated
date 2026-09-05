@@ -15,7 +15,6 @@ import buildcraft.transport.block.BlockPipeHolder;
 import buildcraft.transport.item.ItemWire;
 import buildcraft.transport.tile.TilePipeHolder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 //? if >= 26.2 {

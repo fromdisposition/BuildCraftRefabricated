@@ -8,7 +8,6 @@ package buildcraft.builders.block;
 
 import buildcraft.api.properties.BuildCraftProperties;
 import com.mojang.serialization.MapCodec;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.minecraft.core.BlockPos;

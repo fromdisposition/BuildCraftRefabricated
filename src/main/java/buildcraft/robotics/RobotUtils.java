@@ -14,7 +14,6 @@ import buildcraft.api.transport.pluggable.PipePluggable;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class RobotUtils {
    private RobotUtils() {

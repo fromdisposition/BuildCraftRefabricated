@@ -13,7 +13,6 @@ import buildcraft.core.list.ListOpenContext;
 import buildcraft.lib.list.ListHandler;
 import buildcraft.lib.misc.AdvancementUtil;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -31,11 +30,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
-import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.CustomModelData;
 //? if >= 1.21.10 {
-import net.minecraft.world.item.component.TooltipDisplay;
 //?}
 import net.minecraft.world.level.Level;
 

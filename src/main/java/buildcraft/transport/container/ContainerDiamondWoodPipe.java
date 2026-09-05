@@ -6,6 +6,7 @@
 
 package buildcraft.transport.container;
 
+import buildcraft.lib.net.BcPayloadBuffers;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.fabric.network.BCPayloadContext;
@@ -36,14 +37,14 @@ public class ContainerDiamondWoodPipe extends AbstractPipeFilterContainer<PipeBe
    }
 
    public void sendNewFilterMode(PipeBehaviourWoodDiamond.FilterMode newFilterMode) {
-      this.sendMessage(NET_FILTER_MODE, buffer -> buffer.writeEnum(newFilterMode));
+      this.sendMessage(NET_FILTER_MODE, buffer -> BcPayloadBuffers.writeEnum(buffer, newFilterMode));
    }
 
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       super.readMessage(id, buffer, isClient, ctx);
       if (id == NET_FILTER_MODE && !isClient && this.behaviour != null) {
-         this.behaviour.filterMode = buffer.readEnum(PipeBehaviourWoodDiamond.FilterMode.class);
+         this.behaviour.filterMode = BcPayloadBuffers.readEnum(buffer, PipeBehaviourWoodDiamond.FilterMode.class);
          this.behaviour.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
       }
    }

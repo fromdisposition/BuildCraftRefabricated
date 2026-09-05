@@ -7,7 +7,6 @@
 package buildcraft.lib.net;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.DecoderException;
 import java.nio.charset.StandardCharsets;
 import net.minecraft.network.FriendlyByteBuf;

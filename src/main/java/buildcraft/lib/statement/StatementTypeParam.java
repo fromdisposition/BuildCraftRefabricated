@@ -11,7 +11,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.StatementManager;
-import buildcraft.lib.net.PacketBufferBC;
 import net.minecraft.nbt.CompoundTag;
 
 public class StatementTypeParam extends StatementType<IStatementParameter> {

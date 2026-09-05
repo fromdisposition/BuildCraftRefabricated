@@ -15,7 +15,6 @@ import buildcraft.api.items.IMapLocation;
 import buildcraft.lib.misc.data.Box;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.annotation.Nonnull;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,11 +29,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
-import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.CustomModelData;
 //? if >= 1.21.10 {
-import net.minecraft.world.item.component.TooltipDisplay;
 //?}
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;

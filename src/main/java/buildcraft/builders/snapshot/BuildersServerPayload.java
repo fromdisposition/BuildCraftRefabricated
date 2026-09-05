@@ -6,6 +6,7 @@
 
 package buildcraft.builders.snapshot;
 
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.net.BCPacketLimits;
 import buildcraft.lib.net.BoundedNbt;
@@ -73,7 +74,7 @@ public record BuildersServerPayload(
    }
 
    private static void encode(FriendlyByteBuf buf, BuildersServerPayload payload) {
-      buf.writeEnum(payload.kind());
+      BcPayloadBuffers.writeEnum(buf, payload.kind());
       switch (payload.kind()) {
          case SNAPSHOT:
             buf.writeByteArray(payload.snapshotData());
@@ -95,7 +96,7 @@ public record BuildersServerPayload(
    }
 
    private static BuildersServerPayload decode(FriendlyByteBuf buf) {
-      BuildersServerPayload.Kind kind = buf.readEnum(BuildersServerPayload.Kind.class);
+      BuildersServerPayload.Kind kind = BcPayloadBuffers.readEnum(buf, BuildersServerPayload.Kind.class);
 
       return switch (kind) {
          case SNAPSHOT -> new BuildersServerPayload(kind, buf.readByteArray(), BlockPos.ZERO, null, List.of());

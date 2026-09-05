@@ -21,7 +21,6 @@ import net.minecraft.client.Minecraft;
 //?} else {
 /*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 *///?}
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;

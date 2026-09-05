@@ -11,7 +11,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.filler.FillerManager;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.builders.BCBuildersStatements;
-import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.statement.StatementType;
 import net.minecraft.nbt.CompoundTag;
 

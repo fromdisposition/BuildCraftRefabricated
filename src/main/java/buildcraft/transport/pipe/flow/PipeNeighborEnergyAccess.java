@@ -6,7 +6,6 @@
 
 package buildcraft.transport.pipe.flow;
 
-import buildcraft.api.mj.MjAPI;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.fabric.transfer.BcTransfers;

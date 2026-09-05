@@ -228,22 +228,9 @@ dependencies {
 
 val notYetOnFabric = listOf<String>()
 
-tasks.register("stripUtf8Bom") {
-    group = "build"
-    description = "Remove UTF-8 BOM from Java sources."
-    doLast {
-        fileTree("src/main/java/buildcraft").matching { include("**/*.java") }.forEach { file ->
-            val bytes = file.readBytes()
-            if (bytes.size >= 3 && bytes[0] == 0xEF.toByte() && bytes[1] == 0xBB.toByte() && bytes[2] == 0xBF.toByte()) {
-                file.writeBytes(bytes.copyOfRange(3, bytes.size))
-            }
-        }
-    }
-}
-
 tasks.withType<JavaCompile>().configureEach {
     // The active node has no implicit edge to it, so its versions/ override roots go missing after a clean.
-    dependsOn("stripUtf8Bom", "stonecutterGenerate")
+    dependsOn("stonecutterGenerate")
     options.release.set(javaRelease)
     options.compilerArgs.add("-Xlint:deprecation")
     options.compilerArgs.addAll(listOf("-Xmaxerrs", "2000"))

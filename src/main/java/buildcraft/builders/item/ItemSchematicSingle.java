@@ -25,7 +25,6 @@ import buildcraft.lib.misc.SoundUtil;
 import buildcraft.lib.misc.StackUtil;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import net.minecraft.ChatFormatting;
@@ -41,9 +40,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
-import net.minecraft.world.item.Item.TooltipContext;
 //? if >= 1.21.10 {
-import net.minecraft.world.item.component.TooltipDisplay;
 //?}
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.context.UseOnContext;

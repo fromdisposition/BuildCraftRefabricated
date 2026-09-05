@@ -19,7 +19,6 @@ import net.minecraft.client.Minecraft;
 /*import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 *///?}
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.Level;

@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.container;
 
+import buildcraft.lib.net.BcPayloadBuffers;
 import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
@@ -15,7 +16,6 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.fabric.menu.GateMenuKey;
 import buildcraft.lib.gui.BcMenu;
-import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.statement.ActionWrapper;
 import buildcraft.lib.statement.StatementWrapper;
 import buildcraft.lib.statement.TriggerWrapper;
@@ -196,7 +196,7 @@ public class ContainerGate extends BcMenu {
 
             for (int i = 0; i < numTriggers; i++) {
                String tag = buffer.readUtf();
-               EnumPipePart part = buffer.readEnum(EnumPipePart.class);
+               EnumPipePart part = BcPayloadBuffers.readEnum(buffer, EnumPipePart.class);
                IStatement state = StatementManager.statements.get(tag);
                if (state == null) {
                   BCLog.logger.warn("Gate received invalid trigger tag from server: " + tag);
@@ -210,7 +210,7 @@ public class ContainerGate extends BcMenu {
 
             for (int i = 0; i < numActions; i++) {
                String tag = buffer.readUtf();
-               EnumPipePart part = buffer.readEnum(EnumPipePart.class);
+               EnumPipePart part = BcPayloadBuffers.readEnum(buffer, EnumPipePart.class);
                IStatement state = StatementManager.statements.get(tag);
                if (state == null) {
                   BCLog.logger.warn("Gate received invalid action tag: " + tag);
@@ -238,12 +238,12 @@ public class ContainerGate extends BcMenu {
 
          for (TriggerWrapper wrapper : this.possibleTriggers) {
             buffer.writeUtf(wrapper.getUniqueTag());
-            buffer.writeEnum(wrapper.sourcePart);
+            BcPayloadBuffers.writeEnum(buffer, wrapper.sourcePart);
          }
 
          for (ActionWrapper wrapper : this.possibleActions) {
             buffer.writeUtf(wrapper.getUniqueTag());
-            buffer.writeEnum(wrapper.sourcePart);
+            BcPayloadBuffers.writeEnum(buffer, wrapper.sourcePart);
          }
 
          for (int i = 0; i < this.gate.connections.length; i++) {

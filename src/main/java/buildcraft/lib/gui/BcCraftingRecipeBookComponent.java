@@ -25,7 +25,6 @@ import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
-import net.minecraft.world.item.crafting.display.SlotDisplay;
 
 public class BcCraftingRecipeBookComponent extends RecipeBookComponent<ContainerBCTileRecipeBook<?>> {
    //? if < 1.21.11 {

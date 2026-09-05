@@ -15,7 +15,6 @@ import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.ContainerBCTile;
 import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.slot.SlotOutput;
-import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.robotics.BCRoboticsMenuTypes;
 import buildcraft.robotics.tile.TileZonePlanner;

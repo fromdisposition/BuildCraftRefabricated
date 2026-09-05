@@ -31,7 +31,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.level.block.state.BlockState;
 import buildcraft.lib.nbt.BcValueIn;
 import buildcraft.lib.nbt.BcValueOut;

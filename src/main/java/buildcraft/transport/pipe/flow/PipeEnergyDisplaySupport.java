@@ -6,6 +6,7 @@
 
 package buildcraft.transport.pipe.flow;
 
+import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.lib.misc.VecUtil;
@@ -41,7 +42,7 @@ public final class PipeEnergyDisplaySupport {
       for (Direction face : Direction.values()) {
          PipeEnergyDisplaySupport.DisplaySection section = sections.get(face);
          buffer.writeInt(section.getDisplayPower());
-         buffer.writeEnum(section.getDisplayFlow());
+         BcPayloadBuffers.writeEnum(buffer, section.getDisplayFlow());
       }
    }
 
@@ -49,7 +50,7 @@ public final class PipeEnergyDisplaySupport {
       for (Direction face : Direction.values()) {
          PipeEnergyDisplaySupport.DisplaySection section = sections.get(face);
          section.setDisplayPower(buffer.readInt());
-         section.setDisplayFlow(buffer.readEnum(PipeEnergyEnumFlow.class));
+         section.setDisplayFlow(BcPayloadBuffers.readEnum(buffer, PipeEnergyEnumFlow.class));
       }
    }
 

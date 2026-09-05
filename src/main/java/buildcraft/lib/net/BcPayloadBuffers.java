@@ -8,6 +8,7 @@ package buildcraft.lib.net;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.DecoderException;
 import net.minecraft.network.FriendlyByteBuf;
 
 public final class BcPayloadBuffers {
@@ -28,5 +29,19 @@ public final class BcPayloadBuffers {
 
    public static PacketBufferBC ensure(FriendlyByteBuf buf) {
       return buf instanceof PacketBufferBC bc ? bc : new PacketBufferBC(buf);
+   }
+
+   public static void writeEnum(FriendlyByteBuf buf, Enum<?> value) {
+      buf.writeVarInt(value.ordinal());
+   }
+
+   public static <E extends Enum<E>> E readEnum(FriendlyByteBuf buf, Class<E> type) {
+      E[] values = type.getEnumConstants();
+      int ordinal = buf.readVarInt();
+      if (ordinal < 0 || ordinal >= values.length) {
+         throw new DecoderException("Enum ordinal " + ordinal + " out of range for " + type.getSimpleName());
+      }
+
+      return values[ordinal];
    }
 }

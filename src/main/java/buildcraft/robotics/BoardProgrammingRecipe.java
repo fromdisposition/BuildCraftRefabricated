@@ -11,7 +11,6 @@ import buildcraft.api.boards.RedstoneBoardRegistry;
 import buildcraft.api.recipes.IProgrammingRecipe;
 import buildcraft.lib.misc.NBTUtilBC;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import net.minecraft.world.item.ItemStack;

@@ -6,7 +6,6 @@
 
 package buildcraft.lib.misc;
 
-import buildcraft.lib.misc.data.FaceDistance;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSet.Builder;
@@ -16,7 +15,6 @@ import java.util.function.Consumer;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Vec3i;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Rotation;

@@ -24,8 +24,6 @@ import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.misc.BlockUtil;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.server.level.ServerPlayer;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import com.mojang.authlib.GameProfile;
 import java.util.ArrayDeque;
 import java.util.ArrayList;

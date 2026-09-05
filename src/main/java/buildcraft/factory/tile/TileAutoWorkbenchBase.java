@@ -15,7 +15,6 @@ import buildcraft.api.tiles.IHasWork;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.tile.BcBlockEntity;
-import org.jspecify.annotations.Nullable;
 import buildcraft.lib.tile.ItemHandlerFiltered;
 import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;

@@ -19,7 +19,6 @@ import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.UnmodifiableIterator;
-import io.netty.buffer.Unpooled;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

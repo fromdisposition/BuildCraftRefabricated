@@ -14,7 +14,6 @@ import buildcraft.builders.tile.TileReplacer;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.ContainerBCTile;
 import buildcraft.lib.gui.slot.SlotBase;
-import buildcraft.lib.net.PacketBufferBC;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
