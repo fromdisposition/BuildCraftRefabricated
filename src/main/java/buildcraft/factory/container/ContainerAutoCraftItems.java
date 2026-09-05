@@ -92,18 +92,22 @@ public class ContainerAutoCraftItems extends ContainerBCTileRecipeBook<TileAutoW
       this.addFullPlayerInventory(8, 118);
    }
 
+   @Override
    public List<Slot> getInputGridSlots() {
       return this.blueprintSlots;
    }
 
+   @Override
    public int getGridWidth() {
       return 3;
    }
 
+   @Override
    public int getGridHeight() {
       return 3;
    }
 
+   @Override
    public Slot getResultSlot() {
       return this.resultSlot;
    }

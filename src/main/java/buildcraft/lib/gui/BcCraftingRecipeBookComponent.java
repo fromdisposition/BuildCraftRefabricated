@@ -4,10 +4,9 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.silicon.gui;
+package buildcraft.lib.gui;
 
 import buildcraft.lib.fabric.client.GhostSlotsAccess;
-import buildcraft.silicon.container.ContainerAdvancedCraftingTable;
 import java.util.List;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.recipebook.GhostSlots;
@@ -28,9 +27,10 @@ import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 
-public class ACTRecipeBookComponent extends RecipeBookComponent<ContainerAdvancedCraftingTable> {
+public class BcCraftingRecipeBookComponent extends RecipeBookComponent<ContainerBCTileRecipeBook<?>> {
    //? if < 1.21.11 {
-   /*// Abstract on 1.21.10, dropped in 1.21.11; BC hides the craftable-only filter button, so no-op.
+   /*// initFilterButtonTextures() is abstract on 1.21.10 (the recipe-book filter button there owns its own
+   // textures); 1.21.11 dropped it. BC does not show the craftable-only filter button, so this is a no-op.
    @Override
    protected void initFilterButtonTextures() {
    }
@@ -50,14 +50,13 @@ public class ACTRecipeBookComponent extends RecipeBookComponent<ContainerAdvance
       new TabInfo(Items.REDSTONE, RecipeBookCategories.CRAFTING_REDSTONE)
    );
 
-   public ACTRecipeBookComponent(ContainerAdvancedCraftingTable menu) {
+   public BcCraftingRecipeBookComponent(ContainerBCTileRecipeBook<?> menu) {
       super(menu, TABS);
    }
 
    @Override
    protected boolean isCraftingSlot(Slot slot) {
-      return (this.menu).getResultSlot() == slot
-         || (this.menu).getInputGridSlots().contains(slot);
+      return (this.menu).getResultSlot() == slot || (this.menu).getInputGridSlots().contains(slot);
    }
 
    private boolean canDisplay(RecipeDisplay display) {

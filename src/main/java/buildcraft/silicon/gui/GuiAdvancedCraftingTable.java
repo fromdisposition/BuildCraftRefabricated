@@ -6,6 +6,7 @@
 
 package buildcraft.silicon.gui;
 
+import buildcraft.lib.gui.BcCraftingRecipeBookComponent;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
 import buildcraft.lib.gui.GuiIcon;
@@ -28,7 +29,7 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
    private static final Identifier TEXTURE_BASE = Identifier.parse("buildcraftsilicon:textures/gui/bcr/advanced_crafting_table.png");
    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0.0, 0.0, 176.0, 244.0);
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE_BASE, 176.0, 0.0, 4.0, 70.0);
-   private ACTRecipeBookComponent recipeBookComponent;
+   private BcCraftingRecipeBookComponent recipeBookComponent;
    private ImageButton recipeBookButton;
    private boolean widthTooNarrow;
 
@@ -63,10 +64,10 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
       super.init();
       this.widthTooNarrow = this.width < 379;
       //? if >= 1.21.10 {
-      this.recipeBookComponent = new ACTRecipeBookComponent(this.menu);
+      this.recipeBookComponent = new BcCraftingRecipeBookComponent(this.menu);
       this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow);
       //?} else {
-      /*this.recipeBookComponent = new ACTRecipeBookComponent();
+      /*this.recipeBookComponent = new BcCraftingRecipeBookComponent();
       this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, this.menu);
       *///?}
       this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);

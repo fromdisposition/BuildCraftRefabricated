@@ -6,10 +6,16 @@
 
 package buildcraft.lib.client.render.tile;
 
+//? if >= 1.21.10 {
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+//?}
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+//? if >= 1.21.10 {
 public class BcBerState<T extends BlockEntity> extends BlockEntityRenderState {
+//?} else {
+/*public class BcBerState<T extends BlockEntity> {
+*///?}
    public T tile;
    public float partialTick;
    public int light;

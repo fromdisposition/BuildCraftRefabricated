@@ -4,10 +4,10 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
 
-package buildcraft.silicon.gui;
+package buildcraft.lib.gui;
 
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 
-// 1.21.1's vanilla RecipeBookComponent is concrete (not the generic abstract type the shared version subclasses), so this is a plain alias.
-public class ACTRecipeBookComponent extends RecipeBookComponent {
+/** 1.21.1's vanilla {@link RecipeBookComponent} is a concrete, non-generic class, so this override needs no method bodies. */
+public class BcCraftingRecipeBookComponent extends RecipeBookComponent {
 }

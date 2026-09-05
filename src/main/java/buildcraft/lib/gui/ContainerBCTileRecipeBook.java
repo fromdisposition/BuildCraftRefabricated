@@ -7,8 +7,10 @@
 package buildcraft.lib.gui;
 
 import buildcraft.lib.tile.BcBlockEntity;
+import java.util.List;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
 
 public abstract class ContainerBCTileRecipeBook<T extends BcBlockEntity> extends BcMenuRecipeBook {
    public final T tile;
@@ -33,4 +35,12 @@ public abstract class ContainerBCTileRecipeBook<T extends BcBlockEntity> extends
    public final boolean stillValid(Player player) {
       return this.tile != null && this.tile.canInteractWith(player);
    }
+
+   public abstract List<Slot> getInputGridSlots();
+
+   public abstract int getGridWidth();
+
+   public abstract int getGridHeight();
+
+   public abstract Slot getResultSlot();
 }

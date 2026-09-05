@@ -6,6 +6,7 @@
 
 package buildcraft.factory.gui;
 
+import buildcraft.lib.gui.BcCraftingRecipeBookComponent;
 import buildcraft.factory.container.ContainerAutoCraftItems;
 import buildcraft.lib.gui.BCGraphics;
 import buildcraft.lib.gui.BcScreen;
@@ -33,7 +34,7 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    private static final GuiIcon ICON_PROGRESS = new GuiIcon(TEXTURE, 176.0, 0.0, 23.0, 10.0);
    private static final GuiIcon ICON_FILTER_OVERLAY_SAME = new GuiIcon(TEXTURE_MISC, 54.0, 0.0, 18.0, 18.0);
    private static final GuiIcon ICON_FILTER_OVERLAY_DIFFERENT = new GuiIcon(TEXTURE_MISC, 72.0, 0.0, 18.0, 18.0);
-   private AWRecipeBookComponent recipeBookComponent;
+   private BcCraftingRecipeBookComponent recipeBookComponent;
    private ImageButton recipeBookButton;
    private boolean widthTooNarrow;
 
@@ -64,12 +65,12 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
       super.init();
       this.widthTooNarrow = this.width < 379;
       //? if >= 1.21.10 {
-      this.recipeBookComponent = new AWRecipeBookComponent(this.menu);
+      this.recipeBookComponent = new BcCraftingRecipeBookComponent(this.menu);
       this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow);
       //?} else {
-      /*// 1.21.1: AWRecipeBookComponent is a thin alias of the concrete vanilla RecipeBookComponent;
+      /*// 1.21.1: BcCraftingRecipeBookComponent is a thin alias of the concrete vanilla RecipeBookComponent;
       // instantiate no-arg and pass the menu to the 5-arg init.
-      this.recipeBookComponent = new AWRecipeBookComponent();
+      this.recipeBookComponent = new BcCraftingRecipeBookComponent();
       this.recipeBookComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, this.menu);
       *///?}
       this.leftPos = this.recipeBookComponent.updateScreenPosition(this.width, this.imageWidth);

@@ -64,18 +64,22 @@ public class ContainerAdvancedCraftingTable extends ContainerBCTileRecipeBook<Ti
       }
    }
 
+   @Override
    public List<Slot> getInputGridSlots() {
       return this.blueprintSlots;
    }
 
+   @Override
    public int getGridWidth() {
       return 3;
    }
 
+   @Override
    public int getGridHeight() {
       return 3;
    }
 
+   @Override
    public Slot getResultSlot() {
       return this.slots.get(0);
    }
