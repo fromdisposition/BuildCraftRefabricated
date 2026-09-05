@@ -224,11 +224,13 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.writeData(new BcValueOut(output));
    }
 
+   @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(input)));
@@ -290,6 +292,7 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       }
    }
 
+   @Override
    public CompoundTag getUpdateTag(Provider registries) {
       this.writingSyncTag = true;
 
@@ -300,6 +303,7 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       }
    }
 
+   @Override
    public Packet<ClientGamePacketListener> getUpdatePacket() {
       return ClientboundBlockEntityDataPacket.create(this);
    }
@@ -321,6 +325,7 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       RenderLaser.removeLaser(this);
    }
 
+   @Override
    public void setRemoved() {
       super.setRemoved();
       if (this.level != null && !this.level.isClientSide()) {

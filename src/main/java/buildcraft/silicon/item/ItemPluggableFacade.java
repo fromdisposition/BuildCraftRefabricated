@@ -121,6 +121,7 @@ public class ItemPluggableFacade extends Item implements IItemPluggable, IFacade
       return PluggableFacade.boundingBoxFor(side);
    }
 
+   @Override
    public Component getName(ItemStack stack) {
       FacadeInstance fullState = getStates(stack);
       if (fullState.type == FacadeType.Basic) {

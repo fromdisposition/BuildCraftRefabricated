@@ -54,6 +54,7 @@ public record MessageDebugResponse(List<String> left, List<String> right) implem
       return new MessageDebugResponse(left, right);
    }
 
+   @Override
    public Type<MessageDebugResponse> type() {
       return TYPE;
    }

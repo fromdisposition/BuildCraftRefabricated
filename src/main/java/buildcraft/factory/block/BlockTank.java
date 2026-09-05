@@ -54,11 +54,13 @@ public class BlockTank extends BcTileBlock implements ITankBlockConnector {
       this.registerDefaultState((this.stateDefinition.any()).setValue(JOINED_BELOW, false));
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(JOINED_BELOW);
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileTank(pos, state);
    }
@@ -77,34 +79,45 @@ public class BlockTank extends BcTileBlock implements ITankBlockConnector {
    *///?}
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide()
          ? createTickerHelper(type, BCFactoryBlockEntities.TANK, (lvl, pos, st, tile) -> tile.clientTick())
          : createTickerHelper(type, BCFactoryBlockEntities.TANK, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
+   @Override
    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
       return SHAPE;
    }
 
+   @Override
    protected boolean isPathfindable(BlockState state, PathComputationType type) {
       return false;
    }
 
+   @Override
    protected boolean hasAnalogOutputSignal(BlockState state) {
       return true;
    }
 
+   @Override
+   //? if >= 1.21.10 {
    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
+   //?} else {
+   /*protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+   *///?}
       return level.getBlockEntity(pos) instanceof TileTank tank ? tank.getComparatorLevel() : 0;
    }
 
+   @Override
    protected boolean skipRendering(BlockState state, BlockState adjacentState, Direction side) {
       return side.getAxis() == Axis.Y && adjacentState.getBlock() instanceof ITankBlockConnector
          || super.skipRendering(state, adjacentState, side);
    }
 
    @Nullable
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       Level level = context.getLevel();
       BlockPos pos = context.getClickedPos();
@@ -113,6 +126,7 @@ public class BlockTank extends BcTileBlock implements ITankBlockConnector {
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected BlockState updateShape(
       BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
       Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random
@@ -135,6 +149,7 @@ public class BlockTank extends BcTileBlock implements ITankBlockConnector {
       *///?}
    }
 
+   @Override
    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
       super.onPlace(state, level, pos, oldState, movedByPiston);
       if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileTank tank) {
@@ -142,6 +157,7 @@ public class BlockTank extends BcTileBlock implements ITankBlockConnector {
       }
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       if (level.getBlockEntity(pos) instanceof TileTank tank) {
          if (!level.isClientSide()) {
@@ -154,6 +170,7 @@ public class BlockTank extends BcTileBlock implements ITankBlockConnector {
       return InteractionResult.PASS;
    }
 
+   @Override
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {

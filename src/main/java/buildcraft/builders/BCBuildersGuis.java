@@ -25,14 +25,17 @@ public final class BCBuildersGuis {
          if (addon != null && addon.volumeBox != null) {
             final FillerPlannerMenuKey key = new FillerPlannerMenuKey(addon.volumeBox.id, addon.getSlot());
             sp.openMenu(new ExtendedMenuProvider<FillerPlannerMenuKey>() {
+               @Override
                public FillerPlannerMenuKey getScreenOpeningData(ServerPlayer serverPlayer) {
                   return key;
                }
 
+               @Override
                public Component getDisplayName() {
                   return Component.translatable("item.buildcraftbuilders.filler_planner");
                }
 
+               @Override
                public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player p) {
                   return new ContainerFillerPlanner(containerId, playerInv, addon);
                }

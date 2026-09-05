@@ -26,8 +26,6 @@ import buildcraft.robotics.ai.AIRobotMain;
 import buildcraft.robotics.boards.RedstoneBoardRobotEmptyNBT;
 import buildcraft.robotics.robot.DockingStationPipe;
 import com.mojang.authlib.GameProfile;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -575,10 +573,6 @@ public class EntityRobot extends EntityRobotBase {
    @Override
    public void setItemActive(boolean active) {
       this.entityData.set(DATA_ITEM_ACTIVE, active);
-   }
-
-   public boolean isItemActive() {
-      return this.entityData.get(DATA_ITEM_ACTIVE);
    }
 
    public float getEnergyFraction() {

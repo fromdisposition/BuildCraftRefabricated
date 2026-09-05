@@ -80,6 +80,7 @@ public class PipeItemModel implements ItemModel {
       }
    }
 
+   @Override
    public void update(
       ItemStackRenderState renderState,
       ItemStack stack,

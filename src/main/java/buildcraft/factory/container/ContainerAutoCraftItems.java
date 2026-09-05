@@ -74,10 +74,12 @@ public class ContainerAutoCraftItems extends ContainerBCTileRecipeBook<TileAutoW
       for (int chunk = 0; chunk < 4; chunk++) {
          final int c = chunk;
          this.addDataSlot(new DataSlot() {
+            @Override
             public int get() {
                return tile != null ? BcMenu.chunk16(tile.getPowerStored(), c) : 0;
             }
 
+            @Override
             public void set(int value) {
                if (tile != null) {
                   long mask = 65535L << c * 16;

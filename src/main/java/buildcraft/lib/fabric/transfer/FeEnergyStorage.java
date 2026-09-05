@@ -16,15 +16,18 @@ public class FeEnergyStorage implements EnergyStorage, ValueIOSerializable {
    private final SnapshotParticipant<Integer> energyJournal = new SnapshotParticipant<Integer>() {
       private int snapshotEnergy;
 
+      @Override
       protected Integer createSnapshot() {
          this.snapshotEnergy = FeEnergyStorage.this.energy;
          return FeEnergyStorage.this.energy;
       }
 
+      @Override
       protected void readSnapshot(Integer snapshot) {
          FeEnergyStorage.this.energy = snapshot;
       }
 
+      @Override
       protected void onFinalCommit() {
          if (FeEnergyStorage.this.energy != this.snapshotEnergy) {
             FeEnergyStorage.this.onEnergyChanged(this.snapshotEnergy);
@@ -77,14 +80,17 @@ public class FeEnergyStorage implements EnergyStorage, ValueIOSerializable {
    protected void onEnergyChanged(int previousAmount) {
    }
 
+   @Override
    public boolean supportsInsertion() {
       return this.maxInsert > 0;
    }
 
+   @Override
    public boolean supportsExtraction() {
       return this.maxExtract > 0;
    }
 
+   @Override
    public long insert(long maxAmount, TransactionContext transaction) {
       if (maxAmount <= 0L) {
          return 0L;
@@ -102,6 +108,7 @@ public class FeEnergyStorage implements EnergyStorage, ValueIOSerializable {
       }
    }
 
+   @Override
    public long extract(long maxAmount, TransactionContext transaction) {
       if (maxAmount <= 0L) {
          return 0L;
@@ -119,10 +126,12 @@ public class FeEnergyStorage implements EnergyStorage, ValueIOSerializable {
       }
    }
 
+   @Override
    public long getAmount() {
       return this.energy;
    }
 
+   @Override
    public long getCapacity() {
       return this.capacity;
    }

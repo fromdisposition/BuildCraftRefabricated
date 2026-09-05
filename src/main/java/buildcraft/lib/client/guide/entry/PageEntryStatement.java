@@ -122,20 +122,24 @@ public class PageEntryStatement extends PageValueType<IStatement> {
       }
    }
 
+   @Override
    public List<String> getTooltip(IStatement value) {
       return value.getTooltip();
    }
 
+   @Override
    public String getTitle(IStatement value) {
       List<String> tooltip = value.getTooltip();
       return tooltip.isEmpty() ? value.getClass().toString() : tooltip.get(0);
    }
 
    @Nullable
+   @Override
    public ISimpleDrawable createDrawable(IStatement value) {
       return (x, y) -> GuiElementStatementSource.drawGuiSlot(value, x, y);
    }
 
+   @Override
    public void addPageEntries(IStatement value, GuiGuide gui, List<GuidePart> parts) {
       // Auto-generated pages arrive with only the title chapter; anything more means a written .md exists.
       boolean hasWrittenBody = parts.size() > 1;

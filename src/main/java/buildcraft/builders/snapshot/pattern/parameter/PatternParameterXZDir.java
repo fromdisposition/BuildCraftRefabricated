@@ -88,6 +88,7 @@ public enum PatternParameterXZDir implements IStatementParameter {
       return LocaleUtil.localize("direction." + this.dir.getSerializedName());
    }
 
+   @Override
    public PatternParameterXZDir onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
       return null;
    }

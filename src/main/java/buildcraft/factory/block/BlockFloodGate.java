@@ -51,6 +51,7 @@ public class BlockFloodGate extends BcTileBlock {
       this.registerDefaultState(defaultState);
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       for (Property<Boolean> prop : CONNECTED_MAP.values()) {
          builder.add(prop);
@@ -58,6 +59,7 @@ public class BlockFloodGate extends BcTileBlock {
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileFloodGate(pos, state);
    }
@@ -73,6 +75,7 @@ public class BlockFloodGate extends BcTileBlock {
    }
    *///?}
 
+   @Override
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (level.getBlockEntity(pos) instanceof TileFloodGate floodGate) {
@@ -81,10 +84,12 @@ public class BlockFloodGate extends BcTileBlock {
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide() ? null : createTickerHelper(type, BCFactoryBlockEntities.FLOOD_GATE, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
+   @Override
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {

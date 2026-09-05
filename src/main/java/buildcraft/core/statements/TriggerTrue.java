@@ -18,6 +18,7 @@ public class TriggerTrue extends BCStatement implements ITriggerInternal {
       super("buildcraft:trigger.true");
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCCoreSprites.TRIGGER_TRUE;
    }

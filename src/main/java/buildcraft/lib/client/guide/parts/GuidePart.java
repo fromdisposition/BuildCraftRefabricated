@@ -45,12 +45,6 @@ public abstract class GuidePart {
    public void updateScreen() {
    }
 
-   protected void renderTextLine(String text, int x, int y, int colour) {
-      if (this.fontRenderer != null) {
-         this.fontRenderer.drawString(text, x, y + 8 - this.fontRenderer.getFontHeight(text) / 2, colour);
-      }
-   }
-
    public abstract GuidePart.PagePosition renderIntoArea(int var1, int var2, int var3, int var4, GuidePart.PagePosition var5, int var6);
 
    public abstract GuidePart.PagePosition handleMouseClick(int var1, int var2, int var3, int var4, GuidePart.PagePosition var5, int var6, int var7, int var8);

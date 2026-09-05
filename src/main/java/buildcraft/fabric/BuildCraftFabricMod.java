@@ -39,6 +39,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.Join;
 import net.minecraft.server.level.ServerLevel;
 
 public class BuildCraftFabricMod implements ModInitializer {
+   @Override
    public void onInitialize() {
       BCFabricConfig.load();
       BCBlockEntityLifecycleEvents.init();

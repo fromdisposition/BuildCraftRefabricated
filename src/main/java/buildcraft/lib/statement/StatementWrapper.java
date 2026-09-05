@@ -110,6 +110,7 @@ public abstract class StatementWrapper implements IStatement, Comparable<Stateme
       return null;
    }
 
+   @Override
    public int compareTo(StatementWrapper o) {
       if (this.sourcePart != o.sourcePart) {
          return Integer.compare(o.sourcePart.getIndex(), this.sourcePart.getIndex());

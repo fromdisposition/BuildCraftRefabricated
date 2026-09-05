@@ -107,6 +107,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
          .collect(Collectors.toList());
    }
 
+   @Override
    public SchematicEntityDefault getRotated(Rotation rotation) {
       SchematicEntityDefault schematicEntity = SchematicEntityManager.createCleanCopy(this);
       schematicEntity.entityNbt = this.entityNbt;

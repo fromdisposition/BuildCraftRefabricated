@@ -60,6 +60,7 @@ public class PluggableLightSensor extends PipePluggable {
       bus.on(PipeEventStatement.AddTriggerInternalSided.class, this, this::addInternalTriggers);
    }
 
+   @Override
    public KeyPlugSimple getModelRenderKey(Object layer) {
       if (layer == null) {
          return null;

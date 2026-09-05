@@ -44,6 +44,7 @@ public class ContainerProgrammingTable extends ContainerBCTile<TileProgrammingTa
       this.addFullPlayerInventory(8, 104);
    }
 
+   @Override
    public boolean clickMenuButton(Player player, int index) {
       if (this.tile == null) {
          return false;

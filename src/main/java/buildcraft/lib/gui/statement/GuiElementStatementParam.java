@@ -36,15 +36,18 @@ public class GuiElementStatementParam extends GuiElementSimple implements IInter
       this.draw = draw;
    }
 
+   @Override
    public IStatementParameter get() {
       return this.ref.get(this.paramIndex);
    }
 
+   @Override
    public void set(IStatementParameter to) {
       this.ref.set(this.paramIndex, to);
       this.ref.postSetFromGui(this.paramIndex);
    }
 
+   @Override
    public boolean canSet(IStatementParameter value) {
       return this.ref.canSet(this.paramIndex, value);
    }

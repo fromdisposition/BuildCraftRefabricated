@@ -45,15 +45,18 @@ public class PipeBlockStateModel implements BlockStateModel {
       this.vanillaDelegate = vanillaDelegate;
    }
 
+   @Override
    public void collectParts(RandomSource random, List<BlockStateModelPart> parts) {
       this.vanillaDelegate.collectParts(random, parts);
    }
 
    //? if >= 26.1 {
+   @Override
    public Baked particleMaterial() {
       return this.vanillaDelegate.particleMaterial();
    }
 
+   @Override
    public int materialFlags() {
       return this.vanillaDelegate.materialFlags();
    }

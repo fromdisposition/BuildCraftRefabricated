@@ -65,6 +65,7 @@ public class ItemList_BC8 extends Item implements IList {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public InteractionResult use(Level level, Player player, InteractionHand hand) {
       return this.bcUse(level, player, hand);
    }
@@ -84,10 +85,12 @@ public class ItemList_BC8 extends Item implements IList {
          if (player instanceof ServerPlayer serverPlayer) {
             final InteractionHand openHand = hand;
             serverPlayer.openMenu(new MenuProvider() {
+               @Override
                public Component getDisplayName() {
                   return Component.translatable("gui.buildcraft.list");
                }
 
+               @Override
                public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player p) {
                   return new ContainerList(containerId, playerInv, openHand);
                }

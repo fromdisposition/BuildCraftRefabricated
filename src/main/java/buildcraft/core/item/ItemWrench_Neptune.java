@@ -33,6 +33,7 @@ public class ItemWrench_Neptune extends Item {
       super(properties);
    }
 
+   @Override
    public InteractionResult useOn(UseOnContext context) {
       InteractionResult result = applyWrench(context);
       // PASS would fall through to the off-hand item and place a block. Only this item consumes: applyWrench

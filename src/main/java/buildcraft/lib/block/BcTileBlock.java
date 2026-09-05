@@ -89,6 +89,7 @@ public class BcTileBlock extends Block implements EntityBlock {
       BcTileBlocks.onPlacedBy(level, pos, placer, stack);
    }
 
+   @Override
    protected InteractionResult useItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {

@@ -31,6 +31,7 @@ public class TriggerMachine extends BCStatement implements ITriggerExternal {
       return LocaleUtil.localize("gate.trigger.machine." + (this.active ? "scheduled" : "done"));
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return this.active ? BCCoreSprites.TRIGGER_MACHINE_ACTIVE : BCCoreSprites.TRIGGER_MACHINE_INACTIVE;
    }

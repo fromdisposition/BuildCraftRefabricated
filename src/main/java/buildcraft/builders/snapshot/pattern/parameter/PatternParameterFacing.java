@@ -72,6 +72,7 @@ public enum PatternParameterFacing implements IStatementParameter {
       return LocaleUtil.localize("buildcraft.param.facing." + this.face.getSerializedName());
    }
 
+   @Override
    public PatternParameterFacing onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
       return null;
    }

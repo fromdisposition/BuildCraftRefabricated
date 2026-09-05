@@ -183,6 +183,7 @@ public class PathConnection extends MarkerConnection<PathConnection> {
       }
    }
 
+   @Override
    public ImmutableList<BlockPos> getMarkerPositions() {
       if (this.loop && this.positions.size() > 0) {
          Builder<BlockPos> list = ImmutableList.builder();

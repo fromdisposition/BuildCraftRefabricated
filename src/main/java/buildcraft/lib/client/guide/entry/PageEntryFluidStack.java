@@ -38,6 +38,7 @@ public class PageEntryFluidStack extends PageValueType<FluidStackValueFilter> {
       return FluidStackValueFilter.class;
    }
 
+   @Override
    protected boolean isValid(FluidStackValueFilter typed) {
       return !typed.stack.isEmpty();
    }
@@ -78,15 +79,18 @@ public class PageEntryFluidStack extends PageValueType<FluidStackValueFilter> {
       return new IScriptableRegistry.OptionallyDisabled<>(new PageEntry<>(this, name, json, filter));
    }
 
+   @Override
    public String getTitle(FluidStackValueFilter value) {
       FluidStack stack = value.stack;
       return stack.getHoverName().getString();
    }
 
+   @Override
    public List<String> getTooltip(FluidStackValueFilter value) {
       return Collections.singletonList(this.getTitle(value));
    }
 
+   @Override
    public boolean matches(FluidStackValueFilter entry, Object obj) {
       Fluid target = null;
       if (obj instanceof FluidStackValueFilter f) {
@@ -101,14 +105,17 @@ public class PageEntryFluidStack extends PageValueType<FluidStackValueFilter> {
    }
 
    @Nullable
+   @Override
    public ISimpleDrawable createDrawable(FluidStackValueFilter value) {
       return new GuiFluid(value.stack);
    }
 
+   @Override
    public Object getBasicValue(FluidStackValueFilter value) {
       return value.stack.getFluid();
    }
 
+   @Override
    public void addPageEntries(FluidStackValueFilter value, GuiGuide gui, List<GuidePart> parts) {
       GuideGroupManager.appendLinkedChapters(INSTANCE.wrap(value), gui, parts);
    }

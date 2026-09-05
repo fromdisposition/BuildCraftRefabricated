@@ -48,6 +48,7 @@ public class JsonUtil {
    public static GsonBuilder registerNbtSerializersDeserializers(GsonBuilder gsonBuilder) {
       return gsonBuilder.registerTypeAdapterFactory(
             new TypeAdapterFactory() {
+               @Override
                public <T> TypeAdapter<T> create(final Gson gson, final TypeToken<T> type) {
                   return type.getRawType() == Tag.class
                      ? new TypeAdapter<T>() {

@@ -20,9 +20,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.Map.Entry;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
 
@@ -184,9 +182,5 @@ public class ModelHolderStatic extends ModelHolder {
 
    public MutableQuad[] getCutoutQuads() {
       return this.getQuadsChecking()[0];
-   }
-
-   public MutableQuad[] getTranslucentQuads() {
-      return this.getQuadsChecking()[1];
    }
 }

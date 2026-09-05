@@ -281,22 +281,27 @@ public class PipeHolderClientExtensions implements ClientBlockExtensions {
          this.v1 = this.v0 + cellV;
       }
 
+      @Override
       protected float getU0() {
          return this.u0;
       }
 
+      @Override
       protected float getU1() {
          return this.u1;
       }
 
+      @Override
       protected float getV0() {
          return this.v0;
       }
 
+      @Override
       protected float getV1() {
          return this.v1;
       }
 
+      @Override
       protected Layer getLayer() {
          //? if >= 26.1 {
          return Layer.OPAQUE_TERRAIN;

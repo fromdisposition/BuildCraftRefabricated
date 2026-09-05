@@ -129,11 +129,13 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.writeData(new BcValueOut(output));
    }
 
+   @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       this.readDataGuarded(new BcValueIn(input));
@@ -352,6 +354,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       return false;
    }
 
+   @Override
    public CompoundTag getUpdateTag(Provider registries) {
       CompoundTag tag = this.saveCustomOnly(registries);
       CompoundTag plugsClient = new CompoundTag();
@@ -389,6 +392,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    }
 
    @Nullable
+   @Override
    public Packet<ClientGamePacketListener> getUpdatePacket() {
       return ClientboundBlockEntityDataPacket.create(this);
    }
@@ -706,6 +710,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       return this;
    }
 
+   @Override
    public Pipe getPipe() {
       return this.pipe;
    }
@@ -934,6 +939,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       }
    }
 
+   @Override
    public WireManager getWireManager() {
       return this.wireManager;
    }

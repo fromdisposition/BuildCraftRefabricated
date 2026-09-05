@@ -59,6 +59,7 @@ public class PluggableTimer extends PipePluggable {
       bus.on(PipeEventStatement.AddTriggerInternal.class, this, this::addInternalTriggers);
    }
 
+   @Override
    public KeyPlugSimple getModelRenderKey(Object layer) {
       if (layer == null) {
          return null;

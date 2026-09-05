@@ -444,10 +444,12 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
       return this;
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftenergy.engine_iron");
    }
 
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerEngineIron_BC8(containerId, playerInv, this);
    }

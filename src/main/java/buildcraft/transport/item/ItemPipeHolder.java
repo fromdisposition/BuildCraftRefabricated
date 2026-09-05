@@ -41,6 +41,7 @@ public class ItemPipeHolder extends BlockItem implements IItemPipe {
       return this;
    }
 
+   @Override
    public Component getName(ItemStack stack) {
       Component baseName = (this.isFePipe() ? Component.translatable(this.getDescriptionId()) : super.getName(stack));
       DyeColor col = stack.get(BCTransportItems.PIPE_COLOUR);

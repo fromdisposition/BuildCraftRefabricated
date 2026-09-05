@@ -244,6 +244,7 @@ public class PluggablePulsar extends PipePluggable {
       bus.on(PipeEventStatement.AddActionInternalSided.class, this, this::onAddActions);
    }
 
+   @Override
    public KeyPlugSimple getModelRenderKey(Object layer) {
       if (layer == null) {
          return null;

@@ -55,6 +55,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
       super(BCBuildersMenuTypes.LIBRARY, containerId, playerInv.player, tile);
       if (tile.getLevel() != null && !tile.getLevel().isClientSide()) {
          this.data = new ContainerData() {
+            @Override
             public int get(int index) {
                return switch (index) {
                   case DATA_PROGRESS_DOWN -> tile.progressDown;
@@ -63,9 +64,11 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
                };
             }
 
+            @Override
             public void set(int index, int value) {
             }
 
+            @Override
             public int getCount() {
                return DATA_COUNT;
             }

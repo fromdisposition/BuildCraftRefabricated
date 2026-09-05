@@ -387,6 +387,7 @@ public class GuiReplacer extends BcScreen<ContainerReplacer> {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public boolean keyPressed(KeyEvent event) {
       if (this.nameField != null && this.nameField.isFocused()) {
          if (event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER) {

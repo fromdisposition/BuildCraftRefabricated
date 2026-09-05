@@ -52,6 +52,7 @@ public class ContainerAssemblyTable extends ContainerBCTile<TileAssemblyTable> {
       }
    }
 
+   @Override
    public boolean clickMenuButton(Player player, int index) {
       if (this.tile == null) {
          return false;

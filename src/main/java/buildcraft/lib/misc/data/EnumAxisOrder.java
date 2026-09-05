@@ -50,14 +50,6 @@ public enum EnumAxisOrder {
       }
    }
 
-   public AxisOrder getMinToMaxOrder() {
-      return AxisOrder.getFor(this, AxisOrder.Inversion.PPP);
-   }
-
-   public AxisOrder getMaxToMinOrder() {
-      return AxisOrder.getFor(this, AxisOrder.Inversion.NNN);
-   }
-
    static {
       Builder<String, EnumAxisOrder> builder = ImmutableMap.builder();
 

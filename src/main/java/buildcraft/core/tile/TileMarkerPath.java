@@ -23,6 +23,7 @@ public class TileMarkerPath extends TileMarker<PathConnection> implements IPathP
       super(BCCoreBlockEntities.MARKER_PATH, pos, state);
    }
 
+   @Override
    public ImmutableList<BlockPos> getPath() {
       PathConnection connection = this.getCurrentConnection();
       return connection == null ? ImmutableList.of() : connection.getMarkerPositions();
@@ -44,6 +45,7 @@ public class TileMarkerPath extends TileMarker<PathConnection> implements IPathP
       }
    }
 
+   @Override
    public PathCache getCache() {
       return PathCache.INSTANCE;
    }

@@ -101,6 +101,7 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
       return ImmutableList.copyOf(this.widgets);
    }
 
+   @Override
    public final void sendMessage(int id, IPayloadWriter writer) {
       byte[] bytes = BcEnvelopeCodec.encode(writer);
       if (bytes == null) {
@@ -131,6 +132,7 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
       }
    }
 
+   @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       if (id == NET_WIDGET) {
          int widgetId = buffer.readUnsignedShort();
@@ -200,6 +202,7 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
       return null;
    }
 
+   @Override
    public void clicked(int slotId, int dragType, ContainerInput containerInput, Player player) {
       if ((slotId < 0 ? null : this.slots.get(slotId)) instanceof SlotPhantom phantom) {
          ItemStack held = this.getCarried();
@@ -215,6 +218,7 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
       }
    }
 
+   @Override
    public ItemStack quickMoveStack(Player playerIn, int index) {
       ItemStack itemstack = ItemStack.EMPTY;
       Slot slot = this.slots.get(index);
@@ -277,6 +281,7 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
       return moved;
    }
 
+   @Override
    public boolean stillValid(Player player) {
       return player.isAlive() && !player.isRemoved();
    }

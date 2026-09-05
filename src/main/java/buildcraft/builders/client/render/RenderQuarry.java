@@ -33,6 +33,7 @@ public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRender
    public RenderQuarry(Context context) {
    }
 
+   @Override
    public QuarryRenderState createRenderState() {
       return new QuarryRenderState();
    }
@@ -50,6 +51,7 @@ public class RenderQuarry extends BcBlockEntityRenderer<TileQuarry, QuarryRender
       state.stateColour = LedRenderUtil.stateColour(hasPower && hasTask, !hasPower && hasTask);
    }
 
+   @Override
    public void submit(QuarryRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
       poseStack.pushPose();
 

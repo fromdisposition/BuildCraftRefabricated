@@ -65,6 +65,7 @@ public class ActionParameterSignal implements IStatementParameter {
       return c == null ? null : BCTransportSprites.getPipeSignal(true, c);
    }
 
+   @Override
    public ActionParameterSignal onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
       return null;
    }

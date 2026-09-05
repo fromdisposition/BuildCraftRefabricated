@@ -61,6 +61,7 @@ public class RenderDistiller implements BlockEntityRenderer<TileDistiller, Disti
       }
    }
 
+   @Override
    public DistillerRenderState createRenderState() {
       return new DistillerRenderState();
    }
@@ -98,6 +99,7 @@ public class RenderDistiller implements BlockEntityRenderer<TileDistiller, Disti
       state.powerTopHalf = POWER_TOP_HALF[state.powerTexIndex];
    }
 
+   @Override
    public void submit(DistillerRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
       RenderDistiller.TankSizes sizes = renderState.sizes;
       if (sizes == null) {

@@ -39,6 +39,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
       return amount > 2147483647L ? Integer.MAX_VALUE : (int)amount;
    }
 
+   @Override
    public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
          ItemStack stack = stack(this.context);
@@ -74,6 +75,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
       }
    }
 
+   @Override
    public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (maxAmount <= 0L) {
          return 0L;
@@ -107,6 +109,7 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
       }
    }
 
+   @Override
    public Iterator<StorageView<FluidVariant>> iterator() {
       ItemStack stack = stack(this.context);
       FluidStack fluid = ItemFragileFluidContainer.getFluid(stack);
@@ -128,22 +131,27 @@ public final class FragileFluidContainerStorage implements Storage<FluidVariant>
          this.amount = amount;
       }
 
+      @Override
       public long extract(FluidVariant extractResource, long maxAmount, TransactionContext transaction) {
          return FragileFluidContainerStorage.this.extract(extractResource, maxAmount, transaction);
       }
 
+      @Override
       public boolean isResourceBlank() {
          return this.resource.isBlank();
       }
 
+      @Override
       public FluidVariant getResource() {
          return this.resource;
       }
 
+      @Override
       public long getAmount() {
          return this.amount;
       }
 
+      @Override
       public long getCapacity() {
          return FluidVariants.mbToDroplets(500L);
       }

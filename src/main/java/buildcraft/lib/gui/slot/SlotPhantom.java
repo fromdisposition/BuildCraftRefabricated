@@ -28,6 +28,7 @@ public class SlotPhantom extends SlotBase implements IPhantomSlot {
       return this.canAdjustCount;
    }
 
+   @Override
    public boolean mayPickup(Player player) {
       return false;
    }

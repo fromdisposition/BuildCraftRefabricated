@@ -133,11 +133,13 @@ public class TileBuilder
       super(BCBuildersBlockEntities.BUILDER, pos, state);
    }
 
+   @Override
    public void setRemoved() {
       super.setRemoved();
       BCBuildersEventDist.INSTANCE.invalidateBuilder(this);
    }
 
+   @Override
    public void clearRemoved() {
       super.clearRemoved();
       BCBuildersEventDist.INSTANCE.validateBuilder(this);
@@ -754,11 +756,13 @@ public class TileBuilder
       }
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftbuilders.builder");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerBuilder(containerId, playerInv, this);
    }

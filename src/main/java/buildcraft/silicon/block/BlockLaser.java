@@ -50,26 +50,31 @@ public class BlockLaser extends BcTileBlock {
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.UP));
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});
    }
 
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileLaser(pos, state);
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide()
          ? createTickerHelper(type, BCSiliconBlockEntities.LASER, (lvl, pos, st, tile) -> tile.clientTick())
          : createTickerHelper(type, BCSiliconBlockEntities.LASER, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
+   @Override
    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
       return SHAPES.get(state.getValue(FACING));
    }

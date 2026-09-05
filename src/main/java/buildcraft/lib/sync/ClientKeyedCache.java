@@ -61,8 +61,4 @@ public final class ClientKeyedCache<K, V> {
          this.onMiss.accept(key);
       }
    }
-
-   public boolean isPending(K key) {
-      return this.pending.contains(key);
-   }
 }

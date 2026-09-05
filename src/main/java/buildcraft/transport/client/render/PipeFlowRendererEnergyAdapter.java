@@ -20,6 +20,7 @@ public final class PipeFlowRendererEnergyAdapter {
    }
 
    private static final class PowerRenderer implements IPipeFlowRenderer<PipeFlowPower> {
+      @Override
       public void render(PipeFlowPower flow, double x, double y, double z, float partialTicks, VertexConsumer buffer, Pose pose) {
          PipeFlowRendererEnergy.render(
             flow.pipe,
@@ -36,6 +37,7 @@ public final class PipeFlowRendererEnergyAdapter {
    }
 
    private static final class FeRenderer implements IPipeFlowRenderer<PipeFlowRedstoneFlux> {
+      @Override
       public void render(PipeFlowRedstoneFlux flow, double x, double y, double z, float partialTicks, VertexConsumer buffer, Pose pose) {
          PipeFlowRendererEnergy.render(
             flow.pipe,

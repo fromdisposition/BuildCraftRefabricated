@@ -34,21 +34,25 @@ public class BlockBuilder extends BcHorizontalTileBlock {
       this.registerDefaultState(this.defaultBlockState().setValue(SNAPSHOT_TYPE, EnumOptionalSnapshotType.NONE));
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       super.createBlockStateDefinition(builder);
       builder.add(SNAPSHOT_TYPE);
    }
 
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       return super.getStateForPlacement(context).setValue(SNAPSHOT_TYPE, EnumOptionalSnapshotType.NONE);
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileBuilder(pos, state);
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
       return blockEntityType != BCBuildersBlockEntities.BUILDER ? null : (lvl, pos, st, be) -> {
          if (be instanceof TileBuilder builder) {
@@ -57,6 +61,7 @@ public class BlockBuilder extends BcHorizontalTileBlock {
       };
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       return this.openMenu(level, pos, player);
    }

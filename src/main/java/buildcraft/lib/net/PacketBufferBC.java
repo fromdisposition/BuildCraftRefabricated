@@ -29,6 +29,7 @@ public class PacketBufferBC extends FriendlyByteBuf {
       return buffer;
    }
 
+   @Override
    public PacketBufferBC clear() {
       super.clear();
       this.readPartialOffset = 8;
@@ -55,6 +56,7 @@ public class PacketBufferBC extends FriendlyByteBuf {
       }
    }
 
+   @Override
    public PacketBufferBC writeBoolean(boolean flag) {
       this.writePartialBitsBegin();
       int toWrite = (flag ? 1 : 0) << this.writePartialOffset;
@@ -64,6 +66,7 @@ public class PacketBufferBC extends FriendlyByteBuf {
       return this;
    }
 
+   @Override
    public boolean readBoolean() {
       this.readPartialBitsBegin();
       int offset = 1 << this.readPartialOffset++;

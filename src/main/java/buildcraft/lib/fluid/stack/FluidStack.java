@@ -6,36 +6,26 @@
 
 package buildcraft.lib.fluid.stack;
 
-import buildcraft.lib.common.EventHooks;
 import buildcraft.lib.common.MutableDataComponentHolder;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
-import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.component.PatchedDataComponentMap;
 import net.minecraft.core.component.TypedDataComponent;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.Item.TooltipContext;
 //? if >= 1.21.10 {
-import net.minecraft.world.item.component.TooltipDisplay;
 //?}
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -57,6 +47,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    public static final Codec<FluidStack> OPTIONAL_CODEC = ExtraCodecs.optionalEmptyMap(CODEC)
       .xmap(optional -> optional.orElse(FluidStack.EMPTY), stack -> stack.isEmpty() ? Optional.empty() : Optional.of(stack));
    public static final StreamCodec<RegistryFriendlyByteBuf, FluidStack> OPTIONAL_STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, FluidStack>() {
+      @Override
       public FluidStack decode(RegistryFriendlyByteBuf buf) {
          int amount = buf.readVarInt();
          if (amount <= 0) {
@@ -68,6 +59,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
          return new FluidStack(holder, amount, patch);
       }
 
+      @Override
       public void encode(RegistryFriendlyByteBuf buf, FluidStack stack) {
          if (stack.isEmpty()) {
             buf.writeVarInt(0);
@@ -79,6 +71,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
       }
    };
    public static final StreamCodec<RegistryFriendlyByteBuf, FluidStack> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, FluidStack>() {
+      @Override
       public FluidStack decode(RegistryFriendlyByteBuf buf) {
          FluidStack stack = FluidStack.OPTIONAL_STREAM_CODEC.decode(buf);
          if (stack.isEmpty()) {
@@ -88,6 +81,7 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
          }
       }
 
+      @Override
       public void encode(RegistryFriendlyByteBuf buf, FluidStack stack) {
          if (stack.isEmpty()) {
             throw new EncoderException("Empty FluidStack not allowed");
@@ -101,30 +95,13 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
    private final @Nullable Holder<Fluid> fluid;
    private final PatchedDataComponentMap components;
 
+   @Override
    public DataComponentMap getComponents() {
       return (this.isEmpty() ? DataComponentMap.EMPTY : this.components);
    }
 
-   public DataComponentMap getPrototype() {
-      //? if >= 26.1 {
-      return this.isEmpty() ? DataComponentMap.EMPTY : this.typeHolder().components();
-      //?} else {
-      /*// 1.21.x fluids have no per-fluid default components; the prototype is always empty.
-      return DataComponentMap.EMPTY;
-      *///?}
-   }
-
    public DataComponentPatch getComponentsPatch() {
       return !this.isEmpty() ? this.components.asPatch() : DataComponentPatch.EMPTY;
-   }
-
-   public DataComponentMap immutableComponents() {
-      //? if >= 1.21.10 {
-      return !this.isEmpty() ? this.components.toImmutableMap() : DataComponentMap.EMPTY;
-      //?} else {
-      /*// 1.21.1 PatchedDataComponentMap has no toImmutableMap(); it is itself a DataComponentMap.
-      return !this.isEmpty() ? this.components : DataComponentMap.EMPTY;
-      *///?}
    }
 
    public boolean hasNonDefault(DataComponentType<?> type) {
@@ -133,10 +110,6 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
       //?} else {
       /*return !this.isEmpty() && this.components.has(type);
       *///?}
-   }
-
-   public boolean isComponentsPatchEmpty() {
-      return this.isEmpty() || this.getComponentsPatch().isEmpty();
    }
 
    public FluidStack(Fluid fluid, int amount, DataComponentPatch patch) {
@@ -181,20 +154,11 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
       return fluidStack;
    }
 
-   public FluidStack copyAndClear() {
-      if (this.isEmpty()) {
-         return EMPTY;
-      }
-
-      FluidStack fluidStack = this.copy();
-      this.setAmount(0);
-      return fluidStack;
-   }
-
    public Fluid getFluid() {
       return this.typeHolder().value();
    }
 
+   @Override
    public Holder<Fluid> typeHolder() {
       return this.isEmpty() ? FluidHolders.emptyFluidHolder() : this.fluid;
    }
@@ -267,34 +231,6 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
       return this.getAmount() + " " + this.getFluid();
    }
 
-   public List<Component> getTooltipLines(TooltipContext context, @Nullable Player player, TooltipFlag flag) {
-      //? if >= 1.21.10 {
-      TooltipDisplay tooltipDisplay = this.getOrDefault(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT);
-      if (!flag.isCreative() && tooltipDisplay.hideTooltip()) {
-         return List.of();
-      }
-      //?} else {
-      /*// 1.21.1 has no TOOLTIP_DISPLAY component; the whole-tooltip hide flag is the HIDE_TOOLTIP unit component.
-      if (!flag.isCreative() && this.has(DataComponents.HIDE_TOOLTIP)) {
-         return List.of();
-      }
-      *///?}
-
-      Fluid fluid = this.getFluid();
-      List<Component> list = Lists.newArrayList();
-      list.add(this.getHoverName());
-      EventHooks.onFluidTooltip(this, player, list, flag, context);
-      if (flag.isAdvanced()) {
-         list.add(Component.literal(BuiltInRegistries.FLUID.getKey(fluid).toString()).withStyle(ChatFormatting.DARK_GRAY));
-         int componentCount = this.components.size();
-         if (componentCount > 0) {
-            list.add(Component.translatable("item.components", new Object[]{componentCount}).withStyle(ChatFormatting.DARK_GRAY));
-         }
-      }
-
-      return list;
-   }
-
    @Override
    public <T> @Nullable T set(DataComponentType<T> type, @Nullable T component) {
       return this.components.set(type, component);
@@ -338,12 +274,6 @@ public final class FluidStack implements MutableDataComponentHolder, FluidInstan
 
    public void setAmount(int amount) {
       this.amount = amount;
-   }
-
-   public void limitSize(int amount) {
-      if (!this.isEmpty() && this.getAmount() > amount) {
-         this.setAmount(amount);
-      }
    }
 
    public void grow(int addedAmount) {

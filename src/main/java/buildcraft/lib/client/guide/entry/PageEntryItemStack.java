@@ -41,6 +41,7 @@ public class PageEntryItemStack extends PageValueType<ItemStackValueFilter> {
       return ItemStackValueFilter.class;
    }
 
+   @Override
    protected boolean isValid(ItemStackValueFilter typed) {
       return !typed.stack.baseStack.isEmpty();
    }
@@ -100,14 +101,17 @@ public class PageEntryItemStack extends PageValueType<ItemStackValueFilter> {
       return new IScriptableRegistry.OptionallyDisabled<>(new PageEntry<>(this, name, json, filter));
    }
 
+   @Override
    public String getTitle(ItemStackValueFilter value) {
       return value.stack.baseStack.getHoverName().getString();
    }
 
+   @Override
    public List<String> getTooltip(ItemStackValueFilter value) {
       return Collections.singletonList(value.stack.baseStack.getHoverName().getString());
    }
 
+   @Override
    public boolean matches(ItemStackValueFilter entry, Object obj) {
       if (obj instanceof ItemStackValueFilter) {
          obj = ((ItemStackValueFilter)obj).stack.baseStack;
@@ -127,14 +131,17 @@ public class PageEntryItemStack extends PageValueType<ItemStackValueFilter> {
    }
 
    @Nullable
+   @Override
    public ISimpleDrawable createDrawable(ItemStackValueFilter value) {
       return new GuiStack(value.stack.baseStack);
    }
 
+   @Override
    public Object getBasicValue(ItemStackValueFilter value) {
       return value.stack.baseStack.getItem();
    }
 
+   @Override
    public void addPageEntries(ItemStackValueFilter value, GuiGuide gui, List<GuidePart> parts) {
       GuideGroupManager.appendLinkedChapters(INSTANCE.wrap(value), gui, parts);
    }

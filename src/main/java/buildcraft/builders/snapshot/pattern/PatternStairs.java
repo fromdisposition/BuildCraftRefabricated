@@ -19,6 +19,7 @@ public class PatternStairs extends Pattern implements IFillerPatternShape {
       super("stairs");
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCBuildersSprites.FILLER_STAIRS;
    }

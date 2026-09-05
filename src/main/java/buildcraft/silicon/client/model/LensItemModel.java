@@ -97,6 +97,7 @@ public class LensItemModel implements ItemModel {
       cache.invalidateAll();
    }
 
+   @Override
    public void update(
       ItemStackRenderState renderState,
       ItemStack stack,

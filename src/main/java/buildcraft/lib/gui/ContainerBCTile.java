@@ -21,6 +21,7 @@ public abstract class ContainerBCTile<T extends BcBlockEntity> extends BcMenu {
       }
    }
 
+   @Override
    public void removed(Player player) {
       super.removed(player);
       if (this.tile != null) {

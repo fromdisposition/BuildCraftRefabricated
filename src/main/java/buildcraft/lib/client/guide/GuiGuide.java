@@ -275,6 +275,7 @@ public class GuiGuide extends Screen {
       }
    }
 
+   @Override
    public void tick() {
       int currentGen = GuideManager.INSTANCE.getReloadGeneration();
       if (currentGen != this.seenReloadGeneration) {
@@ -304,6 +305,7 @@ public class GuiGuide extends Screen {
    }
 
    //? if >= 26.1 {
+   @Override
    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
    //?} else {
    /*@Override
@@ -543,6 +545,7 @@ public class GuiGuide extends Screen {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
       if (this.currentPage != null && this.currentPage.mouseClicked(event, doubleClick)) {
          return true;
@@ -647,6 +650,7 @@ public class GuiGuide extends Screen {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public boolean keyPressed(KeyEvent keyEvent) {
       if (this.currentPage != null && this.currentPage.keyPressed(keyEvent)) {
          return true;
@@ -688,11 +692,13 @@ public class GuiGuide extends Screen {
    }
    *///?}
 
+   @Override
    public boolean isPauseScreen() {
       return false;
    }
 
    //? if >= 1.21.10 {
+   @Override
    public boolean charTyped(CharacterEvent event) {
       return this.currentPage != null && this.currentPage.charTyped(event) ? true : super.charTyped(event);
    }

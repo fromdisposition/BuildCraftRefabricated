@@ -46,6 +46,7 @@ public class TriggerTimer extends BCStatement implements ITriggerInternal {
       return BCSiliconStatements.TRIGGER_TIMER;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return switch (this.duration) {
          case SHORT -> BCSiliconSprites.TRIGGER_TIMER_SHORT;

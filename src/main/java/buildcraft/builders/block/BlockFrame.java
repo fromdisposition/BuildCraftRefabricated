@@ -71,6 +71,7 @@ public class BlockFrame extends Block {
    }
    *///?}
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       for (Property<Boolean> prop : CONNECTED_MAP.values()) {
          builder.add(prop);
@@ -90,11 +91,13 @@ public class BlockFrame extends Block {
       return state;
    }
 
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       return this.computeConnections(context.getLevel(), context.getClickedPos(), this.defaultBlockState());
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected BlockState updateShape(
       BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
       Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random
@@ -113,6 +116,7 @@ public class BlockFrame extends Block {
       return state;
    }
 
+   @Override
    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
       super.onPlace(state, level, pos, oldState, movedByPiston);
       if (!level.isClientSide() && !oldState.is(this)) {
@@ -123,6 +127,7 @@ public class BlockFrame extends Block {
       }
    }
 
+   @Override
    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
       VoxelShape shape = BASE_SHAPE;
 
@@ -136,14 +141,17 @@ public class BlockFrame extends Block {
       return shape;
    }
 
+   @Override
    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
       return this.getShape(state, level, pos, context);
    }
 
+   @Override
    protected boolean isPathfindable(BlockState state, PathComputationType type) {
       return false;
    }
 
+   @Override
    protected RenderShape getRenderShape(BlockState state) {
       return RenderShape.MODEL;
    }

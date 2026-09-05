@@ -25,6 +25,7 @@ public class GuideSmeltingFactory implements GuidePartFactory {
       this.hash = Arrays.hashCode(new int[]{ItemStack.hashItemAndComponents(this.input), ItemStack.hashItemAndComponents(this.output)});
    }
 
+   @Override
    public GuideSmelting createNew(GuiGuide gui) {
       return new GuideSmelting(gui, this.input, this.output);
    }

@@ -39,6 +39,7 @@ public final class PipeItemInjectStorage implements Storage<ItemVariant> {
       });
    }
 
+   @Override
    public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L && this.flow.canInjectItems(this.side)) {
          int amount = saturate(maxAmount);
@@ -56,6 +57,7 @@ public final class PipeItemInjectStorage implements Storage<ItemVariant> {
       }
    }
 
+   @Override
    public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
          return this.flow instanceof PipeFlowItems pipeFlow ? pipeFlow.extractItemsForExternalSide(this.side, resource, saturate(maxAmount), transaction) : 0L;
@@ -64,6 +66,7 @@ public final class PipeItemInjectStorage implements Storage<ItemVariant> {
       }
    }
 
+   @Override
    public Iterator<StorageView<ItemVariant>> iterator() {
       if (!(this.flow instanceof PipeFlowItems pipeFlow)) {
          return Collections.emptyIterator();
@@ -88,22 +91,27 @@ public final class PipeItemInjectStorage implements Storage<ItemVariant> {
          this.entry = entry;
       }
 
+      @Override
       public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
          return PipeItemInjectStorage.this.extract(resource, maxAmount, transaction);
       }
 
+      @Override
       public boolean isResourceBlank() {
          return this.entry.amount() <= 0L;
       }
 
+      @Override
       public ItemVariant getResource() {
          return this.entry.variant();
       }
 
+      @Override
       public long getAmount() {
          return this.entry.amount();
       }
 
+      @Override
       public long getCapacity() {
          return this.entry.amount();
       }

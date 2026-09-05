@@ -395,6 +395,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       }
    }
 
+   @Override
    public void setRemoved() {
       super.setRemoved();
       BCBuildersEventDist.INSTANCE.invalidateQuarry(this);
@@ -404,6 +405,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       }
    }
 
+   @Override
    public void clearRemoved() {
       super.clearRemoved();
       BCBuildersEventDist.INSTANCE.validateQuarry(this);

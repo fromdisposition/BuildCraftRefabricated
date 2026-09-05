@@ -81,6 +81,7 @@ public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kin
       return key;
    }
 
+   @Override
    public Type<BuildersClientRequestPayload> type() {
       return TYPE;
    }

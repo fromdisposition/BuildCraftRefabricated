@@ -307,6 +307,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
          this.output = output;
       }
 
+      @Override
       public int compareTo(TileAssemblyTable.AssemblyInstruction o) {
          int recipeCompare = this.recipe.compareTo(o.recipe);
          if (recipeCompare != 0) {

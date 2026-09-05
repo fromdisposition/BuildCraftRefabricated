@@ -37,6 +37,7 @@ public class PatternFrame extends Pattern implements IFillerPatternShape {
       return true;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCBuildersSprites.FILLER_FRAME;
    }

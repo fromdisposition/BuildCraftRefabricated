@@ -61,6 +61,7 @@ public class ItemPluggableGate extends Item implements IItemPluggable {
       return new PluggableGate(def, holder, side, variant);
    }
 
+   @Override
    public Component getName(ItemStack stack) {
       return getVariant(stack).getLocalizedName();
    }

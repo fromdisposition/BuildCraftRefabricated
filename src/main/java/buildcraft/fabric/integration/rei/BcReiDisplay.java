@@ -69,6 +69,9 @@ class BcReiDisplay implements Display {
       return this.lookupOutputs;
    }
 
+   //? if >= 1.21.10 {
+   @Override
+   //?}
    public me.shedaniel.rei.api.common.display.DisplaySerializer<? extends Display> getSerializer() {
       return null;
    }

@@ -50,10 +50,6 @@ public final class WireSystem {
    private final transient int cachedHashCode;
    private final transient int cachedWiresHashCode;
 
-   public boolean hasElement(WireSystem.WireElement element) {
-      return this.elements.contains(element);
-   }
-
    public static boolean canWireConnect(IPipeHolder holder, Direction side) {
       IPipe pipe = holder.getPipe();
       if (pipe == null) {
@@ -206,10 +202,6 @@ public final class WireSystem {
       return level instanceof ServerLevel serverLevel
          ? this.getChunkPosesAsStream().anyMatch(chunkPos -> serverLevel.isPositionEntityTicking(chunkPos.getWorldPosition()))
          : false;
-   }
-
-   public int getWiresHashCode() {
-      return this.cachedWiresHashCode;
    }
 
    public int getNetworkId() {

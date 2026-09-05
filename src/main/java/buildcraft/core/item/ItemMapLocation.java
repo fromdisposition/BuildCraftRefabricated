@@ -157,6 +157,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public InteractionResult use(Level level, Player player, InteractionHand hand) {
       return this.bcUse(level, player, hand);
    }
@@ -197,6 +198,7 @@ public class ItemMapLocation extends Item implements IMapLocation {
       return InteractionResult.SUCCESS;
    }
 
+   @Override
    public InteractionResult useOn(UseOnContext context) {
       Level level = context.getLevel();
       if (level.isClientSide()) {

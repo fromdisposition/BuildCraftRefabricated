@@ -15,7 +15,6 @@ import buildcraft.lib.net.BcPayloadBuffers;
 import buildcraft.lib.net.PacketBufferBC;
 import javax.annotation.Nullable;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.item.DyeColor;
@@ -117,10 +116,6 @@ public class FacadePhasedState implements IFacadePhasedState {
       if (this.activeColour != null) {
          bc.writeEnumValue(this.activeColour);
       }
-   }
-
-   public FacadePhasedState withColour(DyeColor colour) {
-      return new FacadePhasedState(this.stateInfo, colour, this.wasUnresolved);
    }
 
    public boolean isSideSolid(Direction side) {

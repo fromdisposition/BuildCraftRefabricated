@@ -63,6 +63,7 @@ public abstract class ActionWrapper extends StatementWrapper implements IActionI
       }
    }
 
+   @Override
    public ActionWrapper[] getPossible() {
       IStatement[] possible = this.delegate.getPossible();
       boolean andSides = this.sourcePart != EnumPipePart.CENTER;

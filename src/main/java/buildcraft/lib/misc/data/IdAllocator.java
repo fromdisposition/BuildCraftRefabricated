@@ -37,11 +37,6 @@ public class IdAllocator {
       this(null, name);
    }
 
-   public IdAllocator makeChild(String childName) {
-      this.hasChildren = true;
-      return new IdAllocator(this, childName);
-   }
-
    public String getNameFor(int id) {
       if (id < 0) {
          return "NEGATIVE ID " + id;

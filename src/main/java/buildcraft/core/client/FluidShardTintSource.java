@@ -32,6 +32,9 @@ public final class FluidShardTintSource implements ItemTintSource {
    private FluidShardTintSource() {
    }
 
+   //? if >= 1.21.10 {
+   @Override
+   //?}
    public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
       SimpleFluidContent content = stack.getOrDefault(BCCore.FLUID_CONTENT, SimpleFluidContent.EMPTY);
       FluidStack fluid = content.copy();
@@ -43,6 +46,7 @@ public final class FluidShardTintSource implements ItemTintSource {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public MapCodec<? extends ItemTintSource> type() {
       return MAP_CODEC;
    }

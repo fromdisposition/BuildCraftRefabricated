@@ -30,15 +30,18 @@ public class PageEntryExternal extends PageValueType<String> {
       return String.class;
    }
 
+   @Override
    public List<String> getTooltip(String value) {
       return Collections.singletonList(value);
    }
 
    @Nullable
+   @Override
    public ISimpleDrawable createDrawable(String value) {
       return null;
    }
 
+   @Override
    public String getTitle(String value) {
       return value;
    }

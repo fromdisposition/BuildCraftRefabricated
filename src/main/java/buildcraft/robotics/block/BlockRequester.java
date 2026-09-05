@@ -40,19 +40,23 @@ public class BlockRequester extends BcTileBlock {
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});
    }
 
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileRequester(pos, state);
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, final BlockPos pos, Player player, BlockHitResult hitResult) {
       if (level.isClientSide()) {
          return InteractionResult.SUCCESS;
@@ -61,14 +65,17 @@ public class BlockRequester extends BcTileBlock {
       final BlockEntity be = level.getBlockEntity(pos);
       if (be instanceof TileRequester requester && player instanceof ServerPlayer serverPlayer) {
          serverPlayer.openMenu(new ExtendedMenuProvider<BlockPos>() {
+            @Override
             public BlockPos getScreenOpeningData(ServerPlayer player) {
                return pos;
             }
 
+            @Override
             public Component getDisplayName() {
                return be.getBlockState().getBlock().getName();
             }
 
+            @Override
             public AbstractContainerMenu createMenu(int containerId, Inventory inv, Player p) {
                return new ContainerRequester(containerId, inv, requester);
             }
@@ -80,6 +87,7 @@ public class BlockRequester extends BcTileBlock {
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> net.minecraft.world.level.block.entity.BlockEntityTicker<T> getTicker(
       Level level, BlockState state, BlockEntityType<T> type
    ) {

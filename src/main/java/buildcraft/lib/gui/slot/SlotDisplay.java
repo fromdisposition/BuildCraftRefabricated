@@ -24,29 +24,36 @@ public class SlotDisplay extends Slot {
       this.displayIndex = displayIndex;
    }
 
+   @Override
    public ItemStack getItem() {
       return this.getter.apply(this.displayIndex);
    }
 
+   @Override
    public boolean mayPlace(ItemStack stack) {
       return false;
    }
 
+   @Override
    public boolean mayPickup(Player player) {
       return false;
    }
 
+   @Override
    public void set(ItemStack stack) {
    }
 
+   @Override
    public ItemStack remove(int amount) {
       return ItemStack.EMPTY;
    }
 
+   @Override
    public boolean hasItem() {
       return !this.getItem().isEmpty();
    }
 
+   @Override
    public int getMaxStackSize() {
       return 0;
    }

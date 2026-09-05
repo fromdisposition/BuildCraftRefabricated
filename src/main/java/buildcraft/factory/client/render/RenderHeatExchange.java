@@ -46,6 +46,7 @@ public class RenderHeatExchange implements BlockEntityRenderer<TileHeatExchange,
    public RenderHeatExchange(Context context) {
    }
 
+   @Override
    public HeatExchangeRenderState createRenderState() {
       return new HeatExchangeRenderState();
    }
@@ -112,6 +113,7 @@ public class RenderHeatExchange implements BlockEntityRenderer<TileHeatExchange,
       state.heatantFluid = section.smoothedTankInput.getFluid();
    }
 
+   @Override
    public void submit(HeatExchangeRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
       if (!renderState.render || renderState.section == null) {
          return;
@@ -173,6 +175,7 @@ public class RenderHeatExchange implements BlockEntityRenderer<TileHeatExchange,
       poseStack.popPose();
    }
 
+   @Override
    public boolean shouldRender(TileHeatExchange blockEntity, Vec3 cameraPos) {
       return blockEntity.isStart();
    }

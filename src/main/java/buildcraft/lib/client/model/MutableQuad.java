@@ -26,7 +26,6 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
-import org.joml.Vector4f;
 
 public class MutableQuad {
    public static final MutableQuad[] EMPTY_ARRAY = new MutableQuad[0];
@@ -86,11 +85,6 @@ public class MutableQuad {
       return this.tintIndex;
    }
 
-   public MutableQuad setFace(Direction face) {
-      this.face = face;
-      return this;
-   }
-
    public Direction getFace() {
       return this.face;
    }
@@ -113,14 +107,6 @@ public class MutableQuad {
 
    public void setLightEmission(int lightEmission) {
       this.lightEmission = lightEmission;
-   }
-
-   public int getLightEmission() {
-      return this.lightEmission;
-   }
-
-   public void setAmbientOcclusion(boolean hasAmbientOcclusion) {
-      this.hasAmbientOcclusion = hasAmbientOcclusion;
    }
 
    private static int packArgb(MutableVertex v) {
@@ -511,10 +497,6 @@ public class MutableQuad {
       return this;
    }
 
-   public MutableQuad colourvf(Vector4f vec) {
-      return this.colourf(vec.x, vec.y, vec.z, vec.w);
-   }
-
    public MutableQuad multColourd(double r, double g, double b, double a) {
       this.vertex_0.multColourd(r, g, b, a);
       this.vertex_1.multColourd(r, g, b, a);
@@ -626,10 +608,6 @@ public class MutableQuad {
 
    public MutableQuad translatevi(Vec3i vec) {
       return this.translatei(vec.getX(), vec.getY(), vec.getZ());
-   }
-
-   public MutableQuad translatevf(Vector3f vec) {
-      return this.translatef(vec.x, vec.y, vec.z);
    }
 
    public MutableQuad translatevd(Vec3 vec) {

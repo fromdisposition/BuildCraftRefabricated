@@ -112,6 +112,7 @@ public class GuiZonePlanner extends BcScreen<ContainerZonePlanner> {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public boolean keyPressed(KeyEvent event) {
       return this.mainGui.onKeyTyped('\u0000', event.key()) ? true : super.keyPressed(event);
    }

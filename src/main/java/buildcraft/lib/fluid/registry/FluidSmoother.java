@@ -46,12 +46,6 @@ public class FluidSmoother {
       }
    }
 
-   public void resetSmoothing() {
-      this.displayAmount = this.amountMbSupplier.getAsInt();
-      this.displayAmountPrev = this.displayAmount;
-      this.initialized = true;
-   }
-
    public double getAmount(double partialTicks) {
       return this.displayAmountPrev + (this.displayAmount - this.displayAmountPrev) * partialTicks;
    }

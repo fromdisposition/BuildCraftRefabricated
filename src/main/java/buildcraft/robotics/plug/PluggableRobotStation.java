@@ -209,10 +209,6 @@ public class PluggableRobotStation extends PipePluggable implements IDockingStat
       }
    }
 
-   public RobotStationState getRenderState() {
-      return this.renderState;
-   }
-
    @Override
    public CompoundTag writeClientUpdateData() {
       CompoundTag nbt = super.writeClientUpdateData();

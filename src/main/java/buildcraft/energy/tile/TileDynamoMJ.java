@@ -216,10 +216,12 @@ public class TileDynamoMJ extends TileElectricEngineBase {
       this.mjBattery.deserializeNBT(mjTag);
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftenergy.mj_dynamo");
    }
 
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerDynamoMJ(containerId, playerInv, this);
    }

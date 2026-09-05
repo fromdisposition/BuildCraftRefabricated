@@ -24,6 +24,7 @@ public class TemplateBuilder extends SnapshotBuilder<ITileForTemplateBuilder> {
       super(tile);
    }
 
+   @Override
    protected Template.BuildingInfo getBuildingInfo() {
       return this.tile.getTemplateBuildingInfo();
    }

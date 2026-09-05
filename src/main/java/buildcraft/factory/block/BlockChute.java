@@ -55,6 +55,7 @@ public class BlockChute extends BcTileBlock {
       this.registerDefaultState(defaultState);
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(FACING);
       for (Property<Boolean> prop : CONNECTED_MAP.values()) {
@@ -62,12 +63,14 @@ public class BlockChute extends BcTileBlock {
       }
    }
 
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       BlockState state = this.defaultBlockState().setValue(FACING, context.getClickedFace());
       return computeAllConnections(context.getLevel(), context.getClickedPos(), state);
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected BlockState updateShape(
       BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
       Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random
@@ -114,15 +117,18 @@ public class BlockChute extends BcTileBlock {
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileChute(pos, state);
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide() ? null : createTickerHelper(type, BCFactoryBlockEntities.CHUTE, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       return this.openMenu(level, pos, player);
    }

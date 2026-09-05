@@ -25,6 +25,7 @@ public class TriggerRedstoneInput extends BCStatement implements ITriggerInterna
       this.active = active;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return this.active ? BCCoreSprites.TRIGGER_REDSTONE_ACTIVE : BCCoreSprites.TRIGGER_REDSTONE_INACTIVE;
    }

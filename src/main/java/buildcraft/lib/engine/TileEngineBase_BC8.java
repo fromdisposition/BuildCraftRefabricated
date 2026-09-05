@@ -471,11 +471,6 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       this.setChanged();
    }
 
-   public void rotateOrientation() {
-      int next = (this.orientation.ordinal() + 1) % 6;
-      this.setOrientation(Direction.values()[next]);
-   }
-
    public boolean attemptRotation() {
       Direction current = this.orientation;
       Direction[] dirs = Direction.values();
@@ -570,10 +565,12 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
       }
    }
 
+   @Override
    public CompoundTag getUpdateTag(Provider registries) {
       return this.saveCustomOnly(registries);
    }
 
+   @Override
    public Packet<ClientGamePacketListener> getUpdatePacket() {
       return ClientboundBlockEntityDataPacket.create(this);
    }
@@ -589,11 +586,13 @@ public abstract class TileEngineBase_BC8 extends BlockEntity implements IDebugga
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.writeData(new BcValueOut(output));
    }
 
+   @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       this.readDataGuarded(new BcValueIn(input));

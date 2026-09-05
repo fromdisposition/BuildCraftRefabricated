@@ -39,6 +39,7 @@ public class EntityQuarryRig extends Entity {
       *///?}
    }
 
+   @Override
    protected void defineSynchedData(Builder builder) {
       builder.define(PHASING, false);
       builder.define(SIZE_X, 0.0F);
@@ -47,9 +48,11 @@ public class EntityQuarryRig extends Entity {
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void readAdditionalSaveData(ValueInput input) {
    }
 
+   @Override
    protected void addAdditionalSaveData(ValueOutput output) {
    }
    //?} else {
@@ -60,11 +63,13 @@ public class EntityQuarryRig extends Entity {
    }
    *///?}
 
+   @Override
    public boolean shouldBeSaved() {
       return false;
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected AABB makeBoundingBox(Vec3 position) {
       float halfX = this.entityData.get(SIZE_X) / 2.0F;
       float halfY = this.entityData.get(SIZE_Y) / 2.0F;
@@ -86,6 +91,7 @@ public class EntityQuarryRig extends Entity {
    *///?}
 
    //? if >= 1.21.10 {
+   @Override
    public boolean canBeCollidedWith(Entity other) {
       return !this.phasing;
    }
@@ -95,10 +101,12 @@ public class EntityQuarryRig extends Entity {
    }
    *///?}
 
+   @Override
    public boolean isPickable() {
       return !this.phasing;
    }
 
+   @Override
    public boolean isPushable() {
       return false;
    }
@@ -122,6 +130,7 @@ public class EntityQuarryRig extends Entity {
    *///?}
 
    //? if >= 1.21.10 {
+   @Override
    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
       return false;
    }
@@ -131,6 +140,7 @@ public class EntityQuarryRig extends Entity {
    }
    *///?}
 
+   @Override
    public void tick() {
       super.tick();
       if (this.level().isClientSide()) {

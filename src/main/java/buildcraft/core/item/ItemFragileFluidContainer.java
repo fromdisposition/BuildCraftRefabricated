@@ -28,6 +28,7 @@ public class ItemFragileFluidContainer extends Item implements IItemFluidShard {
       super(properties.stacksTo(1));
    }
 
+   @Override
    public Component getName(ItemStack stack) {
       FluidStack fluid = getFluid(stack);
       return fluid.isEmpty()

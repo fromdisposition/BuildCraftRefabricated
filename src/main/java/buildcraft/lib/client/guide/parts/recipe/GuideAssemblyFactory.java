@@ -37,6 +37,7 @@ public class GuideAssemblyFactory implements GuidePartFactory {
       return Arrays.deepHashCode(new Object[]{this.input, this.output, this.mjCost});
    }
 
+   @Override
    public GuideAssembly createNew(GuiGuide gui) {
       return new GuideAssembly(gui, this.input, this.output, this.mjCost);
    }

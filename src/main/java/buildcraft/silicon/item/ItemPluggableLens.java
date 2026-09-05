@@ -37,6 +37,7 @@ public class ItemPluggableLens extends Item implements IItemPluggable {
       super(properties);
    }
 
+   @Override
    public Component getName(ItemStack stack) {
       DyeColor colour = getColour(stack);
       boolean filter = isFilter(stack);

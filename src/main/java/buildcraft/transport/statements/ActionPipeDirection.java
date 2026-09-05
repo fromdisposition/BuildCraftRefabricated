@@ -48,6 +48,7 @@ public class ActionPipeDirection extends BCStatement implements IActionInternal 
       return "ActionPipeDirection[" + this.direction + "]";
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCTransportSprites.getPipeDirection(this.direction);
    }

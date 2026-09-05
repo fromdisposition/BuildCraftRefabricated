@@ -811,14 +811,17 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    }
 
    private final class PipeExtractJournal extends SnapshotParticipant<PipeFlowItems.ItemsState> {
+      @Override
       protected PipeFlowItems.ItemsState createSnapshot() {
          return PipeFlowItems.ItemsState.capture(PipeFlowItems.this.items, PipeFlowItems.this.postDropCache);
       }
 
+      @Override
       protected void readSnapshot(PipeFlowItems.ItemsState snapshot) {
          snapshot.restore(PipeFlowItems.this.items, PipeFlowItems.this.postDropCache);
       }
 
+      @Override
       protected void onFinalCommit() {
          PipeFlowItems.this.markSaveDirty();
       }

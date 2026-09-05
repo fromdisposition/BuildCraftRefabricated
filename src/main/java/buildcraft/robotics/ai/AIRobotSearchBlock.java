@@ -201,12 +201,6 @@ public class AIRobotSearchBlock extends AIRobot {
       return this.robot.getRegistry().take(new ResourceIdBlock(this.blockFound), this.robot);
    }
 
-   public void releaseResource() {
-      if (this.blockFound != null) {
-         this.robot.getRegistry().release(new ResourceIdBlock(this.blockFound));
-      }
-   }
-
    @Override
    public boolean success() {
       return this.blockFound != null;

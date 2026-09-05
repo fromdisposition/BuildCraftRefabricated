@@ -35,10 +35,6 @@ public class TileRequester extends BcBlockEntity implements IRequestProvider {
       return !request.isEmpty() && StackUtil.isMatchingItemOrList(request, stack);
    }
 
-   public ItemStack getRequestTemplate(int index) {
-      return this.invRequests.getStackInSlot(index);
-   }
-
    public boolean isFulfilled(int i) {
       ItemStack request = this.invRequests.getStackInSlot(i);
       if (request.isEmpty()) {

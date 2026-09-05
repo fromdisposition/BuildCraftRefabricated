@@ -269,11 +269,13 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.writeData(new BcValueOut(output));
    }
 
+   @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(input)));
@@ -357,10 +359,12 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
       }
    }
 
+   @Override
    public CompoundTag getUpdateTag(Provider registries) {
       return this.saveCustomOnly(registries);
    }
 
+   @Override
    public Packet<ClientGamePacketListener> getUpdatePacket() {
       return ClientboundBlockEntityDataPacket.create(this);
    }

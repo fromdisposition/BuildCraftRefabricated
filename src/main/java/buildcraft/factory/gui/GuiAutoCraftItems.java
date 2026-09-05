@@ -230,6 +230,7 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public boolean keyPressed(KeyEvent event) {
       return this.recipeBookComponent != null && this.recipeBookComponent.keyPressed(event) ? true : super.keyPressed(event);
    }
@@ -239,6 +240,7 @@ public class GuiAutoCraftItems extends BcScreen<ContainerAutoCraftItems> {
    }
    *///?}
 
+   @Override
    protected boolean isHovering(int x, int y, int width, int height, double mouseX, double mouseY) {
       return super.isHovering(x, y, width, height, mouseX, mouseY);
    }

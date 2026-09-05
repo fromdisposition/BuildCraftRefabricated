@@ -172,6 +172,7 @@ public record PayloadWireSync(@Nullable Map<Integer, WireSystem> topology, @Null
       return new PayloadWireSync(topology, powered, removedIds);
    }
 
+   @Override
    public Type<PayloadWireSync> type() {
       return TYPE;
    }

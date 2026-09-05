@@ -26,6 +26,7 @@ public class BlockSpringOil extends BlockSpring implements EntityBlock {
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return oilTileFactory != null ? oilTileFactory.create(pos, state) : null;
    }

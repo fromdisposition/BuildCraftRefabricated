@@ -92,6 +92,7 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
       }
    }
 
+   @Override
    public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
          long remaining = maxAmount;
@@ -113,6 +114,7 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
       }
    }
 
+   @Override
    public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
          long remaining = maxAmount;
@@ -134,6 +136,7 @@ public final class MultiFluidTankStorage implements Storage<FluidVariant> {
       }
    }
 
+   @Override
    public Iterator<StorageView<FluidVariant>> iterator() {
       List<StorageView<FluidVariant>> views = new ArrayList<>();
 

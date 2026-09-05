@@ -42,6 +42,7 @@ public record MessageRemovePipePart(BlockPos pos, float lx, float ly, float lz) 
       return new MessageRemovePipePart(pos, lx, ly, lz);
    }
 
+   @Override
    public Type<MessageRemovePipePart> type() {
       return TYPE;
    }

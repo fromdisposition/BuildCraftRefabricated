@@ -15,7 +15,6 @@ import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
@@ -147,10 +146,7 @@ public class Box implements IBox {
       return blocks;
    }
 
-   public List<BlockPos> getBlocksOnEdge() {
-      return PositionUtil.getAllOnEdge(this.min, this.max);
-   }
-
+   @Override
    public Box expand(int amount) {
       if (!this.isInitialized()) {
          return this;
@@ -289,17 +285,6 @@ public class Box implements IBox {
             && this.min.getZ() <= box.max.getZ()
             && this.max.getZ() >= box.min.getZ()
          : false;
-   }
-
-   @Nullable
-   public Box getIntersect(Box box) {
-      if (this.doesIntersectWith(box)) {
-         BlockPos min2 = VecUtil.max(this.min, box.min);
-         BlockPos max2 = VecUtil.min(this.max, box.max);
-         return new Box(min2, max2);
-      } else {
-         return null;
-      }
    }
 
    public int getBlocksOnEdgeCount() {

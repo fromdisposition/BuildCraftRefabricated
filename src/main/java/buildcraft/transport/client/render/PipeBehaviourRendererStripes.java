@@ -29,6 +29,7 @@ public enum PipeBehaviourRendererStripes implements IPipeBehaviourRenderer<PipeB
       Arrays.fill(DIRECTION_QUADS, null);
    }
 
+   @Override
    public void render(PipeBehaviourStripes stripes, double x, double y, double z, float partialTicks, VertexConsumer bb, Pose pose) {
       Direction dir = stripes.direction;
       if (dir != null && bb != null) {

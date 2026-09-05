@@ -23,6 +23,7 @@ public class PatternPyramid extends Pattern implements IFillerPatternShape {
       super("pyramid");
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCBuildersSprites.FILLER_PYRAMID;
    }

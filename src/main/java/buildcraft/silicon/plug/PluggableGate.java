@@ -175,14 +175,17 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
          if (player instanceof ServerPlayer serverPlayer) {
             final GateMenuKey key = new GateMenuKey(pos, this.side);
             serverPlayer.openMenu(new ExtendedMenuProvider<Object>() {
+               @Override
                public GateMenuKey getScreenOpeningData(ServerPlayer sp) {
                   return key;
                }
 
+               @Override
                public Component getDisplayName() {
                   return PluggableGate.this.logic.variant.getLocalizedName();
                }
 
+               @Override
                public AbstractContainerMenu createMenu(int id, Inventory inv, Player p) {
                   return new ContainerGate(id, inv, PluggableGate.this);
                }

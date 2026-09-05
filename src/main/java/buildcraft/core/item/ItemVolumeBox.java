@@ -20,6 +20,7 @@ public class ItemVolumeBox extends Item {
       super(properties);
    }
 
+   @Override
    public InteractionResult useOn(UseOnContext context) {
       Level level = context.getLevel();
       BlockPos offset = context.getClickedPos().relative(context.getClickedFace());

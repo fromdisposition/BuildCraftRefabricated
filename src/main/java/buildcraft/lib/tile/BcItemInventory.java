@@ -27,7 +27,6 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -39,6 +38,7 @@ import net.minecraft.world.item.Items;
 public class BcItemInventory extends AbstractInvItemTransactor implements Storage<ItemVariant>, StackInsertionChecker {
    public final NonNullList<ItemStack> stacks;
    private final SnapshotParticipant<ItemStack[]> journal = new SnapshotParticipant<ItemStack[]>() {
+      @Override
       protected ItemStack[] createSnapshot() {
          ItemStack[] snap = new ItemStack[BcItemInventory.this.stacks.size()];
 
@@ -49,12 +49,14 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
          return snap;
       }
 
+      @Override
       protected void readSnapshot(ItemStack[] snapshot) {
          for (int i = 0; i < snapshot.length; i++) {
             BcItemInventory.this.stacks.set(i, snapshot[i] != null ? snapshot[i] : StackUtil.EMPTY);
          }
       }
 
+      @Override
       protected void onFinalCommit() {
          BcItemInventory.this.markDirtyIfNeeded();
       }
@@ -342,6 +344,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
       }
    }
 
+   @Override
    public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
          int remaining = saturate(maxAmount);
@@ -359,6 +362,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
       }
    }
 
+   @Override
    public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
          int remaining = saturate(maxAmount);
@@ -376,6 +380,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
       }
    }
 
+   @Override
    public Iterator<StorageView<ItemVariant>> iterator() {
       List<StorageView<ItemVariant>> views = new ArrayList<>(this.size());
 
@@ -388,14 +393,6 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
 
    protected static int saturate(long amount) {
       return amount > 2147483647L ? Integer.MAX_VALUE : (int)amount;
-   }
-
-   public Storage<ItemVariant> insertOnlyView() {
-      return new BcItemInventory.FilteredView(true, false);
-   }
-
-   public Storage<ItemVariant> extractOnlyView() {
-      return new BcItemInventory.FilteredView(false, true);
    }
 
    public CompoundTag serializeNBT() {
@@ -461,22 +458,27 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
          this.allowExtract = allowExtract;
       }
 
+      @Override
       public boolean supportsInsertion() {
          return this.allowInsert;
       }
 
+      @Override
       public boolean supportsExtraction() {
          return this.allowExtract;
       }
 
+      @Override
       public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
          return this.allowInsert ? BcItemInventory.this.insert(resource, maxAmount, transaction) : 0L;
       }
 
+      @Override
       public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
          return this.allowExtract ? BcItemInventory.this.extract(resource, maxAmount, transaction) : 0L;
       }
 
+      @Override
       public Iterator<StorageView<ItemVariant>> iterator() {
          return BcItemInventory.this.iterator();
       }
@@ -489,25 +491,30 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
          this.index = index;
       }
 
+      @Override
       public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
          return !resource.isBlank() && maxAmount > 0L
             ? BcItemInventory.this.extractFromSlot(this.index, resource, BcItemInventory.saturate(maxAmount), transaction)
             : 0L;
       }
 
+      @Override
       public boolean isResourceBlank() {
          return BcItemInventory.this.getStackInSlot(this.index).isEmpty();
       }
 
+      @Override
       public ItemVariant getResource() {
          ItemStack stack = BcItemInventory.this.getStackInSlot(this.index);
          return stack.isEmpty() ? ItemVariant.blank() : ItemVariant.of(stack);
       }
 
+      @Override
       public long getAmount() {
          return BcItemInventory.this.getStackInSlot(this.index).getCount();
       }
 
+      @Override
       public long getCapacity() {
          return BcItemInventory.this.slotCapacity;
       }

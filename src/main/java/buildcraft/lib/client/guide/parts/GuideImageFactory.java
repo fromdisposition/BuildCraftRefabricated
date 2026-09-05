@@ -57,6 +57,7 @@ public class GuideImageFactory implements GuidePartFactory {
       return Identifier.fromNamespaceAndPath(parsed.getNamespace(), path);
    }
 
+   @Override
    public GuideImage createNew(GuiGuide gui) {
       return new GuideImage(gui, this.sprite, this.srcWidth, this.srcHeight, this.width, this.height);
    }

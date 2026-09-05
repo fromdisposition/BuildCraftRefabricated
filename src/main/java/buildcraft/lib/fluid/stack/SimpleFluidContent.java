@@ -44,10 +44,6 @@ public final class SimpleFluidContent implements DataComponentHolder {
       return this.fluidStack.getFluid();
    }
 
-   public Holder<Fluid> getFluidHolder() {
-      return this.fluidStack.typeHolder();
-   }
-
    public boolean is(TagKey<Fluid> tag) {
       return this.fluidStack.is(tag);
    }
@@ -88,6 +84,7 @@ public final class SimpleFluidContent implements DataComponentHolder {
       return this.isSameFluidSameComponents(content.fluidStack);
    }
 
+   @Override
    public DataComponentMap getComponents() {
       return this.fluidStack.getComponents();
    }

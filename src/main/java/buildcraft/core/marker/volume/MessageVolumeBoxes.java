@@ -113,6 +113,7 @@ public final class MessageVolumeBoxes implements CustomPacketPayload {
       }
    }
 
+   @Override
    public Type<MessageVolumeBoxes> type() {
       return TYPE;
    }

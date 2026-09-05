@@ -59,10 +59,12 @@ public class BlockWaterGel extends HalfTransparentBlock {
    }
    *///?}
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{PROP_STAGE});
    }
 
+   @Override
    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource rand) {
       BlockWaterGel.GelStage stage = state.getValue(PROP_STAGE);
       BlockWaterGel.GelStage next = stage.next();
@@ -163,15 +165,18 @@ public class BlockWaterGel extends HalfTransparentBlock {
       return state.is(this);
    }
 
+   @Override
    public SoundType getSoundType(BlockState state) {
       BlockWaterGel.GelStage stage = state.getValue(PROP_STAGE);
       return stage.soundType;
    }
 
+   @Override
    public float defaultDestroyTime() {
       return 0.6F;
    }
 
+   @Override
    public float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
       BlockWaterGel.GelStage stage = state.getValue(PROP_STAGE);
       float hardness = stage.hardness;
@@ -184,6 +189,7 @@ public class BlockWaterGel extends HalfTransparentBlock {
       return canHarvest ? speed / hardness / 30.0F : speed / hardness / 100.0F;
    }
 
+   @Override
    protected List<ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder builder) {
       BlockWaterGel.GelStage stage = state.getValue(PROP_STAGE);
       RandomSource rand = builder.getLevel().getRandom();
@@ -228,6 +234,7 @@ public class BlockWaterGel extends HalfTransparentBlock {
          this.hardness = hardness;
       }
 
+      @Override
       public String getSerializedName() {
          return this.modelName;
       }

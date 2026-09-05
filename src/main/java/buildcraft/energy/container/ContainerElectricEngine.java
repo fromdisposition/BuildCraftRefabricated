@@ -39,6 +39,7 @@ public abstract class ContainerElectricEngine<T extends TileElectricEngineBase> 
       this.engine = engine;
       if (engine != null && engine.getLevel() != null && !engine.getLevel().isClientSide()) {
          this.data = new ContainerData() {
+            @Override
             public int get(int index) {
                return switch (index) {
                   case 0, 1, 2, 3 -> chunk16(power.applyAsLong(engine), index - DATA_POWER);
@@ -51,9 +52,11 @@ public abstract class ContainerElectricEngine<T extends TileElectricEngineBase> 
                };
             }
 
+            @Override
             public void set(int index, int value) {
             }
 
+            @Override
             public int getCount() {
                return DATA_COUNT;
             }

@@ -41,19 +41,23 @@ public class GuiElementStatement<S extends IStatement> extends GuiElementSimple 
       this.draw = draw;
    }
 
+   @Override
    public S get() {
       return this.ref.get();
    }
 
+   @Override
    public void set(S to) {
       this.ref.set(to);
       this.ref.postSetFromGui(-1);
    }
 
+   @Override
    public boolean canSet(S value) {
       return this.ref.canInteract && this.ref.canSet(value);
    }
 
+   @Override
    public S convertToType(Object value) {
       return this.ref.convertToType(value);
    }

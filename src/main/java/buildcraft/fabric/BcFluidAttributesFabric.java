@@ -9,19 +9,23 @@ import net.minecraft.world.level.material.Fluid;
 
 public final class BcFluidAttributesFabric {
    private static final FluidVariantAttributeHandler GASEOUS = new FluidVariantAttributeHandler() {
+      @Override
       public Component getName(FluidVariant variant) {
          return BcFluidAttributesFabric.displayName(variant);
       }
 
+      @Override
       public boolean isLighterThanAir(FluidVariant variant) {
          return true;
       }
    };
    private static final FluidVariantAttributeHandler LIQUID = new FluidVariantAttributeHandler() {
+      @Override
       public Component getName(FluidVariant variant) {
          return BcFluidAttributesFabric.displayName(variant);
       }
 
+      @Override
       public boolean isLighterThanAir(FluidVariant variant) {
          return false;
       }

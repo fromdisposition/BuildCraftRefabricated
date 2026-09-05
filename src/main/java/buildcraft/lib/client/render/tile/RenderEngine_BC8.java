@@ -23,6 +23,7 @@ public class RenderEngine_BC8 extends BcBlockEntityRenderer<TileEngineBase_BC8, 
       this.quadProvider = quadProvider;
    }
 
+   @Override
    public EngineRenderState createRenderState() {
       return new EngineRenderState();
    }
@@ -32,6 +33,7 @@ public class RenderEngine_BC8 extends BcBlockEntityRenderer<TileEngineBase_BC8, 
       state.quads = this.quadProvider.apply(engine, partialTick);
    }
 
+   @Override
    public void submit(EngineRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
       ProfilerFiller _profiler = BcProfiler.get();
       _profiler.push("buildcraft:engine_submit");

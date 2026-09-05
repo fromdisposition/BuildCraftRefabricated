@@ -278,11 +278,13 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
       this.progressOutput = input.getIntOr("progressOutput", -1);
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftrobotics.zone_planner");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerZonePlanner(containerId, playerInv, this);
    }

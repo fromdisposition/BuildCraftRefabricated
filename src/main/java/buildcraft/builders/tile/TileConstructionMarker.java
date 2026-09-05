@@ -48,10 +48,6 @@ public class TileConstructionMarker extends BcBlockEntity {
       super.preRemoveSideEffects(pos, state);
    }
 
-   public ItemStack getBlueprintStack() {
-      return this.blueprintStack;
-   }
-
    public boolean hasBlueprint() {
       return this.blueprintBuildingInfo != null;
    }

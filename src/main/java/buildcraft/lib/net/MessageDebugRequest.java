@@ -37,6 +37,7 @@ public record MessageDebugRequest(BlockPos pos, Direction side) implements Custo
       return new MessageDebugRequest(pos, side);
    }
 
+   @Override
    public Type<MessageDebugRequest> type() {
       return TYPE;
    }

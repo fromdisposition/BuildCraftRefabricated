@@ -164,21 +164,12 @@ public class VolumeBox {
       this.player = null;
    }
 
-   public void resumeEditing() {
-      this.player = this.oldPlayer;
-      this.oldPlayer = null;
-   }
-
    public void setPlayer(Player player) {
       this.player = BcAuth.id(player.getGameProfile());
    }
 
    public boolean isEditingBy(Player player) {
       return player != null && Objects.equals(this.player, BcAuth.id(player.getGameProfile()));
-   }
-
-   public boolean isPausedEditingBy(Player player) {
-      return this.oldPlayer != null && Objects.equals(this.oldPlayer, BcAuth.id(player.getGameProfile()));
    }
 
    public Player getPlayer(Level world) {

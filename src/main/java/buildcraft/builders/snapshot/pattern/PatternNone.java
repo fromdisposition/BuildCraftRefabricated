@@ -17,6 +17,7 @@ public class PatternNone extends Pattern implements IFillerPatternShape {
       super("none");
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCBuildersSprites.FILLER_NONE;
    }

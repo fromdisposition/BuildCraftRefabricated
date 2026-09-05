@@ -28,6 +28,7 @@ public final class SchematicBlockAir implements ISchematicBlock {
       return true;
    }
 
+   @Override
    public SchematicBlockAir getRotated(Rotation rotation) {
       return SchematicBlockManager.createCleanCopy(this);
    }

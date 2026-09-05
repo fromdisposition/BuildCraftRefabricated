@@ -47,6 +47,7 @@ public record MessagePipePayload(BlockPos pos, int receiverOrdinal, byte[] paylo
       }
    }
 
+   @Override
    public Type<MessagePipePayload> type() {
       return TYPE;
    }

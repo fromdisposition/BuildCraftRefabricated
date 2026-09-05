@@ -23,8 +23,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Rotation;
 
 public abstract class Snapshot {
@@ -220,10 +218,6 @@ public abstract class Snapshot {
          buf.writeUUID(this.owner);
          buf.writeLong(this.created.getTime());
          buf.writeUtf(this.name);
-      }
-
-      public Player getOwnerPlayer(Level level) {
-         return level.getPlayerByUUID(this.owner);
       }
 
       @Override

@@ -106,16 +106,6 @@ public class TravellingItem {
       return diff < 0L ? 0 : (int)diff;
    }
 
-   public double getWayThrough(long now) {
-      long diff = this.tickFinished - this.tickStarted;
-      if (diff <= 0L) {
-         return 1.0;
-      }
-
-      long nowDiff = now - this.tickStarted;
-      return (double)nowDiff / diff;
-   }
-
    public void genTimings(long now, double distance) {
       this.tickStarted = now;
       this.timeToDest = (int)Math.ceil(distance / this.speed);
@@ -140,32 +130,6 @@ public class TravellingItem {
       } else {
          return false;
       }
-   }
-
-   public Vec3 interpolatePosition(Vec3 start, Vec3 end, long tick, float partialTicks) {
-      long diff = this.tickFinished - this.tickStarted;
-      long nowDiff = tick - this.tickStarted;
-      double sinceStart = (float)nowDiff + partialTicks;
-      double interpMul = sinceStart / diff;
-      double oneMinus = 1.0 - interpMul;
-      if (interpMul <= 0.0) {
-         return start;
-      }
-
-      if (interpMul >= 1.0) {
-         return end;
-      }
-
-      double x = oneMinus * start.x + interpMul * end.x;
-      double y = oneMinus * start.y + interpMul * end.y;
-      double z = oneMinus * start.z + interpMul * end.z;
-      return new Vec3(x, y, z);
-   }
-
-   public Vec3 getRenderPosition(BlockPos pos, long tick, float partialTicks, PipeFlowItems flow) {
-      double[] scratch = new double[3];
-      this.writeRenderPosition(pos, tick, partialTicks, flow, scratch);
-      return new Vec3(scratch[0], scratch[1], scratch[2]);
    }
 
    public void writeRenderPosition(BlockPos pos, long tick, float partialTicks, PipeFlowItems flow, double[] out) {

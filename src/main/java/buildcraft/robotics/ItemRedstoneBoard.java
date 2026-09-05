@@ -34,6 +34,7 @@ public class ItemRedstoneBoard extends Item {
       super(properties);
    }
 
+   @Override
    public Component getName(ItemStack stack) {
       RedstoneBoardNBT<?> board = getBoardNBT(stack);
       return Component.translatable(this.getDescriptionId()).append(" (").append(board.getDisplayName()).append(")");

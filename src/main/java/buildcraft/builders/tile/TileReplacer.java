@@ -97,11 +97,13 @@ public class TileReplacer extends BcBlockEntity implements MenuProvider, BlockEn
       input.read("items", CompoundTag.CODEC).ifPresent(this.itemManager::deserializeNBT);
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftbuilders.replacer");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerReplacer(containerId, playerInv, this);
    }

@@ -48,10 +48,6 @@ public class ArrayStackFilter implements IStackFilter {
       return false;
    }
 
-   public NonNullList<ItemStack> getStacks() {
-      return this.stacks;
-   }
-
    public boolean hasFilter() {
       for (ItemStack filter : this.stacks) {
          if (!filter.isEmpty()) {

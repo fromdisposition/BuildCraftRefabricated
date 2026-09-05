@@ -29,6 +29,7 @@ public enum PlugBakerSimpleItems implements IPluggableStaticBaker<KeyPlugSimple>
       cached.clear();
    }
 
+   @Override
    public List<BakedQuad> bake(KeyPlugSimple key) {
       if (!cached.containsKey(key)) {
          List<MutableQuad> rawQuads = new ArrayList<>();

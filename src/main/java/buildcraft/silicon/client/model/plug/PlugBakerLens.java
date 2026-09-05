@@ -238,6 +238,7 @@ public enum PlugBakerLens implements IPluggableStaticBaker<KeyPlugLens> {
       return rawQuads;
    }
 
+   @Override
    public List<BakedQuad> bake(KeyPlugLens key) {
       return cached.computeIfAbsent(key, k -> {
          List<MutableQuad> rawQuads = new ArrayList<>();

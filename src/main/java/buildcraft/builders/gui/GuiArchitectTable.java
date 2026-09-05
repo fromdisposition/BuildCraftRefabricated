@@ -121,6 +121,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public boolean keyPressed(KeyEvent event) {
       if (this.nameField.isFocused()) {
          if (event.key() == InputConstants.KEY_RETURN || event.key() == InputConstants.KEY_NUMPADENTER) {
@@ -225,6 +226,7 @@ public class GuiArchitectTable extends BcScreen<ContainerArchitectTable> {
       }
    }
 
+   @Override
    public void removed() {
       super.removed();
       if ((this.menu).tile != null) {

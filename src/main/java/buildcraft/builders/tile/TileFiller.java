@@ -143,6 +143,7 @@ public class TileFiller
       });
    }
 
+   @Override
    public void setRemoved() {
       super.setRemoved();
       BCBuildersEventDist.INSTANCE.invalidateFiller(this);
@@ -151,6 +152,7 @@ public class TileFiller
       }
    }
 
+   @Override
    public void clearRemoved() {
       super.clearRemoved();
       BCBuildersEventDist.INSTANCE.validateFiller(this);
@@ -660,11 +662,13 @@ public class TileFiller
       return this.battery.getStored() > 0L;
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftbuilders.filler");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerFiller(containerId, playerInv, this);
    }

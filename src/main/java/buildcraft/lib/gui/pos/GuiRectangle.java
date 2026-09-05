@@ -62,10 +62,12 @@ public final class GuiRectangle implements IGuiArea {
       return by instanceof PositionAbsolute ? this.offset(by.getX(), by.getY()) : IGuiArea.super.offset(by);
    }
 
+   @Override
    public GuiRectangle offset(double dx, double dy) {
       return new GuiRectangle(this.x + dx, this.y + dy, this.width, this.height);
    }
 
+   @Override
    public GuiRectangle expand(double dX, double dY) {
       return new GuiRectangle(this.x - dX, this.y - dY, this.width + dX * 2.0, this.height + dY * 2.0);
    }

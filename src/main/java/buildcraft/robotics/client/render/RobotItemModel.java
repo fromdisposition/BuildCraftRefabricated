@@ -32,6 +32,7 @@ public class RobotItemModel implements ItemModel {
       return (Identifier) ItemRobot.getRobotNBT(stack).getRobotTexture();
    }
 
+   @Override
    public void update(
       ItemStackRenderState renderState,
       ItemStack stack,

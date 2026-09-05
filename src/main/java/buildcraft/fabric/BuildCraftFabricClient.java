@@ -16,6 +16,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 
 public class BuildCraftFabricClient implements ClientModInitializer {
+   @Override
    public void onInitializeClient() {
       BCClientBlockEntityLifecycleEvents.init();
       // Per-dimension client caches would show ghost markers from the previous world; the server re-sends on join.

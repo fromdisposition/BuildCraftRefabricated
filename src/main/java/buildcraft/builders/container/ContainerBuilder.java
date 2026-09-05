@@ -20,7 +20,6 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.gui.ContainerBCTile;
 import buildcraft.lib.gui.slot.SlotDisplay;
 import buildcraft.lib.gui.widget.WidgetFluidTank;
-import buildcraft.lib.net.PacketBufferBC;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -65,6 +64,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
       super(BCBuildersMenuTypes.BUILDER, containerId, playerInv.player, tile);
       if (tile != null && tile.getLevel() != null && !tile.getLevel().isClientSide()) {
          this.data = new ContainerData() {
+            @Override
             public int get(int index) {
                return switch (index) {
                   case 0 -> tile.canExcavate() ? 1 : 0;
@@ -77,9 +77,11 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
                };
             }
 
+            @Override
             public void set(int index, int value) {
             }
 
+            @Override
             public int getCount() {
                return DATA_COUNT;
             }
@@ -130,6 +132,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
       }
    }
 
+   @Override
    public void broadcastChanges() {
       super.broadcastChanges();
       if (this.tile != null && this.tile.getLevel() != null && !this.tile.getLevel().isClientSide()) {
@@ -281,10 +284,6 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
       return this.data.get(DATA_CAN_EXCAVATE) != 0;
    }
 
-   public int getSyncedSnapshotType() {
-      return this.data.get(DATA_SNAPSHOT_TYPE);
-   }
-
    public int getSyncedLeftToBreak() {
       return readInt32(this.data, DATA_LEFT_TO_BREAK);
    }
@@ -308,10 +307,12 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
          this.tile = tile;
       }
 
+      @Override
       public int getContainerSize() {
          return 28;
       }
 
+      @Override
       public boolean isEmpty() {
          if (this.tile == null) {
             return true;
@@ -330,6 +331,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
          return true;
       }
 
+      @Override
       public ItemStack getItem(int slot) {
          if (this.tile == null) {
             return ItemStack.EMPTY;
@@ -338,6 +340,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
          }
       }
 
+      @Override
       public ItemStack removeItem(int slot, int count) {
          if (this.tile == null) {
             return ItemStack.EMPTY;
@@ -358,6 +361,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
          return result;
       }
 
+      @Override
       public ItemStack removeItemNoUpdate(int slot) {
          if (this.tile == null) {
             return ItemStack.EMPTY;
@@ -368,6 +372,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
          return current;
       }
 
+      @Override
       public void setItem(int slot, ItemStack stack) {
          if (this.tile != null) {
             if (slot == 0) {
@@ -378,16 +383,19 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
          }
       }
 
+      @Override
       public void setChanged() {
          if (this.tile != null) {
             this.tile.setChanged();
          }
       }
 
+      @Override
       public boolean stillValid(Player player) {
          return true;
       }
 
+      @Override
       public void clearContent() {
          if (this.tile != null) {
             this.tile.setSnapshot(ItemStack.EMPTY);
@@ -418,10 +426,12 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
          super(container, index, x, y);
       }
 
+      @Override
       public boolean mayPlace(ItemStack stack) {
          return stack.getItem() instanceof ItemSnapshot item ? item.isUsed() : false;
       }
 
+      @Override
       public int getMaxStackSize() {
          return 1;
       }

@@ -20,6 +20,7 @@ public class ItemDebugger extends Item {
       super(properties);
    }
 
+   @Override
    public InteractionResult useOn(UseOnContext context) {
       if (context.getLevel().getBlockEntity(context.getClickedPos()) instanceof IAdvDebugTarget target) {
          if (context.getLevel().isClientSide()) {

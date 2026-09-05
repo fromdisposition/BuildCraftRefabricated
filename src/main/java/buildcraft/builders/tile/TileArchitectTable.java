@@ -102,12 +102,14 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
       super(BCBuildersBlockEntities.ARCHITECT, pos, state);
    }
 
+   @Override
    public void setRemoved() {
       super.setRemoved();
       this.cachedLivePreview = null;
       BCBuildersEventDist.INSTANCE.invalidateArchitectTable(this);
    }
 
+   @Override
    public void clearRemoved() {
       super.clearRemoved();
       BCBuildersEventDist.INSTANCE.validateArchitectTable(this);
@@ -461,11 +463,13 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
       left.add("scanProgress = " + this.scanProgress + "/" + this.scanTotal);
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftbuilders.architect");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerArchitectTable(containerId, playerInv, this);
    }

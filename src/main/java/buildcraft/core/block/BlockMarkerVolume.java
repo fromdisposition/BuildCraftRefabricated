@@ -33,6 +33,7 @@ public class BlockMarkerVolume extends BlockMarkerBase {
       return new TileMarkerVolume(pos, state);
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
       if (!world.isClientSide() && world.getBlockEntity(pos) instanceof TileMarkerVolume volume) {
          volume.onManualConnectionAttempt(player);
@@ -42,6 +43,7 @@ public class BlockMarkerVolume extends BlockMarkerBase {
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block blockIn, @Nullable Orientation orientation, boolean isMoving) {
    //?} else {
    /*protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {

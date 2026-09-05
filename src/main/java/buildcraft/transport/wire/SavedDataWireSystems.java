@@ -78,10 +78,6 @@ public class SavedDataWireSystems extends SavedData {
       }
    }
 
-   public void markSystemPowerDirty(WireSystem wireSystem) {
-      this.systemsNeedingPowerUpdate.add(wireSystem);
-   }
-
    private void wakeGatesForWireSystem(WireSystem wireSystem) {
       Set<BlockPos> visited = new HashSet<>();
 

@@ -74,6 +74,7 @@ public enum PatternParameterHollow implements IStatementParameter {
       return LocaleUtil.localize("fillerpattern.parameter." + after);
    }
 
+   @Override
    public PatternParameterHollow onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
       return null;
    }
@@ -83,6 +84,7 @@ public enum PatternParameterHollow implements IStatementParameter {
       return this;
    }
 
+   @Override
    public PatternParameterHollow[] getPossible(IStatementContainer source) {
       return values();
    }

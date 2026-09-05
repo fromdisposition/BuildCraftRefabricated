@@ -141,10 +141,12 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
       }
    }
 
+   @Override
    public CompoundTag getUpdateTag(Provider registries) {
       return this.saveCustomOnly(registries);
    }
 
+   @Override
    public Packet<ClientGamePacketListener> getUpdatePacket() {
       return ClientboundBlockEntityDataPacket.create(this);
    }
@@ -270,11 +272,13 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.writeData(new BcValueOut(output));
    }
 
+   @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(input)));
@@ -311,10 +315,12 @@ public class TileTank extends BlockEntity implements MenuProvider, BlockEntityEx
       return this;
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftfactory.tank");
    }
 
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
       return new ContainerTank(containerId, playerInventory, this);
    }

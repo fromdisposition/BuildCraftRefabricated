@@ -40,6 +40,7 @@ public class ActionExtractionPreset extends BCStatement implements IActionIntern
       return BCTransportStatements.ACTION_EXTRACTION_PRESET;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCTransportSprites.ACTION_EXTRACTION_PRESET.get(this.index);
    }

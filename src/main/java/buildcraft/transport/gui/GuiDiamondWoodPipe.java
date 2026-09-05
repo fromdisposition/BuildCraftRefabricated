@@ -120,6 +120,7 @@ public class GuiDiamondWoodPipe extends BcScreen<ContainerDiamondWoodPipe> {
       }
 
       //? if >= 1.21.10 {
+      @Override
       public void onPress(InputWithModifiers modifiers) {
          GuiDiamondWoodPipe.this.setFilterMode(this.mode);
       }

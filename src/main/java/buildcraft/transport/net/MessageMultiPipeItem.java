@@ -78,6 +78,7 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
       return msg;
    }
 
+   @Override
    public Type<MessageMultiPipeItem> type() {
       return TYPE;
    }

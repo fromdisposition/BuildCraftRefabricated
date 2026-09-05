@@ -36,6 +36,7 @@ public class Blueprint extends Snapshot {
    public int[] data;
    public final List<ISchematicEntity> entities = new ArrayList<>();
 
+   @Override
    public Blueprint copy() {
       Blueprint blueprint = new Blueprint();
       blueprint.size = this.size;
@@ -56,22 +57,6 @@ public class Blueprint extends Snapshot {
             }
          }
       }
-   }
-
-   public int countMatchingPaletteEntries(ISchematicBlock from) {
-      if (from == null) {
-         return 0;
-      }
-
-      int n = 0;
-
-      for (ISchematicBlock entry : this.palette) {
-         if (schematicsMatch(entry, from)) {
-            n++;
-         }
-      }
-
-      return n;
    }
 
    public int countMatchingCells(ISchematicBlock from) {
@@ -260,6 +245,7 @@ public class Blueprint extends Snapshot {
          this.entitiesRequiredFluids = entitiesRequiredFluidsBuilder.build();
       }
 
+      @Override
       public Blueprint getSnapshot() {
          return Blueprint.this;
       }

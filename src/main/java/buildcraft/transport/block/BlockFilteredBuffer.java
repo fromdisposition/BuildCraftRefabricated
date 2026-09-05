@@ -22,6 +22,7 @@ public class BlockFilteredBuffer extends BcTileBlock {
       super(properties, () -> BCTransportBlockEntities.FILTERED_BUFFER, null, null, true);
    }
 
+   @Override
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileFilteredBuffer) {

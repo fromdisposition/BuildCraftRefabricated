@@ -31,12 +31,16 @@ public final class PipeColourTintSource implements ItemTintSource {
    private PipeColourTintSource() {
    }
 
+   //? if >= 1.21.10 {
+   @Override
+   //?}
    public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
       DyeColor col = stack.get(BCTransportItems.PIPE_COLOUR);
       return col != null ? 1275068416 | ColourUtil.getLightHex(col) : 1291845631;
    }
 
    //? if >= 1.21.10 {
+   @Override
    public MapCodec<? extends ItemTintSource> type() {
       return MAP_CODEC;
    }

@@ -46,14 +46,17 @@ public class BlockDistiller extends BcTileBlock implements ICustomRotationHandle
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.WEST));
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});
    }
 
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }
 
+   @Override
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (level.getBlockEntity(pos) instanceof TileDistiller distiller) {
@@ -62,6 +65,7 @@ public class BlockDistiller extends BcTileBlock implements ICustomRotationHandle
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileDistiller(pos, state);
    }
@@ -78,12 +82,14 @@ public class BlockDistiller extends BcTileBlock implements ICustomRotationHandle
    *///?}
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide()
          ? createTickerHelper(type, BCFactoryBlockEntities.DISTILLER, (lvl, pos, st, tile) -> tile.clientTick())
          : createTickerHelper(type, BCFactoryBlockEntities.DISTILLER, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
+   @Override
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
@@ -127,6 +133,7 @@ public class BlockDistiller extends BcTileBlock implements ICustomRotationHandle
       return InteractionResult.SUCCESS;
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       openMenuOnServer(level, player, pos);
       return InteractionResult.SUCCESS;

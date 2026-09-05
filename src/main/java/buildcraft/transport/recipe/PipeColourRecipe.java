@@ -39,11 +39,13 @@ public class PipeColourRecipe extends CustomRecipe {
    public static final StreamCodec<RegistryFriendlyByteBuf, PipeColourRecipe> STREAM_CODEC = StreamCodec.unit(INSTANCE);
    public static final RecipeSerializer<PipeColourRecipe> SERIALIZER = BcRecipeSerializers.of(MAP_CODEC, STREAM_CODEC);
 
+   @Override
    public boolean matches(CraftingInput input, Level level) {
       return analyse(input).output() != null;
    }
 
    //? if >= 26.1 {
+   @Override
    public ItemStack assemble(CraftingInput input) {
    //?} else {
    /*public ItemStack assemble(CraftingInput input, net.minecraft.core.HolderLookup.Provider provider) {
@@ -52,6 +54,7 @@ public class PipeColourRecipe extends CustomRecipe {
       return result.output() != null ? result.output().copy() : ItemStack.EMPTY;
    }
 
+   @Override
    public NonNullList<ItemStack> getRemainingItems(CraftingInput input) {
       PipeColourRecipe.Result result = analyse(input);
       NonNullList<ItemStack> remaining = NonNullList.withSize(input.size(), ItemStack.EMPTY);
@@ -62,14 +65,17 @@ public class PipeColourRecipe extends CustomRecipe {
       return remaining;
    }
 
+   @Override
    public RecipeSerializer<? extends CustomRecipe> getSerializer() {
       return SERIALIZER;
    }
 
+   @Override
    public boolean isSpecial() {
       return true;
    }
 
+   @Override
    public CraftingBookCategory category() {
       return CraftingBookCategory.MISC;
    }

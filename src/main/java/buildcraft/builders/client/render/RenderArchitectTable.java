@@ -25,6 +25,7 @@ public class RenderArchitectTable extends BcBlockEntityRenderer<TileArchitectTab
    public RenderArchitectTable(Context context) {
    }
 
+   @Override
    public ArchitectTableRenderState createRenderState() {
       return new ArchitectTableRenderState();
    }
@@ -42,6 +43,7 @@ public class RenderArchitectTable extends BcBlockEntityRenderer<TileArchitectTab
       }
    }
 
+   @Override
    public void submit(ArchitectTableRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
       if (renderState.facing != null) {
          Direction facing = renderState.facing;

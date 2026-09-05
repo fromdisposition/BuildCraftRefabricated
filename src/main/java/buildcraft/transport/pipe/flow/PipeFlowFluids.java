@@ -561,19 +561,6 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       }
    }
 
-   public void writeOffsetsForRender(float partialTicks, double[] outX, double[] outY, double[] outZ) {
-      double pt = partialTicks;
-      double invPt = 1.0F - partialTicks;
-
-      for (EnumPipePart part : EnumPipePart.VALUES) {
-         PipeFlowFluids.Section s = this.sections.get(part);
-         int i = part.getIndex();
-         outX[i] = s.offsetLastX * invPt + s.offsetThisX * pt;
-         outY[i] = s.offsetLastY * invPt + s.offsetThisY * pt;
-         outZ[i] = s.offsetLastZ * invPt + s.offsetThisZ * pt;
-      }
-   }
-
    private void setFluid(@Nonnull FluidStack fluid) {
       this.currentFluid = fluid;
       // currentDelay must stay >= 1: currentTime is taken % currentDelay every tick and incoming[] is sized by it.
@@ -739,16 +726,8 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          this.nbtValue = (byte)nbtValue;
       }
 
-      public boolean isInput() {
-         return this == IN;
-      }
-
       public boolean canInput() {
          return this != OUT;
-      }
-
-      public boolean isOutput() {
-         return this == OUT;
       }
 
       public boolean canOutput() {
@@ -769,10 +748,12 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    }
 
    final SnapshotParticipant<PipeFlowFluids.FlowFluidState> transactionFluidState = new SnapshotParticipant<>() {
+      @Override
       protected PipeFlowFluids.FlowFluidState createSnapshot() {
          return new PipeFlowFluids.FlowFluidState(PipeFlowFluids.this.currentFluid, PipeFlowFluids.this.currentDelay);
       }
 
+      @Override
       protected void readSnapshot(PipeFlowFluids.FlowFluidState state) {
          PipeFlowFluids.this.currentFluid = state.fluid();
          PipeFlowFluids.this.currentDelay = state.delay();

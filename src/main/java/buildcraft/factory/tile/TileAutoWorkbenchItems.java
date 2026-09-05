@@ -28,10 +28,12 @@ public class TileAutoWorkbenchItems extends TileAutoWorkbenchBase implements Men
       return this;
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("item.buildcraftfactory.autoworkbench_item");
    }
 
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerAutoCraftItems(containerId, playerInv, this);
    }

@@ -36,6 +36,7 @@ public class BlockEngineRedstone_BC8 extends BlockEngineBase_BC8 {
       return new TileEngineRedstone_BC8(pos, state);
    }
 
+   @Override
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {

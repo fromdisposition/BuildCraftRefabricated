@@ -478,6 +478,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       }
    }
 
+   @Override
    public void setRemoved() {
       super.setRemoved();
       if (this.section instanceof TileHeatExchange.ExchangeSectionStart s) {
@@ -485,6 +486,7 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       }
    }
 
+   @Override
    public void clearRemoved() {
       super.clearRemoved();
       this.checkNeighbours = true;
@@ -501,21 +503,25 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       return start != null ? start.getBlockPos() : this.getBlockPos();
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftfactory.heat_exchange");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerHeatExchange(containerId, playerInv, this.findStart());
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.writeData(new BcValueOut(output));
    }
 
+   @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(input)));
@@ -603,10 +609,12 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
       this.checkNeighbours = true;
    }
 
+   @Override
    public CompoundTag getUpdateTag(Provider registries) {
       return this.saveCustomOnly(registries);
    }
 
+   @Override
    public Packet<ClientGamePacketListener> getUpdatePacket() {
       return ClientboundBlockEntityDataPacket.create(this);
    }

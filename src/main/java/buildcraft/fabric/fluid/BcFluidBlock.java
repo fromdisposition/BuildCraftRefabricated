@@ -11,6 +11,7 @@ public class BcFluidBlock extends LiquidBlock {
       super(fluid, properties);
    }
 
+   @Override
    public SoundType getSoundType(BlockState state) {
       return SoundType.HONEY_BLOCK;
    }

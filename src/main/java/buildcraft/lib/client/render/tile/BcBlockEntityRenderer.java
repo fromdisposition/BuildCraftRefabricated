@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public abstract class BcBlockEntityRenderer<T extends BlockEntity, S extends BcBerState<T>> implements BlockEntityRenderer<T, S> {
+   @Override
    public void extractRenderState(T blockEntity, S state, float partialTick, Vec3 cameraPos, @Nullable CrumblingOverlay crumblingOverlay) {
       BlockEntityRenderState.extractBase(blockEntity, state, crumblingOverlay);
       state.tile = blockEntity;

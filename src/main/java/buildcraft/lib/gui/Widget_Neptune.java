@@ -17,10 +17,6 @@ public abstract class Widget_Neptune<C extends IBcMenu> {
       this.container = container;
    }
 
-   public boolean isRemote() {
-      return this.container.getPlayer().level().isClientSide();
-   }
-
    protected final void sendWidgetData(IPayloadWriter writer) {
       this.container.sendWidgetData(this, writer);
    }

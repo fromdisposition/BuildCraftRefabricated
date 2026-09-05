@@ -209,11 +209,13 @@ public class TileElectronicLibrary extends BcBlockEntity implements MenuProvider
       this.selected = input.read("selected", CompoundTag.CODEC).map(Snapshot.Key::new).orElse(null);
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("tile.buildcraftbuilders.library.name");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerElectronicLibrary(containerId, playerInv, this);
    }

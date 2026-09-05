@@ -21,6 +21,7 @@ public abstract class BCButton extends AbstractButton {
    }
 
    //? if >= 26.1 {
+   @Override
    protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
       this.drawButtonContent(new BCGraphics(graphics), mouseX, mouseY, partialTick);
    }
@@ -44,6 +45,7 @@ public abstract class BCButton extends AbstractButton {
       this.drawDefaultButtonSprite(graphics);
    }
 
+   @Override
    protected void updateWidgetNarration(NarrationElementOutput output) {
       this.defaultButtonNarrationText(output);
    }

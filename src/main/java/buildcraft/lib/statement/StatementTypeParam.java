@@ -21,16 +21,19 @@ public class StatementTypeParam extends StatementType<IStatementParameter> {
       super(IStatementParameter.class, null);
    }
 
+   @Override
    public IStatementParameter convertToType(Object value) {
       return value instanceof IStatementParameter ? (IStatementParameter)value : null;
    }
 
+   @Override
    public IStatementParameter readFromNbt(CompoundTag nbt) {
       String kind = BcNbt.getString(nbt, "kind", "");
       StatementManager.IParameterReader reader = StatementManager.getParameterReader(kind);
       return reader == null ? null : reader.readFromNbt(nbt);
    }
 
+   @Override
    public CompoundTag writeToNbt(IStatementParameter slot) {
       CompoundTag nbt = new CompoundTag();
       if (slot != null) {
@@ -41,6 +44,7 @@ public class StatementTypeParam extends StatementType<IStatementParameter> {
       return nbt;
    }
 
+   @Override
    public IStatementParameter readFromBuffer(FriendlyByteBuf buffer) {
       if (buffer.readBoolean()) {
          String tag = buffer.readUtf();
@@ -59,6 +63,7 @@ public class StatementTypeParam extends StatementType<IStatementParameter> {
       }
    }
 
+   @Override
    public void writeToBuffer(FriendlyByteBuf buffer, IStatementParameter slot) {
       if (slot == null) {
          buffer.writeBoolean(false);

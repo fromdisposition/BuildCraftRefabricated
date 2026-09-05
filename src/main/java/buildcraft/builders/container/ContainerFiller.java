@@ -8,7 +8,6 @@ package buildcraft.builders.container;
 
 import buildcraft.lib.net.BcPayloadBuffers;
 import net.minecraft.network.FriendlyByteBuf;
-import buildcraft.api.core.BCLog;
 import buildcraft.api.filler.IFillerPattern;
 import buildcraft.api.tiles.IControllable;
 import buildcraft.builders.BCBuildersMenuTypes;
@@ -23,7 +22,6 @@ import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.statement.StatementContext;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import java.io.IOException;
 import java.util.Arrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
@@ -70,6 +68,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
       super(BCBuildersMenuTypes.FILLER, containerId, playerInv.player, tile);
       if (tile != null && tile.getLevel() != null && !tile.getLevel().isClientSide()) {
          this.data = new ContainerData() {
+            @Override
             public int get(int index) {
                return switch (index) {
                   case 0 -> tile.getCanExcavate() ? 1 : 0;
@@ -83,9 +82,11 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
                };
             }
 
+            @Override
             public void set(int index, int value) {
             }
 
+            @Override
             public int getCount() {
                return DATA_COUNT;
             }
@@ -191,6 +192,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
       }
    }
 
+   @Override
    public void broadcastChanges() {
       super.broadcastChanges();
       if (this.tile != null && this.tile.getLevel() != null && !this.tile.getLevel().isClientSide()) {
@@ -212,10 +214,6 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
 
    public boolean getSyncedCanExcavate() {
       return this.data.get(DATA_CAN_EXCAVATE) != 0;
-   }
-
-   public boolean getSyncedFinished() {
-      return this.data.get(DATA_FINISHED) != 0;
    }
 
    public boolean getSyncedLocked() {

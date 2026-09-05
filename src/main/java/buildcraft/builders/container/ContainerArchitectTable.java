@@ -13,7 +13,6 @@ import buildcraft.builders.item.ItemSnapshot;
 import buildcraft.builders.tile.TileArchitectTable;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.gui.ContainerBCTile;
-import buildcraft.lib.net.PacketBufferBC;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -43,6 +42,7 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
       super(BCBuildersMenuTypes.ARCHITECT, containerId, playerInv.player, tile);
       if (tile != null && tile.getLevel() != null && !tile.getLevel().isClientSide()) {
          this.data = new ContainerData() {
+            @Override
             public int get(int index) {
                return switch (index) {
                   case 0 -> tile.isScanning() ? 1 : 0;
@@ -53,9 +53,11 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
                };
             }
 
+            @Override
             public void set(int index, int value) {
             }
 
+            @Override
             public int getCount() {
                return DATA_COUNT;
             }
@@ -75,20 +77,12 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
       return playerInv.player.level() != null && playerInv.player.level().getBlockEntity(pos) instanceof TileArchitectTable architect ? architect : null;
    }
 
-   public boolean getSyncedScanning() {
-      return this.data.get(DATA_SCANNING) != 0;
-   }
-
    public int getSyncedProgress() {
       return readInt32(this.data, DATA_PROGRESS);
    }
 
    public int getSyncedTotal() {
       return readInt32(this.data, DATA_TOTAL);
-   }
-
-   public boolean getSyncedValid() {
-      return this.data.get(DATA_VALID) != 0;
    }
 
    public String getTileName() {
@@ -121,14 +115,17 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
          this.tile = tile;
       }
 
+      @Override
       public int getContainerSize() {
          return 2;
       }
 
+      @Override
       public boolean isEmpty() {
          return this.tile == null || this.tile.getSnapshotIn().isEmpty() && this.tile.getSnapshotOut().isEmpty();
       }
 
+      @Override
       public ItemStack getItem(int slot) {
          if (this.tile == null) {
             return ItemStack.EMPTY;
@@ -137,6 +134,7 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
          }
       }
 
+      @Override
       public ItemStack removeItem(int slot, int count) {
          if (this.tile == null) {
             return ItemStack.EMPTY;
@@ -157,6 +155,7 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
          return result;
       }
 
+      @Override
       public ItemStack removeItemNoUpdate(int slot) {
          if (this.tile == null) {
             return ItemStack.EMPTY;
@@ -167,6 +166,7 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
          return current;
       }
 
+      @Override
       public void setItem(int slot, ItemStack stack) {
          if (this.tile != null) {
             if (slot == 0) {
@@ -177,16 +177,19 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
          }
       }
 
+      @Override
       public void setChanged() {
          if (this.tile != null) {
             this.tile.setChanged();
          }
       }
 
+      @Override
       public boolean stillValid(Player player) {
          return true;
       }
 
+      @Override
       public void clearContent() {
          if (this.tile != null) {
             this.tile.setSnapshotIn(ItemStack.EMPTY);
@@ -200,6 +203,7 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
          super(container, index, x, y);
       }
 
+      @Override
       public boolean mayPlace(ItemStack stack) {
          return stack.getItem() instanceof ItemSnapshot;
       }
@@ -210,6 +214,7 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
          super(container, index, x, y);
       }
 
+      @Override
       public boolean mayPlace(ItemStack stack) {
          return false;
       }

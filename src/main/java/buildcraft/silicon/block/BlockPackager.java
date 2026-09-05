@@ -38,11 +38,13 @@ public class BlockPackager extends BcTileBlock {
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return this.beTypeSupplier.get().create(pos, state);
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide() ? null : (lvl, pos, st, be) -> {
          if (be instanceof TilePackager packager) {
@@ -51,6 +53,7 @@ public class BlockPackager extends BcTileBlock {
       };
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, final BlockPos pos, Player player, BlockHitResult hitResult) {
       if (level.isClientSide()) {
          return InteractionResult.SUCCESS;
@@ -58,14 +61,17 @@ public class BlockPackager extends BcTileBlock {
          final BlockEntity be = level.getBlockEntity(pos);
          if (be instanceof TilePackager packager && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(new ExtendedMenuProvider<BlockPos>() {
+               @Override
                public BlockPos getScreenOpeningData(ServerPlayer player) {
                   return pos;
                }
 
+               @Override
                public Component getDisplayName() {
                   return be.getBlockState().getBlock().getName();
                }
 
+               @Override
                public AbstractContainerMenu createMenu(int containerId, Inventory inv, Player p) {
                   return BlockPackager.this.menuFactory.create(containerId, inv, packager);
                }

@@ -62,10 +62,6 @@ public class PageValue<T> {
       return this.type.getTooltip(this.value);
    }
 
-   public PageValue<T> copyToValue() {
-      return new PageValue<>(this.type, this.value);
-   }
-
    @Override
    public int hashCode() {
       return this.value.hashCode();

@@ -38,6 +38,7 @@ public class BlockEngineFE extends BlockEngineBase_BC8 {
       return new TileEngineRF(pos, state);
    }
 
+   @Override
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
@@ -66,6 +67,7 @@ public class BlockEngineFE extends BlockEngineBase_BC8 {
       }
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       return this.openGui(state, level, pos, player);
    }

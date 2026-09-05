@@ -24,7 +24,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Item.Properties;
-import net.minecraft.world.item.component.CustomModelData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -59,6 +58,7 @@ public class ItemPaintbrush_BC8 extends Item {
       }
    }
 
+   @Override
    public Component getName(ItemStack stack) {
       DyeColor colour = getColour(stack);
       if (colour != null) {
@@ -75,21 +75,25 @@ public class ItemPaintbrush_BC8 extends Item {
       }
    }
 
+   @Override
    public boolean isBarVisible(ItemStack stack) {
       DyeColor colour = getColour(stack);
       return colour != null && getUsesLeft(stack) < MAX_USES;
    }
 
+   @Override
    public int getBarWidth(ItemStack stack) {
       int usesLeft = getUsesLeft(stack);
       return Math.round(usesLeft / (float) MAX_USES * 13.0F);
    }
 
+   @Override
    public int getBarColor(ItemStack stack) {
       DyeColor colour = getColour(stack);
       return colour != null ? colour.getTextureDiffuseColor() : super.getBarColor(stack);
    }
 
+   @Override
    public InteractionResult useOn(UseOnContext context) {
       Level level = context.getLevel();
       Player player = context.getPlayer();
@@ -128,10 +132,6 @@ public class ItemPaintbrush_BC8 extends Item {
       } else {
          return InteractionResult.FAIL;
       }
-   }
-
-   public ItemPaintbrush_BC8.Brush getBrushFromStack(ItemStack stack) {
-      return new ItemPaintbrush_BC8.Brush(getColour(stack), getUsesLeft(stack));
    }
 
    public static class Brush {

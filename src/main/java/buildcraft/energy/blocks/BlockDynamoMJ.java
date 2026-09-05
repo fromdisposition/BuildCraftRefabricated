@@ -49,19 +49,23 @@ public class BlockDynamoMJ extends BcTileBlock implements ICustomRotationHandler
       this.registerDefaultState(this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, Direction.UP));
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{BuildCraftProperties.BLOCK_FACING_6});
    }
 
    @Nullable
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
       return this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, ctx.getClickedFace());
    }
 
+   @Override
    public BlockState rotate(BlockState state, Rotation rot) {
       return state.setValue(BuildCraftProperties.BLOCK_FACING_6, rot.rotate(state.getValue(BuildCraftProperties.BLOCK_FACING_6)));
    }
 
+   @Override
    public VoxelShape getBlockSupportShape(BlockState state, BlockGetter level, BlockPos pos) {
       Direction facing = state.getValue(BuildCraftProperties.BLOCK_FACING_6);
 
@@ -76,15 +80,18 @@ public class BlockDynamoMJ extends BcTileBlock implements ICustomRotationHandler
       };
    }
 
+   @Override
    public boolean useShapeForLightOcclusion(BlockState state) {
       return true;
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileDynamoMJ(pos, state);
    }
 
+   @Override
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileDynamoMJ dynamo) {
@@ -93,6 +100,7 @@ public class BlockDynamoMJ extends BcTileBlock implements ICustomRotationHandler
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return !level.isClientSide() ? (lvl, pos, st, be) -> {
          if (be instanceof TileDynamoMJ dynamo) {
@@ -117,6 +125,7 @@ public class BlockDynamoMJ extends BcTileBlock implements ICustomRotationHandler
       }
    }
 
+   @Override
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
@@ -145,6 +154,7 @@ public class BlockDynamoMJ extends BcTileBlock implements ICustomRotationHandler
       }
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       return this.openGui(state, level, pos, player);
    }
@@ -154,6 +164,7 @@ public class BlockDynamoMJ extends BcTileBlock implements ICustomRotationHandler
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block blockIn, @Nullable Orientation orientation, boolean isMoving) {
    //?} else {
    /*protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {

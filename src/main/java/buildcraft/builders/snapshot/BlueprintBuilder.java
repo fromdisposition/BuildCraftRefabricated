@@ -81,6 +81,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
       }
    }
 
+   @Override
    protected Blueprint.BuildingInfo getBuildingInfo() {
       return this.tile.getBlueprintBuildingInfo();
    }

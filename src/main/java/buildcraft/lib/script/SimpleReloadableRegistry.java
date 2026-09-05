@@ -14,8 +14,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
-import javax.annotation.Nullable;
 
 public class SimpleReloadableRegistry<E> implements IReloadableRegistry<E> {
    public final IReloadableRegistryManager manager;
@@ -54,22 +52,5 @@ public class SimpleReloadableRegistry<E> implements IReloadableRegistry<E> {
    @Override
    public Iterable<E> getAllEntries() {
       return Iterables.concat(this.getPermanent(), this.getReloadableEntryMap().values());
-   }
-
-   @Nullable
-   public E getFirstMatch(Predicate<E> filter) {
-      for (E recipe : this.reloadable.values()) {
-         if (filter.test(recipe)) {
-            return recipe;
-         }
-      }
-
-      for (E recipe : this.permanent) {
-         if (filter.test(recipe)) {
-            return recipe;
-         }
-      }
-
-      return null;
    }
 }

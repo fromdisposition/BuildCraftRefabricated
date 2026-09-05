@@ -117,6 +117,7 @@ public record BuildersServerPayload(
       };
    }
 
+   @Override
    public Type<BuildersServerPayload> type() {
       return TYPE;
    }

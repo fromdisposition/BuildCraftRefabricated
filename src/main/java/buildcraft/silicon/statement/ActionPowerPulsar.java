@@ -54,6 +54,7 @@ public class ActionPowerPulsar extends BCStatement implements IActionInternalSid
       return !this.constant;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return this.constant ? BCSiliconSprites.ACTION_PULSAR_CONSTANT : BCSiliconSprites.ACTION_PULSAR_SINGLE;
    }

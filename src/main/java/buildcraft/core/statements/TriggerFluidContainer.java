@@ -32,6 +32,7 @@ public class TriggerFluidContainer extends BCStatement implements ITriggerExtern
       this.state = state;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCCoreSprites.TRIGGER_FLUID.get(this.state);
    }

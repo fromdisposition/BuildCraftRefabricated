@@ -17,6 +17,7 @@ public class PatternClear extends Pattern implements IFillerPatternShape {
       super("clear");
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCBuildersSprites.FILLER_CLEAR;
    }

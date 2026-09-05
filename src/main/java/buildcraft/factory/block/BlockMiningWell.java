@@ -25,10 +25,12 @@ public class BlockMiningWell extends BcTileBlock {
       this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING});
    }
 
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
    }

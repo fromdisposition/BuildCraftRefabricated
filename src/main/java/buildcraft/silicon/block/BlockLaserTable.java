@@ -47,20 +47,24 @@ public class BlockLaserTable extends BcTileBlock implements ILaserTargetBlock {
       this.menuFactory = menuFactory;
    }
 
+   @Override
    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
       return SHAPE;
    }
 
+   @Override
    protected boolean isPathfindable(BlockState state, PathComputationType type) {
       return false;
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return this.beTypeSupplier.get().create(pos, state);
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide() ? null : (lvl, pos, st, be) -> {
          if (be instanceof TileLaserTableBase table) {
@@ -69,6 +73,7 @@ public class BlockLaserTable extends BcTileBlock implements ILaserTargetBlock {
       };
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, final BlockPos pos, Player player, BlockHitResult hitResult) {
       if (level.isClientSide()) {
          return InteractionResult.SUCCESS;
@@ -76,14 +81,17 @@ public class BlockLaserTable extends BcTileBlock implements ILaserTargetBlock {
          final BlockEntity be = level.getBlockEntity(pos);
          if (be instanceof TileLaserTableBase table && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.openMenu(new ExtendedMenuProvider<BlockPos>() {
+               @Override
                public BlockPos getScreenOpeningData(ServerPlayer player) {
                   return pos;
                }
 
+               @Override
                public Component getDisplayName() {
                   return be.getBlockState().getBlock().getName();
                }
 
+               @Override
                public AbstractContainerMenu createMenu(int containerId, Inventory inv, Player p) {
                   return BlockLaserTable.this.menuFactory.create(containerId, inv, table);
                }
@@ -95,6 +103,7 @@ public class BlockLaserTable extends BcTileBlock implements ILaserTargetBlock {
       }
    }
 
+   @Override
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (level.getBlockEntity(pos) instanceof TileLaserTableBase) {

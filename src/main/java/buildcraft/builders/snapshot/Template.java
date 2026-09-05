@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.Rotation;
 public class Template extends Snapshot {
    public BitSet data;
 
+   @Override
    public Template copy() {
       Template template = new Template();
       template.size = this.size;
@@ -76,6 +77,7 @@ public class Template extends Snapshot {
          super(basePos, rotation);
       }
 
+      @Override
       public Template getSnapshot() {
          return Template.this;
       }

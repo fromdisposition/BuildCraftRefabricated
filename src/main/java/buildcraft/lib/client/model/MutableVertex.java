@@ -142,28 +142,12 @@ public class MutableVertex {
          .setNormal(this.normal_x, this.normal_y, this.normal_z);
    }
 
-   public void renderPosition(VertexConsumer bb) {
-      bb.addVertex(this.position_x, this.position_y, this.position_z);
-   }
-
-   public void renderNormal(VertexConsumer bb) {
-      bb.setNormal(this.normal_x, this.normal_y, this.normal_z);
-   }
-
-   public void renderColour(VertexConsumer bb) {
-      bb.setColor(this.colour_r, this.colour_g, this.colour_b, this.colour_a);
-   }
-
    public void renderTex(VertexConsumer bb) {
       bb.setUv(this.tex_u, this.tex_v);
    }
 
    public void renderTex(VertexConsumer bb, ISprite sprite) {
       bb.setUv((float)sprite.getInterpU(this.tex_u), (float)sprite.getInterpV(this.tex_v));
-   }
-
-   public void renderLightMap(VertexConsumer bb) {
-      bb.setUv2(this.light_block << 4, this.light_sky << 4);
    }
 
    public MutableVertex positionv(Vector3f vec) {
@@ -252,14 +236,6 @@ public class MutableVertex {
       return rgba | (this.colour_a & 0xFF) << 24;
    }
 
-   public int colourABGR() {
-      int rgba = 0;
-      rgba |= (this.colour_r & 255) << 24;
-      rgba |= (this.colour_g & 255) << 16;
-      rgba |= (this.colour_b & 255) << 8;
-      return rgba | (this.colour_a & 0xFF) << 0;
-   }
-
    public MutableVertex multColourd(double d) {
       int m = (int)(d * 255.0);
       return this.multColouri(m);
@@ -303,10 +279,6 @@ public class MutableVertex {
 
    public Vector2f tex() {
       return new Vector2f(this.tex_u, this.tex_v);
-   }
-
-   public MutableVertex lightv(Vector2f vec) {
-      return this.lightf(vec.x, vec.y);
    }
 
    public MutableVertex lightf(float block, float sky) {

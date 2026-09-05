@@ -23,6 +23,7 @@ public abstract class ItemAddon extends Item {
 
    public abstract Addon createAddon();
 
+   @Override
    public InteractionResult useOn(UseOnContext context) {
       return (context.getLevel().isClientSide()
          ? InteractionResult.PASS
@@ -30,6 +31,7 @@ public abstract class ItemAddon extends Item {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public InteractionResult use(Level level, Player player, InteractionHand hand) {
       return this.bcUse(level, player, hand);
    }

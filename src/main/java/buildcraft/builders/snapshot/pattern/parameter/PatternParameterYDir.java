@@ -55,6 +55,7 @@ public enum PatternParameterYDir implements IStatementParameter {
       return LocaleUtil.localize("direction." + (this.up ? "up" : "down"));
    }
 
+   @Override
    public PatternParameterYDir onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
       return null;
    }

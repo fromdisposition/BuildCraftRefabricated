@@ -16,18 +16,22 @@ public final class PipeEnergySectionStorage implements EnergyStorage {
       this.section = section;
    }
 
+   @Override
    public long insert(long maxAmount, TransactionContext transaction) {
       return maxAmount <= 0L ? 0L : this.section.insert(saturate(maxAmount), transaction);
    }
 
+   @Override
    public long extract(long maxAmount, TransactionContext transaction) {
       return maxAmount <= 0L ? 0L : this.section.extract(saturate(maxAmount), transaction);
    }
 
+   @Override
    public long getAmount() {
       return this.section.getAmountAsLong();
    }
 
+   @Override
    public long getCapacity() {
       return this.section.getCapacityAsLong();
    }

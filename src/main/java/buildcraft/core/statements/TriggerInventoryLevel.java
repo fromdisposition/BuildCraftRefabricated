@@ -41,6 +41,7 @@ public class TriggerInventoryLevel extends BCStatement implements ITriggerExtern
       return 1;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCCoreSprites.TRIGGER_INVENTORY_LEVEL.get(this.type);
    }

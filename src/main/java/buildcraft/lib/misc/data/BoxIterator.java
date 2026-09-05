@@ -99,21 +99,12 @@ public class BoxIterator implements Iterator<BlockPos> {
    }
 
    @Nonnull
-   public BlockPos getMin() {
-      return this.min;
-   }
-
-   @Nonnull
    public BlockPos getMax() {
       return this.max;
    }
 
    public boolean isInvert() {
       return this.invert;
-   }
-
-   public boolean isRepeat() {
-      return this.repeat;
    }
 
    public AxisOrder getOrder() {
@@ -197,22 +188,6 @@ public class BoxIterator implements Iterator<BlockPos> {
          return false;
       } else {
          return pos.getY() < this.min.getY() || pos.getY() > this.max.getY() ? false : pos.getZ() >= this.min.getZ() && pos.getZ() <= this.max.getZ();
-      }
-   }
-
-   public boolean willVisit(BlockPos pos) {
-      if (!this.contains(pos)) {
-         return false;
-      } else {
-         return this.current == null ? true : this.compare(pos) < 0;
-      }
-   }
-
-   public boolean hasVisited(BlockPos pos) {
-      if (!this.contains(pos)) {
-         return false;
-      } else {
-         return this.current == null && !this.hasRepeated ? false : this.compare(pos) >= 0;
       }
    }
 
@@ -306,6 +281,7 @@ public class BoxIterator implements Iterator<BlockPos> {
       return !this.hasFinished();
    }
 
+   @Override
    public BlockPos next() {
       BlockPos c = this.current;
       this.advance();

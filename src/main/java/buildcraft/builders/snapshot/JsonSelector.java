@@ -26,6 +26,7 @@ public class JsonSelector {
    @SerializedName("nbt")
    private final List<JsonSelector.Expression> expressions;
    public static final TypeAdapterFactory TYPE_ADAPTER_FACTORY = new TypeAdapterFactory() {
+      @Override
       public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
          if (type.getRawType() != JsonSelector.class) {
             return null;
@@ -33,11 +34,13 @@ public class JsonSelector {
 
          final TypeAdapter<T> delegate = gson.getDelegateAdapter(this, type);
          return new TypeAdapter<T>() {
+            @Override
             public void write(JsonWriter out, T value) throws IOException {
                throw new UnsupportedOperationException();
             }
 
             @SuppressWarnings("unchecked")
+            @Override
             public T read(JsonReader in) throws IOException {
                return (T)(in.peek() == JsonToken.STRING ? new JsonSelector(in.nextString(), Collections.emptyList()) : delegate.read(in));
             }

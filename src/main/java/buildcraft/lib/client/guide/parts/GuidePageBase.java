@@ -126,23 +126,6 @@ public abstract class GuidePageBase extends GuidePart {
 
    public abstract List<GuideChapter> getChapters();
 
-   protected GuidePart getClicked(Iterable<GuidePart> iterable, int x, int y, int width, int height, int mouseX, int mouseY, int index) {
-      GuidePart.PagePosition pos = new GuidePart.PagePosition(0, 0);
-
-      for (GuidePart part : iterable) {
-         pos = part.renderIntoArea(x, y, width, height, pos, -1);
-         if (pos.page == index && part.wasHovered) {
-            return part;
-         }
-
-         if (pos.page > index) {
-            return null;
-         }
-      }
-
-      return null;
-   }
-
    public void renderFirstPage(int x, int y, int width, int height) {
       this.renderPage(x, y, width, height, this.index);
    }
@@ -180,10 +163,6 @@ public abstract class GuidePageBase extends GuidePart {
 
    @Override
    public final void handleMouseDragFinish(int startX, int startY, int endX, int endY, int button) {
-   }
-
-   public boolean keyTyped(char typedChar, int keyCode) {
-      return false;
    }
 
    //? if >= 1.21.10 {

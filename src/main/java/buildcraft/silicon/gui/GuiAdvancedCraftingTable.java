@@ -174,6 +174,7 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
    }
 
    //? if >= 1.21.10 {
+   @Override
    public boolean keyPressed(KeyEvent event) {
       return this.recipeBookComponent != null && this.recipeBookComponent.keyPressed(event) ? true : super.keyPressed(event);
    }
@@ -183,6 +184,7 @@ public class GuiAdvancedCraftingTable extends BcScreen<ContainerAdvancedCrafting
    }
    *///?}
 
+   @Override
    protected boolean isHovering(int x, int y, int width, int height, double mouseX, double mouseY) {
       return super.isHovering(x, y, width, height, mouseX, mouseY);
    }

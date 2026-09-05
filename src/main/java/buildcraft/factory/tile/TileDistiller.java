@@ -201,10 +201,6 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       return this.isStuck;
    }
 
-   public long getPowerAvgClient() {
-      return this.powerAvgClient;
-   }
-
    public double getPowerAvgVisual() {
       return this.powerAvgVisual;
    }
@@ -476,21 +472,25 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       return this;
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftfactory.distiller");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerDistiller(containerId, playerInv, this);
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.writeData(new BcValueOut(output));
    }
 
+   @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(input)));
@@ -563,10 +563,12 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       return stack.isEmpty() ? FluidStack.EMPTY : stack.copyWithAmount(1);
    }
 
+   @Override
    public CompoundTag getUpdateTag(Provider registries) {
       return this.saveCustomOnly(registries);
    }
 
+   @Override
    public Packet<ClientGamePacketListener> getUpdatePacket() {
       return ClientboundBlockEntityDataPacket.create(this);
    }

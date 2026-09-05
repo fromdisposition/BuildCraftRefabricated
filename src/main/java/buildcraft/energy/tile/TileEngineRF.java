@@ -131,10 +131,12 @@ public class TileEngineRF extends TileElectricEngineBase {
       return 4;
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftenergy.engine_rf");
    }
 
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerEngineRF(containerId, playerInv, this);
    }

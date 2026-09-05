@@ -54,6 +54,7 @@ public class ACTRecipeBookComponent extends RecipeBookComponent<ContainerAdvance
       super(menu, TABS);
    }
 
+   @Override
    protected boolean isCraftingSlot(Slot slot) {
       return (this.menu).getResultSlot() == slot
          || (this.menu).getInputGridSlots().contains(slot);
@@ -70,6 +71,7 @@ public class ACTRecipeBookComponent extends RecipeBookComponent<ContainerAdvance
       };
    }
 
+   @Override
    protected void fillGhostRecipe(GhostSlots ghostSlots, RecipeDisplay display, ContextMap context) {
       GhostSlotsAccess.setResult(ghostSlots, (this.menu).getResultSlot(), context, display.result());
       switch (display) {
@@ -100,14 +102,19 @@ public class ACTRecipeBookComponent extends RecipeBookComponent<ContainerAdvance
       }
    }
 
+   //? if >= 1.21.11 {
+   @Override
+   //?}
    protected WidgetSprites getFilterButtonTextures() {
       return FILTER_BUTTON_SPRITES;
    }
 
+   @Override
    protected Component getRecipeFilterName() {
       return ONLY_CRAFTABLES_TOOLTIP;
    }
 
+   @Override
    protected void selectMatchingRecipes(RecipeCollection collection, StackedItemContents contents) {
       collection.selectRecipes(contents, this::canDisplay);
    }

@@ -331,6 +331,7 @@ public enum PlugBakerFacade implements IPluggableStaticBaker<KeyPlugFacade> {
       return quads;
    }
 
+   @Override
    public List<BakedQuad> bake(KeyPlugFacade key) {
       List<MutableQuad> mutableQuads = this.bakeForKey(key);
       List<BakedQuad> baked = new ArrayList<>();

@@ -17,6 +17,7 @@ public class PatternBox extends Pattern implements IFillerPatternShape {
       super("box");
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCBuildersSprites.FILLER_BOX;
    }

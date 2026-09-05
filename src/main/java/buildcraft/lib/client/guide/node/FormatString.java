@@ -44,10 +44,6 @@ public class FormatString {
       return this.formatted;
    }
 
-   public String getUnformatted() {
-      return this.unformatted;
-   }
-
    public static FormatString split(String formattedText) {
       List<FormatSegment> segments = new ArrayList<>();
       ChatFormatting lastColour = null;

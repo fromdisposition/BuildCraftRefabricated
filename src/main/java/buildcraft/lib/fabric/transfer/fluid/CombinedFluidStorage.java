@@ -19,6 +19,7 @@ public final class CombinedFluidStorage implements Storage<FluidVariant> {
       this.extractSlots = List.copyOf(extractSlots);
    }
 
+   @Override
    public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
          long remaining = maxAmount;
@@ -42,6 +43,7 @@ public final class CombinedFluidStorage implements Storage<FluidVariant> {
       }
    }
 
+   @Override
    public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       if (!resource.isBlank() && maxAmount > 0L) {
          long remaining = maxAmount;
@@ -65,6 +67,7 @@ public final class CombinedFluidStorage implements Storage<FluidVariant> {
       }
    }
 
+   @Override
    public Iterator<StorageView<FluidVariant>> iterator() {
       Set<Storage<FluidVariant>> seen = new LinkedHashSet<>();
       seen.addAll(this.insertSlots);

@@ -28,14 +28,12 @@ public class BlockSpring extends Block {
       this.springType = springType;
    }
 
-   public EnumSpring getSpringType() {
-      return this.springType;
-   }
-
+   @Override
    public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
       this.generateSpringBlock(level, pos, random);
    }
 
+   @Override
    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean isMoving) {
       if (!(level instanceof ServerLevel)) {
          return;
@@ -49,6 +47,7 @@ public class BlockSpring extends Block {
       }
    }
 
+   @Override
    public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
       this.generateSpringBlock(level, pos, random);
    }

@@ -17,6 +17,7 @@ public class PatternFill extends Pattern implements IFillerPatternShape {
       super("fill");
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCBuildersSprites.FILLER_FILL;
    }

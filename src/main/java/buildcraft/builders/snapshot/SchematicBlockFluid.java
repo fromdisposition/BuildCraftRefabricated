@@ -65,6 +65,7 @@ public class SchematicBlockFluid implements ISchematicBlock {
          : Collections.emptyList();
    }
 
+   @Override
    public SchematicBlockFluid getRotated(Rotation rotation) {
       SchematicBlockFluid schematicBlock = SchematicBlockManager.createCleanCopy(this);
       schematicBlock.blockState = this.blockState;

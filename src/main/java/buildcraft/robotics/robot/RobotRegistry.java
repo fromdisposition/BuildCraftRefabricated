@@ -19,14 +19,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import buildcraft.lib.compat.BcSavedDataType;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.datafix.DataFixTypes;
@@ -358,10 +356,6 @@ public class RobotRegistry extends SavedData implements IRobotRegistry {
    @Override
    public void registryMarkDirty() {
       this.setDirty();
-   }
-
-   public List<DockingStation> getStationsSnapshot() {
-      return new ArrayList<>(this.stations.values());
    }
 
    public static RobotRegistry get(Level world) {

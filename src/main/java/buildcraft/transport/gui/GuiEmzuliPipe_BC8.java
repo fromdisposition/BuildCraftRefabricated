@@ -224,6 +224,7 @@ public class GuiEmzuliPipe_BC8 extends BcScreen<ContainerEmzuliPipe_BC8> {
       }
 
       //? if >= 1.21.10 {
+      @Override
       public void onPress(InputWithModifiers input) {
       }
       //?} else {

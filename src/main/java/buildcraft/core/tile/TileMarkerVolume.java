@@ -42,6 +42,7 @@ public class TileMarkerVolume extends TileMarker<VolumeConnection> implements IT
       return this.showSignals;
    }
 
+   @Override
    public VolumeCache getCache() {
       return VolumeCache.INSTANCE;
    }
@@ -51,11 +52,13 @@ public class TileMarkerVolume extends TileMarker<VolumeConnection> implements IT
       return this.showSignals || this.getCurrentConnection() != null;
    }
 
+   @Override
    protected void writeData(BcValueOut output) {
       super.writeData(output);
       output.putBoolean("showSignals", this.showSignals);
    }
 
+   @Override
    public void readData(BcValueIn input) {
       super.readData(input);
       this.showSignals = input.getBooleanOr("showSignals", false);

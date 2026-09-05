@@ -50,25 +50,30 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
       this.registerDefaultState(defaultState);
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{BuildCraftProperties.BLOCK_FACING_6, BuildCraftProperties.ACTIVE});
    }
 
+   @Override
    public VoxelShape getShape(BlockState state, BlockGetter source, BlockPos pos, CollisionContext ctx) {
       Direction direction = state.getValue(BuildCraftProperties.BLOCK_FACING_6);
       return BOUNDING_BOXES.getOrDefault(direction, Shapes.block());
    }
 
+   @Override
    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
       return Shapes.empty();
    }
 
    @Nullable
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
       Direction facing = ctx.getClickedFace();
       return this.defaultBlockState().setValue(BuildCraftProperties.BLOCK_FACING_6, facing);
    }
 
+   @Override
    public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
       Direction sideOn = state.getValue(BuildCraftProperties.BLOCK_FACING_6);
       BlockPos neighborPos = pos.relative(sideOn.getOpposite());
@@ -76,6 +81,7 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected BlockState updateShape(
       BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
       Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random
@@ -101,6 +107,7 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
       *///?}
    }
 
+   @Override
    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
       if (!state.canSurvive(level, pos)) {
          level.destroyBlock(pos, false);
@@ -108,17 +115,20 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
       }
    }
 
+   @Override
    public BlockState rotate(BlockState state, Rotation rot) {
       return state.setValue(BuildCraftProperties.BLOCK_FACING_6, rot.rotate(state.getValue(BuildCraftProperties.BLOCK_FACING_6)));
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return this.createTileEntity(pos, state);
    }
 
    public abstract BlockEntity createTileEntity(BlockPos var1, BlockState var2);
 
+   @Override
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileMarker<?> marker) {
@@ -127,6 +137,7 @@ public abstract class BlockMarkerBase extends Block implements EntityBlock {
       }
    }
 
+   @Override
    protected List<ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder builder) {
       return Collections.singletonList(new ItemStack(this.asItem()));
    }

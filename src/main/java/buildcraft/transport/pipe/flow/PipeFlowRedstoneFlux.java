@@ -284,10 +284,12 @@ public class PipeFlowRedstoneFlux extends PipeEnergyFlowBase implements IFlowRed
       int debugPowerOutput;
       int debugPowerOffered;
       private final SnapshotParticipant<Integer> powerJournal = new SnapshotParticipant<Integer>() {
+         @Override
          protected Integer createSnapshot() {
             return Section.this.internalNextPower;
          }
 
+         @Override
          protected void readSnapshot(Integer snapshot) {
             Section.this.internalNextPower = snapshot;
          }

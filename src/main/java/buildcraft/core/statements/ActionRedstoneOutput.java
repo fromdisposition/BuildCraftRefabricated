@@ -72,6 +72,7 @@ public class ActionRedstoneOutput extends BCStatement implements IActionInternal
       return 15;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCCoreSprites.ACTION_REDSTONE;
    }

@@ -55,6 +55,7 @@ public enum StatementParamGateSideOnly implements IStatementParameter {
       return IStatementParameter.DrawType.SPRITE_ONLY;
    }
 
+   @Override
    public StatementParamGateSideOnly onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
       return null;
    }

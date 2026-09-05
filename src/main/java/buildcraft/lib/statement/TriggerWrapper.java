@@ -53,6 +53,7 @@ public abstract class TriggerWrapper extends StatementWrapper implements ITrigge
       }
    }
 
+   @Override
    public TriggerWrapper[] getPossible() {
       IStatement[] possible = this.delegate.getPossible();
       boolean andSides = this.sourcePart != EnumPipePart.CENTER;

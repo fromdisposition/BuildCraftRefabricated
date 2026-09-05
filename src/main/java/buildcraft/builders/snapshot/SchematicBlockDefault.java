@@ -295,6 +295,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
       return this.tileNbt;
    }
 
+   @Override
    public SchematicBlockDefault getRotated(Rotation rotation) {
       SchematicBlockDefault schematicBlock = SchematicBlockManager.createCleanCopy(this);
       this.requiredBlockOffsets.stream().map(blockPos -> blockPos.rotate(rotation)).forEach(schematicBlock.requiredBlockOffsets::add);

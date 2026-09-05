@@ -14,10 +14,12 @@ public final class SidedFluidStorages {
 
    public static Storage<FluidVariant> extractOnly(final Storage<FluidVariant> storage) {
       return new ExtractionOnlyStorage<FluidVariant>() {
+         @Override
          public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
             return storage.extract(resource, maxAmount, transaction);
          }
 
+         @Override
          public Iterator<StorageView<FluidVariant>> iterator() {
             return storage.iterator();
          }
@@ -26,6 +28,7 @@ public final class SidedFluidStorages {
 
    public static Storage<FluidVariant> insertOnly(final Storage<FluidVariant> storage) {
       return new InsertionOnlyStorage<FluidVariant>() {
+         @Override
          public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
             return storage.insert(resource, maxAmount, transaction);
          }

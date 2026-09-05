@@ -54,10 +54,6 @@ public class RobotBlueprintContext implements ITileForBlueprintBuilder {
       return this.builder;
    }
 
-   public BlockPos getMarkerPos() {
-      return this.markerPos;
-   }
-
    public void setInRange(boolean inRange) {
       this.battery.inRange = inRange;
    }

@@ -79,6 +79,7 @@ public class GateItemModel implements ItemModel {
       cache.invalidateAll();
    }
 
+   @Override
    public void update(
       ItemStackRenderState renderState,
       ItemStack stack,

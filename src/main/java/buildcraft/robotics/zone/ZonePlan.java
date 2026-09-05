@@ -129,10 +129,6 @@ public class ZonePlan implements IZone {
       return this.chunkMapping.keySet();
    }
 
-   public HashMap<ChunkPos, ZoneChunk> getChunkMapping() {
-      return this.chunkMapping;
-   }
-
    public void writeToNBT(CompoundTag nbt) {
       ListTag list = new ListTag();
 

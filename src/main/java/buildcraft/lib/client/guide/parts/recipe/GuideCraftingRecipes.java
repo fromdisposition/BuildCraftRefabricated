@@ -83,9 +83,6 @@ public enum GuideCraftingRecipes implements IStackRecipes {
       return GuideCraftingFactory.getCyclingFactory(gatherByIdMatch(substring));
    }
 
-   public void generateIndices() {
-   }
-
    private static boolean checkRecipeUses(CraftingRecipe recipe, @Nonnull ItemStack target) {
       if (recipe instanceof ShapedRecipe shaped) {
          //? if >= 1.21.10 {

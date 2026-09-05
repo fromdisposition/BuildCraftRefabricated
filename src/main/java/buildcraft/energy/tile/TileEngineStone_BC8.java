@@ -273,10 +273,12 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
       return this;
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftenergy.engine_stone");
    }
 
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerEngineStone_BC8(containerId, playerInv, this);
    }

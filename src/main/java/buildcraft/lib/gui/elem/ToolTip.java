@@ -6,7 +6,6 @@
 
 package buildcraft.lib.gui.elem;
 
-import buildcraft.lib.misc.LocaleUtil;
 import com.google.common.collect.ForwardingList;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +32,7 @@ public class ToolTip extends ForwardingList<String> implements RandomAccess {
       this.delegate.addAll(lines);
    }
 
+   @Override
    protected final List<String> delegate() {
       return this.delegate;
    }
@@ -46,14 +46,6 @@ public class ToolTip extends ForwardingList<String> implements RandomAccess {
          } else {
             this.mouseOverStart = 0L;
          }
-      }
-   }
-
-   public boolean isReady() {
-      if (this.delay == 0L) {
-         return true;
-      } else {
-         return this.mouseOverStart == 0L ? false : System.currentTimeMillis() - this.mouseOverStart >= this.delay;
       }
    }
 

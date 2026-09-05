@@ -48,6 +48,7 @@ public record MessageMarker(boolean add, boolean connection, int cacheId, List<B
       return new MessageMarker(add, connection, cacheId, positions);
    }
 
+   @Override
    public Type<MessageMarker> type() {
       return TYPE;
    }

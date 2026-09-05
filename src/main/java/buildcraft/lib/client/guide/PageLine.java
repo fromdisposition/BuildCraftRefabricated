@@ -48,6 +48,7 @@ public class PageLine implements Comparable<PageLine> {
       return "PageLine [indent = " + this.indent + ", text=" + this.text + "]";
    }
 
+   @Override
    public int compareTo(PageLine o) {
       return this.text.toLowerCase().compareTo(o.text.toLowerCase());
    }

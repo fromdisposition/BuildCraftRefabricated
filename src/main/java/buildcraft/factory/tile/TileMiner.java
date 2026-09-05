@@ -252,10 +252,6 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
       return !this.isComplete() && this.battery.getStored() > 0L;
    }
 
-   public int getWantedLength() {
-      return this.wantedLength;
-   }
-
    public float getPercentFilledForRender() {
       float val = (float)this.battery.getStored() / (float)this.battery.getCapacity();
       return val < 0.0F ? 0.0F : (val > 1.0F ? 1.0F : val);

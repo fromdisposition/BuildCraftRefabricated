@@ -31,6 +31,7 @@ public class PlugGateBaker implements IPluggableStaticBaker<KeyPlugGate> {
       return BcTextureAtlases.getBlockSprite(Identifier.parse(path));
    }
 
+   @Override
    public List<BakedQuad> bake(KeyPlugGate key) {
       return cached.computeIfAbsent(key, this::bakeUncached);
    }

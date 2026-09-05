@@ -32,11 +32,13 @@ public class BlockQuarry extends BcHorizontalTileBlock {
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileQuarry(pos, state);
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
       return blockEntityType != BCBuildersBlockEntities.QUARRY ? null : (lvl, pos, st, be) -> {
          if (be instanceof TileQuarry quarry) {
@@ -45,6 +47,7 @@ public class BlockQuarry extends BcHorizontalTileBlock {
       };
    }
 
+   @Override
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (!level.isClientSide() && placer instanceof Player player) {
@@ -52,6 +55,7 @@ public class BlockQuarry extends BcHorizontalTileBlock {
       }
    }
 
+   @Override
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
       if (level.getBlockEntity(pos) instanceof TileQuarry quarry) {
          for (BlockPos blockPos : quarry.framePoses) {

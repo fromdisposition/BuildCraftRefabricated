@@ -69,6 +69,7 @@ public class SingleFluidTank extends SnapshotParticipant<FluidStack> implements 
       this.notifyContentsChanged();
    }
 
+   @Override
    public long insert(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       return !this.access.externalInsert() ? 0L : this.insertUnchecked(resource, maxAmount, transaction, true);
    }
@@ -77,6 +78,7 @@ public class SingleFluidTank extends SnapshotParticipant<FluidStack> implements 
       return this.insertUnchecked(resource, maxAmount, transaction, false);
    }
 
+   @Override
    public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
       return !this.access.externalExtract() ? 0L : this.extractUnchecked(resource, maxAmount, transaction);
    }
@@ -112,6 +114,7 @@ public class SingleFluidTank extends SnapshotParticipant<FluidStack> implements 
    }
 
    @SuppressWarnings("unchecked")
+   @Override
    public Iterator<StorageView<FluidVariant>> iterator() {
       return (Iterator<StorageView<FluidVariant>>)(Iterator<?>)List.of(new SingleFluidTank.SlotView()).iterator();
    }
@@ -239,22 +242,27 @@ public class SingleFluidTank extends SnapshotParticipant<FluidStack> implements 
    }
 
    private final class SlotView implements StorageView<FluidVariant> {
+      @Override
       public long extract(FluidVariant resource, long maxAmount, TransactionContext transaction) {
          return SingleFluidTank.this.extract(resource, maxAmount, transaction);
       }
 
+      @Override
       public boolean isResourceBlank() {
          return SingleFluidTank.this.isEmpty();
       }
 
+      @Override
       public FluidVariant getResource() {
          return SingleFluidTank.this.isEmpty() ? FluidVariant.blank() : FluidVariants.toVariant(SingleFluidTank.this.getFluidStack());
       }
 
+      @Override
       public long getAmount() {
          return FluidVariants.mbToDroplets(SingleFluidTank.this.getAmountMb());
       }
 
+      @Override
       public long getCapacity() {
          return FluidVariants.mbToDroplets(SingleFluidTank.this.capacityMb);
       }

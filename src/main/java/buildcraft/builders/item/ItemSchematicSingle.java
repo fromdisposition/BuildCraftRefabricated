@@ -64,6 +64,7 @@ public class ItemSchematicSingle extends Item {
    }
 
    //? if >= 1.21.10 {
+   @Override
    public InteractionResult use(Level level, Player player, InteractionHand hand) {
       return this.bcUse(level, player, hand);
    }
@@ -86,6 +87,7 @@ public class ItemSchematicSingle extends Item {
       }
    }
 
+   @Override
    public InteractionResult useOn(UseOnContext context) {
       Level world = context.getLevel();
       if (world.isClientSide()) {

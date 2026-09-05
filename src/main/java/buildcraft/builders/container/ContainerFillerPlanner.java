@@ -140,6 +140,7 @@ public class ContainerFillerPlanner extends BcMenu implements IContainerFilling 
       }
    }
 
+   @Override
    public void broadcastChanges() {
       super.broadcastChanges();
       if (this.addon != null && this.player != null && this.player.level() != null && !this.player.level().isClientSide()) {

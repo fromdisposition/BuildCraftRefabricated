@@ -21,6 +21,7 @@ public abstract class ContainerBCTileRecipeBook<T extends BcBlockEntity> extends
       }
    }
 
+   @Override
    public void removed(Player player) {
       super.removed(player);
       if (this.tile != null) {

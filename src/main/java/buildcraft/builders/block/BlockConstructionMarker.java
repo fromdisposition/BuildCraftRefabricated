@@ -29,10 +29,12 @@ public class BlockConstructionMarker extends BcHorizontalTileBlock {
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileConstructionMarker(pos, state);
    }
 
+   @Override
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
@@ -50,6 +52,7 @@ public class BlockConstructionMarker extends BcHorizontalTileBlock {
       return InteractionResult.SUCCESS;
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TileConstructionMarker marker && marker.hasBlueprint()) {
          ItemStack removed = marker.removeBlueprint();

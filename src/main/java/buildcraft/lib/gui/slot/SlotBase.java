@@ -27,34 +27,41 @@ public class SlotBase extends Slot {
       return true;
    }
 
+   @Override
    public boolean mayPlace(@Nonnull ItemStack stack) {
       return stack.isEmpty() ? false : this.itemHandler.canSet(this.handlerIndex, stack);
    }
 
    @Nonnull
+   @Override
    public ItemStack getItem() {
       return this.itemHandler.getStackInSlot(this.handlerIndex);
    }
 
+   @Override
    public void set(@Nonnull ItemStack stack) {
       this.itemHandler.setStackInSlot(this.handlerIndex, stack);
       this.setChanged();
    }
 
+   @Override
    public void setChanged() {
       super.setChanged();
    }
 
+   @Override
    public int getMaxStackSize() {
       return this.itemHandler.getSlotLimit(this.handlerIndex);
    }
 
+   @Override
    public int getMaxStackSize(@Nonnull ItemStack stack) {
       int slotLimit = this.itemHandler.getSlotLimit(this.handlerIndex);
       return Math.min(slotLimit, stack.getMaxStackSize());
    }
 
    @Nonnull
+   @Override
    public ItemStack remove(int amount) {
       return this.itemHandler.extractItem(this.handlerIndex, amount, false);
    }
@@ -66,36 +73,45 @@ public class SlotBase extends Slot {
          this.handler = handler;
       }
 
+      @Override
       public int getContainerSize() {
          return this.handler.size();
       }
 
+      @Override
       public boolean isEmpty() {
          return false;
       }
 
+      @Override
       public ItemStack getItem(int index) {
          return this.handler.getStackInSlot(index);
       }
 
+      @Override
       public ItemStack removeItem(int index, int count) {
          return ItemStack.EMPTY;
       }
 
+      @Override
       public ItemStack removeItemNoUpdate(int index) {
          return ItemStack.EMPTY;
       }
 
+      @Override
       public void setItem(int index, ItemStack stack) {
       }
 
+      @Override
       public void setChanged() {
       }
 
+      @Override
       public boolean stillValid(Player player) {
          return true;
       }
 
+      @Override
       public void clearContent() {
       }
    }

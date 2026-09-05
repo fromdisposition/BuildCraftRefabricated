@@ -21,7 +21,6 @@ import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.fabric.transfer.TransferCommits;
 import buildcraft.lib.misc.AdvancementUtil;
-import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerManager;
@@ -74,10 +73,6 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
       return this.battery;
    }
 
-
-   public ItemHandlerSimple getInv() {
-      return this.inv;
-   }
 
    public void serverTick() {
       if (this.level != null && !this.level.isClientSide()) {
@@ -241,11 +236,13 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
       return this;
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcraftfactory.chute");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerChute(containerId, playerInv, this);
    }

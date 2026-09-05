@@ -72,6 +72,7 @@ public enum PatternParameterCenter implements IStatementParameter {
       return LocaleUtil.localize("direction.center." + this.ordinal());
    }
 
+   @Override
    public PatternParameterCenter onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
       return null;
    }

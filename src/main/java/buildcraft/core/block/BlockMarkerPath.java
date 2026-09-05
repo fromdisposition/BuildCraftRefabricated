@@ -27,6 +27,7 @@ public class BlockMarkerPath extends BlockMarkerBase {
       return new TileMarkerPath(pos, state);
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
       if (!world.isClientSide() && world.getBlockEntity(pos) instanceof TileMarkerPath marker) {
          marker.reverseDirection();

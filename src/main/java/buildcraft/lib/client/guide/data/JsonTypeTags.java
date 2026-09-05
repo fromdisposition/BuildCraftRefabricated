@@ -6,7 +6,6 @@
 
 package buildcraft.lib.client.guide.data;
 
-import buildcraft.api.core.BCLog;
 import buildcraft.lib.client.guide.ETypeTag;
 import buildcraft.lib.client.guide.TypeOrder;
 import java.util.ArrayList;
@@ -68,13 +67,6 @@ public class JsonTypeTags {
       }
    }
 
-   public JsonTypeTags inheritMissingTags(JsonTypeTags parent) {
-      String d = firstNonEmpty(this.domain, parent.domain, "unknown");
-      String t = firstNonEmpty(this.type, parent.type, "unknown");
-      String st = firstNonEmpty(this.subType, parent.subType, "unknown");
-      return new JsonTypeTags(d, t, st);
-   }
-
    private static String firstNonEmpty(String... strings) {
       String current = null;
 
@@ -86,18 +78,5 @@ public class JsonTypeTags {
       }
 
       return current;
-   }
-
-   public void printContents(int indent) {
-      StringBuilder f = new StringBuilder();
-
-      while (indent > 0) {
-         f.append("  ");
-         indent--;
-      }
-
-      BCLog.logger.info(f + "domain = " + this.domain + ",");
-      BCLog.logger.info(f + "type = " + this.type + ",");
-      BCLog.logger.info(f + "sub_type = " + this.subType);
    }
 }

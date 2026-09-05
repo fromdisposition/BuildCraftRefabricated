@@ -39,10 +39,6 @@ public class AverageLong {
       return (double)this.averageRaw / this.precise;
    }
 
-   public long getAverageLong() {
-      return this.averageRaw / this.precise;
-   }
-
    public void tick(long value) {
       this.internalTick(this.tickValue + value);
       this.tickValue = 0L;

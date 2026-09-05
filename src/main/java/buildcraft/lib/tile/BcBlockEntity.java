@@ -83,11 +83,13 @@ public abstract class BcBlockEntity extends BlockEntity {
    // BC tiles override the version-neutral writeData/readData hooks below (NOT saveAdditional/loadAdditional),
    // and call super.writeData/readData. The version-specific dispatch lives here once.
    //? if >= 1.21.10 {
+   @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.writeData(new BcValueOut(output));
    }
 
+   @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       this.readDataGuarded(new BcValueIn(input));
@@ -200,11 +202,13 @@ public abstract class BcBlockEntity extends BlockEntity {
       return direction == null ? null : this.itemManager.getItemStorage(direction);
    }
 
+   @Override
    public CompoundTag getUpdateTag(Provider registries) {
       return this.saveCustomOnly(registries);
    }
 
    @Nullable
+   @Override
    public Packet<ClientGamePacketListener> getUpdatePacket() {
       return ClientboundBlockEntityDataPacket.create(this);
    }

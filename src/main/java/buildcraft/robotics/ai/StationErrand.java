@@ -54,10 +54,6 @@ public final class StationErrand {
       return this.kind;
    }
 
-   public boolean isLoad() {
-      return this.kind == Kind.LOAD_ITEMS || this.kind == Kind.LOAD_FLUIDS;
-   }
-
    /** An errand with no filter can never match anything, so it is not worth flying anywhere for. */
    public boolean isValid() {
       return switch (this.kind) {

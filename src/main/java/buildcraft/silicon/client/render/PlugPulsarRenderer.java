@@ -83,6 +83,7 @@ public enum PlugPulsarRenderer implements IPlugDynamicRenderer<PluggablePulsar> 
       ModelUtil.addSpriteBox(quads, sprite, x0, y0, z0, x1, y1, z1, faceUvs);
    }
 
+   @Override
    public void render(PluggablePulsar plug, double x, double y, double z, float partialTicks, VertexConsumer bb, PoseStack ps) {
       initCache();
       boolean on = plug.getIsPulsingClient();

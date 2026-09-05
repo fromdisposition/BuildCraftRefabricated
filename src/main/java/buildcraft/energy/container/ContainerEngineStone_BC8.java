@@ -43,6 +43,7 @@ public class ContainerEngineStone_BC8 extends BcMenu {
       this.engine = engine;
       if (engine != null && engine.getLevel() != null && !engine.getLevel().isClientSide()) {
          this.data = new ContainerData() {
+            @Override
             public int get(int index) {
                return switch (index) {
                   case DATA_BURN_TIME -> engine.burnTime;
@@ -56,9 +57,11 @@ public class ContainerEngineStone_BC8 extends BcMenu {
                };
             }
 
+            @Override
             public void set(int index, int value) {
             }
 
+            @Override
             public int getCount() {
                return DATA_COUNT;
             }
@@ -127,18 +130,22 @@ public class ContainerEngineStone_BC8 extends BcMenu {
          this.engine = engine;
       }
 
+      @Override
       public int getContainerSize() {
          return 1;
       }
 
+      @Override
       public boolean isEmpty() {
          return this.engine == null || this.engine.getFuelStack().isEmpty();
       }
 
+      @Override
       public ItemStack getItem(int slot) {
          return this.engine != null ? this.engine.getFuelStack() : ItemStack.EMPTY;
       }
 
+      @Override
       public ItemStack removeItem(int slot, int count) {
          if (this.engine == null) {
             return ItemStack.EMPTY;
@@ -159,6 +166,7 @@ public class ContainerEngineStone_BC8 extends BcMenu {
          return result;
       }
 
+      @Override
       public ItemStack removeItemNoUpdate(int slot) {
          if (this.engine == null) {
             return ItemStack.EMPTY;
@@ -169,22 +177,26 @@ public class ContainerEngineStone_BC8 extends BcMenu {
          return stack;
       }
 
+      @Override
       public void setItem(int slot, ItemStack stack) {
          if (this.engine != null) {
             this.engine.setFuelStack(stack);
          }
       }
 
+      @Override
       public void setChanged() {
          if (this.engine != null) {
             this.engine.setChanged();
          }
       }
 
+      @Override
       public boolean stillValid(Player player) {
          return true;
       }
 
+      @Override
       public void clearContent() {
          if (this.engine != null) {
             this.engine.setFuelStack(ItemStack.EMPTY);
@@ -200,6 +212,7 @@ public class ContainerEngineStone_BC8 extends BcMenu {
          this.engine = engine;
       }
 
+      @Override
       public boolean mayPlace(ItemStack stack) {
          return this.engine != null && this.engine.isValidFuel(stack);
       }

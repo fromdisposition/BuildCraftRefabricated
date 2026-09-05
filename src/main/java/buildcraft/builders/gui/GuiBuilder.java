@@ -201,6 +201,7 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       }
 
       //? if >= 1.21.10 {
+      @Override
       public void onPress(InputWithModifiers modifiers) {
          (GuiBuilder.this.menu).sendMessage(ContainerBuilder.NET_CONTENTS_MODE_CLICK, buf -> {});
       }
@@ -242,6 +243,7 @@ public class GuiBuilder extends BcScreen<ContainerBuilder> {
       }
 
       //? if >= 1.21.10 {
+      @Override
       public void onPress(InputWithModifiers modifiers) {
          (GuiBuilder.this.menu).sendMessage(ContainerBuilder.NET_FLUID_MODE_CLICK, buf -> {});
       }

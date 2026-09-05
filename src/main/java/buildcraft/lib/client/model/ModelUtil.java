@@ -214,10 +214,6 @@ public class ModelUtil {
          return new ModelUtil.UvFaceData(min_u, min_v, max_u, max_v);
       }
 
-      public ModelUtil.UvFaceData inParent(ModelUtil.UvFaceData parent) {
-         return parent.andSub(this);
-      }
-
       @Override
       public String toString() {
          return "[ " + this.minU * 16.0F + ", " + this.minV * 16.0F + ", " + this.maxU * 16.0F + ", " + this.maxV * 16.0F + " ]";

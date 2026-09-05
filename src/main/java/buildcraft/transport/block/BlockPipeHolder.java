@@ -80,11 +80,13 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       super(props);
    }
 
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TilePipeHolder(pos, state);
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return type == BCTransportBlockEntities.PIPE_HOLDER ? (lvl, pos, st, be) -> ((TilePipeHolder)be).tick() : null;
    }
@@ -128,26 +130,36 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
 
    // Always the full composed shape: deriving a per-part shape from the crosshair hit would be circular, since that
    // hit itself comes from querying getShape. The tight per-part outline is drawn separately, from the resolved hit.
+   @Override
    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
       return this.getFullShape(level, pos);
    }
 
+   @Override
    public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
       return this.getFullShape(level, pos);
    }
 
+   @Override
    public boolean isPathfindable(BlockState state, PathComputationType type) {
       return false;
    }
 
+   @Override
    public RenderShape getRenderShape(BlockState state) {
       return RenderShape.MODEL;
    }
 
+   @Override
+   //? if >= 1.21.10 {
    public boolean propagatesSkylightDown(BlockState state) {
+   //?} else {
+   /*public boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+   *///?}
       return true;
    }
 
+   @Override
    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
       super.setPlacedBy(level, pos, state, placer, stack);
       if (level.getBlockEntity(pos) instanceof TilePipeHolder tile) {
@@ -155,6 +167,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       }
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       if (level.getBlockEntity(pos) instanceof TilePipeHolder tile && tile.getPipe() != null) {
          Pipe pipe = tile.getPipe();
@@ -186,6 +199,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return InteractionResult.PASS;
    }
 
+   @Override
    protected InteractionResult useItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
@@ -486,6 +500,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       return false;
    }
 
+   @Override
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
       // Reaching here means the pipe body is genuinely being destroyed: aiming at a pluggable/wire never starts the
       // vanilla break at all (PipePartBreakHandler cancels the attack and removes just that part). So always run the
@@ -500,6 +515,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
       super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
    //?} else {
@@ -520,19 +536,23 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
       }
    }
 
+   @Override
    public boolean isSignalSource(BlockState state) {
       return true;
    }
 
+   @Override
    public int getSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
       return level.getBlockEntity(pos) instanceof TilePipeHolder tile ? tile.getRedstoneOutput(direction.getOpposite()) : 0;
    }
 
+   @Override
    public int getDirectSignal(BlockState state, BlockGetter level, BlockPos pos, Direction direction) {
       return this.getSignal(state, level, pos, direction);
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
    //?} else {
    /*public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {

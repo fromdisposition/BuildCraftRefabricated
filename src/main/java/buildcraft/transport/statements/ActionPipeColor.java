@@ -40,6 +40,7 @@ public class ActionPipeColor extends BCStatement implements IActionInternal {
       return BCTransportStatements.ACTION_PIPE_COLOUR;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCTransportSprites.ACTION_PIPE_COLOUR[this.color.ordinal()];
    }

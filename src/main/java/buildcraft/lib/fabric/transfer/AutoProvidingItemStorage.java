@@ -10,18 +10,22 @@ import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 public enum AutoProvidingItemStorage implements Storage<ItemVariant> {
    INSTANCE;
 
+   @Override
    public boolean supportsInsertion() {
       return false;
    }
 
+   @Override
    public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
       return 0L;
    }
 
+   @Override
    public long extract(ItemVariant resource, long maxAmount, TransactionContext transaction) {
       return 0L;
    }
 
+   @Override
    public Iterator<StorageView<ItemVariant>> iterator() {
       return Collections.emptyIterator();
    }

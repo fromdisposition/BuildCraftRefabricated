@@ -49,6 +49,7 @@ public class TriggerLightSensor extends BCStatement implements ITriggerInternalS
       return BCSiliconStatements.TRIGGER_LIGHT;
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return this.bright ? BCSiliconSprites.TRIGGER_LIGHT_HIGH : BCSiliconSprites.TRIGGER_LIGHT_LOW;
    }

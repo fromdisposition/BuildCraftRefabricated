@@ -92,10 +92,12 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
       }
    }
 
+   @Override
    public S get() {
       return this.statement;
    }
 
+   @Override
    public void set(S to) {
       this.statement = to;
       if (this.statement == null) {
@@ -111,10 +113,12 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
       }
    }
 
+   @Override
    public boolean canSet(S value) {
       return value == null ? true : value.minParameters() <= this.params.length;
    }
 
+   @Override
    public S convertToType(Object value) {
       S val = IReference.super.convertToType(value);
       return value != null && val == null ? this.type.convertToType(value) : val;
@@ -179,14 +183,17 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
          this.index = index;
       }
 
+      @Override
       public IStatementParameter get() {
          return this.array[this.index];
       }
 
+      @Override
       public void set(IStatementParameter to) {
          this.array[this.index] = to;
       }
 
+      @Override
       public boolean canSet(IStatementParameter value) {
          IStatement statement = this.statementRef.get();
          return statement == null ? false : statement.createParameter(value, this.index) == value;

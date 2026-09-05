@@ -50,6 +50,7 @@ public enum PlugGateRenderer implements IPlugDynamicRenderer<PluggableGate> {
       offBox = null;
    }
 
+   @Override
    public void render(PluggableGate plug, double x, double y, double z, float partialTicks, VertexConsumer bb, PoseStack ps) {
       initDynamicCache();
       int naturalBlockLight = 0;

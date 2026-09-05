@@ -37,11 +37,13 @@ public class TileFilteredBuffer extends BcBlockEntity implements MenuProvider, B
       this.itemManager.addInvHandler("main", this.invMain, ItemHandlerManager.EnumAccess.BOTH, EnumPipePart.VALUES);
    }
 
+   @Override
    public Component getDisplayName() {
       return Component.translatable("block.buildcrafttransport.filtered_buffer");
    }
 
    @Nullable
+   @Override
    public AbstractContainerMenu createMenu(int containerId, Inventory playerInv, Player player) {
       return new ContainerFilteredBuffer_BC8(containerId, playerInv, this);
    }

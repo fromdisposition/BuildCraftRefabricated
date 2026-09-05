@@ -36,11 +36,13 @@ public abstract class TileMarker<C extends MarkerConnection<C>> extends BlockEnt
 
    // Version-neutral serialization hooks; subclasses override writeData/readData (NOT saveAdditional).
    //? if >= 1.21.10 {
+   @Override
    protected void saveAdditional(ValueOutput output) {
       super.saveAdditional(output);
       this.writeData(new BcValueOut(output));
    }
 
+   @Override
    public void loadAdditional(ValueInput input) {
       super.loadAdditional(input);
       buildcraft.lib.tile.BcBlockEntity.guardTileRead(this, () -> this.readData(new BcValueIn(input)));
@@ -104,17 +106,11 @@ public abstract class TileMarker<C extends MarkerConnection<C>> extends BlockEnt
       }
    }
 
+   @Override
    public void setRemoved() {
       super.setRemoved();
       if (this.level != null && !this.level.isClientSide() && !this.chunkUnloading) {
          this.getLocalCache().removeMarker(this.getBlockPos());
-      }
-   }
-
-   protected void disconnectFromOthers() {
-      C currentConnection = this.getCurrentConnection();
-      if (currentConnection != null) {
-         currentConnection.removeMarker(this.getBlockPos());
       }
    }
 

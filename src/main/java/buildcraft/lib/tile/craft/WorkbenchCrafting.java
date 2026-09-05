@@ -58,10 +58,6 @@ public class WorkbenchCrafting {
       this.invResult = invResult;
    }
 
-   public void setFluidSupport(@Nullable IFluidCraftSupport fluidSupport) {
-      this.fluidSupport = fluidSupport;
-   }
-
    public int getSize() {
       return this.width * this.height;
    }

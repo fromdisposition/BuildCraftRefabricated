@@ -45,6 +45,7 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, Min
       *///?}
    }
 
+   @Override
    public MiningWellRenderState createRenderState() {
       return new MiningWellRenderState();
    }
@@ -65,6 +66,7 @@ public class RenderMiningWell implements BlockEntityRenderer<TileMiningWell, Min
       state.shaftLength = tile.getLength(partialTick);
    }
 
+   @Override
    public void submit(MiningWellRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
       poseStack.pushPose();
       LedRenderUtil.setFacePosition(LED_POWER, renderState.facing, 0.0125, 0.15625, 0.34375);

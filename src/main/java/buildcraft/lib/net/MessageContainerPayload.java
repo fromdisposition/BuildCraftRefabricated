@@ -41,6 +41,7 @@ public record MessageContainerPayload(int containerId, int messageId, byte[] pay
       }
    }
 
+   @Override
    public Type<MessageContainerPayload> type() {
       return TYPE;
    }

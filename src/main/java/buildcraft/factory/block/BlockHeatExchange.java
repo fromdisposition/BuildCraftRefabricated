@@ -64,10 +64,12 @@ public class BlockHeatExchange extends BcTileBlock implements ICustomRotationHan
       );
    }
 
+   @Override
    protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
       builder.add(new Property[]{FACING, PART, CONNECTED_LEFT, CONNECTED_RIGHT});
    }
 
+   @Override
    public BlockState getStateForPlacement(BlockPlaceContext context) {
       Direction facing = context.getHorizontalDirection().getOpposite();
       BlockPos pos = context.getClickedPos();
@@ -101,6 +103,7 @@ public class BlockHeatExchange extends BcTileBlock implements ICustomRotationHan
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected BlockState updateShape(
       BlockState state, LevelReader level, ScheduledTickAccess scheduledTickAccess, BlockPos pos,
       Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource randomSource
@@ -131,6 +134,7 @@ public class BlockHeatExchange extends BcTileBlock implements ICustomRotationHan
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileHeatExchange(pos, state);
    }
@@ -147,12 +151,14 @@ public class BlockHeatExchange extends BcTileBlock implements ICustomRotationHan
    *///?}
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
       return level.isClientSide()
          ? createTickerHelper(type, BCFactoryBlockEntities.HEAT_EXCHANGE, (lvl, pos, st, tile) -> tile.clientTick())
          : createTickerHelper(type, BCFactoryBlockEntities.HEAT_EXCHANGE, (lvl, pos, st, tile) -> tile.serverTick());
    }
 
+   @Override
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {
@@ -182,6 +188,7 @@ public class BlockHeatExchange extends BcTileBlock implements ICustomRotationHan
       }
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       return (level.getBlockEntity(pos) instanceof TileHeatExchange exchange
          ? openExchangeMenu(level, exchange, player)
@@ -209,6 +216,7 @@ public class BlockHeatExchange extends BcTileBlock implements ICustomRotationHan
    }
 
    //? if >= 1.21.10 {
+   @Override
    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, @Nullable Orientation orientation, boolean movedByPiston) {
       super.neighborChanged(state, level, pos, neighborBlock, orientation, movedByPiston);
    //?} else {
@@ -227,6 +235,7 @@ public class BlockHeatExchange extends BcTileBlock implements ICustomRotationHan
 
       private final String lowerCaseName = this.name().toLowerCase(Locale.ROOT);
 
+      @Override
       public String getSerializedName() {
          return this.lowerCaseName;
       }

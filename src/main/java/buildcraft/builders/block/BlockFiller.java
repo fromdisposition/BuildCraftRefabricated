@@ -30,11 +30,13 @@ public class BlockFiller extends BcHorizontalTileBlock {
    }
 
    @Nullable
+   @Override
    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
       return new TileFiller(pos, state);
    }
 
    @Nullable
+   @Override
    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
       return blockEntityType != BCBuildersBlockEntities.FILLER ? null : (lvl, pos, st, be) -> {
          if (be instanceof TileFiller filler) {
@@ -43,10 +45,12 @@ public class BlockFiller extends BcHorizontalTileBlock {
       };
    }
 
+   @Override
    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
       return this.openGui(level, pos, player);
    }
 
+   @Override
    protected InteractionResult bcUseItemOn(
       ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult
    ) {

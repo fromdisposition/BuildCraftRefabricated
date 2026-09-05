@@ -71,10 +71,6 @@ public final class ExtractBlockOutlineRenderStateEvent {
       //?}
    }
 
-   public LevelRenderer getLevelRenderer() {
-      return this.levelRenderer;
-   }
-
    public ClientLevel getLevel() {
       return this.level;
    }
@@ -91,18 +87,7 @@ public final class ExtractBlockOutlineRenderStateEvent {
       return this.hitResult;
    }
 
-   public CollisionContext getCollisionContext() {
-      return this.collisionContext;
-   }
-
-   public Camera getCamera() {
-      return this.camera;
-   }
-
    //? if >= 1.21.10 {
-   public LevelRenderState getLevelRenderState() {
-      return this.levelRenderState;
-   }
    //?}
 
    public void addCustomRenderer(BlockOutlineRenderer renderer) {

@@ -19,16 +19,4 @@ public enum FontManager {
    public IFontRenderer getOrLoadFont(String name, int size) {
       return ENABLE_SMOOTH_FONT ? new GuideFont(new Font(name, 0, size)) : MinecraftFont.INSTANCE;
    }
-
-   public void registerFont(String name, IFontRenderer font) {
-      if (font == null) {
-         throw new NullPointerException("font");
-      }
-
-      if (this.fonts.containsKey(name)) {
-         throw new IllegalStateException("Cannot register the font \"" + name + "\" twice!");
-      }
-
-      this.fonts.put(name, font);
-   }
 }

@@ -94,6 +94,7 @@ public class TriggerParameterSignal implements IStatementParameter {
       return this.colour == null ? null : BCTransportSprites.getPipeSignal(this.active, this.colour);
    }
 
+   @Override
    public TriggerParameterSignal onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
       return null;
    }
@@ -115,6 +116,7 @@ public class TriggerParameterSignal implements IStatementParameter {
       return this;
    }
 
+   @Override
    public TriggerParameterSignal[] getPossible(IStatementContainer source) {
       if (!(source instanceof IGate gate)) {
          return null;

@@ -61,6 +61,7 @@ public enum PatternParameterRotation implements IStatementParameter {
       return LocaleUtil.localize("buildcraft.param.rotation." + this.rotationCount);
    }
 
+   @Override
    public PatternParameterRotation onClick(IStatementContainer source, IStatement stmt, ItemStack stack, StatementMouseClick mouse) {
       return null;
    }

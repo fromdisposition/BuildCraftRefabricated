@@ -87,6 +87,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
    private record CachedItemModel(ItemStack stack, ItemStackRenderState state) {
    }
 
+   @Override
    public PipeHolderRenderState createRenderState() {
       return new PipeHolderRenderState();
    }
@@ -128,6 +129,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       }
    }
 
+   @Override
    public void extractRenderState(
       TilePipeHolder blockEntity, PipeHolderRenderState renderState, float partialTick, Vec3 cameraPos, @Nullable CrumblingOverlay crumblingOverlay
    ) {
@@ -167,6 +169,7 @@ public class RenderPipeHolder implements BlockEntityRenderer<TilePipeHolder, Pip
       }
    }
 
+   @Override
    public void submit(PipeHolderRenderState renderState, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState cameraState) {
       TilePipeHolder pipe = renderState.pipe;
       if (pipe != null) {

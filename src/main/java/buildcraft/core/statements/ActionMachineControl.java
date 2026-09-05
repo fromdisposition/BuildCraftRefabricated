@@ -39,6 +39,7 @@ public class ActionMachineControl extends BCStatement implements IActionExternal
       }
    }
 
+   @Override
    public SpriteHolderRegistry.SpriteHolder getSprite() {
       return BCCoreSprites.ACTION_MACHINE_CONTROL.get(this.mode);
    }

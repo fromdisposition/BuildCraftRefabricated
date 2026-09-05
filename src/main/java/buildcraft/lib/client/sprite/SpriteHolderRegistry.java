@@ -13,9 +13,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.Identifier;
 
 public class SpriteHolderRegistry {
-   public void registerInitialSprites() {
-   }
-
    public static SpriteHolderRegistry.SpriteHolder getHolder(String location) {
       return new SpriteHolderRegistry.SpriteHolder(location);
    }
@@ -32,10 +29,6 @@ public class SpriteHolderRegistry {
 
       public String getLocation() {
          return this.location;
-      }
-
-      public Identifier getIdentifier() {
-         return this.resourceLocation;
       }
 
       public TextureAtlasSprite getSprite() {

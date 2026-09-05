@@ -289,14 +289,17 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
       }
    }
 
+   @Override
    public Class<BlueprintPipRenderState> getRenderStateClass() {
       return BlueprintPipRenderState.class;
    }
 
+   @Override
    protected String getTextureLabel() {
       return "buildcraft_blueprint_preview";
    }
 
+   @Override
    protected float getTranslateY(int height, int guiScale) {
       return height / 2.0F;
    }

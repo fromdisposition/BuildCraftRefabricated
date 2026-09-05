@@ -56,6 +56,7 @@ public record MessageMultiPipePayload(List<MessagePipePayload> payloads) impleme
       return new MessageMultiPipePayload(payloads);
    }
 
+   @Override
    public Type<MessageMultiPipePayload> type() {
       return TYPE;
    }

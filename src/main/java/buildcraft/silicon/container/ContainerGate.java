@@ -117,6 +117,7 @@ public class ContainerGate extends BcMenu {
       return this.pipeHolder != null && this.pipeHolder.canPlayerInteract(player);
    }
 
+   @Override
    public void removed(Player player) {
       super.removed(player);
       if (this.pipeHolder != null) {
