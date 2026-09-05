@@ -52,6 +52,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
    private static final String FLUID_STACK_KEY = "BuilderFluidStack";
    private List<ItemStack>[] remainingDisplayRequiredBlocks;
    private List<ItemStack> remainingDisplayRequiredBlocksConcat = Collections.emptyList();
+   private List<ItemStack> remainingDisplayRequiredEntities = Collections.emptyList();
    public List<ItemStack> remainingDisplayRequired = new ArrayList<>();
    private final Map<Pair<List<ItemStack>, List<FluidStack>>, Optional<List<ItemStack>>> extractRequiredCache = new HashMap<>();
 
@@ -384,17 +385,17 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
          }
       }
 
-      this.remainingDisplayRequired.clear();
-      List<ItemStack> displayRequiredConcat = new ArrayList<>(this.remainingDisplayRequiredBlocksConcat);
+      List<ItemStack> entityRequired = new ArrayList<>();
 
       for (ISchematicEntity schematicEntity : toSpawn) {
          this.getDisplayRequired(
                this.getBuildingInfo().entitiesRequiredItems.get(schematicEntity), this.getBuildingInfo().entitiesRequiredFluids.get(schematicEntity)
             )
-            .forEach(displayRequiredConcat::add);
+            .forEach(entityRequired::add);
       }
 
-      this.remainingDisplayRequired.addAll(StackUtil.mergeSameItems(displayRequiredConcat));
+      this.remainingDisplayRequiredEntities = entityRequired;
+      this.rebuildDisplayRequired();
       List<Entity> toKill = new ArrayList<>();
 
       for (Entity entity : entitiesWithinBox) {
@@ -471,6 +472,14 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
       this.remainingDisplayRequiredBlocksConcat = StackUtil.mergeSameItems(
          Arrays.stream(this.remainingDisplayRequiredBlocks).flatMap(Collection::stream).collect(Collectors.toList())
       );
+      this.rebuildDisplayRequired();
+   }
+
+   private void rebuildDisplayRequired() {
+      List<ItemStack> all = new ArrayList<>(this.remainingDisplayRequiredBlocksConcat);
+      all.addAll(this.remainingDisplayRequiredEntities);
+      this.remainingDisplayRequired.clear();
+      this.remainingDisplayRequired.addAll(StackUtil.mergeSameItems(all));
    }
 
    @Override

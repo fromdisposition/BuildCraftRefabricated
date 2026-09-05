@@ -48,7 +48,7 @@ public class AIRobotUnload extends AIRobot {
       }
 
       Direction injectSide = station.getItemOutputSide().face;
-      if (injectSide == null || !output.canInjectItems(injectSide)) {
+      if (!output.canInjectItems(injectSide)) {
          return false;
       }
 

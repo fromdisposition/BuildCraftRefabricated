@@ -227,13 +227,33 @@ public class BoardRobotBuilder extends RedstoneBoardRobot {
          }
 
          IStackFilter filter = stack -> StackUtil.canMerge(req, stack);
-         ItemStack available = this.context.getInvResources().extract(filter, req.getCount(), req.getCount(), true);
-         if (available.getCount() < req.getCount()) {
-            return req;
+         int needed = req.getCount() - this.reservedCount(builder, filter);
+         if (needed <= 0) {
+            continue;
+         }
+
+         ItemStack available = this.context.getInvResources().extract(filter, needed, needed, true);
+         if (available.getCount() < needed) {
+            return req.copyWithCount(needed);
          }
       }
 
       return null;
+   }
+
+   private int reservedCount(BlueprintBuilder builder, IStackFilter filter) {
+      int n = 0;
+      for (var task : builder.placeTasks) {
+         if (task.items != null) {
+            for (ItemStack stack : task.items) {
+               if (filter.matches(stack)) {
+                  n += stack.getCount();
+               }
+            }
+         }
+      }
+
+      return n;
    }
 
    @Nullable

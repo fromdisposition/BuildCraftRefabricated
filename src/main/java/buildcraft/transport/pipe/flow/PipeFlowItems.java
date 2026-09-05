@@ -493,7 +493,27 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
    @Override
    public boolean canInjectItems(Direction from) {
-      return this.pipe.isConnected(from);
+      if (from != null) {
+         return this.pipe.isConnected(from);
+      }
+
+      for (Direction face : Direction.values()) {
+         if (this.pipe.isConnected(face)) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   private Direction centreOrigin() {
+      for (Direction face : Direction.values()) {
+         if (!this.pipe.isConnected(face)) {
+            return face;
+         }
+      }
+
+      return Direction.UP;
    }
 
    @Nonnull
@@ -505,6 +525,10 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
       if (!this.canInjectItems(from)) {
          return stack;
+      }
+
+      if (from == null) {
+         from = this.centreOrigin();
       }
 
       if (speed < 0.01) {

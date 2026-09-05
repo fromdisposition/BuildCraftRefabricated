@@ -139,11 +139,6 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
    }
 
    @Override
-   public EnumPipePart getItemOutputSide() {
-      return EnumPipePart.fromFacing(this.side().getOpposite());
-   }
-
-   @Override
    public net.fabricmc.fabric.api.transfer.v1.storage.Storage<net.fabricmc.fabric.api.transfer.v1.item.ItemVariant> getItemInput() {
       if (this.getPipe() == null || this.world == null) {
          return null;
