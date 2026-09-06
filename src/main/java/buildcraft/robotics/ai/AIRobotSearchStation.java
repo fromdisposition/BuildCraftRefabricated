@@ -40,6 +40,8 @@ public class AIRobotSearchStation extends AIRobot {
 
       double bestDistance = Double.MAX_VALUE;
       DockingStation best = null;
+      DockingStation home = this.robot.getLinkedStation();
+      double rangeSq = EntityRobotBase.DEFAULT_SEARCH_RANGE * EntityRobotBase.DEFAULT_SEARCH_RANGE;
 
       for (DockingStation station : this.robot.getRegistry().getStations()) {
          if (!station.isInitialized()) {
@@ -52,6 +54,10 @@ public class AIRobotSearchStation extends AIRobot {
 
          BlockPos pos = station.index();
          if (this.zone != null && !this.zone.contains(Vec3.atCenterOf(pos))) {
+            continue;
+         }
+
+         if (this.zone == null && home != null && home.index().distSqr(pos) > rangeSq) {
             continue;
          }
 
