@@ -15,7 +15,7 @@ All six versions are built from the same source tree and get the same fixes. Any
 
 ## What works
 
-Feature status against classic BuildCraft 8.0.x for Forge 1.12.2. *Stable* means played and tested regularly, *working* means ported and recently fixed up but still collecting playtime, *needs testing* means ported but not seriously exercised yet.
+Feature status against classic BuildCraft 8.0.x for Forge 1.12.2. *Stable* means it has a long stretch of real play behind it; *Working* means it has been verified end to end but has seen less play, so odd corners may still turn up.
 
 | Module | Feature | Status |
 |--------|---------|--------|
@@ -28,22 +28,23 @@ Feature status against classic BuildCraft 8.0.x for Forge 1.12.2. *Stable* means
 | Transport | Pipe behaviours and pluggables | Working |
 | Transport | Facades | Working |
 | Transport | Gates and wire systems | Working |
-| Transport | Lenses, pulsar, filtered buffer | Needs testing |
+| Transport | Lenses, pulsar, filtered buffer | Working |
 | Energy | Stone and iron engines | Stable |
 | Energy | Oil, fuels, refining fluids, worldgen | Stable |
 | Energy | RF engine and MJ dynamo | Stable |
 | Factory | Mining well | Stable |
 | Factory | Tank, pump, flood gate | Working |
-| Factory | Distiller, heat exchange | Needs testing |
-| Factory | Auto workbench, chute | Needs testing |
+| Factory | Distiller, heat exchange | Working |
+| Factory | Auto workbench, chute | Working |
 | Builders | Quarry | Stable |
 | Builders | Architect table, builder | Working |
-| Builders | Filler, electronic library, replacer | Needs testing |
-| Silicon | Assembly, integration, advanced crafting tables | Needs testing |
-| Silicon | Programming, charging, stamping tables, lasers, packager | Needs testing |
+| Builders | Filler, replacer | Working |
+| Builders | Electronic library | Working |
+| Silicon | Assembly, integration, advanced crafting tables | Working |
+| Silicon | Programming, charging and stamping tables, lasers, packager | Working |
 | Robotics | Robots and docking stations | Working |
 | Robotics | Zone planner | Working |
-| Robotics | Requester | Needs testing |
+| Robotics | Requester | Working |
 
 This is not a byte-for-byte clone of BC 8 — modern Minecraft APIs differ too much from 1.12.2 for that — but the goal is that every machine behaves the way you remember it.
 

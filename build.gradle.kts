@@ -68,6 +68,26 @@ fabricApi {
     }
 }
 
+// Local headless regression suite; wired only when the (untracked) src/gametest tree is present.
+if (isGeneratorNode && rootProject.file("src/gametest/java").isDirectory) {
+    fabricApi {
+        configureTests {
+            createSourceSet = true
+            modId = "buildcraftrefabricated_gametest"
+            eula = true
+        }
+    }
+    sourceSets.named("gametest") {
+        java.setSrcDirs(listOf(rootProject.file("src/gametest/java")))
+        resources.setSrcDirs(listOf(rootProject.file("src/gametest/resources")))
+    }
+    afterEvaluate {
+        tasks.matching { it.name == "runGameTest" || it.name == "runClientGameTest" }.configureEach {
+            dependsOn("runDatagen", ":26.3:generateFluidBucketAssets")
+        }
+    }
+}
+
 loom.mods.create("buildcraftrefabricated") {
     sourceSet(sourceSets["main"])
     modFiles.from(datagenDir)
