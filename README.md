@@ -1,6 +1,6 @@
 # BuildCraft Refabricated
 
-An unofficial Fabric port of BuildCraft for modern Minecraft: pipes, engines, the quarry, oil, gates and robots in one jar. Gameplay code traces back to [legoj15's NeoForge port](https://github.com/legoj15/BuildCraft), reworked here for the Fabric Transfer API and Team Reborn Energy.
+An unofficial Fabric port of BuildCraft for modern Minecraft: pipes, engines, the quarry, oil, gates and robots in one jar, built on the Fabric Transfer API and Team Reborn Energy.
 
 | Minecraft | Support | Fabric Loader | Fabric API | Java |
 |-----------|---------|---------------|------------|------|
@@ -13,40 +13,19 @@ An unofficial Fabric port of BuildCraft for modern Minecraft: pipes, engines, th
 
 All six versions are built from the same source tree and get the same fixes. Anything older than 1.21.1 is not planned. Bug reports go to the [issue tracker](https://github.com/fromdisposition/BuildCraftRefabricated/issues).
 
-## What works
+## What's in the port
 
-Feature status against classic BuildCraft 8.0.x for Forge 1.12.2. Every row has been verified end to end on the current line, machine by machine and screen by screen, and behaves as the original did in those checks; *Stable* is the only status left.
+The whole of classic BuildCraft 8.0.x for Forge 1.12.2, verified end to end on the current line, machine by machine and screen by screen:
 
-| Module | Feature | Status |
-|--------|---------|--------|
-| Core | Landmarks, path markers, volume boxes | Stable |
-| Core | Redstone and creative engines | Stable |
-| Core | Springs, paintbrush, lists, map location | Stable |
-| Transport | Item pipes | Stable |
-| Transport | Fluid pipes | Stable |
-| Transport | Power pipes, MJ and RF | Stable |
-| Transport | Pipe behaviours and pluggables | Stable |
-| Transport | Facades | Stable |
-| Transport | Gates and wire systems | Stable |
-| Transport | Lenses, pulsar, filtered buffer | Stable |
-| Energy | Stone and iron engines | Stable |
-| Energy | Oil, fuels, refining fluids, worldgen | Stable |
-| Energy | RF engine and MJ dynamo | Stable |
-| Factory | Mining well | Stable |
-| Factory | Tank, pump, flood gate | Stable |
-| Factory | Distiller, heat exchange | Stable |
-| Factory | Auto workbench, chute | Stable |
-| Builders | Quarry | Stable |
-| Builders | Architect table, builder | Stable |
-| Builders | Filler, replacer | Stable |
-| Builders | Electronic library | Stable |
-| Silicon | Assembly, integration, advanced crafting tables | Stable |
-| Silicon | Programming, charging and stamping tables, lasers, packager | Stable |
-| Robotics | Robots and docking stations | Stable |
-| Robotics | Zone planner | Stable |
-| Robotics | Requester | Stable |
+- **Core** — land markers, path markers and volume boxes; redstone and creative engines; springs, paintbrush, lists and map locations.
+- **Transport** — item, fluid and kinesis pipes of every material, MJ and RF alike; pipe behaviours and pluggables, facades, gates with wire systems, lenses, the pulsar and the filtered buffer.
+- **Energy** — stone and iron engines; oil, fuels, refining fluids and oil worldgen; the RF engine and the MJ dynamo.
+- **Factory** — mining well, tank, pump, flood gate, distiller, heat exchange, auto workbench and chute.
+- **Builders** — quarry, architect table and builder, filler, replacer and the electronic library.
+- **Silicon** — assembly, integration, advanced crafting, programming, charging and stamping tables, lasers and the packager.
+- **Robotics** — robots with every board, docking stations, the zone planner and the requester.
 
-This is not a byte-for-byte clone of BC 8 — modern Minecraft APIs differ too much from 1.12.2 for that — but the goal is that every machine behaves the way you remember it.
+This is not a byte-for-byte clone of BC 8 — modern Minecraft APIs differ too much from 1.12.2 for that — but every machine behaves the way you remember it.
 
 ## Energy
 
