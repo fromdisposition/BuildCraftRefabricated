@@ -65,7 +65,16 @@ public final class PipeNeighborStorageAccess {
          }
 
          IPipe neighborPipe = holder.getNeighbourPipe(from);
-         return neighborPipe != null && neighborPipe.getFlow() != null ? pipeFlow.get(neighborPipe.getFlow(), querySide) : null;
+         if (neighborPipe == null || neighborPipe.getFlow() == null) {
+            return null;
+         }
+
+         PipePluggable neighborPlug = neighborPipe.getHolder().getPluggable(querySide);
+         if (neighborPlug != null && neighborPlug.isBlocking() && pluggable.get(neighborPlug) == null) {
+            return null;
+         }
+
+         return pipeFlow.get(neighborPipe.getFlow(), querySide);
       } else {
          return null;
       }
