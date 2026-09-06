@@ -42,7 +42,7 @@ public class TileIntegrationTable extends TileLaserTableBase {
          return false;
       }
 
-      if (!StackUtil.contains(new ItemStack(targetStack.getItem(), item.count), targetStack)) {
+      if (targetStack.getCount() < item.count) {
          return false;
       }
 
