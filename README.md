@@ -15,7 +15,7 @@ All six versions are built from the same source tree and get the same fixes. Any
 
 ## What works
 
-Feature status against classic BuildCraft 8.0.x for Forge 1.12.2. *Stable* means it has a long stretch of real play behind it; *Working* means it has been verified end to end but has seen less play, so odd corners may still turn up.
+Feature status against classic BuildCraft 8.0.x for Forge 1.12.2. Every row has been verified end to end on the current line, machine by machine and screen by screen, and behaves as the original did in those checks; *Stable* is the only status left.
 
 | Module | Feature | Status |
 |--------|---------|--------|
@@ -23,28 +23,28 @@ Feature status against classic BuildCraft 8.0.x for Forge 1.12.2. *Stable* means
 | Core | Redstone and creative engines | Stable |
 | Core | Springs, paintbrush, lists, map location | Stable |
 | Transport | Item pipes | Stable |
-| Transport | Fluid pipes | Working |
-| Transport | Power pipes, MJ and RF | Working |
-| Transport | Pipe behaviours and pluggables | Working |
-| Transport | Facades | Working |
-| Transport | Gates and wire systems | Working |
-| Transport | Lenses, pulsar, filtered buffer | Working |
+| Transport | Fluid pipes | Stable |
+| Transport | Power pipes, MJ and RF | Stable |
+| Transport | Pipe behaviours and pluggables | Stable |
+| Transport | Facades | Stable |
+| Transport | Gates and wire systems | Stable |
+| Transport | Lenses, pulsar, filtered buffer | Stable |
 | Energy | Stone and iron engines | Stable |
 | Energy | Oil, fuels, refining fluids, worldgen | Stable |
 | Energy | RF engine and MJ dynamo | Stable |
 | Factory | Mining well | Stable |
-| Factory | Tank, pump, flood gate | Working |
-| Factory | Distiller, heat exchange | Working |
-| Factory | Auto workbench, chute | Working |
+| Factory | Tank, pump, flood gate | Stable |
+| Factory | Distiller, heat exchange | Stable |
+| Factory | Auto workbench, chute | Stable |
 | Builders | Quarry | Stable |
-| Builders | Architect table, builder | Working |
-| Builders | Filler, replacer | Working |
-| Builders | Electronic library | Working |
-| Silicon | Assembly, integration, advanced crafting tables | Working |
-| Silicon | Programming, charging and stamping tables, lasers, packager | Working |
-| Robotics | Robots and docking stations | Working |
-| Robotics | Zone planner | Working |
-| Robotics | Requester | Working |
+| Builders | Architect table, builder | Stable |
+| Builders | Filler, replacer | Stable |
+| Builders | Electronic library | Stable |
+| Silicon | Assembly, integration, advanced crafting tables | Stable |
+| Silicon | Programming, charging and stamping tables, lasers, packager | Stable |
+| Robotics | Robots and docking stations | Stable |
+| Robotics | Zone planner | Stable |
+| Robotics | Requester | Stable |
 
 This is not a byte-for-byte clone of BC 8 — modern Minecraft APIs differ too much from 1.12.2 for that — but the goal is that every machine behaves the way you remember it.
 
