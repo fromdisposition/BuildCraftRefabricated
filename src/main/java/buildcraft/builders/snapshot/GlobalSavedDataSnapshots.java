@@ -150,11 +150,9 @@ public class GlobalSavedDataSnapshots {
 
    public void addSnapshot(Snapshot snapshot) {
       File snapshotFile = this.snapshotFileFor(snapshot.key);
-      if (snapshotFile.exists()) {
-         this.snapshotsCache.invalidate(snapshot.key);
-      } else {
+      this.snapshotsCache.put(snapshot.key, Optional.of(snapshot));
+      if (!snapshotFile.exists()) {
          CompoundTag nbt = Snapshot.writeToNBT(snapshot);
-         this.snapshotsCache.invalidate(snapshot.key);
          this.listCache.clear();
          BuildersNetworkAsync.runDiskWrite(() -> {
             try (FileOutputStream fileOutputStream = new FileOutputStream(snapshotFile)) {
@@ -166,7 +164,6 @@ public class GlobalSavedDataSnapshots {
                }
             }
 
-            this.snapshotsCache.invalidate(snapshot.key);
             this.listCache.clear();
          });
       }
