@@ -56,6 +56,10 @@ public final class PipeNeighborStorageAccess {
             return null;
          }
 
+         if (holder.getPipeTile() instanceof TilePipeHolder tile && !tile.neighbourAccessible(from)) {
+            return null;
+         }
+
          Level level = holder.getPipeWorld();
          BlockPos neighborPos = holder.getPipePos().relative(from);
          Direction querySide = from.getOpposite();

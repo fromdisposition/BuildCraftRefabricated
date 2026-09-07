@@ -24,6 +24,7 @@ import buildcraft.api.transport.pipe.PipeDefinition;
 import buildcraft.api.transport.pipe.PipeEvent;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.api.transport.pluggable.PluggableDefinition;
+import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.AdvancementUtil;
 import buildcraft.lib.net.BcEnvelopeCodec;
 import buildcraft.silicon.plug.PluggableGate;
@@ -959,6 +960,25 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    @Override
    public WireManager getWireManager() {
       return this.wireManager;
+   }
+
+   private final long[] neighbourAccessChecked = new long[6];
+   private final boolean[] neighbourAccessAllowed = new boolean[6];
+
+   public boolean neighbourAccessible(Direction side) {
+      GameProfile owner = this.getOwner();
+      if (owner == null || !(this.level instanceof ServerLevel serverLevel)) {
+         return true;
+      }
+
+      int i = side.ordinal();
+      long now = serverLevel.getGameTime();
+      if (this.neighbourAccessChecked[i] == 0L || now - this.neighbourAccessChecked[i] >= 100L) {
+         this.neighbourAccessChecked[i] = now;
+         this.neighbourAccessAllowed[i] = BlockUtil.canMachineInteract(serverLevel, this.worldPosition.relative(side), owner, this.worldPosition);
+      }
+
+      return this.neighbourAccessAllowed[i];
    }
 
    @Override

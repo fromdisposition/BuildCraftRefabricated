@@ -76,6 +76,10 @@ public class BlockUtil {
       return PlaceEventCompat.canPlace(level, pos, fp);
    }
 
+   public static boolean canMachineInteract(ServerLevel level, BlockPos pos, GameProfile owner, BlockPos originPos) {
+      return canMachinePlace(level, pos, owner, originPos);
+   }
+
    public static boolean machineSetBlock(ServerLevel level, BlockPos pos, BlockState state, int flags, GameProfile owner, BlockPos originPos) {
       return !canMachinePlace(level, pos, owner, originPos) ? false : level.setBlock(pos, state, flags);
    }
