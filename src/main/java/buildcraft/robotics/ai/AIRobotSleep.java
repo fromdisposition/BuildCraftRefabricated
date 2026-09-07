@@ -11,9 +11,6 @@ import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
 import buildcraft.robotics.BCRoboticsStatements;
-import buildcraft.robotics.entity.EntityRobot;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.Vec3;
 
 public class AIRobotSleep extends AIRobot {
    // How long a robot rests at its station before re-checking for work comes from config; a short rest keeps
@@ -42,14 +39,6 @@ public class AIRobotSleep extends AIRobot {
    @Override
    public void update() {
       this.sleptTime++;
-
-      DockingStation station = this.robot.getDockingStation();
-      if (station != null && this.robot instanceof EntityRobot entityRobot) {
-         BlockPos pos = station.getPos();
-         entityRobot.setDestination(Vec3.atCenterOf(pos)
-            .add(station.side().getStepX() * 0.5, station.side().getStepY() * 0.5, station.side().getStepZ() * 0.5));
-      }
-
       if (this.sleptTime > buildcraft.robotics.BCRoboticsConfig.sleepSeconds.get() * 20) {
          this.terminate();
       }
