@@ -44,13 +44,15 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    public static final int NET_MAP_REQUEST = 203;
    public static final int NET_MAP_DATA = 204;
    public static final int NET_PAINT_RECT = 205;
-   private static final int MAP_CHUNKS_PER_TICK = 32;
+   private static final int MAP_CHUNKS_PER_TICK = 256;
+   private static final int MAP_CHUNKS_PER_PACKET = 64;
    private static final int MAP_DEQUEUES_PER_TICK = 512;
    private static final int MAP_QUEUE_LIMIT = 4096;
    private static final int PLAYER_SLOTS_END = 36;
    private static final int MACHINE_SLOTS_END = 58;
-   public final ZonePlannerMapColours mapColours = new ZonePlannerMapColours();
-   
+   /** Chunks the server refused this session of the menu (unloaded or outside view distance); the map retries them slowly. */
+   public final LongOpenHashSet mapDenied = new LongOpenHashSet();
+
    public int clientLayerVersion;
    private int lastLayersVersion = -1;
    private final LongArrayFIFOQueue mapQueue = new LongArrayFIFOQueue();
@@ -131,6 +133,10 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       });
    }
 
+   public ZonePlannerMapColours mapColours() {
+      return ZonePlannerMapColours.forLevel(this.tile != null ? this.tile.getLevel() : null);
+   }
+
    public void requestChunks(List<Long> keys) {
       if (keys != null && !keys.isEmpty()) {
          this.sendMessage(NET_MAP_REQUEST, buf -> {
@@ -175,6 +181,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
          this.handleMapRequest(buffer);
       } else if (id == NET_MAP_DATA && isClient) {
          Level level = this.tile != null ? this.tile.getLevel() : null;
+         ZonePlannerMapColours cache = this.mapColours();
          int count = Math.min(buffer.readVarInt(), buffer.readableBytes() / (Long.BYTES + 256 * 3));
 
          for (int i = 0; i < count; i++) {
@@ -189,13 +196,14 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
                col[k] = colourId == 0 ? 0 : 0xFF000000 | shadeByHeight(MapColor.byId(colourId).col & 0xFFFFFF, level, y);
             }
 
-            this.mapColours.put(key, col, height);
+            cache.put(key, col, height);
+            this.mapDenied.remove(key);
          }
 
          int denied = Math.min(buffer.readVarInt(), buffer.readableBytes() / Long.BYTES);
 
          for (int i = 0; i < denied; i++) {
-            this.mapColours.markDenied(buffer.readLong());
+            this.mapDenied.add(buffer.readLong());
          }
       } else if (id == NET_REQUEST_LAYERS && !isClient) {
          if (this.tile != null) {
@@ -334,26 +342,31 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
          heights.add(height);
       }
 
-      this.sendMessage(NET_MAP_DATA, buf -> {
-         buf.writeVarInt(okKeys.size());
+      for (int first = 0; first < okKeys.size() || first == 0 && !denied.isEmpty(); first += MAP_CHUNKS_PER_PACKET) {
+         int from = first;
+         int to = Math.min(okKeys.size(), first + MAP_CHUNKS_PER_PACKET);
+         List<Long> deniedNow = first == 0 ? denied : List.of();
+         this.sendMessage(NET_MAP_DATA, buf -> {
+            buf.writeVarInt(to - from);
 
-         for (int n = 0; n < okKeys.size(); n++) {
-            buf.writeLong(okKeys.get(n));
-            int[] c = cols.get(n);
-            int[] h = heights.get(n);
+            for (int n = from; n < to; n++) {
+               buf.writeLong(okKeys.get(n));
+               int[] c = cols.get(n);
+               int[] h = heights.get(n);
 
-            for (int k = 0; k < 256; k++) {
-               buf.writeByte(c[k]);
-               buf.writeShort(h[k]);
+               for (int k = 0; k < 256; k++) {
+                  buf.writeByte(c[k]);
+                  buf.writeShort(h[k]);
+               }
             }
-         }
 
-         buf.writeVarInt(denied.size());
+            buf.writeVarInt(deniedNow.size());
 
-         for (long key : denied) {
-            buf.writeLong(key);
-         }
-      });
+            for (long key : deniedNow) {
+               buf.writeLong(key);
+            }
+         });
+      }
    }
 
    private static void computeChunk(Level level, int cx, int cz, int[] colOut, int[] heightOut) {

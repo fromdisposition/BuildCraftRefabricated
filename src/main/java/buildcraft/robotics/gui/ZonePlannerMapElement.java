@@ -19,6 +19,7 @@ import buildcraft.robotics.zone.ZonePlannerChunkKeys;
 import buildcraft.robotics.zone.ZonePlannerMapColours;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private static final double[] ZOOM_LEVELS = {0.25, 0.5, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 16.0, 24.0, 32.0};
    private static final double DEFAULT_GUI_PIXELS_PER_BLOCK = 1.5;
    private static final int RETRY_INTERVAL = 60;
+   private static final int DENIED_RETRY_INTERVALS = 10;
    private static final int MARGIN_CHUNKS = 1;
    private static final int MAX_CHUNK_SPAN = 48;
    private static final int OVERLAY_ALPHA = 0x55;
@@ -59,6 +61,9 @@ public class ZonePlannerMapElement implements IInteractionElement {
    private double camZ;
    private int zoomIndex = -1;
    private int retryCounter;
+   private int deniedRetry;
+   private final LongOpenHashSet requested = new LongOpenHashSet();
+   private boolean revealed;
    private boolean panning;
    private double panStartMouseX;
    private double panStartMouseY;
@@ -256,9 +261,9 @@ public class ZonePlannerMapElement implements IInteractionElement {
       }
 
       ContainerZonePlanner menu = this.container();
-      ZonePlannerMapColours cache = menu != null ? menu.mapColours : null;
+      ZonePlannerMapColours cache = menu != null ? menu.mapColours() : null;
       this.ensureVisibleChunks(menu, cache);
-      if (cache == null) {
+      if (cache == null || !this.revealed) {
          return;
       }
 
@@ -529,38 +534,60 @@ public class ZonePlannerMapElement implements IInteractionElement {
       return out.toIntArray();
    }
 
+   /**
+    * Every chunk that comes into view is asked for once per opening of the GUI, cached or not, so the session cache
+    * is refreshed while it is being shown; chunks the server has not answered are asked again every few seconds,
+    * refused ones much more rarely. The map is revealed only once the whole visible area is either cached or refused.
+    */
    private void ensureVisibleChunks(ContainerZonePlanner menu, ZonePlannerMapColours cache) {
-      if (menu != null && cache != null) {
-         boolean retry = ++this.retryCounter >= RETRY_INTERVAL;
-         if (retry) {
-            this.retryCounter = 0;
-            cache.retryMissing();
+      if (menu == null || cache == null) {
+         return;
+      }
+
+      int[] bounds = this.visibleChunkBounds();
+      boolean retry = ++this.retryCounter >= RETRY_INTERVAL;
+      boolean retryDenied = false;
+      if (retry) {
+         this.retryCounter = 0;
+         retryDenied = ++this.deniedRetry >= DENIED_RETRY_INTERVALS;
+         if (retryDenied) {
+            this.deniedRetry = 0;
          }
+      }
 
-         int[] bounds = this.visibleChunkBounds();
-         if (!retry && this.lastScanBounds != null && Arrays.equals(bounds, this.lastScanBounds)) {
-            return;
-         }
+      boolean scan = retry || !this.revealed || this.lastScanBounds == null || !Arrays.equals(bounds, this.lastScanBounds);
+      if (!scan) {
+         return;
+      }
 
-         this.lastScanBounds = bounds;
-         List<Long> missing = null;
+      this.lastScanBounds = bounds;
+      List<Long> wanted = null;
+      boolean complete = true;
 
-         for (int cx = bounds[0]; cx <= bounds[2]; cx++) {
-            for (int cz = bounds[1]; cz <= bounds[3]; cz++) {
-               long key = ZonePlannerChunkKeys.chunkKey(cx, cz);
-               if (!cache.hasData(key) && !cache.isRequested(key)) {
-                  cache.markRequested(key);
-                  if (missing == null) {
-                     missing = new ArrayList<>();
-                  }
+      for (int cx = bounds[0]; cx <= bounds[2]; cx++) {
+         for (int cz = bounds[1]; cz <= bounds[3]; cz++) {
+            long key = ZonePlannerChunkKeys.chunkKey(cx, cz);
+            boolean denied = menu.mapDenied.contains(key);
+            if (!cache.hasData(key) && !denied) {
+               complete = false;
+            }
 
-                  missing.add(key);
+            boolean ask = this.requested.add(key) || retry && !cache.hasData(key) && (retryDenied || !denied);
+            if (ask) {
+               if (wanted == null) {
+                  wanted = new ArrayList<>();
                }
+
+               wanted.add(key);
             }
          }
-
-         menu.requestChunks(missing);
       }
+
+      if (complete) {
+         this.revealed = true;
+      }
+
+      menu.requestChunks(wanted);
    }
 
    @Override

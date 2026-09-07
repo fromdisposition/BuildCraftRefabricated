@@ -20,7 +20,10 @@ public class BuildCraftFabricClient implements ClientModInitializer {
    public void onInitializeClient() {
       BCClientBlockEntityLifecycleEvents.init();
       // Per-dimension client caches would show ghost markers from the previous world; the server re-sends on join.
-      ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> MarkerCache.onClientDisconnect());
+      ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+         MarkerCache.onClientDisconnect();
+         buildcraft.robotics.zone.ZonePlannerMapColours.clearSession();
+      });
       BCClientRegistriesFabric.register();
       BCNetworkingRegistryClient.registerClient();
       BCCoreFabricClient.init();
