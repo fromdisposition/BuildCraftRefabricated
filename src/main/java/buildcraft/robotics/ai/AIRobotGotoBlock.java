@@ -8,23 +8,31 @@ package buildcraft.robotics.ai;
 
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.EntityRobotBase;
-import java.util.LinkedList;
+import buildcraft.robotics.entity.EntityRobot;
+import buildcraft.robotics.path.PathFinding;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.phys.Vec3;
 
 /**
- * Robots are {@code noPhysics} flyers, so a direct line always reaches the target and navigation cannot fail to
- * find a route, only be interrupted. The precise final dock is handled separately by {@link AIRobotStraightMoveTo}.
+ * Flies to a block along a path that stays out of every block with a collision shape. The path is searched
+ * incrementally over several ticks, then followed waypoint by waypoint; a flight that gets blocked by a change in
+ * the world replans a few times before the target is reported unreachable and remembered as such.
  */
 public class AIRobotGotoBlock extends AIRobotGoto {
-   /** Arrival tolerance (~0.6 block); the exact dock is done separately by AIRobotStraightMoveTo. */
-   private static final double ARRIVED_SQ = 0.36;
-   /** A noPhysics straight flight always closes distance, so no progress for this many ticks means truly stuck. */
-   private static final int STUCK_TICKS = 100;
+   private static final double WAYPOINT_SQ = 0.04;
+   private static final int STUCK_TICKS = 40;
+   private static final int MAX_REPLANS = 4;
 
    private int finalX;
    private int finalY;
    private int finalZ;
+   private double maxDistance;
+   private PathFinding search;
+   private List<BlockPos> path;
+   private int nextWaypoint;
+   private int replans;
    private double lastDistSq = Double.MAX_VALUE;
    private int noProgressTicks;
 
@@ -33,66 +41,106 @@ public class AIRobotGotoBlock extends AIRobotGoto {
    }
 
    public AIRobotGotoBlock(EntityRobotBase robot, int x, int y, int z) {
+      this(robot, x, y, z, 0.0);
+   }
+
+   public AIRobotGotoBlock(EntityRobotBase robot, int x, int y, int z, double maxDistance) {
       this(robot);
       this.finalX = x;
       this.finalY = y;
       this.finalZ = z;
-   }
-
-   /** maxDistance is unused: a straight flight always reaches the block regardless of how far away it started. */
-   public AIRobotGotoBlock(EntityRobotBase robot, int x, int y, int z, double maxDistance) {
-      this(robot, x, y, z);
-   }
-
-   public AIRobotGotoBlock(EntityRobotBase robot, LinkedList<BlockPos> path) {
-      this(robot);
-      BlockPos last = path.getLast();
-      this.finalX = last.getX();
-      this.finalY = last.getY();
-      this.finalZ = last.getZ();
+      this.maxDistance = maxDistance;
    }
 
    @Override
    public void start() {
       this.robot.undock();
-      this.aimAtTarget();
-      this.setDestination(this.robot, this.finalX + 0.5, this.finalY + 0.5, this.finalZ + 0.5);
+      this.robot.aimItemAt(this.target());
+      this.plan();
    }
 
    @Override
    public void update() {
-      double dx = this.finalX + 0.5 - this.robot.getX();
-      double dy = this.finalY + 0.5 - this.robot.getY();
-      double dz = this.finalZ + 0.5 - this.robot.getZ();
-      double distSq = dx * dx + dy * dy + dz * dz;
+      if (this.search == null && this.path == null) {
+         this.plan();
+      }
 
-      if (distSq < ARRIVED_SQ) {
-         this.robot.setPos(this.finalX + 0.5, this.finalY + 0.5, this.finalZ + 0.5);
-         this.clearDestination(this.robot);
-         this.terminate();
+      if (this.search != null) {
+         this.search.iterate();
+         if (!this.search.isDone()) {
+            return;
+         }
+
+         this.path = this.search.getResult();
+         this.search = null;
+         if (this.path == null) {
+            this.fail();
+            return;
+         }
+      }
+
+      Vec3 waypoint = PathFinding.feet(this.path.get(this.nextWaypoint));
+      double distSq = this.robot.position().distanceToSqr(waypoint);
+      if (distSq < WAYPOINT_SQ) {
+         this.nextWaypoint++;
+         if (this.nextWaypoint >= this.path.size()) {
+            this.clearDestination(this.robot);
+            this.setSuccess(true);
+            this.terminate();
+            return;
+         }
+
+         waypoint = PathFinding.feet(this.path.get(this.nextWaypoint));
+         distSq = this.robot.position().distanceToSqr(waypoint);
+         this.lastDistSq = Double.MAX_VALUE;
+         this.noProgressTicks = 0;
+      }
+
+      if (this.robot instanceof EntityRobot entityRobot && entityRobot.isMovementBlocked()) {
+         this.replan();
          return;
       }
 
-      // Re-arm the flight every tick: moveTowardsDestination clears the destination once within 0.1 of it, and a
-      // docking pass can clear it too, so keep pointing the robot at the target until it has actually arrived.
-      this.setDestination(this.robot, this.finalX + 0.5, this.finalY + 0.5, this.finalZ + 0.5);
-      this.aimAtTarget();
-
+      this.setDestination(this.robot, waypoint.x, waypoint.y, waypoint.z);
       if (distSq < this.lastDistSq - 1.0E-4) {
          this.lastDistSq = distSq;
          this.noProgressTicks = 0;
       } else if (++this.noProgressTicks > STUCK_TICKS) {
-         this.setSuccess(false);
-         this.terminate();
+         this.replan();
       }
    }
 
-   private void aimAtTarget() {
-      this.robot.aimItemAt(new BlockPos(this.finalX, this.finalY, this.finalZ));
+   private void plan() {
+      this.clearDestination(this.robot);
+      this.path = null;
+      this.nextWaypoint = 0;
+      this.lastDistSq = Double.MAX_VALUE;
+      this.noProgressTicks = 0;
+      this.search = new PathFinding(this.robot.level(), BlockPos.containing(this.robot.position()), this.target(), this.maxDistance);
+   }
+
+   private void replan() {
+      if (++this.replans > MAX_REPLANS) {
+         this.fail();
+      } else {
+         this.plan();
+      }
+   }
+
+   private void fail() {
+      this.robot.unreachableBlockDetected(this.target());
+      this.clearDestination(this.robot);
+      this.setSuccess(false);
+      this.terminate();
+   }
+
+   private BlockPos target() {
+      return new BlockPos(this.finalX, this.finalY, this.finalZ);
    }
 
    @Override
    public void end() {
+      this.search = null;
       this.clearDestination(this.robot);
    }
 
@@ -107,6 +155,7 @@ public class AIRobotGotoBlock extends AIRobotGoto {
       nbt.putInt("finalX", this.finalX);
       nbt.putInt("finalY", this.finalY);
       nbt.putInt("finalZ", this.finalZ);
+      nbt.putDouble("maxDistance", this.maxDistance);
    }
 
    @Override
@@ -115,5 +164,6 @@ public class AIRobotGotoBlock extends AIRobotGoto {
       this.finalX = BcNbt.getInt(nbt, "finalX", 0);
       this.finalY = BcNbt.getInt(nbt, "finalY", 0);
       this.finalZ = BcNbt.getInt(nbt, "finalZ", 0);
+      this.maxDistance = BcNbt.getDouble(nbt, "maxDistance", 0.0);
    }
 }

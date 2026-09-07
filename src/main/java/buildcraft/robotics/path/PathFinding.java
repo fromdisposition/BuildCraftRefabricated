@@ -6,279 +6,274 @@
 
 package buildcraft.robotics.path;
 
+import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.BinaryHeap;
+import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.phys.Vec3;
 
-public class PathFinding {
-   public static final int PATH_ITERATIONS = 1000;
+/**
+ * Incremental A* over block cells for a flying robot. A cell is passable when it has no collision shape at all, and
+ * a diagonal step is allowed only when every cell the robot's box sweeps through is passable, so a path never cuts a
+ * corner through a block. The search is budgeted per tick, per robot and across all robots, and gives up after a
+ * fixed number of expansions so an enclosed target costs a bounded amount of work.
+ */
+public final class PathFinding {
+   public static final int MAX_NODES = 16384;
+   private static final int NODES_PER_TICK = 512;
+   private static final int NODES_PER_TICK_ALL_ROBOTS = 2048;
+   private static final int SMOOTH_LOOKAHEAD = 16;
+   private static final float[] STEP_COST = {0.0F, 1.0F, 1.4142135F, 1.7320508F};
+   private static final byte SOFT = 1;
+   private static final byte HARD = 2;
 
-   private final Level world;
+   private static long budgetTick = Long.MIN_VALUE;
+   private static int budgetLeft;
+
+   private final Level level;
    private final BlockPos end;
    private final double maxDistanceToEndSq;
-   private final float maxTotalDistanceSq;
+   private final BinaryHeap open = new BinaryHeap();
+   private final Long2ObjectOpenHashMap<Node> nodes = new Long2ObjectOpenHashMap<>();
+   private final Long2ByteOpenHashMap softness = new Long2ByteOpenHashMap();
+   private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+   private final boolean[] neighbourhood = new boolean[27];
 
-   private final Map<BlockPos, Node> openList = new HashMap<>();
-   private final Map<BlockPos, Node> closedList = new HashMap<>();
+   private int expanded;
+   private boolean done;
+   private List<BlockPos> result;
 
-   private Node nextIteration;
-   private LinkedList<BlockPos> result;
-   private boolean endReached;
-
-   public PathFinding(Level world, BlockPos start, BlockPos end) {
-      this(world, start, end, 0.0, 0.0F);
-   }
-
-   public PathFinding(Level world, BlockPos start, BlockPos end, double maxDistanceToEnd) {
-      this(world, start, end, maxDistanceToEnd, 0.0F);
-   }
-
-   public PathFinding(Level world, BlockPos start, BlockPos end, double maxDistanceToEnd, float maxTotalDistance) {
-      this.world = world;
+   public PathFinding(Level level, BlockPos start, BlockPos end, double maxDistanceToEnd) {
+      this.level = level;
       this.end = end;
-      this.maxDistanceToEndSq = maxDistanceToEnd * maxDistanceToEnd;
-      this.maxTotalDistanceSq = maxTotalDistance * maxTotalDistance;
+      double distSq = maxDistanceToEnd * maxDistanceToEnd;
+      if (distSq == 0.0 && !this.isSoft(end.getX(), end.getY(), end.getZ())) {
+         distSq = 3.0;
+      }
 
-      Node startNode = new Node();
-      startNode.parent = null;
-      startNode.movementCost = 0.0;
-      startNode.destinationCost = distanceSq(start, end);
-      startNode.totalWeight = startNode.movementCost + startNode.destinationCost;
-      startNode.index = start;
-      this.openList.put(start, startNode);
-      this.nextIteration = startNode;
+      this.maxDistanceToEndSq = distSq;
+
+      if (this.isGoal(start.getX(), start.getY(), start.getZ())) {
+         this.finish(List.of(start));
+         return;
+      }
+
+      if (this.isGoal(end.getX(), end.getY(), end.getZ()) && FlightSweep.isClear(this::isSoft, feet(start), feet(end))) {
+         this.finish(List.of(end));
+         return;
+      }
+
+      Node first = new Node(start.getX(), start.getY(), start.getZ());
+      first.g = 0.0F;
+      first.h = this.heuristic(first);
+      first.f = first.h;
+      this.nodes.put(BlockPos.asLong(start.getX(), start.getY(), start.getZ()), first);
+      this.open.insert(first);
    }
 
-   public static boolean isSoftBlock(Level world, BlockPos pos) {
-      if (pos.getY() < world.getMinY() || pos.getY() > world.getMaxY()) {
+   public static boolean isSoftBlock(Level level, BlockPos pos) {
+      return isSoftBlock(level, pos.getX(), pos.getY(), pos.getZ());
+   }
+
+   public static boolean isSoftBlock(Level level, int x, int y, int z) {
+      if (y < level.getMinY() || y > level.getMaxY() || !level.hasChunk(x >> 4, z >> 4)) {
          return false;
       }
 
-      BlockState state = world.getBlockState(pos);
-      return state.isAir() || state.getCollisionShape(world, pos).isEmpty();
+      BlockPos pos = new BlockPos(x, y, z);
+      BlockState state = level.getBlockState(pos);
+      return state.isAir() || state.getCollisionShape(level, pos).isEmpty();
    }
 
-   public void iterate(int itNumber) {
-      for (int i = 0; i < itNumber; i++) {
-         if (this.nextIteration == null) {
+   public static Vec3 feet(BlockPos cell) {
+      return new Vec3(cell.getX() + 0.5, cell.getY() + 0.5, cell.getZ() + 0.5);
+   }
+
+   public boolean isSoft(int x, int y, int z) {
+      long key = BlockPos.asLong(x, y, z);
+      byte known = this.softness.get(key);
+      if (known == 0) {
+         boolean soft = y >= this.level.getMinY() && y <= this.level.getMaxY() && this.level.hasChunk(x >> 4, z >> 4) && this.readSoft(x, y, z);
+         known = soft ? SOFT : HARD;
+         this.softness.put(key, known);
+      }
+
+      return known == SOFT;
+   }
+
+   private boolean readSoft(int x, int y, int z) {
+      this.cursor.set(x, y, z);
+      BlockState state = this.level.getBlockState(this.cursor);
+      return state.isAir() || state.getCollisionShape(this.level, this.cursor).isEmpty();
+   }
+
+   public void iterate() {
+      if (this.done) {
+         return;
+      }
+
+      int budget = takeBudget(this.level);
+      while (budget-- > 0) {
+         if (this.open.isEmpty()) {
+            this.finish(null);
             return;
          }
 
-         if (this.endReached) {
-            this.result = new LinkedList<>();
-
-            while (this.nextIteration != null) {
-               this.result.addFirst(this.nextIteration.index);
-               this.nextIteration = this.nextIteration.parent;
-            }
-
+         Node current = this.open.pop();
+         current.closed = true;
+         if (this.isGoal(current.x, current.y, current.z)) {
+            this.finish(this.reconstruct(current));
             return;
          }
 
-         this.nextIteration = this.iterate(this.nextIteration);
+         if (++this.expanded > MAX_NODES) {
+            this.finish(null);
+            return;
+         }
+
+         this.expand(current);
       }
    }
 
    public boolean isDone() {
-      return this.nextIteration == null;
+      return this.done;
    }
 
-   public LinkedList<BlockPos> getResult() {
-      return this.result != null ? this.result : new LinkedList<>();
+   public List<BlockPos> getResult() {
+      return this.result;
    }
 
    public BlockPos end() {
       return this.end;
    }
 
-   private Node iterate(Node from) {
-      this.openList.remove(from.index);
-      this.closedList.put(from.index, from);
+   private static int takeBudget(Level level) {
+      MinecraftServer server = level.getServer();
+      long tick = server != null ? server.getTickCount() : level.getGameTime();
+      if (tick != budgetTick) {
+         budgetTick = tick;
+         budgetLeft = NODES_PER_TICK_ALL_ROBOTS;
+      }
 
-      ArrayList<Node> nodes = new ArrayList<>();
-      byte[][][] resultMoves = this.movements(from);
+      int taken = Math.min(NODES_PER_TICK, budgetLeft);
+      budgetLeft -= taken;
+      return taken;
+   }
+
+   private void expand(Node from) {
+      boolean[] soft = this.neighbourhood;
+      for (int i = 0; i < 27; i++) {
+         soft[i] = this.isSoft(from.x + i / 9 - 1, from.y + i / 3 % 3 - 1, from.z + i % 3 - 1);
+      }
 
       for (int dx = -1; dx <= 1; dx++) {
          for (int dy = -1; dy <= 1; dy++) {
             for (int dz = -1; dz <= 1; dz++) {
-               if (resultMoves[dx + 1][dy + 1][dz + 1] == 0) {
+               if ((dx == 0 && dy == 0 && dz == 0) || !sweptCellsSoft(soft, dx, dy, dz)) {
                   continue;
                }
 
-               BlockPos index = from.index.offset(dx, dy, dz);
-               Node nextNode = new Node();
-               nextNode.parent = from;
-               nextNode.index = index;
-
-               if (resultMoves[dx + 1][dy + 1][dz + 1] == 2) {
-                  this.endReached = true;
-                  return nextNode;
+               int x = from.x + dx;
+               int y = from.y + dy;
+               int z = from.z + dz;
+               float g = from.g + STEP_COST[Math.abs(dx) + Math.abs(dy) + Math.abs(dz)];
+               long key = BlockPos.asLong(x, y, z);
+               Node next = this.nodes.get(key);
+               if (next == null) {
+                  next = new Node(x, y, z);
+                  next.g = g;
+                  next.h = this.heuristic(next);
+                  next.f = g + next.h;
+                  next.cameFrom = from;
+                  this.nodes.put(key, next);
+                  this.open.insert(next);
+               } else if (!next.closed && g < next.g) {
+                  next.g = g;
+                  next.cameFrom = from;
+                  this.open.changeCost(next, g + next.h);
                }
+            }
+         }
+      }
+   }
 
-               nextNode.movementCost = from.movementCost + distanceSq(index, from.index);
-               nextNode.destinationCost = distanceSq(index, this.end);
-               nextNode.totalWeight = nextNode.movementCost + nextNode.destinationCost;
-
-               if (this.maxTotalDistanceSq > 0.0F && nextNode.totalWeight > this.maxTotalDistanceSq) {
-                  this.closedList.putIfAbsent(index, nextNode);
-                  continue;
+   /** Every cell of the box spanned by the step, except the origin, must be passable: that is exactly what the robot's box sweeps. */
+   private static boolean sweptCellsSoft(boolean[] soft, int dx, int dy, int dz) {
+      for (int ix = 0; ix <= Math.abs(dx); ix++) {
+         for (int iy = 0; iy <= Math.abs(dy); iy++) {
+            for (int iz = 0; iz <= Math.abs(dz); iz++) {
+               if ((ix != 0 || iy != 0 || iz != 0) && !soft[(ix * dx + 1) * 9 + (iy * dy + 1) * 3 + iz * dz + 1]) {
+                  return false;
                }
-
-               if (this.closedList.containsKey(index)) {
-                  continue;
-               } else if (this.openList.containsKey(index)) {
-                  Node tentative = this.openList.get(index);
-                  if (tentative.movementCost < nextNode.movementCost) {
-                     nextNode = tentative;
-                  } else {
-                     this.openList.put(index, nextNode);
-                  }
-               } else {
-                  this.openList.put(index, nextNode);
-               }
-
-               nodes.add(nextNode);
             }
          }
       }
 
-      nodes.addAll(this.openList.values());
-      return findSmallerWeight(nodes);
+      return true;
    }
 
-   private static Node findSmallerWeight(Collection<Node> collection) {
-      Node found = null;
-
-      for (Node n : collection) {
-         if (found == null || n.totalWeight < found.totalWeight) {
-            found = n;
-         }
-      }
-
-      return found;
-   }
-
-   private boolean endReached(BlockPos pos) {
+   private boolean isGoal(int x, int y, int z) {
       if (this.maxDistanceToEndSq == 0.0) {
-         return this.end.equals(pos);
+         return x == this.end.getX() && y == this.end.getY() && z == this.end.getZ();
       }
 
-      return isSoftBlock(this.world, pos) && distanceSq(pos, this.end) <= this.maxDistanceToEndSq;
+      return this.end.distSqr(this.cursor.set(x, y, z)) <= this.maxDistanceToEndSq && this.isSoft(x, y, z);
    }
 
-   private byte[][][] movements(Node from) {
-      byte[][][] resultMoves = new byte[3][3][3];
-
-      for (int dx = -1; dx <= 1; dx++) {
-         for (int dy = -1; dy <= 1; dy++) {
-            for (int dz = -1; dz <= 1; dz++) {
-               BlockPos pos = from.index.offset(dx, dy, dz);
-               if (pos.getY() < this.world.getMinY()) {
-                  resultMoves[dx + 1][dy + 1][dz + 1] = 0;
-               } else if (this.endReached(pos)) {
-                  resultMoves[dx + 1][dy + 1][dz + 1] = 2;
-               } else if (!isSoftBlock(this.world, pos)) {
-                  resultMoves[dx + 1][dy + 1][dz + 1] = 0;
-               } else {
-                  resultMoves[dx + 1][dy + 1][dz + 1] = 1;
-               }
-            }
-         }
-      }
-
-      resultMoves[1][1][1] = 0;
-      pruneDiagonals(resultMoves);
-      return resultMoves;
+   private float heuristic(Node node) {
+      float dx = node.x - this.end.getX();
+      float dy = node.y - this.end.getY();
+      float dz = node.z - this.end.getZ();
+      return (float)Math.sqrt(dx * dx + dy * dy + dz * dz);
    }
 
-   private static void pruneDiagonals(byte[][][] m) {
-      if (m[0][1][1] == 0) {
-         for (int i = 0; i <= 2; i++) {
-            for (int j = 0; j <= 2; j++) {
-               m[0][i][j] = 0;
-            }
-         }
+   private List<BlockPos> reconstruct(Node goal) {
+      List<BlockPos> cells = new ArrayList<>();
+      for (Node node = goal; node != null; node = node.cameFrom) {
+         cells.add(node.asBlockPos());
       }
 
-      if (m[2][1][1] == 0) {
-         for (int i = 0; i <= 2; i++) {
-            for (int j = 0; j <= 2; j++) {
-               m[2][i][j] = 0;
-            }
-         }
-      }
-
-      if (m[1][0][1] == 0) {
-         for (int i = 0; i <= 2; i++) {
-            for (int j = 0; j <= 2; j++) {
-               m[i][0][j] = 0;
-            }
-         }
-      }
-
-      if (m[1][2][1] == 0) {
-         for (int i = 0; i <= 2; i++) {
-            for (int j = 0; j <= 2; j++) {
-               m[i][2][j] = 0;
-            }
-         }
-      }
-
-      if (m[1][1][0] == 0) {
-         for (int i = 0; i <= 2; i++) {
-            for (int j = 0; j <= 2; j++) {
-               m[i][j][0] = 0;
-            }
-         }
-      }
-
-      if (m[1][1][2] == 0) {
-         for (int i = 0; i <= 2; i++) {
-            for (int j = 0; j <= 2; j++) {
-               m[i][j][2] = 0;
-            }
-         }
-      }
-
-      pruneEdge(m, 0, 0, 1, new int[][]{{0, 0, 0}, {0, 0, 2}});
-      pruneEdge(m, 0, 2, 1, new int[][]{{0, 2, 0}, {0, 2, 2}});
-      pruneEdge(m, 2, 0, 1, new int[][]{{2, 0, 0}, {2, 0, 2}});
-      pruneEdge(m, 2, 2, 1, new int[][]{{2, 2, 0}, {2, 2, 2}});
-      pruneEdge(m, 0, 1, 0, new int[][]{{0, 0, 0}, {0, 2, 0}});
-      pruneEdge(m, 0, 1, 2, new int[][]{{0, 0, 2}, {0, 2, 2}});
-      pruneEdge(m, 2, 1, 0, new int[][]{{2, 0, 0}, {2, 2, 0}});
-      pruneEdge(m, 2, 1, 2, new int[][]{{2, 0, 2}, {2, 2, 2}});
-      pruneEdge(m, 1, 0, 0, new int[][]{{0, 0, 0}, {2, 0, 0}});
-      pruneEdge(m, 1, 0, 2, new int[][]{{0, 0, 2}, {2, 0, 2}});
-      pruneEdge(m, 1, 2, 0, new int[][]{{0, 2, 0}, {2, 2, 0}});
-      pruneEdge(m, 1, 2, 2, new int[][]{{0, 2, 2}, {2, 2, 2}});
+      Collections.reverse(cells);
+      return this.smooth(cells);
    }
 
-   private static void pruneEdge(byte[][][] m, int a, int b, int c, int[][] targets) {
-      if (m[a][b][c] == 0) {
-         for (int[] t : targets) {
-            m[t[0]][t[1]][t[2]] = 0;
-         }
+   private List<BlockPos> smooth(List<BlockPos> cells) {
+      if (cells.size() < 3) {
+         return cells;
       }
+
+      List<BlockPos> smoothed = new ArrayList<>();
+      int i = 0;
+      smoothed.add(cells.get(0));
+      while (i < cells.size() - 1) {
+         int reach = i + 1;
+         int limit = Math.min(cells.size() - 1, i + SMOOTH_LOOKAHEAD);
+         for (int j = i + 2; j <= limit; j++) {
+            if (!FlightSweep.isClear(this::isSoft, feet(cells.get(i)), feet(cells.get(j)))) {
+               break;
+            }
+
+            reach = j;
+         }
+
+         smoothed.add(cells.get(reach));
+         i = reach;
+      }
+
+      return smoothed;
    }
 
-   private static double distanceSq(BlockPos a, BlockPos b) {
-      double dx = (double)a.getX() - (double)b.getX();
-      double dy = (double)a.getY() - (double)b.getY();
-      double dz = (double)a.getZ() - (double)b.getZ();
-      return dx * dx + dy * dy + dz * dz;
-   }
-
-   private static final class Node {
-      Node parent;
-      double movementCost;
-      double destinationCost;
-      double totalWeight;
-      BlockPos index;
+   private void finish(List<BlockPos> path) {
+      this.done = true;
+      this.result = path;
+      this.open.clear();
+      this.nodes.clear();
    }
 }

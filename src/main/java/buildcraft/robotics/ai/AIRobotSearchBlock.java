@@ -190,7 +190,7 @@ public class AIRobotSearchBlock extends AIRobot {
 
    /** The per-candidate work worth budgeting: reservation lookup + the board's block filter (block-state reads). */
    private boolean fullAccept(BlockPos pos) {
-      if (this.robot.getRegistry().isTaken(new ResourceIdBlock(pos))) {
+      if (this.robot.isKnownUnreachable(pos) || this.robot.getRegistry().isTaken(new ResourceIdBlock(pos))) {
          return false;
       }
 

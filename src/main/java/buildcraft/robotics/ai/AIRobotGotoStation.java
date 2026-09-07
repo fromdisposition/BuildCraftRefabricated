@@ -43,11 +43,6 @@ public class AIRobotGotoStation extends AIRobotStationNavigate {
    }
 
    @Override
-   protected int approachSteps() {
-      return 1;
-   }
-
-   @Override
    public void end() {
       // start() takes the station up front; if navigation fails and nothing docks, hand the reservation back
       // here, or the station stays "taken" by this robot until its next releaseResources.

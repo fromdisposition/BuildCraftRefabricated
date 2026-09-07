@@ -130,6 +130,10 @@ public abstract class EntityRobotBase extends LivingEntity {
 
    public abstract boolean isKnownUnreachable(Entity var1);
 
+   public abstract void unreachableBlockDetected(BlockPos var1);
+
+   public abstract boolean isKnownUnreachable(BlockPos var1);
+
    public abstract long getRobotId();
 
    public abstract void setUniqueRobotId(long var1);

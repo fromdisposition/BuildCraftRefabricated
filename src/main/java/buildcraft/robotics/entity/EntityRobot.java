@@ -94,7 +94,11 @@ public class EntityRobot extends EntityRobotBase {
    private float lastSentEnergy = Float.NaN;
    private float lastSentAimYaw = Float.NaN;
 
-   public Vec3 destination;
+   private Vec3 destination;
+   private BlockPos passThroughMin;
+   private BlockPos passThroughMax;
+   private boolean movementBlocked;
+   private final it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap unreachableBlocks = new it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap();
 
    public EntityRobot(EntityType<EntityRobot> type, Level level) {
       super(type, level);
@@ -165,8 +169,7 @@ public class EntityRobot extends EntityRobotBase {
       }
 
       if (this.currentDockingStation != null) {
-         this.setDeltaMovement(Vec3.ZERO);
-         this.destination = null;
+         this.clearDestination();
          BlockPos dockPos = this.currentDockingStation.getPos();
          Direction dockSide = this.currentDockingStation.side();
          double dockX = dockPos.getX() + 0.5 + dockSide.getStepX() * 0.5;
@@ -223,16 +226,47 @@ public class EntityRobot extends EntityRobotBase {
       Vec3 diff = this.destination.subtract(current);
       double dist = diff.length();
       if (dist < 0.1) {
-         this.setDeltaMovement(Vec3.ZERO);
-         this.destination = null;
-      } else {
-         double speed = Math.min(buildcraft.robotics.BCRoboticsConfig.flightSpeed.get(), dist);
-         Vec3 move = diff.normalize().scale(speed);
-         // Zero residual velocity: LivingEntity.travel would reapply the same delta and overshoot the
-         // 0.1 arrival threshold, so the approach never converges.
-         this.setDeltaMovement(Vec3.ZERO);
-         this.setPos(current.add(move));
+         this.clearDestination();
+         return;
       }
+
+      double speed = Math.min(buildcraft.robotics.BCRoboticsConfig.flightSpeed.get(), dist);
+      Vec3 next = current.add(diff.normalize().scale(speed));
+      // Zero residual velocity: LivingEntity.travel would reapply the same delta and overshoot the
+      // 0.1 arrival threshold, so the approach never converges.
+      this.setDeltaMovement(Vec3.ZERO);
+      if (!buildcraft.robotics.path.FlightSweep.isClear(this.level(), current, next, this.passThroughMin, this.passThroughMax)) {
+         this.movementBlocked = true;
+         return;
+      }
+
+      this.movementBlocked = false;
+      this.setPos(next);
+   }
+
+   public void setDestination(Vec3 destination) {
+      this.setDestination(destination, null, null);
+   }
+
+   /** passThroughMin..passThroughMax is the box of cells this flight may enter: a docking station's pipe and the cell in front of it. */
+   public void setDestination(Vec3 destination, BlockPos passThroughMin, BlockPos passThroughMax) {
+      this.destination = destination;
+      this.passThroughMin = passThroughMin;
+      this.passThroughMax = passThroughMax;
+      this.movementBlocked = false;
+   }
+
+   public void clearDestination() {
+      this.destination = null;
+      this.passThroughMin = null;
+      this.passThroughMax = null;
+      this.movementBlocked = false;
+      this.setDeltaMovement(Vec3.ZERO);
+   }
+
+   /** True when the last flight step would have entered a block and was refused; the destination is kept. */
+   public boolean isMovementBlocked() {
+      return this.movementBlocked;
    }
 
    @Override
@@ -497,6 +531,28 @@ public class EntityRobot extends EntityRobotBase {
 
       if (deadline <= this.level().getGameTime()) {
          this.unreachableEntities.remove(entity.getId());
+         return false;
+      }
+
+      return true;
+   }
+
+   @Override
+   public void unreachableBlockDetected(BlockPos pos) {
+      long now = this.level().getGameTime();
+      this.unreachableBlocks.values().removeIf((long deadline) -> deadline <= now);
+      this.unreachableBlocks.put(pos.asLong(), now + UNREACHABLE_TTL_TICKS);
+   }
+
+   @Override
+   public boolean isKnownUnreachable(BlockPos pos) {
+      long deadline = this.unreachableBlocks.get(pos.asLong());
+      if (deadline == 0L) {
+         return false;
+      }
+
+      if (deadline <= this.level().getGameTime()) {
+         this.unreachableBlocks.remove(pos.asLong());
          return false;
       }
 

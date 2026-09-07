@@ -10,10 +10,19 @@ import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.robotics.path.FlightSweep;
+import buildcraft.robotics.path.PathFinding;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 
+/**
+ * Flies to a docking station in two legs: a pathfound flight to an approach cell next to the station, then the
+ * straight dock onto its face. The approach cell is the one in front of the station when it is free; a station
+ * facing an inventory is approached from a neighbouring free cell that has a clear straight line onto the face.
+ */
 public abstract class AIRobotStationNavigate extends AIRobot {
    protected BlockPos stationIndex;
    protected Direction stationSide;
@@ -25,33 +34,67 @@ public abstract class AIRobotStationNavigate extends AIRobot {
    protected void beginNavigation(DockingStation station) {
       this.stationIndex = station.index();
       this.stationSide = station.side();
-      Direction side = station.side();
-      int steps = this.approachSteps();
+      if (this.robot.isKnownUnreachable(station.index().relative(station.side()))) {
+         this.terminate();
+         return;
+      }
+
+      BlockPos approach = this.chooseApproach(station);
+      if (approach == null) {
+         this.robot.unreachableBlockDetected(station.index().relative(station.side()));
+         this.terminate();
+         return;
+      }
+
+      this.startDelegateAI(new AIRobotGotoBlock(this.robot, approach.getX(), approach.getY(), approach.getZ()));
+   }
+
+   private BlockPos chooseApproach(DockingStation station) {
+      Level level = this.robot.level();
       BlockPos index = station.index();
-      this.startDelegateAI(
-         new AIRobotGotoBlock(
-            this.robot,
-            index.getX() + side.getStepX() * steps,
-            index.getY() + side.getStepY() * steps,
-            index.getZ() + side.getStepZ() * steps
-         )
-      );
+      BlockPos front = index.relative(station.side());
+      if (PathFinding.isSoftBlock(level, front)) {
+         return front;
+      }
+
+      Vec3 dock = dockPosition(station);
+      Vec3 here = this.robot.position();
+      BlockPos best = null;
+      double bestDistSq = Double.MAX_VALUE;
+      for (int dx = -1; dx <= 1; dx++) {
+         for (int dy = -1; dy <= 1; dy++) {
+            for (int dz = -1; dz <= 1; dz++) {
+               if (dx == 0 && dy == 0 && dz == 0) {
+                  continue;
+               }
+
+               BlockPos cell = front.offset(dx, dy, dz);
+               if (cell.equals(index) || !PathFinding.isSoftBlock(level, cell)) {
+                  continue;
+               }
+
+               double distSq = here.distanceToSqr(PathFinding.feet(cell));
+               if (distSq < bestDistSq && FlightSweep.isClear(level, PathFinding.feet(cell), dock, index, front)) {
+                  best = cell;
+                  bestDistSq = distSq;
+               }
+            }
+         }
+      }
+
+      return best;
+   }
+
+   private static Vec3 dockPosition(DockingStation station) {
+      Direction side = station.side();
+      BlockPos index = station.index();
+      return new Vec3(index.getX() + 0.5 + side.getStepX() * 0.5, index.getY() + 0.5 + side.getStepY() * 0.5, index.getZ() + 0.5 + side.getStepZ() * 0.5);
    }
 
    protected void beginStraightDock(DockingStation station) {
-      Direction side = station.side();
-      BlockPos index = station.index();
-      this.startDelegateAI(
-         new AIRobotStraightMoveTo(
-            this.robot,
-            index.getX() + 0.5 + side.getStepX() * 0.5,
-            index.getY() + 0.5 + side.getStepY() * 0.5,
-            index.getZ() + 0.5 + side.getStepZ() * 0.5
-         )
-      );
+      Vec3 dock = dockPosition(station);
+      this.startDelegateAI(new AIRobotStraightMoveTo(this.robot, dock.x, dock.y, dock.z, station.index(), station.index().relative(station.side())));
    }
-
-   protected abstract int approachSteps();
 
    @Override
    public void delegateAIEnded(AIRobot ai) {
@@ -62,6 +105,7 @@ public abstract class AIRobotStationNavigate extends AIRobot {
          if (ai.success()) {
             this.beginStraightDock(station);
          } else {
+            this.robot.unreachableBlockDetected(station.index().relative(station.side()));
             this.terminate();
          }
       } else if (ai instanceof AIRobotStraightMoveTo) {

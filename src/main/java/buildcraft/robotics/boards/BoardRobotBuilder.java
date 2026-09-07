@@ -19,6 +19,7 @@ import buildcraft.builders.snapshot.BlueprintBuilder;
 import buildcraft.builders.snapshot.ConstructionMarkerRegistry;
 import buildcraft.builders.tile.TileConstructionMarker;
 import buildcraft.lib.misc.StackUtil;
+import buildcraft.robotics.ai.AIRobotGotoBlock;
 import buildcraft.robotics.ai.AIRobotGotoSleep;
 import buildcraft.robotics.ai.AIRobotRunErrand;
 import buildcraft.robotics.ai.StationErrand;
@@ -33,6 +34,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class BoardRobotBuilder extends RedstoneBoardRobot {
    private static final double REACH = 5.0;
+   private static final double HOVER_SQ = 1.0;
 
    private int lastCarried = -1;
 
@@ -86,14 +88,21 @@ public class BoardRobotBuilder extends RedstoneBoardRobot {
 
       Vec3 centroid = this.activeCentroid(builder);
       if (centroid != null) {
+         Vec3 hover = centroid.add(0.0, 2.0, 0.0);
+         if (this.robot.position().distanceToSqr(hover) > HOVER_SQ) {
+            BlockPos cell = BlockPos.containing(hover);
+            this.startDelegateAI(new AIRobotGotoBlock(this.robot, cell.getX(), cell.getY(), cell.getZ()));
+            return;
+         }
+
          // A docked robot is pinned to its station every tick, so a destination alone never moves it. Every other
          // board leaves the dock through AIRobotGotoBlock; this one flies itself and has to let go by hand.
          this.robot.undock();
-         entityRobot.destination = centroid.add(0.0, 2.0, 0.0);
+         entityRobot.setDestination(hover);
          this.robot.aimItemAt(BlockPos.containing(centroid));
          this.context.setInRange(this.robot.position().distanceTo(centroid) < REACH);
       } else {
-         entityRobot.destination = null;
+         entityRobot.clearDestination();
          this.context.setInRange(false);
       }
 
@@ -116,6 +125,8 @@ public class BoardRobotBuilder extends RedstoneBoardRobot {
    public void delegateAIEnded(AIRobot ai) {
       if (ai instanceof AIRobotRunErrand) {
          this.materialsUnavailable = !ai.success();
+      } else if (ai instanceof AIRobotGotoBlock && !ai.success()) {
+         this.startDelegateAI(new AIRobotGotoSleep(this.robot));
       }
    }
 

@@ -46,8 +46,8 @@ public class AIRobotSleep extends AIRobot {
       DockingStation station = this.robot.getDockingStation();
       if (station != null && this.robot instanceof EntityRobot entityRobot) {
          BlockPos pos = station.getPos();
-         entityRobot.destination = Vec3.atCenterOf(pos)
-            .add(station.side().getStepX() * 0.5, station.side().getStepY() * 0.5, station.side().getStepZ() * 0.5);
+         entityRobot.setDestination(Vec3.atCenterOf(pos)
+            .add(station.side().getStepX() * 0.5, station.side().getStepY() * 0.5, station.side().getStepZ() * 0.5));
       }
 
       if (this.sleptTime > buildcraft.robotics.BCRoboticsConfig.sleepSeconds.get() * 20) {

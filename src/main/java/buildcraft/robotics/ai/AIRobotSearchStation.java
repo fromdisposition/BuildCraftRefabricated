@@ -61,6 +61,10 @@ public class AIRobotSearchStation extends AIRobot {
             continue;
          }
 
+         if (this.robot.isKnownUnreachable(pos.relative(station.side()))) {
+            continue;
+         }
+
          if (this.filter.matches(station) && !StationActions.isRobotForbidden(station, this.robot)) {
             double distance = this.robot.position().distanceToSqr(Vec3.atCenterOf(pos));
             if (best == null || distance < bestDistance) {

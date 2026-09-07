@@ -42,11 +42,6 @@ public class AIRobotGoAndLinkToDock extends AIRobotStationNavigate {
    }
 
    @Override
-   protected int approachSteps() {
-      return 2;
-   }
-
-   @Override
    protected void onReachedDock(DockingStation station) {
       this.robot.dock(station);
       this.terminate();
