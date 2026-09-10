@@ -112,7 +112,7 @@ public class EntityQuarryRig extends Entity {
    }
 
    // Default client interpolation lags the synced position ~3 ticks, letting the player fall through the moving collision box; snap straight to each update instead.
-   //? if >= 26.3-pre-1 {
+   //? if >= 26.3 {
    @Override
    protected InterpolationHandler createInterpolationHandler() {
       return net.minecraft.world.entity.LinearInterpolationHandler.create(this, 0);

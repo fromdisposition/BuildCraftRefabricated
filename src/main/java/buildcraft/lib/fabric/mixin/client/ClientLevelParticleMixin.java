@@ -29,7 +29,7 @@ public abstract class ClientLevelParticleMixin {
 
    // addBreakingBlockEffect has no 1.21.1 hook; gated to 1.21.10+ since a missing-target @Inject
    // would fail the whole mixin under defaultRequire=1.
-   //? if >= 26.3-pre-2 {
+   //? if >= 26.3 {
    @Inject(method = "addBreakingBlockEffects", at = @At("HEAD"), cancellable = true)
    private void buildcraft$customHitParticles(BlockPos pos, Direction direction, boolean crack, CallbackInfo ci) {
    //?} else if >= 1.21.10 {

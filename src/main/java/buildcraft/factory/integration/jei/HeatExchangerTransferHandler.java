@@ -52,6 +52,7 @@ public class HeatExchangerTransferHandler implements IRecipeTransferHandler<Cont
 
    @Nullable
    @Override
+   @SuppressWarnings("removal")
    public IRecipeTransferError transferRecipe(
       ContainerHeatExchange container, HeatExchangerRecipePair pair, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer
    ) {

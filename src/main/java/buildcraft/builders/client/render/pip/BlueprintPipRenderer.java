@@ -104,7 +104,7 @@ public class BlueprintPipRenderer extends PictureInPictureRenderer<BlueprintPipR
    @Override
    protected void renderToTexture(BlueprintPipRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector) {
       SubmitNodeStorage storage = (SubmitNodeStorage) submitNodeCollector;
-      //? if < 26.3-pre-1 {
+      //? if < 26.3 {
       /*this.render(renderState, poseStack, GeometrySink.of(storage), () -> Minecraft.getInstance().gameRenderer.featureRenderDispatcher().renderAllFeatures(storage));
       *///?} else {
       this.render(renderState, poseStack, GeometrySink.of(storage), () -> {});

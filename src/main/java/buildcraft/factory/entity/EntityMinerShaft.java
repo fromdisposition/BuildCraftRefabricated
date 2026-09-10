@@ -114,7 +114,7 @@ public class EntityMinerShaft extends Entity {
    }
 
    // Snap to each synced position instead of the default 3-tick interpolation, so the collider tracks the shaft as it extends.
-   //? if >= 26.3-pre-1 {
+   //? if >= 26.3 {
    @Override
    protected InterpolationHandler createInterpolationHandler() {
       return net.minecraft.world.entity.LinearInterpolationHandler.create(this, 0);

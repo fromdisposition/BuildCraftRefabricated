@@ -43,7 +43,7 @@ import net.minecraft.world.level.material.Fluids;
 // The vanilla fluid renderer special-cases HalfTransparentBlock by instanceof: water touching one draws the
 // clean flat OVERLAY texture on the shared face instead of the flowing texture fighting the gel's own face.
 public class BlockWaterGel extends HalfTransparentBlock {
-   //? if < 26.3-pre-1 {
+   //? if < 26.3 {
    /*public static final MapCodec<BlockWaterGel> CODEC = simpleCodec(BlockWaterGel::new);
    *///?}
    public static final EnumProperty<BlockWaterGel.GelStage> PROP_STAGE = EnumProperty.create("stage", BlockWaterGel.GelStage.class);
@@ -53,7 +53,7 @@ public class BlockWaterGel extends HalfTransparentBlock {
       this.registerDefaultState((this.stateDefinition.any()).setValue(PROP_STAGE, BlockWaterGel.GelStage.SPREAD_0));
    }
 
-   //? if < 26.3-pre-1 {
+   //? if < 26.3 {
    /*protected MapCodec<? extends BlockWaterGel> codec() {
       return CODEC;
    }

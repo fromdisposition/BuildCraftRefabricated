@@ -60,14 +60,14 @@ public final class BCAdvancementJsonProvider implements DataProvider {
       JsonObject predicate = new JsonObject();
       predicate.add("block", blocks);
       JsonObject check = new JsonObject();
-      //? if >= 26.3-pre-1 {
+      //? if >= 26.3 {
       check.addProperty("type", "minecraft:location_check");
       //?} else {
       /*check.addProperty("condition", "minecraft:location_check");
       *///?}
       check.add("predicate", predicate);
       JsonObject conditions = new JsonObject();
-      //? if >= 26.3-pre-1 {
+      //? if >= 26.3 {
       conditions.add("player", check);
       //?} else {
       /*JsonArray player = new JsonArray();
@@ -85,7 +85,7 @@ public final class BCAdvancementJsonProvider implements DataProvider {
 
    private static JsonObject recipeCrafted(String recipeId) {
       JsonObject conditions = new JsonObject();
-      //? if >= 26.3-pre-1 {
+      //? if >= 26.3 {
       JsonArray recipes = new JsonArray();
       recipes.add(recipeId);
       conditions.add("recipes", recipes);

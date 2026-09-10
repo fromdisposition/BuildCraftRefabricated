@@ -55,7 +55,7 @@ public final class OilStructureSpawnConditions {
       if (tier == Tier.NORMAL && !BCEnergyConfig.oilOceanFields.get()) {
          int sampleX = context.chunkPos().getMiddleBlockX();
          int sampleZ = context.chunkPos().getMiddleBlockZ();
-         //? if >= 26.3-pre-1 {
+         //? if >= 26.3 {
          Holder<Biome> biome = context.biomeResolver()
             .getNoiseBiome(QuartPos.fromBlock(sampleX), QuartPos.fromBlock(0), QuartPos.fromBlock(sampleZ));
          //?} else {

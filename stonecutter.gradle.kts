@@ -82,7 +82,7 @@ stonecutter parameters {
             replace("this.raw.fakeItem(", "this.raw.renderFakeItem(")
             replace("this.raw.itemDecorations(", "this.raw.renderItemDecorations(")
         }
-        string(current.parsed < "26.3-pre-1") {
+        string(current.parsed < "26.3") {
             replace("com.mojang.renderpearl.api.pipeline.RenderPipeline", "com.mojang.blaze3d.pipeline.RenderPipeline")
             replace("com.mojang.renderpearl.api.pipeline.DepthStencilState", "com.mojang.blaze3d.pipeline.DepthStencilState")
             replace("com.mojang.renderpearl.api.buffers.GpuBuffer", "com.mojang.blaze3d.buffers.GpuBuffer")

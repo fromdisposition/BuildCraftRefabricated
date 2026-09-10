@@ -51,6 +51,7 @@ public class AssemblyTableTransferHandler implements IRecipeTransferHandler<Cont
 
    @Nullable
    @Override
+   @SuppressWarnings("removal")
    public IRecipeTransferError transferRecipe(
       ContainerAssemblyTable container, AssemblyRecipeView recipe, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer
    ) {

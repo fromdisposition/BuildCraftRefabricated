@@ -100,7 +100,7 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
    }
 
    private int getBurnTime(@Nonnull ItemStack stack) {
-      //? if >= 26.3-pre-1 {
+      //? if >= 26.3 {
       if (stack.isEmpty() || this.level == null) {
          return 0;
       }

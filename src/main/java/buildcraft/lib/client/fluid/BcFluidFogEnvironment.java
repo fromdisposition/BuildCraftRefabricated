@@ -41,7 +41,7 @@ public final class BcFluidFogEnvironment extends FogEnvironment {
       return FluidWorldRenderer.appearanceAtEye(entity, level) != null;
    }
 
-   //? if >= 26.3-pre-1 {
+   //? if >= 26.3 {
    @Override
    public boolean providesColor() {
       return true;

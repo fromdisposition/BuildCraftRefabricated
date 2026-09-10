@@ -101,7 +101,7 @@ public final class BCRecipeProvider implements DataProvider {
          HolderGetter<Item> items = provider.lookupOrThrow(Registries.ITEM);
          List<CompletableFuture<?>> futures = new ArrayList<>();
          for (Def def : BCRecipeDefs.ALL) {
-            //? if >= 26.3-pre-1 {
+            //? if >= 26.3 {
             JsonElement json = Recipe.DIRECT_CODEC.encodeStart(ops, build(def, items, ops)).getOrThrow();
             //?} else {
             /*JsonElement json = Recipe.CODEC.encodeStart(ops, build(def, items, ops)).getOrThrow();

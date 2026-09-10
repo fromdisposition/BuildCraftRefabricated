@@ -18,7 +18,9 @@ sc.constants {
     put("has_rei", reiVer != null)
 }
 
-val mcVersion = sc.current.version
+// A node may target a Minecraft pre-release while its Stonecutter version already reads as the final release,
+// so every "//?" gate can name the release. deps.mc is that pre-release; drop it once the release is out.
+val mcVersion = sc.properties.rawOrNull("deps", "mc")?.toString() ?: sc.current.version
 val javaRelease = if (sc.current.parsed >= "26.1") 25 else 21
 val javaVer = if (javaRelease >= 25) JavaVersion.VERSION_25 else JavaVersion.VERSION_21
 

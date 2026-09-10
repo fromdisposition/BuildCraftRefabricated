@@ -3,7 +3,7 @@ package buildcraft.energy.worldgen.integration;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.Optional;
-//? if >= 26.3-pre-1 {
+//? if >= 26.3 {
 import net.minecraft.core.Holder;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 //?} else {
@@ -23,7 +23,7 @@ public final class OilDesignBiomeNearbyTrigger extends SimpleCriterionTrigger<Oi
       this.trigger(player, instance -> true);
    }
 
-   //? if >= 26.3-pre-1 {
+   //? if >= 26.3 {
    public record TriggerInstance(Optional<Holder<LootItemCondition>> player)
       implements SimpleCriterionTrigger.SimpleInstance {
       public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(

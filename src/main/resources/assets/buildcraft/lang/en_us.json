@@ -515,7 +515,7 @@
   "buildcraft.help.integration_table.power.title": "Integration Progress",
   "buildcraft.help.integration_table.power.desc": "Shows how much MJ has accumulated toward the next integration. The table only consumes power once a valid recipe is detected.",
   "buildcraft.help.zone_planner.map.title": "Zone Map",
-  "buildcraft.help.zone_planner.map.desc1": "Live 3D top-down view of the surrounding terrain. Hold a coloured paintbrush on the cursor, then left-click and drag to paint a rectangular zone and right-click and drag to erase it.",
+  "buildcraft.help.zone_planner.map.desc1": "Live top-down view of the surrounding terrain. Hold a coloured paintbrush on the cursor, then left-click and drag to paint a rectangular zone and right-click and drag to erase it.",
   "buildcraft.help.zone_planner.map.desc2": "Scroll to zoom, drag with an empty hand to pan, and use the arrow keys to nudge the view. The readout shows the X, Y and Z under the cursor.",
   "buildcraft.help.zone_planner.paintbrushes.title": "Paintbrush Storage",
   "buildcraft.help.zone_planner.paintbrushes.desc": "Holds up to sixteen paintbrushes. The dye colour of the brush you pick up selects which of the sixteen zone layers you paint on the map.",

@@ -47,6 +47,7 @@ public class BlueprintTransferHandler<C extends AbstractContainerMenu> implement
 
    @Nullable
    @Override
+   @SuppressWarnings("removal")
    public IRecipeTransferError transferRecipe(
       C container, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView recipeSlots, Player player, boolean maxTransfer, boolean doTransfer
    ) {

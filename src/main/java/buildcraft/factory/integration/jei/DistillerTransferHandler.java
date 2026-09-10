@@ -50,6 +50,7 @@ public class DistillerTransferHandler implements IRecipeTransferHandler<Containe
 
    @Nullable
    @Override
+   @SuppressWarnings("removal")
    public IRecipeTransferError transferRecipe(
       ContainerDistiller container,
       IRefineryRecipeManager.IDistillationRecipe recipe,

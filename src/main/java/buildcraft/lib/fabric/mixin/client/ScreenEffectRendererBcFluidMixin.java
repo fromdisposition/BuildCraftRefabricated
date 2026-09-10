@@ -15,15 +15,15 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(ScreenEffectRenderer.class)
 public class ScreenEffectRendererBcFluidMixin {
-   //? if < 26.3-pre-1 {
+   //? if < 26.3 {
    /*@Final
    @Shadow
    private Minecraft minecraft;
    *///?}
 
-   // renderScreenEffect (1.21.11-26.1, 3-5 args) is renamed submit in 26.2, then reworked in 26.3-pre into a TAIL
+   // renderScreenEffect (1.21.11-26.1, 3-5 args) is renamed submit in 26.2, then reworked in 26.3 into a TAIL
    // injection over player/camera render states; each branch below matches its version's name and signature.
-   //? if >= 26.3-pre-1 {
+   //? if >= 26.3 {
    @Inject(method = "submit", at = @At("TAIL"))
    private void buildcraft$renderBcFluidOverlay(
       float partialTicks,

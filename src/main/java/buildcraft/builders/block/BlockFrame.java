@@ -33,7 +33,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class BlockFrame extends Block {
-   //? if < 26.3-pre-1 {
+   //? if < 26.3 {
    /*public static final MapCodec<BlockFrame> CODEC = simpleCodec(BlockFrame::new);
    *///?}
    public static final Map<Direction, Property<Boolean>> CONNECTED_MAP = BuildCraftProperties.CONNECTED_MAP;
@@ -64,7 +64,7 @@ public class BlockFrame extends Block {
       this.registerDefaultState(defaultState);
    }
 
-   //? if < 26.3-pre-1 {
+   //? if < 26.3 {
    /*protected MapCodec<? extends Block> codec() {
       return CODEC;
    }

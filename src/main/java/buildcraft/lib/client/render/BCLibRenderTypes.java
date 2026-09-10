@@ -147,7 +147,7 @@ public final class BCLibRenderTypes {
    }
 
    public static RenderType blockOutline(boolean highContrast) {
-      //? if >= 26.3-pre-1 {
+      //? if >= 26.3 {
       if (highContrast) {
          return RenderTypes.linesDepthBias();
       }

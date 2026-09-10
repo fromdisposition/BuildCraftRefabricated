@@ -115,7 +115,7 @@ public class MutableQuad {
 
    public BakedQuad toBakedBlock() {
       //? if >= 26.1 {
-      //? if >= 26.3-pre-1 {
+      //? if >= 26.3 {
       MaterialInfo matInfo = new MaterialInfo(
          this.sprite,
          this.translucent ? ChunkSectionLayer.TRANSLUCENT : ChunkSectionLayer.CUTOUT,
@@ -185,7 +185,7 @@ public class MutableQuad {
 
    public BakedQuad toBakedTranslucent() {
       //? if >= 26.1 {
-      //? if >= 26.3-pre-1 {
+      //? if >= 26.3 {
       MaterialInfo matInfo = new MaterialInfo(
          this.sprite,
          ChunkSectionLayer.TRANSLUCENT,
@@ -282,7 +282,7 @@ public class MutableQuad {
       MaterialInfo mat = quad.materialInfo();
       this.tintIndex = mat.tintIndex();
       this.sprite = mat.sprite();
-      //? if >= 26.3-pre-1 {
+      //? if >= 26.3 {
       this.shade = mat.shadeDirectionOverride() == null;
       //?} else {
       /*this.shade = mat.shade();
