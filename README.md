@@ -4,7 +4,7 @@ An unofficial Fabric port of BuildCraft for modern Minecraft: pipes, engines, th
 
 | Minecraft | Support | Fabric Loader | Fabric API | Java |
 |-----------|---------|---------------|------------|------|
-| 26.3 | Mainline | 0.19.5+ | 0.160.1+26.3 | 25 |
+| 26.3 | Mainline | 0.19.5+ | 0.160.3+26.3 | 25 |
 | 26.2 | LTS | 0.19.5+ | 0.159.0+26.2 | 25 |
 | 26.1.x | LTS | 0.19.5+ | 0.155.2+26.1.2 | 25 |
 | 1.21.11 | Maintenance | 0.19.5+ | 0.141.6+1.21.11 | 21 |
