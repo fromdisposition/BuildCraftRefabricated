@@ -6,10 +6,10 @@ An unofficial Fabric port of BuildCraft for modern Minecraft: pipes, engines, th
 |-----------|---------|---------------|------------|------|
 | 26.3 | Mainline | 0.19.5+ | 0.160.5+26.3 | 25 |
 | 26.2 | LTS | 0.19.5+ | 0.160.0+26.2 | 25 |
-| 26.1.x | LTS | 0.19.5+ | 0.155.2+26.1.2 | 25 |
-| 1.21.11 | Maintenance | 0.19.5+ | 0.141.6+1.21.11 | 21 |
-| 1.21.10 | Maintenance | 0.19.5+ | 0.138.4+1.21.10 | 21 |
-| 1.21.1 | Legacy | 0.19.5+ | 0.116.7+1.21.1 | 21 |
+| 26.1.x | LTS | 0.19.3+ | 0.155.2+26.1.2 | 25 |
+| 1.21.11 | Maintenance | 0.19.3+ | 0.141.6+1.21.11 | 21 |
+| 1.21.10 | Maintenance | 0.19.3+ | 0.138.4+1.21.10 | 21 |
+| 1.21.1 | Legacy | 0.19.3+ | 0.116.7+1.21.1 | 21 |
 
 All six versions are built from the same source tree and get the same fixes. Anything older than 1.21.1 is not planned. Bug reports go to the [issue tracker](https://github.com/fromdisposition/BuildCraftRefabricated/issues).
 
