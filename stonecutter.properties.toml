@@ -26,7 +26,7 @@ deps.rei = "21.11.816"
 
 ["26.1"]
 deps.loader = "0.19.5"
-deps.fabric_api = "0.155.3+26.1.2"
+deps.fabric_api = "0.155.2+26.1.2"
 mod.mc_dep_range = ">=26.1 <26.2-"
 deps.energy = "5.0.0"
 deps.jei = "29.19.0.51"
@@ -45,3 +45,4 @@ deps.loader = "0.19.5"
 deps.fabric_api = "0.160.5+26.3"
 mod.mc_dep_range = "26.3"
 deps.energy = "5.0.0"
+deps.jei = "31.0.0.5"

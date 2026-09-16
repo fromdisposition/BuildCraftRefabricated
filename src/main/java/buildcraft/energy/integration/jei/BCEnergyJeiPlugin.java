@@ -24,15 +24,22 @@ import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+//? if >= 26.3 {
+import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.recipe.IRecipeManager;
+import mezz.jei.api.runtime.IJeiRuntime;
+//?}
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
+//? if < 26.3 {
+/*import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
+*///?}
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
-//? if >= 1.21.10 {
-import net.minecraft.world.level.block.entity.FuelValues;
-//?}
+//? if >= 1.21.10 && < 26.3 {
+/*import net.minecraft.world.level.block.entity.FuelValues;
+*///?}
 
 @JeiPlugin
 public class BCEnergyJeiPlugin implements IModPlugin {
@@ -56,8 +63,22 @@ public class BCEnergyJeiPlugin implements IModPlugin {
       BCRecipeBootstrap.initEnergyRecipes();
       registration.addRecipes(BCJeiRecipeTypes.COMBUSTION_FUEL, collectCombustionFuels());
       registration.addRecipes(BCJeiRecipeTypes.COMBUSTION_COOLANT, collectCoolants());
-      registration.addRecipes(BCJeiRecipeTypes.STIRLING_FUEL, collectStirlingFuels());
+      //? if < 26.3 {
+      /*registration.addRecipes(BCJeiRecipeTypes.STIRLING_FUEL, collectStirlingFuels());
+      *///?}
    }
+
+   //? if >= 26.3 {
+   @Override
+   public void onRuntimeAvailable(IJeiRuntime runtime) {
+      IRecipeManager recipes = runtime.getRecipeManager();
+      List<StirlingFuelJei> fuels = recipes.createRecipeLookup(RecipeTypes.SMELTING_FUEL)
+         .get()
+         .flatMap(fuel -> fuel.getInputs().stream().map(stack -> new StirlingFuelJei(stack, fuel.getBurnTime())))
+         .toList();
+      recipes.addRecipes(BCJeiRecipeTypes.STIRLING_FUEL, fuels);
+   }
+   //?}
 
    private static java.util.Collection<RecipeHolder<?>> allRecipes() {
       var srv = Minecraft.getInstance().getSingleplayerServer();
@@ -84,7 +105,8 @@ public class BCEnergyJeiPlugin implements IModPlugin {
       return out;
    }
 
-   private static List<StirlingFuelJei> collectStirlingFuels() {
+   //? if < 26.3 {
+   /*private static List<StirlingFuelJei> collectStirlingFuels() {
       List<StirlingFuelJei> out = new ArrayList<>();
       Level level = Minecraft.getInstance().level;
       if (level == null) {
@@ -102,17 +124,18 @@ public class BCEnergyJeiPlugin implements IModPlugin {
          }
       }
       //?} else {
-      /*// 1.21.1 has no FuelValues registry; the fuel->burn-time map lives on AbstractFurnaceBlockEntity.
+      // 1.21.1 has no FuelValues registry; the fuel->burn-time map lives on AbstractFurnaceBlockEntity.
       for (java.util.Map.Entry<Item, Integer> entry : net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.getFuel().entrySet()) {
          int burnTime = entry.getValue();
          if (burnTime > 0) {
             out.add(new StirlingFuelJei(new ItemStack(entry.getKey()), burnTime));
          }
       }
-      *///?}
+      //?}
 
       return out;
    }
+   *///?}
 
    @Override
    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
