@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.lib.client.guide.parts.contents;
+
+import buildcraft.api.statements.IStatement;
+import buildcraft.lib.client.guide.PageLine;
+import buildcraft.lib.client.guide.entry.PageEntryStatement;
+import buildcraft.lib.client.guide.entry.PageValue;
+import buildcraft.lib.client.guide.parts.GuidePage;
+import buildcraft.lib.client.guide.parts.GuidePageFactory;
+import buildcraft.lib.gui.ISimpleDrawable;
+import buildcraft.lib.gui.statement.GuiElementStatementSource;
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+import net.minecraft.ChatFormatting;
+
+public class PageLinkStatement extends PageLink {
+   public final IStatement statement;
+   public final List<String> tooltip;
+   public final String searchText;
+
+   public PageLinkStatement(boolean startVisible, IStatement statement) {
+      super(createPageLine(statement), startVisible);
+      this.statement = statement;
+      List<String> tip = statement.getTooltip();
+      if (tip.isEmpty()) {
+         String uniqueTag = statement.getUniqueTag();
+         this.tooltip = ImmutableList.of(uniqueTag);
+         this.searchText = uniqueTag.toLowerCase(Locale.ROOT);
+      } else {
+         this.tooltip = tip;
+         String joinedTooltip = tip.stream().collect(Collectors.joining(" ", "", ""));
+         this.searchText = ChatFormatting.stripFormatting(joinedTooltip).toLowerCase(Locale.ROOT);
+      }
+   }
+
+   private static PageLine createPageLine(IStatement statement) {
+      ISimpleDrawable icon = (x, y) -> GuiElementStatementSource.drawGuiSlot(statement, x, y);
+      List<String> tooltip = statement.getTooltip();
+      String title = tooltip.isEmpty() ? statement.getUniqueTag() : tooltip.get(0);
+      return new PageLine(icon, icon, 2, title, true);
+   }
+
+   @Override
+   public String getSearchName() {
+      return this.searchText;
+   }
+
+   @Override
+   public List<String> getTooltip() {
+      return this.tooltip.size() == 1 ? null : this.tooltip;
+   }
+
+   @Override
+   public GuidePageFactory getFactoryLink() {
+      return g -> new GuidePage(g, ImmutableList.of(), new PageValue<>(PageEntryStatement.INSTANCE, this.statement));
+   }
+}

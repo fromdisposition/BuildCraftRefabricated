@@ -1,0 +1,68 @@
+{
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "particle": "buildcraftbuilders:block/builder/slot_blueprint",
+    "slot": "buildcraftbuilders:block/builder/slot_blueprint"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        4,
+        -2
+      ],
+      "to": [
+        13,
+        6,
+        0
+      ],
+      "faces": {
+        "down": {
+          "texture": "#slot",
+          "uv": [
+            3,
+            0,
+            13,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#slot",
+          "uv": [
+            3,
+            0,
+            13,
+            2
+          ]
+        },
+        "north": {
+          "texture": "#slot",
+          "uv": [
+            3,
+            0,
+            13,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#slot",
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ]
+        },
+        "east": {
+          "texture": "#slot",
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "elements": [
+    {
+      "comment": "Connection stub poking out of the narrow tip toward a connected neighbour.",
+      "from": [
+        5,
+        0,
+        5
+      ],
+      "to": [
+        11,
+        3,
+        11
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#bottom"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#bottom"
+        },
+        "north": {
+          "uv": [
+            10,
+            13,
+            16,
+            16
+          ],
+          "texture": "#bottom"
+        },
+        "south": {
+          "uv": [
+            10,
+            13,
+            16,
+            16
+          ],
+          "texture": "#bottom"
+        },
+        "west": {
+          "uv": [
+            10,
+            13,
+            16,
+            16
+          ],
+          "texture": "#bottom"
+        },
+        "east": {
+          "uv": [
+            10,
+            13,
+            16,
+            16
+          ],
+          "texture": "#bottom"
+        }
+      }
+    }
+  ],
+  "textures": {
+    "particle": "buildcraftfactory:block/chute/bottom",
+    "bottom": "buildcraftfactory:block/chute/bottom"
+  }
+}

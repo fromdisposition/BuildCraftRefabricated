@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "buildcraftcore:block/engine_redstone"
+    },
+    "facing=down": {
+      "model": "buildcraftcore:block/engine_redstone",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "buildcraftcore:block/engine_redstone",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south": {
+      "model": "buildcraftcore:block/engine_redstone",
+      "x": 90
+    },
+    "facing=west": {
+      "model": "buildcraftcore:block/engine_redstone",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east": {
+      "model": "buildcraftcore:block/engine_redstone",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

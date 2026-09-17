@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.transport.client.model;
+
+import buildcraft.api.transport.pluggable.PluggableModelKey;
+import buildcraft.lib.client.model.BakedQuadTemplateCache;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.PoseStack.Pose;
+
+public final class PipePluggableQuadCache {
+   private static final BakedQuadTemplateCache<PipeModelCachePluggable.PluggableKey> CUTOUT = new BakedQuadTemplateCache<>(
+      PipeModelCachePluggable.cacheCutoutAll::bake
+   );
+   private static final BakedQuadTemplateCache<PluggableModelKey> TRANSLUCENT = new BakedQuadTemplateCache<>(
+      PipeModelCachePluggable.cacheTranslucentSingle::bake, false
+   );
+   private static final BakedQuadTemplateCache<PluggableModelKey> CUTOUT_SINGLE = new BakedQuadTemplateCache<>(
+      PipeModelCachePluggable.cacheCutoutSingle::bake
+   );
+
+   private PipePluggableQuadCache() {
+   }
+
+   /** Must drop both the render templates and the baked-quad caches, or stale atlas sprites survive a reload. */
+   public static void clearCaches() {
+      CUTOUT.clear();
+      TRANSLUCENT.clear();
+      CUTOUT_SINGLE.clear();
+      PipeModelCachePluggable.cacheCutoutSingle.clear();
+      PipeModelCachePluggable.cacheTranslucentSingle.clear();
+      PipeModelCachePluggable.cacheCutoutAll.clear();
+   }
+
+   public static void renderCutout(PipeModelCachePluggable.PluggableKey key, Pose pose, VertexConsumer buffer, int light) {
+      CUTOUT.render(key, pose, buffer, light);
+   }
+
+   public static void renderCutoutTintResolved(
+      PluggableModelKey key, Pose pose, VertexConsumer buffer, int light, java.util.function.IntUnaryOperator tintToRgb
+   ) {
+      CUTOUT_SINGLE.renderTintResolved(key, pose, buffer, light, tintToRgb);
+   }
+
+   /** Rendered per pluggable, not the merged set: BakedQuad bake drops per-vertex colour, so tint applies here. */
+   public static void renderTranslucent(PluggableModelKey key, Pose pose, VertexConsumer buffer, int light) {
+      int tint = key.getTintColour();
+      if (tint != -1) {
+         TRANSLUCENT.renderTinted(key, pose, buffer, light, tint);
+      } else {
+         TRANSLUCENT.render(key, pose, buffer, light);
+      }
+   }
+}

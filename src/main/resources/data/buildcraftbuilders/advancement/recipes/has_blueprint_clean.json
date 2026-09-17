@@ -1,0 +1,27 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftbuilders:architect",
+      "buildcraftbuilders:builder",
+      "buildcraftbuilders:library"
+    ]
+  },
+  "criteria": {
+    "has_blueprint_clean": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftbuilders:blueprint_clean"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_blueprint_clean"
+    ]
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftcore:marker_connector"
+    ]
+  },
+  "criteria": {
+    "has_wrench": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftcore:wrench"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_wrench"
+    ]
+  ]
+}

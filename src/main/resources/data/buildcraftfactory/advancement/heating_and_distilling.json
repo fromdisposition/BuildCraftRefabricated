@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftfactory:distiller"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.heating_and_distilling.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.heating_and_distilling.description"
+    }
+  },
+  "parent": "buildcraftfactory:oil_platform",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

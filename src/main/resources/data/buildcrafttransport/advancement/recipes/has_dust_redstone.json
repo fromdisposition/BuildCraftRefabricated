@@ -1,0 +1,42 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcrafttransport:pipe_wood_rf",
+      "buildcrafttransport:pipe_cobble_rf",
+      "buildcrafttransport:pipe_stone_rf",
+      "buildcrafttransport:pipe_sandstone_rf",
+      "buildcrafttransport:pipe_quartz_rf",
+      "buildcrafttransport:pipe_iron_rf",
+      "buildcrafttransport:pipe_gold_rf",
+      "buildcrafttransport:pipe_diamond_rf",
+      "buildcrafttransport:pipe_diamond_wood_rf",
+      "buildcrafttransport:pipe_wood_power_from_rf",
+      "buildcrafttransport:pipe_cobble_power_from_rf",
+      "buildcrafttransport:pipe_stone_power_from_rf",
+      "buildcrafttransport:pipe_sandstone_power_from_rf",
+      "buildcrafttransport:pipe_quartz_power_from_rf",
+      "buildcrafttransport:pipe_iron_power_from_rf",
+      "buildcrafttransport:pipe_gold_power_from_rf",
+      "buildcrafttransport:pipe_diamond_power_from_rf",
+      "buildcrafttransport:pipe_diamond_wood_power_from_rf"
+    ]
+  },
+  "criteria": {
+    "has_dust_redstone": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:dusts/redstone"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_dust_redstone"
+    ]
+  ]
+}

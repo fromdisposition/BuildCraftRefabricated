@@ -1,0 +1,220 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "back": "buildcraftenergy:block/mj_dynamo/back",
+    "side": "buildcraftenergy:block/mj_dynamo/side",
+    "front": "buildcraftenergy:block/mj_dynamo/front",
+    "trunk": "buildcraftlib:block/engine/trunk_blue",
+    "particle": "#back"
+  },
+  "elements": [
+    {
+      "name": "base",
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        4,
+        16
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#back"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#back"
+        },
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ],
+          "texture": "#side"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ],
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ],
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            4
+          ],
+          "texture": "#side"
+        }
+      }
+    },
+    {
+      "name": "trunk",
+      "from": [
+        4,
+        4,
+        4
+      ],
+      "to": [
+        12,
+        16,
+        12
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0,
+            0,
+            8,
+            8
+          ],
+          "texture": "#trunk"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            8,
+            8
+          ],
+          "texture": "#trunk"
+        },
+        "north": {
+          "uv": [
+            8,
+            0,
+            16,
+            12
+          ],
+          "texture": "#trunk"
+        },
+        "south": {
+          "uv": [
+            8,
+            0,
+            16,
+            12
+          ],
+          "texture": "#trunk"
+        },
+        "west": {
+          "uv": [
+            8,
+            0,
+            16,
+            12
+          ],
+          "texture": "#trunk"
+        },
+        "east": {
+          "uv": [
+            8,
+            0,
+            16,
+            12
+          ],
+          "texture": "#trunk"
+        }
+      }
+    },
+    {
+      "comment": "Piston head at rest position (progress=0), matching 1.12.2",
+      "name": "piston_head",
+      "from": [
+        2,
+        4,
+        2
+      ],
+      "to": [
+        14,
+        8,
+        14
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            0,
+            0,
+            12,
+            12
+          ],
+          "texture": "#front"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            12,
+            12
+          ],
+          "texture": "#front"
+        },
+        "north": {
+          "uv": [
+            0,
+            12,
+            12,
+            16
+          ],
+          "texture": "#front"
+        },
+        "south": {
+          "uv": [
+            0,
+            12,
+            12,
+            16
+          ],
+          "texture": "#front"
+        },
+        "west": {
+          "uv": [
+            0,
+            12,
+            12,
+            16
+          ],
+          "texture": "#front"
+        },
+        "east": {
+          "uv": [
+            0,
+            12,
+            12,
+            16
+          ],
+          "texture": "#front"
+        }
+      }
+    }
+  ]
+}

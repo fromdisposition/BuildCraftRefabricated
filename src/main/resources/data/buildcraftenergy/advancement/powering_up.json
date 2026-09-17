@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftenergy:engine_stone"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.poweringUp.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.poweringUp.description"
+    }
+  },
+  "parent": "buildcraftenergy:engine",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

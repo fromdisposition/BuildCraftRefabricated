@@ -1,0 +1,264 @@
+[
+  {
+    "selectors": [
+      "minecraft:torch",
+      "minecraft:redstone_torch",
+      "minecraft:soul_torch"
+    ],
+    "requiredBlockOffsets": [
+      [
+        0,
+        -1,
+        0
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:wall_torch[facing=north]",
+      "minecraft:redstone_wall_torch[facing=north]",
+      "minecraft:soul_wall_torch[facing=north]",
+      "minecraft:tripwire_hook[facing=north]",
+      "minecraft:ladder[facing=north]",
+      "minecraft:oak_wall_sign[facing=north]",
+      "minecraft:spruce_wall_sign[facing=north]",
+      "minecraft:birch_wall_sign[facing=north]",
+      "minecraft:jungle_wall_sign[facing=north]",
+      "minecraft:acacia_wall_sign[facing=north]",
+      "minecraft:dark_oak_wall_sign[facing=north]",
+      "minecraft:mangrove_wall_sign[facing=north]",
+      "minecraft:cherry_wall_sign[facing=north]",
+      "minecraft:pale_oak_wall_sign[facing=north]",
+      "minecraft:bamboo_wall_sign[facing=north]",
+      "minecraft:crimson_wall_sign[facing=north]",
+      "minecraft:warped_wall_sign[facing=north]",
+      "minecraft:white_wall_banner[facing=north]",
+      "minecraft:orange_wall_banner[facing=north]",
+      "minecraft:magenta_wall_banner[facing=north]",
+      "minecraft:light_blue_wall_banner[facing=north]",
+      "minecraft:yellow_wall_banner[facing=north]",
+      "minecraft:lime_wall_banner[facing=north]",
+      "minecraft:pink_wall_banner[facing=north]",
+      "minecraft:gray_wall_banner[facing=north]",
+      "minecraft:light_gray_wall_banner[facing=north]",
+      "minecraft:cyan_wall_banner[facing=north]",
+      "minecraft:purple_wall_banner[facing=north]",
+      "minecraft:blue_wall_banner[facing=north]",
+      "minecraft:brown_wall_banner[facing=north]",
+      "minecraft:green_wall_banner[facing=north]",
+      "minecraft:red_wall_banner[facing=north]",
+      "minecraft:black_wall_banner[facing=north]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        0,
+        0,
+        1
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:wall_torch[facing=south]",
+      "minecraft:redstone_wall_torch[facing=south]",
+      "minecraft:soul_wall_torch[facing=south]",
+      "minecraft:tripwire_hook[facing=south]",
+      "minecraft:ladder[facing=south]",
+      "minecraft:oak_wall_sign[facing=south]",
+      "minecraft:spruce_wall_sign[facing=south]",
+      "minecraft:birch_wall_sign[facing=south]",
+      "minecraft:jungle_wall_sign[facing=south]",
+      "minecraft:acacia_wall_sign[facing=south]",
+      "minecraft:dark_oak_wall_sign[facing=south]",
+      "minecraft:mangrove_wall_sign[facing=south]",
+      "minecraft:cherry_wall_sign[facing=south]",
+      "minecraft:pale_oak_wall_sign[facing=south]",
+      "minecraft:bamboo_wall_sign[facing=south]",
+      "minecraft:crimson_wall_sign[facing=south]",
+      "minecraft:warped_wall_sign[facing=south]",
+      "minecraft:white_wall_banner[facing=south]",
+      "minecraft:orange_wall_banner[facing=south]",
+      "minecraft:magenta_wall_banner[facing=south]",
+      "minecraft:light_blue_wall_banner[facing=south]",
+      "minecraft:yellow_wall_banner[facing=south]",
+      "minecraft:lime_wall_banner[facing=south]",
+      "minecraft:pink_wall_banner[facing=south]",
+      "minecraft:gray_wall_banner[facing=south]",
+      "minecraft:light_gray_wall_banner[facing=south]",
+      "minecraft:cyan_wall_banner[facing=south]",
+      "minecraft:purple_wall_banner[facing=south]",
+      "minecraft:blue_wall_banner[facing=south]",
+      "minecraft:brown_wall_banner[facing=south]",
+      "minecraft:green_wall_banner[facing=south]",
+      "minecraft:red_wall_banner[facing=south]",
+      "minecraft:black_wall_banner[facing=south]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        0,
+        0,
+        -1
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:wall_torch[facing=west]",
+      "minecraft:redstone_wall_torch[facing=west]",
+      "minecraft:soul_wall_torch[facing=west]",
+      "minecraft:tripwire_hook[facing=west]",
+      "minecraft:ladder[facing=west]",
+      "minecraft:oak_wall_sign[facing=west]",
+      "minecraft:spruce_wall_sign[facing=west]",
+      "minecraft:birch_wall_sign[facing=west]",
+      "minecraft:jungle_wall_sign[facing=west]",
+      "minecraft:acacia_wall_sign[facing=west]",
+      "minecraft:dark_oak_wall_sign[facing=west]",
+      "minecraft:mangrove_wall_sign[facing=west]",
+      "minecraft:cherry_wall_sign[facing=west]",
+      "minecraft:pale_oak_wall_sign[facing=west]",
+      "minecraft:bamboo_wall_sign[facing=west]",
+      "minecraft:crimson_wall_sign[facing=west]",
+      "minecraft:warped_wall_sign[facing=west]",
+      "minecraft:white_wall_banner[facing=west]",
+      "minecraft:orange_wall_banner[facing=west]",
+      "minecraft:magenta_wall_banner[facing=west]",
+      "minecraft:light_blue_wall_banner[facing=west]",
+      "minecraft:yellow_wall_banner[facing=west]",
+      "minecraft:lime_wall_banner[facing=west]",
+      "minecraft:pink_wall_banner[facing=west]",
+      "minecraft:gray_wall_banner[facing=west]",
+      "minecraft:light_gray_wall_banner[facing=west]",
+      "minecraft:cyan_wall_banner[facing=west]",
+      "minecraft:purple_wall_banner[facing=west]",
+      "minecraft:blue_wall_banner[facing=west]",
+      "minecraft:brown_wall_banner[facing=west]",
+      "minecraft:green_wall_banner[facing=west]",
+      "minecraft:red_wall_banner[facing=west]",
+      "minecraft:black_wall_banner[facing=west]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        1,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:wall_torch[facing=east]",
+      "minecraft:redstone_wall_torch[facing=east]",
+      "minecraft:soul_wall_torch[facing=east]",
+      "minecraft:tripwire_hook[facing=east]",
+      "minecraft:ladder[facing=east]",
+      "minecraft:oak_wall_sign[facing=east]",
+      "minecraft:spruce_wall_sign[facing=east]",
+      "minecraft:birch_wall_sign[facing=east]",
+      "minecraft:jungle_wall_sign[facing=east]",
+      "minecraft:acacia_wall_sign[facing=east]",
+      "minecraft:dark_oak_wall_sign[facing=east]",
+      "minecraft:mangrove_wall_sign[facing=east]",
+      "minecraft:cherry_wall_sign[facing=east]",
+      "minecraft:pale_oak_wall_sign[facing=east]",
+      "minecraft:bamboo_wall_sign[facing=east]",
+      "minecraft:crimson_wall_sign[facing=east]",
+      "minecraft:warped_wall_sign[facing=east]",
+      "minecraft:white_wall_banner[facing=east]",
+      "minecraft:orange_wall_banner[facing=east]",
+      "minecraft:magenta_wall_banner[facing=east]",
+      "minecraft:light_blue_wall_banner[facing=east]",
+      "minecraft:yellow_wall_banner[facing=east]",
+      "minecraft:lime_wall_banner[facing=east]",
+      "minecraft:pink_wall_banner[facing=east]",
+      "minecraft:gray_wall_banner[facing=east]",
+      "minecraft:light_gray_wall_banner[facing=east]",
+      "minecraft:cyan_wall_banner[facing=east]",
+      "minecraft:purple_wall_banner[facing=east]",
+      "minecraft:blue_wall_banner[facing=east]",
+      "minecraft:brown_wall_banner[facing=east]",
+      "minecraft:green_wall_banner[facing=east]",
+      "minecraft:red_wall_banner[facing=east]",
+      "minecraft:black_wall_banner[facing=east]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        -1,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:lever[face=floor]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        0,
+        -1,
+        0
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:lever[face=ceiling]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        0,
+        1,
+        0
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:lever[face=wall, facing=north]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        0,
+        0,
+        1
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:lever[face=wall, facing=south]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        0,
+        0,
+        -1
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:lever[face=wall, facing=west]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        1,
+        0,
+        0
+      ]
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:lever[face=wall, facing=east]"
+    ],
+    "requiredBlockOffsets": [
+      [
+        -1,
+        0,
+        0
+      ]
+    ]
+  }
+]

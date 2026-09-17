@@ -1,0 +1,27 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcraftbuilders:architect",
+      "buildcraftbuilders:builder",
+      "buildcraftbuilders:filler"
+    ]
+  },
+  "criteria": {
+    "has_marker_volume": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftcore:marker_volume"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_marker_volume"
+    ]
+  ]
+}

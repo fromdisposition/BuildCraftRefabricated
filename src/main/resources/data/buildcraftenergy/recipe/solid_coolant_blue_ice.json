@@ -1,0 +1,6 @@
+{
+  "type": "buildcraftenergy:solid_coolant",
+  "item": "minecraft:blue_ice",
+  "coolant_fluid": "minecraft:water",
+  "coolant_amount_per_item": 2500
+}

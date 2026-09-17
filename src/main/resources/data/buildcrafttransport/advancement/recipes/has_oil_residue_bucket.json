@@ -1,0 +1,25 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcrafttransport:residue_to_pipe_sealant"
+    ]
+  },
+  "criteria": {
+    "has_oil_residue_bucket": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcraftenergy:oil_residue_bucket"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_oil_residue_bucket"
+    ]
+  ]
+}

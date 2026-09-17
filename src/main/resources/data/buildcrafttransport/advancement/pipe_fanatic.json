@@ -1,0 +1,155 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcrafttransport:pipe_diamond_item"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.pipe_fanatic.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.pipe_fanatic.description"
+    },
+    "frame": "challenge"
+  },
+  "parent": "buildcrafttransport:pipe_diversification",
+  "criteria": {
+    "buildcrafttransport:structure": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:wood_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:wood_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:wood_power": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:wood_rf": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:stone_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:stone_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:stone_power": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:stone_rf": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:cobblestone_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:cobblestone_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:cobblestone_power": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:cobblestone_rf": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:quartz_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:quartz_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:quartz_power": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:quartz_rf": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:gold_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:gold_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:gold_power": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:gold_rf": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:sandstone_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:sandstone_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:sandstone_power": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:sandstone_rf": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:iron_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:iron_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:iron_power": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:iron_rf": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:diamond_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:diamond_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:diamond_power": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:diamond_rf": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:diamond_wood_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:diamond_wood_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:diamond_wood_power": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:diamond_wood_rf": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:clay_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:clay_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:void_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:void_fluid": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:obsidian_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:lapis_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:daizuli_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:emzuli_item": {
+      "trigger": "minecraft:impossible"
+    },
+    "buildcrafttransport:stripes_item": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

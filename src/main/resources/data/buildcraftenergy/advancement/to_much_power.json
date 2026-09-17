@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftcore:wrench"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.to_much_power.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.to_much_power.description"
+    }
+  },
+  "parent": "buildcraftenergy:powering_up",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

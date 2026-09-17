@@ -1,0 +1,32 @@
+{
+  "parent": "block/cube",
+  "display": {
+    "comment": "Taken from block/orientable",
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        135,
+        0
+      ],
+      "translation": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    }
+  },
+  "textures": {
+    "particle": "buildcraftbuilders:block/library/back",
+    "down": "buildcraftbuilders:block/library/bottom",
+    "up": "buildcraftbuilders:block/library/top",
+    "north": "buildcraftbuilders:block/library/front",
+    "east": "buildcraftbuilders:block/library/left",
+    "south": "buildcraftbuilders:block/library/back",
+    "west": "buildcraftbuilders:block/library/right"
+  }
+}

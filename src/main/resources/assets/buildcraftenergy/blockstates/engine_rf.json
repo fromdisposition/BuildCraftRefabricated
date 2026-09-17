@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "buildcraftenergy:block/engine_rf"
+    },
+    "facing=down": {
+      "model": "buildcraftenergy:block/engine_rf",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "buildcraftenergy:block/engine_rf",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south": {
+      "model": "buildcraftenergy:block/engine_rf",
+      "x": 90
+    },
+    "facing=west": {
+      "model": "buildcraftenergy:block/engine_rf",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east": {
+      "model": "buildcraftenergy:block/engine_rf",
+      "x": 90,
+      "y": 270
+    }
+  }
+}
