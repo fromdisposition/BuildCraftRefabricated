@@ -12,6 +12,7 @@ import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;
+import buildcraft.lib.tile.StackInsertionFunction;
 import buildcraft.robotics.BCRoboticsBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -24,7 +25,7 @@ public class TileRequester extends BcBlockEntity implements IRequestProvider {
    public static final int NB_ITEMS = 20;
    public final ItemHandlerSimple invRequests = this.itemManager.addInvHandler("requests", NB_ITEMS, ItemHandlerManager.EnumAccess.PHANTOM);
    public final ItemHandlerSimple invItems = this.itemManager
-      .addInvHandler("items", NB_ITEMS, this::matchesRequest, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
+      .addInvHandler("items", NB_ITEMS, this::matchesRequest, this::insertUpToRequest, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
 
    public TileRequester(BlockPos pos, BlockState state) {
       super(BCRoboticsBlockEntities.REQUESTER, pos, state);
@@ -33,6 +34,15 @@ public class TileRequester extends BcBlockEntity implements IRequestProvider {
    private boolean matchesRequest(int slot, ItemStack stack) {
       ItemStack request = this.invRequests.getStackInSlot(slot);
       return !request.isEmpty() && StackUtil.isMatchingItemOrList(request, stack);
+   }
+
+   private StackInsertionFunction.InsertionResult insertUpToRequest(int slot, ItemStack existing, ItemStack offered) {
+      ItemStack request = this.invRequests.getStackInSlot(slot);
+      if (request.isEmpty() || !StackUtil.isMatchingItemOrList(request, offered)) {
+         return new StackInsertionFunction.InsertionResult(existing, offered);
+      }
+
+      return StackInsertionFunction.getInsertionFunction(request.getCount()).modifyForInsertion(slot, existing, offered);
    }
 
    public boolean isFulfilled(int i) {

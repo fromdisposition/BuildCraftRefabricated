@@ -161,7 +161,21 @@ public enum FacadeStateManager implements IFacadeRegistry {
 
       Block block = state.getBlock();
       Item item = block.asItem();
-      return item == Items.AIR ? ItemStack.EMPTY : new ItemStack(item);
+      if (item != Items.AIR) {
+         return new ItemStack(item);
+      }
+
+      //? if >= 1.21.10 {
+      ItemStack clone = state.getCloneItemStack(null, BlockPos.ZERO, false);
+      //?} else {
+      /*ItemStack clone = block.getCloneItemStack(null, BlockPos.ZERO, state);
+      *///?}
+      if (clone != null && !clone.isEmpty()) {
+         clone.setCount(1);
+         return clone;
+      }
+
+      return ItemStack.EMPTY;
    }
 
    public static void init() {

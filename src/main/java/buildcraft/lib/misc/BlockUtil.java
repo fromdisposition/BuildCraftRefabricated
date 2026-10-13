@@ -31,6 +31,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
@@ -102,16 +103,29 @@ public class BlockUtil {
       return !fluidState.isEmpty() ? fluidState.getType() : getFluidWithFlowing(world.getBlockState(pos).getBlock());
    }
 
+   private static boolean isDrainableSource(BlockState state) {
+      FluidState fluidState = state.getFluidState();
+      if (fluidState.isEmpty() || !fluidState.isSource()) {
+         return false;
+      }
+
+      return state.getBlock() instanceof LiquidBlock || state.hasProperty(BlockStateProperties.WATERLOGGED);
+   }
+
    @Nullable
-   public static Fluid getFluid(Level world, BlockPos pos) {
+   public static Fluid getSourceFluid(Level world, BlockPos pos) {
       FluidState fluidState = world.getFluidState(pos);
       return !fluidState.isEmpty() && fluidState.isSource() ? fluidState.getType() : null;
    }
 
    @Nullable
+   public static Fluid getFluid(Level world, BlockPos pos) {
+      return getFluidWithoutFlowing(world.getBlockState(pos));
+   }
+
+   @Nullable
    public static Fluid getFluidWithoutFlowing(BlockState state) {
-      FluidState fluidState = state.getFluidState();
-      return !fluidState.isEmpty() && fluidState.isSource() ? fluidState.getType() : null;
+      return isDrainableSource(state) ? state.getFluidState().getType() : null;
    }
 
    @Nullable
@@ -121,9 +135,9 @@ public class BlockUtil {
 
    @Nullable
    public static FluidStack drainBlock(Level world, BlockPos pos, boolean doDrain, @Nullable GameProfile owner) {
-      FluidState fluidState = world.getFluidState(pos);
-      if (!fluidState.isEmpty() && fluidState.isSource()) {
-         Fluid fluid = fluidState.getType();
+      BlockState state = world.getBlockState(pos);
+      if (isDrainableSource(state)) {
+         Fluid fluid = state.getFluidState().getType();
          // Must gate the SIMULATE answer too, not just the removal: the pump commits drained fluid off the simulate
          // result and ignores the real drain's failure, so a source that simulates "yes" but never drains dupes fluid.
          if (world instanceof ServerLevel serverLevel && !canMachineBreak(serverLevel, pos, owner)) {
@@ -131,7 +145,11 @@ public class BlockUtil {
          }
 
          if (doDrain) {
-            world.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+            if (state.getBlock() instanceof LiquidBlock) {
+               world.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+            } else {
+               world.setBlock(pos, state.setValue(BlockStateProperties.WATERLOGGED, false), 3);
+            }
          }
 
          return new FluidStack(fluid, 1000);

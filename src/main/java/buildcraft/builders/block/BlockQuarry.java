@@ -8,7 +8,6 @@ package buildcraft.builders.block;
 
 import buildcraft.lib.block.BcHorizontalTileBlock;
 import buildcraft.builders.BCBuildersBlockEntities;
-import buildcraft.builders.BCBuildersBlocks;
 import buildcraft.builders.tile.TileQuarry;
 import buildcraft.lib.misc.AdvancementUtil;
 import net.minecraft.core.BlockPos;
@@ -58,11 +57,7 @@ public class BlockQuarry extends BcHorizontalTileBlock {
    @Override
    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
       if (level.getBlockEntity(pos) instanceof TileQuarry quarry) {
-         for (BlockPos blockPos : quarry.framePoses) {
-            if (level.getBlockState(blockPos).is(BCBuildersBlocks.FRAME)) {
-               level.removeBlock(blockPos, false);
-            }
-         }
+         quarry.removeFrames();
       }
 
       return super.playerWillDestroy(level, pos, state, player);

@@ -44,6 +44,10 @@ public abstract class PipeBehaviour {
       return false;
    }
 
+   public boolean requiresPeriodicSave() {
+      return false;
+   }
+
    public boolean canConnect(Direction face, PipeBehaviour other) {
       return true;
    }

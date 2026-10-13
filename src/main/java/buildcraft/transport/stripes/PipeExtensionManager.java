@@ -14,6 +14,7 @@ import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.IPipeExtensionManager;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pipe.PipeDefinition;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.InventoryUtil;
 import buildcraft.transport.BCTransportBlocks;
@@ -80,6 +81,11 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
          }
 
          for (PipeExtensionManager.PipeExtensionRequest request : list) {
+            if (!this.isCurrentSource(level, request)) {
+               this.refundStaleRequest(level, request);
+               continue;
+            }
+
             if (this.retractionPipeDefs.contains(request.pipeDef)) {
                this.retract(level, request);
             } else {
@@ -114,8 +120,8 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
       List<ItemStack> stacksToSendBack = new ArrayList<>();
       stacksToSendBack.add(request.stack.copy());
       TilePipeHolder stripesHolder = this.getHolder(level, request.pos);
-      if (stripesHolder == null || stripesHolder.getPipe() == null) {
-         BCLog.logger.warn("[transport.stripes] Invalid pipe extension request at {}", request.pos);
+      if (stripesHolder == null || stripesHolder.getPipe() == null || stripesHolder.getPipe().getBehaviour() != request.stripes) {
+         this.refundStaleRequest(level, request);
          return;
       }
 
@@ -158,8 +164,8 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
       }
 
       TilePipeHolder stripesHolder = this.getHolder(level, request.pos);
-      if (stripesHolder == null || stripesHolder.getPipe() == null) {
-         BCLog.logger.warn("[transport.stripes] Invalid pipe extension request at {}", request.pos);
+      if (stripesHolder == null || stripesHolder.getPipe() == null || stripesHolder.getPipe().getBehaviour() != request.stripes) {
+         this.refundStaleRequest(level, request);
          return;
       }
 
@@ -300,6 +306,20 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
       }
 
       return true;
+   }
+
+   private boolean isCurrentSource(ServerLevel level, PipeExtensionManager.PipeExtensionRequest request) {
+      if (!BcRegistryUtil.isChunkLoaded(level, request.pos)) {
+         return false;
+      }
+
+      TilePipeHolder holder = this.getHolder(level, request.pos);
+      return holder != null && holder.getPipe() != null && holder.getPipe().getBehaviour() == request.stripes;
+   }
+
+   private void refundStaleRequest(ServerLevel level, PipeExtensionManager.PipeExtensionRequest request) {
+      BCLog.logger.warn("[transport.stripes] Discarding stale pipe extension request at {} (its Stripes pipe is gone); dropping the pipe item", request.pos);
+      InventoryUtil.drop(level, request.pos, request.stack.copy());
    }
 
    private TilePipeHolder getHolder(Level level, BlockPos pos) {

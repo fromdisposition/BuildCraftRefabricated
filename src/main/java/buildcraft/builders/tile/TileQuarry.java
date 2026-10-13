@@ -59,6 +59,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariantAttributes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
@@ -75,10 +78,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import buildcraft.lib.nbt.BcValueIn;
 import buildcraft.lib.nbt.BcValueOut;
 import net.minecraft.world.phys.AABB;
@@ -331,21 +336,41 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    }
 
    private boolean canMine(BlockPos blockPos) {
-      if (this.level.getBlockState(blockPos).getDestroySpeed(this.level, blockPos) < 0.0F) {
+      BlockState state = this.level.getBlockState(blockPos);
+      if (state.getDestroySpeed(this.level, blockPos) < 0.0F) {
          return false;
       }
 
-      Fluid fluid = BlockUtil.getFluidWithFlowing(this.level, blockPos);
+      Fluid fluid = getStandaloneFluid(state);
       return fluid != null ? false : !(this.level instanceof ServerLevel serverLevel && !BlockUtil.canMachineBreak(serverLevel, blockPos, this.getOwner()));
    }
 
    private boolean canMoveThrough(BlockPos blockPos) {
-      if (this.level.getBlockState(blockPos).isAir()) {
+      BlockState state = this.level.getBlockState(blockPos);
+      if (state.isAir()) {
          return true;
       }
 
-      Fluid fluid = BlockUtil.getFluidWithFlowing(this.level, blockPos);
-      return fluid != null;
+      Fluid fluid = getStandaloneFluid(state);
+      return fluid != null && isTraversableFluid(fluid);
+   }
+
+   @Nullable
+   private static Fluid getStandaloneFluid(BlockState state) {
+      FluidState fluidState = state.getFluidState();
+      if (fluidState.isEmpty()) {
+         return null;
+      }
+
+      if (state.is(Blocks.BUBBLE_COLUMN)) {
+         return fluidState.getType();
+      }
+
+      return fluidState.createLegacyBlock().getBlock() == state.getBlock() ? fluidState.getType() : null;
+   }
+
+   private boolean isTraversableFluid(Fluid fluid) {
+      return FluidVariantAttributes.getViscosity(FluidVariant.of(fluid), this.level) <= FluidConstants.WATER_VISCOSITY;
    }
 
    private boolean canMoveDownTo(BlockPos blockPos) {
@@ -359,7 +384,8 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
    }
 
    private boolean canIgnoreInFrameBox(BlockPos blockPos) {
-      return !this.level.getBlockState(blockPos).isAir() && BlockUtil.getFluidWithFlowing(this.level, blockPos) == null;
+      BlockState state = this.level.getBlockState(blockPos);
+      return !state.isAir() && getStandaloneFluid(state) == null;
    }
 
    private void check(BlockPos blockPos) {
@@ -392,6 +418,35 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
          this.deferredUpdatePoses = true;
          this.schedulePipeNeighborNotify();
       }
+   }
+
+   public void removeFrames() {
+      if (this.level == null || this.level.isClientSide()) {
+         return;
+      }
+
+      List<BlockPos> toRemove = new ArrayList<>(this.framePoses);
+      if (toRemove.isEmpty() && this.frameBox.isInitialized()) {
+         for (BlockPos blockPos : this.frameBox.getBlocksInArea()) {
+            if (this.frameBox.isOnEdge(blockPos)) {
+               toRemove.add(blockPos);
+            }
+         }
+      }
+
+      for (BlockPos blockPos : toRemove) {
+         if (this.level.getBlockState(blockPos).is(BCBuildersBlocks.FRAME)) {
+            this.level.removeBlock(blockPos, false);
+         }
+      }
+   }
+
+   //? if >= 1.21.10 {
+   @Override
+   //?}
+   public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+      this.removeFrames();
+      super.preRemoveSideEffects(pos, state);
    }
 
    @Override

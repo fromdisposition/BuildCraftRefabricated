@@ -141,33 +141,6 @@ public class WidgetFluidTank extends Widget_Neptune<IBcMenu> {
                      return;
                   }
 
-                  FluidStorageSnapshot snapshot = FluidStorageSnapshot.of(this.tank);
-                  if (!snapshot.isEmpty()) {
-                     int toDrain = Math.min(1000, snapshot.amountMb());
-                     Transaction tx = Transaction.openOuter();
-
-                     try {
-                        int drained = FluidStorageOps.extractFluidMb(this.tank, snapshot.fluid(), toDrain, tx);
-                        if (drained > 0) {
-                           tx.commit();
-                        }
-                     } catch (Throwable var19) {
-                        if (tx != null) {
-                           try {
-                              tx.close();
-                           } catch (Throwable var16) {
-                              var19.addSuppressed(var16);
-                           }
-                        }
-
-                        throw var19;
-                     }
-
-                     if (tx != null) {
-                        tx.close();
-                     }
-                  }
-
                   return;
                }
             } else {

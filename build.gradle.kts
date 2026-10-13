@@ -279,7 +279,7 @@ tasks.processResources {
     // The filter blanks whole lines, so each entrypoint must stay on one line in fabric.mod.json.
     val dropEntrypoints = buildList {
         if (jeiVer == null) add("jei_mod_plugin")
-        if (reiVer == null) add("rei_client")
+        if (reiVer == null) addAll(listOf("rei_client", "rei_common"))
     }
     inputs.property("dropEntrypoints", dropEntrypoints.toString())
     inputs.properties(props)

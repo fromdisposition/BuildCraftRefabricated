@@ -7,6 +7,7 @@
 package buildcraft.silicon.gate;
 
 import buildcraft.api.gates.IGate;
+import buildcraft.api.statements.IStatement;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.StatementSlot;
 import buildcraft.api.transport.pipe.IPipeHolder;
@@ -14,6 +15,7 @@ import buildcraft.api.transport.pipe.PipeEvent;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
 import buildcraft.lib.statement.ActionWrapper;
 import buildcraft.lib.statement.TriggerWrapper;
+import java.util.ArrayList;
 import java.util.List;
 
 public final class GateTriggerGroupEvaluator {
@@ -35,6 +37,7 @@ public final class GateTriggerGroupEvaluator {
       int groupCount = 0;
       int groupActive = 0;
       state.isOn = false;
+      List<PendingAction> pending = new ArrayList<>();
 
       for (int triggerIndex = 0; triggerIndex < statements.length; triggerIndex++) {
          GateLogic.StatementPair pair = statements[triggerIndex];
@@ -67,19 +70,13 @@ public final class GateTriggerGroupEvaluator {
                int actionIndex = triggerIndex - i;
                GateLogic.StatementPair fullAction = statements[actionIndex];
                ActionWrapper action = fullAction.action.get();
-               actionOn[actionIndex] = allActionsActive;
-               if (action != null) {
-                  if (allActionsActive) {
-                     state.isOn = true;
-                     StatementSlot slot = new StatementSlot();
-                     slot.statement = action.delegate;
-                     slot.parameters = fullAction.action.getParameters().clone();
-                     slot.part = action.sourcePart;
-                     activeActions.add(slot);
-                     action.actionActivate(gate, slot.parameters);
-                     PipeEvent evt = new PipeEventActionActivate(pipeHolder, action.getDelegate(), slot.parameters, action.sourcePart);
-                     pipeHolder.fireEvent(evt);
-                  } else if (prevActions[actionIndex]) {
+               if (action == null) {
+                  actionOn[actionIndex] = allActionsActive;
+               } else if (allActionsActive) {
+                  pending.add(new PendingAction(actionIndex, action, fullAction.action.getParameters().clone()));
+               } else {
+                  actionOn[actionIndex] = false;
+                  if (prevActions[actionIndex]) {
                      action.actionDeactivated(gate, fullAction.action.getParameters());
                   }
                }
@@ -89,6 +86,71 @@ public final class GateTriggerGroupEvaluator {
             groupCount = 0;
          }
       }
+
+      for (int i = 0; i < pending.size(); i++) {
+         PendingAction current = pending.get(i);
+         boolean overridden = false;
+
+         for (int j = i + 1; j < pending.size(); j++) {
+            if (targetsSameSetting(current.action, pending.get(j).action)) {
+               overridden = true;
+               break;
+            }
+         }
+
+         if (overridden) {
+            actionOn[current.actionIndex] = false;
+            if (prevActions[current.actionIndex]) {
+               current.action.actionDeactivated(gate, current.parameters);
+            }
+
+            continue;
+         }
+
+         actionOn[current.actionIndex] = true;
+         state.isOn = true;
+         StatementSlot slot = new StatementSlot();
+         slot.statement = current.action.delegate;
+         slot.parameters = current.parameters;
+         slot.part = current.action.sourcePart;
+         activeActions.add(slot);
+         current.action.actionActivate(gate, slot.parameters);
+         PipeEvent evt = new PipeEventActionActivate(pipeHolder, current.action.getDelegate(), slot.parameters, current.action.sourcePart);
+         pipeHolder.fireEvent(evt);
+      }
+   }
+
+   private static boolean targetsSameSetting(ActionWrapper a, ActionWrapper b) {
+      if (a.sourcePart != b.sourcePart) {
+         return false;
+      }
+
+      IStatement mine = a.getDelegate();
+      IStatement theirs = b.getDelegate();
+      if (mine == theirs || mine.getUniqueTag().equals(theirs.getUniqueTag())) {
+         return true;
+      }
+
+      return containsVariant(mine.getPossible(), theirs) && containsVariant(theirs.getPossible(), mine);
+   }
+
+   private static boolean containsVariant(IStatement[] variants, IStatement candidate) {
+      if (variants == null) {
+         return false;
+      }
+
+      String tag = candidate.getUniqueTag();
+
+      for (IStatement variant : variants) {
+         if (variant != null && (variant == candidate || variant.getUniqueTag().equals(tag))) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
+   private record PendingAction(int actionIndex, ActionWrapper action, IStatementParameter[] parameters) {
    }
 
    public static final class StateHolder {

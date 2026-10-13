@@ -118,9 +118,12 @@ public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
       if (ai instanceof AIRobotSearchAndGotoBlock search) {
          if (search.success()) {
             this.blockFound = search.getBlockFound();
+            this.onBlockFound(this.blockFound);
          } else {
             this.blockFound = null;
-            this.deliverOrRest();
+            if (!this.onSearchFailed()) {
+               this.deliverOrRest();
+            }
          }
 
          return;
@@ -132,6 +135,13 @@ public abstract class BoardRobotGenericSearchBlock extends RedstoneBoardRobot {
 
    /** Hook for a board that needs to react to its own work AI finishing. The block is already released. */
    protected void onWorkEnded(AIRobot ai) {
+   }
+
+   protected void onBlockFound(BlockPos pos) {
+   }
+
+   protected boolean onSearchFailed() {
+      return false;
    }
 
    private boolean needsTool() {

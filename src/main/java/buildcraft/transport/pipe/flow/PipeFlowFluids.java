@@ -31,6 +31,7 @@ import buildcraft.lib.fluid.stack.FluidStack;
 import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
 import buildcraft.transport.BCTransportStatements;
+import buildcraft.transport.tile.TilePipeHolder;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -481,8 +482,8 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       int amount = MathUtil.clamp(s.amount, min, max);
       FluidStack fluid = this.currentFluid.copyWithAmount(amount);
       if (!simulate) {
-         s.amount -= amount;
-         s.drainInternal(amount, false);
+         s.forceDrain(amount);
+         this.markSaveDirty();
          if (s.amount == 0) {
             boolean isEmpty = true;
 
@@ -569,8 +570,13 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
       for (PipeFlowFluids.Section section : this.sections.values()) {
          section.incoming = new int[this.currentDelay];
+         section.incomingTotalCache = 0;
          section.currentTime = 0;
          section.ticksInDirection = 0;
+      }
+
+      if (this.pipe.getHolder().getPipeWorld() != null && !this.pipe.getHolder().getPipeWorld().isClientSide()) {
+         this.markSaveDirty();
       }
    }
 
@@ -588,6 +594,17 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       }
 
       return !this.currentFluid.isEmpty();
+   }
+
+   @Override
+   public boolean requiresPeriodicSave() {
+      return !this.currentFluid.isEmpty();
+   }
+
+   private void markSaveDirty() {
+      if (this.pipe.getHolder().getPipeTile() instanceof TilePipeHolder tile) {
+         tile.markPipeSaveDirty();
+      }
    }
 
    @Override
@@ -807,6 +824,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          nbt.putShort("amount", (short)this.amount);
          nbt.putShort("lastSentAmount", (short)this.lastSentAmount);
          nbt.putShort("ticksInDirection", (short)this.ticksInDirection);
+         nbt.putShort("currentTime", (short)this.currentTime);
 
          for (int i = 0; i < this.incoming.length; i++) {
             nbt.putShort("in[" + i + "]", (short)this.incoming[i]);
@@ -817,14 +835,17 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          this.amount = nbt.contains("amount") ? BcNbt.getShort(nbt, "amount", (short)0) : BcNbt.getShort(nbt, "capacity", (short)0);
          this.lastSentAmount = BcNbt.getShort(nbt, "lastSentAmount", (short)0);
          this.ticksInDirection = BcNbt.getShort(nbt, "ticksInDirection", (short)0);
+         this.currentTime = this.incoming.length == 0 ? 0 : Math.floorMod(BcNbt.getShort(nbt, "currentTime", (short)0), this.incoming.length);
          this.target = this.amount;
          this.clientAmountThis = this.amount;
          this.clientAmountLast = this.amount;
          this.incomingTotalCache = 0;
 
          for (int i = 0; i < this.incoming.length; i++) {
-            this.incomingTotalCache = this.incomingTotalCache + (this.incoming[i] = BcNbt.getShort(nbt, "in[" + i + "]", (short)0));
+            this.incomingTotalCache = this.incomingTotalCache + (this.incoming[i] = Math.max(0, BcNbt.getShort(nbt, "in[" + i + "]", (short)0)));
          }
+
+         this.trimDelayedFluidToAmount();
       }
 
       int getMaxFilled() {
@@ -883,6 +904,37 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       void advanceForMovement() {
          this.incomingTotalCache = this.incomingTotalCache - this.incoming[this.currentTime];
          this.incoming[this.currentTime] = 0;
+      }
+
+      void forceDrain(int maxDrain) {
+         int drained = Math.min(Math.max(0, maxDrain), this.amount);
+         if (drained <= 0) {
+            return;
+         }
+
+         int matured = Math.max(0, this.amount - this.incomingTotalCache);
+         int delayedToRemove = Math.max(0, drained - matured);
+         this.amount -= drained;
+         this.removeDelayedFluid(delayedToRemove);
+         this.trimDelayedFluidToAmount();
+      }
+
+      private void trimDelayedFluidToAmount() {
+         if (this.incomingTotalCache > this.amount) {
+            this.removeDelayedFluid(this.incomingTotalCache - this.amount);
+         }
+      }
+
+      private void removeDelayedFluid(int toRemove) {
+         int remaining = Math.min(Math.max(0, toRemove), this.incomingTotalCache);
+
+         for (int age = 0; age < this.incoming.length && remaining > 0; age++) {
+            int index = Math.floorMod(this.currentTime - age, this.incoming.length);
+            int removed = Math.min(this.incoming[index], remaining);
+            this.incoming[index] -= removed;
+            this.incomingTotalCache -= removed;
+            remaining -= removed;
+         }
       }
 
       void setTime(int current) {

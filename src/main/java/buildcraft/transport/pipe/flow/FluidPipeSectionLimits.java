@@ -17,6 +17,6 @@ public final class FluidPipeSectionLimits {
    }
 
    public static int maxDrained(int amount, int incomingTotalCache, int transferPerTick) {
-      return Math.min(amount - incomingTotalCache, transferPerTick);
+      return Math.min(Math.max(0, amount - incomingTotalCache), transferPerTick);
    }
 }

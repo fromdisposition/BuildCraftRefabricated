@@ -18,6 +18,7 @@ import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.gui.ledger.LedgerOwnership;
 import buildcraft.lib.gui.pos.GuiRectangle;
 import java.util.List;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.components.Button;
 //? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
@@ -194,7 +195,7 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
 
             int colour = isSelected ? -1376 : -2039584;
             String text = key.header == null ? key.toString() : key.header.name;
-            graphics.text(this.font, text, 8, rowY, colour, false);
+            graphics.text(this.font, fitName(this.font, text, 154), 8, rowY, colour, false);
             rowY += 8;
          }
 
@@ -203,6 +204,15 @@ public class GuiElectronicLibrary extends BcScreen<ContainerElectronicLibrary> {
          // Y = playerInventoryLabelY() derives from the real slot rows, so it follows inventory-shift automatically.
          graphics.text(this.font, this.playerInventoryTitle, 8, this.playerInventoryLabelY(), -12566464, false);
       }
+   }
+
+   static String fitName(Font font, String text, int maxWidth) {
+      if (text == null || font.width(text) <= maxWidth) {
+         return text;
+      }
+
+      String ellipsis = "...";
+      return font.plainSubstrByWidth(text, maxWidth - font.width(ellipsis)) + ellipsis;
    }
 
    @Override

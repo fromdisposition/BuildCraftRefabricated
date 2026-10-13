@@ -25,7 +25,7 @@ import buildcraft.lib.nbt.BcValueOut;
 public class TileIntegrationTable extends TileLaserTableBase {
    public final ItemHandlerSimple invTarget = this.itemManager.addInvHandler("target", 1, ItemHandlerManager.EnumAccess.BOTH, EnumPipePart.VALUES);
    public final ItemHandlerSimple invToIntegrate = this.itemManager.addInvHandler("toIntegrate", 8, ItemHandlerManager.EnumAccess.BOTH, EnumPipePart.VALUES);
-   public final ItemHandlerSimple invResult = this.itemManager.addInvHandler("result", 1, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
+   public final ItemHandlerSimple invResult = this.itemManager.addInvHandler("result", 1, ItemHandlerManager.EnumAccess.EXTRACT, EnumPipePart.VALUES);
    public IntegrationRecipe recipe;
    public long syncedTarget;
    public ItemStack syncedOutput = ItemStack.EMPTY;

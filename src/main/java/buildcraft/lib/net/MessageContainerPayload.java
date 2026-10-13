@@ -55,7 +55,9 @@ public record MessageContainerPayload(int containerId, int messageId, byte[] pay
          if (openContainer instanceof IBcMenu bcContainer) {
             boolean isClient = player.level().isClientSide();
             if (message.payload != null) {
-               if (!isClient && !bcContainer.stillValid(player)) {
+               if (!isClient && player.isSpectator()) {
+                  BCLog.logger.debug("[lib.net] Ignoring container message from spectator " + player.getScoreboardName());
+               } else if (!isClient && !bcContainer.stillValid(player)) {
                   BCLog.logger.warn("[lib.net] Received container message but container is no longer valid for player");
                } else {
                   try {

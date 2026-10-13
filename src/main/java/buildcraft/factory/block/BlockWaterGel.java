@@ -191,17 +191,11 @@ public class BlockWaterGel extends HalfTransparentBlock {
 
    @Override
    protected List<ItemStack> getDrops(BlockState state, net.minecraft.world.level.storage.loot.LootParams.Builder builder) {
-      BlockWaterGel.GelStage stage = state.getValue(PROP_STAGE);
-      RandomSource rand = builder.getLevel().getRandom();
-      int count;
-      if (stage.spreading) {
-         count = rand.nextInt(2) + 1;
-      } else {
-         count = 1;
+      List<ItemStack> drops = new ArrayList<>();
+      if (state.getValue(PROP_STAGE) == BlockWaterGel.GelStage.GEL) {
+         drops.add(new ItemStack(BCFactoryItems.GELLED_WATER, 1));
       }
 
-      List<ItemStack> drops = new ArrayList<>();
-      drops.add(new ItemStack(BCFactoryItems.GELLED_WATER, count));
       return drops;
    }
 

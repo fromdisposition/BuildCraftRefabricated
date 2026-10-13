@@ -125,11 +125,23 @@ public class SchematicEntityDefault implements ISchematicEntity {
       newEntityNbt.put("Pos", NBTUtilBC.writeVec3(placePos));
       NBTUtilBC.putUUID(newEntityNbt, "UUID", UUID.randomUUID());
       boolean rotate = true;
-      if (newEntityNbt.contains("TileX") && newEntityNbt.contains("TileY") && newEntityNbt.contains("TileZ") && newEntityNbt.contains("Facing")) {
-         newEntityNbt.putInt("TileX", placeHangingPos.getX());
-         newEntityNbt.putInt("TileY", placeHangingPos.getY());
-         newEntityNbt.putInt("TileZ", placeHangingPos.getZ());
-         newEntityNbt.putByte("Facing", (byte)this.hangingFacing.get2DDataValue());
+      boolean hasTileXyz = newEntityNbt.contains("TileX") && newEntityNbt.contains("TileY") && newEntityNbt.contains("TileZ");
+      boolean hasBlockPos = newEntityNbt.contains("block_pos");
+      if (hasTileXyz || hasBlockPos) {
+         if (hasTileXyz) {
+            newEntityNbt.putInt("TileX", placeHangingPos.getX());
+            newEntityNbt.putInt("TileY", placeHangingPos.getY());
+            newEntityNbt.putInt("TileZ", placeHangingPos.getZ());
+         }
+
+         if (hasBlockPos) {
+            newEntityNbt.putIntArray("block_pos", new int[] { placeHangingPos.getX(), placeHangingPos.getY(), placeHangingPos.getZ() });
+         }
+
+         if (newEntityNbt.contains("Facing")) {
+            newEntityNbt.putByte("Facing", (byte)this.hangingFacing.get3DDataValue());
+         }
+
          rotate = false;
       }
 

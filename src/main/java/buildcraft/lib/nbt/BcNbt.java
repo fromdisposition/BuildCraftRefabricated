@@ -96,6 +96,13 @@ public final class BcNbt {
       /*return tag.getIntArray(key); *///?}
    }
 
+   public static long[] getLongArray(CompoundTag tag, String key) {
+      //? if >= 1.21.10 {
+      return tag.getLongArray(key).orElse(new long[0]);
+      //?} else {
+      /*return tag.getLongArray(key); *///?}
+   }
+
    /** Nested list, empty if absent. (1.21.1 reads the raw tag and casts, so element type is irrelevant.) */
    public static ListTag getList(CompoundTag tag, String key) {
       //? if >= 1.21.10 {

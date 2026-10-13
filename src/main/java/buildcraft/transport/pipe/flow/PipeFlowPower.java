@@ -62,12 +62,52 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
       for (Direction face : Direction.values()) {
          this.sections.put(face, new PipeFlowPower.Section(face));
       }
+
+      this.readEnergyBuffers(nbt);
+   }
+
+   private void writeEnergyBuffers(CompoundTag nbt) {
+      long[] powers = new long[6];
+      long[] nextPowers = new long[6];
+
+      for (Direction face : Direction.values()) {
+         PipeFlowPower.Section s = this.sections.get(face);
+         powers[face.ordinal()] = Math.max(0L, s.internalPower);
+         nextPowers[face.ordinal()] = Math.max(0L, s.internalNextPower);
+      }
+
+      nbt.putLongArray("internalPower", powers);
+      nbt.putLongArray("internalNextPower", nextPowers);
+   }
+
+   private void readEnergyBuffers(CompoundTag nbt) {
+      long[] powers = BcNbt.getLongArray(nbt, "internalPower");
+      long[] nextPowers = BcNbt.getLongArray(nbt, "internalNextPower");
+
+      for (Direction face : Direction.values()) {
+         int i = face.ordinal();
+         PipeFlowPower.Section s = this.sections.get(face);
+         s.internalPower = i < powers.length ? Math.max(0L, powers[i]) : 0L;
+         s.internalNextPower = i < nextPowers.length ? Math.max(0L, nextPowers[i]) : 0L;
+      }
+   }
+
+   @Override
+   public boolean requiresPeriodicSave() {
+      for (PipeFlowPower.Section section : this.sections.values()) {
+         if (section.internalPower > 0L || section.internalNextPower > 0L) {
+            return true;
+         }
+      }
+
+      return false;
    }
 
    @Override
    public CompoundTag writeToNbt() {
       CompoundTag nbt = super.writeToNbt();
       nbt.putBoolean("isReceiver", this.isReceiver);
+      this.writeEnergyBuffers(nbt);
       int[] powers = new int[6];
       int[] flows = new int[6];
 
@@ -85,6 +125,7 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
    @Override
    public void readFromNbt(CompoundTag nbt) {
       this.isReceiver = BcNbt.getBoolean(nbt, "isReceiver", false);
+      this.readEnergyBuffers(nbt);
       int[] powers = BcNbt.getIntArray(nbt, "displayPower");
       int[] flows = BcNbt.getIntArray(nbt, "displayFlow");
 
@@ -199,6 +240,7 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
       left.add("maxPower = " + LocaleUtil.localizeMj(this.maxPower));
       left.add("isReceiver = " + this.isReceiver);
+      left.add("powerLoss = " + LocaleUtil.localizeMj(this.powerLoss) + ", resistance = " + this.powerResistance * 100.0 / MjAPI.MJ + "%");
       left.add("internalPower = " + this.arrayToString(s -> s.internalPower) + " <- " + this.arrayToString(s -> s.internalNextPower));
       left.add("- powerQuery: " + this.arrayToString(s -> s.powerQuery) + " <- " + this.arrayToString(s -> s.nextPowerQuery));
       left.add("- power: OUT " + this.arrayToString(s -> s.debugPowerOutput));
@@ -259,14 +301,23 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
          this.captureDisplaySnapshot(this.sections);
          this.step();
          PipeEnergySimulation.distributeInternalPower(this.sections, (targetFace, watts) -> {
+            long offered = this.applyResistance(watts);
+            if (offered <= 0L) {
+               return watts;
+            }
+
+            long leftover;
             IPipe neighbour = this.pipe.getConnectedPipe(targetFace);
             if (neighbour != null && neighbour.getFlow() instanceof PipeFlowPower && neighbour.isConnected(targetFace.getOpposite())) {
                PipeFlowPower oFlow = (PipeFlowPower)neighbour.getFlow();
-               return oFlow.sections.get(targetFace.getOpposite()).receivePowerInternal(watts);
+               leftover = oFlow.sections.get(targetFace.getOpposite()).receivePowerInternal(offered);
             } else {
                IMjReceiver receiver = this.getReceiver(targetFace);
-               return receiver != null && receiver.canReceive() ? receiver.receivePower(watts, false) : watts;
+               leftover = receiver != null && receiver.canReceive() ? receiver.receivePower(offered, false) : offered;
             }
+
+            long delivered = offered - MathUtil.clamp(leftover, 0L, offered);
+            return watts - this.inputForDelivered(delivered, watts);
          });
          PipeEnergySimulation.updateDisplayPower(this.sections, this.maxPower);
          PipeEnergySimulation.requestFromConnectedTiles(this.pipe, face -> {
@@ -287,6 +338,35 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
 
    private IMjReceiver getReceiver(Direction side) {
       return PipeNeighborMjAccess.receiver(this.pipe.getHolder(), side);
+   }
+
+   private long applyResistance(long input) {
+      if (input <= 0L) {
+         return 0L;
+      } else if (this.powerResistance <= 0L) {
+         return input;
+      } else if (this.powerResistance >= MjAPI.MJ) {
+         return 0L;
+      }
+
+      long retained = input * (MjAPI.MJ - this.powerResistance) / MjAPI.MJ;
+      return Math.max(1L, retained);
+   }
+
+   private long inputForDelivered(long delivered, long maxInput) {
+      if (delivered <= 0L || maxInput <= 0L) {
+         return 0L;
+      } else if (this.powerResistance <= 0L) {
+         return Math.min(delivered, maxInput);
+      }
+
+      long retainedRatio = MjAPI.MJ - this.powerResistance;
+      if (retainedRatio <= 0L) {
+         return maxInput;
+      }
+
+      long required = (delivered * MjAPI.MJ + retainedRatio - 1L) / retainedRatio;
+      return Math.min(required, maxInput);
    }
 
    private void step() {

@@ -124,7 +124,7 @@ public class Blueprint extends Snapshot {
       this.palette.clear();
 
       for (CompoundTag schematicBlockTag : NBTUtilBC.readCompoundList(nbt.get("palette")).collect(Collectors.toList())) {
-         this.palette.add(SchematicBlockManager.readFromNBT(schematicBlockTag));
+         this.palette.add(SchematicBlockManager.readFromNBTAllowUnavailable(schematicBlockTag));
       }
 
       this.data = new int[Snapshot.getDataSize(this.size)];
@@ -161,13 +161,32 @@ public class Blueprint extends Snapshot {
       this.entities.clear();
 
       for (CompoundTag schematicEntityTag : NBTUtilBC.readCompoundList(nbt.get("entities")).collect(Collectors.toList())) {
-         this.entities.add(SchematicEntityManager.readFromNBT(schematicEntityTag));
+         this.entities.add(SchematicEntityManager.readFromNBTAllowUnavailable(schematicEntityTag));
       }
    }
 
    @Override
    public EnumSnapshotType getType() {
       return EnumSnapshotType.BLUEPRINT;
+   }
+
+   public int getUnavailableSchematicCount() {
+      int count = 0;
+      if (this.data != null && !this.palette.isEmpty()) {
+         for (int cell : this.data) {
+            if (cell >= 0 && cell < this.palette.size() && SchematicBlockManager.isUnavailable(this.palette.get(cell))) {
+               count++;
+            }
+         }
+      }
+
+      for (ISchematicEntity schematicEntity : this.entities) {
+         if (SchematicEntityManager.isUnavailable(schematicEntity)) {
+            count++;
+         }
+      }
+
+      return count;
    }
 
    @Override
@@ -234,6 +253,10 @@ public class Blueprint extends Snapshot {
          com.google.common.collect.ImmutableMap.Builder<ISchematicEntity, List<FluidStack>> entitiesRequiredFluidsBuilder = ImmutableMap.builder();
 
          for (ISchematicEntity schematicEntity : this.getSnapshot().entities) {
+            if (SchematicEntityManager.isUnavailable(schematicEntity)) {
+               continue;
+            }
+
             ISchematicEntity rotatedSchematicEntity = schematicEntity.getRotated(rotation);
             entitiesBuilder.add(rotatedSchematicEntity);
             entitiesRequiredItemsBuilder.put(rotatedSchematicEntity, schematicEntity.computeRequiredItems());

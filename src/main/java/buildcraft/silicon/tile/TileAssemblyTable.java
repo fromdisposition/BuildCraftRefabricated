@@ -18,7 +18,9 @@ import buildcraft.lib.tile.ItemHandlerManager;
 import buildcraft.lib.tile.ItemHandlerSimple;
 import buildcraft.silicon.BCSiliconBlockEntities;
 import buildcraft.silicon.EnumAssemblyRecipeState;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.SortedMap;
@@ -123,46 +125,31 @@ public class TileAssemblyTable extends TileLaserTableBase {
    }
 
    private void activateNextRecipe() {
-      TileAssemblyTable.AssemblyInstruction activeRecipe = this.getActiveRecipe();
-      if (activeRecipe != null) {
-         int index = 0;
-         int activeIndex = 0;
-         boolean isActiveLast = false;
-         long enoughCount = this.recipesStates
-            .values()
-            .stream()
-            .filter(statex -> statex == EnumAssemblyRecipeState.SAVED_ENOUGH || statex == EnumAssemblyRecipeState.SAVED_ENOUGH_ACTIVE)
-            .count();
-         if (enoughCount <= 1L) {
-            return;
+      List<Entry<TileAssemblyTable.AssemblyInstruction, EnumAssemblyRecipeState>> available = new ArrayList<>();
+
+      for (Entry<TileAssemblyTable.AssemblyInstruction, EnumAssemblyRecipeState> entry : this.recipesStates.entrySet()) {
+         if (entry.getValue() == EnumAssemblyRecipeState.SAVED_ENOUGH || entry.getValue() == EnumAssemblyRecipeState.SAVED_ENOUGH_ACTIVE) {
+            available.add(entry);
          }
+      }
 
-         for (Entry<TileAssemblyTable.AssemblyInstruction, EnumAssemblyRecipeState> entry : this.recipesStates.entrySet()) {
-            EnumAssemblyRecipeState state = entry.getValue();
-            if (state == EnumAssemblyRecipeState.SAVED_ENOUGH) {
-               isActiveLast = false;
-            }
+      if (available.size() <= 1) {
+         return;
+      }
 
-            if (state == EnumAssemblyRecipeState.SAVED_ENOUGH_ACTIVE) {
-               entry.setValue(EnumAssemblyRecipeState.SAVED_ENOUGH);
-               activeIndex = index;
-               isActiveLast = true;
-            }
+      int activeIndex = -1;
 
-            index++;
+      for (int i = 0; i < available.size(); i++) {
+         Entry<TileAssemblyTable.AssemblyInstruction, EnumAssemblyRecipeState> entry = available.get(i);
+         if (entry.getValue() == EnumAssemblyRecipeState.SAVED_ENOUGH_ACTIVE) {
+            activeIndex = i;
+            entry.setValue(EnumAssemblyRecipeState.SAVED_ENOUGH);
+            break;
          }
+      }
 
-         index = 0;
-
-         for (Entry<TileAssemblyTable.AssemblyInstruction, EnumAssemblyRecipeState> entry : this.recipesStates.entrySet()) {
-            EnumAssemblyRecipeState state = entry.getValue();
-            if (state == EnumAssemblyRecipeState.SAVED_ENOUGH && entry.getKey().recipe != activeRecipe.recipe && (index > activeIndex || isActiveLast)) {
-               entry.setValue(EnumAssemblyRecipeState.SAVED_ENOUGH_ACTIVE);
-               break;
-            }
-
-            index++;
-         }
+      if (activeIndex >= 0) {
+         available.get((activeIndex + 1) % available.size()).setValue(EnumAssemblyRecipeState.SAVED_ENOUGH_ACTIVE);
       }
    }
 

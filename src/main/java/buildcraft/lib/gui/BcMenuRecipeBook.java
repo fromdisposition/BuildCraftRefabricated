@@ -140,6 +140,10 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
 
    @Override
    public void clicked(int slotId, int dragType, ContainerInput containerInput, Player player) {
+      if (player != null && player.isSpectator()) {
+         return;
+      }
+
       if (!BcMenuSupport.clickPhantom(this, slotId)) {
          super.clicked(slotId, dragType, containerInput, player);
       }
@@ -147,6 +151,10 @@ public abstract class BcMenuRecipeBook extends RecipeBookMenu implements IBcMenu
 
    @Override
    public ItemStack quickMoveStack(Player playerIn, int index) {
+      if (playerIn != null && playerIn.isSpectator()) {
+         return ItemStack.EMPTY;
+      }
+
       return BcMenuSupport.quickMoveStack(this, index, this::moveItemStackTo);
    }
 

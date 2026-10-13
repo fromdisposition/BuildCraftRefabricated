@@ -427,6 +427,11 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
       item.stack = reachEnd.getStack();
       ItemStack excess = item.stack;
       if (!excess.isEmpty()) {
+         if (!this.pipe.isConnected(item.side)) {
+            this.dropItem(excess, item.side, item.side, item.speed);
+            return;
+         }
+
          if (this.pipe.isConnected(item.side)) {
             IPipe.ConnectedType type = this.pipe.getConnectedType(item.side);
             Direction oppositeSide = item.side.getOpposite();

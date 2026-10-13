@@ -30,6 +30,8 @@ import buildcraft.builders.snapshot.ITileForTemplateBuilder;
 import buildcraft.builders.snapshot.SnapshotBuilder;
 import buildcraft.builders.snapshot.Template;
 import buildcraft.builders.snapshot.TemplateBuilder;
+import buildcraft.core.marker.volume.Addon;
+import buildcraft.core.marker.volume.EnumAddonSlot;
 import buildcraft.core.marker.volume.Lock;
 import buildcraft.core.marker.volume.VolumeBox;
 import buildcraft.core.marker.volume.WorldSavedDataVolumeBoxes;
@@ -121,6 +123,12 @@ public class TileFiller
    public TemplateBuilder builder = new TemplateBuilder(this);
    @Nullable
    private GameProfile owner;
+   @Nullable
+   private UUID pendingAddonVolumeBoxId;
+   @Nullable
+   private EnumAddonSlot pendingAddonSlot;
+   @Nullable
+   private CompoundTag pendingBuilderNbt;
 
    public MjBatteryReceiver getMjReceiver() {
       return this.mjReceiver;
@@ -161,10 +169,34 @@ public class TileFiller
    public void onLoad() {
       if (this.level != null && !this.level.isClientSide()) {
          this.schedulePipeNeighborNotify();
+         this.restoreAddon();
+         if (this.pendingBuilderNbt != null) {
+            if (this.builder != null && this.getTemplateBuildingInfo() != null) {
+               this.builder.deserializeNBT(this.pendingBuilderNbt);
+            }
+
+            this.pendingBuilderNbt = null;
+         }
+
          if (this.box.isInitialized()) {
             this.deferredChunkLoad = true;
          }
       }
+   }
+
+   private void restoreAddon() {
+      if (this.pendingAddonVolumeBoxId != null && this.pendingAddonSlot != null && this.level != null) {
+         VolumeBox volumeBox = WorldSavedDataVolumeBoxes.get(this.level).getVolumeBoxFromId(this.pendingAddonVolumeBoxId);
+         Addon found = volumeBox == null ? null : volumeBox.addons.get(this.pendingAddonSlot);
+         this.addon = found instanceof AddonFillerPlanner planner ? planner : null;
+         if (this.addon != null) {
+            this.addon.updateBuildingInfo();
+            this.updateBuildingInfo();
+         }
+      }
+
+      this.pendingAddonVolumeBoxId = null;
+      this.pendingAddonSlot = null;
    }
 
    @Override
@@ -344,6 +376,14 @@ public class TileFiller
       output.putByte("lockedTicks", this.lockedTicks);
       output.putByte("mode", (byte)this.mode.ordinal());
       output.putBoolean("markerBox", this.markerBox);
+      if (this.addon != null && this.addon.volumeBox != null) {
+         output.putString("addonVolumeBoxId", this.addon.volumeBox.id.toString());
+         output.putString("addonSlot", this.addon.getSlot().name());
+      } else if (this.pendingAddonVolumeBoxId != null && this.pendingAddonSlot != null) {
+         output.putString("addonVolumeBoxId", this.pendingAddonVolumeBoxId.toString());
+         output.putString("addonSlot", this.pendingAddonSlot.name());
+      }
+
       if (this.box.isInitialized()) {
          output.putBoolean("box_initialized", true);
          BlockPos bMin = this.box.min();
@@ -362,7 +402,7 @@ public class TileFiller
       output.store("items", CompoundTag.CODEC, this.itemManager.serializeNBT());
       if (this.builder != null) {
          if (!this.writingSyncTag) {
-            output.store("builderState", CompoundTag.CODEC, this.builder.serializeNBT());
+            output.store("builderState", CompoundTag.CODEC, this.pendingBuilderNbt != null ? this.pendingBuilderNbt.copy() : this.builder.serializeNBT());
          }
 
          output.store("builderClientData", CompoundTag.CODEC, this.builder.serializeClientNBT());
@@ -389,6 +429,20 @@ public class TileFiller
       IControllable.Mode[] modes = IControllable.Mode.values();
       this.mode = modeOrdinal >= 0 && modeOrdinal < modes.length ? modes[modeOrdinal] : IControllable.Mode.ON;
       this.markerBox = input.getBooleanOr("markerBox", true);
+      this.pendingAddonVolumeBoxId = null;
+      this.pendingAddonSlot = null;
+      String addonBoxId = input.getStringOr("addonVolumeBoxId", "");
+      String addonSlotName = input.getStringOr("addonSlot", "");
+      if (!addonBoxId.isEmpty() && !addonSlotName.isEmpty()) {
+         try {
+            this.pendingAddonVolumeBoxId = UUID.fromString(addonBoxId);
+            this.pendingAddonSlot = EnumAddonSlot.valueOf(addonSlotName);
+         } catch (IllegalArgumentException e) {
+            this.pendingAddonVolumeBoxId = null;
+            this.pendingAddonSlot = null;
+         }
+      }
+
       if (input.getBooleanOr("box_initialized", false)) {
          int minX = input.getIntOr("box_minX", 0);
          int minY = input.getIntOr("box_minY", 0);
@@ -415,7 +469,13 @@ public class TileFiller
       }
 
       if (this.builder != null) {
-         input.read("builderState", CompoundTag.CODEC).ifPresent(this.builder::deserializeNBT);
+         input.read("builderState", CompoundTag.CODEC).ifPresent(tag -> {
+            if (this.getTemplateBuildingInfo() != null) {
+               this.builder.deserializeNBT(tag);
+            } else {
+               this.pendingBuilderNbt = tag.copy();
+            }
+         });
          input.read("builderClientData", CompoundTag.CODEC).ifPresent(tag -> {
             Queue<SnapshotBuilder<ITileForTemplateBuilder>.BreakTask> serverBreak = new ArrayDeque<>();
             Queue<SnapshotBuilder<ITileForTemplateBuilder>.PlaceTask> serverPlace = new ArrayDeque<>();

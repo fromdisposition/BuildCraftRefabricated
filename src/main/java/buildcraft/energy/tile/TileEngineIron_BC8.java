@@ -33,7 +33,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -61,6 +60,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
    private boolean lastPowered = false;
    private double burnTime;
    private double residueAmount = 0.0;
+   private boolean residueBlocked = false;
    private @Nullable CombustionFuelRecipe currentFuel;
 
    public TileEngineIron_BC8(BlockPos pos, BlockState state) {
@@ -75,7 +75,39 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
 
    @Override
    public boolean isBurning() {
-      return !this.tankFuel.isEmpty() && this.tankFuel.getAmountMb() > 0 && this.penaltyCooling == 0 && this.isRedstonePowered;
+      return !this.tankFuel.isEmpty() && this.tankFuel.getAmountMb() > 0 && this.penaltyCooling == 0 && this.isRedstonePowered
+         && !this.residueBlocked;
+   }
+
+   private void flushResidue() {
+      int whole = (int) this.residueAmount;
+      if (whole <= 0 || this.currentFuel == null || this.currentFuel.residueFluid() == null) {
+         return;
+      }
+
+      try (Transaction tx = Transaction.openOuter()) {
+         int filled = this.tankResidue.insertMbInternal(new FluidStack(this.currentFuel.residueFluid(), whole), whole, tx);
+         if (filled > 0) {
+            tx.commit();
+            this.residueAmount -= filled;
+         }
+      }
+   }
+
+   private boolean residueFits() {
+      if (!this.currentFuel.isDirty()) {
+         return true;
+      }
+
+      this.flushResidue();
+      int whole = (int) (this.residueAmount + this.currentFuel.residueAmountPer1000Mb() / 1000.0);
+      if (whole <= 0) {
+         return true;
+      }
+
+      try (Transaction tx = Transaction.openOuter()) {
+         return this.tankResidue.insertMbInternal(new FluidStack(this.currentFuel.residueFluid(), whole), whole, tx) >= whole;
+      }
    }
 
    @Override
@@ -90,6 +122,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
             this.currentFuel = findFuel(fuel.getFluid());
          }
 
+         this.residueBlocked = false;
          if (!fuel.isEmpty() && this.currentFuel != null) {
             if (this.penaltyCooling <= 0) {
                if (this.isRedstonePowered) {
@@ -106,6 +139,12 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                      if (this.burnTime <= 0.0) {
                         if (this.tankFuel.getAmountMb() <= 0) {
                            this.currentFuel = null;
+                           this.currentOutput = 0L;
+                           return;
+                        }
+
+                        if (!this.residueFits()) {
+                           this.residueBlocked = true;
                            this.currentOutput = 0L;
                            return;
                         }
@@ -134,34 +173,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
                         this.burnTime = this.burnTime + this.currentFuel.totalBurningTime() / 1000.0;
                         if (this.currentFuel.isDirty()) {
                            this.residueAmount = this.residueAmount + this.currentFuel.residueAmountPer1000Mb() / 1000.0;
-                           if (this.residueAmount >= 1.0) {
-                              int residueInt = Mth.floor(this.residueAmount);
-                              FluidStack residueFluid = new FluidStack(this.currentFuel.residueFluid(), residueInt);
-                              Transaction txx = Transaction.openOuter();
-
-                              try {
-                                 int filled = this.tankResidue.insertMbInternal(residueFluid, residueInt, txx);
-                                 if (filled > 0) {
-                                    txx.commit();
-                                 }
-
-                                 this.residueAmount -= filled;
-                              } catch (Throwable var14) {
-                                 if (txx != null) {
-                                    try {
-                                       txx.close();
-                                    } catch (Throwable var10) {
-                                       var14.addSuppressed(var10);
-                                    }
-                                 }
-
-                                 throw var14;
-                              }
-
-                              if (txx != null) {
-                                 txx.close();
-                              }
-                           }
+                           this.flushResidue();
                         }
                      }
 

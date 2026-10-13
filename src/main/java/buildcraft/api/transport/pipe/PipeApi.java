@@ -82,7 +82,8 @@ public final class PipeApi {
       }
 
       public static PipeApi.PowerTransferInfo createFromResistance(long transferPerTick, long resistancePerTick, boolean isReceiver) {
-         return new PipeApi.PowerTransferInfo(transferPerTick, resistancePerTick, resistancePerTick * transferPerTick / MjAPI.MJ, isReceiver);
+         long lossPerTick = resistancePerTick * transferPerTick / MjAPI.MJ;
+         return new PipeApi.PowerTransferInfo(transferPerTick, lossPerTick, resistancePerTick, isReceiver);
       }
 
       public PowerTransferInfo(long transferPerTick, long lossPerTick, long resistancePerTick, boolean isReceiver) {

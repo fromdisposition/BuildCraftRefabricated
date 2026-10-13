@@ -8,6 +8,7 @@ package buildcraft.factory.tile;
 
 
 import buildcraft.lib.nbt.BcAuth;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.fabric.transfer.NeighborTransfers;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
@@ -264,7 +265,7 @@ public class TilePump extends TileMiner implements IDebuggable {
 
             for (Direction side : directions) {
                BlockPos offsetPos = posToCheck.relative(side);
-               if (!(offsetPos.distSqr(this.targetPos) > maxLengthSquared)) {
+               if (!(offsetPos.distSqr(this.targetPos) > maxLengthSquared) && BcRegistryUtil.isChunkLoaded(this.level, offsetPos)) {
                   boolean isNew = checked.add(offsetPos.asLong());
                   if (isNew) {
                      Fluid fluidAt = BlockUtil.getFluidWithFlowing(this.level, offsetPos);
@@ -296,7 +297,7 @@ public class TilePump extends TileMiner implements IDebuggable {
 
          // The spring sits one block under the deposit sphere's bottom (just above bedrock), not on the world floor.
          for (BlockPos spring : BlockPos.betweenClosed(center.offset(-10, 0, -10), center.offset(10, 8, 10))) {
-            if (this.level.getBlockState(spring).is(BCCoreBlocks.SPRING_OIL)) {
+            if (BcRegistryUtil.isChunkLoaded(this.level, spring) && this.level.getBlockState(spring).is(BCCoreBlocks.SPRING_OIL)) {
                BlockEntity tile = this.level.getBlockEntity(spring);
                if (tile instanceof ITileOilSpring) {
                   springPositions.add(spring.immutable());
@@ -318,12 +319,16 @@ public class TilePump extends TileMiner implements IDebuggable {
    }
 
    private boolean canDrain(BlockPos blockPos) {
+      if (!BcRegistryUtil.isChunkLoaded(this.level, blockPos)) {
+         return false;
+      }
+
       Fluid fluid = BlockUtil.getFluid(this.level, blockPos);
       return this.fluidTank.isEmpty() ? fluid != null : FluidIdentity.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid());
    }
 
    public static boolean isInfiniteSourceAt(@Nullable Level level, @Nullable BlockPos pos) {
-      if (level != null && pos != null) {
+      if (level != null && pos != null && BcRegistryUtil.isChunkLoaded(level, pos)) {
          BlockState below = level.getBlockState(pos.below());
          Fluid fluidBelow = BlockUtil.getFluidWithFlowing(level, pos.below());
          if (!FluidIdentity.areFluidsEqual(fluidBelow, Fluids.WATER) && !BlockUtil.isSolid(level, pos.below(), below)) {
@@ -333,7 +338,12 @@ public class TilePump extends TileMiner implements IDebuggable {
          int sources = 0;
 
          for (Direction dir : Plane.HORIZONTAL) {
-            Fluid neighbour = BlockUtil.getFluid(level, pos.relative(dir));
+            BlockPos neighbourPos = pos.relative(dir);
+            if (!BcRegistryUtil.isChunkLoaded(level, neighbourPos)) {
+               continue;
+            }
+
+            Fluid neighbour = BlockUtil.getSourceFluid(level, neighbourPos);
             if (FluidIdentity.areFluidsEqual(neighbour, Fluids.WATER)) {
                if (++sources >= 2) {
                   return true;
@@ -497,7 +507,7 @@ public class TilePump extends TileMiner implements IDebuggable {
          return from;
       }
 
-      while (BlockUtil.getFluidWithFlowing(this.level, path.thisPos) != null) {
+      while (BcRegistryUtil.isChunkLoaded(this.level, path.thisPos) && BlockUtil.getFluidWithFlowing(this.level, path.thisPos) != null) {
          if ((path = path.parent) == null) {
             return null;
          }

@@ -7,6 +7,7 @@
 package buildcraft.energy.integration.jei;
 
 import buildcraft.energy.BCEnergyItems;
+import buildcraft.energy.BCEnergyRecipeTypes;
 import buildcraft.energy.recipe.CombustionFuelRecipe;
 import buildcraft.energy.recipe.CoolantRecipe;
 import buildcraft.energy.recipe.SolidCoolantRecipe;
@@ -15,6 +16,7 @@ import buildcraft.fabric.integration.jei.BCJeiRecipeTypes;
 import buildcraft.energy.client.gui.GuiEngineIron_BC8;
 import buildcraft.energy.client.gui.GuiEngineStone_BC8;
 import buildcraft.lib.fluid.stack.FluidStack;
+import buildcraft.lib.recipe.ClientRecipes;
 import java.util.ArrayList;
 import java.util.List;
 import mezz.jei.api.IModPlugin;
@@ -29,14 +31,13 @@ import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.recipe.IRecipeManager;
 import mezz.jei.api.runtime.IJeiRuntime;
 //?}
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 //? if < 26.3 {
-/*import net.minecraft.world.item.Item;
+/*import net.minecraft.client.Minecraft;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 *///?}
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
 //? if >= 1.21.10 && < 26.3 {
 /*import net.minecraft.world.level.block.entity.FuelValues;
 *///?}
@@ -80,27 +81,17 @@ public class BCEnergyJeiPlugin implements IModPlugin {
    }
    //?}
 
-   private static java.util.Collection<RecipeHolder<?>> allRecipes() {
-      var srv = Minecraft.getInstance().getSingleplayerServer();
-      return srv != null ? srv.getRecipeManager().getRecipes() : java.util.List.of();
-   }
-
    private static List<CombustionFuelRecipe> collectCombustionFuels() {
-      List<CombustionFuelRecipe> fuels = new ArrayList<>();
-      for (RecipeHolder<?> h : allRecipes()) {
-         if (h.value() instanceof CombustionFuelRecipe r) fuels.add(r);
-      }
-      return fuels;
+      return ClientRecipes.ofType(BCEnergyRecipeTypes.COMBUSTION_FUEL);
    }
 
    private static List<CombustionCoolantJei> collectCoolants() {
       List<CombustionCoolantJei> out = new ArrayList<>();
-      for (RecipeHolder<?> h : allRecipes()) {
-         if (h.value() instanceof CoolantRecipe r) {
-            out.add(new CombustionCoolantJei(ItemStack.EMPTY, new FluidStack(r.fluid(), 1000), r.degreesCoolingPerMb()));
-         } else if (h.value() instanceof SolidCoolantRecipe r) {
-            out.add(new CombustionCoolantJei(new ItemStack(r.item()), new FluidStack(r.coolantFluid(), r.coolantAmountPerItem()), 0.0F));
-         }
+      for (CoolantRecipe r : ClientRecipes.ofType(BCEnergyRecipeTypes.COOLANT)) {
+         out.add(new CombustionCoolantJei(ItemStack.EMPTY, new FluidStack(r.fluid(), 1000), r.degreesCoolingPerMb()));
+      }
+      for (SolidCoolantRecipe r : ClientRecipes.ofType(BCEnergyRecipeTypes.SOLID_COOLANT)) {
+         out.add(new CombustionCoolantJei(new ItemStack(r.item()), new FluidStack(r.coolantFluid(), r.coolantAmountPerItem()), 0.0F));
       }
       return out;
    }

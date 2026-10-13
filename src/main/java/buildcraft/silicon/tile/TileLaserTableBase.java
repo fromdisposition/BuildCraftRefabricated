@@ -126,33 +126,34 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
    }
 
    protected boolean extract(ItemHandlerSimple inv, Collection<IngredientStack> items, boolean simulate, boolean precise) {
-      // simulate first: the real pass mutates slots while walking ingredients and would leave earlier ones consumed if a later one fails
-      if (!simulate && !this.extract(inv, items, true, precise)) {
-         return false;
-      }
-
+      // reserve first against per-slot budgets: slots are only mutated once every ingredient has been reserved
+      int slots = inv.getSlots();
+      int[] available = new int[slots];
+      int[] spent = new int[slots];
       long remainingStacks = 0L;
-      if (precise) {
-         for (ItemStack stack : inv.stacks) {
-            if (!stack.isEmpty()) {
-               remainingStacks++;
-            }
+
+      for (int i = 0; i < slots; i++) {
+         ItemStack slotStack = inv.getStackInSlot(i);
+         available[i] = slotStack.isEmpty() ? 0 : slotStack.getCount();
+         if (precise && !slotStack.isEmpty()) {
+            remainingStacks++;
          }
       }
 
       for (IngredientStack definition : items) {
          int remaining = definition.count;
 
-         for (int i = 0; i < inv.getSlots() && remaining > 0; i++) {
+         for (int i = 0; i < slots && remaining > 0; i++) {
+            if (available[i] <= 0) {
+               continue;
+            }
+
             ItemStack slotStack = inv.getStackInSlot(i);
             if (!slotStack.isEmpty() && definition.ingredient.test(slotStack)) {
-               int spend = Math.min(remaining, slotStack.getCount());
+               int spend = Math.min(remaining, available[i]);
                remaining -= spend;
-               if (!simulate) {
-                  slotStack = slotStack.copy();
-                  slotStack.setCount(slotStack.getCount() - spend);
-                  inv.setStackInSlot(i, slotStack);
-               }
+               available[i] -= spend;
+               spent[i] += spend;
             }
          }
 
@@ -163,6 +164,20 @@ public abstract class TileLaserTableBase extends BcBlockEntity implements ILaser
          remainingStacks--;
       }
 
-      return !precise || remainingStacks == 0L;
+      if (precise && remainingStacks != 0L) {
+         return false;
+      }
+
+      if (!simulate) {
+         for (int i = 0; i < slots; i++) {
+            if (spent[i] > 0) {
+               ItemStack slotStack = inv.getStackInSlot(i).copy();
+               slotStack.setCount(slotStack.getCount() - spent[i]);
+               inv.setStackInSlot(i, slotStack);
+            }
+         }
+      }
+
+      return true;
    }
 }

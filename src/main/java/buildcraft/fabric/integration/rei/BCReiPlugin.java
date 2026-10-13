@@ -9,6 +9,7 @@ package buildcraft.fabric.integration.rei;
 import buildcraft.api.recipes.BuildcraftRecipeRegistry;
 import buildcraft.api.recipes.IRefineryRecipeManager;
 import buildcraft.energy.BCEnergyItems;
+import buildcraft.energy.BCEnergyRecipeTypes;
 import buildcraft.energy.recipe.CombustionFuelRecipe;
 import buildcraft.energy.recipe.CoolantRecipe;
 import buildcraft.energy.recipe.SolidCoolantRecipe;
@@ -27,6 +28,7 @@ import buildcraft.lib.gui.elem.GuiElementFluidTank;
 import buildcraft.lib.gui.ledger.Ledger_Neptune;
 import buildcraft.lib.gui.statement.GuiElementStatementSource;
 import buildcraft.lib.misc.LocaleUtil;
+import buildcraft.lib.recipe.ClientRecipes;
 import buildcraft.silicon.BCSiliconItems;
 import buildcraft.silicon.recipe.AssemblyRecipeCollector;
 import buildcraft.silicon.recipe.AssemblyRecipeView;
@@ -53,12 +55,9 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.plugin.common.BuiltinPlugin;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
 
 public final class BCReiPlugin implements REIClientPlugin {
    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
@@ -248,9 +247,10 @@ public final class BCReiPlugin implements REIClientPlugin {
          List<Rectangle> areas = new ArrayList<>();
          for (Object obj : screen.mainGui.shownElements) {
             IGuiElement element = (IGuiElement) obj;
-            if (element instanceof Ledger_Neptune || element instanceof GuiElementStatementSource) {
-               areas.add(new Rectangle((int)element.getX(), (int)element.getY(),
-                  (int)Math.ceil(element.getWidth()), (int)Math.ceil(element.getHeight())));
+            int w = (int)Math.ceil(element.getWidth());
+            int h = (int)Math.ceil(element.getHeight());
+            if ((element instanceof Ledger_Neptune || element instanceof GuiElementStatementSource) && w > 0 && h > 0) {
+               areas.add(new Rectangle((int)element.getX(), (int)element.getY(), w, h));
             }
          }
          return areas;
@@ -296,12 +296,12 @@ public final class BCReiPlugin implements REIClientPlugin {
             inputs.add(BcRei.item(stack));
          }
          registry.add(new BcReiDisplay(INTEGRATION, inputs, List.of(BcRei.item(r.output())),
-            List.of(powerLine("assembly_table.power", r.microJoules()))));
+            List.of(powerLine("integration_table.power", r.microJoules()))));
       }
 
       for (ProgrammingRecipeView r : ProgrammingRecipeCollector.collect()) {
          registry.add(new BcReiDisplay(PROGRAMMING, List.of(BcRei.item(r.input())), List.of(BcRei.item(r.option())),
-            List.of(powerLine("assembly_table.power", r.microJoules())), r));
+            List.of(powerLine("programming_table.power", r.microJoules())), r));
       }
    }
 
@@ -319,7 +319,7 @@ public final class BCReiPlugin implements REIClientPlugin {
          }
 
          registry.add(new BcReiDisplay(DISTILLER, List.of(in), List.of(gas, liquid),
-            List.of(powerLine("assembly_table.power", r.powerRequired())), r));
+            List.of(powerLine("distiller.power", r.powerRequired())), r));
       }
 
       for (IRefineryRecipeManager.IHeatableRecipe h : BuildcraftRecipeRegistry.refineryRecipes.getHeatableRegistry().getAllRecipes()) {
@@ -345,59 +345,65 @@ public final class BCReiPlugin implements REIClientPlugin {
    private static void registerEnergyDisplays(DisplayRegistry registry) {
       BCRecipeBootstrap.initEnergyRecipes();
 
-      for (RecipeHolder<?> holder : clientRecipes()) {
-         if (holder.value() instanceof CombustionFuelRecipe r) {
-            List<EntryIngredient> outputs = r.residueFluid() != null
-               ? List.of(BcRei.fluid(r.residueFluid(), r.residueAmountPer1000Mb()))
-               : List.of();
-            registry.add(new BcReiDisplay(COMBUSTION_FUEL, List.of(BcRei.fluid(r.fluid(), 1000)), outputs, List.of(
-               Component.literal(LocaleUtil.localizeMjFlow(r.powerPerCycle())),
-               Component.literal(LocaleUtil.localize(KEY_PREFIX + "combustion_engine_fuel.burn", r.totalBurningTime()))
+      for (CombustionFuelRecipe r : ClientRecipes.ofType(BCEnergyRecipeTypes.COMBUSTION_FUEL)) {
+         List<EntryIngredient> outputs = r.residueFluid() != null
+            ? List.of(BcRei.fluid(r.residueFluid(), r.residueAmountPer1000Mb()))
+            : List.of();
+         registry.add(new BcReiDisplay(COMBUSTION_FUEL, List.of(BcRei.fluid(r.fluid(), 1000)), outputs, List.of(
+            Component.literal(LocaleUtil.localizeMjFlow(r.powerPerCycle())),
+            Component.literal(LocaleUtil.localize(KEY_PREFIX + "combustion_engine_fuel.burn", r.totalBurningTime()))
+         )));
+      }
+      for (CoolantRecipe r : ClientRecipes.ofType(BCEnergyRecipeTypes.COOLANT)) {
+         registry.add(new BcReiDisplay(COMBUSTION_COOLANT, List.of(BcRei.fluid(r.fluid(), 1000)), List.of(), List.of(
+            Component.literal(LocaleUtil.localize(KEY_PREFIX + "combustion_engine_coolant.cooling", String.format("%.4f", r.degreesCoolingPerMb())))
+         )));
+      }
+      for (SolidCoolantRecipe r : ClientRecipes.ofType(BCEnergyRecipeTypes.SOLID_COOLANT)) {
+         registry.add(new BcReiDisplay(COMBUSTION_COOLANT,
+            List.of(BcRei.item(new ItemStack(r.item()))),
+            List.of(BcRei.fluid(r.coolantFluid(), r.coolantAmountPerItem())), List.of(
+               Component.literal(LocaleUtil.localize(KEY_PREFIX + "combustion_engine_coolant.melts", r.coolantAmountPerItem()))
             )));
-         } else if (holder.value() instanceof CoolantRecipe r) {
-            registry.add(new BcReiDisplay(COMBUSTION_COOLANT, List.of(BcRei.fluid(r.fluid(), 1000)), List.of(), List.of(
-               Component.literal(LocaleUtil.localize(KEY_PREFIX + "combustion_engine_coolant.cooling", String.format("%.4f", r.degreesCoolingPerMb())))
-            )));
-         } else if (holder.value() instanceof SolidCoolantRecipe r) {
-            registry.add(new BcReiDisplay(COMBUSTION_COOLANT,
-               List.of(BcRei.item(new ItemStack(r.item()))),
-               List.of(BcRei.fluid(r.coolantFluid(), r.coolantAmountPerItem())), List.of(
-                  Component.literal(LocaleUtil.localize(KEY_PREFIX + "combustion_engine_coolant.melts", r.coolantAmountPerItem()))
-               )));
-         }
       }
 
-      var level = Minecraft.getInstance().level;
-      if (level != null) {
-         //? if >= 1.21.10 {
-         net.minecraft.world.level.block.entity.FuelValues fuelValues = level.fuelValues();
-         for (Item item : fuelValues.fuelItems()) {
-            addStirlingDisplay(registry, new ItemStack(item), fuelValues.burnDuration(new ItemStack(item)));
+      registry.registerDisplayGenerator(STIRLING_FUEL, new StirlingFuelGenerator());
+   }
+
+   /**
+    * Stirling fuels are REI's own furnace-fuel displays re-labelled, like JEI's SMELTING_FUEL lookup. They are read
+    * lazily because on 26.x those displays are synced from the server after the client plugins ran.
+    */
+   private static final class StirlingFuelGenerator implements me.shedaniel.rei.api.client.registry.display.DynamicDisplayGenerator<BcReiDisplay> {
+      @Override
+      public java.util.Optional<List<BcReiDisplay>> getUsageFor(me.shedaniel.rei.api.common.entry.EntryStack<?> entry) {
+         return fuels(fuel -> fuel.getInputEntries().stream().anyMatch(in -> me.shedaniel.rei.api.common.util.EntryIngredients.testFuzzy(in, entry)));
+      }
+
+      @Override
+      public java.util.Optional<List<BcReiDisplay>> generate(me.shedaniel.rei.api.client.view.ViewSearchBuilder builder) {
+         return builder.getCategories().contains(STIRLING_FUEL) ? fuels(fuel -> true) : java.util.Optional.empty();
+      }
+
+      private static java.util.Optional<List<BcReiDisplay>> fuels(java.util.function.Predicate<me.shedaniel.rei.plugin.common.displays.DefaultFuelDisplay> filter) {
+         List<BcReiDisplay> out = new ArrayList<>();
+         for (var fuel : DisplayRegistry.getInstance().get(BuiltinPlugin.FUEL)) {
+            if (fuel.getFuelTime() > 0 && !fuel.getInputEntries().isEmpty() && filter.test(fuel)) {
+               out.add(stirlingDisplay(fuel.getInputEntries().get(0), fuel.getFuelTime()));
+            }
          }
-         //?} else {
-         /*for (var entry : net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity.getFuel().entrySet()) {
-            addStirlingDisplay(registry, new ItemStack(entry.getKey()), entry.getValue());
-         }
-         *///?}
+         return out.isEmpty() ? java.util.Optional.empty() : java.util.Optional.of(out);
       }
    }
 
-   private static void addStirlingDisplay(DisplayRegistry registry, ItemStack stack, int burnTime) {
-      if (burnTime <= 0) {
-         return;
-      }
-      registry.add(new BcReiDisplay(STIRLING_FUEL, List.of(BcRei.item(stack)), List.of(), List.of(
+   private static BcReiDisplay stirlingDisplay(EntryIngredient fuel, int burnTime) {
+      return new BcReiDisplay(STIRLING_FUEL, List.of(fuel), List.of(), List.of(
          Component.literal(LocaleUtil.localize(KEY_PREFIX + "stirling_engine_fuel.rate", LocaleUtil.localizeMjFlow(buildcraft.api.mj.MjAPI.MJ))),
          Component.literal(LocaleUtil.localize(KEY_PREFIX + "stirling_engine_fuel.burn", burnTime))
-      )));
+      ));
    }
 
    private static Component powerLine(String subKey, long microJoules) {
       return Component.literal(LocaleUtil.localize(KEY_PREFIX + subKey, LocaleUtil.localizeMj(microJoules)));
-   }
-
-   private static Iterable<RecipeHolder<?>> clientRecipes() {
-      var server = Minecraft.getInstance().getSingleplayerServer();
-      return server != null ? server.getRecipeManager().getRecipes() : List.of();
    }
 }

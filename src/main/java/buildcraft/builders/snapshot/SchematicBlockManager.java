@@ -59,10 +59,28 @@ public class SchematicBlockManager {
 
    @Nonnull
    public static <S extends ISchematicBlock> CompoundTag writeToNBT(S schematicBlock) {
+      if (schematicBlock instanceof SchematicBlockUnavailable unavailable) {
+         return unavailable.serializedEnvelope();
+      }
+
       CompoundTag schematicBlockTag = new CompoundTag();
       schematicBlockTag.putString("name", SchematicBlockFactoryRegistry.getFactoryByInstance(schematicBlock).name.toString());
       schematicBlockTag.put("data", schematicBlock.serializeNBT());
       return schematicBlockTag;
+   }
+
+   @Nonnull
+   public static ISchematicBlock readFromNBTAllowUnavailable(CompoundTag schematicBlockTag) throws InvalidInputDataException {
+      Identifier name = normalizeFactoryName(BcNbt.getString(schematicBlockTag, "name", ""));
+      if (SchematicBlockFactoryRegistry.getFactoryByName(name) == null) {
+         return new SchematicBlockUnavailable(schematicBlockTag);
+      }
+
+      return readFromNBT(schematicBlockTag);
+   }
+
+   public static boolean isUnavailable(ISchematicBlock schematicBlock) {
+      return schematicBlock instanceof SchematicBlockUnavailable;
    }
 
    @Nonnull

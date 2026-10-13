@@ -8,6 +8,7 @@ package buildcraft.factory.tile;
 
 
 import buildcraft.lib.nbt.BcAuth;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageInteractions;
 import buildcraft.lib.fluid.display.FluidDisplayNames;
 import buildcraft.lib.fluid.identity.FluidIdentity;
@@ -122,8 +123,10 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
 
          for (Direction face : this.openSides) {
             BlockPos offset = this.worldPosition.relative(face);
-            nextPosesToCheck.add(offset);
-            this.paths.put(offset, this.worldPosition);
+            if (BcRegistryUtil.isChunkLoaded(this.level, offset)) {
+               nextPosesToCheck.add(offset);
+               this.paths.put(offset, this.worldPosition);
+            }
          }
 
          Direction[] directions = FluidVariantAttributes.isLighterThanAir(FluidVariant.of(fluid.getFluid())) ? SEARCH_GASEOUS : SEARCH_NORMAL;
@@ -148,7 +151,7 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
 
                   for (Direction side : directions) {
                      BlockPos next = toCheck.relative(side);
-                     if (!checked.contains(next)) {
+                     if (!checked.contains(next) && BcRegistryUtil.isChunkLoaded(this.level, next)) {
                         this.paths.put(next, toCheck);
                         nextPosesToCheck.add(next);
                      }
@@ -160,6 +163,10 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
    }
 
    private boolean canFill(BlockPos offsetPos) {
+      if (!BcRegistryUtil.isChunkLoaded(this.level, offsetPos)) {
+         return false;
+      }
+
       if (this.level.isEmptyBlock(offsetPos)) {
          return true;
       }
@@ -167,20 +174,24 @@ public class TileFloodGate extends BlockEntity implements IDebuggable {
       Fluid fluid = BlockUtil.getFluidWithFlowing(this.level, offsetPos);
       return fluid != null
          && FluidIdentity.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid())
-         && BlockUtil.getFluidWithoutFlowing(this.level.getBlockState(offsetPos)) == null;
+         && BlockUtil.getSourceFluid(this.level, offsetPos) == null;
    }
 
    private boolean canSearch(BlockPos offsetPos) {
+      if (!BcRegistryUtil.isChunkLoaded(this.level, offsetPos)) {
+         return false;
+      }
+
       if (this.canFill(offsetPos)) {
          return true;
       }
 
-      Fluid fluid = BlockUtil.getFluid(this.level, offsetPos);
+      Fluid fluid = BlockUtil.getSourceFluid(this.level, offsetPos);
       return FluidIdentity.areFluidsEqual(fluid, this.fluidTank.getFluidStack().getFluid());
    }
 
    private boolean canFillThrough(BlockPos pos) {
-      if (this.level.isEmptyBlock(pos)) {
+      if (!BcRegistryUtil.isChunkLoaded(this.level, pos) || this.level.isEmptyBlock(pos)) {
          return false;
       }
 

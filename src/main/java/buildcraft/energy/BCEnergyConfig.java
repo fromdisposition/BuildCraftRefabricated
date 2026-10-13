@@ -7,10 +7,10 @@
 package buildcraft.energy;
 
 import buildcraft.api.enums.EnumSpring;
+import buildcraft.api.core.BCLog;
 import buildcraft.core.BCCoreConfig;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import net.minecraft.resources.Identifier;
 
 public class BCEnergyConfig {
@@ -31,8 +31,21 @@ public class BCEnergyConfig {
    public static final BCCoreConfig.StringListValue excludedDimensions = new BCCoreConfig.StringListValue(List.of("minecraft:the_nether", "minecraft:the_end"));
    public static final BCCoreConfig.EnumValue<BCEnergyConfig.ListMode> dimensionListMode = new BCCoreConfig.EnumValue<>(BCEnergyConfig.ListMode.BLACKLIST);
 
+   private static final Set<String> REPORTED_INVALID_DIMENSIONS = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
    public static Set<Identifier> getExcludedDimensions() {
-      return excludedDimensions.get().stream().<Identifier>map(Identifier::parse).collect(Collectors.toSet());
+      Set<Identifier> result = new java.util.HashSet<>();
+      for (String entry : excludedDimensions.get()) {
+         Identifier id = entry == null ? null : Identifier.tryParse(entry.trim());
+         if (id == null) {
+            if (REPORTED_INVALID_DIMENSIONS.add(String.valueOf(entry))) {
+               BCLog.logger.warn("[energy.worldgen] Ignoring invalid dimension id '{}' in excludedDimensions", entry);
+            }
+            continue;
+         }
+         result.add(id);
+      }
+      return result;
    }
 
    public static void refreshWaterSpringFlag() {

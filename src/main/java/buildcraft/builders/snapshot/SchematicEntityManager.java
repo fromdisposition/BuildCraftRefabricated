@@ -36,10 +36,28 @@ public class SchematicEntityManager {
 
    @Nonnull
    public static <S extends ISchematicEntity> CompoundTag writeToNBT(S schematicEntity) {
+      if (schematicEntity instanceof SchematicEntityUnavailable unavailable) {
+         return unavailable.serializedEnvelope();
+      }
+
       CompoundTag schematicEntityTag = new CompoundTag();
       schematicEntityTag.putString("name", SchematicEntityFactoryRegistry.getFactoryByInstance(schematicEntity).name.toString());
       schematicEntityTag.put("data", schematicEntity.serializeNBT());
       return schematicEntityTag;
+   }
+
+   @Nonnull
+   public static ISchematicEntity readFromNBTAllowUnavailable(CompoundTag schematicEntityTag) throws InvalidInputDataException {
+      Identifier name = Identifier.parse(BcNbt.getString(schematicEntityTag, "name", ""));
+      if (SchematicEntityFactoryRegistry.getFactoryByName(name) == null) {
+         return new SchematicEntityUnavailable(schematicEntityTag);
+      }
+
+      return readFromNBT(schematicEntityTag);
+   }
+
+   public static boolean isUnavailable(ISchematicEntity schematicEntity) {
+      return schematicEntity instanceof SchematicEntityUnavailable;
    }
 
    @Nonnull

@@ -74,6 +74,10 @@ public abstract class PipeFlow {
       return this.hasSimulationWork();
    }
 
+   public boolean requiresPeriodicSave() {
+      return false;
+   }
+
    public void postPluggableTick() {
    }
 

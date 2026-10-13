@@ -29,6 +29,7 @@ import buildcraft.lib.misc.InventoryUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.transport.BCTransportStatements;
 
+import java.util.Optional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
@@ -41,6 +42,7 @@ import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActivator, IMjRedstoneReceiver {
@@ -48,6 +50,10 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
    @Nullable
    public Direction direction = null;
    private long progress;
+   @Nullable
+   private BlockPos progressTarget;
+   @Nullable
+   private String progressStateKey;
 
    public PipeBehaviourStripes(IPipe pipe) {
       super(pipe);
@@ -57,6 +63,7 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
       super(pipe, nbt);
       this.battery.deserializeNBT(BcNbt.getCompound(nbt, "battery"));
       this.direction = NBTUtilBC.readEnum(nbt.get("direction"), Direction.class);
+      this.readProgress(nbt);
    }
 
    @Override
@@ -67,6 +74,12 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
          nbt.put("direction", NBTUtilBC.writeEnum(this.direction));
       }
 
+      if (this.progress > 0L && this.progressTarget != null && this.progressStateKey != null) {
+         nbt.putLong("progress", this.progress);
+         nbt.putLong("progressTarget", this.progressTarget.asLong());
+         nbt.putString("progressState", this.progressStateKey);
+      }
+
       return nbt;
    }
 
@@ -75,6 +88,43 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
       super.readFromNbt(nbt);
       this.battery.deserializeNBT(BcNbt.getCompound(nbt, "battery"));
       this.direction = NBTUtilBC.readEnum(nbt.get("direction"), Direction.class);
+      this.readProgress(nbt);
+   }
+
+   private void readProgress(CompoundTag nbt) {
+      this.progress = Math.max(0L, BcNbt.getLong(nbt, "progress", 0L));
+      if (this.progress > 0L && nbt.contains("progressTarget") && nbt.contains("progressState")) {
+         this.progressTarget = BlockPos.of(BcNbt.getLong(nbt, "progressTarget", 0L));
+         this.progressStateKey = BcNbt.getString(nbt, "progressState", "");
+      } else {
+         this.progress = 0L;
+         this.progressTarget = null;
+         this.progressStateKey = null;
+      }
+   }
+
+   @Override
+   public boolean requiresPeriodicSave() {
+      return this.progress > 0L;
+   }
+
+   private void resetProgress(@Nullable Level world) {
+      if (this.progressTarget != null && world != null && !world.isClientSide()) {
+         world.destroyBlockProgress(this.progressTarget.hashCode(), this.progressTarget, -1);
+      }
+
+      this.progress = 0L;
+      this.progressTarget = null;
+      this.progressStateKey = null;
+   }
+
+   private void bindProgressTarget(BlockPos target, BlockState state) {
+      this.progressTarget = target.immutable();
+      this.progressStateKey = state.toString();
+   }
+
+   private boolean matchesProgressTarget(BlockPos target, BlockState state) {
+      return this.progressTarget != null && this.progressTarget.equals(target) && state.toString().equals(this.progressStateKey);
    }
 
    @Override
@@ -92,6 +142,7 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
 
    private void setDirection(@Nullable Direction newValue) {
       if (this.direction != newValue) {
+         this.resetProgress(this.pipe.getHolder().getPipeWorld());
          this.direction = newValue;
          if (!this.pipe.getHolder().getPipeWorld().isClientSide()) {
             this.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
@@ -184,32 +235,54 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
          this.battery.tick(world, this.pipe.getHolder().getPipePos());
          if (this.direction != null) {
             BlockPos offset = pos.relative(this.direction);
-            long target = BlockUtil.computeBlockBreakPower(world, offset);
-            if (target > 0L) {
-               if (world instanceof ServerLevel serverLevel && !BlockUtil.canMachineBreak(serverLevel, offset, this.pipe.getHolder().getOwner())) {
-                  this.progress = 0L;
-                  return;
-               }
+            BlockState targetState = world.getBlockState(offset);
+            if (this.progress > 0L && !this.matchesProgressTarget(offset, targetState)) {
+               this.resetProgress(world);
+            }
 
-               int offsetHash = offset.hashCode();
-               if (this.progress < target) {
-                  this.progress = this.progress + this.battery.extractPower(0L, Math.min(target - this.progress, MjAPI.MJ * 10L));
-                  if (this.progress > 0L) {
-                     world.destroyBlockProgress(offsetHash, offset, (int)(this.progress * 9L / target));
+            if (targetState.isAir()) {
+               this.resetProgress(world);
+               return;
+            }
+
+            long target = BlockUtil.computeBlockBreakPower(world, offset);
+            if (target <= 0L) {
+               this.resetProgress(world);
+               return;
+            }
+
+            int offsetHash = offset.hashCode();
+            if (world instanceof ServerLevel serverLevel && !BlockUtil.canMachineBreak(serverLevel, offset, this.pipe.getHolder().getOwner())) {
+               world.destroyBlockProgress(offsetHash, offset, -1);
+               return;
+            }
+
+            if (this.progress <= 0L) {
+               this.bindProgressTarget(offset, targetState);
+            }
+
+            if (this.progress < target) {
+               this.progress = this.progress + this.battery.extractPower(0L, Math.min(target - this.progress, MjAPI.MJ * 10L));
+               if (this.progress > 0L) {
+                  world.destroyBlockProgress(offsetHash, offset, (int)(this.progress * 9L / target));
+               }
+            } else {
+               Optional<BlockUtil.BreakResult> result = BlockUtil.breakBlockAndGetDropsWithXp(
+                  (ServerLevel)world, offset, new ItemStack(Items.DIAMOND_PICKAXE), this.pipe.getHolder().getOwner()
+               );
+               if (result.isPresent()) {
+                  result.get().drops().forEach(stack -> this.sendItem(stack, this.direction));
+                  if (result.get().xp() > 0) {
+                     ExperienceOrb.award((ServerLevel)world, Vec3.atCenterOf(offset), result.get().xp());
                   }
+
+                  this.resetProgress(world);
                } else {
-                  BlockUtil.breakBlockAndGetDropsWithXp((ServerLevel)world, offset, new ItemStack(Items.DIAMOND_PICKAXE), this.pipe.getHolder().getOwner())
-                     .ifPresent(result -> {
-                        result.drops().forEach(stack -> this.sendItem(stack, this.direction));
-                        if (result.xp() > 0) {
-                           ExperienceOrb.award((ServerLevel)world, Vec3.atCenterOf(offset), result.xp());
-                        }
-                     });
-                  this.progress = 0L;
+                  world.destroyBlockProgress(offsetHash, offset, -1);
                }
             }
          } else {
-            this.progress = 0L;
+            this.resetProgress(world);
          }
       }
    }

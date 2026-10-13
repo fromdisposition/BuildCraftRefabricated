@@ -103,6 +103,9 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    private GameProfile owner;
    public final WireManager wireManager = new WireManager(this);
    private final PipePluggable[] pluggables = new PipePluggable[6];
+   @Nullable
+   private CompoundTag unknownPipeData;
+   private final CompoundTag[] unknownPluggableData = new CompoundTag[6];
    private boolean scheduleRenderUpdate = true;
    private final Set<IPipeHolder.PipeMessageReceiver> networkUpdates = EnumSet.noneOf(IPipeHolder.PipeMessageReceiver.class);
    private final Set<IPipeHolder.PipeMessageReceiver> networkGuiUpdates = EnumSet.noneOf(IPipeHolder.PipeMessageReceiver.class);
@@ -173,6 +176,8 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
       if (this.pipe != null) {
          output.store("pipe", CompoundTag.CODEC, this.pipe.writeToNbt());
+      } else if (this.unknownPipeData != null && !this.unknownPipeData.isEmpty()) {
+         output.store("pipe", CompoundTag.CODEC, this.unknownPipeData.copy());
       }
 
       CompoundTag wireTag = this.wireManager.writeToNbt();
@@ -189,6 +194,8 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
             entry.putString("id", plug.definition.identifier.toString());
             entry.put("data", plug.writeToNbt());
             plugTag.put(face.getName(), entry);
+         } else if (this.unknownPluggableData[face.ordinal()] != null) {
+            plugTag.put(face.getName(), this.unknownPluggableData[face.ordinal()].copy());
          }
       }
 
@@ -216,14 +223,23 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
                this.eventBus.registerHandler(this.pipe.behaviour);
                this.eventBus.registerHandler(this.pipe.flow);
             }
-         } catch (InvalidInputDataException e) {
-            this.pipe = null;
+
+            this.unknownPipeData = null;
+         } catch (InvalidInputDataException | RuntimeException e) {
+            if (this.pipe == null) {
+               BCLog.logger.warn("[transport] Unknown pipe at {} ({}); preserving its NBT until the providing mod returns",
+                  this.worldPosition, e.getMessage());
+               this.unknownPipeData = pipeTag.copy();
+            } else {
+               BCLog.logger.warn("[transport] Failed to re-read pipe data at " + this.worldPosition, e);
+            }
          }
       });
       input.read("plugs", CompoundTag.CODEC).ifPresentOrElse(plugTag -> {
          for (Direction face : Direction.values()) {
             PipePluggable existing = this.pluggables[face.ordinal()];
             PipePluggable next = null;
+            CompoundTag unknown = null;
             if (plugTag.contains(face.getName())) {
                CompoundTag entry = BcNbt.getCompound(plugTag, face.getName());
                String id = BcNbt.getString(entry, "id", "");
@@ -238,12 +254,20 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
                         try {
                            next = def.readFromNbt(this, face, data);
                         } catch (RuntimeException e) {
-                           BCLog.logger.warn("[transport.pipe] Failed to load pluggable {} at {} {}", plugId, this.getBlockPos(), face, e);
+                           BCLog.logger.warn("[transport.pipe] Failed to load pluggable {} at {} {}; preserving its NBT", plugId, this.getBlockPos(), face, e);
                         }
                      }
+                  } else {
+                     BCLog.logger.warn("[transport.pipe] Unknown pluggable {} at {} {}; preserving its NBT until the providing mod returns", plugId, this.getBlockPos(), face);
+                  }
+
+                  if (next == null) {
+                     unknown = entry.copy();
                   }
                }
             }
+
+            this.unknownPluggableData[face.ordinal()] = unknown;
 
             if (next != existing && existing != null) {
                // The replaced instance would otherwise stay registered on the event bus forever — the loop
@@ -260,6 +284,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
             }
 
             this.pluggables[i] = null;
+            this.unknownPluggableData[i] = null;
          }
       });
 
@@ -415,6 +440,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       if (item instanceof IItemPipe) {
          PipeDefinition definition = ((IItemPipe)item).getDefinition();
          this.pipe = new Pipe(this, definition);
+         this.unknownPipeData = null;
          this.eventBus.registerHandler(this.pipe.behaviour);
          this.eventBus.registerHandler(this.pipe.flow);
          DyeColor col = stack.get(BCTransportItems.PIPE_COLOUR);
@@ -468,6 +494,26 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
    public void markPipeSaveDirty() {
       this.saveDirtyThisTick = true;
+   }
+
+   private static final int PERIODIC_SAVE_INTERVAL = 20;
+   private long lastPeriodicSaveTick = Long.MIN_VALUE;
+   private boolean wasPeriodicSaveActive = false;
+
+   private void tickPeriodicSave() {
+      boolean active = this.pipe.flow.requiresPeriodicSave() || this.pipe.behaviour.requiresPeriodicSave();
+      long now = this.level.getGameTime();
+      if (active) {
+         if (this.lastPeriodicSaveTick == Long.MIN_VALUE || now - this.lastPeriodicSaveTick >= PERIODIC_SAVE_INTERVAL) {
+            this.saveDirtyThisTick = true;
+            this.lastPeriodicSaveTick = now;
+         }
+      } else if (this.wasPeriodicSaveActive) {
+         this.saveDirtyThisTick = true;
+         this.lastPeriodicSaveTick = now;
+      }
+
+      this.wasPeriodicSaveActive = active;
    }
 
    private boolean needsClientTick() {
@@ -541,6 +587,10 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
 
             if (this.pipe != null) {
                this.pipe.postPluggableTick();
+            }
+
+            if (this.level != null && !this.level.isClientSide() && this.pipe != null) {
+               this.tickPeriodicSave();
             }
 
             for (int i = 0; i < 6; i++) {
@@ -749,6 +799,7 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    public PipePluggable replacePluggable(Direction side, @Nullable PipePluggable with) {
       PipePluggable old = this.pluggables[side.ordinal()];
       this.pluggables[side.ordinal()] = with;
+      this.unknownPluggableData[side.ordinal()] = null;
       this.invalidateShapeCache();
       this.eventBus.unregisterHandler(old);
       if (old != null && old != with && this.level != null && !this.level.isClientSide()) {

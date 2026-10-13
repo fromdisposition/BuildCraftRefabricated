@@ -828,20 +828,12 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                      int h_diff = h_recipe.heatTo() - h_recipe.heatFrom();
                      if (h_diff >= 1 && c_diff >= 1) {
                         int max_amount = TileHeatExchange.FLUID_MULT[Math.min(this.middleCount - 1, TileHeatExchange.FLUID_MULT.length - 1)];
-                        FluidStack c_in_f = setAmount(c_recipe.in(), max_amount);
-                        FluidStack c_out_f = setAmount(c_recipe.out(), max_amount);
-                        FluidStack h_in_f = setAmount(h_recipe.in(), max_amount);
-                        FluidStack h_out_f = setAmount(h_recipe.out(), max_amount);
-                        int c_out_amount = c_out_f != null && !c_out_f.isEmpty() ? simulateInsert(c_out, c_out_f) : max_amount;
-                        int h_out_amount = h_out_f != null && !h_out_f.isEmpty() ? simulateInsert(h_out, h_out_f) : max_amount;
-                        int c_in_amount = simulateExtract(c_in, c_in_f);
-                        int h_in_amount = simulateExtract(h_in, h_in_f);
-                        int min_common = Math.min(Math.min(c_out_amount, h_out_amount), Math.min(c_in_amount, h_in_amount));
-                        if (min_common > 0) {
-                           c_in_f = setAmount(c_recipe.in(), min_common);
-                           c_out_f = setAmount(c_recipe.out(), min_common);
-                           h_in_f = setAmount(h_recipe.in(), min_common);
-                           h_out_f = setAmount(h_recipe.out(), min_common);
+                        ExchangeAmounts amounts = findExchangeAmounts(c_recipe, c_in, c_out, c_diff, h_recipe, h_in, h_out, h_diff, max_amount);
+                        if (amounts != null) {
+                           FluidStack c_in_f = setAmount(c_recipe.in(), amounts.coolingInput());
+                           FluidStack c_out_f = recipeOutputForInput(c_recipe, amounts.coolingInput());
+                           FluidStack h_in_f = setAmount(h_recipe.in(), amounts.heatingInput());
+                           FluidStack h_out_f = recipeOutputForInput(h_recipe, amounts.heatingInput());
                            if (this.progressState == TileHeatExchange.EnumProgressState.OFF) {
                               this.progressState = TileHeatExchange.EnumProgressState.PREPARING;
                            } else if (this.progressState == TileHeatExchange.EnumProgressState.RUNNING) {
@@ -855,11 +847,11 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
                                     ok = ok && h_out.insertMbInternal(h_out_f, h_out_f.getAmount(), tx) == h_out_f.getAmount();
                                  }
 
-                                 if (ok) {
+                                 if (ok && c_in_f != null) {
                                     ok = ok && c_in.extractMbInternal(c_in_f, c_in_f.getAmount(), tx) == c_in_f.getAmount();
                                  }
 
-                                 if (ok) {
+                                 if (ok && h_in_f != null) {
                                     ok = ok && h_in.extractMbInternal(h_in_f, h_in_f.getAmount(), tx) == h_in_f.getAmount();
                                  }
 
@@ -943,6 +935,87 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
          left.add("progress = " + this.progress);
          left.add("state = " + this.progressState);
          left.add("has_end = " + (this.endSection != null));
+      }
+
+      @Nullable
+      private static ExchangeAmounts findExchangeAmounts(
+         IRefineryRecipeManager.ICoolableRecipe c_recipe, SingleFluidTank c_in, SingleFluidTank c_out, int c_diff,
+         IRefineryRecipeManager.IHeatableRecipe h_recipe, SingleFluidTank h_in, SingleFluidTank h_out, int h_diff,
+         int maxAmount
+      ) {
+         for (int coolingInput = maxAmount; coolingInput > 0; coolingInput--) {
+            long heat = (long) coolingInput * c_diff;
+            if (heat % h_diff != 0L) {
+               continue;
+            }
+
+            long heatingInputLong = heat / h_diff;
+            if (heatingInputLong <= 0L || heatingInputLong > maxAmount) {
+               continue;
+            }
+
+            int heatingInput = (int) heatingInputLong;
+            FluidStack c_in_f = setAmount(c_recipe.in(), coolingInput);
+            FluidStack h_in_f = setAmount(h_recipe.in(), heatingInput);
+            if (c_in_f == null || h_in_f == null) {
+               return null;
+            }
+
+            FluidStack c_out_f = recipeOutputForInput(c_recipe, coolingInput);
+            FluidStack h_out_f = recipeOutputForInput(h_recipe, heatingInput);
+            if (c_out_f == INVALID_RECIPE_AMOUNT || h_out_f == INVALID_RECIPE_AMOUNT) {
+               continue;
+            }
+
+            if (simulateExtract(c_in, c_in_f) != coolingInput || simulateExtract(h_in, h_in_f) != heatingInput) {
+               continue;
+            }
+
+            if (!canInsertExactly(c_out, c_out_f) || !canInsertExactly(h_out, h_out_f)) {
+               continue;
+            }
+
+            return new ExchangeAmounts(coolingInput, heatingInput);
+         }
+
+         return null;
+      }
+
+      private static final FluidStack INVALID_RECIPE_AMOUNT = FluidStack.EMPTY;
+
+      @Nullable
+      private static FluidStack recipeOutputForInput(IRefineryRecipeManager.IHeatExchangerRecipe recipe, int inputAmount) {
+         FluidStack out = recipe.out();
+         if (out == null || out.isEmpty()) {
+            return null;
+         }
+
+         FluidStack in = recipe.in();
+         long recipeInput = in == null || in.isEmpty() ? 0L : in.getAmount();
+         long recipeOutput = out.getAmount();
+         if (recipeInput <= 0L || recipeOutput <= 0L || inputAmount <= 0) {
+            return INVALID_RECIPE_AMOUNT;
+         }
+
+         long scaled = recipeOutput * inputAmount;
+         if (scaled % recipeInput != 0L) {
+            return INVALID_RECIPE_AMOUNT;
+         }
+
+         scaled /= recipeInput;
+         if (scaled <= 0L || scaled > Integer.MAX_VALUE) {
+            return INVALID_RECIPE_AMOUNT;
+         }
+
+         FluidStack result = out.copyWithAmount((int) scaled);
+         return result.isEmpty() ? INVALID_RECIPE_AMOUNT : result;
+      }
+
+      private static boolean canInsertExactly(SingleFluidTank t, @Nullable FluidStack fluid) {
+         return fluid == null || simulateInsert(t, fluid) == fluid.getAmount();
+      }
+
+      private record ExchangeAmounts(int coolingInput, int heatingInput) {
       }
 
       @Nullable

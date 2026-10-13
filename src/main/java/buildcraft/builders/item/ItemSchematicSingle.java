@@ -133,13 +133,11 @@ public class ItemSchematicSingle extends Item {
             return InteractionResult.FAIL;
          }
 
-         if (replaceable && !world.isEmptyBlock(placePos)) {
-            world.removeBlock(placePos, false);
-         }
+         boolean clearReplaceable = replaceable && !world.isEmptyBlock(placePos);
 
          try {
             ISchematicBlock schematicBlock = getSchematic(stack);
-            if (schematicBlock != null && !schematicBlock.isBuilt(world, placePos) && schematicBlock.canBuild(world, placePos)) {
+            if (schematicBlock != null && !schematicBlock.isBuilt(world, placePos) && (clearReplaceable || schematicBlock.canBuild(world, placePos))) {
                List<FluidStack> requiredFluids = schematicBlock.computeRequiredFluids();
                List<ItemStack> requiredItems = schematicBlock.computeRequiredItems();
                if (requiredFluids.isEmpty()) {
@@ -147,7 +145,11 @@ public class ItemSchematicSingle extends Item {
                   if (StackUtil.mergeSameItems(requiredItems)
                      .stream()
                      .noneMatch(s -> itemTransactor.extract(extracted -> StackUtil.canMerge(s, extracted), s.getCount(), s.getCount(), true).isEmpty())) {
-                     if (schematicBlock.build(world, placePos)) {
+                     if (clearReplaceable) {
+                        world.removeBlock(placePos, false);
+                     }
+
+                     if (schematicBlock.canBuild(world, placePos) && schematicBlock.build(world, placePos)) {
                         StackUtil.mergeSameItems(requiredItems)
                            .forEach(s -> itemTransactor.extract(extracted -> StackUtil.canMerge(s, extracted), s.getCount(), s.getCount(), false));
                         SoundUtil.playBlockPlace(world, placePos);

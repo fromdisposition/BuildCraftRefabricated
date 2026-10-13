@@ -57,13 +57,59 @@ public class PipeFlowRedstoneFlux extends PipeEnergyFlowBase implements IFlowRed
       for (Direction face : Direction.values()) {
          this.sections.put(face, new PipeFlowRedstoneFlux.Section(face));
       }
+
+      this.readEnergyBuffers(nbt);
    }
 
    @Override
    public CompoundTag writeToNbt() {
       CompoundTag nbt = super.writeToNbt();
       nbt.putBoolean("isReceiver", this.isReceiver);
+      this.writeEnergyBuffers(nbt);
       return nbt;
+   }
+
+   @Override
+   public void readFromNbt(CompoundTag nbt) {
+      this.isReceiver = BcNbt.getBoolean(nbt, "isReceiver", false);
+      this.readEnergyBuffers(nbt);
+   }
+
+   private void writeEnergyBuffers(CompoundTag nbt) {
+      int[] powers = new int[6];
+      int[] nextPowers = new int[6];
+
+      for (Direction face : Direction.values()) {
+         PipeFlowRedstoneFlux.Section s = this.sections.get(face);
+         powers[face.ordinal()] = Math.max(0, s.internalPower);
+         nextPowers[face.ordinal()] = Math.max(0, s.internalNextPower);
+      }
+
+      nbt.putIntArray("internalPower", powers);
+      nbt.putIntArray("internalNextPower", nextPowers);
+   }
+
+   private void readEnergyBuffers(CompoundTag nbt) {
+      int[] powers = BcNbt.getIntArray(nbt, "internalPower");
+      int[] nextPowers = BcNbt.getIntArray(nbt, "internalNextPower");
+
+      for (Direction face : Direction.values()) {
+         int i = face.ordinal();
+         PipeFlowRedstoneFlux.Section s = this.sections.get(face);
+         s.internalPower = i < powers.length ? Math.max(0, powers[i]) : 0;
+         s.internalNextPower = i < nextPowers.length ? Math.max(0, nextPowers[i]) : 0;
+      }
+   }
+
+   @Override
+   public boolean requiresPeriodicSave() {
+      for (PipeFlowRedstoneFlux.Section section : this.sections.values()) {
+         if (section.internalPower > 0 || section.internalNextPower > 0) {
+            return true;
+         }
+      }
+
+      return false;
    }
 
    @Override

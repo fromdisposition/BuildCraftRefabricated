@@ -62,19 +62,17 @@ public class DockingStationPipe extends DockingStation implements IRequestProvid
    }
 
    public IPipeHolder getPipe() {
-      if (this.pipe == null && this.world != null) {
-         BlockEntity tile = this.world.getBlockEntity(this.getPos());
-         if (tile instanceof IPipeHolder holder) {
-            this.pipe = holder;
-         }
+      if (this.pipe != null && ((BlockEntity) this.pipe).isRemoved()) {
+         this.pipe = null;
       }
 
-      if (this.pipe == null || ((BlockEntity) this.pipe).isRemoved()) {
-         if (this.world != null && !this.world.isClientSide()) {
+      if (this.pipe == null && this.world != null) {
+         BlockEntity tile = this.world.getBlockEntity(this.getPos());
+         if (tile instanceof IPipeHolder holder && !tile.isRemoved()) {
+            this.pipe = holder;
+         } else if (!this.world.isClientSide()) {
             RobotManager.registryProvider.getRegistry(this.world).removeStation(this);
          }
-
-         this.pipe = null;
       }
 
       return this.pipe;

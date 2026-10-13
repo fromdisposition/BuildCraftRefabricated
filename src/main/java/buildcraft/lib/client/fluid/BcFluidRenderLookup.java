@@ -15,7 +15,14 @@ import buildcraft.lib.fabric.transfer.fluid.FluidVariants;
 //? if >= 26.1 {
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderingRegistry;
 //?} else {
-/*import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+/*import buildcraft.api.core.BCLog;
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
+import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import java.util.Collections;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 *///?}
 import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -94,13 +101,39 @@ public final class BcFluidRenderLookup {
       return sprite != null ? sprite : missingSprite();
       //?} else {
       /*// 1.21.x: pull the still/flow sprite straight from the registered Fabric fluid render handler.
-      TextureAtlasSprite[] sprites = FluidRenderHandlerRegistry.INSTANCE
-         .get(canonical)
-         .getFluidSprites(null, null, canonical.defaultFluidState());
-      TextureAtlasSprite sprite = sprites[kind == SpriteKind.FLOWING ? 1 : 0];
+      FluidRenderHandler handler = FluidRenderHandlerRegistry.INSTANCE.get(canonical);
+      if (handler == null) {
+         return warnMissingSprite(canonical, kind, null);
+      }
+
+      TextureAtlasSprite[] sprites;
+      try {
+         sprites = handler.getFluidSprites(null, null, canonical.defaultFluidState());
+      } catch (RuntimeException exception) {
+         return warnMissingSprite(canonical, kind, exception);
+      }
+
+      int index = kind == SpriteKind.FLOWING ? 1 : 0;
+      TextureAtlasSprite sprite = sprites != null && sprites.length > index ? sprites[index] : null;
       return sprite != null ? sprite : missingSprite();
       *///?}
    }
+
+   //? if < 26.1 {
+   /*private static final Set<Fluid> WARNED_SPRITES = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+   private static TextureAtlasSprite warnMissingSprite(Fluid fluid, SpriteKind kind, @Nullable RuntimeException exception) {
+      if (WARNED_SPRITES.add(fluid)) {
+         BCLog.logger.warn(
+            "[lib.fluid.render] Failed to resolve " + kind.name().toLowerCase(Locale.ROOT) + " texture for fluid "
+               + BuiltInRegistries.FLUID.getKey(fluid) + "; using the missing-texture fallback",
+            exception
+         );
+      }
+
+      return missingSprite();
+   }
+   *///?}
 
    public static int itemMaskTint(FluidStack stack, @Nullable BlockAndTintGetter level) {
       if (stack == null || stack.isEmpty()) {

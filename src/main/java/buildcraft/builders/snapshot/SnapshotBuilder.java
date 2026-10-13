@@ -277,7 +277,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       long stored = this.tile.getBattery().getStored();
       long max = stored <= 0L
          ? 0L
-         : Math.min((long)((double)MAX_POWER_PER_TICK * stored / (this.tile.getBattery().getCapacity() * 2L)), MAX_POWER_PER_TICK);
+         : Math.min((long)((double)MAX_POWER_PER_TICK * stored / Math.max(1.0, this.tile.getBattery().getCapacity() / 2.0)), MAX_POWER_PER_TICK);
       if (this.tile.canExcavate()) {
          IntOpenHashSet breakTasksIndexes = new IntOpenHashSet(this.breakTasks.size());
 
@@ -454,7 +454,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       long stored = this.tile.getBattery().getStored();
       long max = stored <= 0L
          ? 0L
-         : Math.min((long)((double)MAX_POWER_PER_TICK * stored / (this.tile.getBattery().getCapacity() * 2L)), MAX_POWER_PER_TICK);
+         : Math.min((long)((double)MAX_POWER_PER_TICK * stored / Math.max(1.0, this.tile.getBattery().getCapacity() / 2.0)), MAX_POWER_PER_TICK);
       this.prevClientBreakTasks.clear();
 
       for (SnapshotBuilder<T>.BreakTask task : this.clientBreakTasks) {
