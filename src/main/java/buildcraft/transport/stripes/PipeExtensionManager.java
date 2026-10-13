@@ -141,9 +141,12 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
          targetHolder.redirectDrops(brokenDrops::add);
       }
 
-      brokenDrops.addAll(BlockUtil.breakBlockAndGetDrops(level, targetPos, ItemStack.EMPTY, owner).orElse(List.of()));
-      if (targetHolder != null) {
-         targetHolder.redirectDrops(null);
+      try {
+         brokenDrops.addAll(BlockUtil.breakBlockAndGetDrops(level, targetPos, ItemStack.EMPTY, owner).orElse(List.of()));
+      } finally {
+         if (targetHolder != null) {
+            targetHolder.redirectDrops(null);
+         }
       }
 
       if (!level.getBlockState(targetPos).isAir()) {
