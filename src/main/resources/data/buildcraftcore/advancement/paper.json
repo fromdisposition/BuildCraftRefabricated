@@ -1,0 +1,42 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:paper"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.paper.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.paper.description"
+    }
+  },
+  "parent": "buildcraftcore:list",
+  "criteria": {
+    "write_to_list": {
+      "trigger": "minecraft:impossible"
+    },
+    "write_to_blueprint": {
+      "trigger": "minecraft:impossible"
+    },
+    "write_to_template": {
+      "trigger": "minecraft:impossible"
+    },
+    "capture_with_schematic": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "write_to_list"
+    ],
+    [
+      "write_to_blueprint"
+    ],
+    [
+      "write_to_template"
+    ],
+    [
+      "capture_with_schematic"
+    ]
+  ]
+}

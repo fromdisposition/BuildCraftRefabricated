@@ -1,0 +1,9 @@
+{
+  "parent": "block/cube_bottom_top",
+  "textures": {
+    "particle": "buildcraftsilicon:block/packager/top",
+    "top": "buildcraftsilicon:block/packager/top",
+    "bottom": "buildcraftsilicon:block/packager/bottom",
+    "side": "buildcraftsilicon:block/packager/side"
+  }
+}

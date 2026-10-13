@@ -1,0 +1,6 @@
+{
+  "type": "buildcraftenergy:combustion_fuel",
+  "fluid": "buildcraftenergy:fuel_dense",
+  "power_per_cycle": 4194304,
+  "total_burning_time": 90000
+}

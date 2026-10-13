@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "minecraft:water_bucket"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.ice_cool.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.ice_cool.description"
+    }
+  },
+  "parent": "buildcraftenergy:powering_up",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

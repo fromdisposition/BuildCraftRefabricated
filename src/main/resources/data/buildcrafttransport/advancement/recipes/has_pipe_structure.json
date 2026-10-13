@@ -1,0 +1,27 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "buildcrafttransport:plug_blocker",
+      "buildcrafttransport:plug_power_adaptor",
+      "buildcrafttransport:filtered_buffer"
+    ]
+  },
+  "criteria": {
+    "has_pipe_structure": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "buildcrafttransport:pipe_structure"
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_pipe_structure"
+    ]
+  ]
+}

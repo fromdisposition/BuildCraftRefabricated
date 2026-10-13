@@ -1,0 +1,25 @@
+{
+  "sources": [
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftcore:item/fragile_fluid_shard_base"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftcore:item/fragile_fluid_shard_fluid"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftcore:item/mask/bucket_fluid"
+    },
+    {
+      "type": "minecraft:single",
+      "resource": "buildcraftcore:item/mask/bucket_fluid_cover"
+    },
+    {
+      "type": "minecraft:directory",
+      "source": "item/bucket_fluid",
+      "prefix": "item/bucket_fluid/"
+    }
+  ]
+}

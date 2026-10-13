@@ -1,0 +1,10 @@
+[
+  {
+    "selectors": [
+      "minecraft:observer"
+    ],
+    "ignoredProperties": [
+      "powered"
+    ]
+  }
+]

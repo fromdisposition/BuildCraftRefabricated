@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftcore:marker_path"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.path_markers.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.path_markers.description"
+    }
+  },
+  "parent": "buildcraftcore:markers",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

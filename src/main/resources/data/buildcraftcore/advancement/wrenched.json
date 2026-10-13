@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftcore:wrench"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.wrenched.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.wrenched.description"
+    }
+  },
+  "parent": "buildcraftcore:root",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

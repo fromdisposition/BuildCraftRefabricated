@@ -1,0 +1,20 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftbuilders:quarry"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.diggy.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.diggy.description"
+    },
+    "frame": "goal"
+  },
+  "parent": "buildcraftbuilders:shaping_the_world",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

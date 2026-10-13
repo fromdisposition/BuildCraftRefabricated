@@ -1,0 +1,659 @@
+[
+  {
+    "selectors": [
+      "minecraft:white_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:white_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:orange_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:orange_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:magenta_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:magenta_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:light_blue_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:light_blue_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:yellow_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:yellow_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:lime_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:lime_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:pink_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:pink_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:gray_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:gray_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:light_gray_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:light_gray_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:cyan_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:cyan_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:purple_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:purple_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:blue_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:blue_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:brown_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:brown_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:green_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:green_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:red_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:red_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:black_bed[part=foot]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:black_bed"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:oak_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:oak_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:spruce_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:spruce_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:birch_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:birch_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:jungle_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:jungle_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:acacia_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:acacia_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:dark_oak_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:dark_oak_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:mangrove_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:mangrove_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:cherry_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:cherry_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:pale_oak_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:pale_oak_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:bamboo_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:bamboo_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:iron_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:iron_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:crimson_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:crimson_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:warped_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:warped_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:copper_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:copper_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:exposed_copper_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:exposed_copper_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:weathered_copper_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:weathered_copper_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:oxidized_copper_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:oxidized_copper_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:waxed_copper_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:waxed_copper_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:waxed_exposed_copper_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:waxed_exposed_copper_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:waxed_weathered_copper_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:waxed_weathered_copper_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:waxed_oxidized_copper_door[half=lower]"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:waxed_oxidized_copper_door"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:white_bed[part=head]",
+      "minecraft:orange_bed[part=head]",
+      "minecraft:magenta_bed[part=head]",
+      "minecraft:light_blue_bed[part=head]",
+      "minecraft:yellow_bed[part=head]",
+      "minecraft:lime_bed[part=head]",
+      "minecraft:pink_bed[part=head]",
+      "minecraft:gray_bed[part=head]",
+      "minecraft:light_gray_bed[part=head]",
+      "minecraft:cyan_bed[part=head]",
+      "minecraft:purple_bed[part=head]",
+      "minecraft:blue_bed[part=head]",
+      "minecraft:brown_bed[part=head]",
+      "minecraft:green_bed[part=head]",
+      "minecraft:red_bed[part=head]",
+      "minecraft:black_bed[part=head]",
+      "minecraft:oak_door[half=upper]",
+      "minecraft:spruce_door[half=upper]",
+      "minecraft:birch_door[half=upper]",
+      "minecraft:jungle_door[half=upper]",
+      "minecraft:acacia_door[half=upper]",
+      "minecraft:dark_oak_door[half=upper]",
+      "minecraft:mangrove_door[half=upper]",
+      "minecraft:cherry_door[half=upper]",
+      "minecraft:pale_oak_door[half=upper]",
+      "minecraft:bamboo_door[half=upper]",
+      "minecraft:iron_door[half=upper]",
+      "minecraft:crimson_door[half=upper]",
+      "minecraft:warped_door[half=upper]",
+      "minecraft:copper_door[half=upper]",
+      "minecraft:exposed_copper_door[half=upper]",
+      "minecraft:weathered_copper_door[half=upper]",
+      "minecraft:oxidized_copper_door[half=upper]",
+      "minecraft:waxed_copper_door[half=upper]",
+      "minecraft:waxed_exposed_copper_door[half=upper]",
+      "minecraft:waxed_weathered_copper_door[half=upper]",
+      "minecraft:waxed_oxidized_copper_door[half=upper]",
+      "minecraft:sunflower[half=upper]",
+      "minecraft:lilac[half=upper]",
+      "minecraft:rose_bush[half=upper]",
+      "minecraft:peony[half=upper]",
+      "minecraft:tall_grass[half=upper]",
+      "minecraft:large_fern[half=upper]",
+      "minecraft:tall_seagrass[half=upper]",
+      "minecraft:tall_dry_grass[half=upper]",
+      "minecraft:pitcher_plant[half=upper]"
+    ],
+    "requiredExtractors": []
+  },
+  {
+    "selectors": [
+      "minecraft:white_bed[part=foot]",
+      "minecraft:orange_bed[part=foot]",
+      "minecraft:magenta_bed[part=foot]",
+      "minecraft:light_blue_bed[part=foot]",
+      "minecraft:yellow_bed[part=foot]",
+      "minecraft:lime_bed[part=foot]",
+      "minecraft:pink_bed[part=foot]",
+      "minecraft:gray_bed[part=foot]",
+      "minecraft:light_gray_bed[part=foot]",
+      "minecraft:cyan_bed[part=foot]",
+      "minecraft:purple_bed[part=foot]",
+      "minecraft:blue_bed[part=foot]",
+      "minecraft:brown_bed[part=foot]",
+      "minecraft:green_bed[part=foot]",
+      "minecraft:red_bed[part=foot]",
+      "minecraft:black_bed[part=foot]",
+      "minecraft:oak_door[half=lower]",
+      "minecraft:spruce_door[half=lower]",
+      "minecraft:birch_door[half=lower]",
+      "minecraft:jungle_door[half=lower]",
+      "minecraft:acacia_door[half=lower]",
+      "minecraft:dark_oak_door[half=lower]",
+      "minecraft:mangrove_door[half=lower]",
+      "minecraft:cherry_door[half=lower]",
+      "minecraft:pale_oak_door[half=lower]",
+      "minecraft:bamboo_door[half=lower]",
+      "minecraft:iron_door[half=lower]",
+      "minecraft:crimson_door[half=lower]",
+      "minecraft:warped_door[half=lower]",
+      "minecraft:copper_door[half=lower]",
+      "minecraft:exposed_copper_door[half=lower]",
+      "minecraft:weathered_copper_door[half=lower]",
+      "minecraft:oxidized_copper_door[half=lower]",
+      "minecraft:waxed_copper_door[half=lower]",
+      "minecraft:waxed_exposed_copper_door[half=lower]",
+      "minecraft:waxed_weathered_copper_door[half=lower]",
+      "minecraft:waxed_oxidized_copper_door[half=lower]",
+      "minecraft:sunflower[half=lower]",
+      "minecraft:lilac[half=lower]",
+      "minecraft:rose_bush[half=lower]",
+      "minecraft:peony[half=lower]",
+      "minecraft:tall_grass[half=lower]",
+      "minecraft:large_fern[half=lower]",
+      "minecraft:tall_seagrass[half=lower]",
+      "minecraft:tall_dry_grass[half=lower]",
+      "minecraft:pitcher_plant[half=lower]"
+    ],
+    "updateBlockOffsets": []
+  }
+]

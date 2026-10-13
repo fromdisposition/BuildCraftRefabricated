@@ -1,0 +1,51 @@
+[
+  {
+    "selectors": [
+      "minecraft:piston",
+      "minecraft:sticky_piston"
+    ],
+    "canBeReplacedWithBlocks": [
+      "minecraft:piston",
+      "minecraft:sticky_piston",
+      "minecraft:moving_piston"
+    ],
+    "ignoredProperties": [
+      "extended"
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:piston_head"
+    ],
+    "placeBlock": "minecraft:air",
+    "canBeReplacedWithBlocks": [
+      "minecraft:piston_head",
+      "minecraft:moving_piston",
+      "minecraft:air"
+    ],
+    "ignoredProperties": [
+      "facing",
+      "short",
+      "type"
+    ],
+    "requiredExtractors": []
+  },
+  {
+    "selectors": [
+      "minecraft:moving_piston"
+    ],
+    "placeBlock": "minecraft:air",
+    "canBeReplacedWithBlocks": [
+      "minecraft:moving_piston",
+      "minecraft:piston_head",
+      "minecraft:piston",
+      "minecraft:sticky_piston",
+      "minecraft:air"
+    ],
+    "ignoredProperties": [
+      "facing",
+      "type"
+    ],
+    "requiredExtractors": []
+  }
+]

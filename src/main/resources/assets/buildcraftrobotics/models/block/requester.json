@@ -1,0 +1,12 @@
+{
+  "parent": "block/cube",
+  "textures": {
+    "particle": "buildcraftrobotics:block/requester/side",
+    "down": "buildcraftrobotics:block/requester/bottom",
+    "up": "buildcraftrobotics:block/requester/top",
+    "north": "buildcraftrobotics:block/requester/front",
+    "east": "buildcraftrobotics:block/requester/side",
+    "south": "buildcraftrobotics:block/requester/back",
+    "west": "buildcraftrobotics:block/requester/side"
+  }
+}

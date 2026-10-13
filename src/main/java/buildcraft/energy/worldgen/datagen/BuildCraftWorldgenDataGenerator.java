@@ -1,0 +1,37 @@
+package buildcraft.energy.worldgen.datagen;
+
+import buildcraft.energy.worldgen.processor.BCEnergyStructureProcessorTypes;
+import buildcraft.energy.worldgen.structure.BCEnergyStructures;
+import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.Registries;
+
+public final class BuildCraftWorldgenDataGenerator implements DataGeneratorEntrypoint {
+   @Override
+   public void onInitializeDataGenerator(FabricDataGenerator fabricDataGenerator) {
+      BCEnergyStructures.registerStructureType();
+      BCEnergyStructureProcessorTypes.register();
+      FabricDataGenerator.Pack pack = fabricDataGenerator.createPack();
+      pack.addProvider(BCEnergyBiomeTagProvider::new);
+      pack.addProvider(BCEnergyStructureTagProvider::new);
+      pack.addProvider(BCEnergyStructureProvider::new);
+      pack.addProvider(buildcraft.datagen.BCBlockLootProvider::new);
+      pack.addProvider(buildcraft.datagen.BCConditionalLootProvider::new);
+      pack.addProvider(buildcraft.datagen.BCAdvancementJsonProvider::new);
+      pack.addProvider(buildcraft.datagen.BCRecipeProvider::new);
+      pack.addProvider(buildcraft.datagen.BCItemModelBackportProvider::new);
+      pack.addProvider(buildcraft.datagen.BCAssetProvider::new);
+      pack.addProvider(buildcraft.datagen.BCTagDefProviders.Blocks::new);
+      pack.addProvider(buildcraft.datagen.BCTagDefProviders.Items::new);
+      pack.addProvider(buildcraft.datagen.BCTagDefProviders.Fluids::new);
+   }
+
+   @Override
+   public void buildRegistry(RegistrySetBuilder registryBuilder) {
+      registryBuilder.add(Registries.PROCESSOR_LIST, BCEnergyProcessorListsBootstrap::bootstrap);
+      registryBuilder.add(Registries.TEMPLATE_POOL, BCEnergyTemplatePoolsBootstrap::bootstrap);
+      registryBuilder.add(Registries.STRUCTURE, BCEnergyStructuresBootstrap::bootstrap);
+      registryBuilder.add(Registries.STRUCTURE_SET, BCEnergyStructureSetsBootstrap::bootstrap);
+   }
+}
