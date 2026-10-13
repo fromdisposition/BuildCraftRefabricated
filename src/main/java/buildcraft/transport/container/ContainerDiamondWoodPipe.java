@@ -46,6 +46,7 @@ public class ContainerDiamondWoodPipe extends AbstractPipeFilterContainer<PipeBe
       if (id == NET_FILTER_MODE && !isClient && this.behaviour != null) {
          this.behaviour.filterMode = BcPayloadBuffers.readEnum(buffer, PipeBehaviourWoodDiamond.FilterMode.class);
          this.behaviour.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
+         this.behaviour.pipe.getHolder().getPipeTile().setChanged();
       }
    }
 }

@@ -28,13 +28,21 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 
 public class PipeBehaviourWoodDiamond extends PipeBehaviourWood {
-   public final ItemHandlerSimple filters = new ItemHandlerSimple(9);
+   public final ItemHandlerSimple filters = new ItemHandlerSimple(9, (handler, slot, before, after) -> this.onFilterSlotChange());
    public PipeBehaviourWoodDiamond.FilterMode filterMode = PipeBehaviourWoodDiamond.FilterMode.WHITE_LIST;
    public int currentFilter = 0;
    public boolean filterValid = false;
+
+   private void onFilterSlotChange() {
+      Level level = this.pipe.getHolder().getPipeWorld();
+      if (level != null && !level.isClientSide()) {
+         this.pipe.getHolder().getPipeTile().setChanged();
+      }
+   }
 
    public PipeBehaviourWoodDiamond(IPipe pipe) {
       super(pipe);

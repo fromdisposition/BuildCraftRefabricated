@@ -224,7 +224,8 @@ public class PipeFlowRedstoneFlux extends PipeEnergyFlowBase implements IFlowRed
          }
       }
 
-      return false;
+      // Keep ticking until the idle (zero power, STATIONARY) display has been computed and actually sent.
+      return this.hasPendingDisplayWork(this.sections);
    }
 
    @Override

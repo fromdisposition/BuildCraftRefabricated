@@ -86,7 +86,12 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
 
    public void onActionActivate(PipeEventActionActivate event) {
       if (event.action instanceof ActionPowerLimit) {
-         this.limitShift = ((ActionPowerLimit)event.action).limitShift;
+         int newShift = ((ActionPowerLimit)event.action).limitShift;
+         if (this.limitShift != newShift) {
+            this.limitShift = newShift;
+            this.pipe.getHolder().getPipeTile().setChanged();
+         }
+
          this.requestReconfigure();
       }
    }
@@ -118,6 +123,7 @@ public class PipeBehaviourLimiter extends PipeBehaviour {
 
          String limitLabel = isRf ? LocaleUtil.localizeRfFlow(limit) : LocaleUtil.localizeMjFlow(limit * MjAPI.MJ);
          MessageUtil.sendOverlayMessage(player, Component.translatable("chat.pipe.power.limit.mode", limitLabel));
+         this.pipe.getHolder().getPipeTile().setChanged();
          this.requestReconfigure();
       }
 

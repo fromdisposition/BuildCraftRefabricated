@@ -66,6 +66,7 @@ public class ContainerEmzuliPipe_BC8 extends AbstractPipeFilterContainer<PipeBeh
          }
 
          this.container.behaviour.pipe.getHolder().scheduleNetworkGuiUpdate(buildcraft.api.transport.pipe.IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
+         this.container.behaviour.pipe.getHolder().getPipeTile().setChanged();
       }
    }
 }

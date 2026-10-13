@@ -551,6 +551,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
       this.tankGasOut.setContents(fluidGasOut.isEmpty() ? FluidStack.EMPTY : fluidGasOut);
       FluidStack fluidLiquidOut = input.read("fluidLiquidOut", FluidStack.CODEC).orElse(FluidStack.EMPTY);
       this.tankLiquidOut.setContents(fluidLiquidOut.isEmpty() ? FluidStack.EMPTY : fluidLiquidOut);
+      this.mjBattery.extractAll();
       this.mjBattery.addPowerChecking(input.getLongOr("mjStored", 0L), false);
       this.distillPower = input.getLongOr("distillPower", 0L);
       this.isActive = input.getBooleanOr("isActive", false);

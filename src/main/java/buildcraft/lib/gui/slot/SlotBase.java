@@ -41,12 +41,14 @@ public class SlotBase extends Slot {
    @Override
    public void set(@Nonnull ItemStack stack) {
       this.itemHandler.setStackInSlot(this.handlerIndex, stack);
-      this.setChanged();
+      super.setChanged();
    }
 
    @Override
    public void setChanged() {
       super.setChanged();
+      // The handler's stack may have been modified in place (e.g. shift-click partial moves), so notify its owner.
+      this.itemHandler.notifySlotChanged(this.handlerIndex);
    }
 
    @Override

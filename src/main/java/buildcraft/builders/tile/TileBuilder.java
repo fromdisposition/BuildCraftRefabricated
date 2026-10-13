@@ -121,10 +121,10 @@ public class TileBuilder
    private ItemStack invSnapshot = ItemStack.EMPTY;
    private final ItemHandlerSimple resourceInventory = new ItemHandlerSimple(RESOURCE_SLOTS, (handler, slot, before, after) -> this.onResourcesChanged());
    private final SingleFluidTank[] tanks = new SingleFluidTank[]{
-      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::setChanged),
-      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::setChanged),
-      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::setChanged),
-      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::setChanged)
+      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::onResourcesChanged),
+      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::onResourcesChanged),
+      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::onResourcesChanged),
+      new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::onResourcesChanged)
    };
    private final MultiFluidTankStorage fluidTanks = new MultiFluidTankStorage(this.tanks);
 
@@ -586,9 +586,8 @@ public class TileBuilder
 
       if (this.level != null && this.level.isClientSide()) {
          int stOrdinal = input.getIntOr("snapshotType", -1);
-         if (stOrdinal >= 0 && stOrdinal < EnumSnapshotType.values().length) {
-            this.snapshotType = EnumSnapshotType.values()[stOrdinal];
-         }
+         // writeData omits the key when there is no snapshot, so a missing key must clear the client's stale type
+         this.snapshotType = stOrdinal >= 0 && stOrdinal < EnumSnapshotType.values().length ? EnumSnapshotType.values()[stOrdinal] : null;
       }
 
       List<SnapshotBuilder<?>.BreakTask> savedBreak = new ArrayList<>();

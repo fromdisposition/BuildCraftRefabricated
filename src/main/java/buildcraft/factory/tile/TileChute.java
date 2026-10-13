@@ -259,6 +259,7 @@ public class TileChute extends BcBlockEntity implements MenuProvider, BlockEntit
    public void readData(BcValueIn input) {
       super.readData(input);
       this.progress = input.getIntOr("progress", 0);
+      this.battery.extractAll();
       this.battery.addPowerChecking(input.getLongOr("mjStored", 0L), false);
       input.read("items", CompoundTag.CODEC).ifPresent(this.itemManager::deserializeNBT);
    }

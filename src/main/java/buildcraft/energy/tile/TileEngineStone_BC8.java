@@ -25,7 +25,6 @@ import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.MenuProvider;
@@ -239,9 +238,8 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
       output.putInt("totalBurnTime", this.totalBurnTime);
       output.putLong("esum", this.esum);
       if (!this.fuelStack.isEmpty()) {
-         Identifier itemId = BuiltInRegistries.ITEM.getKey(this.fuelStack.getItem());
-         output.putString("fuelId", itemId.toString());
-         output.putInt("fuelCount", this.fuelStack.getCount());
+         // full stack (including components); "fuelId"/"fuelCount" is only read for older saves
+         output.store("fuel", ItemStack.CODEC, this.fuelStack);
       }
    }
 
@@ -252,7 +250,10 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
       this.totalBurnTime = input.getIntOr("totalBurnTime", 0);
       this.esum = input.getLongOr("esum", 0L);
       String fuelId = input.getStringOr("fuelId", "");
-      if (!fuelId.isEmpty()) {
+      ItemStack savedFuel = input.read("fuel", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+      if (!savedFuel.isEmpty()) {
+         this.fuelStack = savedFuel;
+      } else if (!fuelId.isEmpty()) {
          Identifier id = Identifier.tryParse(fuelId);
          if (id != null) {
             Item item = BcRegistryUtil.getItem(id);

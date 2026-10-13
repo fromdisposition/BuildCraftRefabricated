@@ -70,6 +70,7 @@ public final class PipeBehaviourColourData {
             this.colour = action.color;
             behaviour.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
             behaviour.pipe.getHolder().scheduleRenderUpdate();
+            behaviour.pipe.getHolder().getPipeTile().setChanged();
          }
       });
    }
@@ -79,6 +80,7 @@ public final class PipeBehaviourColourData {
       this.colour = DyeColor.byId(n & 15);
       holder.scheduleNetworkUpdate(receiver);
       holder.scheduleRenderUpdate();
+      holder.getPipeTile().setChanged();
       return true;
    }
 }

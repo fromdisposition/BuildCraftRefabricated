@@ -32,6 +32,7 @@ import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.fabric.transfer.fluid.FluidStorageSnapshot;
 import buildcraft.transport.BCTransportStatements;
 import buildcraft.transport.tile.TilePipeHolder;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,8 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
    private SafeTimeTracker tracker;
    private long lastMessage;
    private long lastMessageMinus1;
+   /** Latched until the amounts/direction payload is actually sent, so the final (often zero) state is not dropped by the rate limit. */
+   private boolean amountsSendPending;
    public transient Fluid renderCacheFluid;
    public transient buildcraft.lib.client.fluid.BcFluidAppearance renderCacheAppearance;
    public transient net.minecraft.client.renderer.texture.TextureAtlasSprite renderCacheSprite;
@@ -235,20 +238,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          this.sections.put(part, new PipeFlowFluids.Section(part));
       }
 
-      if (nbt.contains("fluid_id")) {
-         this.setFluid(fluidFromId(BcNbt.getString(nbt, "fluid_id", "")));
-      } else {
-         this.setFluid(FluidStack.EMPTY);
-      }
-
-      for (EnumPipePart part : EnumPipePart.VALUES) {
-         int direction = part.getIndex();
-         String key = "tank[" + direction + "]";
-         if (nbt.contains(key)) {
-            CompoundTag compound = BcNbt.getCompound(nbt, key);
-            this.sections.get(part).readFromNbt(compound);
-         }
-      }
+      this.readFluidAndSections(nbt);
    }
 
    @Override
@@ -280,18 +270,22 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
    @Override
    public void readFromNbt(CompoundTag nbt) {
-      if (nbt.contains("fluid_id")) {
-         this.currentFluid = fluidFromId(BcNbt.getString(nbt, "fluid_id", ""));
-      } else {
-         this.currentFluid = FluidStack.EMPTY;
-      }
+      this.readFluidAndSections(nbt);
+   }
+
+   private void readFluidAndSections(CompoundTag nbt) {
+      FluidStack fluid = nbt.contains("fluid_id") ? fluidFromId(BcNbt.getString(nbt, "fluid_id", "")) : FluidStack.EMPTY;
+      // setFluid (not a raw field write) so currentDelay/incoming[] are sized for the fluid before the sections read into them.
+      this.setFluid(fluid);
 
       for (EnumPipePart part : EnumPipePart.VALUES) {
-         int direction = part.getIndex();
-         String key = "tank[" + direction + "]";
-         if (nbt.contains(key)) {
-            CompoundTag compound = BcNbt.getCompound(nbt, key);
-            this.sections.get(part).readFromNbt(compound);
+         PipeFlowFluids.Section section = this.sections.get(part);
+         String key = "tank[" + part.getIndex() + "]";
+         // writeToNbt omits the tanks when empty, and an unregistered fluid id must not keep amounts with no fluid.
+         if (!fluid.isEmpty() && nbt.contains(key)) {
+            section.readFromNbt(BcNbt.getCompound(nbt, key));
+         } else {
+            section.clearAmounts();
          }
       }
    }
@@ -567,6 +561,8 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
       this.currentFluid = fluid;
       // currentDelay must stay >= 1: currentTime is taken % currentDelay every tick and incoming[] is sized by it.
       this.currentDelay = Math.max(1, (int)PipeApi.getFluidTransferInfo(this.pipe.getDefinition()).transferDelayMultiplier);
+      // Keep ticking until the onTick diff check has run (and sent) for this change, e.g. the pipe just emptied.
+      this.amountsSendPending = true;
 
       for (PipeFlowFluids.Section section : this.sections.values()) {
          section.incoming = new int[this.currentDelay];
@@ -582,7 +578,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
 
    @Override
    public boolean hasSimulationWork() {
-      return !this.currentFluid.isEmpty();
+      return !this.currentFluid.isEmpty() || this.amountsSendPending;
    }
 
    @Override
@@ -666,8 +662,12 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
             }
          }
 
+         this.amountsSendPending = send;
          if (send && this.getTracker().markTimeIfDelay(world)) {
             this.sendPayload(NET_FLUID_AMOUNTS);
+            this.amountsSendPending = false;
+            // Every amount/direction change is eventually sent (latched above), so this marks each change for save once per send.
+            this.markSaveDirty();
          }
       }
    }
@@ -846,6 +846,17 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
          }
 
          this.trimDelayedFluidToAmount();
+      }
+
+      void clearAmounts() {
+         this.amount = 0;
+         this.lastSentAmount = 0;
+         this.ticksInDirection = 0;
+         this.target = 0;
+         this.clientAmountThis = 0;
+         this.clientAmountLast = 0;
+         this.incomingTotalCache = 0;
+         Arrays.fill(this.incoming, 0);
       }
 
       int getMaxFilled() {

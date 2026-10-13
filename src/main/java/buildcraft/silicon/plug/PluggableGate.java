@@ -204,6 +204,8 @@ public class PluggableGate extends PipePluggable implements IWireEmitter {
       CompoundTag stored = ItemGateCopier.getCopiedGateData(stack);
       if (stored != null) {
          this.logic.readConfigData(stored);
+         this.logic.dropInvalidStatements();
+         this.logic.markResolveDirty();
          if (this.holder instanceof BlockEntity be) {
             be.setChanged();
          }

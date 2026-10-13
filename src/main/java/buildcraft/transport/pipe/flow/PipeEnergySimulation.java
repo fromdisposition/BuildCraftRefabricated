@@ -84,6 +84,11 @@ public final class PipeEnergySimulation {
          double value = average.getAverage() / maxPower;
          value = Math.sqrt(value);
          section.setDisplayPower((int)(value * MjAPI.MJ));
+         if (section.getDisplayPower() <= 0) {
+            // distributeInternalPower only ever sets IN/OUT; once nothing is displayed the section is idle again,
+            // otherwise hasClientSimulationWork stays true forever.
+            section.setDisplayFlow(PipeEnergyEnumFlow.STATIONARY);
+         }
       }
    }
 

@@ -277,7 +277,8 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
          }
       }
 
-      return false;
+      // Keep ticking until the idle (zero power, STATIONARY) display has been computed and actually sent.
+      return this.hasPendingDisplayWork(this.sections);
    }
 
    @Override

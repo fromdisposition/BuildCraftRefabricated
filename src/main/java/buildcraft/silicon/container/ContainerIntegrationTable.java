@@ -15,6 +15,7 @@ import buildcraft.silicon.tile.TileIntegrationTable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 public class ContainerIntegrationTable extends ContainerBCTile<TileIntegrationTable> {
    public ContainerIntegrationTable(int containerId, Inventory playerInv, BlockPos pos) {
@@ -24,6 +25,15 @@ public class ContainerIntegrationTable extends ContainerBCTile<TileIntegrationTa
    public ContainerIntegrationTable(int containerId, Player player, TileIntegrationTable tile) {
       super(BCSiliconMenuTypes.INTEGRATION_TABLE, containerId, player, tile);
       if (tile == null) {
+         // Inert placeholders at the same positions so the client slot count matches the server's 11 machine slots.
+         for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+               this.addSlot(new SlotDisplay(i -> ItemStack.EMPTY, x + y * 3, 9 + x * 25, 20 + y * 25));
+            }
+         }
+
+         this.addSlot(new SlotDisplay(i -> ItemStack.EMPTY, 0, 94, 27));
+         this.addSlot(new SlotDisplay(i -> ItemStack.EMPTY, 0, 133, 45));
          this.addFullPlayerInventory(8, 104);
       } else {
          int[] indexes = new int[]{0, 1, 2, 3, 0, 4, 5, 6, 7};

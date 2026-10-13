@@ -33,6 +33,19 @@ public class ContainerAssemblyTable extends ContainerBCTile<TileAssemblyTable> {
       // Null tile means the block entity isn't synced to the client yet; dereferencing tile.inv here NPEs.
       // Slot count must still match the server, or the content packet indexes past an empty list and disconnects.
       if (tile == null) {
+         // Inert placeholders at the same positions so the client slot count matches the server's 24 machine slots.
+         for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 3; x++) {
+               this.addSlot(new SlotDisplay(i -> ItemStack.EMPTY, x + y * 3, 8 + x * 18, 18 + y * 18));
+            }
+         }
+
+         for (int y = 0; y < 4; y++) {
+            for (int x = 0; x < 3; x++) {
+               this.addSlot(new SlotDisplay(i -> ItemStack.EMPTY, x + y * 3, 116 + x * 18, 18 + y * 18));
+            }
+         }
+
          this.addFullPlayerInventory(8, 104);
       } else {
          for (int y = 0; y < 4; y++) {
@@ -71,6 +84,7 @@ public class ContainerAssemblyTable extends ContainerBCTile<TileAssemblyTable> {
             this.tile.recipesStates.put(instruction, EnumAssemblyRecipeState.PAUSED);
          }
 
+         this.tile.requestRecipeRescan();
          this.tile.setChanged();
          if (this.tile.getLevel() != null) {
             this.tile.getLevel().sendBlockUpdated(this.tile.getBlockPos(), this.tile.getBlockState(), this.tile.getBlockState(), 3);

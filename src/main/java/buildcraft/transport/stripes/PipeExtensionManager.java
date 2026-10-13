@@ -133,18 +133,39 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
          stripes.direction = retractDir.getOpposite();
       }
 
-      List<ItemStack> brokenDrops = BlockUtil.breakBlockAndGetDrops(level, targetPos, ItemStack.EMPTY, owner).orElse(List.of());
-      if (brokenDrops.isEmpty() && !level.getBlockState(targetPos).isAir()) {
+      // The pipe holder's loot is empty: its pipe item and contents come from the break teardown, so collect them
+      // here to send back through the stripes pipe instead of letting them pop into the world.
+      List<ItemStack> brokenDrops = new ArrayList<>();
+      TilePipeHolder targetHolder = this.getHolder(level, targetPos);
+      if (targetHolder != null) {
+         targetHolder.redirectDrops(brokenDrops::add);
+      }
+
+      try {
+         brokenDrops.addAll(BlockUtil.breakBlockAndGetDrops(level, targetPos, ItemStack.EMPTY, owner).orElse(List.of()));
+      } finally {
+         if (targetHolder != null) {
+            targetHolder.redirectDrops(null);
+         }
+      }
+
+      if (!level.getBlockState(targetPos).isAir()) {
          request.stripes.sendItem(request.stack.copy(), request.dir);
          return;
       }
 
       BlockPos newStripesPos = targetPos;
       if (!this.restoreStripesPipe(level, newStripesPos, stripesState, stripesNbt, owner)) {
+         for (ItemStack stack : brokenDrops) {
+            InventoryUtil.drop(level, targetPos, stack);
+         }
+
          request.stripes.sendItem(request.stack.copy(), request.dir);
          return;
       }
 
+      // The stripes pipe now lives at newStripesPos: its old block must vanish without dropping a second copy.
+      stripesHolder.markMovedWithoutDrops();
       if (!BlockUtil.breakBlockAndGetDrops(level, request.pos, ItemStack.EMPTY, owner).isPresent()) {
          this.restoreStripesPipe(level, request.pos, stripesState, stripesNbt, owner);
          request.stripes.sendItem(request.stack.copy(), request.dir);
@@ -172,7 +193,10 @@ public enum PipeExtensionManager implements IPipeExtensionManager {
       GameProfile owner = stripesHolder.getOwner();
       BlockState stripesState = level.getBlockState(request.pos);
       CompoundTag stripesNbt = stripesHolder.saveCustomOnly(level.registryAccess());
+      // The stripes pipe is re-created from stripesNbt (at the new or the old position), so breaking it here must not drop anything.
+      stripesHolder.markMovedWithoutDrops();
       if (!BlockUtil.breakBlockAndGetDrops(level, request.pos, ItemStack.EMPTY, owner).isPresent()) {
+         stripesHolder.unmarkMovedWithoutDrops();
          request.stripes.sendItem(request.stack.copy(), request.dir);
          return;
       }

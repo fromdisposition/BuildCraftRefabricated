@@ -123,6 +123,10 @@ public class ContainerGate extends BcMenu {
       if (this.pipeHolder != null) {
          this.pipeHolder.onPlayerClose(player);
       }
+
+      if (this.gate != null && this.gate.guiMessageOverride != null && this.pipeHolder.getPipeWorld().isClientSide()) {
+         this.gate.guiMessageOverride = null;
+      }
    }
 
    private void refreshPossibleGroups() {
@@ -166,6 +170,7 @@ public class ContainerGate extends BcMenu {
                boolean to = buffer.readBoolean();
                if (index < this.gate.connections.length) {
                   this.gate.connections[index] = to;
+                  this.gate.markResolveDirty();
                   if (this.pipeHolder instanceof BlockEntity be) {
                      be.setChanged();
                      this.pipeHolder.scheduleRenderUpdate();
@@ -178,6 +183,9 @@ public class ContainerGate extends BcMenu {
             } else if (id == ID_STATEMENT_CHANGE) {
                try {
                   this.gate.readPayload(buffer, false);
+                  // readPayload bypasses the statement change listeners, so the server gate must be re-resolved explicitly.
+                  this.gate.dropInvalidStatements();
+                  this.gate.markResolveDirty();
                   if (this.pipeHolder instanceof BlockEntity be) {
                      be.setChanged();
                      this.pipeHolder.scheduleRenderUpdate();
