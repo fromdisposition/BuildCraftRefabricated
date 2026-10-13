@@ -30,6 +30,7 @@ public class ContainerHeatExchange extends BcMenu {
    public final WidgetFluidTank widgetTankEndInput;
    public final WidgetFluidTank widgetTankEndOutput;
    private int lastSectionSyncHash = Integer.MIN_VALUE;
+   private final ItemHandlerSimple machineSlots;
 
    public ContainerHeatExchange(int containerId, Inventory playerInv, BlockPos pos) {
       this(containerId, playerInv, resolveStartTile(MenuBlockEntityLookup.get(playerInv, pos, TileHeatExchange.class)));
@@ -39,6 +40,7 @@ public class ContainerHeatExchange extends BcMenu {
       super(BCFactoryMenuTypes.HEAT_EXCHANGE, containerId, playerInv.player);
       this.tile = tile;
       ItemHandlerSimple machineSlots = tile != null && tile.getContainerSlots() != null ? tile.getContainerSlots() : FALLBACK_SLOTS;
+      this.machineSlots = machineSlots;
       this.addSlot(new SlotBase(machineSlots, 0, 8, 29));
       this.addSlot(new SlotBase(machineSlots, 1, 8, 70));
       this.addSlot(new SlotBase(machineSlots, 2, 152, 18));
@@ -120,7 +122,8 @@ public class ContainerHeatExchange extends BcMenu {
 
    @Override
    public boolean stillValid(Player player) {
-      return this.tile != null && Container.stillValidBlockEntity(this.tile, player);
+      // The bound slots belong to the start section; once that section is removed (and its items dropped) the menu must close.
+      return this.tile != null && this.tile.getContainerSlots() == this.machineSlots && Container.stillValidBlockEntity(this.tile, player);
    }
 
    @Override

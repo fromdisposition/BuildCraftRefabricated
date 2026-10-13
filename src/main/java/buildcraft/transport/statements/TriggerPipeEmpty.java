@@ -11,6 +11,7 @@ import buildcraft.api.gates.IGate;
 import buildcraft.api.statements.IStatementContainer;
 import buildcraft.api.statements.IStatementParameter;
 import buildcraft.api.statements.ITriggerInternal;
+import buildcraft.api.transport.pipe.IPipe;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.core.statements.BCStatement;
 import buildcraft.lib.misc.LocaleUtil;
@@ -36,7 +37,12 @@ public class TriggerPipeEmpty extends BCStatement implements ITriggerInternal {
    @Override
    public boolean isTriggerActive(IStatementContainer source, IStatementParameter[] parameters) {
       if (source instanceof IGate gate) {
-         PipeFlow flow = gate.getPipeHolder().getPipe().getFlow();
+         IPipe pipe = gate.getPipeHolder().getPipe();
+         if (pipe == null) {
+            return false;
+         }
+
+         PipeFlow flow = pipe.getFlow();
          if (flow instanceof PipeFlowItems itemFlow) {
             return !itemFlow.doesContainItems();
          } else {

@@ -441,11 +441,9 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
    }
 
    private void loadTank(BcValueIn input, String key, SingleFluidTank tank) {
-      input.read(key, FluidStack.CODEC).ifPresent(stack -> {
-         if (!stack.isEmpty() && stack.getAmount() > 0) {
-            tank.setContents(stack);
-         }
-      });
+      // empty tanks are omitted on write, so a missing key means the tank is empty (client sync reuses this tile)
+      FluidStack stack = input.read(key, FluidStack.CODEC).orElse(FluidStack.EMPTY);
+      tank.setContents(!stack.isEmpty() && stack.getAmount() > 0 ? stack : FluidStack.EMPTY);
    }
 
    @Override

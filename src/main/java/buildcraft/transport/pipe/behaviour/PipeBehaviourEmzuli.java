@@ -34,15 +34,23 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 
 public class PipeBehaviourEmzuli extends PipeBehaviourWood {
    public final EnumMap<PipeBehaviourEmzuli.SlotIndex, DyeColor> slotColours = new EnumMap<>(PipeBehaviourEmzuli.SlotIndex.class);
-   public final ItemHandlerSimple invFilters = new ItemHandlerSimple(4);
+   public final ItemHandlerSimple invFilters = new ItemHandlerSimple(4, (handler, slot, before, after) -> this.onFilterSlotChange());
    private final EnumSet<PipeBehaviourEmzuli.SlotIndex> activeSlots;
    private final byte[] activatedTtl = new byte[PipeBehaviourEmzuli.SlotIndex.VALUES.length];
    private PipeBehaviourEmzuli.SlotIndex currentSlot = null;
    private final IStackFilter filter = this::filterMatches;
+
+   private void onFilterSlotChange() {
+      Level level = this.pipe.getHolder().getPipeWorld();
+      if (level != null && !level.isClientSide()) {
+         this.pipe.getHolder().getPipeTile().setChanged();
+      }
+   }
 
    public PipeBehaviourEmzuli(IPipe pipe) {
       super(pipe);

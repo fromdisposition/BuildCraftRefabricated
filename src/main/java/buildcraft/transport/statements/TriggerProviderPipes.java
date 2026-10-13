@@ -39,7 +39,7 @@ public enum TriggerProviderPipes implements ITriggerProvider {
             }
          }
 
-         if (holder.getPipe().getFlow() instanceof IFlowPowerLike) {
+         if (holder.getPipe() != null && holder.getPipe().getFlow() instanceof IFlowPowerLike) {
             triggers.add(BCTransportStatements.TRIGGER_POWER_REQUESTED);
          }
       }

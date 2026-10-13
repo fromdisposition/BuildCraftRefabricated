@@ -175,6 +175,14 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
       }
    }
 
+   /** Notifies the change callback that the stack in the given slot was modified in place (for example by a menu slot). */
+   public void notifySlotChanged(int slot) {
+      if (!this.badSlotIndex(slot)) {
+         ItemStack current = this.stacks.get(slot);
+         this.onChanged(slot, current.copy(), current);
+      }
+   }
+
    protected void onChanged(int slot, ItemStack before, ItemStack after) {
       if (this.callback != null) {
          this.callback.onStackChange(this, slot, before, after);

@@ -150,6 +150,7 @@ public abstract class PipeBehaviourDirectional extends PipeBehaviour {
          if (this.pipe.getHolder().getPipeWorld() != null && !this.pipe.getHolder().getPipeWorld().isClientSide()) {
             this.pipe.getHolder().scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.BEHAVIOUR);
             this.pipe.getHolder().scheduleRenderUpdate();
+            this.pipe.getHolder().getPipeTile().setChanged();
          }
       }
    }

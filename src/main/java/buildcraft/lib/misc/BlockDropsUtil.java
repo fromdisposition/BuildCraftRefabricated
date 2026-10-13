@@ -45,6 +45,7 @@ public final class BlockDropsUtil {
                for (int slot = 0; slot < handler.getSlots(); slot++) {
                   ItemStack stack = handler.getStackInSlot(slot);
                   if (!stack.isEmpty()) {
+                     handler.setStackInSlot(slot, ItemStack.EMPTY);
                      Block.popResource(level, pos, stack);
                   }
                }
@@ -81,7 +82,7 @@ public final class BlockDropsUtil {
                int amountMb = tank.getAmountMb();
 
                try (Transaction tx = Transaction.openOuter()) {
-                  tank.extractMb(held, amountMb, tx);
+                  tank.extractMbInternal(held, amountMb, tx);
                   tx.commit();
                }
             }

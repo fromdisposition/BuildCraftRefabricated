@@ -57,6 +57,24 @@ public abstract class PipeEnergyFlowBase extends PipeFlow {
    // Snapshot re-captures every tick; latched so a rate-limited change isn't lost before it can be sent.
    private boolean displaySendPending;
 
+   /**
+    * Server-side: true while the client display still has to reach its idle state (a latched rate-limited send, or
+    * displayed power/flow that the next ticks will decay to zero/STATIONARY and send).
+    */
+   protected boolean hasPendingDisplayWork(EnumMap<Direction, ? extends PipeEnergyDisplaySupport.DisplaySection> sections) {
+      if (this.displaySendPending) {
+         return true;
+      }
+
+      for (PipeEnergyDisplaySupport.DisplaySection section : sections.values()) {
+         if (section.getDisplayPower() > 0 || section.getDisplayFlow() != PipeEnergyEnumFlow.STATIONARY) {
+            return true;
+         }
+      }
+
+      return false;
+   }
+
    protected void sendDisplayIfChanged(EnumMap<Direction, ? extends PipeEnergyDisplaySupport.DisplaySection> sections, int payloadId) {
       if (this.displaySnapshot.changed(sections)) {
          this.displaySendPending = true;

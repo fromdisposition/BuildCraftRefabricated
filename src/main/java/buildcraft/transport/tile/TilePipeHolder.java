@@ -113,6 +113,8 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    private int wakeTicks = 0;
    private boolean saveDirtyThisTick = false;
    private boolean tornDown = false;
+   @Nullable
+   private Consumer<ItemStack> dropRedirect;
    private final int[] redstoneOutputs = new int[Direction.values().length];
    private final int[] redstoneOutputsThisTick = new int[Direction.values().length];
 
@@ -705,15 +707,42 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    }
 
    public void dropPipeItems(Level lvl, BlockPos pos, boolean dropItems) {
+      if (this.dropRedirect != null) {
+         this.tearDown(this.dropRedirect);
+      } else {
+         this.tearDown(dropItems ? drop -> Block.popResource(lvl, pos, drop) : null);
+      }
+   }
+
+   /** While set, a break hands this pipe's drops to {@code sink} instead of popping them (stripes retraction sends them back down the pipe). */
+   public void redirectDrops(@Nullable Consumer<ItemStack> sink) {
+      this.dropRedirect = sink;
+   }
+
+   /**
+    * Marks this holder as moved elsewhere (stripes extension re-creates it from its NBT): removing the block must
+    * neither pop its contents nor run pluggable onRemove, or the moved copy and the drops would both exist.
+    */
+   public void markMovedWithoutDrops() {
+      this.tornDown = true;
+   }
+
+   /** Undoes {@link #markMovedWithoutDrops()} when the move was aborted before the block was removed. */
+   public void unmarkMovedWithoutDrops() {
+      this.tornDown = false;
+   }
+
+   /** Runs the break teardown, handing every drop to {@code sink} (null = creative break, nothing is dropped). */
+   public void tearDown(@Nullable Consumer<ItemStack> sink) {
       if (this.tornDown) {
          return;
       }
 
       this.tornDown = true;
-      // dropItems=false (creative) still runs pluggable onRemove + clears state -- only the item pops are skipped.
+      // A null sink (creative) still runs pluggable onRemove + clears state -- only the item pops are skipped.
       // Pluggables clean up external state in onRemove (e.g. a robot station destroys its docked robot), which must
       // happen on every break or a creative-broken pipe leaks its station and strands the robot.
-      if (dropItems && this.pipe != null) {
+      if (sink != null && this.pipe != null) {
          PipeDefinition def = this.pipe.getDefinition();
          Item pipeItem = (Item)PipeApi.pipeRegistry.getItemForPipe(def);
          if (pipeItem != null) {
@@ -723,26 +752,26 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
                pipeStack.set(BCTransportItems.PIPE_COLOUR, col);
             }
 
-            Block.popResource(lvl, pos, pipeStack);
+            sink.accept(pipeStack);
          }
 
          NonNullList<ItemStack> drops = NonNullList.create();
          this.pipe.addDrops(drops, 0);
 
          for (ItemStack drop : drops) {
-            Block.popResource(lvl, pos, drop);
+            sink.accept(drop);
          }
       }
 
       for (int i = 0; i < 6; i++) {
          PipePluggable plug = this.pluggables[i];
          if (plug != null) {
-            if (dropItems) {
+            if (sink != null) {
                NonNullList<ItemStack> plugDrops = NonNullList.create();
                plug.addDrops(plugDrops, 0);
 
                for (ItemStack drop : plugDrops) {
-                  Block.popResource(lvl, pos, drop);
+                  sink.accept(drop);
                }
             }
 
@@ -751,12 +780,12 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
          }
       }
 
-      if (dropItems) {
+      if (sink != null) {
          for (DyeColor color : this.wireManager.parts.values()) {
             if (color != null) {
                Item wireItem = BCTransportItems.WIRE_ITEMS.get(color);
                if (wireItem != null) {
-                  Block.popResource(lvl, pos, new ItemStack(wireItem));
+                  sink.accept(new ItemStack(wireItem));
                }
             }
          }

@@ -21,6 +21,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
@@ -36,6 +37,29 @@ public class ContainerAdvancedCraftingTable extends ContainerBCTileRecipeBook<Ti
       // Null tile means the block entity isn't synced to the client yet; dereferencing its fields here NPEs.
       // Slot count must still match the server, or the content packet indexes past an empty list and disconnects.
       if (tile == null) {
+         // Inert placeholders at the same positions so the client slot count matches the server's 34 machine slots.
+         this.addSlot(new SlotDisplay(i -> ItemStack.EMPTY, 0, 127, 36));
+
+         for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 5; x++) {
+               this.addSlot(new SlotDisplay(i -> ItemStack.EMPTY, x + y * 5, 15 + x * 18, 94 + y * 18));
+            }
+         }
+
+         for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+               this.addSlot(new SlotDisplay(i -> ItemStack.EMPTY, x + y * 3, 109 + x * 18, 94 + y * 18));
+            }
+         }
+
+         for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+               Slot slot = new SlotDisplay(i -> ItemStack.EMPTY, x + y * 3, 33 + x * 18, 18 + y * 18);
+               this.addSlot(slot);
+               this.blueprintSlots.add(slot);
+            }
+         }
+
          this.addFullPlayerInventory(8, 162);
       } else {
          this.addSlot(new SlotDisplay(i -> tile.resultClient, 0, 127, 36));

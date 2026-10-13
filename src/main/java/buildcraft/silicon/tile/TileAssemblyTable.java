@@ -52,6 +52,11 @@ public class TileAssemblyTable extends TileLaserTableBase {
       super(BCSiliconBlockEntities.ASSEMBLY_TABLE, pos, state);
    }
 
+   /** Forces the recipe states to be re-evaluated on the next server tick (e.g. after the player toggles a recipe). */
+   public void requestRecipeRescan() {
+      this.rescanCooldown = 0;
+   }
+
    private long inventorySignature() {
       long sig = 1L;
 

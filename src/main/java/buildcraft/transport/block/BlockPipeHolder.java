@@ -656,6 +656,7 @@ public class BlockPipeHolder extends Block implements EntityBlock, ICustomPaintH
             return InteractionResult.FAIL;
          } else if (pipe.getColour() != paintColour && pipe.getDefinition().canBeColoured) {
             pipe.setColour(paintColour);
+            tile.setChanged();
             return InteractionResult.SUCCESS;
          } else {
             return InteractionResult.FAIL;

@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org.
+
 package buildcraft.lib.fabric.menu;
 
 import buildcraft.api.core.BCLog;
@@ -24,7 +28,8 @@ public final class MenuBlockEntityLookup {
       } else {
          BlockEntity be = playerInv.player.level().getBlockEntity(pos);
          if (!type.isInstance(be)) {
-            BCLog.logger.warn("[menu.lookup] Expected {} at {}, got {}", type.getSimpleName(), pos, be == null ? "null" : be.getClass().getSimpleName());
+            BCLog.logger.warn("[menu.lookup] Expected {} at {}, got {}", type.getSimpleName(), pos,
+                  be == null ? "null" : be.getClass().getSimpleName());
             return null;
          } else {
             return type.cast(be);

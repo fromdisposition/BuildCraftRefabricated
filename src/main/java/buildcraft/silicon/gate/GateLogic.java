@@ -31,10 +31,6 @@ import buildcraft.lib.statement.ActionWrapper;
 import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.statement.TriggerWrapper;
 import buildcraft.silicon.plug.PluggableGate;
-import buildcraft.silicon.statement.TriggerTimer;
-import buildcraft.transport.statements.TriggerParameterSignal;
-import buildcraft.transport.statements.TriggerPipeEmpty;
-import buildcraft.transport.statements.TriggerPipeSignal;
 import buildcraft.transport.wire.SavedDataWireSystems;
 import buildcraft.transport.wire.WireSystem;
 import java.util.ArrayList;
@@ -429,10 +425,10 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
       return !this.resolveDirty && this.gateWakeTicks <= 0 && this.activeActions.isEmpty() ? this.hasPollingTrigger() : true;
    }
 
+   /** Triggers read world state (redstone, inventories, tanks, light, ...) that never notifies the gate, so any configured trigger must be polled. */
    private boolean hasPollingTrigger() {
       for (GateLogic.StatementPair pair : this.statements) {
-         TriggerWrapper trigger = pair.trigger.get();
-         if (trigger != null && triggerRequiresPolling(trigger.delegate, pair.trigger.getParameters())) {
+         if (pair.trigger.get() != null) {
             return true;
          }
       }
@@ -440,18 +436,19 @@ public class GateLogic implements IGate, IWireEmitter, IRedstoneStatementContain
       return false;
    }
 
-   private static boolean triggerRequiresPolling(IStatement delegate, IStatementParameter[] parameters) {
-      if (delegate instanceof TriggerTimer || delegate instanceof TriggerPipeSignal || delegate instanceof TriggerPipeEmpty) {
-         return true;
-      }
+   /** Clears statements this variant cannot hold (e.g. pasted from a gate with more parameters, or sent by a modified client). */
+   public void dropInvalidStatements() {
+      for (GateLogic.StatementPair pair : this.statements) {
+         TriggerWrapper trigger = pair.trigger.get();
+         if (trigger != null && !this.isValidTrigger(trigger)) {
+            pair.trigger.set(null);
+         }
 
-      for (IStatementParameter parameter : parameters) {
-         if (parameter instanceof TriggerParameterSignal signal && signal.colour != null) {
-            return true;
+         ActionWrapper action = pair.action.get();
+         if (action != null && !this.isValidAction(action)) {
+            pair.action.set(null);
          }
       }
-
-      return false;
    }
 
    public boolean isSplitInTwo() {
