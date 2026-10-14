@@ -8,7 +8,7 @@ pluginManagement {
         maven("https://maven.kikugie.dev/releases") { name = "KikuGie Releases" }
     }
     plugins {
-        id("net.fabricmc.fabric-loom") version "1.17-SNAPSHOT"
+        id("net.fabricmc.fabric-loom") version "1.18-SNAPSHOT"
     }
 }
 
