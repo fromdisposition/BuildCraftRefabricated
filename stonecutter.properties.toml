@@ -25,25 +25,25 @@ deps.jei = "27.38.0.97"
 deps.rei = "21.11.816"
 
 ["26.1"]
-deps.loader = "0.19.3"
-deps.fabric_api = "0.155.2+26.1.2"
+deps.loader = "0.19.5"
+deps.fabric_api = "0.155.3+26.1.2"
 mod.mc_dep_range = ">=26.1 <26.2-"
 deps.energy = "5.0.0"
-deps.jei = "29.19.0.51"
+deps.jei = "29.47.0.109"
 deps.rei = "26.1.819"
 
 ["26.2"]
 deps.loader = "0.19.5"
-deps.fabric_api = "0.160.0+26.2"
+deps.fabric_api = "0.161.0+26.2"
 mod.mc_dep_range = "26.2"
 deps.energy = "5.0.0"
-deps.jei = "30.14.0.89"
-deps.rei = "26.2.820"
+deps.jei = "30.42.0.236"
+deps.rei = "26.2.821"
 
 ["26.3"]
 deps.loader = "0.19.5"
-deps.fabric_api = "0.160.5+26.3"
+deps.fabric_api = "0.163.0+26.3"
 mod.mc_dep_range = "26.3"
 deps.energy = "5.0.0"
-deps.jei = "31.0.0.5"
+deps.jei = "31.12.0.66"
 deps.rei = "26.3.824"
