@@ -1,0 +1,96 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.robotics.block;
+
+import buildcraft.lib.block.BcTileBlock;
+import buildcraft.robotics.container.ContainerRequester;
+import buildcraft.robotics.tile.TileRequester;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+import net.minecraft.world.level.block.state.StateDefinition.Builder;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.Nullable;
+
+public class BlockRequester extends BcTileBlock {
+   public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+
+   public BlockRequester(Properties properties) {
+      super(properties);
+      this.registerDefaultState((this.stateDefinition.any()).setValue(FACING, Direction.NORTH));
+   }
+
+   @Override
+   protected void createBlockStateDefinition(Builder<Block, BlockState> builder) {
+      builder.add(new Property[]{FACING});
+   }
+
+   @Override
+   public BlockState getStateForPlacement(BlockPlaceContext context) {
+      return this.defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
+   }
+
+   @Nullable
+   @Override
+   public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+      return new TileRequester(pos, state);
+   }
+
+   @Override
+   protected InteractionResult useWithoutItem(BlockState state, Level level, final BlockPos pos, Player player, BlockHitResult hitResult) {
+      if (level.isClientSide()) {
+         return InteractionResult.SUCCESS;
+      }
+
+      final BlockEntity be = level.getBlockEntity(pos);
+      if (be instanceof TileRequester requester && player instanceof ServerPlayer serverPlayer) {
+         serverPlayer.openMenu(new ExtendedMenuProvider<BlockPos>() {
+            @Override
+            public BlockPos getScreenOpeningData(ServerPlayer player) {
+               return pos;
+            }
+
+            @Override
+            public Component getDisplayName() {
+               return be.getBlockState().getBlock().getName();
+            }
+
+            @Override
+            public AbstractContainerMenu createMenu(int containerId, Inventory inv, Player p) {
+               return new ContainerRequester(containerId, inv, requester);
+            }
+         });
+         return InteractionResult.SUCCESS;
+      }
+
+      return InteractionResult.PASS;
+   }
+
+   @Nullable
+   @Override
+   public <T extends BlockEntity> net.minecraft.world.level.block.entity.BlockEntityTicker<T> getTicker(
+      Level level, BlockState state, BlockEntityType<T> type
+   ) {
+      return null;
+   }
+}

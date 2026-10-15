@@ -1,0 +1,21 @@
+[
+  {
+    "selectors": [
+      "minecraft:daylight_detector"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:daylight_detector"
+          }
+        ]
+      }
+    ],
+    "ignoredProperties": [
+      "power",
+      "inverted"
+    ]
+  }
+]

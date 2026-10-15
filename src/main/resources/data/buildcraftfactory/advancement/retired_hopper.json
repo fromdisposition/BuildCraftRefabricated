@@ -1,0 +1,19 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcraftfactory:chute"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.retired_hopper.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.retired_hopper.description"
+    }
+  },
+  "parent": "buildcraftcore:wrenched",
+  "criteria": {
+    "code_trigger": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

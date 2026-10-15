@@ -1,0 +1,29 @@
+{
+  "display": {
+    "icon": {
+      "id": "buildcrafttransport:pipe_diamond_wood_item"
+    },
+    "title": {
+      "translate": "advancements.buildcraft.pipe_diversification.title"
+    },
+    "description": {
+      "translate": "advancements.buildcraft.pipe_diversification.description"
+    },
+    "frame": "goal"
+  },
+  "parent": "buildcrafttransport:pipe_dream",
+  "criteria": {
+    "item_pipe": {
+      "trigger": "minecraft:impossible"
+    },
+    "fluid_pipe": {
+      "trigger": "minecraft:impossible"
+    },
+    "power_pipe": {
+      "trigger": "minecraft:impossible"
+    },
+    "structure_pipe": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

@@ -1,0 +1,90 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.robotics.ai;
+
+import buildcraft.api.core.IZone;
+import buildcraft.api.mj.MjAPI;
+import buildcraft.api.robots.AIRobot;
+import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.robotics.path.IEntityFilter;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+
+public class AIRobotSearchEntity extends AIRobot {
+   public Entity target;
+   private float maxRange;
+   private IZone zone;
+   private IEntityFilter filter;
+
+   public AIRobotSearchEntity(EntityRobotBase robot) {
+      super(robot);
+   }
+
+   public AIRobotSearchEntity(EntityRobotBase robot, IEntityFilter filter, float maxRange, IZone zone) {
+      this(robot);
+      this.filter = filter;
+      this.maxRange = maxRange;
+      this.zone = zone;
+   }
+
+   @Override
+   public void start() {
+      double best = Double.MAX_VALUE;
+      // Leash the search to the home station, not the robot's drifting position; a Zone Planner area overrides
+      // the fixed DEFAULT_SEARCH_RANGE sphere. Nearest-to-robot wins among the eligible targets.
+      Vec3 anchor = this.robot.getWorkAnchor();
+      AABB box = queryBox(anchor, this.zone, this.maxRange);
+
+      for (Entity e : this.robot.level().getEntitiesOfClass(Entity.class, box, e -> e.isAlive() && this.filter.matches(e))) {
+         if (this.robot.isKnownUnreachable(e)) {
+            continue;
+         }
+
+         if (this.zone != null) {
+            if (!this.zone.contains(e.position())) {
+               continue;
+            }
+         } else if (anchor.distanceToSqr(e.position()) >= (double) this.maxRange * this.maxRange) {
+            continue;
+         }
+
+         double distance = this.robot.position().distanceToSqr(e.position());
+         if (distance < best) {
+            best = distance;
+            this.target = e;
+         }
+      }
+
+      this.terminate();
+   }
+
+   @Override
+   public boolean success() {
+      return this.target != null;
+   }
+
+   @Override
+   public long getPowerCost() {
+      return MjAPI.MJ / 5L;
+   }
+
+   /** The candidate-gathering box: the zone's own footprint when it has one, otherwise the leash sphere. */
+   static AABB queryBox(Vec3 anchor, IZone zone, float range) {
+      if (zone == null) {
+         return new AABB(anchor, anchor).inflate(range);
+      }
+
+      AABB bounds = zone.horizontalBounds();
+      if (bounds == null) {
+         return new AABB(anchor, anchor).inflate(EntityRobotBase.ZONE_SEARCH_RANGE);
+      }
+
+      double reach = EntityRobotBase.ZONE_SEARCH_RANGE;
+      return new AABB(bounds.minX, anchor.y - reach, bounds.minZ, bounds.maxX, anchor.y + reach, bounds.maxZ);
+   }
+}

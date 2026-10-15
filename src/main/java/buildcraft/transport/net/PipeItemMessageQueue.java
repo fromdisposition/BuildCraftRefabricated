@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2017 SpaceToad and the BuildCraft team
+ * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
+ */
+
+package buildcraft.transport.net;
+
+import buildcraft.lib.net.BcPacketDistributor;
+import buildcraft.lib.net.PlayerBatchQueue;
+import org.jspecify.annotations.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import buildcraft.lib.nbt.BcProfiler;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+
+public final class PipeItemMessageQueue {
+   private static final PlayerBatchQueue<MessageMultiPipeItem> QUEUE = new PlayerBatchQueue<>(unused -> new MessageMultiPipeItem());
+
+   private PipeItemMessageQueue() {
+   }
+
+   public static void serverTick() {
+      BcProfiler.get().push("buildcraft:pipe_item_flush");
+
+      try {
+         QUEUE.flushEach(entry -> {
+            if (!entry.getValue().items.isEmpty()) {
+               BcPacketDistributor.sendToPlayer(entry.getKey(), entry.getValue());
+            }
+         });
+      } finally {
+         BcProfiler.get().pop();
+      }
+   }
+
+   public static void appendTravellingItem(
+      Level world, BlockPos pos, ItemStack stack, int stackCount, boolean toCenter, Direction side, @Nullable DyeColor colour, int timeToDest
+   ) {
+      if (world instanceof ServerLevel server) {
+         QUEUE.forTracking(server, pos, (player, packet) -> packet.append(pos, stack, stackCount, toCenter, side, colour, timeToDest));
+      }
+   }
+}

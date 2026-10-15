@@ -1,0 +1,187 @@
+[
+  {
+    "selectors": [
+      "minecraft:cake"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:cake"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:wheat"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:wheat_seeds"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:pumpkin_stem",
+      "minecraft:attached_pumpkin_stem"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:pumpkin_seeds"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:melon_stem",
+      "minecraft:attached_melon_stem"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:melon_seeds"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:beetroots"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:beetroot_seeds"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:carrots"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:carrot"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:potatoes"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:potato"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:torchflower_crop"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:torchflower_seeds"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:pitcher_crop"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:pitcher_pod"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:cocoa"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:cocoa_beans"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:sweet_berry_bush"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:sweet_berries"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "minecraft:cauldron",
+      "minecraft:water_cauldron",
+      "minecraft:lava_cauldron",
+      "minecraft:powder_snow_cauldron"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "constant",
+        "items": [
+          {
+            "item": "minecraft:cauldron"
+          }
+        ]
+      }
+    ]
+  }
+]
