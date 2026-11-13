@@ -17,6 +17,11 @@ import java.util.function.Function;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Sheets;
 //? if >= 1.21.11 {
+//? if >= 26.3 {
+import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
+import com.mojang.renderpearl.api.pipeline.RenderPipeline;
+import net.minecraft.client.renderer.oit.OitPipelineSet;
+//?}
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
@@ -31,9 +36,23 @@ import net.minecraft.util.Util;
 
 public final class BCLibRenderTypes {
    //? if >= 1.21.11 {
+      //? if >= 26.3 {
+      private static final OitPipelineSet LED_OIT = OitPipelineSet.builder(
+              "buildcraft-led_oit",
+            RenderPipeline.builder(RenderPipelines.OIT_DEBUG_FILLED_SNIPPET)
+                    .withPrimitiveTopology(PrimitiveTopology.QUADS)
+      ).build();
+      //?}
+
    private static final RenderType LED = RenderType.create(
-      "buildcraft:led", RenderSetup.builder(RenderPipelines.DEBUG_QUADS).setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING).createRenderSetup()
+      "buildcraft:led", RenderSetup.builder(RenderPipelines.DEBUG_QUADS)
+                   .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+                   //? if >= 26.3 {
+                           .setOitPipelines(LED_OIT)
+                   //?}
+                   .createRenderSetup()
    );
+
    private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(
       texture -> RenderType.create(
          "buildcraft:entity_translucent_cull",
