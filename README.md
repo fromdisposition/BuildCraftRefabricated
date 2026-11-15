@@ -4,12 +4,12 @@ An unofficial Fabric port of BuildCraft for modern Minecraft: pipes, engines, th
 
 | Minecraft | Support | Fabric Loader | Fabric API | Java |
 |-----------|---------|---------------|------------|------|
-| 26.3 | Mainline | 0.19.5+ | 0.163.0+26.3 | 25 |
-| 26.2 | LTS | 0.19.5+ | 0.161.0+26.2 | 25 |
-| 26.1.x | LTS | 0.19.5+ | 0.155.3+26.1.2 | 25 |
-| 1.21.11 | Maintenance | 0.19.5+ | 0.141.6+1.21.11 | 21 |
-| 1.21.10 | Maintenance | 0.19.5+ | 0.138.4+1.21.10 | 21 |
-| 1.21.1 | Legacy | 0.19.5+ | 0.116.15+1.21.1 | 21 |
+| 26.3 | Mainline | 0.20.1+ | 0.166.2+26.3 | 25 |
+| 26.2 | LTS | 0.20.1+ | 0.161.0+26.2 | 25 |
+| 26.1.x | LTS | 0.20.1+ | 0.155.3+26.1.2 | 25 |
+| 1.21.11 | Maintenance | 0.20.1+ | 0.141.6+1.21.11 | 21 |
+| 1.21.10 | Maintenance | 0.20.1+ | 0.138.4+1.21.10 | 21 |
+| 1.21.1 | Legacy | 0.20.1+ | 0.116.18+1.21.1 | 21 |
 
 All six versions are built from the same source tree and get the same fixes. Anything older than 1.21.1 is not planned. Bug reports go to the [issue tracker](https://github.com/fromdisposition/BuildCraftRefabricated/issues).
 

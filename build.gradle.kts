@@ -192,8 +192,8 @@ dependencies {
     implementation("net.fabricmc:fabric-loader:${sc.properties.raw("deps", "loader")}")
     // 26.x Loom attaches these itself; the 1.21.x loom-back-compat path does not. Loader ships them at runtime.
     if (sc.current.parsed < "26.1") {
-        compileOnly("net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7")
-        compileOnly("io.github.llamalad7:mixinextras-fabric:0.5.4")
+        compileOnly("net.fabricmc:sponge-mixin:0.17.5+mixin.0.8.7")
+        compileOnly("io.github.llamalad7:mixinextras-fabric:0.5.5")
     }
     // 1.21.x artifacts are intermediary-mapped and need the mod* configurations for Loom to remap them.
     val fabricApi = "net.fabricmc.fabric-api:fabric-api:${sc.properties.raw("deps", "fabric_api")}"
@@ -237,14 +237,14 @@ dependencies {
 
     // Dev runs only: without these the transformer stack is missing from the runClient/runServer classpath.
     // sponge-mixin must match the fabric-loader release; 0.15.x lacks IAdviceProvider and crashes at boot.
-    runtimeOnly("org.ow2.asm:asm:9.7.1")
-    runtimeOnly("org.ow2.asm:asm-analysis:9.7.1")
-    runtimeOnly("org.ow2.asm:asm-commons:9.7.1")
-    runtimeOnly("org.ow2.asm:asm-tree:9.7.1")
-    runtimeOnly("org.ow2.asm:asm-util:9.7.1")
+    runtimeOnly("org.ow2.asm:asm:9.10.1")
+    runtimeOnly("org.ow2.asm:asm-analysis:9.10.1")
+    runtimeOnly("org.ow2.asm:asm-commons:9.10.1")
+    runtimeOnly("org.ow2.asm:asm-tree:9.10.1")
+    runtimeOnly("org.ow2.asm:asm-util:9.10.1")
     if (sc.current.parsed < "26.1") {
-        runtimeOnly("net.fabricmc:sponge-mixin:0.17.3+mixin.0.8.7")
-        runtimeOnly("io.github.llamalad7:mixinextras-fabric:0.4.1")
+        runtimeOnly("net.fabricmc:sponge-mixin:0.17.5+mixin.0.8.7")
+        runtimeOnly("io.github.llamalad7:mixinextras-fabric:0.5.5")
     }
 }
 
