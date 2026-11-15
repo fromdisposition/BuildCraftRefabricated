@@ -44,7 +44,7 @@ public class TriggerFluidContainerLevel extends BCStatement implements ITriggerE
 
    @Override
    public String getDescription() {
-      return String.format(LocaleUtil.localize("gate.trigger.fluidlevel.below"), (int)(this.type.level * 100.0F));
+      return LocaleUtil.localize("gate.trigger.fluidlevel.below", (int)(this.type.level * 100.0F));
    }
 
    @Override

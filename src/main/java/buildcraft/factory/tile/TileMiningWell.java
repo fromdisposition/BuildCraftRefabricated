@@ -51,7 +51,7 @@ public class TileMiningWell extends TileMiner {
    @Override
    protected int getShaftCollisionLengthBlocks() {
       BlockPos tip = this.currentPos != null ? this.currentPos : this.shaftTipPos;
-      return tip == null ? 0 : Math.max(0, this.worldPosition.getY() - tip.getY());
+      return tip == null ? 0 : this.lengthDownTo(tip.getY());
    }
 
    private long nextColumnScanTick = Long.MIN_VALUE;

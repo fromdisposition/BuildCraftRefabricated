@@ -43,7 +43,10 @@ public class ItemWaterGel extends Item {
       ItemStack stack = player.getItemInHand(hand);
       BlockHitResult ray = getPlayerPOVHitResult(level, player, Fluid.SOURCE_ONLY);
       if (ray.getType() != Type.MISS && ray.getBlockPos() != null) {
-         if (BlockWaterGel.isGellableWater(level, ray.getBlockPos()) && level.getFluidState(ray.getBlockPos()).isSource()) {
+         if (BlockWaterGel.isGellableWater(level, ray.getBlockPos())
+            && level.getFluidState(ray.getBlockPos()).isSource()
+            && level.mayInteract(player, ray.getBlockPos())
+            && player.mayUseItemAt(ray.getBlockPos().relative(ray.getDirection()), ray.getDirection(), stack)) {
             // use() bypasses claim-protection mods' interaction hook; gate via the break-event check instead.
             if (!level.isClientSide()
                && level instanceof net.minecraft.server.level.ServerLevel serverLevel

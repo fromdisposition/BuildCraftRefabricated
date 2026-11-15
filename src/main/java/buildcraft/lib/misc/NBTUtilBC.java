@@ -17,17 +17,13 @@ import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.EndTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -41,6 +37,19 @@ public class NBTUtilBC {
 
    public static DynamicOps<Tag> registryAwareOps(Level level) {
       return BcRegistryUtil.registryAwareOps(level);
+   }
+
+   public static void merge(CompoundTag destination, CompoundTag source) {
+      for (String key : BcNbt.keys(source)) {
+         Tag value = source.get(key);
+         if (value == NBT_NULL) {
+            destination.remove(key);
+         } else if (value instanceof CompoundTag sourceCompound && destination.get(key) instanceof CompoundTag destinationCompound) {
+            merge(destinationCompound, sourceCompound);
+         } else {
+            destination.put(key, value.copy());
+         }
+      }
    }
 
    public static <T extends Tag> Optional<T> toOptional(@Nullable T tag) {
@@ -154,41 +163,17 @@ public class NBTUtilBC {
 
    @Nonnull
    public static CompoundTag itemStackToNBT(@Nonnull ItemStack stack) {
-      if (stack.isEmpty()) {
-         return new CompoundTag();
-      }
-
-      CompoundTag nbt = new CompoundTag();
-      Identifier itemId = BuiltInRegistries.ITEM.getKey(stack.getItem());
-      nbt.putString("id", itemId.toString());
-      nbt.putInt("count", stack.getCount());
-      return nbt;
+      return stack.isEmpty()
+         ? new CompoundTag()
+         : ItemStack.CODEC.encodeStart(registryAwareOps(), stack)
+            .resultOrPartial()
+            .filter(CompoundTag.class::isInstance)
+            .map(CompoundTag.class::cast)
+            .orElseGet(CompoundTag::new);
    }
 
    @Nonnull
    public static ItemStack itemStackFromNBT(@Nonnull CompoundTag nbt) {
-      if (nbt.isEmpty()) {
-         return ItemStack.EMPTY;
-      } else {
-         String idStr = BcNbt.getString(nbt, "id", "");
-         if (idStr.isEmpty()) {
-            return ItemStack.EMPTY;
-         } else {
-            // tryParse, not parse: a malformed NBT id (uppercase, spaces, ...) would throw and abort the whole
-            // surrounding tile read; degrade to EMPTY instead, matching BcItemInventory.deserializeNBT.
-            Identifier itemId = Identifier.tryParse(idStr);
-            if (itemId == null) {
-               return ItemStack.EMPTY;
-            }
-
-            Item item = BcRegistryUtil.getItem(itemId);
-            if (item != null && item != Items.AIR) {
-               int count = BcNbt.getInt(nbt, "count", 1);
-               return new ItemStack(item, count);
-            } else {
-               return ItemStack.EMPTY;
-            }
-         }
-      }
+      return nbt.isEmpty() ? ItemStack.EMPTY : ItemStack.CODEC.parse(registryAwareOps(), nbt).resultOrPartial().orElse(ItemStack.EMPTY);
    }
 }

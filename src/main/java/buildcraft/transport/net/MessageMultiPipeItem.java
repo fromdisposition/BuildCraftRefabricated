@@ -14,6 +14,8 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.net.BCPacketLimits;
 import buildcraft.transport.pipe.flow.PipeFlowItems;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -23,6 +25,7 @@ import java.util.Map.Entry;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -84,8 +87,21 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
       return TYPE;
    }
 
-   public void append(BlockPos pos, ItemStack stack, int stackCount, boolean toCenter, Direction side, @Nullable DyeColor colour, int timeToDest) {
+   public static int encodedSize(ItemStack stack, RegistryAccess registries) {
+      ByteBuf raw = Unpooled.buffer(64, BCPacketLimits.MAX_DISPLAY_STACK_BYTES);
+      try {
+         ItemStack.OPTIONAL_STREAM_CODEC.encode(new RegistryFriendlyByteBuf(raw, registries), stack);
+         return raw.writerIndex();
+      } catch (RuntimeException e) {
+         return -1;
+      } finally {
+         raw.release();
+      }
+   }
+
+   public void append(BlockPos pos, ItemStack stack, int stackBytes, int stackCount, boolean toCenter, Direction side, @Nullable DyeColor colour, int timeToDest) {
       MessageMultiPipeItem.TravellingItemData data = new MessageMultiPipeItem.TravellingItemData(stack, stackCount, toCenter, side, colour, timeToDest);
+      data.stackBytes = stackBytes;
       int entryBytes = data.estimateBytes();
       if (this.estimatedBytes + entryBytes > BCPacketLimits.MAX_PIPE_ITEM_PACKET_BYTES) {
          BCLog.logger.warn("[transport.net] Dropping pipe item visual: packet byte budget exceeded");
@@ -133,6 +149,7 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
       @Nullable
       public final DyeColor colour;
       public final int timeToDest;
+      int stackBytes = 96;
 
       public TravellingItemData(ItemStack stack, int stackCount, boolean toCenter, Direction side, @Nullable DyeColor colour, int timeToDest) {
          this.stack = stack;
@@ -149,7 +166,7 @@ public class MessageMultiPipeItem implements CustomPacketPayload {
 
       int estimateBytes() {
          if (!this.useCompactStack()) {
-            return 96;
+            return 16 + this.stackBytes;
          }
 
          Identifier id = BuiltInRegistries.ITEM.getKey(this.stack.getItem());

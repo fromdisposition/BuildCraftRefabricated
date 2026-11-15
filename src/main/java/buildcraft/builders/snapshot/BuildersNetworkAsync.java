@@ -11,7 +11,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +22,7 @@ public final class BuildersNetworkAsync {
    private static final Map<UUID, Boolean> SNAPSHOT_INFLIGHT = new ConcurrentHashMap<>();
    private static final ExecutorService SERVER_COMPRESS = createPool("BC Builders Server %d", 1, Math.max(2, Runtime.getRuntime().availableProcessors() / 4));
    private static final ExecutorService CLIENT_DECOMPRESS = createPool("BC Builders Client %d", 1, Math.max(2, Runtime.getRuntime().availableProcessors() / 4));
-   private static final ExecutorService DISK_WRITE = createPool("BC Builders Disk %d", 1, 1);
+   private static final ExecutorService DISK_WRITE = Executors.newSingleThreadExecutor(Thread.ofPlatform().name("BC Builders Disk").daemon().factory());
    private static final ExecutorService SERVER_SERIALIZE = createPool(
       "BC Builders Serialize %d", 1, Math.max(2, Runtime.getRuntime().availableProcessors() / 4)
    );
@@ -30,14 +32,18 @@ public final class BuildersNetworkAsync {
 
    private static ExecutorService createPool(String namePattern, int core, int max) {
       return new ThreadPoolExecutor(
-         core,
-         max,
-         60L,
-         TimeUnit.SECONDS,
-         new LinkedBlockingQueue<>(MAX_QUEUE),
-         Thread.ofPlatform().name(namePattern, 0L).daemon().factory(),
-         (r, executor) -> BCLog.logger.warn("[builders.network] {} queue full, dropping task", namePattern)
+         core, max, 60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(MAX_QUEUE), Thread.ofPlatform().name(namePattern, 0L).daemon().factory()
       );
+   }
+
+   private static boolean submit(ExecutorService pool, String name, Runnable task) {
+      try {
+         pool.execute(task);
+         return true;
+      } catch (RejectedExecutionException e) {
+         BCLog.logger.warn("[builders.network] {} queue full, dropping task", name);
+         return false;
+      }
    }
 
    public static boolean tryAcquireSnapshot(UUID playerId) {
@@ -48,12 +54,12 @@ public final class BuildersNetworkAsync {
       SNAPSHOT_INFLIGHT.remove(playerId);
    }
 
-   public static void runServerCompress(Runnable task) {
-      SERVER_COMPRESS.execute(task);
+   public static boolean runServerCompress(Runnable task) {
+      return submit(SERVER_COMPRESS, "BC Builders Server", task);
    }
 
    public static void runClientDecompress(Runnable task) {
-      CLIENT_DECOMPRESS.execute(task);
+      submit(CLIENT_DECOMPRESS, "BC Builders Client", task);
    }
 
    public static void runDiskWrite(Runnable task) {

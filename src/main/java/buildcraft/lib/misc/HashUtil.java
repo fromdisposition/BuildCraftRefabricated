@@ -15,6 +15,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 
 public class HashUtil {
+   public static final int HASH_LENGTH = 32;
+
    public static byte[] computeHash(CompoundTag nbt) {
       try {
          MessageDigest digest = MessageDigest.getInstance("SHA-256");

@@ -11,6 +11,13 @@ import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeDefinition;
 
 public class BCTransportConfig {
+   public enum PowerLossMode {
+      LOSSLESS,
+      PERCENTAGE,
+      ABSOLUTE
+   }
+
+   public static PowerLossMode kinesisLossMode = PowerLossMode.LOSSLESS;
    public static boolean disableRfPipe = false;
    public static long mjPerItem = 1_000_000L;
    public static long mjPerMillibucket = 1_000L;

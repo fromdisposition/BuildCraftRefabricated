@@ -10,7 +10,6 @@ public final class BCPacketLimits {
    public static final int MAX_PAYLOAD_BYTES = 65536;
    public static final int MAX_CHUNK_BYTES = 32768;
    public static final int MAX_ASSEMBLED_BYTES = 4194304;
-   public static final long MAX_COMPRESSED_NBT_BYTES = 2097152L;
    public static final int MAX_MARKER_POSITIONS = 8192;
    public static final int MAX_DEBUG_STRINGS = 256;
    public static final int MAX_DEBUG_STRING_LENGTH = 4096;
@@ -20,6 +19,7 @@ public final class BCPacketLimits {
    public static final int MAX_VOLUME_BOXES = 512;
    public static final int MAX_PIPE_ITEM_BLOCKS = 4000;
    public static final int MAX_PIPE_ITEMS_PER_BLOCK = 10;
+   public static final int MAX_DISPLAY_STACK_BYTES = 2048;
    public static final int MAX_PIPE_PAYLOAD_ENTRIES = 4000;
    public static final int MAX_TRANSPORT_BATCH_PACKET_BYTES = 524288;
    public static final int MAX_PIPE_ITEM_PACKET_BYTES = 524288;

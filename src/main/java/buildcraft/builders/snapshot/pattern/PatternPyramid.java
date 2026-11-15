@@ -52,10 +52,8 @@ public class PatternPyramid extends Pattern implements IFillerPatternShape {
 
    @Override
    public boolean fillTemplate(IFilledTemplate filledTemplate, IStatementParameter[] params) {
-      PatternPyramid.PyramidDir dir = params.length >= 2 && params[1] != null
-         ? PYRAMID_DIRS.get((PatternParameterCenter)params[1])
-         : PYRAMID_DIRS.get(PatternParameterCenter.CENTER);
-      int stepY = params.length >= 1 && params[0] != null && !((PatternParameterYDir)params[0]).up ? -1 : 1;
+      PatternPyramid.PyramidDir dir = PYRAMID_DIRS.get(getParam(1, params, PatternParameterCenter.CENTER));
+      int stepY = getParam(0, params, PatternParameterYDir.UP).up ? 1 : -1;
       int y = stepY == 1 ? 0 : filledTemplate.getMax().getY();
       int xLower = 0;
       int xUpper = filledTemplate.getMax().getX();

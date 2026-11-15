@@ -41,7 +41,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class WireSystem {
    public final ImmutableList<WireSystem.WireElement> elements;
@@ -100,7 +99,8 @@ public final class WireSystem {
       this.cachedWiresHashCode = this.computeCachedWiresHashCode();
    }
 
-   public WireSystem(SavedDataWireSystems wireSystems, WireSystem.WireElement startElement) {
+   public WireSystem(SavedDataWireSystems wireSystems, WireSystem.WireElement startElement, Set<WireSystem> replaced) {
+      Level world = wireSystems.world;
       Map<BlockPos, IPipeHolder> holdersCache = new HashMap<>();
       Set<WireSystem.WireElement> walked = new HashSet<>();
       Queue<WireSystem.WireElement> queue = new ArrayDeque<>();
@@ -110,41 +110,45 @@ public final class WireSystem {
 
       while (!queue.isEmpty()) {
          WireSystem.WireElement element = queue.remove();
-         if (!walked.contains(element)) {
-            if (!holdersCache.containsKey(element.blockPos)) {
-               BlockEntity tile = wireSystems.world.getBlockEntity(element.blockPos);
-               IPipeHolder holder = null;
-               if (tile instanceof IPipeHolder) {
-                  holder = (IPipeHolder)tile;
-               }
+         if (!walked.add(element)) {
+            continue;
+         }
 
-               holdersCache.put(element.blockPos, holder);
+         boolean loaded = world.isLoaded(element.blockPos);
+         if (loaded && !holdersCache.containsKey(element.blockPos)) {
+            holdersCache.put(element.blockPos, world.getBlockEntity(element.blockPos) instanceof IPipeHolder tile ? tile : null);
+         }
+
+         IPipeHolder holder = holdersCache.get(element.blockPos);
+         List<WireSystem> saved = wireSystems.getWireSystemsWithElementAsReadOnlyList(element);
+         if (element.type == WireSystem.WireElement.Type.WIRE_PART) {
+            DyeColor colorOfPart = loaded
+               ? (holder == null ? null : holder.getWireManager().getColorOfPart(element.wirePart))
+               : (saved.isEmpty() ? null : saved.get(0).color);
+            if (tempColor == null) {
+               tempColor = colorOfPart;
             }
 
-            IPipeHolder holder = holdersCache.get(element.blockPos);
-            if (holder != null) {
-               if (element.type == WireSystem.WireElement.Type.WIRE_PART) {
-                  DyeColor colorOfPart = holder.getWireManager().getColorOfPart(element.wirePart);
-                  if (tempColor == null && colorOfPart != null) {
-                     tempColor = colorOfPart;
-                  }
+            if (colorOfPart != null && colorOfPart == tempColor) {
+               DyeColor colorButFinal = tempColor;
+               saved.stream().filter(wireSystem -> wireSystem.color == colorButFinal).forEach(replaced::add);
+               elementBuilder.add(element);
+               WireNode node = new WireNode(element.blockPos, element.wirePart);
 
-                  if (tempColor != null && colorOfPart == tempColor) {
-                     DyeColor colorButFinal = tempColor;
-                     wireSystems.getWireSystemsWithElement(element)
-                        .stream()
-                        .filter(wireSystem -> wireSystem != this && wireSystem.color == colorButFinal)
-                        .forEach(wireSystems::removeWireSystem);
-                     elementBuilder.add(element);
-                     queue.addAll(getConnectedElementsOfElement(wireSystems.world, element));
-                     Arrays.stream(Direction.values()).forEach(side -> queue.add(new WireSystem.WireElement(element.blockPos, side)));
+               for (Direction face : Direction.values()) {
+                  WireNode oNode = node.offset(face);
+                  WireSystem.WireElement oElement = new WireSystem.WireElement(oNode.pos, oNode.part);
+                  boolean connected = oNode.pos == node.pos
+                     || (loaded && world.isLoaded(oNode.pos) ? canWireConnect(holder, face) : shareWireSystem(wireSystems, element, oElement));
+                  if (connected) {
+                     queue.add(oElement);
                   }
-               } else if (element.type == WireSystem.WireElement.Type.EMITTER_SIDE && holder.getPluggable(element.emitterSide) instanceof IWireEmitter) {
-                  elementBuilder.add(new WireSystem.WireElement(element.blockPos, element.emitterSide));
                }
-            }
 
-            walked.add(element);
+               Arrays.stream(Direction.values()).forEach(side -> queue.add(new WireSystem.WireElement(element.blockPos, side)));
+            }
+         } else if (loaded ? holder != null && holder.getPluggable(element.emitterSide) instanceof IWireEmitter : !saved.isEmpty()) {
+            elementBuilder.add(element);
          }
       }
 
@@ -153,6 +157,11 @@ public final class WireSystem {
       this.hasEmitters = computeHasEmitters(this.elements);
       this.cachedHashCode = this.computeHashCode();
       this.cachedWiresHashCode = this.computeCachedWiresHashCode();
+   }
+
+   private static boolean shareWireSystem(SavedDataWireSystems wireSystems, WireSystem.WireElement a, WireSystem.WireElement b) {
+      List<WireSystem> systemsOfB = wireSystems.getWireSystemsWithElementAsReadOnlyList(b);
+      return !systemsOfB.isEmpty() && wireSystems.getWireSystemsWithElementAsReadOnlyList(a).stream().anyMatch(systemsOfB::contains);
    }
 
    private static boolean computeHasEmitters(ImmutableList<WireSystem.WireElement> wireElements) {

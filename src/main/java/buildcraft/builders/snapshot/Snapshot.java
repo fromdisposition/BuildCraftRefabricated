@@ -14,6 +14,8 @@ import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.RotationUtil;
 import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.misc.data.Box;
+import buildcraft.lib.net.BCPacketLimits;
+import io.netty.handler.codec.DecoderException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
@@ -86,6 +88,13 @@ public abstract class Snapshot {
       return getDataSize(size.getX(), size.getY(), size.getZ());
    }
 
+   public static boolean isValidSize(BlockPos size) {
+      return size.getX() > 0
+         && size.getY() > 0
+         && size.getZ() > 0
+         && (long)size.getX() * size.getY() * size.getZ() <= BCPacketLimits.MAX_ARCHITECT_SCAN_POSITIONS;
+   }
+
    public int getDataSize() {
       return getDataSize(this.size);
    }
@@ -120,6 +129,10 @@ public abstract class Snapshot {
    public void deserializeNBT(CompoundTag nbt) throws InvalidInputDataException {
       this.key = new Snapshot.Key(BcNbt.getCompound(nbt, "key"));
       this.size = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "size"));
+      if (!isValidSize(this.size)) {
+         throw new InvalidInputDataException("Invalid snapshot size " + this.size.toShortString());
+      }
+
       this.facing = NBTUtilBC.readEnum(nbt.get("facing"), Direction.class);
       this.offset = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "offset"));
    }
@@ -184,21 +197,25 @@ public abstract class Snapshot {
       public final String name;
 
       public Header(Snapshot.Key key, UUID owner, Date created, String name) {
-         this.key = key;
+         this.key = key.header == null ? key : new Snapshot.Key(key, (Snapshot.Header)null);
          this.owner = owner;
          this.created = created;
          this.name = name;
       }
 
       public Header(CompoundTag nbt) {
-         this.key = new Snapshot.Key(BcNbt.getCompound(nbt, "key"));
+         this.key = new Snapshot.Key(new Snapshot.Key(), Snapshot.Key.readHash(BcNbt.getCompound(nbt, "key")));
          this.owner = NBTUtilBC.getUUID(nbt, "owner");
          this.created = new Date(BcNbt.getLong(nbt, "created", 0L));
          this.name = BcNbt.getString(nbt, "name", "");
       }
 
       public Header(FriendlyByteBuf buf) {
-         this.key = new Snapshot.Key(buf);
+         this.key = new Snapshot.Key(new Snapshot.Key(), buf.readByteArray(HashUtil.HASH_LENGTH));
+         if (buf.readByte() != 0) {
+            throw new DecoderException("Nested snapshot header");
+         }
+
          this.owner = buf.readUUID();
          this.created = new Date(buf.readLong());
          this.name = buf.readUtf(1024);
@@ -265,16 +282,20 @@ public abstract class Snapshot {
       }
 
       public Key(CompoundTag nbt) {
-         //? if >= 1.21.10 {
-         this.hash = nbt.getByteArray("hash").orElse(new byte[0]);
-         //?} else {
-         /*this.hash = nbt.getByteArray("hash");
-         *///?}
+         this.hash = readHash(nbt);
          this.header = nbt.contains("header") ? new Snapshot.Header(BcNbt.getCompound(nbt, "header")) : null;
       }
 
+      static byte[] readHash(CompoundTag nbt) {
+         //? if >= 1.21.10 {
+         return nbt.getByteArray("hash").orElse(new byte[0]);
+         //?} else {
+         /*return nbt.getByteArray("hash");
+         *///?}
+      }
+
       public Key(FriendlyByteBuf buf) {
-         this.hash = buf.readByteArray();
+         this.hash = buf.readByteArray(HashUtil.HASH_LENGTH);
          this.header = buf.readByte() != 0 ? new Snapshot.Header(buf) : null;
       }
 

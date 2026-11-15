@@ -5,7 +5,7 @@
       "buildcraftbuilders:builder"
     ],
     "replaceNbt": {
-      "builder": null
+      "builderState": null
     }
   }
 ]

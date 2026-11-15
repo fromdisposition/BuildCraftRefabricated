@@ -9,10 +9,12 @@ package buildcraft.lib.marker;
 import buildcraft.api.core.BCDebugging;
 import buildcraft.api.core.BCLog;
 import buildcraft.lib.client.render.laser.LaserData_BC8;
+import buildcraft.lib.net.BCPacketLimits;
 import buildcraft.lib.net.BcPacketDistributor;
 import buildcraft.lib.net.MessageMarker;
 import buildcraft.lib.tile.TileMarker;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -50,10 +52,8 @@ public abstract class MarkerSubCache<C extends MarkerConnection<C>> {
 
    public void onPlayerJoinWorld(ServerPlayer player) {
       if (this.isServer) {
-         if (!this.tileCache.isEmpty()) {
-            List<BlockPos> positions = new ArrayList<>(this.tileCache.keySet());
-            MessageMarker message = new MessageMarker(true, false, this.cacheId, positions);
-            BcPacketDistributor.sendToPlayer(player, message);
+         for (List<BlockPos> part : Lists.partition(new ArrayList<>(this.tileCache.keySet()), BCPacketLimits.MAX_MARKER_POSITIONS)) {
+            BcPacketDistributor.sendToPlayer(player, new MessageMarker(true, false, this.cacheId, new ArrayList<>(part)));
          }
 
          for (C connection : this.connectionToPos.keySet()) {
@@ -240,9 +240,9 @@ public abstract class MarkerSubCache<C extends MarkerConnection<C>> {
       }
 
       if (this.isServer && set.size() > 0) {
-         List<BlockPos> positions = new ArrayList<>(set);
-         MessageMarker message = new MessageMarker(false, true, this.cacheId, positions);
-         this.sendToDimension(message);
+         for (List<BlockPos> part : Lists.partition(new ArrayList<>(set), BCPacketLimits.MAX_MARKER_POSITIONS)) {
+            this.sendToDimension(new MessageMarker(false, true, this.cacheId, new ArrayList<>(part)));
+         }
       }
    }
 

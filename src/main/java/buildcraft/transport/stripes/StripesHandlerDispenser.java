@@ -8,6 +8,7 @@ package buildcraft.transport.stripes;
 
 import buildcraft.api.transport.IStripesActivator;
 import buildcraft.api.transport.IStripesHandlerItem;
+import buildcraft.lib.misc.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -24,12 +25,12 @@ public enum StripesHandlerDispenser implements IStripesHandlerItem {
 
    @Override
    public boolean handle(Level world, BlockPos pos, Direction direction, ItemStack stack, Player player, IStripesActivator activator) {
-      if (!(world instanceof ServerLevel)) {
+      BlockPos target = pos.relative(direction);
+      if (!(world instanceof ServerLevel serverLevel) || !BlockUtil.canMachinePlace(serverLevel, target, player.getGameProfile(), pos)) {
          return false;
       }
 
       player.setItemInHand(InteractionHand.MAIN_HAND, stack);
-      BlockPos target = pos.relative(direction);
       BlockHitResult hitDirect = new BlockHitResult(Vec3.atCenterOf(target), direction.getOpposite(), target, false);
       UseOnContext ctxDirect = new UseOnContext(world, player, InteractionHand.MAIN_HAND, stack, hitDirect);
       if (stack.useOn(ctxDirect).consumesAction()) {

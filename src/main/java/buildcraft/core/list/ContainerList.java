@@ -27,12 +27,14 @@ public class ContainerList extends BcMenu {
    private static final int NET_BUTTON = 2;
    public ListHandler.Line[] lines;
    private final InteractionHand hand;
+   private final ItemStack openedStack;
    private final ItemHandlerSimple[] lineInventories;
 
    public ContainerList(int containerId, Inventory playerInv, InteractionHand hand) {
       super(BCCoreMenuTypes.LIST, containerId, playerInv.player);
       this.hand = hand;
-      this.lines = ListHandler.getLines(this.getListItemStack());
+      this.openedStack = this.getListItemStack();
+      this.lines = ListHandler.getLines(this.openedStack);
       this.lineInventories = new ItemHandlerSimple[this.lines.length];
 
       for (int line = 0; line < this.lines.length; line++) {
@@ -52,7 +54,8 @@ public class ContainerList extends BcMenu {
 
    @Override
    public boolean stillValid(Player player) {
-      return !this.getListItemStack().isEmpty();
+      ItemStack stack = this.getListItemStack();
+      return !stack.isEmpty() && stack == this.openedStack;
    }
 
    @Nonnull

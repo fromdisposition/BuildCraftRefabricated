@@ -125,7 +125,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
          WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(this.level);
          VolumeBox volumeBox = volumeBoxes.getVolumeBoxAt(offsetPos);
          BlockEntity tile = this.level.getBlockEntity(offsetPos);
-         if (volumeBox != null) {
+         if (volumeBox != null && isScannable(volumeBox.box.min(), volumeBox.box.max())) {
             this.box.reset();
             this.box.setMin(volumeBox.box.min());
             this.box.setMax(volumeBox.box.max());
@@ -140,7 +140,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
                   )
                );
             volumeBoxes.markDirtyAndBroadcast();
-         } else if (tile instanceof IAreaProvider provider) {
+         } else if (tile instanceof IAreaProvider provider && isScannable(provider.min(), provider.max())) {
             this.box.reset();
             this.box.setMin(provider.min());
             this.box.setMax(provider.max());
@@ -157,6 +157,10 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
             this.level.sendBlockUpdated(this.worldPosition, this.getBlockState(), this.getBlockState(), 3);
          }
       }
+   }
+
+   private static boolean isScannable(BlockPos min, BlockPos max) {
+      return Snapshot.isValidSize(max.subtract(min).offset(1, 1, 1));
    }
 
    public void tick() {
@@ -441,7 +445,7 @@ public class TileArchitectTable extends BcBlockEntity implements IDebuggable, Me
       int stOrd = input.getIntOr("snapshotType", 0);
       EnumSnapshotType[] stValues = EnumSnapshotType.values();
       this.snapshotType = stOrd >= 0 && stOrd < stValues.length ? stValues[stOrd] : EnumSnapshotType.BLUEPRINT;
-      this.isValid = input.getBooleanOr("isValid", false);
+      this.isValid = input.getBooleanOr("isValid", false) && this.box.isInitialized() && isScannable(this.box.min(), this.box.max());
       this.name = input.getStringOr("name", "<unnamed>");
       input.read("items", CompoundTag.CODEC).ifPresent(this.itemManager::deserializeNBT);
       if (this.invSnapshotIn.getStackInSlot(0).isEmpty()) {

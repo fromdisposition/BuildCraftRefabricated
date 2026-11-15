@@ -53,9 +53,9 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 implements MenuProvid
    public static final int MAX_COOLANT_PER_TICK = 40;
    public static final double HEAT_PER_MJ = 0.0023;
    public static final double IDEAL_HEAT = 204.0;
-   public final SingleFluidTank tankFuel = new SingleFluidTank(MAX_FLUID, SingleFluidTank.TankAccess.filteredInput(this::isValidFuel));
-   public final SingleFluidTank tankCoolant = new SingleFluidTank(MAX_FLUID, SingleFluidTank.TankAccess.filteredInput(this::isValidCoolant));
-   public final SingleFluidTank tankResidue = new SingleFluidTank(MAX_FLUID, SingleFluidTank.TankAccess.MACHINE_OUTPUT);
+   public final SingleFluidTank tankFuel = new SingleFluidTank(MAX_FLUID, SingleFluidTank.TankAccess.filteredInput(this::isValidFuel), this::setChanged);
+   public final SingleFluidTank tankCoolant = new SingleFluidTank(MAX_FLUID, SingleFluidTank.TankAccess.filteredInput(this::isValidCoolant), this::setChanged);
+   public final SingleFluidTank tankResidue = new SingleFluidTank(MAX_FLUID, SingleFluidTank.TankAccess.MACHINE_OUTPUT, this::setChanged);
    private int penaltyCooling = 0;
    private boolean lastPowered = false;
    private double burnTime;

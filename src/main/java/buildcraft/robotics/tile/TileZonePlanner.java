@@ -21,6 +21,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup.Provider;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -275,6 +276,17 @@ public class TileZonePlanner extends BcBlockEntity implements MenuProvider, Bloc
       input.read("invOutputResult", CompoundTag.CODEC).ifPresent(this.invOutputResult::deserializeNBT);
       this.progressInput = input.getIntOr("progressInput", -1);
       this.progressOutput = input.getIntOr("progressOutput", -1);
+   }
+
+   @Override
+   public CompoundTag getUpdateTag(Provider registries) {
+      CompoundTag tag = super.getUpdateTag(registries);
+
+      for (int i = 0; i < this.layers.length; i++) {
+         tag.remove("layer_" + i);
+      }
+
+      return tag;
    }
 
    @Override

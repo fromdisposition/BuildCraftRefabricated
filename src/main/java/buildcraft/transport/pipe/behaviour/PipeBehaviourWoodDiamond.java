@@ -56,7 +56,7 @@ public class PipeBehaviourWoodDiamond extends PipeBehaviourWood {
       }
 
       this.filterMode = PipeBehaviourWoodDiamond.FilterMode.get(BcNbt.getByte(nbt, "mode", (byte)0));
-      this.currentFilter = BcNbt.getByte(nbt, "currentFilter", (byte)0) % this.filters.getSlots();
+      this.currentFilter = Math.floorMod(BcNbt.getByte(nbt, "currentFilter", (byte)0), this.filters.getSlots());
       this.filterValid = this.hasAnyFilter();
    }
 
@@ -74,7 +74,7 @@ public class PipeBehaviourWoodDiamond extends PipeBehaviourWood {
       super.readFromNbt(nbt);
       this.filters.deserializeNBT(BcNbt.getCompound(nbt, "filters"));
       this.filterMode = PipeBehaviourWoodDiamond.FilterMode.get(BcNbt.getByte(nbt, "mode", (byte)0));
-      this.currentFilter = BcNbt.getByte(nbt, "currentFilter", (byte)0) % this.filters.getSlots();
+      this.currentFilter = Math.floorMod(BcNbt.getByte(nbt, "currentFilter", (byte)0), this.filters.getSlots());
       this.filterValid = this.hasAnyFilter();
    }
 

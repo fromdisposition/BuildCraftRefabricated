@@ -60,11 +60,11 @@ public class StatementParameterItemStack implements IStatementParameter {
    }
 
    public StatementParameterItemStack onClick(IStatementContainer source, IStatement stmt, ItemStack clickedStack, StatementMouseClick mouseClick) {
-      if (this.stack.isEmpty()) {
+      if (clickedStack.isEmpty()) {
          return EMPTY;
       }
 
-      ItemStack newStack = this.stack.copy();
+      ItemStack newStack = clickedStack.copy();
       newStack.setCount(1);
       return new StatementParameterItemStack(newStack);
    }

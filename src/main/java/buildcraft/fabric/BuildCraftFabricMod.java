@@ -16,10 +16,17 @@ import buildcraft.transport.platform.BCTransportFabric;
 import buildcraft.fabric.BCRecipeBootstrap;
 import buildcraft.fabric.network.BCNetworkingRegistry;
 import buildcraft.lib.fabric.BCBlockEntityLifecycleEvents;
+import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.lib.fabric.transfer.BcTransfers;
 import buildcraft.lib.marker.MarkerCache;
 import buildcraft.transport.wire.SavedDataWireSystems;
 import net.fabricmc.api.ModInitializer;
+//? if >= 26.1 {
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
+//?} else {
+/*import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+*///?}
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.world.InteractionResult;
@@ -37,6 +44,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents.EndTick;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents.Join;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 public class BuildCraftFabricMod implements ModInitializer {
    @Override
@@ -57,10 +65,12 @@ public class BuildCraftFabricMod implements ModInitializer {
       BCSiliconFabric.register();
       BCRoboticsFabric.register();
       ServerLifecycleEvents.SERVER_STARTING.register((ServerStarting)server -> {
+         BcRegistryUtil.setServer(server);
          buildcraft.silicon.plug.FacadeStateManager.ensureInitialized();
          BCRecipeBootstrap.initSiliconRecipes();
          BCRecipeBootstrap.initEnergyRecipes();
       });
+      ServerLifecycleEvents.SERVER_STOPPED.register(server -> BcRegistryUtil.setServer(null));
       BcTransfers.init();
       // The own wrench handles itself in useOn. This fires before block.useItemOn, so PASS when applyWrench does
       // nothing lets the block's own wrench handling run.
@@ -78,11 +88,15 @@ public class BuildCraftFabricMod implements ModInitializer {
          }
       });
       ServerTickEvents.END_SERVER_TICK.register((EndTick)server -> server.getAllLevels().forEach(level -> WorldSavedDataVolumeBoxes.get(level).tick()));
-      ServerPlayConnectionEvents.JOIN.register((Join)(handler, sender, server) -> {
-         MarkerCache.onPlayerJoinWorld(handler.player);
-         if (handler.player.level() instanceof ServerLevel joinLevel) {
-            WorldSavedDataVolumeBoxes.get(joinLevel).sendTo(handler.player);
-            SavedDataWireSystems.get(joinLevel).sendTo(handler.player);
+      ServerPlayConnectionEvents.JOIN.register((Join)(handler, sender, server) -> sendLevelState(handler.player));
+      //? if >= 26.1 {
+      ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> sendLevelState(player));
+      //?} else {
+      /*ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> sendLevelState(player));
+      *///?}
+      ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+         if (oldPlayer.level() != newPlayer.level()) {
+            sendLevelState(newPlayer);
          }
       });
       // Marker sub-caches are keyed by dimension id, which collides across worlds in one session; without the
@@ -98,5 +112,13 @@ public class BuildCraftFabricMod implements ModInitializer {
          buildcraft.lib.fabric.transfer.BcTransfers.onLevelUnload(world);
       });
       *///?}
+   }
+
+   private static void sendLevelState(ServerPlayer player) {
+      MarkerCache.onPlayerJoinWorld(player);
+      if (player.level() instanceof ServerLevel level) {
+         WorldSavedDataVolumeBoxes.get(level).sendTo(player);
+         SavedDataWireSystems.get(level).sendTo(player);
+      }
    }
 }

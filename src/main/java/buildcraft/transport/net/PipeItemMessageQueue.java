@@ -41,7 +41,10 @@ public final class PipeItemMessageQueue {
       Level world, BlockPos pos, ItemStack stack, int stackCount, boolean toCenter, Direction side, @Nullable DyeColor colour, int timeToDest
    ) {
       if (world instanceof ServerLevel server) {
-         QUEUE.forTracking(server, pos, (player, packet) -> packet.append(pos, stack, stackCount, toCenter, side, colour, timeToDest));
+         int size = MessageMultiPipeItem.encodedSize(stack, server.registryAccess());
+         ItemStack visual = size < 0 ? new ItemStack(stack.getItem()) : stack;
+         int bytes = size < 0 ? MessageMultiPipeItem.encodedSize(visual, server.registryAccess()) : size;
+         QUEUE.forTracking(server, pos, (player, packet) -> packet.append(pos, visual, bytes, stackCount, toCenter, side, colour, timeToDest));
       }
    }
 }

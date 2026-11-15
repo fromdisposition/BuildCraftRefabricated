@@ -16,6 +16,10 @@ public enum ClientWireSystems implements ClientStateMirror {
 
    public final Map<Integer, WireSystem> wireSystems = new HashMap<>();
 
+   public void clear() {
+      this.wireSystems.clear();
+   }
+
    public void applyRemoved(@Nullable int[] removedIds) {
       if (removedIds != null) {
          for (int id : removedIds) {

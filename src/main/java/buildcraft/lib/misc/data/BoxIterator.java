@@ -65,8 +65,21 @@ public class BoxIterator implements Iterator<BlockPos> {
       boolean invert = BcNbt.getBoolean(nbt, "invert", false);
       boolean repeat = false;
       AxisOrder order = AxisOrder.readNbt(BcNbt.getCompound(nbt, "order"));
-      BlockPos current = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "current"));
-      return min != null && max != null && order != null ? new BoxIterator(min, max, invert, repeat, order, current) : null;
+      if (min == null || max == null || order == null) {
+         return null;
+      }
+
+      BoxIterator iterator = new BoxIterator(min, max, invert, repeat, order, null);
+      if (!nbt.contains("current")) {
+         iterator.current = null;
+      } else {
+         BlockPos current = NBTUtilBC.readBlockPos(BcNbt.getCompound(nbt, "current"));
+         if (iterator.contains(current)) {
+            iterator.current = current;
+         }
+      }
+
+      return iterator;
    }
 
    public CompoundTag writeToNbt() {

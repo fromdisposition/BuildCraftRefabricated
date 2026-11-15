@@ -49,7 +49,7 @@ public abstract class MarkerCache<S extends MarkerSubCache<?>> {
 
    /** Sub-caches are keyed by dimension id, which collides across worlds/servers in one session; the server resends
     * all marker state on the next join, so disconnect just drops every client sub-cache to avoid ghost markers. */
-   public static void onClientDisconnect() {
+   public static void clearClientCaches() {
       for (MarkerCache<?> cache : CACHES) {
          cache.cacheClient.clear();
       }

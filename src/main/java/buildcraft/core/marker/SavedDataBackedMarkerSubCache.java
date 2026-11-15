@@ -8,7 +8,10 @@ package buildcraft.core.marker;
 
 import buildcraft.lib.marker.MarkerConnection;
 import buildcraft.lib.marker.MarkerSubCache;
+import buildcraft.lib.net.BCPacketLimits;
 import buildcraft.lib.net.MessageMarker;
+import com.google.common.collect.Lists;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import net.minecraft.core.BlockPos;
@@ -26,8 +29,10 @@ public abstract class SavedDataBackedMarkerSubCache<C extends MarkerConnection<C
       }
 
       for (List<BlockPos> connectionPositions : data.markerConnections) {
-         if (connectionPositions.size() >= 2) {
-            this.addConnection(connectionFactory.apply(this, connectionPositions));
+         for (List<BlockPos> part : Lists.partition(connectionPositions, BCPacketLimits.MAX_MARKER_POSITIONS)) {
+            if (part.size() >= 2) {
+               this.addConnection(connectionFactory.apply(this, new ArrayList<>(part)));
+            }
          }
       }
 

@@ -20,6 +20,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +41,7 @@ public class GlobalSavedDataSnapshots {
    private static final String SNAPSHOT_FILE_EXTENSION = ".bcnbt";
    private static final Map<GlobalSavedDataSnapshots.Side, GlobalSavedDataSnapshots> INSTANCES = new EnumMap<>(GlobalSavedDataSnapshots.Side.class);
    private final LoadingCache<Snapshot.Key, Optional<Snapshot>> snapshotsCache = CacheBuilder.newBuilder()
+      .maximumSize(256L)
       //? if >= 26.2 {
       .expireAfterAccess(java.time.Duration.ofMinutes(10))
       //?} else {
@@ -71,34 +75,10 @@ public class GlobalSavedDataSnapshots {
       return get(world.isClientSide() ? GlobalSavedDataSnapshots.Side.CLIENT : GlobalSavedDataSnapshots.Side.SERVER);
    }
 
+   @Nullable
    private Pair<Snapshot, File> readSnapshot(Snapshot.Key key) {
       File direct = this.snapshotFileFor(key);
-      if (direct.isFile()) {
-         return this.readSnapshotFile(direct, key);
-      }
-
-      String targetPrefix = key.toString();
-      LOGGER.debug("readSnapshot: looking for key-prefix={} in dir={}", targetPrefix, this.snapshotsFile);
-      File[] files = this.snapshotsFile.listFiles();
-      if (files == null) {
-         LOGGER.warn("readSnapshot: listFiles() returned null for dir={}", this.snapshotsFile);
-         return null;
-      }
-
-      int matchedPrefix = 0;
-
-      for (File snapshotFile : files) {
-         if (snapshotFile.getName().startsWith(targetPrefix) && snapshotFile.getName().endsWith(SNAPSHOT_FILE_EXTENSION)) {
-            matchedPrefix++;
-            Pair<Snapshot, File> loaded = this.readSnapshotFile(snapshotFile, key);
-            if (loaded != null) {
-               return loaded;
-            }
-         }
-      }
-
-      LOGGER.debug("readSnapshot: no file matched prefix={} (files-with-prefix-match={})", targetPrefix, matchedPrefix);
-      return null;
+      return direct.isFile() ? this.readSnapshotFile(direct, key) : null;
    }
 
    @Nullable
@@ -138,7 +118,7 @@ public class GlobalSavedDataSnapshots {
                   }
                } catch (InvalidInputDataException e) {
                   BCLog.logger.warn("Skipping corrupted snapshot file: " + snapshotFile + " - " + e.getMessage());
-               } catch (IOException io) {
+               } catch (IOException | RuntimeException io) {
                   BCLog.logger.error("Failed to read the snapshot " + snapshotFile, io);
                }
             }
@@ -155,12 +135,18 @@ public class GlobalSavedDataSnapshots {
          CompoundTag nbt = Snapshot.writeToNBT(snapshot);
          this.listCache.clear();
          BuildersNetworkAsync.runDiskWrite(() -> {
-            try (FileOutputStream fileOutputStream = new FileOutputStream(snapshotFile)) {
-               NbtSquisher.squishVanilla(nbt, fileOutputStream);
+            Path tempFile = null;
+            try {
+               tempFile = Files.createTempFile(this.snapshotsFile.toPath(), snapshot.key.toString(), ".tmp");
+               try (FileOutputStream fileOutputStream = new FileOutputStream(tempFile.toFile())) {
+                  NbtSquisher.squishVanilla(nbt, fileOutputStream);
+               }
+
+               Files.move(tempFile, snapshotFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             } catch (IOException e) {
                BCLog.logger.error("Failed to write the snapshot file: " + snapshotFile, e);
-               if (snapshotFile.exists() && !snapshotFile.delete()) {
-                  BCLog.logger.warn("Failed to delete partial snapshot file: {}", snapshotFile);
+               if (tempFile != null && tempFile.toFile().exists() && !tempFile.toFile().delete()) {
+                  BCLog.logger.warn("Failed to delete partial snapshot file: {}", tempFile);
                }
             }
 

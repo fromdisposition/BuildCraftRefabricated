@@ -43,6 +43,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
@@ -319,6 +320,21 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
          .forEach(fluidStack -> this.tile.getFluidTanks().insertMillibuckets(fluidStack, fluidStack.getAmount(), true));
    }
 
+   private void removeEntity(Entity entity) {
+      ServerLevel level = (ServerLevel)this.tile.getWorldBC();
+      ISchematicEntity schematic = SchematicEntityManager.getSchematicEntity(new SchematicEntityContext(level, BlockPos.ZERO, entity));
+      if (schematic != null) {
+         for (ItemStack stack : schematic.computeRequiredItems()) {
+            ItemStack remaining = this.tile.getInvResources().insert(stack.copy(), false, false);
+            if (!remaining.isEmpty()) {
+               Block.popResource(level, entity.blockPosition(), remaining);
+            }
+         }
+      }
+
+      entity.discard();
+   }
+
    @Override
    protected boolean isBlockCorrect(BlockPos blockPos) {
       if (this.getBuildingInfo() == null) {
@@ -410,7 +426,9 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                }
             }
 
-            if (!foundClose && SchematicEntityManager.getSchematicEntity(new SchematicEntityContext(this.tile.getWorldBC(), BlockPos.ZERO, entity)) != null) {
+            if (!foundClose
+               && SchematicEntityManager.getSchematicEntity(new SchematicEntityContext(this.tile.getWorldBC(), BlockPos.ZERO, entity)) != null
+               && BlockUtil.canMachineAttack((ServerLevel)this.tile.getWorldBC(), entity, this.tile.getOwner())) {
                toKill.add(entity);
             }
          }
@@ -421,7 +439,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
             return false;
          }
 
-         toKill.forEach(Entity::discard);
+         toKill.forEach(this::removeEntity);
       }
 
       if (!super.tick()) {

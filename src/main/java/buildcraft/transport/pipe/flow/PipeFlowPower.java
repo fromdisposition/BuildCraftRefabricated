@@ -20,6 +20,7 @@ import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.MathUtil;
 import buildcraft.lib.misc.data.AverageInt;
+import buildcraft.transport.BCTransportConfig;
 import buildcraft.transport.tile.TilePipeHolder;
 
 import java.util.Arrays;
@@ -240,6 +241,7 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
    public void getDebugInfo(List<String> left, List<String> right, Direction side) {
       left.add("maxPower = " + LocaleUtil.localizeMj(this.maxPower));
       left.add("isReceiver = " + this.isReceiver);
+      left.add("lossMode = " + BCTransportConfig.kinesisLossMode);
       left.add("powerLoss = " + LocaleUtil.localizeMj(this.powerLoss) + ", resistance = " + this.powerResistance * 100.0 / MjAPI.MJ + "%");
       left.add("internalPower = " + this.arrayToString(s -> s.internalPower) + " <- " + this.arrayToString(s -> s.internalNextPower));
       left.add("- powerQuery: " + this.arrayToString(s -> s.powerQuery) + " <- " + this.arrayToString(s -> s.nextPowerQuery));
@@ -302,7 +304,7 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
          this.captureDisplaySnapshot(this.sections);
          this.step();
          PipeEnergySimulation.distributeInternalPower(this.sections, (targetFace, watts) -> {
-            long offered = this.applyResistance(watts);
+            long offered = this.applyLoss(watts);
             if (offered <= 0L) {
                return watts;
             }
@@ -341,10 +343,20 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
       return PipeNeighborMjAccess.receiver(this.pipe.getHolder(), side);
    }
 
-   private long applyResistance(long input) {
+   private long applyLoss(long input) {
       if (input <= 0L) {
          return 0L;
-      } else if (this.powerResistance <= 0L) {
+      }
+
+      return switch (BCTransportConfig.kinesisLossMode) {
+         case LOSSLESS -> input;
+         case PERCENTAGE -> this.applyResistance(input);
+         case ABSOLUTE -> Math.max(0L, input - Math.max(0L, this.powerLoss));
+      };
+   }
+
+   private long applyResistance(long input) {
+      if (this.powerResistance <= 0L) {
          return input;
       } else if (this.powerResistance >= MjAPI.MJ) {
          return 0L;
@@ -357,7 +369,17 @@ public class PipeFlowPower extends PipeEnergyFlowBase implements IFlowPower, IDe
    private long inputForDelivered(long delivered, long maxInput) {
       if (delivered <= 0L || maxInput <= 0L) {
          return 0L;
-      } else if (this.powerResistance <= 0L) {
+      }
+
+      return switch (BCTransportConfig.kinesisLossMode) {
+         case LOSSLESS -> Math.min(delivered, maxInput);
+         case PERCENTAGE -> this.inputForDeliveredWithResistance(delivered, maxInput);
+         case ABSOLUTE -> Math.min(delivered + Math.max(0L, this.powerLoss), maxInput);
+      };
+   }
+
+   private long inputForDeliveredWithResistance(long delivered, long maxInput) {
+      if (this.powerResistance <= 0L) {
          return Math.min(delivered, maxInput);
       }
 

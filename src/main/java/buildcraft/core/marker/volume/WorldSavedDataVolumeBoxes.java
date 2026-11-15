@@ -7,7 +7,9 @@
 package buildcraft.core.marker.volume;
 
 import buildcraft.lib.nbt.BcNbt;
+import buildcraft.lib.net.BCPacketLimits;
 import buildcraft.lib.net.BcPacketDistributor;
+import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -91,7 +93,13 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
    }
 
    public void sendTo(ServerPlayer player) {
-      BcPacketDistributor.sendToPlayer(player, this.createFullMessage());
+      List<CompoundTag> tags = this.volumeBoxes.stream().map(VolumeBox::writeToNBT).toList();
+      int first = Math.min(tags.size(), BCPacketLimits.MAX_VOLUME_BOXES);
+      BcPacketDistributor.sendToPlayer(player, MessageVolumeBoxes.full(tags.subList(0, first)));
+
+      for (List<CompoundTag> part : Lists.partition(tags.subList(first, tags.size()), BCPacketLimits.MAX_VOLUME_BOXES)) {
+         BcPacketDistributor.sendToPlayer(player, MessageVolumeBoxes.delta(List.of(), part));
+      }
    }
 
    public void markDirtyAndBroadcast() {
@@ -108,11 +116,6 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
       this.volumeBoxes.removeIf(vb -> vb.id.equals(id));
       this.setDirty();
       this.broadcastDelta(Set.of(), Set.of(id), lastKnownPos);
-   }
-
-   private MessageVolumeBoxes createFullMessage() {
-      List<CompoundTag> tags = this.volumeBoxes.stream().map(VolumeBox::writeToNBT).toList();
-      return MessageVolumeBoxes.full(tags);
    }
 
    private void broadcastDelta(Set<UUID> updatedIds, Set<UUID> removedIds) {
@@ -133,7 +136,16 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
       if (this.world instanceof ServerLevel sl) {
          if (!updatedIds.isEmpty() || !removedIds.isEmpty()) {
             List<CompoundTag> changed = updatedIds.stream().map(this::getVolumeBoxFromId).filter(Objects::nonNull).map(VolumeBox::writeToNBT).toList();
-            MessageVolumeBoxes message = MessageVolumeBoxes.delta(new ArrayList<>(removedIds), changed);
+            List<MessageVolumeBoxes> messages = new ArrayList<>();
+
+            for (List<UUID> part : Lists.partition(new ArrayList<>(removedIds), BCPacketLimits.MAX_VOLUME_BOXES)) {
+               messages.add(MessageVolumeBoxes.delta(part, List.of()));
+            }
+
+            for (List<CompoundTag> part : Lists.partition(changed, BCPacketLimits.MAX_VOLUME_BOXES)) {
+               messages.add(MessageVolumeBoxes.delta(List.of(), part));
+            }
+
             Set<ServerPlayer> sent = new HashSet<>();
             if (!updatedIds.isEmpty()) {
                for (UUID id : updatedIds) {
@@ -141,7 +153,7 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
                   if (box != null) {
                      for (ServerPlayer player : PlayerLookup.tracking(sl, getTrackingPos(box))) {
                         if (sent.add(player)) {
-                           BcPacketDistributor.sendToPlayer(player, message);
+                           messages.forEach(message -> BcPacketDistributor.sendToPlayer(player, message));
                         }
                      }
                   }
@@ -151,7 +163,7 @@ public class WorldSavedDataVolumeBoxes extends SavedData {
             if (!removedIds.isEmpty()) {
                for (ServerPlayer player : PlayerLookup.tracking(sl, trackingAnchor)) {
                   if (sent.add(player)) {
-                     BcPacketDistributor.sendToPlayer(player, message);
+                     messages.forEach(message -> BcPacketDistributor.sendToPlayer(player, message));
                   }
                }
             }

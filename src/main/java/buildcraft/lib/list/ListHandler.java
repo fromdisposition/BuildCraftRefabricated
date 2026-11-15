@@ -83,7 +83,7 @@ public final class ListHandler {
          if (data.contains("written") && data.contains("lines")) {
             ListTag list = BcNbt.getList(data, "lines");
             if (list != null) {
-               ListHandler.Line[] lines = new ListHandler.Line[list.size()];
+               ListHandler.Line[] lines = new ListHandler.Line[Math.min(list.size(), HEIGHT)];
 
                for (int i = 0; i < lines.length; i++) {
                   CompoundTag lineTag = BcNbt.getCompound(list, i);
@@ -162,7 +162,7 @@ public final class ListHandler {
       if (data.contains("written") && data.contains("lines")) {
          ListTag list = BcNbt.getList(data, "lines");
          if (list != null) {
-            ListHandler.Line[] lines = new ListHandler.Line[list.size()];
+            ListHandler.Line[] lines = new ListHandler.Line[Math.min(list.size(), HEIGHT)];
 
             for (int i = 0; i < lines.length; i++) {
                CompoundTag lineTag = BcNbt.getCompound(list, i);

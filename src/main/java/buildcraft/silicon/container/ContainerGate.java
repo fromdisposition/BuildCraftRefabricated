@@ -11,12 +11,15 @@ import net.minecraft.network.FriendlyByteBuf;
 import buildcraft.api.core.BCLog;
 import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.statements.IStatement;
+import buildcraft.api.statements.IStatementParameter;
+import buildcraft.api.statements.StatementParameterItemStack;
 import buildcraft.api.statements.StatementManager;
 import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.fabric.network.BCPayloadContext;
 import buildcraft.lib.fabric.menu.GateMenuKey;
 import buildcraft.lib.gui.BcMenu;
 import buildcraft.lib.statement.ActionWrapper;
+import buildcraft.lib.statement.FullStatement;
 import buildcraft.lib.statement.StatementWrapper;
 import buildcraft.lib.statement.TriggerWrapper;
 import buildcraft.silicon.BCSiliconMenuTypes;
@@ -35,6 +38,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class ContainerGate extends BcMenu {
@@ -160,6 +164,18 @@ public class ContainerGate extends BcMenu {
       }
    }
 
+   private void keepOnlyHeldItems(FullStatement<?> statement, IStatementParameter[] before) {
+      IStatementParameter[] params = statement.getParameters();
+      for (int p = 0; p < params.length; p++) {
+         if (params[p] instanceof StatementParameterItemStack item
+            && !item.getItemStack().isEmpty()
+            && !item.equals(before[p])
+            && !ItemStack.isSameItemSameComponents(item.getItemStack(), this.getCarried())) {
+            params[p] = statement.get() == null ? null : statement.get().createParameter(null, p);
+         }
+      }
+   }
+
    @Override
    public void readMessage(int id, FriendlyByteBuf buffer, boolean isClient, BCPayloadContext ctx) {
       super.readMessage(id, buffer, isClient, ctx);
@@ -182,7 +198,19 @@ public class ContainerGate extends BcMenu {
                this.sendStatementsToClient();
             } else if (id == ID_STATEMENT_CHANGE) {
                try {
+                  List<IStatementParameter[]> before = new ArrayList<>();
+                  for (GateLogic.StatementPair pair : this.gate.statements) {
+                     before.add(pair.trigger.getParameters().clone());
+                     before.add(pair.action.getParameters().clone());
+                  }
+
                   this.gate.readPayload(buffer, false);
+                  int index = 0;
+                  for (GateLogic.StatementPair pair : this.gate.statements) {
+                     this.keepOnlyHeldItems(pair.trigger, before.get(index++));
+                     this.keepOnlyHeldItems(pair.action, before.get(index++));
+                  }
+
                   // readPayload bypasses the statement change listeners, so the server gate must be re-resolved explicitly.
                   this.gate.dropInvalidStatements();
                   this.gate.markResolveDirty();

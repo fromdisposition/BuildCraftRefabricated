@@ -32,6 +32,7 @@ import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.builders.snapshot.SnapshotBuilder;
 import buildcraft.builders.snapshot.Template;
 import buildcraft.builders.snapshot.TemplateBuilder;
+import buildcraft.core.BCCoreConfig;
 import buildcraft.lib.fabric.menu.BlockEntityExtendedMenu;
 import buildcraft.lib.fabric.transfer.fluid.MultiFluidTankStorage;
 import buildcraft.lib.fabric.transfer.fluid.SingleFluidTank;
@@ -41,6 +42,7 @@ import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.PositionUtil;
 import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.mj.MjBatteryReceiver;
+import buildcraft.lib.net.BCPacketLimits;
 import buildcraft.lib.tile.BcBlockEntity;
 import buildcraft.lib.misc.BlockDropsUtil;
 import buildcraft.lib.tile.ItemHandlerSimple;
@@ -119,6 +121,8 @@ public class TileBuilder
    private boolean pavingTheWayGranted = false;
    private boolean startOfSomethingBigGranted = false;
    private ItemStack invSnapshot = ItemStack.EMPTY;
+   @Nullable
+   private CompoundTag pendingBuilderNbt;
    private final ItemHandlerSimple resourceInventory = new ItemHandlerSimple(RESOURCE_SLOTS, (handler, slot, before, after) -> this.onResourcesChanged());
    private final SingleFluidTank[] tanks = new SingleFluidTank[]{
       new SingleFluidTank(TANK_CAPACITY, SingleFluidTank.TankAccess.OPEN, this::onResourcesChanged),
@@ -224,6 +228,12 @@ public class TileBuilder
                      }
 
                      this.updateSnapshot(false);
+                     SnapshotBuilder<?> restored = this.getBuilder();
+                     if (this.pendingBuilderNbt != null && restored != null) {
+                        restored.deserializeNBT(this.pendingBuilderNbt);
+                     }
+
+                     this.pendingBuilderNbt = null;
                   }
                }
             }
@@ -328,6 +338,18 @@ public class TileBuilder
       this.syncBlockStateToSnapshot();
    }
 
+   private static boolean isMarkerPath(List<BlockPos> path) {
+      double max = BCCoreConfig.markerMaxDistance.get();
+
+      for (int i = 1; i < path.size(); i++) {
+         if (path.get(i).distSqr(path.get(i - 1)) > max * max) {
+            return false;
+         }
+      }
+
+      return true;
+   }
+
    private void updateBasePoses() {
       this.basePoses.clear();
       if (this.path != null) {
@@ -350,6 +372,7 @@ public class TileBuilder
       if (this.level != null && !this.level.isClientSide()) {
          this.currentBasePosIndex = 0;
          this.snapshot = null;
+         this.pendingBuilderNbt = null;
          if (newStack.getItem() instanceof ItemSnapshot) {
             Snapshot.Header header = ItemSnapshot.getHeader(newStack);
             if (header != null) {
@@ -407,6 +430,15 @@ public class TileBuilder
       this.invSnapshot = stack;
       this.onSnapshotSlotChanged(stack);
       this.setChanged();
+   }
+
+   @Override
+   public void clearContent() {
+      super.clearContent();
+      this.setSnapshot(ItemStack.EMPTY);
+      for (int slot = 0; slot < this.resourceInventory.getSlots(); slot++) {
+         this.resourceInventory.setStackInSlot(slot, ItemStack.EMPTY);
+      }
    }
 
    public ItemStack getResource(int slot) {
@@ -497,11 +529,15 @@ public class TileBuilder
       output.putBoolean("startOfSomethingBigGranted", this.startOfSomethingBigGranted);
       output.putBoolean("wasDoneLastTick", this.wasDoneLastTick);
       SnapshotBuilder<?> activeBuilder = this.getBuilder();
-      if (activeBuilder != null) {
-         if (!this.writingSyncTag) {
+      if (!this.writingSyncTag) {
+         if (this.pendingBuilderNbt != null) {
+            output.store("builderState", CompoundTag.CODEC, this.pendingBuilderNbt.copy());
+         } else if (activeBuilder != null) {
             output.store("builderState", CompoundTag.CODEC, activeBuilder.serializeNBT());
          }
+      }
 
+      if (activeBuilder != null) {
          output.store("builderClientData", CompoundTag.CODEC, activeBuilder.serializeClientNBT());
       }
    }
@@ -572,14 +608,15 @@ public class TileBuilder
       this.startOfSomethingBigGranted = input.getBooleanOr("startOfSomethingBigGranted", false);
       this.wasDoneLastTick = input.getBooleanOr("wasDoneLastTick", false);
       int pathCount = input.getIntOr("path_count", 0);
-      if (pathCount >= 2) {
+      if (pathCount >= 2 && pathCount <= BCPacketLimits.MAX_MARKER_POSITIONS) {
          Builder<BlockPos> rebuilt = ImmutableList.builder();
 
          for (int i = 0; i < pathCount; i++) {
             rebuilt.add(new BlockPos(input.getIntOr("path_" + i + "_x", 0), input.getIntOr("path_" + i + "_y", 0), input.getIntOr("path_" + i + "_z", 0)));
          }
 
-         this.path = rebuilt.build();
+         ImmutableList<BlockPos> loaded = rebuilt.build();
+         this.path = isMarkerPath(loaded) ? loaded : null;
       } else {
          this.path = null;
       }
@@ -613,10 +650,13 @@ public class TileBuilder
          }
       }
 
+      this.pendingBuilderNbt = null;
       SnapshotBuilder<?> active = this.getBuilder();
       if (active != null) {
          input.read("builderState", CompoundTag.CODEC).ifPresent(active::deserializeNBT);
          input.read("builderClientData", CompoundTag.CODEC).ifPresent(tag -> applyBuilderClientData(active, tag, savedBreak, savedPlace));
+      } else if (this.level == null || !this.level.isClientSide()) {
+         input.read("builderState", CompoundTag.CODEC).ifPresent(tag -> this.pendingBuilderNbt = tag.copy());
       }
    }
 

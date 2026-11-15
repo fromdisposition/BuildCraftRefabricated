@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.DyeColor;
@@ -48,7 +49,9 @@ public class WireManager implements IWireManager {
 
    public void invalidate() {
       if (!this.holder.getPipeWorld().isClientSide()) {
-         this.removePartsFromSystem(this.parts.keySet());
+         List<EnumWirePart> removed = List.copyOf(this.parts.keySet());
+         this.parts.clear();
+         this.removePartsFromSystem(removed);
       }
 
       this.invalidatePoweredCache();
@@ -68,9 +71,18 @@ public class WireManager implements IWireManager {
    public void tick() {
       if (!this.initialised) {
          this.initialised = true;
-         if (!this.holder.getPipeWorld().isClientSide()) {
-            for (EnumWirePart part : this.parts.keySet()) {
-               this.getWireSystems().buildAndAddWireSystem(new WireSystem.WireElement(this.holder.getPipePos(), part));
+         if (!this.holder.getPipeWorld().isClientSide() && !this.parts.isEmpty()) {
+            SavedDataWireSystems wireSystems = this.getWireSystems();
+            BlockPos pos = this.holder.getPipePos();
+            this.parts.forEach((part, colour) -> {
+               WireSystem.WireElement element = new WireSystem.WireElement(pos, part);
+               if (wireSystems.getWireSystemsWithElementAsReadOnlyList(element).stream().noneMatch(wireSystem -> wireSystem.color == colour)) {
+                  wireSystems.buildAndAddWireSystem(element);
+               }
+            });
+
+            for (Direction side : Direction.values()) {
+               wireSystems.markEmitterDirty(new WireSystem.WireElement(pos, side));
             }
          }
 

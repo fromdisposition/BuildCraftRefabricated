@@ -28,7 +28,7 @@ public class ActionPipeColor extends BCStatement implements IActionInternal {
 
    @Override
    public String getDescription() {
-      return String.format(LocaleUtil.localize("gate.action.pipe.item.color"), ColourUtil.getTextFullTooltip(this.color));
+      return LocaleUtil.localize("gate.action.pipe.item.color", ColourUtil.getTextFullTooltip(this.color));
    }
 
    @Override

@@ -204,6 +204,13 @@ public final class BCFabricConfig {
          BCTransportConfig.basePowerRate = intVal(transport, "basePowerRate", BCTransportConfig.basePowerRate);
          BCTransportConfig.baseRfRate = intVal(transport, "baseRfRate", BCTransportConfig.baseRfRate);
          BCTransportConfig.baseFlowRate = intVal(transport, "baseFlowRate", BCTransportConfig.baseFlowRate);
+         String lossMode = string(transport, "kinesisLossMode", BCTransportConfig.kinesisLossMode.name());
+
+         try {
+            BCTransportConfig.kinesisLossMode = BCTransportConfig.PowerLossMode.valueOf(lossMode.toUpperCase());
+         } catch (IllegalArgumentException e) {
+            LOGGER.warn("Unknown kinesisLossMode '{}', keeping {}", lossMode, BCTransportConfig.kinesisLossMode);
+         }
       }
    }
 
@@ -314,6 +321,7 @@ public final class BCFabricConfig {
       transport.addProperty("basePowerRate", 4);
       transport.addProperty("baseRfRate", 40);
       transport.addProperty("baseFlowRate", 10);
+      transport.addProperty("kinesisLossMode", "LOSSLESS");
       root.add("transport", transport);
       JsonObject robotics = new JsonObject();
       robotics.addProperty("flightSpeed", 0.15);

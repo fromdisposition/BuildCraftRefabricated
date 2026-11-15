@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -27,11 +28,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 
-public abstract class TileElectricEngineBase extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu {
+public abstract class TileElectricEngineBase extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu, Clearable {
    public static final int MAX_FE = 10000;
    public static final float COOLDOWN_RATE = 0.01F;
    public static final Map<Item, Long> UPGRADE_VALUES = new LinkedHashMap<>();
    public final ItemHandlerSimple upgrades = new ItemHandlerSimple(4, (handler, slot, bef, aft) -> this.setChanged());
+
+   @Override
+   public void clearContent() {
+      for (int slot = 0; slot < this.upgrades.getSlots(); slot++) {
+         this.upgrades.setStackInSlot(slot, ItemStack.EMPTY);
+      }
+   }
    public final FeEnergyStorage energyStorage;
 
    public static void initUpgrades() {

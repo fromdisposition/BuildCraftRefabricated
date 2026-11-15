@@ -27,6 +27,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -43,7 +44,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import buildcraft.lib.nbt.BcValueIn;
 import buildcraft.lib.nbt.BcValueOut;
 
-public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu {
+public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvider, BlockEntityExtendedMenu, Clearable {
    private static final Identifier ADVANCEMENT_POWERING_UP = Identifier.parse("buildcraftenergy:powering_up");
    private static final Identifier ADVANCEMENT_LAVA_POWER = Identifier.parse("buildcraftenergy:lava_power");
    private static final long MAX_OUTPUT = MjAPI.MJ;
@@ -87,6 +88,11 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 implements MenuProvi
    @Nonnull
    public ItemStack getFuelStack() {
       return this.fuelStack;
+   }
+
+   @Override
+   public void clearContent() {
+      this.setFuelStack(ItemStack.EMPTY);
    }
 
    public void setFuelStack(@Nonnull ItemStack stack) {

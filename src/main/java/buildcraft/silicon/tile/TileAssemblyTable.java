@@ -41,6 +41,7 @@ import buildcraft.lib.nbt.BcValueOut;
 public class TileAssemblyTable extends TileLaserTableBase {
    private static final Identifier ADVANCEMENT = Identifier.parse("buildcraftsilicon:precision_crafting");
    private static final int RESCAN_INTERVAL = 100;
+   public static final int RECIPE_SLOTS = 12;
    public final ItemHandlerSimple inv = this.itemManager.addInvHandler("inv", 12, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
    public SortedMap<TileAssemblyTable.AssemblyInstruction, EnumAssemblyRecipeState> recipesStates = new TreeMap<>();
    public long syncedTarget;
@@ -72,7 +73,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
       for (AssemblyRecipe recipe : AssemblyRecipeRegistry.REGISTRY.values()) {
          for (ItemStack out : recipe.getOutputs(this.inv.stacks)) {
             TileAssemblyTable.AssemblyInstruction instruction = new TileAssemblyTable.AssemblyInstruction(recipe, out);
-            if (!this.recipesStates.containsKey(instruction)) {
+            if (!this.recipesStates.containsKey(instruction) && this.recipesStates.size() < RECIPE_SLOTS) {
                this.recipesStates.put(instruction, EnumAssemblyRecipeState.POSSIBLE);
             }
          }
@@ -87,7 +88,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
          EnumAssemblyRecipeState state = entry.getValue();
          boolean enough = this.extract(this.inv, instruction.recipe.getInputsFor(instruction.output), true, false);
          if (state == EnumAssemblyRecipeState.POSSIBLE) {
-            if (!enough) {
+            if (!enough || this.recipesStates.size() > RECIPE_SLOTS) {
                iterator.remove();
             }
          } else if (state != EnumAssemblyRecipeState.PAUSED) {

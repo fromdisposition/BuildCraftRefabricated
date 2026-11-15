@@ -17,6 +17,7 @@ import buildcraft.lib.gui.pos.GuiRectangle;
 import buildcraft.lib.gui.pos.IGuiArea;
 import buildcraft.silicon.EnumAssemblyRecipeState;
 import buildcraft.silicon.container.ContainerAssemblyTable;
+import buildcraft.silicon.tile.TileAssemblyTable;
 import java.util.ArrayList;
 //? if >= 1.21.10 {
 import net.minecraft.client.input.MouseButtonEvent;
@@ -100,7 +101,7 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
          );
       }
 
-      for (int i = 0; i < (this.menu).tile.recipesStates.size(); i++) {
+      for (int i = 0; i < Math.min((this.menu).tile.recipesStates.size(), TileAssemblyTable.RECIPE_SLOTS); i++) {
          EnumAssemblyRecipeState state = new ArrayList<>((this.menu).tile.recipesStates.values()).get(i);
          IGuiArea area = this.getRecipeArea(i);
          if (state == EnumAssemblyRecipeState.SAVED) {
@@ -148,7 +149,7 @@ public class GuiAssemblyTable extends BcScreen<ContainerAssemblyTable> {
 
    private boolean bcMouseClicked(int mouseX, int mouseY, int button) {
       if (button == 0) {
-         for (int i = 0; i < (this.menu).tile.recipesStates.size(); i++) {
+         for (int i = 0; i < Math.min((this.menu).tile.recipesStates.size(), TileAssemblyTable.RECIPE_SLOTS); i++) {
             IGuiArea area = this.getRecipeArea(i);
             if (area.contains(mouseX, mouseY)) {
                if (this.minecraft != null && this.minecraft.gameMode != null) {

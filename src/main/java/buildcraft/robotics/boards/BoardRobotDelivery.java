@@ -13,6 +13,7 @@ import buildcraft.api.core.IStackFilter;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.DockingStation;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.api.robots.ResourceId;
 import buildcraft.robotics.StackRequest;
 import buildcraft.robotics.ai.AIRobotDeliverRequested;
 import buildcraft.robotics.ai.AIRobotDisposeItems;
@@ -77,12 +78,21 @@ public class BoardRobotDelivery extends RedstoneBoardRobot {
       }
    }
 
+   @Override
+   public void end() {
+      this.releaseCurrentRequest();
+   }
+
    private void releaseCurrentRequest() {
       if (this.currentRequest == null) {
          return;
       }
 
-      this.robot.getRegistry().release(this.currentRequest.getResourceId(this.robot.level()));
+      ResourceId requestId = this.currentRequest.getResourceId(this.robot.level());
+      if (this.robot.getRegistry().robotIdTaking(requestId) == this.robot.getRobotId()) {
+         this.robot.getRegistry().release(requestId);
+      }
+
       DockingStation source = this.currentRequest.getStation(this.robot.level());
       if (source != null) {
          source.release(this.robot);

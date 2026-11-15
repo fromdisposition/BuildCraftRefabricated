@@ -63,6 +63,12 @@ public class TileConstructionMarker extends BcBlockEntity {
       this.setChanged();
    }
 
+   @Override
+   public void clearContent() {
+      super.clearContent();
+      this.removeBlueprint();
+   }
+
    public ItemStack removeBlueprint() {
       ItemStack removed = this.blueprintStack;
       this.blueprintStack = ItemStack.EMPTY;

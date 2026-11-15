@@ -71,11 +71,11 @@ public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kin
    }
 
    private static Snapshot.Key readSnapshotKey(FriendlyByteBuf buf) {
-      byte[] hash = buf.readByteArray();
+      byte[] hash = buf.readByteArray(HashUtil.HASH_LENGTH);
       boolean hasHeader = buf.readBoolean();
       Snapshot.Key key = new Snapshot.Key(new Snapshot.Key(), hash);
       if (hasHeader) {
-         Snapshot.Header header = new Snapshot.Header(key, buf.readUUID(), new Date(buf.readLong()), buf.readUtf());
+         Snapshot.Header header = new Snapshot.Header(key, buf.readUUID(), new Date(buf.readLong()), buf.readUtf(1024));
          key = new Snapshot.Key(key, header);
       }
 
@@ -110,23 +110,29 @@ public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kin
                BuildersNetworkAsync.releaseSnapshot(serverPlayer.getUUID());
                LOGGER.warn("Snapshot NOT FOUND on server: hash={} (player level={})", hashHex, level.dimension());
             } else {
-               BuildersNetworkAsync.runServerCompress(() -> {
+               boolean accepted = BuildersNetworkAsync.runServerCompress(() -> {
+                  boolean handedOff = false;
                   try {
                      byte[] compressed = BuildersServerPayload.compressSnapshot(snapshot);
                      context.enqueueWork(() -> {
                         try {
                            if (compressed != null) {
-                              context.reply(BuildersServerPayload.snapshot(compressed));
+                              BuildersServerPayload.snapshot(compressed).forEach(context::reply);
                            }
                         } finally {
                            BuildersNetworkAsync.releaseSnapshot(serverPlayer.getUUID());
                         }
                      });
-                  } catch (RuntimeException e) {
-                     BuildersNetworkAsync.releaseSnapshot(serverPlayer.getUUID());
-                     throw e;
+                     handedOff = true;
+                  } finally {
+                     if (!handedOff) {
+                        BuildersNetworkAsync.releaseSnapshot(serverPlayer.getUUID());
+                     }
                   }
                });
+               if (!accepted) {
+                  BuildersNetworkAsync.releaseSnapshot(serverPlayer.getUUID());
+               }
             }
          }
       }
@@ -137,7 +143,7 @@ public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kin
       Level level = player.level();
       BlockPos architectPos = pos.immutable();
       if (player.distanceToSqr(architectPos.getX() + 0.5, architectPos.getY() + 0.5, architectPos.getZ() + 0.5) > 64.0) {
-         context.reply(BuildersServerPayload.architectPreview(architectPos, null));
+         BuildersServerPayload.architectPreview(architectPos, null).forEach(context::reply);
       } else {
          BlockEntity be = level.getBlockEntity(architectPos);
          Blueprint preview = null;
@@ -148,7 +154,7 @@ public record BuildersClientRequestPayload(BuildersClientRequestPayload.Kind kin
          Blueprint finalPreview = preview;
          BuildersNetworkAsync.runServerCompress(() -> {
             byte[] compressed = BuildersServerPayload.compressBlueprint(finalPreview);
-            context.enqueueWork(() -> context.reply(BuildersServerPayload.architectPreview(architectPos, compressed)));
+            context.enqueueWork(() -> BuildersServerPayload.architectPreview(architectPos, compressed).forEach(context::reply));
          });
       }
    }

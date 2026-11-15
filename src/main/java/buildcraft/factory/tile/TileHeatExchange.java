@@ -45,7 +45,9 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -61,7 +63,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 //?}
 import net.minecraft.world.phys.Vec3;
 
-public class TileHeatExchange extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
+public class TileHeatExchange extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable, Clearable {
    public static final int MAX_CHAIN_LENGTH = 5;
    private static final int[] FLUID_MULT = new int[]{5, 10, 20};
    protected TileHeatExchange.ExchangeSection section;
@@ -70,6 +72,16 @@ public class TileHeatExchange extends BlockEntity implements MenuProvider, Block
 
    public TileHeatExchange(BlockPos pos, BlockState state) {
       super(BCFactoryBlockEntities.HEAT_EXCHANGE, pos, state);
+   }
+
+   @Override
+   public void clearContent() {
+      ItemHandlerSimple slots = this.getContainerSlots();
+      if (slots != null) {
+         for (int slot = 0; slot < slots.getSlots(); slot++) {
+            slots.setStackInSlot(slot, ItemStack.EMPTY);
+         }
+      }
    }
 
    @Nullable

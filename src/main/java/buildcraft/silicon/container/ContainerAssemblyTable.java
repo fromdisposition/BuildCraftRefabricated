@@ -71,7 +71,7 @@ public class ContainerAssemblyTable extends ContainerBCTile<TileAssemblyTable> {
       }
 
       ArrayList<TileAssemblyTable.AssemblyInstruction> keys = new ArrayList<>(this.tile.recipesStates.keySet());
-      if (index >= 0 && index < keys.size()) {
+      if (index >= 0 && index < Math.min(keys.size(), TileAssemblyTable.RECIPE_SLOTS)) {
          TileAssemblyTable.AssemblyInstruction instruction = keys.get(index);
          EnumAssemblyRecipeState current = this.tile.recipesStates.get(instruction);
          if (current == EnumAssemblyRecipeState.POSSIBLE) {

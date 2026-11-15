@@ -14,6 +14,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 import net.minecraft.core.BlockPos;
@@ -26,23 +27,82 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
 import net.minecraft.resources.Identifier;
 
 public record BuildersServerPayload(
-   BuildersServerPayload.Kind kind, @Nullable byte[] snapshotData, BlockPos architectPos, @Nullable byte[] previewData, List<BlockPos> scanPositions
+   BuildersServerPayload.Kind kind, @Nullable byte[] snapshotData, BlockPos architectPos, @Nullable byte[] previewData, List<BlockPos> scanPositions, boolean last
 ) implements CustomPacketPayload {
    public static final Type<BuildersServerPayload> TYPE = new Type<>(Identifier.parse("buildcraftrefabricated:builders_server"));
    public static final StreamCodec<FriendlyByteBuf, BuildersServerPayload> STREAM_CODEC = StreamCodec.of(
       BuildersServerPayload::encode, BuildersServerPayload::decode
    );
+   private static final List<byte[]> SNAPSHOT_PARTS = new ArrayList<>();
+   private static final List<byte[]> PREVIEW_PARTS = new ArrayList<>();
 
-   public static BuildersServerPayload snapshot(byte[] compressed) {
-      return new BuildersServerPayload(BuildersServerPayload.Kind.SNAPSHOT, compressed, BlockPos.ZERO, null, List.of());
+   public static List<BuildersServerPayload> snapshot(byte[] compressed) {
+      List<byte[]> parts = split(compressed);
+      List<BuildersServerPayload> payloads = new ArrayList<>(parts.size());
+
+      for (int i = 0; i < parts.size(); i++) {
+         payloads.add(new BuildersServerPayload(BuildersServerPayload.Kind.SNAPSHOT, parts.get(i), BlockPos.ZERO, null, List.of(), i == parts.size() - 1));
+      }
+
+      return payloads;
    }
 
-   public static BuildersServerPayload architectPreview(BlockPos pos, @Nullable byte[] compressed) {
-      return new BuildersServerPayload(BuildersServerPayload.Kind.ARCHITECT_PREVIEW, null, pos, compressed, List.of());
+   public static List<BuildersServerPayload> architectPreview(BlockPos pos, @Nullable byte[] compressed) {
+      if (compressed == null) {
+         return List.of(new BuildersServerPayload(BuildersServerPayload.Kind.ARCHITECT_PREVIEW, null, pos, null, List.of(), true));
+      }
+
+      List<byte[]> parts = split(compressed);
+      List<BuildersServerPayload> payloads = new ArrayList<>(parts.size());
+
+      for (int i = 0; i < parts.size(); i++) {
+         payloads.add(new BuildersServerPayload(BuildersServerPayload.Kind.ARCHITECT_PREVIEW, null, pos, parts.get(i), List.of(), i == parts.size() - 1));
+      }
+
+      return payloads;
    }
 
    public static BuildersServerPayload architectScan(List<BlockPos> positions) {
-      return new BuildersServerPayload(BuildersServerPayload.Kind.ARCHITECT_SCAN, null, BlockPos.ZERO, null, List.copyOf(positions));
+      return new BuildersServerPayload(BuildersServerPayload.Kind.ARCHITECT_SCAN, null, BlockPos.ZERO, null, List.copyOf(positions), true);
+   }
+
+   private static List<byte[]> split(byte[] data) {
+      List<byte[]> parts = new ArrayList<>();
+
+      for (int offset = 0; offset < data.length; offset += BCPacketLimits.MAX_CHUNK_BYTES) {
+         parts.add(Arrays.copyOfRange(data, offset, Math.min(data.length, offset + BCPacketLimits.MAX_CHUNK_BYTES)));
+      }
+
+      if (parts.isEmpty()) {
+         parts.add(new byte[0]);
+      }
+
+      return parts;
+   }
+
+   @Nullable
+   private static byte[] accumulate(List<byte[]> parts, byte[] part, boolean last) {
+      parts.add(part);
+      int total = parts.stream().mapToInt(p -> p.length).sum();
+      if (total > BCPacketLimits.MAX_ASSEMBLED_BYTES) {
+         parts.clear();
+         return null;
+      }
+
+      if (!last) {
+         return null;
+      }
+
+      byte[] assembled = new byte[total];
+      int pos = 0;
+
+      for (byte[] p : parts) {
+         System.arraycopy(p, 0, assembled, pos, p.length);
+         pos += p.length;
+      }
+
+      parts.clear();
+      return assembled;
    }
 
    @Nullable
@@ -77,12 +137,14 @@ public record BuildersServerPayload(
       BcPayloadBuffers.writeEnum(buf, payload.kind());
       switch (payload.kind()) {
          case SNAPSHOT:
+            buf.writeBoolean(payload.last());
             buf.writeByteArray(payload.snapshotData());
             break;
          case ARCHITECT_PREVIEW:
             buf.writeBlockPos(payload.architectPos());
             buf.writeBoolean(payload.previewData() != null);
             if (payload.previewData() != null) {
+               buf.writeBoolean(payload.last());
                buf.writeByteArray(payload.previewData());
             }
             break;
@@ -99,11 +161,18 @@ public record BuildersServerPayload(
       BuildersServerPayload.Kind kind = BcPayloadBuffers.readEnum(buf, BuildersServerPayload.Kind.class);
 
       return switch (kind) {
-         case SNAPSHOT -> new BuildersServerPayload(kind, buf.readByteArray(), BlockPos.ZERO, null, List.of());
+         case SNAPSHOT -> {
+            boolean last = buf.readBoolean();
+            yield new BuildersServerPayload(kind, buf.readByteArray(BCPacketLimits.MAX_CHUNK_BYTES), BlockPos.ZERO, null, List.of(), last);
+         }
          case ARCHITECT_PREVIEW -> {
             BlockPos pos = buf.readBlockPos();
-            byte[] data = buf.readBoolean() ? buf.readByteArray() : null;
-            yield new BuildersServerPayload(kind, null, pos, data, List.of());
+            if (!buf.readBoolean()) {
+               yield new BuildersServerPayload(kind, null, pos, null, List.of(), true);
+            }
+
+            boolean last = buf.readBoolean();
+            yield new BuildersServerPayload(kind, null, pos, buf.readByteArray(BCPacketLimits.MAX_CHUNK_BYTES), List.of(), last);
          }
          case ARCHITECT_SCAN -> {
             int count = BCPacketLimits.validateCount(buf.readVarInt(), 500000, "architect scan");
@@ -113,7 +182,7 @@ public record BuildersServerPayload(
                list.add(buf.readBlockPos());
             }
 
-            yield new BuildersServerPayload(kind, null, BlockPos.ZERO, null, list);
+            yield new BuildersServerPayload(kind, null, BlockPos.ZERO, null, list, true);
          }
       };
    }
@@ -126,10 +195,17 @@ public record BuildersServerPayload(
    public static void handle(BuildersServerPayload payload, BCPayloadContext context) {
       switch (payload.kind()) {
          case SNAPSHOT:
-            handleSnapshot(payload.snapshotData(), context);
+            handleSnapshot(accumulate(SNAPSHOT_PARTS, payload.snapshotData(), payload.last()), context);
             break;
          case ARCHITECT_PREVIEW:
-            handleArchitectPreview(payload.architectPos(), payload.previewData(), context);
+            if (payload.previewData() == null) {
+               handleArchitectPreview(payload.architectPos(), null, context);
+            } else {
+               byte[] assembled = accumulate(PREVIEW_PARTS, payload.previewData(), payload.last());
+               if (assembled != null) {
+                  handleArchitectPreview(payload.architectPos(), assembled, context);
+               }
+            }
             break;
          case ARCHITECT_SCAN:
             context.enqueueWork(() -> ClientArchitectScans.INSTANCE.onReceived(payload.scanPositions()));

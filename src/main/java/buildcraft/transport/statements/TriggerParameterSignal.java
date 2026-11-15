@@ -103,7 +103,7 @@ public class TriggerParameterSignal implements IStatementParameter {
    public String getDescription() {
       return this.colour == null
          ? null
-         : String.format(LocaleUtil.localize("gate.trigger.pipe.wire." + (this.active ? "active" : "inactive")), ColourUtil.getTextFullTooltip(this.colour));
+         : LocaleUtil.localize("gate.trigger.pipe.wire." + (this.active ? "active" : "inactive"), ColourUtil.getTextFullTooltip(this.colour));
    }
 
    @Override

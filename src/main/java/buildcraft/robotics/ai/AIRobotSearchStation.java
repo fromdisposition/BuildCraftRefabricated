@@ -32,8 +32,12 @@ public class AIRobotSearchStation extends AIRobot {
 
    @Override
    public void start() {
-      if (this.robot.getDockingStation() != null && this.filter.matches(this.robot.getDockingStation())) {
-         this.targetStation = this.robot.getDockingStation();
+      DockingStation docked = this.robot.getDockingStation();
+      if (docked != null
+         && (this.zone == null || this.zone.contains(Vec3.atCenterOf(docked.index())))
+         && this.filter.matches(docked)
+         && !StationActions.isRobotForbidden(docked, this.robot)) {
+         this.targetStation = docked;
          this.terminate();
          return;
       }

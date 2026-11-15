@@ -123,6 +123,16 @@ public class ItemHandlerManager {
       }
    }
 
+   public void clear() {
+      for (Storage<ItemVariant> storage : this.handlersToDrop) {
+         if (storage instanceof BcItemInventory inventory) {
+            for (int slot = 0; slot < inventory.getSlots(); slot++) {
+               inventory.setStackInSlot(slot, ItemStack.EMPTY);
+            }
+         }
+      }
+   }
+
    @Nullable
    public Storage<ItemVariant> getItemStorage(@Nullable Direction facing) {
       if (facing == null) {

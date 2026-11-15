@@ -27,6 +27,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.block.state.BlockState;
 import buildcraft.lib.nbt.BcValueIn;
 import buildcraft.lib.nbt.BcValueOut;
@@ -124,12 +125,12 @@ public abstract class TileMiner extends BcBlockEntity implements IHasWork {
 
    protected int getShaftLengthBlocks() {
       BlockPos end = this.getShaftEndPos();
-      if (end == null) {
-         return 0;
-      }
+      return end == null ? 0 : this.lengthDownTo(end.getY());
+   }
 
-      int length = this.worldPosition.getY() - end.getY();
-      return length > 0 ? length : 0;
+   protected int lengthDownTo(int endY) {
+      int bottom = this.level != null ? this.level.getMinY() : DimensionType.MIN_Y;
+      return Math.max(0, this.worldPosition.getY() - Math.max(endY, bottom));
    }
 
    /** Collision may extend to the dig face while the renderer stops above it. */

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -103,17 +104,7 @@ public class Blueprint extends Snapshot {
    public CompoundTag serializeNBT() {
       CompoundTag nbt = super.serializeNBT();
       nbt.put("palette", NBTUtilBC.writeCompoundList(this.palette.stream().map(SchematicBlockManager::writeToNBT)));
-      ListTag list = new ListTag();
-
-      for (int z = 0; z < this.size.getZ(); z++) {
-         for (int y = 0; y < this.size.getY(); y++) {
-            for (int x = 0; x < this.size.getX(); x++) {
-               list.add(IntTag.valueOf(this.data[this.posToIndex(x, y, z)]));
-            }
-         }
-      }
-
-      nbt.put("data", list);
+      nbt.putIntArray("data", this.data.clone());
       nbt.put("entities", NBTUtilBC.writeCompoundList(this.entities.stream().map(SchematicEntityManager::writeToNBT)));
       return nbt;
    }
@@ -127,7 +118,6 @@ public class Blueprint extends Snapshot {
          this.palette.add(SchematicBlockManager.readFromNBTAllowUnavailable(schematicBlockTag));
       }
 
-      this.data = new int[Snapshot.getDataSize(this.size)];
       ListTag serializedDataList = nbt.get("data") instanceof ListTag lt ? lt : null;
       int[] serializedDataIntArray = BcNbt.getIntArray(nbt, "data");
       if (serializedDataIntArray == null && serializedDataList == null) {
@@ -140,6 +130,8 @@ public class Blueprint extends Snapshot {
             "Serialized data has length of " + serializedDataLength + ", but we expected " + this.getDataSize() + " (" + this.size.toString() + ")"
          );
       }
+
+      this.data = new int[serializedDataLength];
 
       for (int z = 0; z < this.size.getZ(); z++) {
          for (int y = 0; y < this.size.getY(); y++) {
@@ -230,24 +222,7 @@ public class Blueprint extends Snapshot {
             Blueprint.this.palette.stream().map(schematicBlockx -> schematicBlockx.getRotated(rotation)).collect(Collectors.toList())
          );
 
-         for (int z = 0; z < this.getSnapshot().size.getZ(); z++) {
-            for (int y = 0; y < this.getSnapshot().size.getY(); y++) {
-               for (int x = 0; x < this.getSnapshot().size.getX(); x++) {
-                  int cell = Blueprint.this.data[Blueprint.this.posToIndex(x, y, z)];
-                  if (cell < 0 || cell >= this.rotatedPalette.size()) {
-                     // Corrupt/hand-edited blueprint: skip the bad cell instead of crashing the builder tick.
-                     continue;
-                  }
-
-                  ISchematicBlock schematicBlock = this.rotatedPalette.get(cell);
-                  if (!schematicBlock.isAir()) {
-                     this.toPlaceRequiredItems[Blueprint.this.posToIndex(x, y, z)] = schematicBlock.computeRequiredItems();
-                     this.toPlaceRequiredFluids[Blueprint.this.posToIndex(x, y, z)] = schematicBlock.computeRequiredFluids();
-                  }
-               }
-            }
-         }
-
+         this.fillRequired(ISchematicBlock::computeRequiredItems, ISchematicBlock::computeRequiredFluids);
          Builder<ISchematicEntity> entitiesBuilder = ImmutableSet.builder();
          com.google.common.collect.ImmutableMap.Builder<ISchematicEntity, List<ItemStack>> entitiesRequiredItemsBuilder = ImmutableMap.builder();
          com.google.common.collect.ImmutableMap.Builder<ISchematicEntity, List<FluidStack>> entitiesRequiredFluidsBuilder = ImmutableMap.builder();
@@ -275,28 +250,29 @@ public class Blueprint extends Snapshot {
 
       public void refreshRequiredItemsForContentsMode(EnumContainerContentsMode mode) {
          boolean include = mode != EnumContainerContentsMode.IGNORE;
+         this.fillRequired(
+            schematicBlock -> schematicBlock instanceof SchematicBlockDefault def ? def.computeRequiredItems(include) : schematicBlock.computeRequiredItems(),
+            schematicBlock -> schematicBlock instanceof SchematicBlockDefault def ? def.computeRequiredFluids(include) : schematicBlock.computeRequiredFluids()
+         );
+      }
 
-         for (int z = 0; z < this.getSnapshot().size.getZ(); z++) {
-            for (int y = 0; y < this.getSnapshot().size.getY(); y++) {
-               for (int x = 0; x < this.getSnapshot().size.getX(); x++) {
-                  int idx = Blueprint.this.posToIndex(x, y, z);
-                  int cell = Blueprint.this.data[idx];
-                  if (cell < 0 || cell >= this.rotatedPalette.size()) {
-                     // Corrupt/hand-edited blueprint: skip the bad cell instead of crashing the builder tick.
-                     continue;
-                  }
+      private void fillRequired(Function<ISchematicBlock, List<ItemStack>> items, Function<ISchematicBlock, List<FluidStack>> fluids) {
+         List<ItemStack>[] paletteItems = new List[this.rotatedPalette.size()];
+         List<FluidStack>[] paletteFluids = new List[this.rotatedPalette.size()];
 
-                  ISchematicBlock schematicBlock = this.rotatedPalette.get(cell);
-                  if (!schematicBlock.isAir()) {
-                     if (schematicBlock instanceof SchematicBlockDefault def) {
-                        this.toPlaceRequiredItems[idx] = def.computeRequiredItems(include);
-                        this.toPlaceRequiredFluids[idx] = def.computeRequiredFluids(include);
-                     } else {
-                        this.toPlaceRequiredItems[idx] = schematicBlock.computeRequiredItems();
-                        this.toPlaceRequiredFluids[idx] = schematicBlock.computeRequiredFluids();
-                     }
-                  }
-               }
+         for (int i = 0; i < this.rotatedPalette.size(); i++) {
+            ISchematicBlock schematicBlock = this.rotatedPalette.get(i);
+            if (!schematicBlock.isAir()) {
+               paletteItems[i] = items.apply(schematicBlock);
+               paletteFluids[i] = fluids.apply(schematicBlock);
+            }
+         }
+
+         for (int idx = 0; idx < Blueprint.this.data.length; idx++) {
+            int cell = Blueprint.this.data[idx];
+            if (cell >= 0 && cell < paletteItems.length) {
+               this.toPlaceRequiredItems[idx] = paletteItems[cell];
+               this.toPlaceRequiredFluids[idx] = paletteFluids[cell];
             }
          }
       }

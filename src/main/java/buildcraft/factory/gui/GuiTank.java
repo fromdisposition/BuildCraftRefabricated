@@ -36,7 +36,7 @@ public class GuiTank extends BcScreen<ContainerTank> {
                new GuiElementFluidTank(
                   this.mainGui,
                   new GuiRectangle(80.0, 18.0, 16.0, 64.0).offset(this.mainGui.rootElement),
-                  (this.menu).widgetTank.getTankStorage(),
+                  (this.menu).tile.fluidTank,
                   (this.menu).widgetTank,
                   ICON_TANK_OVERLAY
                )

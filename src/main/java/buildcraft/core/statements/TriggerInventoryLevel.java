@@ -48,7 +48,7 @@ public class TriggerInventoryLevel extends BCStatement implements ITriggerExtern
 
    @Override
    public String getDescription() {
-      return String.format(LocaleUtil.localize("gate.trigger.inventorylevel.below"), (int)(this.type.level * 100.0F));
+      return LocaleUtil.localize("gate.trigger.inventorylevel.below", (int)(this.type.level * 100.0F));
    }
 
    @Override

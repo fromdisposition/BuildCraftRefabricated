@@ -9,8 +9,10 @@ package buildcraft.transport.stripes;
 import buildcraft.api.crops.CropManager;
 import buildcraft.api.transport.IStripesActivator;
 import buildcraft.api.transport.IStripesHandlerItem;
+import buildcraft.lib.misc.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -20,7 +22,11 @@ public enum StripesHandlerPlant implements IStripesHandlerItem {
 
    @Override
    public boolean handle(Level world, BlockPos pos, Direction direction, ItemStack stack, Player player, IStripesActivator activator) {
-      return CropManager.plantCrop(world, player, stack, pos.relative(direction).below())
-         || CropManager.plantCrop(world, player, stack, pos.relative(direction));
+      return plant(world, pos, player, stack, pos.relative(direction).below()) || plant(world, pos, player, stack, pos.relative(direction));
+   }
+
+   private static boolean plant(Level world, BlockPos pipePos, Player player, ItemStack stack, BlockPos soil) {
+      return (!(world instanceof ServerLevel serverLevel) || BlockUtil.canMachinePlace(serverLevel, soil.above(), player.getGameProfile(), pipePos))
+         && CropManager.plantCrop(world, player, stack, soil);
    }
 }

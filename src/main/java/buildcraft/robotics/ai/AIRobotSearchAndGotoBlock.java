@@ -19,6 +19,7 @@ public class AIRobotSearchAndGotoBlock extends AIRobot {
    private IBlockFilter filter;
    private boolean random;
    private double maxDistanceToEnd;
+   private boolean arrived;
 
    public AIRobotSearchAndGotoBlock(EntityRobotBase robot) {
       super(robot);
@@ -50,11 +51,15 @@ public class AIRobotSearchAndGotoBlock extends AIRobot {
             this.terminate();
          }
       } else if (ai instanceof AIRobotGotoBlock) {
-         if (!ai.success()) {
-            this.releaseBlockFound();
-         }
-
+         this.arrived = ai.success();
          this.terminate();
+      }
+   }
+
+   @Override
+   public void end() {
+      if (!this.arrived) {
+         this.releaseBlockFound();
       }
    }
 

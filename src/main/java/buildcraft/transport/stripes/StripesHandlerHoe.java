@@ -8,8 +8,10 @@ package buildcraft.transport.stripes;
 
 import buildcraft.api.transport.IStripesActivator;
 import buildcraft.api.transport.IStripesHandlerItem;
+import buildcraft.lib.misc.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.tags.ItemTags;
@@ -31,11 +33,11 @@ public enum StripesHandlerHoe implements IStripesHandlerItem {
       BlockPos target = pos.relative(direction);
       BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(target), Direction.UP, target, false);
       UseOnContext ctx = new UseOnContext(world, player, InteractionHand.MAIN_HAND, stack, hit);
-      if (stack.getItem().useOn(ctx).consumesAction()) {
+      if (canUseOn(world, target, player, pos) && stack.getItem().useOn(ctx).consumesAction()) {
          return true;
       }
 
-      if (direction != Direction.UP) {
+      if (direction != Direction.UP && canUseOn(world, target.below(), player, pos)) {
          BlockPos below = target.below();
          hit = new BlockHitResult(Vec3.atCenterOf(below), Direction.UP, below, false);
          ctx = new UseOnContext(world, player, InteractionHand.MAIN_HAND, stack, hit);
@@ -45,5 +47,9 @@ public enum StripesHandlerHoe implements IStripesHandlerItem {
       }
 
       return false;
+   }
+
+   private static boolean canUseOn(Level world, BlockPos target, Player player, BlockPos pipePos) {
+      return !(world instanceof ServerLevel serverLevel) || BlockUtil.canMachinePlace(serverLevel, target, player.getGameProfile(), pipePos);
    }
 }

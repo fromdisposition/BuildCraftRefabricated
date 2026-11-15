@@ -11,6 +11,7 @@ import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
+import buildcraft.lib.misc.BlockUtil;
 import buildcraft.robotics.entity.EntityRobot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -56,7 +57,9 @@ public class AIRobotUseToolOnBlock extends AIRobot {
          return;
       }
 
-      if (!(this.robot.level() instanceof ServerLevel serverLevel) || !(this.robot instanceof EntityRobot entityRobot)) {
+      if (!(this.robot.level() instanceof ServerLevel serverLevel)
+         || !(this.robot instanceof EntityRobot entityRobot)
+         || !BlockUtil.canMachinePlace(serverLevel, this.useToBlock, this.robot.getOwner(), this.robot.blockPosition())) {
          this.setSuccess(false);
          this.terminate();
          return;

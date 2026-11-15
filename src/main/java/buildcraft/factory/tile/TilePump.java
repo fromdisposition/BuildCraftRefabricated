@@ -267,6 +267,11 @@ public class TilePump extends TileMiner implements IDebuggable {
                BlockPos offsetPos = posToCheck.relative(side);
                if (!(offsetPos.distSqr(this.targetPos) > maxLengthSquared) && BcRegistryUtil.isChunkLoaded(this.level, offsetPos)) {
                   boolean isNew = checked.add(offsetPos.asLong());
+                  if (checked.size() >= 65536) {
+                     stopSearching = true;
+                     break;
+                  }
+
                   if (isNew) {
                      Fluid fluidAt = BlockUtil.getFluidWithFlowing(this.level, offsetPos);
                      boolean eq = FluidIdentity.areFluidsEqual(fluidAt, queueFluid);

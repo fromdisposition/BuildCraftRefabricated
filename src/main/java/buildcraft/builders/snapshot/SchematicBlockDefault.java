@@ -45,6 +45,8 @@ import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.Clearable;
+import net.minecraft.world.RandomizableContainer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
@@ -439,29 +441,25 @@ public class SchematicBlockDefault implements ISchematicBlock {
          }
 
          BlockPos secondHalfPos = null;
+         BlockState secondHalfState = null;
          if (newBlockState.getBlock() instanceof BedBlock && newBlockState.hasProperty(BedBlock.PART) && newBlockState.getValue(BedBlock.PART) == BedPart.FOOT) {
-            Direction facing = newBlockState.getValue(BedBlock.FACING);
-            secondHalfPos = blockPos.relative(facing);
-            BlockState headState = newBlockState.setValue(BedBlock.PART, BedPart.HEAD);
-            if (!machineSetBlock(level, secondHalfPos, headState, 3, owner, machineOrigin)) {
-               return false;
-            }
+            secondHalfPos = blockPos.relative(newBlockState.getValue(BedBlock.FACING));
+            secondHalfState = newBlockState.setValue(BedBlock.PART, BedPart.HEAD);
          } else if (newBlockState.getBlock() instanceof DoorBlock
             && newBlockState.hasProperty(DoorBlock.HALF)
             && newBlockState.getValue(DoorBlock.HALF) == DoubleBlockHalf.LOWER) {
             secondHalfPos = blockPos.above();
-            BlockState upperState = newBlockState.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
-            if (!machineSetBlock(level, secondHalfPos, upperState, 3, owner, machineOrigin)) {
-               return false;
-            }
+            secondHalfState = newBlockState.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER);
          } else if (newBlockState.getBlock() instanceof DoublePlantBlock
             && newBlockState.hasProperty(DoublePlantBlock.HALF)
             && newBlockState.getValue(DoublePlantBlock.HALF) == DoubleBlockHalf.LOWER) {
             secondHalfPos = blockPos.above();
-            BlockState upperState = newBlockState.setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER);
-            if (!machineSetBlock(level, secondHalfPos, upperState, 3, owner, machineOrigin)) {
-               return false;
-            }
+            secondHalfState = newBlockState.setValue(DoublePlantBlock.HALF, DoubleBlockHalf.UPPER);
+         }
+
+         if (secondHalfPos != null && !machineSetBlock(level, secondHalfPos, secondHalfState, 3, owner, machineOrigin)) {
+            level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 3);
+            return false;
          }
 
          BlockState afterShape = newBlockState;
@@ -496,7 +494,7 @@ public class SchematicBlockDefault implements ISchematicBlock {
          *///?}
          if (this.tileNbt != null) {
             BlockEntity tileEntity = level.getBlockEntity(blockPos);
-            if (tileEntity != null) {
+            if (tileEntity != null && acceptsMachineNbt(tileEntity)) {
                CompoundTag newTileNbt = this.tileNbt.copy();
                if (!includeContainerContents) {
                   this.stripContainerContentsFromNbt(newTileNbt);
@@ -505,12 +503,47 @@ public class SchematicBlockDefault implements ISchematicBlock {
                newTileNbt.putInt("x", blockPos.getX());
                newTileNbt.putInt("y", blockPos.getY());
                newTileNbt.putInt("z", blockPos.getZ());
-               BcEntityNbt.loadBlockEntity(tileEntity, newTileNbt, level.registryAccess());
+               this.applyReplaceNbt(newTileNbt);
+               this.loadPaidTileNbt(tileEntity, newTileNbt, level, includeContainerContents);
             }
          }
 
          return true;
       }
+   }
+
+   protected void loadPaidTileNbt(BlockEntity tileEntity, CompoundTag newTileNbt, Level level, boolean includeContainerContents) {
+      newTileNbt.remove(RandomizableContainer.LOOT_TABLE_TAG);
+      newTileNbt.remove(RandomizableContainer.LOOT_TABLE_SEED_TAG);
+      BcEntityNbt.loadBlockEntity(tileEntity, newTileNbt, level.registryAccess());
+      if (tileEntity instanceof Clearable clearable && (!includeContainerContents || !this.paysForContents())) {
+         clearable.clearContent();
+      }
+   }
+
+   private boolean paysForContents() {
+      return RulesLoader.getRules(this.blockState, this.tileNbt)
+         .stream()
+         .map(rule -> rule.requiredExtractors)
+         .filter(Objects::nonNull)
+         .flatMap(Collection::stream)
+         .anyMatch(RequiredExtractorItemsList.class::isInstance);
+   }
+
+   private void applyReplaceNbt(CompoundTag target) {
+      RulesLoader.getRules(this.blockState, this.tileNbt)
+         .stream()
+         .map(rule -> rule.replaceNbt)
+         .filter(Objects::nonNull)
+         .forEach(replaceNbt -> NBTUtilBC.merge(target, replaceNbt));
+   }
+
+   private static boolean acceptsMachineNbt(BlockEntity tileEntity) {
+      //? if >= 1.21.10 {
+      return !tileEntity.getType().onlyOpCanSetNbt();
+      //?} else {
+      /*return !tileEntity.onlyOpCanSetNbt();
+      *///?}
    }
 
    private static boolean machineSetBlock(Level level, BlockPos pos, BlockState state, int flags, @Nullable GameProfile owner, @Nullable BlockPos machineOrigin) {
@@ -542,12 +575,13 @@ public class SchematicBlockDefault implements ISchematicBlock {
       if (level.setBlock(blockPos, this.blockState, 0)) {
          if (this.tileNbt != null) {
             BlockEntity tileEntity = level.getBlockEntity(blockPos);
-            if (tileEntity != null) {
+            if (tileEntity != null && acceptsMachineNbt(tileEntity)) {
                CompoundTag newTileNbt = this.tileNbt.copy();
                newTileNbt.putInt("x", blockPos.getX());
                newTileNbt.putInt("y", blockPos.getY());
                newTileNbt.putInt("z", blockPos.getZ());
-               BcEntityNbt.loadBlockEntity(tileEntity, newTileNbt, level.registryAccess());
+               this.applyReplaceNbt(newTileNbt);
+               this.loadPaidTileNbt(tileEntity, newTileNbt, level, true);
             }
          }
 

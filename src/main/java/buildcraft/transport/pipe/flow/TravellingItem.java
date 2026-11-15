@@ -64,13 +64,17 @@ public class TravellingItem {
       this.colour = c == 0 ? null : DyeColor.byId(c - 1);
       this.toCenter = BcNbt.getBoolean(nbt, "toCenter", false);
       this.speed = BcNbt.getDouble(nbt, "speed", 0.05);
-      if (this.speed < 0.001) {
+      if (Double.isNaN(this.speed) || this.speed < 0.001) {
          this.speed = 0.001;
       }
 
       this.tickStarted = BcNbt.getInt(nbt, "tickStarted", 0) + tickNow;
       this.tickFinished = BcNbt.getInt(nbt, "tickFinished", 0) + tickNow;
       this.timeToDest = BcNbt.getInt(nbt, "timeToDest", 0);
+      if (this.timeToDest > Math.ceil(PipeFlowItems.MAX_PIPE_LENGTH / this.speed) || this.getCurrentDelay(tickNow) > this.timeToDest) {
+         this.genTimings(tickNow, 0.0);
+      }
+
       this.side = NBTUtilBC.readEnum(nbt.get("side"), Direction.class);
       if (this.side == null || this.timeToDest == 0) {
          this.toCenter = true;

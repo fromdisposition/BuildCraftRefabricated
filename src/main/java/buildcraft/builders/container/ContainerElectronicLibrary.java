@@ -18,6 +18,7 @@ import buildcraft.lib.gui.slot.SlotBase;
 import buildcraft.lib.gui.slot.SlotOutput;
 import buildcraft.lib.nbt.NbtSquisher;
 import buildcraft.lib.net.BCPacketLimits;
+import buildcraft.lib.net.BoundedNbt;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
@@ -223,10 +225,10 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
       this.downloadChunks.clear();
       if (assembled != null) {
          try {
-            Snapshot snapshot = Snapshot.readFromNBT(NbtSquisher.expand(new ByteArrayInputStream(assembled)));
+            Snapshot snapshot = Snapshot.readFromNBT(NbtIo.readCompressed(new ByteArrayInputStream(assembled), BoundedNbt.networkQuota()));
             snapshot.computeKey();
             GlobalSavedDataSnapshots.get(GlobalSavedDataSnapshots.Side.CLIENT).addSnapshot(snapshot);
-         } catch (IOException e) {
+         } catch (IOException | RuntimeException e) {
             BCLog.logger.warn("[library] Failed to deserialize downloaded snapshot", e);
          }
       }
@@ -237,10 +239,10 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
       this.uploadChunks.clear();
       if (assembled != null) {
          try {
-            Snapshot snapshot = Snapshot.readFromNBT(NbtSquisher.expand(new ByteArrayInputStream(assembled)));
+            Snapshot snapshot = Snapshot.readFromNBT(NbtIo.readCompressed(new ByteArrayInputStream(assembled), BoundedNbt.networkQuota()));
             snapshot.computeKey();
             this.tile.onUploadReceived(snapshot);
-         } catch (IOException e) {
+         } catch (IOException | RuntimeException e) {
             BCLog.logger.warn("[library] Failed to deserialize uploaded snapshot", e);
          }
       }

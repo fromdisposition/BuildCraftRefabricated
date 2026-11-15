@@ -15,6 +15,7 @@ import buildcraft.api.transport.pipe.PipeEvent;
 import buildcraft.api.transport.pipe.PipeEventActionActivate;
 import buildcraft.lib.statement.ActionWrapper;
 import buildcraft.lib.statement.TriggerWrapper;
+import buildcraft.transport.statements.ActionPipeSignal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,6 +128,10 @@ public final class GateTriggerGroupEvaluator {
 
       IStatement mine = a.getDelegate();
       IStatement theirs = b.getDelegate();
+      if (mine instanceof ActionPipeSignal || theirs instanceof ActionPipeSignal) {
+         return false;
+      }
+
       if (mine == theirs || mine.getUniqueTag().equals(theirs.getUniqueTag())) {
          return true;
       }

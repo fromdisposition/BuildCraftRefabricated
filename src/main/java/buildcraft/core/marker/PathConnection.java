@@ -13,6 +13,7 @@ import buildcraft.lib.client.render.laser.LaserData_BC8;
 import buildcraft.lib.marker.MarkerConnection;
 import buildcraft.lib.marker.MarkerSubCache;
 import buildcraft.lib.misc.VecUtil;
+import buildcraft.lib.net.BCPacketLimits;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import java.util.ArrayList;
@@ -98,8 +99,12 @@ public class PathConnection extends MarkerConnection<PathConnection> {
       }
    }
 
+   private static boolean fitsMessage(int markerCount) {
+      return markerCount <= BCPacketLimits.MAX_MARKER_POSITIONS;
+   }
+
    public boolean addMarker(BlockPos from, BlockPos toAdd) {
-      if (this.loop) {
+      if (this.loop || !fitsMessage(this.positions.size() + 1)) {
          return false;
       }
 
@@ -134,7 +139,7 @@ public class PathConnection extends MarkerConnection<PathConnection> {
    }
 
    public boolean canAddMarker(BlockPos from, BlockPos toAdd) {
-      if (this.loop) {
+      if (this.loop || !fitsMessage(this.positions.size() + 1)) {
          return false;
       } else {
          boolean contains = this.positions.contains(toAdd);
@@ -149,7 +154,7 @@ public class PathConnection extends MarkerConnection<PathConnection> {
    }
 
    public boolean mergeWith(PathConnection conTo, BlockPos from, BlockPos to) {
-      if (this.loop || conTo.loop) {
+      if (this.loop || conTo.loop || !fitsMessage(this.positions.size() + (conTo == this ? 1 : conTo.positions.size()))) {
          return false;
       }
 
@@ -174,7 +179,7 @@ public class PathConnection extends MarkerConnection<PathConnection> {
    }
 
    public boolean canMergeWith(PathConnection conTo, BlockPos from, BlockPos to) {
-      if (this.loop || conTo.loop) {
+      if (this.loop || conTo.loop || !fitsMessage(this.positions.size() + (conTo == this ? 1 : conTo.positions.size()))) {
          return false;
       } else {
          return conTo == this

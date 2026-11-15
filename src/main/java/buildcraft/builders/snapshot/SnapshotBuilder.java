@@ -35,6 +35,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.Vec3;
 
 public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
@@ -62,6 +63,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    private int[] breakOrder;
    private int[] placeOrder;
    private int[] checkOrder;
+   private SnapshotBuilder.@Nullable Orders orders;
    private int currentCheckIndex;
    public Vec3 robotPos;
    public Vec3 prevRobotPos;
@@ -168,31 +170,59 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
       this.requiredCache = new byte[volume];
       Arrays.fill(this.requiredCache, (byte)0);
       this.invalidateFluidCache();
+      BlockPos builderPos = this.tile.getBuilderPos();
+      SnapshotBuilder.Orders orders = this.orders;
+      if (orders == null || !orders.matches(info, builderPos)) {
+         orders = this.computeOrders(info, builderPos);
+         this.orders = orders;
+      }
+
+      this.breakOrder = orders.breakOrder();
+      this.placeOrder = orders.placeOrder();
+      this.checkOrder = orders.checkOrder();
+   }
+
+   private SnapshotBuilder.Orders computeOrders(Snapshot.BuildingInfo info, BlockPos builderPos) {
       List<BlockPos> blocks = info.box.getBlocksInArea();
       BlockPos center = info.box.center();
-      BlockPos builderPos = this.tile.getBuilderPos();
       int centerX = center.getX();
       int centerY = center.getY();
       int centerZ = center.getZ();
       int builderX = builderPos.getX();
       int builderY = builderPos.getY();
       int builderZ = builderPos.getZ();
-      this.breakOrder = blocks.stream().sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos -> {
+      int[] breakOrder = blocks.stream().sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos -> {
          int dx = blockPos.getX() - centerX;
          int dz = blockPos.getZ() - centerZ;
          return (double)dx * dx + (double)dz * dz + 100000.0 - Math.abs(blockPos.getY() - builderY) * 100000;
       }))).mapToInt(this::posToIndex).toArray();
-      this.placeOrder = blocks.stream().sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos -> {
+      int[] placeOrder = blocks.stream().sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos -> {
          int dx = blockPos.getX() - builderX;
          int dz = blockPos.getZ() - builderZ;
          return 100000.0 - ((double)dx * dx + (double)dz * dz) + Math.abs(blockPos.getY() - builderY) * 100000;
       }))).mapToInt(this::posToIndex).toArray();
-      this.checkOrder = blocks.stream().sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos -> {
+      int[] checkOrder = blocks.stream().sorted(BlockUtil.uniqueBlockPosComparator(Comparator.comparingDouble(blockPos -> {
          int dx = blockPos.getX() - centerX;
          int dy = blockPos.getY() - centerY;
          int dz = blockPos.getZ() - centerZ;
          return (double)dx * dx + (double)dy * dy + (double)dz * dz;
       }))).mapToInt(this::posToIndex).toArray();
+      return new SnapshotBuilder.Orders(
+         info.box.min(), info.box.max(), info.basePos, info.offsetPos, info.rotation, builderPos.immutable(), breakOrder, placeOrder, checkOrder
+      );
+   }
+
+   private record Orders(
+      BlockPos min, BlockPos max, BlockPos basePos, BlockPos offsetPos, Rotation rotation, BlockPos builderPos, int[] breakOrder, int[] placeOrder, int[] checkOrder
+   ) {
+      boolean matches(Snapshot.BuildingInfo info, BlockPos builderPos) {
+         return this.min.equals(info.box.min())
+            && this.max.equals(info.box.max())
+            && this.basePos.equals(info.basePos)
+            && this.offsetPos.equals(info.offsetPos)
+            && this.rotation == info.rotation
+            && this.builderPos.equals(builderPos);
+      }
    }
 
    public void resourcesChanged() {
@@ -611,7 +641,9 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
    protected boolean check(BlockPos blockPos) {
       int i = this.posToIndex(blockPos);
       byte prev = this.checkResults[i];
-      if (this.isAir(blockPos)) {
+      if (blockPos.equals(this.tile.getBuilderPos()) || BlockUtil.isUnbreakableBlock(this.tile.getWorldBC(), blockPos, this.tile.getOwner())) {
+         this.checkResults[i] = 1;
+      } else if (this.isAir(blockPos)) {
          if (this.tile.getWorldBC().isEmptyBlock(blockPos)) {
             this.checkResults[i] = 1;
          } else {
@@ -623,6 +655,12 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
          this.checkResults[i] = 3;
       } else {
          this.checkResults[i] = 2;
+      }
+
+      if (this.checkResults[i] == CHECK_RESULT_TO_BREAK
+         && this.tile.getWorldBC() instanceof ServerLevel serverLevel
+         && !BlockUtil.canMachineBreak(serverLevel, blockPos, this.tile.getOwner())) {
+         this.checkResults[i] = CHECK_RESULT_CORRECT;
       }
 
       return prev != this.checkResults[i];

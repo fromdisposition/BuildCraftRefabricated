@@ -6,6 +6,7 @@
 
 package buildcraft.robotics.ai;
 
+import buildcraft.api.core.IZone;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.robots.AIRobot;
 import buildcraft.api.robots.EntityRobotBase;
@@ -35,7 +36,8 @@ public class AIRobotAttack extends AIRobot {
 
    @Override
    public void update() {
-      if (this.target == null || !this.target.isAlive()) {
+      IZone zone = this.robot.getZoneToWork();
+      if (this.target == null || !this.target.isAlive() || zone != null && !zone.contains(this.target.position())) {
          this.terminate();
          return;
       }

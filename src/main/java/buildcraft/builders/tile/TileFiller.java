@@ -27,6 +27,7 @@ import buildcraft.builders.container.ContainerFiller;
 import buildcraft.builders.filler.FillerType;
 import buildcraft.builders.filler.FillerUtil;
 import buildcraft.builders.snapshot.ITileForTemplateBuilder;
+import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.builders.snapshot.SnapshotBuilder;
 import buildcraft.builders.snapshot.Template;
 import buildcraft.builders.snapshot.TemplateBuilder;
@@ -207,7 +208,7 @@ public class TileFiller
    @Nullable
    @Override
    public Set<ChunkPos> getChunksToLoad() {
-      if (!this.box.isInitialized()) {
+      if (!this.box.isInitialized() || !Snapshot.isValidSize(this.box.size())) {
          return null;
       }
 

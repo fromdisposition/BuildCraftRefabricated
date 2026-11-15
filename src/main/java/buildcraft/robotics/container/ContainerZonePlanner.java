@@ -48,6 +48,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
    private static final int MAP_CHUNKS_PER_PACKET = 64;
    private static final int MAP_DEQUEUES_PER_TICK = 512;
    private static final int MAP_QUEUE_LIMIT = 4096;
+   private static final int LAYER_CHUNKS_PER_PACKET = 1024;
    private static final int PLAYER_SLOTS_END = 36;
    private static final int MACHINE_SLOTS_END = 58;
    /** Chunks the server refused this session of the menu (unloaded or outside view distance); the map retries them slowly. */
@@ -171,6 +172,13 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
                return;
             }
 
+            BlockPos tilePos = this.tile.getBlockPos();
+            int viewDist = ctx.player().level().getServer().getPlayerList().getViewDistance();
+            minX = Math.max(minX, ((tilePos.getX() >> 4) - viewDist << 4) - tilePos.getX());
+            maxX = Math.min(maxX, ((tilePos.getX() >> 4) + viewDist << 4) + 15 - tilePos.getX());
+            minZ = Math.max(minZ, ((tilePos.getZ() >> 4) - viewDist << 4) - tilePos.getZ());
+            maxZ = Math.min(maxZ, ((tilePos.getZ() >> 4) + viewDist << 4) + 15 - tilePos.getZ());
+
             for (int x = minX; x <= maxX; x++) {
                for (int z = minZ; z <= maxZ; z++) {
                   this.tile.applyPaint(layer, x, z, set);
@@ -207,21 +215,22 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
          }
       } else if (id == NET_REQUEST_LAYERS && !isClient) {
          if (this.tile != null) {
-            this.sendMessage(NET_LAYERS, buf -> {
-               for (ZonePlan planx : this.tile.layers) {
-                  (planx == null ? new ZonePlan() : planx).writeToByteBuf(buf);
-               }
-            });
+            this.sendLayers();
          }
       } else if (id == NET_LAYERS && isClient) {
          if (this.tile != null) {
-            for (int i = 0; i < this.tile.layers.length; i++) {
-               ZonePlan plan = new ZonePlan();
-               plan.readFromByteBuf(buffer);
-               this.tile.layers[i] = plan;
-            }
+            int layer = buffer.readUnsignedByte();
+            boolean replace = buffer.readBoolean();
+            ZonePlan part = new ZonePlan().readFromByteBuf(buffer);
+            if (layer < this.tile.layers.length) {
+               if (replace || this.tile.layers[layer] == null) {
+                  this.tile.layers[layer] = part;
+               } else {
+                  this.tile.layers[layer].putAll(part);
+               }
 
-            this.clientLayerVersion++;
+               this.clientLayerVersion++;
+            }
          }
       } else {
          super.readMessage(id, buffer, isClient, ctx);
@@ -235,11 +244,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       this.serveMapQueue();
       if (this.tile != null && this.tile.getLevel() != null && !this.tile.getLevel().isClientSide() && this.tile.layersVersion != this.lastLayersVersion) {
          this.lastLayersVersion = this.tile.layersVersion;
-         this.sendMessage(NET_LAYERS, buf -> {
-            for (ZonePlan plan : this.tile.layers) {
-               (plan == null ? new ZonePlan() : plan).writeToByteBuf(buf);
-            }
-         });
+         this.sendLayers();
       }
    }
 
@@ -290,11 +295,24 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
       }
 
       this.lastLayersVersion = this.tile.layersVersion;
-      this.sendMessage(NET_LAYERS, buf -> {
-         for (ZonePlan plan : this.tile.layers) {
-            (plan == null ? new ZonePlan() : plan).writeToByteBuf(buf);
+      this.sendLayers();
+   }
+
+   private void sendLayers() {
+      for (int layer = 0; layer < this.tile.layers.length; layer++) {
+         ZonePlan plan = this.tile.layers[layer] == null ? new ZonePlan() : this.tile.layers[layer];
+         List<ZonePlan> parts = plan.split(LAYER_CHUNKS_PER_PACKET);
+         for (int i = 0; i < Math.max(1, parts.size()); i++) {
+            int index = layer;
+            boolean replace = i == 0;
+            ZonePlan part = parts.isEmpty() ? plan : parts.get(i);
+            this.sendMessage(NET_LAYERS, buf -> {
+               buf.writeByte(index);
+               buf.writeBoolean(replace);
+               part.writeToByteBuf(buf);
+            });
          }
-      });
+      }
    }
 
    private void handleMapRequest(FriendlyByteBuf buffer) {

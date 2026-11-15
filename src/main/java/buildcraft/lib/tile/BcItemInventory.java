@@ -7,7 +7,6 @@
 package buildcraft.lib.tile;
 
 import buildcraft.lib.nbt.BcNbt;
-import buildcraft.lib.fabric.BcRegistryUtil;
 import buildcraft.api.core.IStackFilter;
 import buildcraft.lib.inventory.AbstractInvItemTransactor;
 import buildcraft.lib.fabric.transfer.FabricDeferredCommit;
@@ -30,10 +29,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 public class BcItemInventory extends AbstractInvItemTransactor implements Storage<ItemVariant>, StackInsertionChecker {
    public final NonNullList<ItemStack> stacks;
@@ -430,15 +426,7 @@ public class BcItemInventory extends AbstractInvItemTransactor implements Storag
          if (stackPayload != null) {
             stack = ItemStack.CODEC.parse(NBTUtilBC.registryAwareOps(), stackPayload).resultOrPartial().orElse(ItemStack.EMPTY);
          } else if (itemNbt.contains("id")) {
-            String idStr = BcNbt.getString(itemNbt, "id", "");
-            Identifier id = Identifier.tryParse(idStr);
-            if (id != null) {
-               Item item = BcRegistryUtil.getItem(id);
-               int count = BcNbt.getInt(itemNbt, "count", 1);
-               if (item != null && item != Items.AIR) {
-                  stack = new ItemStack(item, count);
-               }
-            }
+            stack = NBTUtilBC.itemStackFromNBT(itemNbt);
          }
 
          this.setStackInternal(i, stack);

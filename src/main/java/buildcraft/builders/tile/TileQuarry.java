@@ -18,6 +18,7 @@ import buildcraft.builders.BCBuildersConfig;
 import buildcraft.builders.BCBuildersEntities;
 import buildcraft.builders.BCBuildersEventDist;
 import buildcraft.builders.entity.EntityQuarryRig;
+import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.core.BCCoreConfig;
 import buildcraft.core.marker.VolumeCache;
 import buildcraft.core.marker.VolumeConnection;
@@ -1048,7 +1049,7 @@ public class TileQuarry extends BcBlockEntity implements IDebuggable, IHasWork, 
       }
 
       boolean isValid = false;
-      if (this.frameBox.isInitialized() && this.miningBox.isInitialized()) {
+      if (this.frameBox.isInitialized() && this.miningBox.isInitialized() && Snapshot.isValidSize(this.frameBox.size())) {
          isValid = true;
          Direction validFace = null;
 

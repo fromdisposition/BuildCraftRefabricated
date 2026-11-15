@@ -140,6 +140,23 @@ public class BlockWaterGel extends HalfTransparentBlock {
       }
    }
 
+   //? if >= 1.21.10 {
+   @Override
+   protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+      GelOwnerSavedData.getOrCreate(level).removeOwner(pos);
+      super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+   }
+   //?} else {
+   /*@Override
+   protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+      if (!level.isClientSide() && !state.is(newState.getBlock())) {
+         GelOwnerSavedData.getOrCreate(level).removeOwner(pos);
+      }
+
+      super.onRemove(state, level, pos, newState, movedByPiston);
+   }
+   *///?}
+
    private static boolean notTouchingWater(Level level, BlockPos pos) {
       for (Direction face : Direction.values()) {
          if (isGellableWater(level, pos.relative(face))) {

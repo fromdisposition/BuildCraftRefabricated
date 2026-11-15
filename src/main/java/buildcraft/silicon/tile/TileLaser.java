@@ -56,6 +56,7 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
    private boolean worldHasUpdated = true;
    private final AverageLong avgPower = new AverageLong(100);
    private long averageClient;
+   private long lastStoredPower;
    private boolean writingSyncTag;
    private final MjBattery battery;
    private final MjBatteryReceiver mjReceiver;
@@ -219,7 +220,11 @@ public class TileLaser extends BlockEntity implements ILocalBlockUpdateSubscribe
       if (!Objects.equals(previousTargetPos, this.targetPos) || this.averageClient / MjAPI.MJ != previousAverageClient / MjAPI.MJ) {
          this.setChanged();
          MessageUtil.sendUpdateToTrackingPlayers(this);
+      } else if (this.battery.getStored() != this.lastStoredPower) {
+         this.setChanged();
       }
+
+      this.lastStoredPower = this.battery.getStored();
    }
 
    //? if >= 1.21.10 {

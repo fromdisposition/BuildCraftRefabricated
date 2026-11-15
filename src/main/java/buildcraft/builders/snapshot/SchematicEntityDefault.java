@@ -29,6 +29,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import buildcraft.lib.nbt.BcEntityNbt;
+import net.minecraft.world.RandomizableContainer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.HangingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -45,16 +46,13 @@ public class SchematicEntityDefault implements ISchematicEntity {
 
    public static boolean predicate(SchematicEntityContext context) {
       Identifier registryName = BuiltInRegistries.ENTITY_TYPE.getKey(context.entity.getType());
-      if (registryName == null) {
-         return false;
-      }
+      return registryName != null
+         && RulesLoader.READ_DOMAINS.contains(registryName.getNamespace())
+         && isCapturable(registryName, BcEntityNbt.save(context.entity, context.world.registryAccess()));
+   }
 
-      if (!RulesLoader.READ_DOMAINS.contains(registryName.getNamespace())) {
-         return false;
-      }
-
-      CompoundTag entityNbt = BcEntityNbt.save(context.entity, context.world.registryAccess());
-      return RulesLoader.getRules(registryName, entityNbt).stream().anyMatch(rule -> rule.capture);
+   private static boolean isCapturable(Identifier entityId, CompoundTag entityNbt) {
+      return RulesLoader.getRules(entityId, entityNbt).stream().anyMatch(rule -> rule.capture);
    }
 
    @Override
@@ -119,10 +117,17 @@ public class SchematicEntityDefault implements ISchematicEntity {
    @Nullable
    @Override
    public Entity build(Level level, BlockPos basePos) {
+      Identifier entityId = Identifier.tryParse(BcNbt.getString(this.entityNbt, "id", ""));
+      if (entityId == null || !isCapturable(entityId, this.entityNbt)) {
+         return null;
+      }
+
       Vec3 placePos = Vec3.atLowerCornerOf(basePos).add(this.pos);
       BlockPos placeHangingPos = basePos.offset(this.hangingPos);
       CompoundTag newEntityNbt = this.entityNbt.copy();
       newEntityNbt.put("Pos", NBTUtilBC.writeVec3(placePos));
+      newEntityNbt.remove(RandomizableContainer.LOOT_TABLE_TAG);
+      newEntityNbt.remove(RandomizableContainer.LOOT_TABLE_SEED_TAG);
       NBTUtilBC.putUUID(newEntityNbt, "UUID", UUID.randomUUID());
       boolean rotate = true;
       boolean hasTileXyz = newEntityNbt.contains("TileX") && newEntityNbt.contains("TileY") && newEntityNbt.contains("TileZ");

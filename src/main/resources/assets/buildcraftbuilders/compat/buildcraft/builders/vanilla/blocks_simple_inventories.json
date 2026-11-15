@@ -4,6 +4,10 @@
       "minecraft:chest",
       "minecraft:trapped_chest",
       "minecraft:barrel",
+      "minecraft:crafter",
+      "minecraft:chiseled_bookshelf",
+      "minecraft:campfire",
+      "minecraft:soul_campfire",
       "minecraft:brewing_stand",
       "minecraft:dispenser",
       "minecraft:dropper",
@@ -40,5 +44,14 @@
         ]
       }
     ]
+  },
+  {
+    "selectors": [
+      "minecraft:beehive",
+      "minecraft:bee_nest"
+    ],
+    "replaceNbt": {
+      "bees": null
+    }
   }
 ]

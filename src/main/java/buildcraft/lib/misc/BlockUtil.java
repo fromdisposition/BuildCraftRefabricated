@@ -63,6 +63,10 @@ public class BlockUtil {
       }
 
       Player fp = BuildCraftAPI.fakePlayerProvider.getFakePlayer(level, owner, pos);
+      if (!level.mayInteract(fp, pos)) {
+         return false;
+      }
+
       BlockState state = level.getBlockState(pos);
       return BreakEventCompat.canBreak(level, pos, state, fp);
    }
@@ -74,7 +78,16 @@ public class BlockUtil {
 
       BlockPos fakePos = originPos != null ? originPos : pos;
       Player fp = BuildCraftAPI.fakePlayerProvider.getFakePlayer(level, owner, fakePos);
-      return PlaceEventCompat.canPlace(level, pos, fp);
+      return level.mayInteract(fp, pos) && PlaceEventCompat.canPlace(level, pos, fp);
+   }
+
+   public static boolean canMachineAttack(ServerLevel level, Entity target, GameProfile owner) {
+      if (BCCoreConfig.minePlayerProtected.get()) {
+         return true;
+      }
+
+      Player fp = BuildCraftAPI.fakePlayerProvider.getFakePlayer(level, owner, target.blockPosition());
+      return AttackEntityCompat.canAttack(level, fp, target);
    }
 
    public static boolean canMachineInteract(ServerLevel level, BlockPos pos, GameProfile owner, BlockPos originPos) {

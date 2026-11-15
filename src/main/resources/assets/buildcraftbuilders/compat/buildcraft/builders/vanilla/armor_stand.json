@@ -54,6 +54,32 @@
           "equipment",
           "feet"
         ]
+      },
+      {
+        "type": "item",
+        "path": [
+          "equipment",
+          "body"
+        ]
+      },
+      {
+        "type": "item",
+        "path": [
+          "equipment",
+          "saddle"
+        ]
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "ArmorItems"
+        ]
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "HandItems"
+        ]
       }
     ]
   }

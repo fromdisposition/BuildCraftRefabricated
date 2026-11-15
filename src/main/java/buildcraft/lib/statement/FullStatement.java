@@ -45,6 +45,8 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
             CompoundTag pNbt = BcNbt.getCompound(nbt, Integer.toString(p));
             this.params[p] = StatementTypeParam.INSTANCE.readFromNbt(pNbt);
          }
+
+         this.set(this.statement);
       }
    }
 
@@ -66,11 +68,15 @@ public class FullStatement<S extends IStatement> implements IReference<S> {
 
    public void readFromBuffer(FriendlyByteBuf buffer) {
       if (buffer.readBoolean()) {
-         this.statement = this.type.readFromBuffer(buffer);
+         S read = this.type.readFromBuffer(buffer);
+         IStatementParameter[] readParams = new IStatementParameter[this.params.length];
 
-         for (int p = 0; p < this.params.length; p++) {
-            this.params[p] = StatementTypeParam.INSTANCE.readFromBuffer(buffer);
+         for (int p = 0; p < readParams.length; p++) {
+            readParams[p] = StatementTypeParam.INSTANCE.readFromBuffer(buffer);
          }
+
+         System.arraycopy(readParams, 0, this.params, 0, readParams.length);
+         this.set(read);
       } else {
          this.statement = this.type.defaultStatement;
          Arrays.fill(this.params, null);

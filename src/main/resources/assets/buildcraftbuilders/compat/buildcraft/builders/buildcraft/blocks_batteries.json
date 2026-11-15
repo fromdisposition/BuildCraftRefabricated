@@ -3,16 +3,60 @@
     "selectors": [
       "buildcraftbuilders:quarry",
       "buildcraftbuilders:filler",
+      "buildcraftbuilders:builder"
+    ],
+    "replaceNbt": {
+      "battery_mj": 0
+    }
+  },
+  {
+    "selectors": [
       "buildcraftfactory:chute",
       "buildcraftfactory:distiller",
       "buildcraftfactory:pump",
       "buildcraftfactory:mining_well",
+      "buildcraftenergy:mj_dynamo"
+    ],
+    "replaceNbt": {
+      "mjStored": 0
+    }
+  },
+  {
+    "selectors": [
       "buildcraftsilicon:laser"
     ],
     "replaceNbt": {
       "battery": {
         "stored": 0
       }
+    }
+  },
+  {
+    "selectors": [
+      "buildcraftcore:engine_redstone",
+      "buildcraftcore:engine_creative",
+      "buildcraftenergy:engine_stone",
+      "buildcraftenergy:engine_iron",
+      "buildcraftenergy:engine_rf",
+      "buildcraftenergy:mj_dynamo",
+      "buildcraftsilicon:assembly_table",
+      "buildcraftsilicon:advanced_crafting_table",
+      "buildcraftsilicon:integration_table",
+      "buildcraftsilicon:charging_table",
+      "buildcraftsilicon:programming_table",
+      "buildcraftsilicon:stamping_table"
+    ],
+    "replaceNbt": {
+      "power": 0
+    }
+  },
+  {
+    "selectors": [
+      "buildcraftenergy:engine_rf",
+      "buildcraftenergy:mj_dynamo"
+    ],
+    "replaceNbt": {
+      "currentFe": 0
     }
   }
 ]

@@ -18,6 +18,7 @@ import buildcraft.api.transport.pipe.PipeEventStatement;
 import buildcraft.api.transport.pipe.PipeFlow;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.misc.data.DelayedList;
+import buildcraft.lib.net.BCPacketLimits;
 import buildcraft.transport.BCTransportStatements;
 import buildcraft.transport.net.MessageMultiPipeItem;
 import buildcraft.transport.net.PipeItemMessageQueue;
@@ -49,8 +50,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 public final class PipeFlowItems extends PipeFlow implements IFlowItems {
    private static final double EXTRACT_SPEED = 0.08;
+   static final double MAX_PIPE_LENGTH = 0.75;
    private final DelayedList<TravellingItem> items = new DelayedList<>();
    private final List<ItemStack> postDropCache = new ArrayList<>();
+   private boolean timingsUnanchored;
    private final PipeFlowItems.PipeExtractJournal extractJournal = new PipeFlowItems.PipeExtractJournal();
    @SuppressWarnings("unchecked")
    private final Storage<ItemVariant>[] itemStorages = (Storage<ItemVariant>[])new Storage<?>[6];
@@ -75,12 +78,26 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
       ListTag list = BcNbt.getList(nbt, "items");
       Level world = pipe.getHolder().getPipeWorld();
       long tickNow = world != null ? world.getGameTime() : 0L;
+      this.timingsUnanchored = world == null;
 
       for (int i = 0; i < list.size(); i++) {
          if (list.get(i) instanceof CompoundTag compound) {
             TravellingItem item = new TravellingItem(compound, tickNow);
             if (!item.stack.isEmpty()) {
                this.items.add(item.getCurrentDelay(tickNow), item);
+            }
+         }
+      }
+   }
+
+   public void anchorTimings(long now) {
+      if (this.timingsUnanchored) {
+         this.timingsUnanchored = false;
+
+         for (List<TravellingItem> list : this.items.getAllElements()) {
+            for (TravellingItem item : list) {
+               item.tickStarted += now;
+               item.tickFinished += now;
             }
          }
       }
@@ -101,6 +118,23 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
       nbt.put("items", list);
       return nbt;
+   }
+
+   public static void limitItemsForClient(CompoundTag flowNbt) {
+      ListTag items = BcNbt.getList(flowNbt, "items");
+      ListTag kept = new ListTag();
+
+      for (int i = 0; i < Math.min(items.size(), BCPacketLimits.MAX_PIPE_ITEMS_PER_BLOCK); i++) {
+         if (items.get(i) instanceof CompoundTag item) {
+            if (item.get("stack") instanceof CompoundTag stack && stack.sizeInBytes() > BCPacketLimits.MAX_DISPLAY_STACK_BYTES) {
+               stack.remove("components");
+            }
+
+            kept.add(item);
+         }
+      }
+
+      flowNbt.put("items", kept);
    }
 
    void sendItemDataToClient(TravellingItem item) {
@@ -286,6 +320,10 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
    private void onItemReachCenter(TravellingItem item) {
       this.markSaveDirty();
+      if (item.side == null) {
+         item.side = this.centreOrigin();
+      }
+
       IPipeHolder holder = this.pipe.getHolder();
       PipeEventItem.ReachCenter reachCenter = this.routingReachCenter;
       if (reachCenter == null) {
@@ -650,6 +688,12 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
       this.sendItemDataToClient(item);
    }
 
+   public void clearItems() {
+      this.items.clear();
+      this.postDropCache.clear();
+      this.markSaveDirty();
+   }
+
    private void markSaveDirty() {
       if (this.pipe.getHolder().getPipeTile() instanceof TilePipeHolder tile) {
          tile.markPipeSaveDirty();
@@ -696,7 +740,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
       if (side == null) {
          return 0.0;
       } else if (this.pipe.isConnected(side)) {
-         return this.pipe.getConnectedType(side) == IPipe.ConnectedType.TILE ? 0.75 : 0.5;
+         return this.pipe.getConnectedType(side) == IPipe.ConnectedType.TILE ? MAX_PIPE_LENGTH : 0.5;
       } else {
          return 0.25;
       }

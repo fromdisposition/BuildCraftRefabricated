@@ -7,12 +7,13 @@
 package buildcraft.lib.net;
 
 import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.network.CompressionDecoder;
 
 public final class BoundedNbt {
    private BoundedNbt() {
    }
 
    public static NbtAccounter networkQuota() {
-      return NbtAccounter.create(BCPacketLimits.MAX_COMPRESSED_NBT_BYTES);
+      return NbtAccounter.create(CompressionDecoder.MAXIMUM_UNCOMPRESSED_LENGTH);
    }
 }

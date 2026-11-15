@@ -30,7 +30,7 @@ public class ActionPipeDirection extends BCStatement implements IActionInternal 
 
    @Override
    public String getDescription() {
-      return String.format(LocaleUtil.localize("gate.action.pipe.direction"), ColourUtil.getTextFullTooltip(this.direction));
+      return LocaleUtil.localize("gate.action.pipe.direction", ColourUtil.getTextFullTooltip(this.direction));
    }
 
    @Override

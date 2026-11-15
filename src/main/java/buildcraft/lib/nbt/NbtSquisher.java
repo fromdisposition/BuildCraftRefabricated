@@ -15,7 +15,11 @@ import net.minecraft.nbt.NbtIo;
 
 public class NbtSquisher {
    public static CompoundTag expand(InputStream stream) throws IOException {
-      return NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
+      //? if >= 1.21.11 {
+      return NbtIo.readCompressed(stream, NbtAccounter.uncompressedQuota());
+      //?} else {
+      /*return NbtIo.readCompressed(stream, NbtAccounter.create(104857600L));
+      *///?}
    }
 
    public static void squishVanilla(CompoundTag nbt, OutputStream stream) throws IOException {

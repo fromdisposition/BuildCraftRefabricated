@@ -27,32 +27,6 @@
   },
   {
     "selectors": [
-      "buildcraftbuilders:builder"
-    ],
-    "requiredExtractors": [
-      {
-        "type": "item_from_block"
-      },
-      {
-        "type": "items_list",
-        "path": [
-          "items",
-          "snapshot",
-          "items"
-        ]
-      },
-      {
-        "type": "items_list",
-        "path": [
-          "items",
-          "resources",
-          "items"
-        ]
-      }
-    ]
-  },
-  {
-    "selectors": [
       "buildcraftbuilders:filler"
     ],
     "requiredExtractors": [
@@ -174,56 +148,49 @@
       {
         "type": "items_list",
         "path": [
-          "items",
-          "paintbrushes",
+          "invPaintbrushes",
           "items"
         ]
       },
       {
         "type": "items_list",
         "path": [
-          "items",
-          "inputPaintbrush",
+          "invInputPaintbrush",
           "items"
         ]
       },
       {
         "type": "items_list",
         "path": [
-          "items",
-          "inputMapLocation",
+          "invInputMapLocation",
           "items"
         ]
       },
       {
         "type": "items_list",
         "path": [
-          "items",
-          "inputResult",
+          "invInputResult",
           "items"
         ]
       },
       {
         "type": "items_list",
         "path": [
-          "items",
-          "outputPaintbrush",
+          "invOutputPaintbrush",
           "items"
         ]
       },
       {
         "type": "items_list",
         "path": [
-          "items",
-          "outputMapLocation",
+          "invOutputMapLocation",
           "items"
         ]
       },
       {
         "type": "items_list",
         "path": [
-          "items",
-          "outputResult",
+          "invOutputResult",
           "items"
         ]
       }
@@ -259,9 +226,45 @@
         "type": "items_list",
         "path": [
           "items",
-          "blueprint",
+          "materials",
           "items"
         ]
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "result",
+          "items"
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "buildcrafttransport:filtered_buffer"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "item_from_block"
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "main",
+          "items"
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "buildcraftfactory:autoworkbench_item"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "item_from_block"
       },
       {
         "type": "items_list",
@@ -283,7 +286,7 @@
   },
   {
     "selectors": [
-      "buildcraftenergy:engine_stone"
+      "buildcraftrobotics:requester"
     ],
     "requiredExtractors": [
       {
@@ -293,7 +296,7 @@
         "type": "items_list",
         "path": [
           "items",
-          "fuel",
+          "items",
           "items"
         ]
       }
@@ -301,7 +304,7 @@
   },
   {
     "selectors": [
-      "buildcrafttransport:filtered_buffer"
+      "buildcraftsilicon:charging_table"
     ],
     "requiredExtractors": [
       {
@@ -311,7 +314,25 @@
         "type": "items_list",
         "path": [
           "items",
-          "filter",
+          "inv",
+          "items"
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "buildcraftsilicon:integration_table"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "item_from_block"
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "target",
           "items"
         ]
       },
@@ -319,7 +340,101 @@
         "type": "items_list",
         "path": [
           "items",
-          "main",
+          "toIntegrate",
+          "items"
+        ]
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "result",
+          "items"
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "buildcraftsilicon:packager"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "item_from_block"
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "storage",
+          "items"
+        ]
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "input",
+          "items"
+        ]
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "output",
+          "items"
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "buildcraftsilicon:programming_table"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "item_from_block"
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "input",
+          "items"
+        ]
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "output",
+          "items"
+        ]
+      }
+    ]
+  },
+  {
+    "selectors": [
+      "buildcraftsilicon:stamping_table"
+    ],
+    "requiredExtractors": [
+      {
+        "type": "item_from_block"
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "input",
+          "items"
+        ]
+      },
+      {
+        "type": "items_list",
+        "path": [
+          "items",
+          "output",
           "items"
         ]
       }

@@ -13,62 +13,29 @@ import net.minecraft.client.renderer.RenderPipelines;
 /*import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 *///?}
-import java.util.function.Function;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Sheets;
 //? if >= 1.21.11 {
-//? if >= 26.3 {
-import com.mojang.renderpearl.api.pipeline.PrimitiveTopology;
-import com.mojang.renderpearl.api.pipeline.RenderPipeline;
-import net.minecraft.client.renderer.oit.OitPipelineSet;
-//?}
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.rendertype.RenderSetup.OutlineProperty;
 //?} else {
 /*import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.rendertype.RenderType;
 *///?}
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Util;
 
 public final class BCLibRenderTypes {
    //? if >= 1.21.11 {
-      //? if >= 26.3 {
-      private static final OitPipelineSet LED_OIT = OitPipelineSet.builder(
-              "buildcraft-led_oit",
-            RenderPipeline.builder(RenderPipelines.OIT_DEBUG_FILLED_SNIPPET)
-                    .withPrimitiveTopology(PrimitiveTopology.QUADS)
-      ).build();
-      //?}
-
    private static final RenderType LED = RenderType.create(
-      "buildcraft:led", RenderSetup.builder(RenderPipelines.DEBUG_QUADS)
-                   .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-                   //? if >= 26.3 {
-                           .setOitPipelines(LED_OIT)
-                   //?}
-                   .createRenderSetup()
-   );
-
-   private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(
-      texture -> RenderType.create(
-         "buildcraft:entity_translucent_cull",
-         //? if >= 26.1 {
-         RenderSetup.builder(RenderPipelines.ENTITY_TRANSLUCENT_CULL)
-         //?} else {
-         /*RenderSetup.builder(RenderPipelines.ENTITY_TRANSLUCENT)
-         *///?}
-            .withTexture("Sampler0", texture)
-            .useLightmap()
-            .useOverlay()
-            .affectsCrumbling()
-            .sortOnUpload()
-            .setOutline(OutlineProperty.NONE)
-            .createRenderSetup()
-      )
+      "buildcraft:led",
+      RenderSetup.builder(RenderPipelines.DEBUG_QUADS)
+         .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+         //? if >= 26.3 {
+         .setOitPipelines(RenderPipelines.OIT_DEBUG_QUADS)
+         //?}
+         .createRenderSetup()
    );
    //?} else if >= 1.21.10 {
    /*// 1.21.10 uses the legacy RenderType.create(name, bufferSize[, crumbling, sort], pipeline, CompositeState) API;
@@ -77,20 +44,9 @@ public final class BCLibRenderTypes {
       "buildcraft:led", 1536, RenderPipelines.DEBUG_QUADS,
       RenderType.CompositeState.builder().setLayeringState(RenderStateShard.VIEW_OFFSET_Z_LAYERING).createCompositeState(false)
    );
-   private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(
-      texture -> RenderType.create(
-         "buildcraft:entity_translucent_cull", 1536, true, true, RenderPipelines.ENTITY_TRANSLUCENT,
-         RenderType.CompositeState.builder()
-            .setTextureState(new RenderStateShard.TextureStateShard(texture, false))
-            .setLightmapState(RenderStateShard.LIGHTMAP)
-            .setOverlayState(RenderStateShard.OVERLAY)
-            .createCompositeState(false)
-      )
-   );
    *///?} else {
    /*// 1.21.1 predates RenderPipeline: build render types the classic way (VertexFormat + ShaderStateShard).
-   // LED mirrors vanilla debug_filled_box (POSITION_COLOR, position-color shader, translucent);
-   // ENTITY_TRANSLUCENT_CULL maps straight to the vanilla helper.
+   // LED mirrors vanilla debug_filled_box (POSITION_COLOR, position-color shader, translucent).
    // BuildCraft's RenderPartCube emits 4 vertices per face in quad winding, so these use QUADS mode.
    // (Vanilla debug_filled_box is TRIANGLE_STRIP with a special vertex order; copying that mode here turned
    // the LED cubes into a single connected triangle strip — the long green/red smear between LEDs.)
@@ -105,7 +61,6 @@ public final class BCLibRenderTypes {
          .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
          .createCompositeState(false)
    );
-   private static final Function<Identifier, RenderType> ENTITY_TRANSLUCENT_CULL = Util.memoize(RenderType::entityTranslucentCull);
    *///?}
 
    public static RenderType led() {
@@ -126,10 +81,6 @@ public final class BCLibRenderTypes {
       //?} else {
       /*return RenderType.debugQuads();
       *///?}
-   }
-
-   public static RenderType entityTranslucentCull(Identifier texture) {
-      return ENTITY_TRANSLUCENT_CULL.apply(texture);
    }
 
    public static RenderType entityCutout(Identifier texture) {

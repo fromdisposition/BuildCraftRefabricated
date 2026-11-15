@@ -9,6 +9,7 @@ package buildcraft.robotics.zone;
 import buildcraft.lib.nbt.BcNbt;
 import buildcraft.api.core.IZone;
 import buildcraft.lib.misc.PositionUtil;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -127,6 +128,23 @@ public class ZonePlan implements IZone {
 
    public Set<ChunkPos> getChunkPoses() {
       return this.chunkMapping.keySet();
+   }
+
+   public List<ZonePlan> split(int maxChunks) {
+      List<ZonePlan> parts = new ArrayList<>();
+
+      for (List<Entry<ChunkPos, ZoneChunk>> entries : Lists.partition(new ArrayList<>(this.chunkMapping.entrySet()), maxChunks)) {
+         ZonePlan part = new ZonePlan();
+         entries.forEach(entry -> part.chunkMapping.put(entry.getKey(), entry.getValue()));
+         parts.add(part);
+      }
+
+      return parts;
+   }
+
+   public void putAll(ZonePlan other) {
+      this.chunkMapping.putAll(other.chunkMapping);
+      this.lastChunkValid = false;
    }
 
    public void writeToNBT(CompoundTag nbt) {

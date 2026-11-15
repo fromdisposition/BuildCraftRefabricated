@@ -14,6 +14,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
@@ -26,6 +27,8 @@ import org.jspecify.annotations.Nullable;
 public final class BcRegistryUtil {
    private static final Map<Fluid, Item> FLUID_BUCKET_CACHE = new IdentityHashMap<>();
    private static final Identifier UNKNOWN_BIOME = Identifier.parse("minecraft:plains");
+   @Nullable
+   private static volatile MinecraftServer server;
 
    private BcRegistryUtil() {
    }
@@ -101,13 +104,26 @@ public final class BcRegistryUtil {
       return level.getChunkSource().hasChunk(chunkX, chunkZ);
    }
 
+   public static void setServer(@Nullable MinecraftServer current) {
+      server = current;
+   }
+
    public static DynamicOps<Tag> registryAwareOps() {
-      // The client-level lookup lives in a client-only class: naming a client type here would crash the dedicated server's verifier.
-      Provider client = null;
-      if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-         client = buildcraft.lib.fabric.client.BcClientRegistryAccess.levelRegistryAccess();
+      MinecraftServer current = server;
+      boolean client = FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
+      Provider registries = null;
+      if (current != null && (!client || current.isSameThread())) {
+         registries = current.registryAccess();
+      } else if (client) {
+         // The client-level lookup lives in a client-only class: naming a client type here would crash the dedicated server's verifier.
+         registries = buildcraft.lib.fabric.client.BcClientRegistryAccess.levelRegistryAccess();
       }
-      return (client != null ? RegistryOps.create(NbtOps.INSTANCE, client) : NbtOps.INSTANCE);
+
+      if (registries == null && current != null) {
+         registries = current.registryAccess();
+      }
+
+      return registries != null ? RegistryOps.create(NbtOps.INSTANCE, registries) : NbtOps.INSTANCE;
    }
 
    public static DynamicOps<Tag> registryAwareOps(Level level) {

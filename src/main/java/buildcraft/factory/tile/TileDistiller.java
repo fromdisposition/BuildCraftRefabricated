@@ -52,7 +52,9 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -67,7 +69,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 //?}
 
-public class TileDistiller extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable {
+public class TileDistiller extends BlockEntity implements MenuProvider, BlockEntityExtendedMenu, IDebuggable, Clearable {
    public static final long MAX_MJ_PER_TICK = 6L * MjAPI.MJ;
    private static final Identifier ADVANCEMENT_HEATING_AND_DISTILLING = Identifier.parse("buildcraftfactory:heating_and_distilling");
    private static final Identifier ADVANCEMENT_REFINE_AND_REDEFINE = Identifier.parse("buildcraftenergy:refine_and_redefine");
@@ -77,6 +79,13 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
    private final MjBattery mjBattery = new MjBattery(1024L * MjAPI.MJ);
    private final IMjReceiver mjReceiver = new MjBatteryReceiver(this.mjBattery);
    public final ItemHandlerSimple containerSlots = new ItemHandlerSimple(3, 1);
+
+   @Override
+   public void clearContent() {
+      for (int slot = 0; slot < this.containerSlots.getSlots(); slot++) {
+         this.containerSlots.setStackInSlot(slot, ItemStack.EMPTY);
+      }
+   }
    private final FluidSmoother smoothIn;
    private final FluidSmoother smoothGasOut;
    private final FluidSmoother smoothLiquidOut;
@@ -100,6 +109,8 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
    private boolean lastSyncedActive;
    private boolean lastSyncedStuck;
    private long lastSyncedPower;
+   private long lastStoredPower;
+   private long lastDistillPower;
 
    public TileDistiller(BlockPos pos, BlockState state) {
       super(BCFactoryBlockEntities.DISTILLER, pos, state);
@@ -302,8 +313,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
          }
 
          if (this.currentRecipe == null) {
-            this.mjBattery.addPowerChecking(this.distillPower, false);
-            this.distillPower = 0L;
+            this.distillPower = this.mjBattery.addPowerChecking(this.distillPower, false);
             this.isActive = false;
             this.isStuck = false;
          } else {
@@ -355,8 +365,7 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
                   this.creditRefineAndRedefine(outGas, outLiquid);
                }
             } else {
-               this.mjBattery.addPowerChecking(this.distillPower, false);
-               this.distillPower = 0L;
+               this.distillPower = this.mjBattery.addPowerChecking(this.distillPower, false);
                this.isActive = false;
             }
          }
@@ -411,7 +420,12 @@ public class TileDistiller extends BlockEntity implements MenuProvider, BlockEnt
                   }
                }
             }
+         } else if (this.mjBattery.getStored() != this.lastStoredPower || this.distillPower != this.lastDistillPower) {
+            this.setChanged();
          }
+
+         this.lastStoredPower = this.mjBattery.getStored();
+         this.lastDistillPower = this.distillPower;
       }
    }
 

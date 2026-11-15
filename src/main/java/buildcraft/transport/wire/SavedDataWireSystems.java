@@ -12,15 +12,18 @@ import buildcraft.api.transport.pipe.IPipeHolder;
 import buildcraft.api.transport.pluggable.PipePluggable;
 import buildcraft.lib.net.BcPacketDistributor;
 import buildcraft.silicon.plug.PluggableGate;
+import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.Map.Entry;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.core.BlockPos;
@@ -47,11 +50,12 @@ public class SavedDataWireSystems extends SavedData {
    public boolean structureChanged = true;
    public final Set<WireSystem> changedSystems = new HashSet<>();
    private final Set<WireSystem> systemsNeedingPowerUpdate = new HashSet<>();
-   public final Map<WireSystem.WireElement, IWireEmitter> emittersCache = new HashMap<>();
+   private final Map<WireSystem.WireElement, Set<DyeColor>> emittedColours = new HashMap<>();
    private final Map<WireSystem.WireElement, List<WireSystem>> elementsToWireSystemsIndex = new HashMap<>();
    private final Map<ChunkPos, Set<WireSystem>> chunkToWireSystems = new HashMap<>();
    private final Set<Integer> removedNetworkIds = new HashSet<>();
    private final Set<BlockPos> pendingRebuilds = new HashSet<>();
+   private final Map<UUID, Set<Integer>> sentTopology = new HashMap<>();
 
    public SavedDataWireSystems(@Nullable ServerLevel level) {
       this.world = level;
@@ -67,13 +71,34 @@ public class SavedDataWireSystems extends SavedData {
 
    public void markStructureChanged() {
       this.structureChanged = true;
-      this.emittersCache.clear();
    }
 
    public void markEmitterDirty(WireSystem.WireElement emitter) {
       if (emitter.type == WireSystem.WireElement.Type.EMITTER_SIDE) {
+         this.recordEmittedColours(emitter);
+
          for (WireSystem wireSystem : this.getWireSystemsWithElementAsReadOnlyList(emitter)) {
             this.systemsNeedingPowerUpdate.add(wireSystem);
+         }
+      }
+   }
+
+   private void recordEmittedColours(WireSystem.WireElement element) {
+      if (this.world.isLoaded(element.blockPos)) {
+         IWireEmitter emitter = this.getEmitter(element);
+         Set<DyeColor> colours = EnumSet.noneOf(DyeColor.class);
+         if (emitter != null) {
+            for (DyeColor colour : DyeColor.values()) {
+               if (emitter.isEmitting(colour)) {
+                  colours.add(colour);
+               }
+            }
+         }
+
+         if (colours.isEmpty()) {
+            this.emittedColours.remove(element);
+         } else {
+            this.emittedColours.put(element, colours);
          }
       }
    }
@@ -83,7 +108,7 @@ public class SavedDataWireSystems extends SavedData {
 
       for (WireSystem.WireElement element : wireSystem.elements) {
          BlockPos pos = element.blockPos;
-         if (!visited.add(pos) || !(this.world.getBlockEntity(pos) instanceof IPipeHolder holder)) {
+         if (!visited.add(pos) || !this.world.isLoaded(pos) || !(this.world.getBlockEntity(pos) instanceof IPipeHolder holder)) {
             continue;
          }
 
@@ -131,7 +156,8 @@ public class SavedDataWireSystems extends SavedData {
             }
          }
 
-         PayloadWireSync payload = this.buildSyncPayload(watchedSystems, true, this.wireSystems.keySet(), null);
+         PayloadWireSync payload = this.buildSyncPayload(watchedSystems, watchedSystems, this.wireSystems.keySet(), null);
+         this.sentTopology.put(player.getUUID(), networkIds(watchedSystems));
          sendWireSync(player, payload);
       }
    }
@@ -176,12 +202,22 @@ public class SavedDataWireSystems extends SavedData {
       }
    }
 
-   private PayloadWireSync buildSyncPayload(Set<WireSystem> visible, boolean sendTopology, Set<WireSystem> poweredSystems, int[] removed) {
+   private static Set<Integer> networkIds(Set<WireSystem> systems) {
+      Set<Integer> ids = new HashSet<>();
+
+      for (WireSystem wireSystem : systems) {
+         ids.add(wireSystem.getNetworkId());
+      }
+
+      return ids;
+   }
+
+   private PayloadWireSync buildSyncPayload(Set<WireSystem> visible, Set<WireSystem> withTopology, Set<WireSystem> poweredSystems, int[] removed) {
       Map<Integer, WireSystem> topology = null;
-      if (sendTopology && !visible.isEmpty()) {
+      if (!withTopology.isEmpty()) {
          topology = new HashMap<>();
 
-         for (WireSystem ws : visible) {
+         for (WireSystem ws : withTopology) {
             topology.put(ws.getNetworkId(), ws);
          }
       }
@@ -239,13 +275,48 @@ public class SavedDataWireSystems extends SavedData {
    }
 
    public void buildAndAddWireSystem(WireSystem.WireElement element) {
-      WireSystem wireSystem = new WireSystem(this, element);
+      Set<WireSystem> replaced = new HashSet<>();
+      WireSystem wireSystem = new WireSystem(this, element, replaced);
+      Set<WireSystem.WireElement> taken = new HashSet<>(wireSystem.elements);
+
+      for (WireSystem old : replaced) {
+         this.removeWireSystem(old);
+         WireSystem rest = remainderOf(old, taken);
+         if (!rest.isEmpty()) {
+            this.addWireSystem(rest, rest.update(this));
+         }
+      }
+
       if (!wireSystem.isEmpty()) {
+         for (WireSystem.WireElement systemElement : wireSystem.elements) {
+            if (systemElement.type == WireSystem.WireElement.Type.EMITTER_SIDE) {
+               this.recordEmittedColours(systemElement);
+            }
+         }
+
          this.addWireSystem(wireSystem, false);
          this.wireSystems.put(wireSystem, wireSystem.update(this));
       }
 
       this.markStructureChanged();
+   }
+
+   private static WireSystem remainderOf(WireSystem old, Set<WireSystem.WireElement> taken) {
+      Set<BlockPos> wirePositions = new HashSet<>();
+
+      for (WireSystem.WireElement element : old.elements) {
+         if (element.type == WireSystem.WireElement.Type.WIRE_PART && !taken.contains(element)) {
+            wirePositions.add(element.blockPos);
+         }
+      }
+
+      return new WireSystem(
+         old.elements
+            .stream()
+            .filter(element -> element.type == WireSystem.WireElement.Type.WIRE_PART ? !taken.contains(element) : wirePositions.contains(element.blockPos))
+            .collect(ImmutableList.toImmutableList()),
+         old.color
+      );
    }
 
    public void rebuildWireSystemsAround(IPipeHolder holder) {
@@ -276,29 +347,29 @@ public class SavedDataWireSystems extends SavedData {
       this.pendingRebuilds.clear();
 
       for (BlockPos pos : toRebuild) {
-         if (this.world != null && this.world.getBlockEntity(pos) instanceof IPipeHolder holder) {
+         if (this.world != null && this.world.isLoaded(pos) && this.world.getBlockEntity(pos) instanceof IPipeHolder holder) {
             this.rebuildWireSystemsAround(holder);
          }
       }
    }
 
    public IWireEmitter getEmitter(WireSystem.WireElement element) {
-      if (element.type == WireSystem.WireElement.Type.EMITTER_SIDE) {
-         if (!this.emittersCache.containsKey(element)
+      return element.type == WireSystem.WireElement.Type.EMITTER_SIDE
+            && this.world.isLoaded(element.blockPos)
             && this.world.getBlockEntity(element.blockPos) instanceof IPipeHolder holder
-            && holder.getPluggable(element.emitterSide) instanceof IWireEmitter emitter) {
-            this.emittersCache.put(element, emitter);
-         }
-
-         return this.emittersCache.get(element);
-      } else {
-         return null;
-      }
+            && holder.getPluggable(element.emitterSide) instanceof IWireEmitter emitter
+         ? emitter
+         : null;
    }
 
    public boolean isEmitterEmitting(WireSystem.WireElement element, DyeColor color) {
-      IWireEmitter emitter = this.getEmitter(element);
-      return emitter != null && emitter.isEmitting(color);
+      if (this.world.isLoaded(element.blockPos)) {
+         IWireEmitter emitter = this.getEmitter(element);
+         return emitter != null && emitter.isEmitting(color);
+      }
+
+      Set<DyeColor> colours = this.emittedColours.get(element);
+      return colours != null && colours.contains(color);
    }
 
    public void tick() {
@@ -337,8 +408,28 @@ public class SavedDataWireSystems extends SavedData {
 
                Set<WireSystem> poweredSystems = this.structureChanged ? this.wireSystems.keySet() : this.changedSystems;
 
+               if (this.structureChanged) {
+                  this.sentTopology.keySet().removeIf(id -> serverLevel.getPlayerByUUID(id) == null);
+               }
+
                for (Entry<ServerPlayer, Set<WireSystem>> entry : playerToWires.entrySet()) {
-                  PayloadWireSync payload = this.buildSyncPayload(entry.getValue(), this.structureChanged, poweredSystems, removed);
+                  Set<Integer> known = this.sentTopology.computeIfAbsent(entry.getKey().getUUID(), unused -> new HashSet<>());
+                  Set<WireSystem> topology = new HashSet<>();
+
+                  for (WireSystem wireSystem : entry.getValue()) {
+                     if (this.structureChanged || !known.contains(wireSystem.getNetworkId())) {
+                        topology.add(wireSystem);
+                     }
+                  }
+
+                  if (removed != null) {
+                     for (int id : removed) {
+                        known.remove(id);
+                     }
+                  }
+
+                  known.addAll(networkIds(topology));
+                  PayloadWireSync payload = this.buildSyncPayload(entry.getValue(), topology, poweredSystems, removed);
                   sendWireSync(entry.getKey(), payload);
                }
             }
@@ -369,18 +460,45 @@ public class SavedDataWireSystems extends SavedData {
          entriesList.add(entry);
       });
       nbt.put("entries", entriesList);
+      ListTag emittersList = new ListTag();
+      this.emittedColours.forEach((element, colours) -> {
+         if (this.elementsToWireSystemsIndex.containsKey(element)) {
+            CompoundTag entry = new CompoundTag();
+            entry.put("element", element.writeToNBT());
+            entry.putIntArray("colours", colours.stream().mapToInt(DyeColor::getId).toArray());
+            emittersList.add(entry);
+         }
+      });
+      nbt.put("emitters", emittersList);
       return nbt;
    }
 
    public void readFromTag(CompoundTag nbt) {
       this.wireSystems.clear();
       this.elementsToWireSystemsIndex.clear();
+      this.emittedColours.clear();
       ListTag entriesList = BcNbt.getList(nbt, "entries");
 
       for (int i = 0; i < entriesList.size(); i++) {
          if (entriesList.get(i) instanceof CompoundTag entry) {
             CompoundTag wsTag = BcNbt.getCompound(entry, "wireSystem");
             this.addWireSystem(new WireSystem(wsTag), BcNbt.getBoolean(entry, "powered", false));
+         }
+      }
+
+      ListTag emittersList = BcNbt.getList(nbt, "emitters");
+
+      for (int i = 0; i < emittersList.size(); i++) {
+         if (emittersList.get(i) instanceof CompoundTag entry) {
+            Set<DyeColor> colours = EnumSet.noneOf(DyeColor.class);
+
+            for (int id : BcNbt.getIntArray(entry, "colours")) {
+               colours.add(DyeColor.byId(id));
+            }
+
+            if (!colours.isEmpty()) {
+               this.emittedColours.put(new WireSystem.WireElement(BcNbt.getCompound(entry, "element")), colours);
+            }
          }
       }
 

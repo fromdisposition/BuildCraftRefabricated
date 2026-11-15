@@ -14,6 +14,7 @@ import buildcraft.api.mj.IMjReceiver;
 import buildcraft.api.mj.IMjRedstoneReceiver;
 import buildcraft.api.mj.MjAPI;
 import buildcraft.api.tiles.IDebuggable;
+import buildcraft.api.transport.EnumWirePart;
 import buildcraft.api.transport.IWireEmitter;
 import buildcraft.api.transport.pipe.IFlowFluid;
 import buildcraft.api.transport.pipe.IItemPipe;
@@ -37,6 +38,7 @@ import buildcraft.transport.pipe.Pipe;
 import buildcraft.transport.pipe.PipeEventBus;
 import buildcraft.transport.pipe.behaviour.PipeBehaviourDaizuli;
 import buildcraft.transport.pipe.flow.PipeFlowInternalAccess;
+import buildcraft.transport.pipe.flow.PipeFlowItems;
 import buildcraft.transport.pipe.flow.PipeFlowRedstoneFlux;
 import buildcraft.transport.wire.SavedDataWireSystems;
 import buildcraft.transport.wire.WireManager;
@@ -71,6 +73,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import buildcraft.lib.nbt.BcProfiler;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.Clearable;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -91,7 +94,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import team.reborn.energy.api.EnergyStorage;
 
-public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebuggable {
+public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebuggable, Clearable {
    private static final Set<TilePipeHolder> GUI_VIEWER_HOLDERS = Collections.newSetFromMap(new WeakHashMap<>());
    private static final AtomicBoolean DISCONNECT_HOOK_REGISTERED = new AtomicBoolean();
    private static final Identifier ADVANCEMENT_PIPE_DREAM = Identifier.parse("buildcrafttransport:pipe_dream");
@@ -322,6 +325,14 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
       }
    }
 
+   @Override
+   public void setLevel(Level level) {
+      super.setLevel(level);
+      if (level != null && this.pipe != null && this.pipe.flow instanceof PipeFlowItems flowItems) {
+         flowItems.anchorTimings(level.getGameTime());
+      }
+   }
+
    public void onLoad() {
       if (this.pipe != null) {
          this.pipe.onLoad();
@@ -397,6 +408,10 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    @Override
    public CompoundTag getUpdateTag(Provider registries) {
       CompoundTag tag = this.saveCustomOnly(registries);
+      if (tag.get("pipe") instanceof CompoundTag pipeTag && pipeTag.get("flow") instanceof CompoundTag flowTag) {
+         PipeFlowItems.limitItemsForClient(flowTag);
+      }
+
       CompoundTag plugsClient = new CompoundTag();
 
       for (Direction face : Direction.values()) {
@@ -413,6 +428,18 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
          tag.put("plugsClient", plugsClient);
       }
 
+      int poweredWires = 0;
+
+      for (EnumWirePart part : this.wireManager.parts.keySet()) {
+         if (this.wireManager.isPowered(part)) {
+            poweredWires |= 1 << part.ordinal();
+         }
+      }
+
+      if (poweredWires != 0) {
+         tag.putInt("wiresPowered", poweredWires);
+      }
+
       return tag;
    }
 
@@ -421,6 +448,15 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
    // "plugsClient" and leaving the pluggables themselves never created client-side.
 
    private void applyClientUpdateData(BcValueIn input) {
+      int poweredWires = input.getIntOr("wiresPowered", 0);
+      this.wireManager.poweredClient.clear();
+
+      for (EnumWirePart part : EnumWirePart.VALUES) {
+         if ((poweredWires & 1 << part.ordinal()) != 0) {
+            this.wireManager.poweredClient.add(part);
+         }
+      }
+
       input.read("plugsClient", CompoundTag.CODEC).ifPresent(plugsClient -> {
          for (Direction face : Direction.values()) {
             PipePluggable plug = this.pluggables[face.ordinal()];
@@ -789,6 +825,13 @@ public class TilePipeHolder extends BlockEntity implements IPipeHolder, IDebugga
                }
             }
          }
+      }
+   }
+
+   @Override
+   public void clearContent() {
+      if (this.pipe != null && this.pipe.flow instanceof PipeFlowItems flowItems) {
+         flowItems.clearItems();
       }
    }
 
